@@ -1,7 +1,3 @@
-SOUL ALIGNED STRATEGY CODE FOR EVERGREEN
-TRUE OWNERSHIP
-OWN IT PERSONAL CODE
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
 const KEYS = {
