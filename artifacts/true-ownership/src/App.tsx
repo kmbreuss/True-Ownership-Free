@@ -494,14 +494,14 @@ function AIChat({ voiceId, onVoiceChange, name, intake, mapData, sectionLabel, p
         <textarea ref={inputRef} rows={2}
           placeholder={placeholder || `Ask Katherine about your ${sectionLabel || "progress"}...`}
           className="to-field"
-          onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send(); }}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           style={{ flex: 1, minHeight: 52, fontSize: 13, padding: "9px 11px", borderRadius: 8 }} />
         <button onClick={send} disabled={loading}
           style={{ background: loading ? "var(--bg4)" : v.color, border: "none", borderRadius: 8, color: loading ? "var(--text4)" : "#000", cursor: loading ? "not-allowed" : "pointer", fontSize: 18, padding: "11px 15px", transition: "all .2s", lineHeight: 1 }}>
           →
         </button>
       </div>
-      <div style={{ fontSize: 11, color: "var(--text3)", textAlign: "right", padding: "0 11px 7px" }}>⌘ + Enter to send</div>
+      <div style={{ fontSize: 11, color: "var(--text3)", textAlign: "right", padding: "0 11px 7px" }}>Enter to send · Shift+Enter for new line</div>
     </div>
   );
 }
@@ -776,6 +776,7 @@ function SoWhatLayer({ index, value, onChange, isLatest, onGoDeeper, onReachedBo
             style={{ background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.3)", borderRadius: 20, color: "var(--warm)", cursor: "pointer", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 700, padding: "7px 18px" }}>
             ✓ I've reached the bottom
           </button>
+          {index >= 1 && <button onClick={onReachedBottom} disabled={loading} style={{ background: "none", border: "1px solid rgba(201,168,76,.3)", borderRadius: 20, color: "var(--warm)", cursor: "pointer", fontFamily: "var(--sans)", fontSize: 12, fontWeight: 500, padding: "7px 18px" }}>✓ Save this layer</button>}
         </div>
       )}
     </div>
@@ -786,6 +787,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(!!purposeResult);
   const [sessionKey, setSessionKey] = useState(0);
+  const [peelingExpanded, setPeelingExpanded] = useState(false);
   const sessions = allSessions || [];
 
   const updateLayer = useCallback((i, val) => {
@@ -897,12 +899,19 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
         </div>
       </div>
 
-      {layers.map((layer, i) => (
-        <SoWhatLayer key={`${sessionKey}-${i}`} index={i} value={layer}
-          onChange={v => updateLayer(i, v)}
-          isLatest={i === latestIndex} onGoDeeper={goDeeper}
-          onReachedBottom={reachedBottom} loading={loading} done={done} />
-      ))}
+      {done && !peelingExpanded ? (
+        <div style={{ padding: "12px 14px", background: "var(--bg3)", border: "1px solid var(--border2)", borderRadius: 10, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ fontFamily: "var(--serif)", fontSize: 14, fontStyle: "italic", color: "var(--text2)", lineHeight: 1.6, flex: 1 }}>"{purposeFinal || "Purpose draft saved"}"</div>
+          <button onClick={() => setPeelingExpanded(true)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 20, color: "var(--text3)", cursor: "pointer", fontFamily: "var(--sans)", fontSize: 11, padding: "5px 13px", flexShrink: 0, whiteSpace: "nowrap" }}>▾ Show peeling layers</button>
+        </div>
+      ) : (
+        layers.map((layer, i) => (
+          <SoWhatLayer key={`${sessionKey}-${i}`} index={i} value={layer}
+            onChange={v => updateLayer(i, v)}
+            isLatest={i === latestIndex} onGoDeeper={goDeeper}
+            onReachedBottom={reachedBottom} loading={loading} done={done} />
+        ))
+      )}
 
       {loading && (
         <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 0", color: "var(--warm)" }}>
@@ -1117,7 +1126,7 @@ function A1({ intake, onDone }) {
   const v = VOICES[voice];
 
   const hdr = (
-    <div style={{ borderBottom: "1px solid #1a1a16", padding: "11px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: "rgba(7,7,6,.96)", backdropFilter: "blur(12px)", zIndex: 50 }}>
+    <div style={{ borderBottom: "1px solid #1a1a16", padding: "11px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: "rgba(13,27,46,.96)", backdropFilter: "blur(12px)", zIndex: 50 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--warm)", animation: "pulse 3s ease-in-out infinite" }} />
         <div style={{ fontFamily: "var(--sans)", fontSize: 13, fontWeight: 700 }}>True Ownership</div>
