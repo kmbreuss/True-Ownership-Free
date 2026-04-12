@@ -512,12 +512,12 @@ function VideoBlock({ title, duration, points }) {
       <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(201,168,76,.1)", border: "1px solid rgba(201,168,76,.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--warm)", fontSize: 13 }}>▶</div>
       <div style={{ flex: 1 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-          <div style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 400, color: "var(--text)", lineHeight: 1.3 }}>{title}</div>
+          <div style={{ fontFamily: "var(--sans)", fontSize: 14, fontWeight: 400, color: "#e8e4dc", lineHeight: 1.3 }}>{title}</div>
           <div style={{ fontSize: 11, color: "var(--text4)", flexShrink: 0, marginLeft: 10 }}>{duration}</div>
         </div>
-        <div style={{ fontSize: 11, color: "var(--text4)", textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 5, fontWeight: 500 }}>Katherine covers:</div>
+        <div style={{ fontSize: 11, color: "#7a9bb0", textTransform: "uppercase", letterSpacing: 1.4, marginBottom: 5, fontWeight: 500 }}>Katherine covers:</div>
         {points.map((p, i) => (
-          <div key={i} style={{ fontSize: 12, color: "var(--text3)", lineHeight: 1.6, paddingLeft: 9, position: "relative", marginBottom: 2 }}>
+          <div key={i} style={{ fontSize: 12, color: "#9eb3c2", lineHeight: 1.6, paddingLeft: 9, position: "relative", marginBottom: 2 }}>
             <span style={{ position: "absolute", left: 0, color: "var(--warm)" }}>·</span>{p}
           </div>
         ))}
