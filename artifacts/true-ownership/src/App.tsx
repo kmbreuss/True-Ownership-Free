@@ -786,7 +786,7 @@ function SoWhatLayer({ index, value, onChange, isLatest, onGoDeeper, onReachedBo
 function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalChange, purposeResult, onResult, name, intake, allSessions, onSessionSave }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(!!purposeResult);
-  const [sessionKey, setSessionKey] = useState(0);
+  const [peelingExpanded, setPeelingExpanded] = useState(false);
   const [peelingExpanded, setPeelingExpanded] = useState(false);
   const sessions = allSessions || [];
 
