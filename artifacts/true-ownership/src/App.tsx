@@ -906,12 +906,16 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
           <button onClick={() => setPeelingExpanded(true)} style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px" }}>▾ Show peeling layers</button>
         </div>
       )}
-      {(!done || peelingExpanded) && layers.map((layer, i) => (
-        <SoWhatLayer key={`${sessionKey}-${i}`} index={i} value={layer}
-          onChange={v => updateLayer(i, v)}
-          isLatest={i === latestIndex} onGoDeeper={goDeeper}
-          onReachedBottom={reachedBottom} loading={loading} done={done} />
-      ))}
+      {(!done || peelingExpanded) && (
+        <>
+          {layers.map((layer, i) => (
+            <SoWhatLayer key={`${sessionKey}-${i}`} index={i} value={layer}
+              onChange={v => updateLayer(i, v)}
+              isLatest={i === latestIndex} onGoDeeper={goDeeper}
+              onReachedBottom={reachedBottom} loading={loading} done={done} />
+          ))}
+        </>
+      )}
 
       {loading && (
         <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 0", color: "var(--warm)" }}>
