@@ -555,7 +555,7 @@ function Intake({ onDone }) {
 
   const screens = [
     <div key="n" className="fade-up" style={{ maxWidth: 480 }}>
-      <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: 3, textTransform: "uppercase", color: "var(--text4)", marginBottom: 11, fontFamily: "var(--sans)" }}>AG45 · True Ownership</div>
+      <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase", color: "#c9a84c", marginBottom: 11, fontFamily: "var(--sans)" }}>AG45 · True Ownership</div>
       <h1 style={{ fontFamily: "var(--serif)", fontSize: 48, fontWeight: 400, lineHeight: 1.05, letterSpacing: "-0.5px", marginBottom: 14 }}>This is where<br /><em>ownership begins.</em></h1>
       <p style={{ fontSize: 15, color: "var(--text)", lineHeight: 1.8, maxWidth: 400, marginBottom: 28 }}>Not the business kind. The kind that changes everything — how you show up, what you build, who you become.</p>
       <label style={{ display: "block", fontFamily: "var(--sans)", fontSize: 13, color: "var(--text3)", marginBottom: 7 }}>What's your first name?</label>
@@ -1745,10 +1745,10 @@ export default function App() {
   const doneIntake = async (data) => { setIntake(data); await saveData(KEYS.intake, data); await saveData(KEYS.phase, "a1"); setPhase("a1"); };
   const doneA1 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
 
-  if (phase === "loading") return <div style={{ minHeight: "100vh", background: "#070706", display: "flex", alignItems: "center", justifyContent: "center" }}><style>{CSS}</style><div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "#3d3d38", letterSpacing: 2, animation: "pulse 1.5s infinite" }}>Loading…</div></div>;
+  if (phase === "loading") return <div style={{ minHeight: "100vh", background: "#0d1b2e", display: "flex", alignItems: "center", justifyContent: "center" }}><style>{CSS}</style><div style={{ fontFamily: "var(--sans)", fontSize: 12, color: "#3d3d38", letterSpacing: 2, animation: "pulse 1.5s infinite" }}>Loading…</div></div>;
 
   return (
-    <div style={{ background: "#070706", minHeight: "100vh" }}>
+    <div style={{ background: "#0d1b2e", minHeight: "100vh" }}>
       <style>{CSS}</style>
       {phase === "intake" && <Intake onDone={doneIntake} />}
       {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} />}
