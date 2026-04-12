@@ -914,14 +914,13 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
               isLatest={i === latestIndex} onGoDeeper={goDeeper}
               onReachedBottom={reachedBottom} loading={loading} done={done} />
           ))}
+          {loading && (
+            <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 0", color: "var(--warm)" }}>
+              <span className="dot-l"><span /><span /><span /></span>
+              <span style={{ fontFamily: "var(--sans)", fontSize: 13 }}>Katherine is reading your layers...</span>
+            </div>
+          )}
         </>
-      )}
-
-      {loading && (
-        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 0", color: "var(--warm)" }}>
-          <span className="dot-l"><span /><span /><span /></span>
-          <span style={{ fontFamily: "var(--sans)", fontSize: 13 }}>Katherine is reading your layers...</span>
-        </div>
       )}
 
       {purposeResult && (
