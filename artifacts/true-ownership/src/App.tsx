@@ -788,7 +788,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
   const [done, setDone] = useState(!!purposeResult);
   const [sessionKey, setSessionKey] = useState(0);
   const [peelingExpanded, setPeelingExpanded] = useState(false);
-  const [peelingExpanded, setPeelingExpanded] = useState(false);
   const sessions = allSessions || [];
 
   const updateLayer = useCallback((i, val) => {
@@ -873,7 +872,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
     onResult(null);
     onFinalChange(""); // clear the pre-filled draft so new session starts fresh
     setDone(false);
-    setPeelingExpanded(false);
     setSessionKey(k => k + 1);
   }, [onLayersChange, onResult, onFinalChange]);
 
@@ -901,12 +899,12 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
         </div>
       </div>
 
-      {done && !peelingExpanded && ( (
+      {done && !peelingExpanded ? (
         <div style={{ padding: "12px 14px", background: "var(--bg3)", border: "1px solid var(--border2)", borderRadius: 10, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div style={{ fontFamily: "var(--serif)", fontSize: 14, fontStyle: "italic", color: "var(--text2)", lineHeight: 1.6, flex: 1 }}>"{purposeFinal || "Purpose draft saved"}"</div>
           <button onClick={() => setPeelingExpanded(true)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 20, color: "var(--text3)", cursor: "pointer", fontFamily: "var(--sans)", fontSize: 11, padding: "5px 13px", flexShrink: 0, whiteSpace: "nowrap" }}>▾ Show peeling layers</button>
         </div>
-      {(!done || peelingExpanded) && (
+      ) : (
         layers.map((layer, i) => (
           <SoWhatLayer key={`${sessionKey}-${i}`} index={i} value={layer}
             onChange={v => updateLayer(i, v)}
@@ -922,7 +920,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
         </div>
       )}
 
-      }{purposeResult && (
+      {purposeResult && (
         <div className="fade-in" style={{ marginTop: 8 }}>
           {purposeResult._error && (
             <div style={{ padding: "8px 12px", background: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.2)", borderRadius: 7, marginBottom: 10 }}>
