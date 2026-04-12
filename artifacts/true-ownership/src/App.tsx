@@ -899,19 +899,19 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
         </div>
       </div>
 
-      {done && !peelingExpanded ? (
-        <div style={{ padding: "12px 14px", background: "var(--bg3)", border: "1px solid var(--border2)", borderRadius: 10, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-          <div style={{ fontFamily: "var(--serif)", fontSize: 14, fontStyle: "italic", color: "var(--text2)", lineHeight: 1.6, flex: 1 }}>"{purposeFinal || "Purpose draft saved"}"</div>
-          <button onClick={() => setPeelingExpanded(true)} style={{ background: "none", border: "1px solid var(--border2)", borderRadius: 20, color: "var(--text3)", cursor: "pointer", fontFamily: "var(--sans)", fontSize: 11, padding: "5px 13px", flexShrink: 0, whiteSpace: "nowrap" }}>▾ Show peeling layers</button>
+      {done && !peelingExpanded && (
+        <div className="fade-in" style={{ marginBottom:14, padding:"12px 14px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6 }}>Your purpose statement</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6, marginBottom:10 }}>"{purposeFinal || "Not yet written"}"</div>
+          <button onClick={() => setPeelingExpanded(true)} style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px" }}>▾ Show peeling layers</button>
         </div>
-      ) : (
-        layers.map((layer, i) => (
-          <SoWhatLayer key={`${sessionKey}-${i}`} index={i} value={layer}
-            onChange={v => updateLayer(i, v)}
-            isLatest={i === latestIndex} onGoDeeper={goDeeper}
-            onReachedBottom={reachedBottom} loading={loading} done={done} />
-        ))
       )}
+      {(!done || peelingExpanded) && layers.map((layer, i) => (
+        <SoWhatLayer key={`${sessionKey}-${i}`} index={i} value={layer}
+          onChange={v => updateLayer(i, v)}
+          isLatest={i === latestIndex} onGoDeeper={goDeeper}
+          onReachedBottom={reachedBottom} loading={loading} done={done} />
+      ))}
 
       {loading && (
         <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "12px 0", color: "var(--warm)" }}>
