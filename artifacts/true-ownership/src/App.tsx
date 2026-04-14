@@ -89,7 +89,9 @@ function buildFullContext(name, intake, mapData) {
     lines.push(`\nIdentity animals:`);
     animals.forEach(a => lines.push(`  "${a.adjective1}${a.adjective2 ? `, ${a.adjective2}` : ""} ${a.name}" -- alignment ${a.alignment}/10`));
   }
-  if (mapData?.identity_adjectives) lines.push(`Qualities brain dump: "${mapData.identity_adjectives}"`);
+  const chipLabels = (mapData?.identity_chips || []).map(c => c.label);
+  const qualitiesStr = chipLabels.length > 0 ? chipLabels.join(", ") : (mapData?.identity_adjectives || "");
+  if (qualitiesStr) lines.push(`Qualities: "${qualitiesStr}"`);
   if (mapData?.capabilities_note) lines.push(`Superpowers note: "${mapData.capabilities_note}"`);
   const values = (mapData?.values || []).filter(v => v.name);
   if (values.length > 0) {
@@ -183,6 +185,13 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .sidebar-btn.active{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.3);}
 .to-field.summary-field::placeholder{font-family:var(--sans);font-style:normal;font-size:13px;color:var(--text3);opacity:.6;}
 .to-field.summary-field{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.7;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-family:var(--sans);font-size:12px;transition:all .15s;user-select:none;}
+.chip-gold{background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.35);color:var(--warm);}
+.chip-green{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:#34d399;}
+.chip-red{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;cursor:pointer;}
+.chip-red:hover{background:rgba(239,68,68,.18);}
+.chip-drag{cursor:grab;}.chip-drag:active{cursor:grabbing;}
+.drop-zone{transition:border-color .2s,background .2s;}.drop-zone.over{background:rgba(201,168,76,.04);}
 `;
 
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
@@ -1118,6 +1127,7 @@ const EMPTY_MAP = {
   lovedones_who: "", lovedones_input: "", lovedones_reflection: "",
   bag_growth: "",
   identity_adjectives: "",
+  identity_chips: [],
   animals: [{ name:"", adjective1:"", adjective2:"", alignment:5 }],
   capabilities_note: "",
   values_irks: "",
@@ -1469,6 +1479,8 @@ function A1({ intake, onDone }) {
   const [ai, setAi] = useState({});
   const [busy, setBusy] = useState({});
   const [savedAt, setSavedAt] = useState(null);
+  const [chipInput, setChipInput] = useState("");
+  const [dragOver, setDragOver] = useState(null);
   const saveTimer = useRef(null);
   const { name } = intake;
 
@@ -1489,6 +1501,27 @@ function A1({ intake, onDone }) {
   const set = useCallback((key, val) => {
     setMap(prev => { const next = { ...prev, [key]:val }; saveMap(next); return next; });
   }, [saveMap]);
+
+  // Auto-seed capabilities from chips when entering capabilities step
+  useEffect(() => {
+    if (map.mirror2_sub !== "capabilities") return;
+    const animals = map.animals || [];
+    const chips = map.identity_chips || [];
+    if (!chips.length) return;
+    let changed = false;
+    const nextAnimals = animals.map((animal, i) => {
+      if ((animal.capabilities || []).some(c => c.name)) return animal;
+      const assigned = chips.filter(c => c.assignedTo === i);
+      if (!assigned.length) return animal;
+      changed = true;
+      return { ...animal, capabilities: assigned.map(ch => ({ name: ch.label, description:"", example1:"", example2:"", score:7 })) };
+    });
+    if (!changed) return;
+    const next = { ...map, animals: nextAnimals };
+    setMap(next);
+    saveMap(next);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map.mirror2_sub]);
 
   const setVoicePersist = (v) => { setVoice(v); saveData(KEYS.voice, v); };
   const goto = (s) => { setStep(s); saveData(KEYS.step, s); window.scrollTo({ top:0, behavior:"smooth" }); };
@@ -1877,13 +1910,14 @@ function A1({ intake, onDone }) {
 
     // Sub-step progress
     const M2Progress = () => {
-      const order = ["qualities","capabilities","pressure","lovedones"];
+      const order = ["qualities","capabilities","pressure","lovedones","myidentity"];
       const currentIdx = order.indexOf(m2sub);
       const steps = [
         { id:"qualities",    label:"Qualities", icon:"✦" },
         { id:"capabilities", label:"Capabilities", icon:"⚡" },
         { id:"pressure",     label:"Under Pressure", icon:"🔥" },
         { id:"lovedones",    label:"Loved Ones", icon:"🤝" },
+        { id:"myidentity",   label:"My Identity", icon:"🌟" },
       ];
       return (
         <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:22 }}>
@@ -1897,9 +1931,9 @@ function A1({ intake, onDone }) {
                     onClick={() => isDone && set("mirror2_sub", s.id)}>
                     {isDone ? <span style={{ fontSize:12, color:"#34d399" }}>✓</span> : <span>{s.icon}</span>}
                   </div>
-                  <span style={{ fontSize:9, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", textTransform:"uppercase", whiteSpace:"nowrap", maxWidth:60, textAlign:"center", lineHeight:1.3 }}>{s.label}</span>
+                  <span style={{ fontSize:9, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", textTransform:"uppercase", whiteSpace:"nowrap", maxWidth:52, textAlign:"center", lineHeight:1.3 }}>{s.label}</span>
                 </div>
-                {i < 3 && <div style={{ flex:1, height:1, background: order.indexOf(steps[i+1].id) <= currentIdx ? "#34d399" : "var(--border2)", margin:"0 6px", marginBottom:22 }} />}
+                {i < 4 && <div style={{ flex:1, height:1, background: order.indexOf(steps[i+1].id) <= currentIdx ? "#34d399" : "var(--border2)", margin:"0 4px", marginBottom:22 }} />}
               </React.Fragment>
             );
           })}
@@ -1909,57 +1943,139 @@ function A1({ intake, onDone }) {
 
     // ── STEP 1: QUALITIES & ANIMALS ──────────────────────────────────────────
     if (m2sub === "qualities") {
-      const wordCount = (map.identity_adjectives || "").split(",").map(w => w.trim()).filter(w => w.length > 0).length;
-      const hasEnoughQualities = wordCount >= 5;
+      const chips = map.identity_chips || [];
+      const hasEnoughQualities = chips.length >= 5;
       const hasThreeAnimals = validAnimals.length >= 3;
       const aiUnlocked = hasEnoughQualities && hasThreeAnimals;
+
+      const addQualityChip = (label) => {
+        const t = label.trim();
+        if (!t || chips.find(c => c.label.toLowerCase() === t.toLowerCase())) return;
+        set("identity_chips", [...chips, { id:`c${Date.now()}`, label: t, assignedTo: null }]);
+        setChipInput("");
+      };
+      const removeQualityChip = (id) => {
+        const newChips = chips.filter(c => c.id !== id);
+        set("identity_chips", newChips);
+        const nextAnimals = m2animals.map((a, i) => ({
+          ...a, adjective1: newChips.filter(c => c.assignedTo === i).map(c => c.label).join(", ")
+        }));
+        set("animals", nextAnimals);
+      };
+      const assignChipToAnimal = (chipId, animalIdx) => {
+        const newChips = chips.map(c => c.id === chipId ? { ...c, assignedTo: animalIdx } : c);
+        set("identity_chips", newChips);
+        const base = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adjective1:"" })];
+        base[animalIdx] = { ...base[animalIdx], adjective1: newChips.filter(c => c.assignedTo === animalIdx).map(c => c.label).join(", ") };
+        set("animals", base);
+      };
+      const applyAISuggestions = () => {
+        const sort = ai.identity_sort;
+        if (!sort) return;
+        const newChips = [...chips];
+        const base = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adjective1:"" })];
+        ["animal1","animal2","animal3"].forEach((key, idx) => {
+          const s = sort[key];
+          if (!s || idx >= m2animals.length) return;
+          const animalName = (s.name || "").toLowerCase();
+          const targetIdx = m2animals.findIndex(a => a.name.toLowerCase() === animalName);
+          const ti = targetIdx >= 0 ? targetIdx : idx;
+          (s.qualities || []).forEach(q => {
+            const ci = newChips.findIndex(c => c.label.toLowerCase() === q.toLowerCase());
+            if (ci >= 0) newChips[ci] = { ...newChips[ci], assignedTo: ti };
+          });
+          base[ti] = { ...base[ti], adjective1: newChips.filter(c => c.assignedTo === ti).map(c => c.label).join(", ") };
+        });
+        set("identity_chips", newChips);
+        set("animals", base);
+      };
 
       return wrapContent(<>
         <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 1</div>
         {M2Progress()}
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Identity</h2>
         <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
-          Start with yourself. Write the qualities that describe you at your best -- unfiltered. Then choose 3 animals and sort your qualities to each one.
+          Start with yourself. Write the qualities that describe you at your best -- unfiltered. Then drag them to your animals.
         </p>
         <VideoBlock title="Identity -- Who You Are at Your Best" duration="~6 min"
           points={["Why we anchor identity to animals -- images over word lists","The two-adjective rule -- specific to you, not the generic animal","How to sort your qualities without overthinking it","You write first. The board advises after."]} />
-
         <div style={{ padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.14)", borderRadius:9, marginBottom:20 }}>
           <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>
             "You are the authority on your own identity. Write your qualities first. Then sort them to your animals. The AI can suggest -- you decide."
           </div>
         </div>
 
-        {/* Brain dump */}
+        {/* Chip input */}
         <div style={{ marginBottom:22 }}>
           <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>Step 1 -- Brain dump your qualities (aim for 15–30)</div>
-          <div style={{ fontSize:12, color:"var(--text3)", marginBottom:10, lineHeight:1.6 }}>Every word that describes you at your best. Comma separated. Don't filter.</div>
-          <TextArea value={map.identity_adjectives} onChange={v => set("identity_adjectives", v)} rows={4}
-            placeholder="resilient, visionary, playful, intense, strategic, nurturing, decisive, creative, loyal, curious..." />
-          <div style={{ fontSize:11, color:"var(--text4)", marginTop:5 }}>{wordCount} {wordCount === 1 ? "quality" : "qualities"}</div>
+          <div style={{ fontSize:12, color:"var(--text3)", marginBottom:10, lineHeight:1.6 }}>Every quality that describes you at your best. Hit Enter or click Add. Then drag chips to your animals.</div>
+          <div style={{ display:"flex", gap:7, marginBottom:10 }}>
+            <input className="to-field" value={chipInput} onChange={e => setChipInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addQualityChip(chipInput); } }}
+              placeholder="Type a quality and press Enter..." style={{ flex:1, padding:"9px 13px", fontSize:13, borderRadius:8 }} />
+            <button onClick={() => addQualityChip(chipInput)}
+              style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, padding:"0 16px", flexShrink:0 }}>
+              Add
+            </button>
+          </div>
+          {chips.length > 0 ? (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6, padding:"10px 12px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, minHeight:48 }}>
+              {chips.map(chip => {
+                const isAssigned = chip.assignedTo !== null && chip.assignedTo !== undefined;
+                const animalName = isAssigned && m2animals[chip.assignedTo] ? m2animals[chip.assignedTo].name : null;
+                return (
+                  <div key={chip.id} className={`chip chip-drag ${isAssigned ? "chip-green" : "chip-gold"}`}
+                    draggable onDragStart={e => e.dataTransfer.setData("chipId", chip.id)}
+                    title={animalName ? `Assigned to ${animalName}` : "Drag to an animal"}>
+                    {isAssigned && <span style={{ fontSize:10 }}>✓</span>}
+                    {chip.label}
+                    <button onClick={() => removeQualityChip(chip.id)}
+                      style={{ background:"none", border:"none", color:"inherit", cursor:"pointer", fontSize:14, padding:"0 0 0 3px", lineHeight:1, opacity:.6 }}>×</button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ padding:"14px", background:"var(--bg3)", border:"1.5px dashed var(--border2)", borderRadius:9, textAlign:"center", color:"var(--text4)", fontSize:12, fontStyle:"italic" }}>
+              Your quality chips will appear here — drag them to animals below
+            </div>
+          )}
+          <div style={{ fontSize:11, color:"var(--text4)", marginTop:5 }}>{chips.length} {chips.length === 1 ? "quality" : "qualities"} · {chips.filter(c => c.assignedTo !== null && c.assignedTo !== undefined).length} assigned</div>
         </div>
 
-        {/* 3 animals */}
+        {/* 3 animal drop zones */}
         <div style={{ marginBottom:22 }}>
           <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>Step 2 -- Choose exactly 3 animals</div>
-          <div style={{ fontSize:12, color:"var(--text3)", marginBottom:12, lineHeight:1.6 }}>Which 3 animals best represent different sides of who you are? Trust your instinct.</div>
+          <div style={{ fontSize:12, color:"var(--text3)", marginBottom:12, lineHeight:1.6 }}>Name each animal, then drag your quality chips onto them.</div>
           {[0,1,2].map(i => {
             const a = m2animals[i] || { name:"", adjective1:"" };
-            const setAnimal = (field, val) => {
+            const assignedChips = chips.filter(c => c.assignedTo === i);
+            const setAnimalName = (val) => {
               const next = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adjective1:"" })];
-              next[i] = { ...next[i], [field]: val };
+              next[i] = { ...next[i], name: val };
               set("animals", next);
             };
             return (
-              <div key={i} style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, marginBottom:10, padding:"13px 15px" }}>
+              <div key={i}
+                className={`drop-zone${dragOver === i ? " over" : ""}`}
+                style={{ background:"var(--bg3)", border:`1.5px ${dragOver === i ? "dashed rgba(201,168,76,.6)" : "solid var(--border2)"}`, borderRadius:9, marginBottom:10, padding:"13px 15px" }}
+                onDragOver={e => { e.preventDefault(); setDragOver(i); }}
+                onDragLeave={() => setDragOver(null)}
+                onDrop={e => { e.preventDefault(); setDragOver(null); const id = e.dataTransfer.getData("chipId"); if (id) assignChipToAnimal(id, i); }}>
                 <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:9 }}>Animal {i+1}</div>
-                <TextInput value={a.name || ""} onChange={v => setAnimal("name", v)}
-                  placeholder={["e.g. Lion","e.g. Eagle","e.g. Dolphin"][i]} style={{ fontSize:13, marginBottom:8 }} />
-                {a.name && (
-                  <div style={{ marginTop:6 }}>
-                    <div style={{ fontSize:11, color:"var(--text4)", marginBottom:6 }}>From your qualities -- which ones fit this animal? (comma separated)</div>
-                    <TextInput value={a.adjective1 || ""} onChange={v => setAnimal("adjective1", v)}
-                      placeholder="e.g. strategic, decisive, bold" style={{ fontSize:13 }} />
+                <TextInput value={a.name || ""} onChange={setAnimalName}
+                  placeholder={["e.g. Lion","e.g. Eagle","e.g. Dolphin"][i]} style={{ fontSize:13, marginBottom:10 }} />
+                {assignedChips.length > 0 ? (
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                    {assignedChips.map(chip => (
+                      <span key={chip.id} className="chip chip-green" style={{ fontSize:11 }}>
+                        <span style={{ fontSize:10 }}>✓</span>{chip.label}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding:"9px", border:"1.5px dashed rgba(201,168,76,.2)", borderRadius:7, textAlign:"center", color:"var(--text4)", fontSize:11, fontStyle:"italic" }}>
+                    {a.name ? "Drop quality chips here" : "Name this animal first"}
                   </div>
                 )}
               </div>
@@ -1974,15 +2090,16 @@ function A1({ intake, onDone }) {
           </div>
           <div style={{ fontSize:12, color:"var(--text3)", marginBottom:10, lineHeight:1.5 }}>
             {aiUnlocked
-              ? "You have written your qualities and chosen your animals. The AI can now suggest how to sort them -- you decide whether it is right."
-              : "Write at least 5 qualities and name all 3 animals first -- you lead, the board advises."
+              ? "You have your qualities and animals. The AI can suggest how to sort them -- you decide."
+              : "Add at least 5 qualities and name all 3 animals first -- you lead, the board advises."
             }
           </div>
           {aiUnlocked && !ai.identity_sort && (
             <button onClick={() => {
+              const qualityList = chips.map(c => c.label).join(", ");
               const animalNames = validAnimals.map(a => a.name).join(", ");
               runAI("identity_sort",
-                `You are a mirror -- not an authority. ${name} has written these qualities: "${map.identity_adjectives || ""}" Their 3 animals are: ${animalNames}. Suggest how to sort the qualities to each animal -- 3 to 5 per animal. Explain briefly why each grouping makes sense. Respond ONLY with valid JSON, no other text: {"animal1":{"name":"...","qualities":["..."],"reason":"..."},"animal2":{"name":"...","qualities":["..."],"reason":"..."},"animal3":{"name":"...","qualities":["..."],"reason":"..."}}`
+                `You are a mirror -- not an authority. ${name} has written these qualities: "${qualityList}". Their 3 animals are: ${animalNames}. Suggest how to sort the qualities to each animal -- 3 to 5 per animal. Explain briefly why each grouping makes sense. Respond ONLY with valid JSON, no other text: {"animal1":{"name":"...","qualities":["..."],"reason":"..."},"animal2":{"name":"...","qualities":["..."],"reason":"..."},"animal3":{"name":"...","qualities":["..."],"reason":"..."}}`
               );
             }}
               style={{ background:"none", border:"1px solid rgba(201,168,76,.3)", borderRadius:20, color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, padding:"7px 16px" }}>
@@ -2003,6 +2120,10 @@ function A1({ intake, onDone }) {
                   <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>{ai.identity_sort[k].reason}</div>
                 </div>
               ) : null)}
+              <button onClick={applyAISuggestions}
+                style={{ marginTop:6, background:"none", border:"1px solid rgba(52,211,153,.4)", borderRadius:20, color:"#34d399", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, padding:"7px 16px" }}>
+                ✦ Add AI suggestions to my animals
+              </button>
             </div>
           )}
         </div>
@@ -2140,11 +2261,32 @@ function A1({ intake, onDone }) {
               <span style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>{animal.name}</span>
               {animal.adjective1 && <span style={{ fontSize:11, color:"var(--text4)" }}>· {animal.adjective1}</span>}
             </div>
+            {(animal.capabilities || []).filter(c => c.name).length > 0 && (
+              <div style={{ padding:"9px 12px", background:"rgba(167,139,250,.07)", border:"1px solid rgba(167,139,250,.2)", borderRadius:8, marginBottom:12 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:5 }}>Capabilities when this animal thrives</div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                  {(animal.capabilities || []).filter(c => c.name).map((cap, ci) => (
+                    <span key={ci} style={{ fontSize:11, padding:"2px 9px", background:"rgba(167,139,250,.1)", border:"1px solid rgba(167,139,250,.2)", borderRadius:12, color:"#a78bfa" }}>{cap.name}</span>
+                  ))}
+                </div>
+              </div>
+            )}
             <label style={{ display:"block", fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", marginBottom:6 }}>
               When this animal is under pressure -- how do you actually show up?
             </label>
             <div style={{ fontSize:12, color:"var(--text4)", marginBottom:8, lineHeight:1.5 }}>
-              Not how you want to show up. What actually happens -- the patterns you know about yourself.
+              Tap a word to add it, or write freely below.
+            </div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:10 }}>
+              {["withdraw","shut down","people-please","overthink","freeze","blame","control","numb","deflect","go quiet","get reactive","spiral","over-explain","self-abandon"].map(word => (
+                <button key={word} className="chip chip-red"
+                  onClick={() => {
+                    const cur = animal.under_pressure || "";
+                    updatePressure(cur ? cur + ", " + word : word);
+                  }}>
+                  {word}
+                </button>
+              ))}
             </div>
             <TextArea value={animal.under_pressure || ""} onChange={updatePressure} rows={4}
               placeholder="When things go wrong and this animal takes over, I tend to..." style={{ fontSize:13 }} />
@@ -2154,6 +2296,71 @@ function A1({ intake, onDone }) {
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror2_sub", "capabilities")}>← Capabilities</button>
         <button className="btn" onClick={() => set("mirror2_sub", "lovedones")}>Loved Ones →</button>
+      </div>
+    </>);
+
+    // ── STEP 5: MY IDENTITY ──────────────────────────────────────────────────
+    if (m2sub === "myidentity") return wrapContent(<>
+      <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 5</div>
+      {M2Progress()}
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>My Identity</h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+        This is your synthesis. For each animal, rate how fully you're living each capability right now — and be honest about how you show up under pressure.
+      </p>
+      {validAnimals.length === 0 && (
+        <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your animals first.</div>
+      )}
+      {validAnimals.map((animal, i) => {
+        const caps = (animal.capabilities || []).filter(c => c.name);
+        const pressureText = animal.under_pressure || "";
+        return (
+          <div key={i} style={{ marginBottom:22, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
+            <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", marginBottom:14 }}>{animal.name}</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+              {/* Left: capability sliders */}
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Capabilities</div>
+                {caps.length === 0 ? (
+                  <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>
+                    Go to Step 2 · Capabilities to add capabilities for this animal.
+                  </div>
+                ) : caps.map((cap, ci) => {
+                  const storeKey = `align_cap_${i}_${ci}`;
+                  const score = map[storeKey] ?? 5;
+                  const col = score >= 7 ? "#34d399" : score >= 4 ? "#f59e0b" : "#ef4444";
+                  return (
+                    <div key={ci} style={{ marginBottom:14 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                        <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{cap.name}</span>
+                        <span style={{ fontSize:13, fontWeight:700, color:col }}>{score}/10</span>
+                      </div>
+                      <input type="range" min={1} max={10} step={1} value={score}
+                        onChange={e => set(storeKey, Number(e.target.value))}
+                        style={{ width:"100%", accentColor: col }} />
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Right: under pressure */}
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#ef4444", marginBottom:10 }}>Under Pressure</div>
+                {pressureText ? (
+                  <div style={{ padding:"10px 12px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:8 }}>
+                    <div style={{ fontSize:12, color:"var(--text2)", lineHeight:1.6 }}>{pressureText}</div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>
+                    Go to Step 3 · Under Pressure to fill this in.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => set("mirror2_sub", "lovedones")}>← Loved Ones</button>
+        <button className="btn" onClick={() => { markDone("mirror2"); goto("mirror3"); }}>Values · Behaviors →</button>
       </div>
     </>);
 
@@ -2192,7 +2399,7 @@ function A1({ intake, onDone }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror2_sub", "pressure")}>← Under Pressure</button>
-        <button className="btn" onClick={() => { markDone("mirror2"); goto("mirror3"); }}>Values · Behaviors →</button>
+        <button className="btn" onClick={() => set("mirror2_sub", "myidentity")}>My Identity →</button>
       </div>
     </>);
   }
@@ -2349,9 +2556,9 @@ function A1({ intake, onDone }) {
     ].filter(s => s !== undefined);
 
     const spScores = animals.flatMap((a,i) => {
-      const caps = ai[`ani${i}`];
-      if (!caps) return [];
-      return ["superpower","scenario"].map(k => map[`align_sp_${i}_${k}`]).filter(s => s !== undefined);
+      const caps = (a.capabilities || []).filter(c => c.name);
+      if (!caps.length) return [];
+      return caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
     });
 
     const bhvScores = values.flatMap((v,i) => {
@@ -2425,37 +2632,33 @@ function A1({ intake, onDone }) {
             <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>No animals set yet -- go back to Identity to add them.</div>
           )}
           {animals.map((a, i) => {
-            const caps = ai[`ani${i}`];
-            const animalScores = caps
-              ? ["superpower","scenario"].map(k => map[`align_sp_${i}_${k}`]).filter(s => s !== undefined)
-              : [];
+            const capList = (a.capabilities || []).filter(c => c.name);
+            const animalScores = capList.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
+            const pressureText = a.under_pressure || "";
             return (
               <div key={i} style={{ marginBottom:18 }}>
                 {/* Animal header */}
-                <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:8, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
                   <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>"{a.adjective1}{a.adjective2 ? `, ${a.adjective2}` : ""} {a.name}"</div>
                   <AvgBadge scores={animalScores} />
                 </div>
-                {!caps ? (
+                {capList.length === 0 ? (
                   <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", paddingLeft:14, borderLeft:"2px solid var(--border2)" }}>
-                    Go to Identity · Superpowers and click "✦ Unlock" for this animal first.
+                    Go to Identity · Capabilities and add capabilities for this animal.
                   </div>
                 ) : (
                   <div>
-                    <AlignSlider
-                      storeKey={`align_sp_${i}_superpower`}
-                      label="Superpower"
-                      desc={caps.superpower}
-                      indent={true} />
-                    <AlignSlider
-                      storeKey={`align_sp_${i}_scenario`}
-                      label="Calling it when needed"
-                      desc={caps.scenario}
-                      indent={true} />
-                    {caps.detriment && (
-                      <div style={{ padding:"8px 12px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:7, marginTop:4, marginLeft:14 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", color:"#ef4444", marginBottom:2 }}>Watch -- dark side</div>
-                        <div style={{ fontSize:11, color:"var(--text3)" }}>{caps.detriment}</div>
+                    {capList.map((cap, ci) => (
+                      <AlignSlider key={ci}
+                        storeKey={`align_cap_${i}_${ci}`}
+                        label={cap.name}
+                        desc={cap.description || `How fully are you living this capability right now?`}
+                        indent={true} />
+                    ))}
+                    {pressureText && (
+                      <div style={{ padding:"8px 12px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:7, marginTop:6, marginLeft:14 }}>
+                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", color:"#ef4444", marginBottom:3 }}>Under Pressure</div>
+                        <div style={{ fontSize:11, color:"var(--text3)", lineHeight:1.5 }}>{pressureText}</div>
                       </div>
                     )}
                   </div>
@@ -2530,9 +2733,12 @@ function A1({ intake, onDone }) {
             const bAvg = avg(bhvScores);
             const areaSummary = lifeAreas.map((a,i) => `${a.label}: ${map[`align_time_${a.id}`] ?? "?"}/10`).join(", ");
             const animalSummary = animals.map((a,i) => {
-              const sc = ["superpower","scenario"].map(k => map[`align_sp_${i}_${k}`]).filter(s=>s!==undefined);
-              return `${a.adjective1} ${a.name}: ${avg(sc) ?? "not rated"}/10`;
-            }).join(", ");
+              const caps = (a.capabilities || []).filter(c => c.name);
+              const sc = caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s=>s!==undefined);
+              const capDetail = caps.map((cap,ci) => `${cap.name}: ${map[`align_cap_${i}_${ci}`] ?? "?"}`)
+                .join(", ");
+              return `${a.adjective1 || ""} ${a.name} [${capDetail || "no caps"}]: avg ${avg(sc) ?? "not rated"}/10`;
+            }).join("; ");
             const valueSummary = values.map((v,i) => {
               const def = ai[`val${i}`];
               const sc = def?.behaviors ? def.behaviors.map((_,bi) => map[`align_bh_${i}_${bi}`]).filter(s=>s!==undefined) : [];
