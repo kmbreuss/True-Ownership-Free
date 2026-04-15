@@ -2391,6 +2391,21 @@ function A1({ intake, onDone }) {
         "This is the most important question in this section. Not who you are when things are good — who you are when things are hard. Be honest."
       </div>
     </div>
+    {validAnimals.length > 0 && (
+      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10 }}>
+        <button onClick={() => {
+            const expanding = map?.pressure_all_collapsed === true;
+            set("pressure_all_collapsed", !expanding);
+            validAnimals.forEach((animal) => {
+              const ti = m2animals.findIndex(a => a.name === animal.name);
+              (animal.capabilities || []).filter((c: any) => c.name).forEach((_: any, ci: number) => set(`up_open_${ti}_${ci}`, expanding));
+            });
+          }}
+          style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px", transition:"all .15s" }}>
+          {map?.pressure_all_collapsed === true ? "Expand All" : "Collapse All"}
+        </button>
+      </div>
+    )}
     {validAnimals.length === 0 && (
       <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your animals first.</div>
     )}
