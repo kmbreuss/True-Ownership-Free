@@ -1575,8 +1575,10 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                             {allChips.map(word => {
                               const on = supChips.includes(word);
                               return (
-                                <span key={word} style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 8px 3px 10px", borderRadius:20, border:`1px solid ${on ? "rgba(201,168,76,.6)" : "rgba(201,168,76,.2)"}`, background: on ? "rgba(201,168,76,.15)" : "transparent", color: on ? "var(--warm)" : "var(--text3)", fontFamily:"var(--sans)", fontWeight: on ? 700 : 400, transition:"all .15s" }}>
-                                  <span style={{ cursor:"pointer" }} onClick={() => updateCap(ci, "superpower_chips", on ? supChips.filter(w => w !== word) : [...supChips, word])}>{word}</span>
+                                <span key={word}
+                                  onClick={() => updateCap(ci, "superpower_chips", on ? supChips.filter(w => w !== word) : [...supChips, word])}
+                                  style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 8px 3px 10px", borderRadius:20, border:`1px solid ${on ? "rgba(201,168,76,.6)" : "rgba(201,168,76,.2)"}`, background: on ? "rgba(201,168,76,.15)" : "transparent", color: on ? "var(--warm)" : "var(--text3)", fontFamily:"var(--sans)", fontWeight: on ? 700 : 400, transition:"all .15s", cursor:"pointer" }}>
+                                  {word}
                                   <button onClick={e => { e.stopPropagation(); updateCap(ci, "superpower_chips", supChips.filter(w => w !== word)); }} style={{ background:"none", border:"none", cursor:"pointer", color:"inherit", padding:0, lineHeight:1, fontSize:10, opacity:.6 }}>×</button>
                                 </span>
                               );
