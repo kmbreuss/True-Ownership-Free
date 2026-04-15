@@ -1481,7 +1481,7 @@ function extractKeywords(text: string, n = 6): string[] {
 }
 
 function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
-  const [isOpen, setIsOpen] = useState(animalIdx === 0);
+  const [isOpen, setIsOpen] = useState(false);
   const [collapsedCaps, setCollapsedCaps] = useState<Record<number,boolean>>({});
   const [chipInputs, setChipInputs] = useState<Record<number,string>>({});
   // Find true index in full m2animals array (chips use this index)
@@ -1824,7 +1824,7 @@ function A1({ intake, onDone }) {
           return (
             <React.Fragment key={s.id}>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-                <div style={{ width:32, height:32, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor: isDone ? "pointer" : "default", transition:"all .2s" }}
+                <div style={{ width:32, height:32, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor: "pointer", transition:"all .2s" }}
                   onClick={() => isDone && set("mirror1_sub", s.id)}>
                   {isDone ? <span style={{ fontSize:13, color:"#34d399" }}>✓</span> : <span>{s.icon}</span>}
                 </div>
@@ -2089,8 +2089,8 @@ function A1({ intake, onDone }) {
             return (
               <React.Fragment key={s.id}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-                  <div style={{ width:30, height:30, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, cursor: isDone ? "pointer" : "default" }}
-                    onClick={() => isDone && set("mirror2_sub", s.id)}>
+                  <div style={{ width:30, height:30, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, cursor: "pointer" }}
+                    onClick={() => set("mirror2_sub", s.id)}>
                     {isDone ? <span style={{ fontSize:12, color:"#34d399" }}>✓</span> : <span>{s.icon}</span>}
                   </div>
                   <span style={{ fontSize:9, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", textTransform:"uppercase", whiteSpace:"nowrap", maxWidth:52, textAlign:"center", lineHeight:1.3 }}>{s.label}</span>
@@ -2396,7 +2396,7 @@ function A1({ intake, onDone }) {
             const detInputKey = `det_input_${trueIdx}_${ci}`;
             const alignKey = `align_cap_${trueIdx}_${ci}`;
             const collapseKey = `up_open_${trueIdx}_${ci}`;
-            const isOpen = (map?.[collapseKey] !== false);
+            const isOpen = (map?.[collapseKey] === true);
             const detVal = (map?.[detKey] || "") as string;
             const detChips: string[] = (map?.[detChipsKey] || []) as string[];
             const detInput = (map?.[detInputKey] || "") as string;
@@ -2410,15 +2410,15 @@ function A1({ intake, onDone }) {
                   style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"var(--bg4)", cursor:"pointer", userSelect:"none" }}>
                   <div style={{ fontSize:13, fontWeight:700, color:"var(--text)" }}>{cap.name}</div>
                   <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <span style={{ fontSize:12, fontWeight:700, color:alignCol }}>{alignScore}/10</span>
+                    
                     <span style={{ fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
                   </div>
                 </div>
                 {isOpen && (
                 <div style={{ padding:"14px 14px 10px", borderTop:"1px solid var(--border)" }}>
-                {/* Capability name */}
-                <div style={{ fontSize:13, fontWeight:700, letterSpacing:0.3, color:"var(--text)", marginBottom:8 }}>{cap.name}</div>
+                
                 {/* Superpower chips — read only */}
+                {supChips.length > 0 && <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:4 }}>Superpower</div>}
                 {supChips.length > 0 && (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
                     {supChips.map((w: string) => (
@@ -2536,30 +2536,12 @@ function A1({ intake, onDone }) {
                       <input type="range" min={1} max={10} step={1} value={score}
                         onChange={e => set(storeKey, Number(e.target.value))}
                         style={{ width:"100%", accentColor: col }} />
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}><span style={{ color:"#ef4444" }}>1 = living far from this</span><span style={{ color:"#34d399" }}>10 = fully embodying this</span></div>
                     </div>
                   );
                 })}
               </div>
-              {/* Right: under pressure */}
-              <div>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#ef4444", marginBottom:10 }}>Under Pressure</div>
-                {pressureText ? (
-                  <div style={{ padding:"10px 12px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:8 }}>
-                    <div style={{ fontSize:12, color:"var(--text2)", lineHeight:1.6 }}>{pressureText}</div>
-                  </div>
-                ) : (
-                  <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>
-                    Go to Step 3 · Under Pressure to fill this in.
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
-        );
-      })}
-      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-        <button className="btn-g" onClick={() => set("mirror2_sub", "lovedones")}>← Loved Ones</button>
-        <button className="btn" onClick={() => { markDone("mirror2"); goto("mirror3"); }}>Values · Behaviors →</button>
       </div>
     </>);
 
