@@ -1619,6 +1619,33 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
               placeholder={`When things go wrong and ${animalTitle} takes over, I tend to...`}
               style={{ fontSize:13 }} />
           </div>
+
+          {/* ── Alignment Scale subsection ───────────────────────────── */}
+          {filledCaps.length > 0 && (
+            <div style={{ marginTop:14, padding:"14px 16px", background:"rgba(201,168,76,.04)", border:"1px solid rgba(201,168,76,.15)", borderRadius:10 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:12 }}>⚡ Alignment Scale</div>
+              {filledCaps.map((cap, ci) => {
+                const storeKey = `align_cap_${trueIdx}_${ci}`;
+                const score = (map?.[storeKey] ?? 5) as number;
+                const col = score >= 7 ? "#34d399" : score >= 4 ? "#f59e0b" : "#ef4444";
+                return (
+                  <div key={ci} style={{ marginBottom:14 }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                      <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{cap.name}</span>
+                      <span style={{ fontSize:13, fontWeight:700, color:col }}>{score}/10</span>
+                    </div>
+                    <input type="range" min={1} max={10} step={1} value={score}
+                      onChange={e => set(storeKey, Number(e.target.value))}
+                      style={{ width:"100%", accentColor:col }} />
+                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
+                      <span style={{ color:"#ef4444" }}>1 · Not living it</span>
+                      <span style={{ color:"#34d399" }}>10 · Superpower</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
