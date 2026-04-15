@@ -1498,17 +1498,17 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set }) {
   return (
     <div style={{ marginBottom:14, background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, overflow:"hidden" }}>
       {/* Collapsible header */}
-      <button
-        onClick={() => setIsOpen(o => !o)}
-        style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"12px 16px", background:"none", border:"none", cursor:"pointer", textAlign:"left" }}>
-        <span style={{ fontSize:12, color:"var(--text4)", flexShrink:0 }}>{isOpen ? "▾" : "▸"}</span>
+      <div style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 16px" }}>
         <span style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", flex:1 }}>{animalTitle}</span>
         {avgScore != null && (
           <span style={{ fontSize:11, fontWeight:700, color:avgCol, padding:"2px 8px", background:`rgba(${avgCol === "#34d399" ? "52,211,153" : avgCol === "#f59e0b" ? "245,158,11" : "239,68,68"},.1)`, border:`1px solid ${avgCol}`, borderRadius:20, flexShrink:0 }}>
             avg {avgScore}/10
           </span>
         )}
-      </button>
+        <div style={{ width:28, height:28, borderRadius:"50%", background: isOpen ? "rgba(201,168,76,.15)" : "var(--bg4)", border: `1px solid ${isOpen ? "rgba(201,168,76,.4)" : "var(--border2)"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all .2s", cursor:"pointer" }} onClick={() => setIsOpen(o => !o)}>
+          <span style={{ fontSize:13, color: isOpen ? "var(--warm)" : "var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s", display:"block", lineHeight:1 }}>▾</span>
+        </div>
+      </div>
       {/* Collapsible body */}
       {isOpen && (
         <div style={{ padding:"0 14px 14px 14px" }}>
