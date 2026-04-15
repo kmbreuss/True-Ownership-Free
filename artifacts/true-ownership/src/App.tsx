@@ -1471,6 +1471,15 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
   );
 });
 
+const STOP_WORDS = new Set(["i","a","an","the","and","or","but","in","on","at","to","for","of","with","it","is","are","was","were","be","been","being","have","has","had","do","does","did","will","would","could","should","may","might","this","that","these","those","my","your","their","our","what","how","when","where","who","which","not","no","so","as","if","by","from","up","about","into","than","then","its","me","him","her","us","them","can","get","got","just","also","very","more","most","some","any","all","both","each","few","much","many","other","own","same","too","only","over","such","even","after","before","there","here","out","one","two","three","way","time","day","make","made","like","go","come","know","take","see","think","really","actually","show","shows","something","someone","things","thing","because","able","often","well","always","never","still","yet","already","now","back","first","last","through","every","another","again","around","new","good","great","right","down","off","really","it's","i'm","don't","won't","isn't","wasn't","doesn't","didn't","can't","that's","they're","we're","you're"]);
+
+function extractKeywords(text: string, n = 6): string[] {
+  const words = text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+  const freq: Record<string, number> = {};
+  words.forEach(w => { if (!STOP_WORDS.has(w)) freq[w] = (freq[w] || 0) + 1; });
+  return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, n).map(([w]) => w);
+}
+
 function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
   const [isOpen, setIsOpen] = useState(animalIdx === 0);
   const [collapsedCaps, setCollapsedCaps] = useState<Record<number,boolean>>({});
@@ -1525,9 +1534,11 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
       {isOpen && (
         <div style={{ padding:"0 14px 14px 14px" }}>
           {caps.map((cap, ci) => {
-            const capScore = cap.score || 7;
-            const capCol = capScore >= 7 ? "#34d399" : capScore >= 5 ? "#f59e0b" : "#ef4444";
             const isCapOpen = !collapsedCaps[ci];
+            const supKw = cap.description ? extractKeywords(cap.description) : [];
+            const detKw = cap.detriment ? extractKeywords(cap.detriment) : [];
+            const supChips: string[] = cap.superpower_chips || [];
+            const detChips: string[] = cap.detriment_chips || [];
             return (
               <div key={ci} style={{ marginBottom:9, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
                 {/* Cap header row */}
@@ -1544,39 +1555,67 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                 {/* Cap body */}
                 {isCapOpen && (
                   <div style={{ padding:"0 14px 14px 14px" }}>
-                    <div style={{ marginBottom:9 }}>
+                    {/* Name */}
+                    <div style={{ marginBottom:10 }}>
                       <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Name this capability</label>
                       <TextInput value={cap.name || ""} onChange={v => updateCap(ci, "name", v)} placeholder="e.g. Strategic clarity under pressure" style={{ fontSize:13 }} />
                     </div>
-                    {cap.name && (
-                      <div>
-                        <div style={{ marginBottom:9 }}>
-                          <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Describe it in your own words</label>
-                          <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up?" style={{ fontSize:13 }} />
-                        </div>
-                        <div style={{ marginBottom:9 }}>
-                          <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 -- a real time you demonstrated this</label>
-                          <TextArea value={cap.example1 || ""} onChange={v => updateCap(ci, "example1", v)} rows={2} placeholder="A specific moment -- what happened, what did you do?" style={{ fontSize:13 }} />
-                        </div>
-                        <div style={{ marginBottom:12 }}>
-                          <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 2 -- another real moment</label>
-                          <TextArea value={cap.example2 || ""} onChange={v => updateCap(ci, "example2", v)} rows={2} placeholder="Another specific moment -- different context if possible" style={{ fontSize:13 }} />
-                        </div>
-                        <div>
-                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                            <label style={{ fontSize:11, color:"var(--text3)", fontWeight:500 }}>How well are you living this right now?</label>
-                            <div style={{ fontSize:14, fontWeight:300, fontFamily:"var(--serif)", color:capCol }}>{capScore}<span style={{ fontSize:10 }}>/10</span></div>
-                          </div>
-                          <input type="range" min={1} max={10} step={1} value={capScore}
-                            onChange={e => updateCap(ci, "score", Number(e.target.value))}
-                            style={{ accentColor:capCol, width:"100%" }} />
-                          <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
-                            <span style={{ color:"#ef4444" }}>1 · Detriment</span>
-                            <span style={{ color:"#34d399" }}>10 · Superpower</span>
-                          </div>
-                        </div>
+                    {cap.name && (<>
+                      {/* Field 1: Superpower description */}
+                      <div style={{ marginBottom:9 }}>
+                        <label style={{ display:"block", fontSize:11, color:"var(--warm)", marginBottom:4, fontWeight:600 }}>Describe it in your own words when it's your superpower</label>
+                        <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up at its best?" style={{ fontSize:13 }} />
                       </div>
-                    )}
+                      {/* Field 2: Example 1 */}
+                      <div style={{ marginBottom:9 }}>
+                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 — a real time you demonstrated this</label>
+                        <TextArea value={cap.example1 || ""} onChange={v => updateCap(ci, "example1", v)} rows={2} placeholder="A specific moment — what happened, what did you do?" style={{ fontSize:13 }} />
+                      </div>
+                      {/* Field 3: Example 2 */}
+                      <div style={{ marginBottom:supKw.length > 0 ? 9 : 14 }}>
+                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 2 — another real moment</label>
+                        <TextArea value={cap.example2 || ""} onChange={v => updateCap(ci, "example2", v)} rows={2} placeholder="Another specific moment — different context if possible" style={{ fontSize:13 }} />
+                      </div>
+                      {/* Field 4: Superpower keyword chips */}
+                      {supKw.length > 0 && (
+                        <div style={{ marginBottom:14 }}>
+                          <div style={{ fontSize:10, color:"var(--text4)", marginBottom:5, fontWeight:500, letterSpacing:1 }}>Key words — tap to highlight</div>
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                            {supKw.map(word => {
+                              const on = supChips.includes(word);
+                              return (
+                                <button key={word} onClick={() => updateCap(ci, "superpower_chips", on ? supChips.filter(w => w !== word) : [...supChips, word])}
+                                  style={{ fontSize:11, padding:"3px 9px", borderRadius:20, border:`1px solid ${on ? "rgba(201,168,76,.6)" : "rgba(201,168,76,.2)"}`, background: on ? "rgba(201,168,76,.15)" : "transparent", color: on ? "var(--warm)" : "var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", transition:"all .15s" }}>
+                                  {word}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {/* Field 5: Detriment description */}
+                      <div style={{ marginBottom:9 }}>
+                        <label style={{ display:"block", fontSize:11, color:"#ef4444", marginBottom:4, fontWeight:600 }}>Describe it when it's over or underused (in detriment)</label>
+                        <TextArea value={cap.detriment || ""} onChange={v => updateCap(ci, "detriment", v)} rows={2} placeholder="What does it look like when this goes wrong or gets overused?" style={{ fontSize:13 }} />
+                      </div>
+                      {/* Field 6: Detriment keyword chips */}
+                      {detKw.length > 0 && (
+                        <div style={{ marginBottom:4 }}>
+                          <div style={{ fontSize:10, color:"var(--text4)", marginBottom:5, fontWeight:500, letterSpacing:1 }}>Key words — tap to highlight</div>
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                            {detKw.map(word => {
+                              const on = detChips.includes(word);
+                              return (
+                                <button key={word} onClick={() => updateCap(ci, "detriment_chips", on ? detChips.filter(w => w !== word) : [...detChips, word])}
+                                  style={{ fontSize:11, padding:"3px 9px", borderRadius:20, border:`1px solid ${on ? "rgba(239,68,68,.5)" : "rgba(239,68,68,.2)"}`, background: on ? "rgba(239,68,68,.1)" : "transparent", color: on ? "#ef4444" : "var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", transition:"all .15s" }}>
+                                  {word}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>)}
                   </div>
                 )}
               </div>
