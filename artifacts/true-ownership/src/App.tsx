@@ -1638,8 +1638,8 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                       onChange={e => set(storeKey, Number(e.target.value))}
                       style={{ width:"100%", accentColor:col }} />
                     <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
-                      <span style={{ color:"#ef4444" }}>1 · Not living it</span>
-                      <span style={{ color:"#34d399" }}>10 · Superpower</span>
+                      <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                      <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
                     </div>
                   </div>
                 );
