@@ -87,7 +87,7 @@ function buildFullContext(name, intake, mapData) {
   const animals = (mapData?.animals || []).filter(a => a.name);
   if (animals.length > 0) {
     lines.push(`\nIdentity animals:`);
-    animals.forEach(a => lines.push(`  "${a.adjective1}${a.adjective2 ? `, ${a.adjective2}` : ""} ${a.name}" -- alignment ${a.alignment}/10`));
+    animals.forEach(a => { const t = [a.adj1, a.adj2, a.name].filter(Boolean).join(" "); lines.push(`  "${t}" -- alignment ${a.alignment}/10`); });
   }
   const chipLabels = (mapData?.identity_chips || []).map(c => c.label);
   const qualitiesStr = chipLabels.length > 0 ? chipLabels.join(", ") : (mapData?.identity_adjectives || "");
@@ -1128,7 +1128,7 @@ const EMPTY_MAP = {
   bag_growth: "",
   identity_adjectives: "",
   identity_chips: [],
-  animals: [{ name:"", adjective1:"", adjective2:"", alignment:5 }],
+  animals: [{ name:"", adj1:"", adj2:"", adjective1:"", adjective2:"", alignment:5 }],
   capabilities_note: "",
   values_irks: "",
   values: [{ name:"", irk:"", behaviors:"" }],
@@ -1965,7 +1965,7 @@ function A1({ intake, onDone }) {
       const assignChipToAnimal = (chipId, animalIdx) => {
         const newChips = chips.map(c => c.id === chipId ? { ...c, assignedTo: animalIdx } : c);
         set("identity_chips", newChips);
-        const base = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adjective1:"" })];
+        const base = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adj1:"", adj2:"", adjective1:"" })];
         base[animalIdx] = { ...base[animalIdx], adjective1: newChips.filter(c => c.assignedTo === animalIdx).map(c => c.label).join(", ") };
         set("animals", base);
       };
@@ -1973,7 +1973,7 @@ function A1({ intake, onDone }) {
         const sort = ai.identity_sort;
         if (!sort) return;
         const newChips = [...chips];
-        const base = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adjective1:"" })];
+        const base = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adj1:"", adj2:"", adjective1:"" })];
         ["animal1","animal2","animal3"].forEach((key, idx) => {
           const s = sort[key];
           if (!s || idx >= m2animals.length) return;
@@ -2048,13 +2048,16 @@ function A1({ intake, onDone }) {
           <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>Step 2 -- Choose exactly 3 animals</div>
           <div style={{ fontSize:12, color:"var(--text3)", marginBottom:12, lineHeight:1.6 }}>Name each animal, then drag your quality chips onto them.</div>
           {[0,1,2].map(i => {
-            const a = m2animals[i] || { name:"", adjective1:"" };
+            const a = m2animals[i] || { name:"", adj1:"", adj2:"", adjective1:"" };
             const assignedChips = chips.filter(c => c.assignedTo === i);
-            const setAnimalName = (val) => {
-              const next = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adjective1:"" })];
-              next[i] = { ...next[i], name: val };
+            const updateAnimalField = (field, val) => {
+              const next = m2animals.length >= 3 ? [...m2animals] : [...m2animals, ...Array(3 - m2animals.length).fill({ name:"", adj1:"", adj2:"", adjective1:"" })];
+              next[i] = { ...next[i], [field]: val };
               set("animals", next);
             };
+            const adj1 = a.adj1 || "";
+            const adj2 = a.adj2 || "";
+            const previewTitle = [adj1, adj2, a.name].filter(Boolean).join(" ");
             return (
               <div key={i}
                 className={`drop-zone${dragOver === i ? " over" : ""}`}
@@ -2063,8 +2066,23 @@ function A1({ intake, onDone }) {
                 onDragLeave={() => setDragOver(null)}
                 onDrop={e => { e.preventDefault(); setDragOver(null); const id = e.dataTransfer.getData("chipId"); if (id) assignChipToAnimal(id, i); }}>
                 <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:9 }}>Animal {i+1}</div>
-                <TextInput value={a.name || ""} onChange={setAnimalName}
+                <TextInput value={a.name || ""} onChange={v => updateAnimalField("name", v)}
                   placeholder={["e.g. Lion","e.g. Eagle","e.g. Dolphin"][i]} style={{ fontSize:13, marginBottom:10 }} />
+                {/* Two adjective inputs */}
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11, color:"var(--text4)", marginBottom:6 }}>Describe your animal (2 words)</div>
+                  <div style={{ display:"flex", gap:7 }}>
+                    <input className="to-field" value={adj1} onChange={e => updateAnimalField("adj1", e.target.value)}
+                      placeholder="e.g. Gracefully" style={{ flex:1, padding:"7px 11px", fontSize:12, borderRadius:7 }} />
+                    <input className="to-field" value={adj2} onChange={e => updateAnimalField("adj2", e.target.value)}
+                      placeholder="e.g. Wise" style={{ flex:1, padding:"7px 11px", fontSize:12, borderRadius:7 }} />
+                  </div>
+                  {adj1 && adj2 && a.name && (
+                    <div style={{ marginTop:7, fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)" }}>
+                      "{previewTitle}"
+                    </div>
+                  )}
+                </div>
                 {assignedChips.length > 0 ? (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
                     {assignedChips.map(chip => (
@@ -2173,8 +2191,7 @@ function A1({ intake, onDone }) {
         return (
           <div key={animalIdx} style={{ marginBottom:26 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, padding:"10px 14px", background:"var(--bg2)", border:"1px solid rgba(201,168,76,.2)", borderRadius:9 }}>
-              <span style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{animal.name}</span>
-              {animal.adjective1 && <span style={{ fontSize:12, color:"var(--text3)" }}>· {animal.adjective1}</span>}
+              <span style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</span>
               {avgScore && <div style={{ marginLeft:"auto", fontSize:11, fontWeight:700, color: avgScore >= 7 ? "#34d399" : avgScore >= 5 ? "#f59e0b" : "#ef4444" }}>avg {avgScore}/10</div>}
             </div>
             {caps.map((cap, ci) => {
@@ -2258,8 +2275,7 @@ function A1({ intake, onDone }) {
         return (
           <div key={i} style={{ marginBottom:20, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-              <span style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>{animal.name}</span>
-              {animal.adjective1 && <span style={{ fontSize:11, color:"var(--text4)" }}>· {animal.adjective1}</span>}
+              <span style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</span>
             </div>
             {(animal.capabilities || []).filter(c => c.name).length > 0 && (
               <div style={{ padding:"9px 12px", background:"rgba(167,139,250,.07)", border:"1px solid rgba(167,139,250,.2)", borderRadius:8, marginBottom:12 }}>
@@ -2315,7 +2331,7 @@ function A1({ intake, onDone }) {
         const pressureText = animal.under_pressure || "";
         return (
           <div key={i} style={{ marginBottom:22, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
-            <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", marginBottom:14 }}>{animal.name}</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", marginBottom:14 }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
               {/* Left: capability sliders */}
               <div>
@@ -2639,7 +2655,7 @@ function A1({ intake, onDone }) {
               <div key={i} style={{ marginBottom:18 }}>
                 {/* Animal header */}
                 <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
-                  <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>"{a.adjective1}{a.adjective2 ? `, ${a.adjective2}` : ""} {a.name}"</div>
+                  <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>"{ [a.adj1, a.adj2, a.name].filter(Boolean).join(" ") }"</div>
                   <AvgBadge scores={animalScores} />
                 </div>
                 {capList.length === 0 ? (
@@ -2737,7 +2753,7 @@ function A1({ intake, onDone }) {
               const sc = caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s=>s!==undefined);
               const capDetail = caps.map((cap,ci) => `${cap.name}: ${map[`align_cap_${i}_${ci}`] ?? "?"}`)
                 .join(", ");
-              return `${a.adjective1 || ""} ${a.name} [${capDetail || "no caps"}]: avg ${avg(sc) ?? "not rated"}/10`;
+              return `${[a.adj1, a.adj2, a.name].filter(Boolean).join(" ")} [${capDetail || "no caps"}]: avg ${avg(sc) ?? "not rated"}/10`;
             }).join("; ");
             const valueSummary = values.map((v,i) => {
               const def = ai[`val${i}`];
@@ -2786,7 +2802,7 @@ function A1({ intake, onDone }) {
       </div>
       {!ai.close && (
         <div style={{ textAlign:"center", marginBottom:22 }}>
-          <button className="btn" onClick={() => runAI("close", `You are Katherine Breuss. Completed Map of Me with ${name}. Purpose: "${map.purpose_final || map.purpose_draft}". Animals: ${validA.map(a => `${a.adjective1} ${a.name}`).join(", ")}. Values: ${validV.map(v => v.name).join(", ")}. Life priorities: ${validAreas.map((a,i) => `${i+1}. ${a.label}`).join(", ")}. BAG Growth: "${map.bag_growth}". Brought here: "${intake.q1}". Write 3-4 sentence closing note referencing something SPECIFIC. One identity line -- who they are and what they're building. JSON: {"note":"...","identity_line":"..."}`)}>
+          <button className="btn" onClick={() => runAI("close", `You are Katherine Breuss. Completed Map of Me with ${name}. Purpose: "${map.purpose_final || map.purpose_draft}". Animals: ${validA.map(a => [a.adj1, a.adj2, a.name].filter(Boolean).join(" ")).join(", ")}. Values: ${validV.map(v => v.name).join(", ")}. Life priorities: ${validAreas.map((a,i) => `${i+1}. ${a.label}`).join(", ")}. BAG Growth: "${map.bag_growth}". Brought here: "${intake.q1}". Write 3-4 sentence closing note referencing something SPECIFIC. One identity line -- who they are and what they're building. JSON: {"note":"...","identity_line":"..."}`)}>
             {busy.close ? <span className="dot-l"><span /><span /><span /></span> : "✦ Get Katherine's Closing Note"}
           </button>
         </div>
@@ -2810,7 +2826,7 @@ function A1({ intake, onDone }) {
             <div style={{ marginBottom:13 }}>
               <div style={{ fontSize:11, color:"var(--text3)", marginBottom:5 }}>IDENTITY</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
-                {validA.map((a, i) => <div key={i} style={{ padding:"4px 9px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:14, fontSize:11 }}><span style={{ fontStyle:"italic", color:"var(--accent)" }}>{a.adjective1}{a.adjective2 ? `, ${a.adjective2}` : ""}</span><span style={{ color:"var(--text)", fontWeight:500 }}> {a.name}</span></div>)}
+                {validA.map((a, i) => <div key={i} style={{ padding:"4px 9px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:14, fontSize:11 }}><span style={{ fontStyle:"italic", color:"var(--warm)" }}>{[a.adj1, a.adj2].filter(Boolean).join(" ")}</span>{a.adj1 || a.adj2 ? " " : ""}<span style={{ color:"var(--text)", fontWeight:500 }}>{a.name}</span></div>)}
               </div>
             </div>
           )}
@@ -2846,7 +2862,7 @@ function A1({ intake, onDone }) {
             <div style={{ fontSize:11, color:"var(--text3)", marginBottom:5 }}>SUPERPOWERS</div>
             {validA.map((a, i) => ai[`ani${i}`] && (
               <div key={i} style={{ marginBottom:5, padding:"5px 9px", background:"var(--bg3)", borderLeft:"2px solid #34d399", borderRadius:"0 5px 5px 0" }}>
-                <div style={{ fontSize:10, fontStyle:"italic", color:"var(--text3)", marginBottom:1 }}>{a.adjective1} {a.name}</div>
+                <div style={{ fontSize:10, fontStyle:"italic", color:"var(--text3)", marginBottom:1 }}>{[a.adj1, a.adj2, a.name].filter(Boolean).join(" ")}</div>
                 <div style={{ fontSize:12, color:"var(--text)", lineHeight:1.4 }}>{ai[`ani${i}`].superpower}</div>
               </div>
             ))}
