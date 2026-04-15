@@ -1587,6 +1587,38 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
               + Add capability
             </button>
           )}
+
+          {/* ── Under Pressure subsection ─────────────────────────── */}
+          <div style={{ marginTop:18, padding:"14px 16px", background:"rgba(239,68,68,.04)", border:"1px solid rgba(239,68,68,.15)", borderRadius:10 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#ef4444", marginBottom:8 }}>Under Pressure</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", marginBottom:12, lineHeight:1.5 }}>
+              When {animalTitle} is under pressure...
+            </div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:10 }}>
+              {["withdraw","shut down","people-please","overthink","freeze","blame","control","numb","deflect","go quiet","get reactive","spiral","over-explain","self-abandon"].map(word => (
+                <button key={word}
+                  onClick={() => {
+                    const cur = animal.under_pressure || "";
+                    const next = [...m2animals];
+                    next[animalIdx] = { ...next[animalIdx], under_pressure: cur ? cur + ", " + word : word };
+                    set("animals", next);
+                  }}
+                  style={{ fontSize:11, padding:"3px 9px", borderRadius:20, border:"1px solid rgba(239,68,68,.3)", background:"rgba(239,68,68,.07)", color:"#ef4444", cursor:"pointer", fontFamily:"var(--sans)" }}>
+                  {word}
+                </button>
+              ))}
+            </div>
+            <TextArea
+              value={animal.under_pressure || ""}
+              onChange={v => {
+                const next = [...m2animals];
+                next[animalIdx] = { ...next[animalIdx], under_pressure: v };
+                set("animals", next);
+              }}
+              rows={4}
+              placeholder={`When things go wrong and ${animalTitle} takes over, I tend to...`}
+              style={{ fontSize:13 }} />
+          </div>
         </div>
       )}
     </div>
