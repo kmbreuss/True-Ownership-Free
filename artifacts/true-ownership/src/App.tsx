@@ -1483,6 +1483,7 @@ function extractKeywords(text: string, n = 6): string[] {
 function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
   const [isOpen, setIsOpen] = useState(animalIdx === 0);
   const [collapsedCaps, setCollapsedCaps] = useState<Record<number,boolean>>({});
+  const [chipInputs, setChipInputs] = useState<Record<number,string>>({});
   // Find true index in full m2animals array (chips use this index)
   const trueIdx = m2animals.findIndex(a => a.name === animal.name && a.name);
   const idx = trueIdx >= 0 ? trueIdx : animalIdx;
@@ -1535,10 +1536,11 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
         <div style={{ padding:"0 14px 14px 14px" }}>
           {caps.map((cap, ci) => {
             const isCapOpen = !collapsedCaps[ci];
-            const supKw = cap.description ? extractKeywords(cap.description) : [];
-            const detKw = cap.detriment ? extractKeywords(cap.detriment) : [];
+            const autoKw = cap.description ? extractKeywords(cap.description) : [];
             const supChips: string[] = cap.superpower_chips || [];
-            const detChips: string[] = cap.detriment_chips || [];
+            // Merge auto-extracted + any custom chips not in auto list
+            const allChips = [...new Set([...autoKw, ...supChips])];
+            const chipInput = chipInputs[ci] || "";
             return (
               <div key={ci} style={{ marginBottom:9, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
                 {/* Cap header row */}
@@ -1562,59 +1564,43 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                     </div>
                     {cap.name && (<>
                       {/* Field 1: Superpower description */}
-                      <div style={{ marginBottom:9 }}>
+                      <div style={{ marginBottom:8 }}>
                         <label style={{ display:"block", fontSize:11, color:"var(--warm)", marginBottom:4, fontWeight:600 }}>Describe it in your own words when it's your superpower</label>
                         <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up at its best?" style={{ fontSize:13 }} />
                       </div>
-                      {/* Field 2: Example 1 */}
+                      {/* Field 2: Superpower keyword chips */}
+                      <div style={{ marginBottom:12 }}>
+                        {allChips.length > 0 && (
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:6 }}>
+                            {allChips.map(word => {
+                              const on = supChips.includes(word);
+                              return (
+                                <span key={word} style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 8px 3px 10px", borderRadius:20, border:`1px solid ${on ? "rgba(201,168,76,.6)" : "rgba(201,168,76,.2)"}`, background: on ? "rgba(201,168,76,.15)" : "transparent", color: on ? "var(--warm)" : "var(--text3)", fontFamily:"var(--sans)", fontWeight: on ? 700 : 400, transition:"all .15s" }}>
+                                  <span style={{ cursor:"pointer" }} onClick={() => updateCap(ci, "superpower_chips", on ? supChips.filter(w => w !== word) : [...supChips, word])}>{word}</span>
+                                  <button onClick={e => { e.stopPropagation(); updateCap(ci, "superpower_chips", supChips.filter(w => w !== word)); }} style={{ background:"none", border:"none", cursor:"pointer", color:"inherit", padding:0, lineHeight:1, fontSize:10, opacity:.6 }}>×</button>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <div style={{ display:"flex", gap:5 }}>
+                          <input value={chipInput} onChange={e => setChipInputs(p => ({ ...p, [ci]: e.target.value }))}
+                            onKeyDown={e => { if (e.key === "Enter" && chipInput.trim()) { updateCap(ci, "superpower_chips", [...new Set([...supChips, chipInput.trim()])]); setChipInputs(p => ({ ...p, [ci]: "" })); } }}
+                            placeholder="Add keyword…" style={{ flex:1, fontSize:11, padding:"4px 9px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--bg4)", color:"var(--text)", fontFamily:"var(--sans)" }} />
+                          <button onClick={() => { if (chipInput.trim()) { updateCap(ci, "superpower_chips", [...new Set([...supChips, chipInput.trim()])]); setChipInputs(p => ({ ...p, [ci]: "" })); } }}
+                            style={{ fontSize:11, padding:"4px 10px", borderRadius:6, border:"1px solid rgba(201,168,76,.3)", background:"rgba(201,168,76,.1)", color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)" }}>Add</button>
+                        </div>
+                      </div>
+                      {/* Field 3: Example 1 */}
                       <div style={{ marginBottom:9 }}>
                         <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 — a real time you demonstrated this</label>
                         <TextArea value={cap.example1 || ""} onChange={v => updateCap(ci, "example1", v)} rows={2} placeholder="A specific moment — what happened, what did you do?" style={{ fontSize:13 }} />
                       </div>
-                      {/* Field 3: Example 2 */}
-                      <div style={{ marginBottom:supKw.length > 0 ? 9 : 14 }}>
+                      {/* Field 4: Example 2 */}
+                      <div style={{ marginBottom:4 }}>
                         <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 2 — another real moment</label>
                         <TextArea value={cap.example2 || ""} onChange={v => updateCap(ci, "example2", v)} rows={2} placeholder="Another specific moment — different context if possible" style={{ fontSize:13 }} />
                       </div>
-                      {/* Field 4: Superpower keyword chips */}
-                      {supKw.length > 0 && (
-                        <div style={{ marginBottom:14 }}>
-                          <div style={{ fontSize:10, color:"var(--text4)", marginBottom:5, fontWeight:500, letterSpacing:1 }}>Key words — tap to highlight</div>
-                          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                            {supKw.map(word => {
-                              const on = supChips.includes(word);
-                              return (
-                                <button key={word} onClick={() => updateCap(ci, "superpower_chips", on ? supChips.filter(w => w !== word) : [...supChips, word])}
-                                  style={{ fontSize:11, padding:"3px 9px", borderRadius:20, border:`1px solid ${on ? "rgba(201,168,76,.6)" : "rgba(201,168,76,.2)"}`, background: on ? "rgba(201,168,76,.15)" : "transparent", color: on ? "var(--warm)" : "var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", transition:"all .15s" }}>
-                                  {word}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                      {/* Field 5: Detriment description */}
-                      <div style={{ marginBottom:9 }}>
-                        <label style={{ display:"block", fontSize:11, color:"#ef4444", marginBottom:4, fontWeight:600 }}>Describe it when it's over or underused (in detriment)</label>
-                        <TextArea value={cap.detriment || ""} onChange={v => updateCap(ci, "detriment", v)} rows={2} placeholder="What does it look like when this goes wrong or gets overused?" style={{ fontSize:13 }} />
-                      </div>
-                      {/* Field 6: Detriment keyword chips */}
-                      {detKw.length > 0 && (
-                        <div style={{ marginBottom:4 }}>
-                          <div style={{ fontSize:10, color:"var(--text4)", marginBottom:5, fontWeight:500, letterSpacing:1 }}>Key words — tap to highlight</div>
-                          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                            {detKw.map(word => {
-                              const on = detChips.includes(word);
-                              return (
-                                <button key={word} onClick={() => updateCap(ci, "detriment_chips", on ? detChips.filter(w => w !== word) : [...detChips, word])}
-                                  style={{ fontSize:11, padding:"3px 9px", borderRadius:20, border:`1px solid ${on ? "rgba(239,68,68,.5)" : "rgba(239,68,68,.2)"}`, background: on ? "rgba(239,68,68,.1)" : "transparent", color: on ? "#ef4444" : "var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", transition:"all .15s" }}>
-                                  {word}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </>)}
                   </div>
                 )}
