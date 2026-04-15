@@ -1471,6 +1471,100 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
   );
 });
 
+function CapAnimalCard({ animal, animalIdx, m2animals, set }) {
+  const [isOpen, setIsOpen] = useState(animalIdx === 0);
+  const caps = animal.capabilities || [{ name:"", description:"", example1:"", example2:"", score:7 }];
+  const filledCaps = caps.filter(c => c.name);
+  const avgScore = filledCaps.length > 0
+    ? Math.round(filledCaps.reduce((sum, c) => sum + (c.score || 5), 0) / filledCaps.length * 10) / 10
+    : null;
+  const avgCol = avgScore == null ? "var(--text4)" : avgScore >= 7 ? "#34d399" : avgScore >= 5 ? "#f59e0b" : "#ef4444";
+  const animalTitle = [animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ");
+
+  const updateCap = (ci, field, val) => {
+    const nextAnimals = [...m2animals];
+    const nextCaps = [...caps];
+    nextCaps[ci] = { ...nextCaps[ci], [field]: val };
+    nextAnimals[animalIdx] = { ...nextAnimals[animalIdx], capabilities: nextCaps };
+    set("animals", nextAnimals);
+  };
+  const addCap = () => {
+    const nextAnimals = [...m2animals];
+    const nextCaps = [...caps, { name:"", description:"", example1:"", example2:"", score:7 }];
+    nextAnimals[animalIdx] = { ...nextAnimals[animalIdx], capabilities: nextCaps };
+    set("animals", nextAnimals);
+  };
+
+  return (
+    <div style={{ marginBottom:14, background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, overflow:"hidden" }}>
+      {/* Collapsible header */}
+      <button
+        onClick={() => setIsOpen(o => !o)}
+        style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"12px 16px", background:"none", border:"none", cursor:"pointer", textAlign:"left" }}>
+        <span style={{ fontSize:12, color:"var(--text4)", flexShrink:0 }}>{isOpen ? "▾" : "▸"}</span>
+        <span style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", flex:1 }}>{animalTitle}</span>
+        {avgScore != null && (
+          <span style={{ fontSize:11, fontWeight:700, color:avgCol, padding:"2px 8px", background:`rgba(${avgCol === "#34d399" ? "52,211,153" : avgCol === "#f59e0b" ? "245,158,11" : "239,68,68"},.1)`, border:`1px solid ${avgCol}`, borderRadius:20, flexShrink:0 }}>
+            avg {avgScore}/10
+          </span>
+        )}
+      </button>
+      {/* Collapsible body */}
+      {isOpen && (
+        <div style={{ padding:"0 14px 14px 14px" }}>
+          {caps.map((cap, ci) => {
+            const capScore = cap.score || 7;
+            const capCol = capScore >= 7 ? "#34d399" : capScore >= 5 ? "#f59e0b" : "#ef4444";
+            return (
+              <div key={ci} style={{ marginBottom:14, padding:"14px 16px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
+                <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:8 }}>Capability {ci+1}</div>
+                <div style={{ marginBottom:9 }}>
+                  <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Name this capability</label>
+                  <TextInput value={cap.name || ""} onChange={v => updateCap(ci, "name", v)} placeholder="e.g. Strategic clarity under pressure" style={{ fontSize:13 }} />
+                </div>
+                {cap.name && (
+                  <div>
+                    <div style={{ marginBottom:9 }}>
+                      <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Describe it in your own words</label>
+                      <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up?" style={{ fontSize:13 }} />
+                    </div>
+                    <div style={{ marginBottom:9 }}>
+                      <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 -- a real time you demonstrated this</label>
+                      <TextArea value={cap.example1 || ""} onChange={v => updateCap(ci, "example1", v)} rows={2} placeholder="A specific moment -- what happened, what did you do?" style={{ fontSize:13 }} />
+                    </div>
+                    <div style={{ marginBottom:12 }}>
+                      <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 2 -- another real moment</label>
+                      <TextArea value={cap.example2 || ""} onChange={v => updateCap(ci, "example2", v)} rows={2} placeholder="Another specific moment -- different context if possible" style={{ fontSize:13 }} />
+                    </div>
+                    <div>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                        <label style={{ fontSize:11, color:"var(--text3)", fontWeight:500 }}>How well are you living this right now?</label>
+                        <div style={{ fontSize:14, fontWeight:300, fontFamily:"var(--serif)", color:capCol }}>{capScore}<span style={{ fontSize:10 }}>/10</span></div>
+                      </div>
+                      <input type="range" min={1} max={10} step={1} value={capScore}
+                        onChange={e => updateCap(ci, "score", Number(e.target.value))}
+                        style={{ accentColor:capCol, width:"100%" }} />
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
+                        <span style={{ color:"#ef4444" }}>1 · Detriment</span>
+                        <span style={{ color:"#34d399" }}>10 · Superpower</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {caps.length < 5 && (
+            <button onClick={addCap} style={{ width:"100%", padding:"9px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:7, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12 }}>
+              + Add capability
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function A1({ intake, onDone }) {
   const [step, setStep] = useState("intro");
   const [voice, setVoice] = useState(intake.defaultVoice);
@@ -2169,81 +2263,9 @@ function A1({ intake, onDone }) {
       {validAnimals.length === 0 && (
         <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 and name your animals first.</div>
       )}
-      {validAnimals.map((animal, animalIdx) => {
-        const caps = animal.capabilities || [{ name:"", description:"", example1:"", example2:"", score:7 }];
-        const filledCaps = caps.filter(c => c.name);
-        const avgScore = filledCaps.length > 0
-          ? Math.round(filledCaps.reduce((sum, c) => sum + (c.score || 5), 0) / filledCaps.length * 10) / 10
-          : null;
-        const updateCap = (ci, field, val) => {
-          const nextAnimals = [...m2animals];
-          const nextCaps = [...caps];
-          nextCaps[ci] = { ...nextCaps[ci], [field]: val };
-          nextAnimals[animalIdx] = { ...nextAnimals[animalIdx], capabilities: nextCaps };
-          set("animals", nextAnimals);
-        };
-        const addCap = () => {
-          const nextAnimals = [...m2animals];
-          const nextCaps = [...caps, { name:"", description:"", example1:"", example2:"", score:7 }];
-          nextAnimals[animalIdx] = { ...nextAnimals[animalIdx], capabilities: nextCaps };
-          set("animals", nextAnimals);
-        };
-        return (
-          <div key={animalIdx} style={{ marginBottom:26 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, padding:"10px 14px", background:"var(--bg2)", border:"1px solid rgba(201,168,76,.2)", borderRadius:9 }}>
-              <span style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</span>
-              {avgScore && <div style={{ marginLeft:"auto", fontSize:11, fontWeight:700, color: avgScore >= 7 ? "#34d399" : avgScore >= 5 ? "#f59e0b" : "#ef4444" }}>avg {avgScore}/10</div>}
-            </div>
-            {caps.map((cap, ci) => {
-              const capScore = cap.score || 7;
-              const capCol = capScore >= 7 ? "#34d399" : capScore >= 5 ? "#f59e0b" : "#ef4444";
-              return (
-                <div key={ci} style={{ marginBottom:14, padding:"14px 16px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
-                  <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:8 }}>Capability {ci+1}</div>
-                  <div style={{ marginBottom:9 }}>
-                    <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Name this capability</label>
-                    <TextInput value={cap.name || ""} onChange={v => updateCap(ci, "name", v)} placeholder="e.g. Strategic clarity under pressure" style={{ fontSize:13 }} />
-                  </div>
-                  {cap.name && (
-                    <div>
-                      <div style={{ marginBottom:9 }}>
-                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Describe it in your own words</label>
-                        <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up?" style={{ fontSize:13 }} />
-                      </div>
-                      <div style={{ marginBottom:9 }}>
-                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 -- a real time you demonstrated this</label>
-                        <TextArea value={cap.example1 || ""} onChange={v => updateCap(ci, "example1", v)} rows={2} placeholder="A specific moment -- what happened, what did you do?" style={{ fontSize:13 }} />
-                      </div>
-                      <div style={{ marginBottom:12 }}>
-                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 2 -- another real moment</label>
-                        <TextArea value={cap.example2 || ""} onChange={v => updateCap(ci, "example2", v)} rows={2} placeholder="Another specific moment -- different context if possible" style={{ fontSize:13 }} />
-                      </div>
-                      <div>
-                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                          <label style={{ fontSize:11, color:"var(--text3)", fontWeight:500 }}>How well are you living this right now?</label>
-                          <div style={{ fontSize:14, fontWeight:300, fontFamily:"var(--serif)", color:capCol }}>{capScore}<span style={{ fontSize:10 }}>/10</span></div>
-                        </div>
-                        <input type="range" min={1} max={10} step={1} value={capScore}
-                          onChange={e => updateCap(ci, "score", Number(e.target.value))}
-                          style={{ accentColor:capCol, width:"100%" }} />
-                        <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
-                          <span style={{ color:"#ef4444" }}>1 · Detriment</span>
-                          <span style={{ color:"#34d399" }}>10 · Superpower</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {caps.length < 5 && (
-              <button onClick={addCap} style={{ width:"100%", padding:"9px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:7, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, marginBottom:6 }}>
-                + Add capability
-              </button>
-            )}
-          </div>
-        );
-      })}
+      {validAnimals.map((animal, animalIdx) => (
+        <CapAnimalCard key={animalIdx} animal={animal} animalIdx={animalIdx} m2animals={m2animals} set={set} />
+      ))}
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror2_sub", "qualities")}>← Qualities & Animals</button>
         <button className="btn" onClick={() => set("mirror2_sub", "pressure")}>Under Pressure →</button>
