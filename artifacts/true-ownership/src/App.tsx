@@ -2049,10 +2049,29 @@ function A1({ intake, onDone }) {
         setChipInput("");
       };
       const removeQualityChip = (id) => {
+        const removedChip = chips.find(c => c.id === id);
+        const removedLabel = removedChip?.label?.toLowerCase() || "";
         const newChips = chips.filter(c => c.id !== id);
         set("identity_chips", newChips);
         const nextAnimals = m2animals.map((a, i) => ({
-          ...a, adjective1: newChips.filter(c => c.assignedTo === i).map(c => c.label).join(", ")
+          ...a,
+          adjective1: newChips.filter(c => c.assignedTo === i).map(c => c.label).join(", "),
+          capabilities: (a.capabilities || []).filter(cap => cap.name.toLowerCase() !== removedLabel)
+        }));
+        set("animals", nextAnimals);
+      };
+      const unassignChipFromAnimal = (id) => {
+        const removedChip = chips.find(c => c.id === id);
+        const removedLabel = removedChip?.label?.toLowerCase() || "";
+        const animalIdx = removedChip?.assignedTo;
+        const newChips = chips.map(c => c.id === id ? { ...c, assignedTo: null } : c);
+        set("identity_chips", newChips);
+        const nextAnimals = m2animals.map((a, i) => ({
+          ...a,
+          adjective1: newChips.filter(c => c.assignedTo === i).map(c => c.label).join(", "),
+          capabilities: i === animalIdx
+            ? (a.capabilities || []).filter(cap => cap.name.toLowerCase() !== removedLabel)
+            : (a.capabilities || [])
         }));
         set("animals", nextAnimals);
       };
@@ -2123,7 +2142,7 @@ function A1({ intake, onDone }) {
                     title={animalName ? `Assigned to ${animalName}` : "Drag to an animal"}>
                     {isAssigned && <span style={{ fontSize:10 }}>✓</span>}
                     {chip.label}
-                    <button onClick={() => removeQualityChip(chip.id)}
+                    <button onClick={() => isAssigned ? unassignChipFromAnimal(chip.id) : removeQualityChip(chip.id)}
                       style={{ background:"none", border:"none", color:"inherit", cursor:"pointer", fontSize:14, padding:"0 0 0 3px", lineHeight:1, opacity:.6 }}>×</button>
                   </div>
                 );
@@ -2180,9 +2199,10 @@ function A1({ intake, onDone }) {
                 {assignedChips.length > 0 ? (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
                     {assignedChips.map(chip => (
-                      <span key={chip.id} className="chip chip-green" style={{ fontSize:11 }}>
-                        <span style={{ fontSize:10 }}>✓</span>{chip.label}
-                      </span>
+                            <span key={chip.id} className="chip chip-green" style={{ fontSize:11, display:"inline-flex", alignItems:"center", gap:3 }}>
+                              <span style={{ fontSize:10 }}>✓</span>{chip.label}
+                              <button onClick={e => { e.stopPropagation(); unassignChipFromAnimal(chip.id); }} style={{ background:"none", border:"none", cursor:"pointer", color:"inherit", fontSize:13, padding:0, lineHeight:1, opacity:.6 }}>×</button>
+                            </span>
                     ))}
                   </div>
                 ) : (
