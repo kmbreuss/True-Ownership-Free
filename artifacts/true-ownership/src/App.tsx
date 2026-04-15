@@ -2369,7 +2369,8 @@ function A1({ intake, onDone }) {
         <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your animals first.</div>
       )}
       {validAnimals.map((animal, i) => {
-        const caps = (animal.capabilities || []).filter(c => c.name);
+        const _chipSet = new Set((map.identity_chips||[]).map(c=>c.label.toLowerCase()));
+        const caps = (animal.capabilities || []).filter(c => !c.name || !_chipSet.size || _chipSet.has(c.name.toLowerCase()));
         const pressureText = animal.under_pressure || "";
         return (
           <div key={i} style={{ marginBottom:22, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
