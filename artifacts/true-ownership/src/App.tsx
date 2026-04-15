@@ -1471,9 +1471,21 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
   );
 });
 
-function CapAnimalCard({ animal, animalIdx, m2animals, set }) {
+function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
   const [isOpen, setIsOpen] = useState(animalIdx === 0);
-  const caps = animal.capabilities || [{ name:"", description:"", example1:"", example2:"", score:7 }];
+  const [collapsedCaps, setCollapsedCaps] = useState<Record<number,boolean>>({});
+  // Find true index in full m2animals array (chips use this index)
+  const trueIdx = m2animals.findIndex(a => a.name === animal.name && a.name);
+  const idx = trueIdx >= 0 ? trueIdx : animalIdx;
+  // Build caps from assigned chips - source of truth
+  const assignedChips = (map?.identity_chips || []).filter(c => c.assignedTo === idx);
+  const existingCaps = animal.capabilities || [];
+  const caps = assignedChips.length > 0
+    ? assignedChips.map(chip => {
+        const ex = existingCaps.find(c => c.name.toLowerCase() === chip.label.toLowerCase());
+        return ex || { name: chip.label, description:"", example1:"", example2:"", score:7 };
+      })
+    : existingCaps.filter(c => c.name);
   const filledCaps = caps.filter(c => c.name);
   const avgScore = filledCaps.length > 0
     ? Math.round(filledCaps.reduce((sum, c) => sum + (c.score || 5), 0) / filledCaps.length * 10) / 10
@@ -1515,40 +1527,56 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set }) {
           {caps.map((cap, ci) => {
             const capScore = cap.score || 7;
             const capCol = capScore >= 7 ? "#34d399" : capScore >= 5 ? "#f59e0b" : "#ef4444";
+            const isCapOpen = !collapsedCaps[ci];
             return (
-              <div key={ci} style={{ marginBottom:14, padding:"14px 16px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
-                <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:8 }}>Capability {ci+1}</div>
-                <div style={{ marginBottom:9 }}>
-                  <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Name this capability</label>
-                  <TextInput value={cap.name || ""} onChange={v => updateCap(ci, "name", v)} placeholder="e.g. Strategic clarity under pressure" style={{ fontSize:13 }} />
+              <div key={ci} style={{ marginBottom:9, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+                {/* Cap header row */}
+                <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", cursor:"pointer" }}
+                  onClick={() => setCollapsedCaps(p => ({ ...p, [ci]: !p[ci] }))}>
+                  <div style={{ flex:1 }}>
+                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>Capability {ci+1}</span>
+                    {cap.name && <span style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase" }}> · {cap.name}</span>}
+                  </div>
+                  <div style={{ width:24, height:24, borderRadius:"50%", background: isCapOpen ? "rgba(201,168,76,.15)" : "var(--bg4)", border: `1px solid ${isCapOpen ? "rgba(201,168,76,.4)" : "var(--border2)"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all .2s" }}>
+                    <span style={{ fontSize:12, color: isCapOpen ? "var(--warm)" : "var(--text3)", transform: isCapOpen ? "rotate(180deg)" : "none", transition:"transform .2s", display:"block", lineHeight:1 }}>▾</span>
+                  </div>
                 </div>
-                {cap.name && (
-                  <div>
+                {/* Cap body */}
+                {isCapOpen && (
+                  <div style={{ padding:"0 14px 14px 14px" }}>
                     <div style={{ marginBottom:9 }}>
-                      <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Describe it in your own words</label>
-                      <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up?" style={{ fontSize:13 }} />
+                      <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Name this capability</label>
+                      <TextInput value={cap.name || ""} onChange={v => updateCap(ci, "name", v)} placeholder="e.g. Strategic clarity under pressure" style={{ fontSize:13 }} />
                     </div>
-                    <div style={{ marginBottom:9 }}>
-                      <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 -- a real time you demonstrated this</label>
-                      <TextArea value={cap.example1 || ""} onChange={v => updateCap(ci, "example1", v)} rows={2} placeholder="A specific moment -- what happened, what did you do?" style={{ fontSize:13 }} />
-                    </div>
-                    <div style={{ marginBottom:12 }}>
-                      <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 2 -- another real moment</label>
-                      <TextArea value={cap.example2 || ""} onChange={v => updateCap(ci, "example2", v)} rows={2} placeholder="Another specific moment -- different context if possible" style={{ fontSize:13 }} />
-                    </div>
-                    <div>
-                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                        <label style={{ fontSize:11, color:"var(--text3)", fontWeight:500 }}>How well are you living this right now?</label>
-                        <div style={{ fontSize:14, fontWeight:300, fontFamily:"var(--serif)", color:capCol }}>{capScore}<span style={{ fontSize:10 }}>/10</span></div>
+                    {cap.name && (
+                      <div>
+                        <div style={{ marginBottom:9 }}>
+                          <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Describe it in your own words</label>
+                          <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up?" style={{ fontSize:13 }} />
+                        </div>
+                        <div style={{ marginBottom:9 }}>
+                          <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 -- a real time you demonstrated this</label>
+                          <TextArea value={cap.example1 || ""} onChange={v => updateCap(ci, "example1", v)} rows={2} placeholder="A specific moment -- what happened, what did you do?" style={{ fontSize:13 }} />
+                        </div>
+                        <div style={{ marginBottom:12 }}>
+                          <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 2 -- another real moment</label>
+                          <TextArea value={cap.example2 || ""} onChange={v => updateCap(ci, "example2", v)} rows={2} placeholder="Another specific moment -- different context if possible" style={{ fontSize:13 }} />
+                        </div>
+                        <div>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                            <label style={{ fontSize:11, color:"var(--text3)", fontWeight:500 }}>How well are you living this right now?</label>
+                            <div style={{ fontSize:14, fontWeight:300, fontFamily:"var(--serif)", color:capCol }}>{capScore}<span style={{ fontSize:10 }}>/10</span></div>
+                          </div>
+                          <input type="range" min={1} max={10} step={1} value={capScore}
+                            onChange={e => updateCap(ci, "score", Number(e.target.value))}
+                            style={{ accentColor:capCol, width:"100%" }} />
+                          <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
+                            <span style={{ color:"#ef4444" }}>1 · Detriment</span>
+                            <span style={{ color:"#34d399" }}>10 · Superpower</span>
+                          </div>
+                        </div>
                       </div>
-                      <input type="range" min={1} max={10} step={1} value={capScore}
-                        onChange={e => updateCap(ci, "score", Number(e.target.value))}
-                        style={{ accentColor:capCol, width:"100%" }} />
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
-                        <span style={{ color:"#ef4444" }}>1 · Detriment</span>
-                        <span style={{ color:"#34d399" }}>10 · Superpower</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -2284,7 +2312,7 @@ function A1({ intake, onDone }) {
         <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 and name your animals first.</div>
       )}
       {validAnimals.map((animal, animalIdx) => (
-        <CapAnimalCard key={animalIdx} animal={animal} animalIdx={animalIdx} m2animals={m2animals} set={set} />
+        <CapAnimalCard key={animalIdx} animal={animal} animalIdx={animalIdx} m2animals={m2animals} set={set} map={map} />
       ))}
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror2_sub", "qualities")}>← Qualities & Animals</button>
