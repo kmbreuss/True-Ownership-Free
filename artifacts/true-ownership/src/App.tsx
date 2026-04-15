@@ -1538,9 +1538,9 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
             const isCapOpen = !collapsedCaps[ci];
             const autoKw = cap.description ? extractKeywords(cap.description) : [];
             const supChips: string[] = cap.superpower_chips || [];
-            // Merge auto-extracted + any custom chips not in auto list
             const allChips = [...new Set([...autoKw, ...supChips])];
             const chipInput = chipInputs[ci] || "";
+            const PRESET_SUP = ["decisive","clear-headed","visionary","strategic","innovative","empathetic","calm","focused","bold","precise","adaptive","inspiring","direct","perceptive","resilient","connected"];
             return (
               <div key={ci} style={{ marginBottom:9, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
                 {/* Cap header row */}
@@ -1568,31 +1568,43 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                         <label style={{ display:"block", fontSize:11, color:"var(--warm)", marginBottom:4, fontWeight:600 }}>Describe it in your own words when it's your superpower</label>
                         <TextArea value={cap.description || ""} onChange={v => updateCap(ci, "description", v)} rows={2} placeholder="What does this capability actually enable? How does it show up at its best?" style={{ fontSize:13 }} />
                       </div>
-                      {/* Field 2: Superpower keyword chips */}
-                      <div style={{ marginBottom:12 }}>
-                        {allChips.length > 0 && (
-                          <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:6 }}>
-                            {allChips.map(word => {
-                              const on = supChips.includes(word);
-                              return (
-                                <span key={word}
-                                  onClick={() => updateCap(ci, "superpower_chips", on ? supChips.filter(w => w !== word) : [...supChips, word])}
-                                  style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 8px 3px 10px", borderRadius:20, border:`1px solid ${on ? "rgba(201,168,76,.6)" : "rgba(201,168,76,.2)"}`, background: on ? "rgba(201,168,76,.15)" : "transparent", color: on ? "var(--warm)" : "var(--text3)", fontFamily:"var(--sans)", fontWeight: on ? 700 : 400, transition:"all .15s", cursor:"pointer" }}>
-                                  {word}
-                                  <button onClick={e => { e.stopPropagation(); updateCap(ci, "superpower_chips", supChips.filter(w => w !== word)); }} style={{ background:"none", border:"none", cursor:"pointer", color:"inherit", padding:0, lineHeight:1, fontSize:10, opacity:.6 }}>×</button>
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
-                        <div style={{ display:"flex", gap:5 }}>
-                          <input value={chipInput} onChange={e => setChipInputs(p => ({ ...p, [ci]: e.target.value }))}
-                            onKeyDown={e => { if (e.key === "Enter" && chipInput.trim()) { updateCap(ci, "superpower_chips", [...new Set([...supChips, chipInput.trim()])]); setChipInputs(p => ({ ...p, [ci]: "" })); } }}
-                            placeholder="Add keyword…" style={{ flex:1, fontSize:11, padding:"4px 9px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--bg4)", color:"var(--text)", fontFamily:"var(--sans)" }} />
-                          <button onClick={() => { if (chipInput.trim()) { updateCap(ci, "superpower_chips", [...new Set([...supChips, chipInput.trim()])]); setChipInputs(p => ({ ...p, [ci]: "" })); } }}
-                            style={{ fontSize:11, padding:"4px 10px", borderRadius:6, border:"1px solid rgba(201,168,76,.3)", background:"rgba(201,168,76,.1)", color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)" }}>Add</button>
-                        </div>
-                      </div>
+                {/* Field 2: Superpower keyword chips */}
+                <div style={{ marginBottom:12 }}>
+                  <label style={{ display:"block", fontSize:11, color:"var(--warm)", marginBottom:4, fontWeight:500 }}>
+                    Superpower keywords — tap to add, × to remove
+                  </label>
+                  <div style={{ fontSize:11, color:"var(--text3)", marginBottom:6 }}>Choose words that describe this capability at its best.</div>
+                  {/* Preset chips */}
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
+                    {PRESET_SUP.map((word: string) => {
+                      const on = supChips.includes(word);
+                      return (
+                        <button key={word}
+                          onClick={() => updateCap(ci, "superpower_chips", on ? supChips.filter((w:string) => w !== word) : [...supChips, word])}
+                          style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 10px", borderRadius:20, border:`1px solid ${on ? "rgba(201,168,76,.7)" : "var(--border2)"}`, background: on ? "rgba(201,168,76,.18)" : "transparent", color: on ? "var(--warm)" : "var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", transition:"all .15s" }}>
+                          {on && <span onClick={e => { e.stopPropagation(); updateCap(ci, "superpower_chips", supChips.filter((w:string) => w !== word)); }} style={{ fontWeight:700, fontSize:10, opacity:.7 }}>×</span>}
+                          {word}
+                        </button>
+                      );
+                    })}
+                    {/* Custom chips */}
+                    {supChips.filter((w:string) => !PRESET_SUP.includes(w)).map((word:string) => (
+                      <button key={word}
+                        style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 10px", borderRadius:20, border:"1px solid rgba(201,168,76,.7)", background:"rgba(201,168,76,.18)", color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)" }}>
+                        <span onClick={() => updateCap(ci, "superpower_chips", supChips.filter((w2:string) => w2 !== word))} style={{ fontWeight:700, fontSize:10, opacity:.7 }}>×</span>
+                        {word}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Add custom word */}
+                  <div style={{ display:"flex", gap:5, marginBottom:4 }}>
+                    <input value={chipInputs[ci] || ""} onChange={e => setChipInputs(p => ({ ...p, [ci]: e.target.value }))}
+                      onKeyDown={e => { if (e.key === "Enter" && (chipInputs[ci]||"").trim()) { updateCap(ci, "superpower_chips", [...supChips, (chipInputs[ci]||"").trim()]); setChipInputs(p => ({ ...p, [ci]: "" })); }}}
+                      placeholder="Add a keyword…" style={{ flex:1, fontSize:11, padding:"4px 9px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--bg4)", color:"var(--text)", fontFamily:"var(--sans)" }} />
+                    <button onClick={() => { const v=(chipInputs[ci]||"").trim(); if(v){ updateCap(ci,"superpower_chips",[...supChips,v]); setChipInputs(p=>({...p,[ci]:""})); }}}
+                      style={{ fontSize:11, padding:"4px 10px", borderRadius:6, border:"1px solid rgba(201,168,76,.3)", background:"rgba(201,168,76,.1)", color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)" }}>Add</button>
+                  </div>
+                </div>
                       {/* Field 3: Example 1 */}
                       <div style={{ marginBottom:9 }}>
                         <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Example 1 — a real time you demonstrated this</label>
@@ -1615,64 +1627,6 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
             </button>
           )}
 
-          {/* ── Under Pressure subsection ─────────────────────────── */}
-          <div style={{ marginTop:18, padding:"14px 16px", background:"rgba(239,68,68,.04)", border:"1px solid rgba(239,68,68,.15)", borderRadius:10 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#ef4444", marginBottom:8 }}>Under Pressure</div>
-            <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", marginBottom:12, lineHeight:1.5 }}>
-              When {animalTitle} is under pressure...
-            </div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:10 }}>
-              {["withdraw","shut down","people-please","overthink","freeze","blame","control","numb","deflect","go quiet","get reactive","spiral","over-explain","self-abandon"].map(word => (
-                <button key={word}
-                  onClick={() => {
-                    const cur = animal.under_pressure || "";
-                    const next = [...m2animals];
-                    next[animalIdx] = { ...next[animalIdx], under_pressure: cur ? cur + ", " + word : word };
-                    set("animals", next);
-                  }}
-                  style={{ fontSize:11, padding:"3px 9px", borderRadius:20, border:"1px solid rgba(239,68,68,.3)", background:"rgba(239,68,68,.07)", color:"#ef4444", cursor:"pointer", fontFamily:"var(--sans)" }}>
-                  {word}
-                </button>
-              ))}
-            </div>
-            <TextArea
-              value={animal.under_pressure || ""}
-              onChange={v => {
-                const next = [...m2animals];
-                next[animalIdx] = { ...next[animalIdx], under_pressure: v };
-                set("animals", next);
-              }}
-              rows={4}
-              placeholder={`When things go wrong and ${animalTitle} takes over, I tend to...`}
-              style={{ fontSize:13 }} />
-          </div>
-
-          {/* ── Alignment Scale subsection ───────────────────────────── */}
-          {filledCaps.length > 0 && (
-            <div style={{ marginTop:14, padding:"14px 16px", background:"rgba(201,168,76,.04)", border:"1px solid rgba(201,168,76,.15)", borderRadius:10 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:12 }}>⚡ Alignment Scale</div>
-              {filledCaps.map((cap, ci) => {
-                const storeKey = `align_cap_${trueIdx}_${ci}`;
-                const score = (map?.[storeKey] ?? 5) as number;
-                const col = score >= 7 ? "#34d399" : score >= 4 ? "#f59e0b" : "#ef4444";
-                return (
-                  <div key={ci} style={{ marginBottom:14 }}>
-                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                      <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{cap.name}</span>
-                      <span style={{ fontSize:13, fontWeight:700, color:col }}>{score}/10</span>
-                    </div>
-                    <input type="range" min={1} max={10} step={1} value={score}
-                      onChange={e => set(storeKey, Number(e.target.value))}
-                      style={{ width:"100%", accentColor:col }} />
-                    <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
-                      <span style={{ color:"#ef4444" }}>1 = living far from this</span>
-                      <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -2406,70 +2360,142 @@ function A1({ intake, onDone }) {
       </div>
     </>);
 
-    // ── STEP 3: UNDER PRESSURE ───────────────────────────────────────────────
-    if (m2sub === "pressure") return wrapContent(<>
-      <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 3</div>
-      {M2Progress()}
-      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Under Pressure</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
-        Character is not revealed when things are easy. For each animal -- how do you actually show up when things go wrong?
-      </p>
-      <div style={{ padding:"13px 16px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:9, marginBottom:22 }}>
-        <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>
-          "This is the most important question in this section. Not who you are when things are good -- who you are when things are hard. Be honest."
-        </div>
+  // — STEP 3: UNDER PRESSURE ————————————————————————————————
+  if (m2sub === "pressure") return wrapContent(<>
+    <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 3</div>
+    {M2Progress()}
+    <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Under Pressure</h2>
+    <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+      Character is not revealed when things are easy. For each animal — how do you actually show up when things go wrong?
+    </p>
+    <div style={{ padding:"13px 16px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:8, marginBottom:20 }}>
+      <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>
+        "This is the most important question in this section. Not who you are when things are good — who you are when things are hard. Be honest."
       </div>
-      {validAnimals.length === 0 && (
-        <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 and name your animals first.</div>
-      )}
-      {validAnimals.map((animal, i) => {
-        const updatePressure = (val) => {
-          const next = [...m2animals];
-          next[i] = { ...next[i], under_pressure: val };
-          set("animals", next);
-        };
-        return (
-          <div key={i} style={{ marginBottom:20, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-              <span style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</span>
-            </div>
-            {(animal.capabilities || []).filter(c => c.name).length > 0 && (
-              <div style={{ padding:"9px 12px", background:"rgba(167,139,250,.07)", border:"1px solid rgba(167,139,250,.2)", borderRadius:8, marginBottom:12 }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:5 }}>Capabilities when this animal thrives</div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                  {(animal.capabilities || []).filter(c => c.name).map((cap, ci) => (
-                    <span key={ci} style={{ fontSize:11, padding:"2px 9px", background:"rgba(167,139,250,.1)", border:"1px solid rgba(167,139,250,.2)", borderRadius:12, color:"#a78bfa" }}>{cap.name}</span>
+    </div>
+    {validAnimals.length === 0 && (
+      <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your animals first.</div>
+    )}
+    {validAnimals.map((animal, i) => {
+      const trueIdx = m2animals.findIndex(a => a.name === animal.name);
+      const caps = (animal.capabilities || []).filter((c: any) => c.name);
+      return (
+        <div key={i} style={{ marginBottom:24, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+            <span style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>
+              {[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}
+            </span>
+          </div>
+          {caps.length === 0 && (
+            <div style={{ padding:12, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 2 — Capabilities to add capabilities first.</div>
+          )}
+          {caps.map((cap: any, ci: number) => {
+            const supChips: string[] = cap.superpower_chips || [];
+            const detKey = `det_text_${trueIdx}_${ci}`;
+            const detChipsKey = `det_chips_${trueIdx}_${ci}`;
+            const detInputKey = `det_input_${trueIdx}_${ci}`;
+            const alignKey = `align_cap_${trueIdx}_${ci}`;
+            const collapseKey = `up_open_${trueIdx}_${ci}`;
+            const isOpen = (map?.[collapseKey] !== false);
+            const detVal = (map?.[detKey] || "") as string;
+            const detChips: string[] = (map?.[detChipsKey] || []) as string[];
+            const detInput = (map?.[detInputKey] || "") as string;
+            const alignScore = (map?.[alignKey] ?? 5) as number;
+            const alignCol = alignScore >= 7 ? "#34d399" : alignScore >= 4 ? "#f59e0b" : "#ef4444";
+            const PRESET_DET = ["overthink","withdraw","over-control","people-please","deflect","shut down","spiral","freeze","blame","numb","go quiet","get reactive"];
+            return (
+              <div key={ci} style={{ marginBottom:12, border:"1px solid var(--border2)", borderRadius:8, overflow:"hidden" }}>
+                {/* Collapsible header */}
+                <div onClick={() => set(collapseKey, !isOpen)}
+                  style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"var(--bg4)", cursor:"pointer", userSelect:"none" }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:"var(--text)" }}>{cap.name}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:12, fontWeight:700, color:alignCol }}>{alignScore}/10</span>
+                    <span style={{ fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                  </div>
+                </div>
+                {isOpen && (
+                <div style={{ padding:"14px 14px 10px", borderTop:"1px solid var(--border)" }}>
+                {/* Capability name */}
+                <div style={{ fontSize:13, fontWeight:700, letterSpacing:0.3, color:"var(--text)", marginBottom:8 }}>{cap.name}</div>
+                {/* Superpower chips — read only */}
+                {supChips.length > 0 && (
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
+                    {supChips.map((w: string) => (
+                      <span key={w} style={{ fontSize:11, padding:"3px 10px", borderRadius:20, background:"rgba(201,168,76,.15)", border:"1px solid rgba(201,168,76,.35)", color:"var(--warm)", fontFamily:"var(--sans)" }}>{w}</span>
+                    ))}
+                  </div>
+                )}
+                {/* Free text */}
+                <label style={{ display:"block", fontSize:11, fontWeight:500, color:"var(--text3)", marginBottom:5 }}>
+                  When <em>{cap.name}</em> is over or underused — how do you show up?
+                </label>
+                <TextArea
+                  value={detVal}
+                  onChange={(v: string) => set(detKey, v)}
+                  rows={3}
+                  placeholder={`When ${cap.name} goes out of balance, I tend to...`}
+                  style={{ fontSize:13, marginBottom:10 }}
+                />
+                {/* Detriment chips — preset + add + delete */}
+                <div style={{ fontSize:11, color:"var(--text3)", marginBottom:6 }}>Tap a word to add it, or write your own below.</div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
+                  {PRESET_DET.map((word: string) => {
+                    const on = detChips.includes(word);
+                    return (
+                      <button key={word}
+                        onClick={() => set(detChipsKey, on ? detChips.filter((w: string) => w !== word) : [...detChips, word])}
+                        style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 10px", borderRadius:20, border:`1px solid ${on ? "rgba(239,68,68,.6)" : "var(--border2)"}`, background: on ? "rgba(239,68,68,.12)" : "transparent", color: on ? "#ef4444" : "var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", transition:"all .15s" }}>
+                        {on && <span onClick={e => { e.stopPropagation(); set(detChipsKey, detChips.filter((w: string) => w !== word)); }} style={{ fontWeight:700, fontSize:10, opacity:.7 }}>×</span>}
+                        {word}
+                      </button>
+                    );
+                  })}
+                  {/* Custom chips */}
+                  {detChips.filter((w: string) => !PRESET_DET.includes(w)).map((word: string) => (
+                    <button key={word}
+                      style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:11, padding:"3px 10px", borderRadius:20, border:"1px solid rgba(239,68,68,.6)", background:"rgba(239,68,68,.12)", color:"#ef4444", cursor:"pointer", fontFamily:"var(--sans)" }}>
+                      <span onClick={() => set(detChipsKey, detChips.filter((w2: string) => w2 !== word))} style={{ fontWeight:700, fontSize:10, opacity:.7 }}>×</span>
+                      {word}
+                    </button>
                   ))}
                 </div>
+                {/* Add custom word */}
+                <div style={{ display:"flex", gap:5, marginBottom:12 }}>
+                  <input value={detInput} onChange={e => set(detInputKey, e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && detInput.trim()) { set(detChipsKey, [...detChips, detInput.trim()]); set(detInputKey, ""); }}}
+                    placeholder="Add a word…" style={{ flex:1, fontSize:11, padding:"4px 9px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--bg4)", color:"var(--text)", fontFamily:"var(--sans)" }} />
+                  <button onClick={() => { if (detInput.trim()) { set(detChipsKey, [...detChips, detInput.trim()]); set(detInputKey, ""); }}}
+                    style={{ fontSize:11, padding:"4px 10px", borderRadius:6, border:"1px solid rgba(201,168,76,.3)", background:"rgba(201,168,76,.1)", color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)" }}>Add</button>
+                </div>
+                {/* Alignment scale */}
+                <div style={{ padding:"12px 14px", background:"rgba(201,168,76,.04)", border:"1px solid rgba(201,168,76,.15)", borderRadius:8 }}>
+                  <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:10 }}>Alignment Scale</div>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                    <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{cap.name}</span>
+                    <span style={{ fontSize:13, fontWeight:700, color:alignCol }}>{alignScore}/10</span>
+                  </div>
+                  <input type="range" min={1} max={10} step={1} value={alignScore}
+                    onChange={e => set(alignKey, Number(e.target.value))}
+                    style={{ width:"100%", accentColor:alignCol }} />
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
+                    <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                    <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
+                  </div>
+                </div>
+                </div>
+                )}
               </div>
-            )}
-            <label style={{ display:"block", fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", marginBottom:6 }}>
-              When this animal is under pressure -- how do you actually show up?
-            </label>
-            <div style={{ fontSize:12, color:"var(--text4)", marginBottom:8, lineHeight:1.5 }}>
-              Tap a word to add it, or write freely below.
-            </div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:10 }}>
-              {["withdraw","shut down","people-please","overthink","freeze","blame","control","numb","deflect","go quiet","get reactive","spiral","over-explain","self-abandon"].map(word => (
-                <button key={word} className="chip chip-red"
-                  onClick={() => {
-                    const cur = animal.under_pressure || "";
-                    updatePressure(cur ? cur + ", " + word : word);
-                  }}>
-                  {word}
-                </button>
-              ))}
-            </div>
-            <TextArea value={animal.under_pressure || ""} onChange={updatePressure} rows={4}
-              placeholder="When things go wrong and this animal takes over, I tend to..." style={{ fontSize:13 }} />
-          </div>
-        );
-      })}
-      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-        <button className="btn-g" onClick={() => set("mirror2_sub", "capabilities")}>← Capabilities</button>
-        <button className="btn" onClick={() => set("mirror2_sub", "lovedones")}>Loved Ones →</button>
-      </div>
-    </>);
+            );
+          })}
+        </div>
+      );
+    })}
+    <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+      <button className="btn-g" onClick={() => set("mirror2_sub", "capabilities")}>← Capabilities</button>
+      <button className="btn" onClick={() => set("mirror2_sub", "lovedones")}>Loved Ones →</button>
+    </div>
+  </>);
 
     // ── STEP 5: MY IDENTITY ──────────────────────────────────────────────────
     if (m2sub === "myidentity") return wrapContent(<>
