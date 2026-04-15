@@ -1480,9 +1480,19 @@ function extractKeywords(text: string, n = 6): string[] {
   return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, n).map(([w]) => w);
 }
 
-function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
+function CapAnimalCard({ animal, animalIdx, m2animals, set, map, allCollapsed }) {
   const [isOpen, setIsOpen] = useState(false);
   const [collapsedCaps, setCollapsedCaps] = useState<Record<number,boolean>>({});
+  useEffect(() => {
+    if (allCollapsed === true) {
+      const all: Record<number,boolean> = {};
+      const existingCaps = animal.capabilities || [];
+      for (let i = 0; i < Math.max(existingCaps.length, 5); i++) all[i] = true;
+      setCollapsedCaps(all);
+    } else if (allCollapsed === false) {
+      setCollapsedCaps({});
+    }
+  }, [allCollapsed]);
   const [chipInputs, setChipInputs] = useState<Record<number,string>>({});
   // Find true index in full m2animals array (chips use this index)
   const trueIdx = m2animals.findIndex(a => a.name === animal.name && a.name);
@@ -2348,11 +2358,19 @@ function A1({ intake, onDone }) {
           "The examples are the most important part. They are your evidence -- your own proof that you are this person."
         </div>
       </div>
+      {validAnimals.length > 0 && (
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10 }}>
+          <button onClick={() => set("caps_all_collapsed", map?.caps_all_collapsed === true ? false : true)}
+            style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px", transition:"all .15s" }}>
+            {map?.caps_all_collapsed === true ? "Expand All" : "Collapse All"}
+          </button>
+        </div>
+      )}
       {validAnimals.length === 0 && (
         <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 and name your animals first.</div>
       )}
       {validAnimals.map((animal, animalIdx) => (
-        <CapAnimalCard key={animalIdx} animal={animal} animalIdx={animalIdx} m2animals={m2animals} set={set} map={map} />
+        <CapAnimalCard key={animalIdx} animal={animal} animalIdx={animalIdx} m2animals={m2animals} set={set} map={map} allCollapsed={map?.caps_all_collapsed} />
       ))}
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror2_sub", "qualities")}>← Qualities & Animals</button>
@@ -2546,7 +2564,7 @@ function A1({ intake, onDone }) {
     </>);
 
     // ── STEP 4: LOVED ONES ───────────────────────────────────────────────────
-    return wrapContent(<>
+    if (m2sub === "lovedones") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 4</div>
       {M2Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>The Loved Ones Check</h2>
