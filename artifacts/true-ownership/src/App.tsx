@@ -2862,8 +2862,125 @@ function A1({ intake, onDone }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 2</div>
       {M3Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Behaviors</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>How your values show up in action. Coming soon.</p>
-      <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10, marginBottom:22 }}>This step is under construction.</div>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>For each value, name the specific behaviors that bring it to life. A value without behaviors is just a word.</p>
+      {values.map((val, i) => {
+        const vName = (map?.[`val_${i}_name`] || val.name || `Value ${i + 1}`);
+        const vSummary = map?.[`val_${i}_summary`] || "";
+        const behCount = map?.[`beh_${i}_count`] || 1;
+        return (
+          <div key={i} style={{ marginBottom:26 }}>
+            {/* Value section header */}
+            <div style={{ marginBottom:12, paddingBottom:10, borderBottom:"1px solid var(--border)" }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:500, color:"var(--warm)", lineHeight:1.25, letterSpacing:"-.2px" }}>{vName}</div>
+              {vSummary && <div style={{ fontSize:12, fontStyle:"italic", color:"var(--text3)", lineHeight:1.6, marginTop:4 }}>{vSummary}</div>}
+            </div>
+
+            {/* Behavior cards */}
+            {Array.from({ length: behCount }).map((_, j) => {
+              const bName    = map?.[`beh_${i}_${j}_name`]    || "";
+              const bBullets = (map?.[`beh_${i}_${j}_bullets`] as string[]) || [];
+              const bDetail  = map?.[`beh_${i}_${j}_detail`]  || "";
+              const bDraft   = map?.[`beh_${i}_${j}_draft`]   || "";
+              const bOpen    = map?.[`beh_${i}_${j}_open`]    !== false;
+              const busyKey  = `behAI_${i}_${j}`;
+              const setBullets = (arr: string[]) => set(`beh_${i}_${j}_bullets`, arr);
+
+              return (
+                <div key={j} style={{ marginBottom:10, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+                  {/* Header */}
+                  <div onClick={() => set(`beh_${i}_${j}_open`, !bOpen)}
+                    style={{ padding:"10px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", userSelect:"none", borderBottom: bOpen ? "1px solid var(--border)" : "none" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>Behavior {j + 1}</span>
+                      {bName && <span style={{ fontSize:13, fontWeight:600, color:"var(--warm)" }}>{bName}</span>}
+                    </div>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      {behCount > 1 && <button onClick={(e) => {
+                        e.stopPropagation();
+                        // Shift subsequent indices down
+                        for (let k = j; k < behCount - 1; k++) {
+                          set(`beh_${i}_${k}_name`,    map?.[`beh_${i}_${k+1}_name`] || "");
+                          set(`beh_${i}_${k}_bullets`, map?.[`beh_${i}_${k+1}_bullets`] || []);
+                          set(`beh_${i}_${k}_detail`,  map?.[`beh_${i}_${k+1}_detail`] || "");
+                        }
+                        set(`beh_${i}_count`, behCount - 1);
+                      }} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, padding:0 }}>×</button>}
+                      <span style={{ fontSize:14, color:"var(--text3)", transform: bOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                    </div>
+                  </div>
+
+                  {/* Body */}
+                  {bOpen && (
+                    <div style={{ padding:"14px 16px" }}>
+                      {/* Name */}
+                      <div style={{ marginBottom:12 }}>
+                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Name this behavior</label>
+                        <TextInput value={bName} onChange={(v: string) => set(`beh_${i}_${j}_name`, v)} placeholder="e.g. Keep promises to myself first" style={{ fontSize:13 }} />
+                      </div>
+
+                      {/* Bullets */}
+                      <div style={{ marginBottom:12 }}>
+                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>What this looks like in practice</label>
+                        {bBullets.length > 0 && (
+                          <div style={{ marginBottom:6 }}>
+                            {bBullets.map((b, bi) => (
+                              <div key={bi} style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"5px 0", fontSize:13, color:"var(--text2)", lineHeight:1.6 }}>
+                                <span style={{ color:"var(--warm)", flexShrink:0, marginTop:1 }}>•</span>
+                                <span style={{ flex:1 }}>{b}</span>
+                                <button onClick={() => setBullets(bBullets.filter((_, k) => k !== bi))}
+                                  style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:14, padding:0, lineHeight:1, flexShrink:0 }}>×</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <input value={bDraft}
+                          onChange={e => set(`beh_${i}_${j}_draft`, e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter" && bDraft.trim()) {
+                              e.preventDefault();
+                              setBullets([...bBullets, bDraft.trim()]);
+                              set(`beh_${i}_${j}_draft`, "");
+                            }
+                          }}
+                          placeholder="Type a bullet and press Enter..."
+                          style={{ width:"100%", fontSize:13, padding:"7px 10px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--bg4)", color:"var(--text)", fontFamily:"var(--sans)", boxSizing:"border-box" }} />
+                      </div>
+
+                      {/* Optional detail */}
+                      <div style={{ marginBottom:12 }}>
+                        <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Detail (optional)</label>
+                        <TextArea value={bDetail} onChange={(v: string) => set(`beh_${i}_${j}_detail`, v)} rows={2} placeholder="Why this behavior matters, when it's hard, what it unlocks..." style={{ fontSize:13 }} />
+                      </div>
+
+                      {/* Ask Katherine */}
+                      <button onClick={async () => {
+                        setBusy(b => ({ ...b, [busyKey]:true }));
+                        const prompt = `You are Katherine Breuss. ${name || "The user"} holds the value "${vName}"${vSummary ? ` (which means: "${vSummary}")` : ""}. They are defining a concrete behavior that brings this value to life${bName ? `, called "${bName}"` : ""}${bDetail ? ` (detail: "${bDetail}")` : ""}. Their existing bullets: ${bBullets.length ? bBullets.map(x => `"${x}"`).join(", ") : "(none)"}. Suggest 3-5 specific, concrete new bullet points — each one a small, observable action in daily life. Keep each under 12 words. No duplicates of existing bullets. Return JSON: {"bullets":["...","...","..."]}`;
+                        const r = await callStructured(prompt);
+                        if (r && Array.isArray(r.bullets)) setBullets([...bBullets, ...r.bullets]);
+                        setBusy(b => ({ ...b, [busyKey]:false }));
+                      }} disabled={!!busy[busyKey]}
+                        style={{ background:"none", border:"1px solid var(--border2)", borderRadius:5, color:"var(--warm)", cursor: busy[busyKey] ? "wait" : "pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 11px" }}>
+                        {busy[busyKey] ? "..." : "✦ Ask Katherine for suggestions"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Add behavior */}
+            <button onClick={() => set(`beh_${i}_count`, behCount + 1)}
+              style={{ width:"100%", padding:"10px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:8, color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, fontWeight:500 }}>
+              + Add Behavior
+            </button>
+          </div>
+        );
+      })}
+
+      <div style={{ marginBottom:22, marginTop:14 }}>
+        <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="behaviors" placeholder="Ask Katherine about your behaviors -- she can see everything you've written..." />
+      </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror3_sub", "values")}>← Values</button>
         <button className="btn" onClick={() => set("mirror3_sub", "hierarchy")}>Hierarchy →</button>
