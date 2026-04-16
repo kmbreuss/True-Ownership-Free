@@ -3022,7 +3022,7 @@ function A1({ intake, onDone }) {
         {hp === "test" && (<>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6 }}>Phase 2 · Test</div>
         <div style={{ fontSize:13, fontWeight:600, color:"var(--text)", marginBottom:3 }}>Pressure-test your ranking</div>
-        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>Your current order — Phase 2 trade-off questions coming next.</div>
+        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>Answer each trade-off question honestly — this reveals which values are truly non-negotiable.</div>
         <button onClick={() => set("hier_phase", "rank")} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, marginBottom:14, textDecoration:"underline" }}>↺ Back to ranking</button>
         </>)}
 
@@ -3073,6 +3073,68 @@ function A1({ intake, onDone }) {
             Test My Ranking →
           </button>
         )}
+
+        {(map?.hier_phase === "test") && valCount >= 2 && (() => {
+          const pairs: number[] = [];
+          for (let i = 1; i < order.length; i++) pairs.push(order[i]);
+          const testIdx = Math.max(0, Math.min(pairs.length, parseInt(map?.hier_test_idx) || 0));
+          const topIdx = order[0];
+          const topName = map?.[`val_${topIdx}_name`] || values[topIdx]?.name || `Value ${topIdx + 1}`;
+          if (testIdx < pairs.length) {
+            const bIdx = pairs[testIdx];
+            const bName = map?.[`val_${bIdx}_name`] || values[bIdx]?.name || `Value ${bIdx + 1}`;
+            const answer = (v: "yes" | "no") => {
+              set(`hier_test_${bIdx}`, v);
+              set("hier_test_idx", testIdx + 1);
+            };
+            return (
+              <div style={{ marginTop:20, padding:"22px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
+                <div style={{ fontSize:11, color:"var(--text4)", letterSpacing:1.2, textTransform:"uppercase", marginBottom:10 }}>Question {testIdx + 1} of {pairs.length}</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:20 }}>
+                  Can you have <span style={{ color:"var(--warm)" }}>{topName}</span> without <span style={{ color:"var(--warm)" }}>{bName}</span>?
+                </div>
+                <div style={{ display:"flex", gap:10 }}>
+                  <button onClick={() => answer("yes")}
+                    style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>
+                    Yes
+                  </button>
+                  <button onClick={() => answer("no")}
+                    style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>
+                    No
+                  </button>
+                </div>
+                {testIdx > 0 && (
+                  <button onClick={() => set("hier_test_idx", testIdx - 1)}
+                    style={{ marginTop:12, background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, textDecoration:"underline" }}>← Previous question</button>
+                )}
+              </div>
+            );
+          }
+          return (
+            <div style={{ marginTop:20, padding:"22px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
+              <div style={{ fontSize:11, color:"var(--text4)", letterSpacing:1.2, textTransform:"uppercase", marginBottom:10 }}>Results</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:20, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:14 }}>
+                You tested <span style={{ color:"var(--warm)" }}>{topName}</span> against {pairs.length} other value{pairs.length === 1 ? "" : "s"}.
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
+                {pairs.map((bIdx, i) => {
+                  const bName = map?.[`val_${bIdx}_name`] || values[bIdx]?.name || `Value ${bIdx + 1}`;
+                  const ans = map?.[`hier_test_${bIdx}`];
+                  return (
+                    <div key={bIdx} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 12px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, fontSize:13 }}>
+                      <span style={{ color:"var(--text2)" }}>Without <span style={{ color:"var(--warm)", fontWeight:600 }}>{bName}</span>?</span>
+                      <span style={{ fontWeight:600, color: ans === "yes" ? "var(--text)" : "var(--warm)", textTransform:"uppercase", fontSize:11, letterSpacing:1 }}>{ans || "—"}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <button onClick={() => { set("hier_test_idx", 0); }}
+                style={{ background:"none", border:"1px solid var(--border2)", color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, padding:"8px 14px", borderRadius:6 }}>
+                ↺ Retake
+              </button>
+            </div>
+          );
+        })()}
 
         <div style={{ marginBottom:22, marginTop:18 }}>
           <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="hierarchy" placeholder="Ask Katherine about your ranking -- which ones are truly non-negotiable?" />
