@@ -2661,26 +2661,40 @@ function A1({ intake, onDone }) {
         <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.6, fontStyle:"italic", fontFamily:"var(--serif)" }}>"What are they stomping on? If they did the opposite, what would that tell me?" That's your value.</div>
       </div>
       <div style={{ fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:10 }}>Your top 3 values</div>
-      {values.map((val, i) => (
-        <div key={i} style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, marginBottom:10, overflow:"hidden" }}>
-          <div style={{ padding:"8px 14px", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <span style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" }}>Value {i + 1}{i === 0 ? " · Most important" : ""}</span>
-            {values.length > 1 && <button onClick={() => set("values", values.filter((_, idx) => idx !== i))} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, padding:0 }}>×</button>}
-          </div>
-          <div style={{ padding:"12px 14px" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              <div>
-                <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Value name</label>
-                <TextInput value={val.name} onChange={v => setVal(i, "name", v)} placeholder="e.g. Integrity" style={{ fontSize:13, fontWeight:500, padding:"8px 10px" }} />
+      {values.map((val, i) => {
+        const valOpenKey = `val_${i}_open`;
+        const valOpen = map?.[valOpenKey] !== false;
+        const headerName = (map?.[`val_${i}_name`] || val.name || `Value ${i + 1}`);
+        return (
+          <div key={i} style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, marginBottom:10, overflow:"hidden" }}>
+            <div onClick={() => set(valOpenKey, !valOpen)}
+              style={{ padding:"10px 14px", borderBottom: valOpen ? "1px solid var(--border)" : "none", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", userSelect:"none" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>Value {i + 1}{i === 0 ? " · Most important" : ""}</span>
+                <span style={{ fontSize:13, fontWeight:600, color:"var(--warm)" }}>{headerName}</span>
               </div>
-              <div>
-                <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>The irk that revealed it</label>
-                <TextInput value={val.irk} onChange={v => setVal(i, "irk", v)} placeholder="People who..." style={{ fontSize:13, padding:"8px 10px" }} />
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                {values.length > 1 && <button onClick={(e) => { e.stopPropagation(); set("values", values.filter((_, idx) => idx !== i)); }} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, padding:0 }}>×</button>}
+                <span style={{ fontSize:14, color:"var(--text3)", transform: valOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
               </div>
             </div>
+            {valOpen && (
+            <div style={{ padding:"12px 14px" }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                <div>
+                  <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Value name</label>
+                  <TextInput value={val.name} onChange={v => { setVal(i, "name", v); set(`val_${i}_name`, v); }} placeholder="e.g. Integrity" style={{ fontSize:13, fontWeight:500, padding:"8px 10px" }} />
+                </div>
+                <div>
+                  <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>The irk that revealed it</label>
+                  <TextInput value={val.irk} onChange={v => setVal(i, "irk", v)} placeholder="People who..." style={{ fontSize:13, padding:"8px 10px" }} />
+                </div>
+              </div>
+            </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
       {values.length < 3 && <button onClick={() => set("values", [...values, { name:"", irk:"", behaviors:"" }])} style={{ width:"100%", padding:"10px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:8, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, marginBottom:18 }}>+ Add value</button>}
       <div style={{ marginBottom:22, marginTop:14 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="values" placeholder="Ask Katherine about your values -- she can see everything you've written..." />
