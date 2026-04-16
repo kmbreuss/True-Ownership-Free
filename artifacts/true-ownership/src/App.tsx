@@ -2648,6 +2648,9 @@ function A1({ intake, onDone }) {
       <div style={{ marginBottom:18, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
         <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are discovered, not invented. We find them through what makes your blood boil."</div>
       </div>
+      <div style={{ marginBottom:18, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
+        <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"What irritates you most in others is often what you refuse to compromise on yourself."</div>
+      </div>
       <div style={{ marginBottom:18 }}>
         <label style={{ display:"block", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>What behaviors in others genuinely irk you?</label>
         <div style={{ fontSize:12, color:"var(--text3)", marginBottom:6, lineHeight:1.6 }}>No filter. Be specific -- not just "rudeness" but what kind?</div>
