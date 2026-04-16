@@ -2807,17 +2807,33 @@ function A1({ intake, onDone }) {
                           setBusy(b => ({ ...b, [sumKey]:true }));
                           const stompList = stomps.map((s, n) => `  Level ${n+1}: ${s}`).join("\n");
                           const givesList = gives.map((g, n) => `  Level ${n+1}: ${g}`).join("\n");
-                          const prompt = `You are Katherine Breuss. ${name || "The user"} did the values peeling exercise and arrived at the value "${fName}". Their answers:\nIrk: ${fIrk}\nStomp chain (what's being violated, deepest last):\n${stompList}\nGives chain (what it gives them, highest last):\n${givesList}\n\nWrite ONE sentence (max 25 words) in their voice that captures what "${fName}" means to them as a personal value. No fluff, no quotes, no preamble. Return JSON: {"summary":"..."}`;
-                          const r = await callStructured(prompt);
-                          if (r && r.summary) set(`val_${i}_summary`, r.summary);
+                          const existing = (map?.[`val_${i}_summary`] || "").trim();
+                          if (!existing) {
+                            const prompt = `You are Katherine Breuss. ${name || "The user"} did the values peeling exercise and arrived at the value "${fName}". Their answers:\nIrk: ${fIrk}\nStomp chain (what's being violated, deepest last):\n${stompList}\nGives chain (what it gives them, highest last):\n${givesList}\n\nWrite ONE sentence (max 25 words) in their voice that captures what "${fName}" means to them as a personal value. No fluff, no quotes, no preamble. Return JSON: {"summary":"..."}`;
+                            const r = await callStructured(prompt);
+                            if (r && r.summary) set(`val_${i}_summary`, r.summary);
+                          } else {
+                            const prompt = `You are Katherine Breuss. The user peeled to find their value. Irk: ${fIrk}. Stomps: ${stomps.join(" → ")}. Gives: ${gives.join(" → ")}. They named it "${fName}" and wrote: "${existing}". Give 2-3 sentences of warm feedback — does this capture their root? Is it strong and specific? Speak directly to them in second person. No preamble. Return JSON: {"feedback":"..."}`;
+                            const r = await callStructured(prompt);
+                            if (r && r.feedback) set(`val_${i}_feedback`, r.feedback);
+                          }
                           setBusy(b => ({ ...b, [sumKey]:false }));
                         }} disabled={!!busy[`valSum_${i}`]}
                           style={{ background:"none", border:"1px solid var(--border2)", borderRadius:5, color:"var(--warm)", cursor: busy[`valSum_${i}`] ? "wait" : "pointer", fontFamily:"var(--sans)", fontSize:10, padding:"4px 9px", flexShrink:0, whiteSpace:"nowrap" }}>
-                          {busy[`valSum_${i}`] ? "..." : "✦ Ask Katherine"}
+                          {busy[`valSum_${i}`] ? "..." : (fSummary.trim() ? "✦ Ask Katherine for feedback" : "✦ Ask Katherine")}
                         </button>
                       </div>
                       <Helper>This is what shows in the rest of the app.</Helper>
                       <TextArea value={fSummary} onChange={(v: string) => set(`val_${i}_summary`, v)} rows={2} placeholder="This is what shows in the rest of the app" style={{ fontSize:13 }} />
+                      {map?.[`val_${i}_feedback`] && (
+                        <div style={{ marginTop:10, padding:"11px 14px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.22)", borderRadius:8, position:"relative" }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
+                            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" }}>Katherine's thoughts</div>
+                            <button onClick={() => set(`val_${i}_feedback`, "")} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:14, padding:0, lineHeight:1 }}>×</button>
+                          </div>
+                          <div style={{ fontFamily:"var(--serif)", fontStyle:"italic", fontSize:13, color:"var(--text2)", lineHeight:1.7 }}>{map[`val_${i}_feedback`]}</div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
