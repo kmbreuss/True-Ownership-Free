@@ -2516,7 +2516,7 @@ function A1({ intake, onDone }) {
         const miOpen = map?.[miKey] !== false;
         const miScores = caps.map((_,ci) => (map?.[`align_cap_${trueIdx}_${ci}`] ?? 5) as number);
         const miAvg = caps.length > 0 ? (miScores.reduce((a,b)=>a+b,0)/caps.length).toFixed(1) : null;
-        const miAvgCol = miAvg !== null ? (parseFloat(miAvg) >= 7 ? "#34d399" : parseFloat(miAvg) > 3 ? "#f59e0b" : "#ef4444") : "var(--warm)";
+        const miAvgCol = miAvg !== null ? (parseFloat(miAvg) >= 7 ? "#22c55e" : parseFloat(miAvg) > 3 ? "#f59e0b" : "#ef4444") : "var(--warm)";
         return (
           <div key={animalIdx} style={{ marginBottom:22, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
             <div onClick={() => set(miKey, !miOpen)}
