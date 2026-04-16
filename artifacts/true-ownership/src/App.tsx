@@ -3179,17 +3179,124 @@ function A1({ intake, onDone }) {
     }
 
     // ── STEP 4: ALIGNMENT (placeholder) ──────────────────────────────────────
-    return wrapContent(<>
-      <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 4</div>
-      {M3Progress()}
-      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Alignment</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>How aligned are you with your values right now? Coming soon.</p>
-      <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10, marginBottom:22 }}>This step is under construction.</div>
-      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-        <button className="btn-g" onClick={() => set("mirror3_sub", "hierarchy")}>← Hierarchy</button>
-        <button className="btn" onClick={() => { markDone("mirror3"); goto("align"); }}>Alignment Check →</button>
-      </div>
-    </>);
+    {
+      const valCount = parseInt(map?.val_count) || values.filter(v => v.name).length || 0;
+      return wrapContent(<>
+        <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 4</div>
+        {M3Progress()}
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Alignment</h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+          This is your synthesis. For each value, rate how fully you're living each behavior right now.
+        </p>
+
+        {valCount === 0 && (
+          <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your values first.</div>
+        )}
+
+        {Array.from({ length: valCount }).map((_, i) => {
+          const vName = map?.[`val_${i}_name`] || values[i]?.name || "";
+          if (!vName) return null;
+          const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+          const validBehs: { j:number; name:string }[] = [];
+          for (let j = 0; j < bCount; j++) {
+            const bn = map?.[`beh_${i}_${j}_name`];
+            if (bn) validBehs.push({ j, name: bn });
+          }
+          const openKey = `align_val_${i}_open`;
+          const isOpen = map?.[openKey] !== false;
+          const scores = validBehs.map(({ j }) => (map?.[`align_val_${i}_beh_${j}`] ?? 5) as number);
+          const avgScore = scores.length > 0 ? (scores.reduce((a,b)=>a+b,0) / scores.length).toFixed(1) : null;
+          const avgCol = avgScore !== null ? (parseFloat(avgScore) >= 7 ? "#22c55e" : parseFloat(avgScore) > 3 ? "#f59e0b" : "#ef4444") : "var(--warm)";
+          return (
+            <div key={i} style={{ marginBottom:22, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+              <div onClick={() => set(openKey, !isOpen)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", background:"var(--bg3)", cursor:"pointer", userSelect:"none" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{vName}</div>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  {avgScore && <span style={{ fontSize:13, fontWeight:700, color:avgCol }}>Avg {avgScore}/10</span>}
+                  <span style={{ fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                </div>
+              </div>
+              {isOpen && (
+                <div style={{ padding:"16px 18px", borderTop:"1px solid var(--border)" }}>
+                  <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Behaviors</div>
+                  {validBehs.length === 0 ? (
+                    <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>
+                      Go to Step 2 · Behaviors to add behaviors for this value.
+                    </div>
+                  ) : validBehs.map(({ j, name }) => {
+                    const storeKey = `align_val_${i}_beh_${j}`;
+                    const score = (map?.[storeKey] ?? 5) as number;
+                    const col = score >= 7 ? "#34d399" : score >= 4 ? "#f59e0b" : "#ef4444";
+                    return (
+                      <div key={j} style={{ marginBottom:14 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                          <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{name}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:col }}>{score}/10</span>
+                        </div>
+                        <input type="range" min={1} max={10} step={1} value={score}
+                          onChange={e => set(storeKey, Number(e.target.value))}
+                          style={{ width:"100%", accentColor: col }} />
+                        <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, marginTop:2 }}>
+                          <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                          <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {valCount > 0 && !ai.mirror3_align && (
+          <button className="btn" style={{ marginBottom:22 }}
+            onClick={() => {
+              const summary = Array.from({ length: valCount }).map((_, i) => {
+                const vName = map?.[`val_${i}_name`] || values[i]?.name || "";
+                if (!vName) return null;
+                const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+                const parts: string[] = [];
+                for (let j = 0; j < bCount; j++) {
+                  const bn = map?.[`beh_${i}_${j}_name`];
+                  if (!bn) continue;
+                  const s = map?.[`align_val_${i}_beh_${j}`];
+                  parts.push(`${bn}: ${s ?? "?"}/10`);
+                }
+                return `${vName} [${parts.join(", ") || "no behaviors"}]`;
+              }).filter(Boolean).join("; ");
+              runAI("mirror3_align",
+                `You are Katherine Breuss. ${name} has rated how fully they are living each behavior for each of their values. Ratings: ${summary}. Identify the single most important misalignment -- name the exact value and behavior. Explain why it matters, what to focus on first, and how it connects to the rest of their values work. JSON: {"key_misalignment":"...","why_it_matters":"...","focus_first":"...","bridge_to_a2":"..."}`
+              );
+            }}>
+            {busy.mirror3_align ? <span className="dot-l"><span /><span /><span /></span> : "See My Key Misalignment →"}
+          </button>
+        )}
+        {ai.mirror3_align && (
+          <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:22 }}>
+            <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{ai.mirror3_align.key_misalignment}</div>
+            <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:11 }}>{ai.mirror3_align.why_it_matters}</div>
+            <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:9 }}>
+              <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
+              <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.mirror3_align.focus_first}</div>
+            </div>
+            {ai.mirror3_align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {ai.mirror3_align.bridge_to_a2}</div>}
+          </div>
+        )}
+
+        <div style={{ marginBottom:22 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="alignment" placeholder="Ask Katherine about the gap between what you value and how you're living..." />
+        </div>
+
+        <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+          <button className="btn-g" onClick={() => set("mirror3_sub", "hierarchy")}>← Hierarchy</button>
+          <button className="btn" onClick={() => { markDone("mirror3"); goto("align"); }}>Alignment Check →</button>
+        </div>
+      </>);
+    }
   }
 
   if (step === "align") {
