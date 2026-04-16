@@ -1897,7 +1897,7 @@ function A1({ intake, onDone }) {
     </>);
 
     // 1c -- OUTPUT / MIRROR
-    return wrapContent(<>
+    if (m1sub === "output") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · The Mirror</div>
       {M1Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Purpose <em style={{ color:"var(--text3)", fontSize:26 }}>reflects</em> Direction</h2>
