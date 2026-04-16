@@ -2660,9 +2660,14 @@ function A1({ intake, onDone }) {
           <div key={i} style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, marginBottom:10, overflow:"hidden" }}>
             <div onClick={() => set(valOpenKey, !valOpen)}
               style={{ padding:"10px 14px", borderBottom: valOpen ? "1px solid var(--border)" : "none", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", userSelect:"none" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>Value {i + 1}{i === 0 ? " · Most important" : ""}</span>
-                <span style={{ fontSize:13, fontWeight:600, color:"var(--warm)" }}>{headerName}</span>
+              <div style={{ display:"flex", flexDirection:"column", gap:3, minWidth:0, flex:1 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>Value {i + 1}{i === 0 ? " · Most important" : ""}</span>
+                  <span style={{ fontSize:13, fontWeight:600, color:"var(--warm)" }}>{headerName}</span>
+                </div>
+                {!valOpen && map?.[`val_${i}_summary`] && (
+                  <div style={{ fontSize:12, fontStyle:"italic", color:"var(--text3)", lineHeight:1.5, overflow:"hidden", textOverflow:"ellipsis" }}>{map[`val_${i}_summary`]}</div>
+                )}
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 {values.length > 1 && <button onClick={(e) => { e.stopPropagation(); set("values", values.filter((_, idx) => idx !== i)); }} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, padding:0 }}>×</button>}
