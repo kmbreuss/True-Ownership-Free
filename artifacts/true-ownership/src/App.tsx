@@ -3143,24 +3143,19 @@ function A1({ intake, onDone }) {
           }
 
           return (
-            <div style={{ marginTop:20, padding:"22px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
-              <div style={{ fontSize:11, color:"var(--text4)", letterSpacing:1.2, textTransform:"uppercase", marginBottom:10 }}>Results</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:20, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:14 }}>
-                <span style={{ color:"var(--warm)" }}>{topName}</span> stands at the top after testing.
-              </div>
+            <div style={{ marginTop:20, padding:"24px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:26, fontWeight:400, color:"var(--warm)", lineHeight:1.3, marginBottom:16, letterSpacing:"-0.2px" }}>Your hierarchy is set.</div>
               <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
-                {order.slice(1).map((bIdx) => {
-                  const bName = map?.[`val_${bIdx}_name`] || values[bIdx]?.name || `Value ${bIdx + 1}`;
-                  const ans = map?.[`hier_test_${bIdx}`];
-                  const fu = map?.[`hier_test_${bIdx}_fu`];
-                  let label = "—";
-                  if (ans === "yes") label = "Stays below";
-                  else if (ans === "no" && fu === "yes") label = "Swapped above";
-                  else if (ans === "no" && fu === "no") label = "Kept below";
+                {order.map((vIdx, pos) => {
+                  const vName = map?.[`val_${vIdx}_name`] || values[vIdx]?.name || `Value ${vIdx + 1}`;
+                  const vSummary = map?.[`val_${vIdx}_summary`] || "";
                   return (
-                    <div key={bIdx} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 12px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, fontSize:13 }}>
-                      <span style={{ color:"var(--text2)" }}>vs <span style={{ color:"var(--warm)", fontWeight:600 }}>{bName}</span></span>
-                      <span style={{ fontWeight:600, color: label === "Swapped above" ? "var(--warm)" : "var(--text3)", fontSize:11, letterSpacing:.5 }}>{label}</span>
+                    <div key={vIdx} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 14px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:10 }}>
+                      <span style={{ fontFamily:"var(--serif)", fontSize:20, fontWeight:400, color:"var(--warm)", flexShrink:0, width:26, textAlign:"center" }}>{pos + 1}</span>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:14, fontWeight:600, color:"var(--warm)", lineHeight:1.3 }}>{vName}</div>
+                        {vSummary && <div style={{ fontSize:12, fontStyle:"italic", color:"var(--text3)", lineHeight:1.5, marginTop:3 }}>{vSummary}</div>}
+                      </div>
                     </div>
                   );
                 })}
