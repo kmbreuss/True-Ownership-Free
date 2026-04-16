@@ -2645,6 +2645,9 @@ function A1({ intake, onDone }) {
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Values</h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>What you stand for internally. The fastest way to find your values is to find what makes your blood boil — then peel back one layer.</p>
       <VideoBlock title="Values -- The Irks Exercise" duration="~7 min" points={["What irritates you is your fastest path to your values","The peeling question: what are they stomping on?","Why your top value is non-negotiable","Values as decision filters, not motivational posters"]} />
+      <div style={{ marginBottom:18, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
+        <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are discovered, not invented. We find them through what makes your blood boil."</div>
+      </div>
       <div style={{ marginBottom:18 }}>
         <label style={{ display:"block", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>What behaviors in others genuinely irk you?</label>
         <div style={{ fontSize:12, color:"var(--text3)", marginBottom:6, lineHeight:1.6 }}>No filter. Be specific -- not just "rudeness" but what kind?</div>
