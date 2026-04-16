@@ -2678,20 +2678,38 @@ function A1({ intake, onDone }) {
                 <span style={{ fontSize:14, color:"var(--text3)", transform: valOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
               </div>
             </div>
-            {valOpen && (
-            <div style={{ padding:"12px 14px" }}>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                <div>
-                  <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Value name</label>
-                  <TextInput value={val.name} onChange={v => { setVal(i, "name", v); set(`val_${i}_name`, v); }} placeholder="e.g. Integrity" style={{ fontSize:13, fontWeight:500, padding:"8px 10px" }} />
+            {valOpen && (() => {
+              const fIrk    = map?.[`val_${i}_irk`]    || "";
+              const fStomp1 = map?.[`val_${i}_stomp1`] || "";
+              const fStomp2 = map?.[`val_${i}_stomp2`] || "";
+              const fStomp3 = map?.[`val_${i}_stomp3`] || "";
+              const fGives1 = map?.[`val_${i}_gives1`] || "";
+              const fGives2 = map?.[`val_${i}_gives2`] || "";
+              const fName   = map?.[`val_${i}_name`]   || "";
+              const Q = ({ num, label, helper, value, k, multiline = true, placeholder = "" }: any) => (
+                <div style={{ marginBottom:14 }}>
+                  <label style={{ display:"block", fontSize:12, fontWeight:600, color:"var(--text)", marginBottom:3 }}>
+                    <span style={{ color:"var(--warm)", fontWeight:700, marginRight:6 }}>Q{num}.</span>{label}
+                  </label>
+                  {helper && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", marginBottom:5, lineHeight:1.5 }}>{helper}</div>}
+                  {multiline
+                    ? <TextArea value={value} onChange={(v: string) => set(k, v)} rows={2} placeholder={placeholder} style={{ fontSize:13 }} />
+                    : <TextInput value={value} onChange={(v: string) => { set(k, v); setVal(i, "name", v); }} placeholder={placeholder} style={{ fontSize:14, fontWeight:600, padding:"8px 10px" }} />
+                  }
                 </div>
-                <div>
-                  <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>The irk that revealed it</label>
-                  <TextInput value={val.irk} onChange={v => setVal(i, "irk", v)} placeholder="People who..." style={{ fontSize:13, padding:"8px 10px" }} />
+              );
+              return (
+                <div style={{ padding:"14px 16px" }}>
+                  <Q num={1} label="What behaviors in others — and maybe yourself — genuinely irk you?" value={fIrk} k={`val_${i}_irk`} placeholder="People who don't follow through. When someone takes credit..." />
+                  {fIrk.trim() && <Q num={2} label="What are they stomping on?" helper="If they did the opposite, what would that tell you they were honoring?" value={fStomp1} k={`val_${i}_stomp1`} />}
+                  {fStomp1.trim() && <Q num={3} label="What is THAT stomping on?" helper="Go deeper — keep asking what the violation points to." value={fStomp2} k={`val_${i}_stomp2`} />}
+                  {fStomp2.trim() && <Q num={4} label="And what is THAT stomping on?" value={fStomp3} k={`val_${i}_stomp3`} />}
+                  {fStomp3.trim() && <Q num={5} label="What does this give you?" helper="Flip it — if this was fully honored, what would that feel like?" value={fGives1} k={`val_${i}_gives1`} />}
+                  {fGives1.trim() && <Q num={6} label="And what does THAT give you?" value={fGives2} k={`val_${i}_gives2`} />}
+                  {fGives2.trim() && <Q num={7} label="You've found your value. Give it a name." helper="One or two words — make it yours." value={fName} k={`val_${i}_name`} multiline={false} placeholder="e.g. Integrity" />}
                 </div>
-              </div>
-            </div>
-            )}
+              );
+            })()}
           </div>
         );
       })}
