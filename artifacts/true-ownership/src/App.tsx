@@ -2988,17 +2988,83 @@ function A1({ intake, onDone }) {
     </>);
 
     // ── STEP 3: HIERARCHY (placeholder) ──────────────────────────────────────
-    if (m3sub === "hierarchy") return wrapContent(<>
-      <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 3</div>
-      {M3Progress()}
-      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Hierarchy</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>Rank your values. Coming soon.</p>
-      <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10, marginBottom:22 }}>This step is under construction.</div>
-      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-        <button className="btn-g" onClick={() => set("mirror3_sub", "behaviors")}>← Behaviors</button>
-        <button className="btn" onClick={() => set("mirror3_sub", "alignment")}>Alignment →</button>
-      </div>
-    </>);
+    if (m3sub === "hierarchy") {
+      const valCount = values.length;
+      const rawOrder = (map?.hier_order as number[]) || [];
+      // Clean: keep only valid indices, append missing ones
+      const order: number[] = [];
+      rawOrder.forEach(n => { if (Number.isInteger(n) && n >= 0 && n < valCount && !order.includes(n)) order.push(n); });
+      for (let n = 0; n < valCount; n++) if (!order.includes(n)) order.push(n);
+      const dragFrom = map?._hier_drag;
+      const dragOver = map?._hier_over;
+      const reorder = (from: number, to: number) => {
+        if (from === to || from == null || to == null) return;
+        const next = [...order];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        set("hier_order", next);
+      };
+      return wrapContent(<>
+        <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 3</div>
+        {M3Progress()}
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Hierarchy</h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:16, maxWidth:540 }}>Rank your values. When they compete, not all are equal — this is where you find out which ones you won't trade.</p>
+        <div style={{ marginBottom:22, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are never all equal. This is where you find out which ones you won't trade."</div>
+        </div>
+
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:10 }}>Phase 1 · Rank</div>
+        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>Drag to reorder. #1 is what you won't compromise when forced to choose.</div>
+
+        {valCount === 0 && <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10 }}>Add values in Step 1 first.</div>}
+
+        {order.map((vIdx, pos) => {
+          const vName = (map?.[`val_${vIdx}_name`] || values[vIdx]?.name || `Value ${vIdx + 1}`);
+          const vSummary = map?.[`val_${vIdx}_summary`] || "";
+          const isDragging = dragFrom === pos;
+          const isOver = dragOver === pos && dragFrom !== pos;
+          return (
+            <div key={vIdx}
+              draggable
+              onDragStart={(e) => { set("_hier_drag", pos); e.dataTransfer.effectAllowed = "move"; }}
+              onDragEnter={() => set("_hier_over", pos)}
+              onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}
+              onDrop={(e) => { e.preventDefault(); reorder(dragFrom, pos); set("_hier_drag", null); set("_hier_over", null); }}
+              onDragEnd={() => { set("_hier_drag", null); set("_hier_over", null); }}
+              style={{
+                display:"flex", alignItems:"center", gap:12,
+                background: isOver ? "rgba(201,168,76,.1)" : "var(--bg3)",
+                border: `1px solid ${isOver ? "rgba(201,168,76,.5)" : "var(--border2)"}`,
+                borderRadius:10, padding:"12px 14px", marginBottom:8,
+                cursor:"grab", userSelect:"none",
+                opacity: isDragging ? 0.4 : 1,
+                transition:"background .15s, border-color .15s, opacity .15s",
+              }}>
+              <span style={{ fontSize:16, color:"var(--text4)", flexShrink:0, letterSpacing:-2, lineHeight:1 }}>⋮⋮</span>
+              <span style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:400, color:"var(--text3)", flexShrink:0, width:26, textAlign:"center" }}>{pos + 1}</span>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:"var(--warm)", lineHeight:1.3 }}>{vName}</div>
+                {vSummary && <div style={{ fontSize:12, fontStyle:"italic", color:"var(--text3)", lineHeight:1.5, marginTop:3 }}>{vSummary}</div>}
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:2, flexShrink:0 }}>
+                <button onClick={() => reorder(pos, Math.max(0, pos - 1))} disabled={pos === 0}
+                  style={{ background:"none", border:"1px solid var(--border2)", color: pos === 0 ? "var(--text4)" : "var(--text3)", cursor: pos === 0 ? "default" : "pointer", fontSize:10, borderRadius:4, width:22, height:18, padding:0, lineHeight:1 }}>▲</button>
+                <button onClick={() => reorder(pos, Math.min(valCount - 1, pos + 1))} disabled={pos === valCount - 1}
+                  style={{ background:"none", border:"1px solid var(--border2)", color: pos === valCount - 1 ? "var(--text4)" : "var(--text3)", cursor: pos === valCount - 1 ? "default" : "pointer", fontSize:10, borderRadius:4, width:22, height:18, padding:0, lineHeight:1 }}>▼</button>
+              </div>
+            </div>
+          );
+        })}
+
+        <div style={{ marginBottom:22, marginTop:18 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="hierarchy" placeholder="Ask Katherine about your ranking -- which ones are truly non-negotiable?" />
+        </div>
+        <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+          <button className="btn-g" onClick={() => set("mirror3_sub", "behaviors")}>← Behaviors</button>
+          <button className="btn" onClick={() => set("mirror3_sub", "alignment")}>Alignment →</button>
+        </div>
+      </>);
+    }
 
     // ── STEP 4: ALIGNMENT (placeholder) ──────────────────────────────────────
     return wrapContent(<>
