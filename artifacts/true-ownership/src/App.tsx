@@ -3075,60 +3075,97 @@ function A1({ intake, onDone }) {
         )}
 
         {(map?.hier_phase === "test") && valCount >= 2 && (() => {
-          const pairs: number[] = [];
-          for (let i = 1; i < order.length; i++) pairs.push(order[i]);
-          const testIdx = Math.max(0, Math.min(pairs.length, parseInt(map?.hier_test_idx) || 0));
+          const totalQs = order.length - 1;
+          const testIdx = Math.max(0, Math.min(totalQs, parseInt(map?.hier_test_idx) || 0));
+          const stage = map?.hier_test_stage === "followup" ? "followup" : "primary";
           const topIdx = order[0];
           const topName = map?.[`val_${topIdx}_name`] || values[topIdx]?.name || `Value ${topIdx + 1}`;
-          if (testIdx < pairs.length) {
-            const bIdx = pairs[testIdx];
+
+          if (testIdx < totalQs) {
+            const bPos = testIdx + 1;
+            const bIdx = order[bPos];
             const bName = map?.[`val_${bIdx}_name`] || values[bIdx]?.name || `Value ${bIdx + 1}`;
-            const answer = (v: "yes" | "no") => {
+
+            const primaryAnswer = (v: "yes" | "no") => {
               set(`hier_test_${bIdx}`, v);
-              set("hier_test_idx", testIdx + 1);
+              if (v === "yes") {
+                set("hier_test_idx", testIdx + 1);
+                set("hier_test_stage", "primary");
+              } else {
+                set("hier_test_stage", "followup");
+              }
             };
+            const followupAnswer = (v: "yes" | "no") => {
+              set(`hier_test_${bIdx}_fu`, v);
+              if (v === "yes") {
+                const next = [...order];
+                [next[0], next[bPos]] = [next[bPos], next[0]];
+                set("hier_order", next);
+              }
+              set("hier_test_idx", testIdx + 1);
+              set("hier_test_stage", "primary");
+            };
+
             return (
               <div style={{ marginTop:20, padding:"22px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
-                <div style={{ fontSize:11, color:"var(--text4)", letterSpacing:1.2, textTransform:"uppercase", marginBottom:10 }}>Question {testIdx + 1} of {pairs.length}</div>
-                <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:20 }}>
-                  Can you have <span style={{ color:"var(--warm)" }}>{topName}</span> without <span style={{ color:"var(--warm)" }}>{bName}</span>?
-                </div>
-                <div style={{ display:"flex", gap:10 }}>
-                  <button onClick={() => answer("yes")}
-                    style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>
-                    Yes
-                  </button>
-                  <button onClick={() => answer("no")}
-                    style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>
-                    No
-                  </button>
-                </div>
-                {testIdx > 0 && (
-                  <button onClick={() => set("hier_test_idx", testIdx - 1)}
+                <div style={{ fontSize:11, color:"var(--text4)", letterSpacing:1.2, textTransform:"uppercase", marginBottom:10 }}>Question {testIdx + 1} of {totalQs}</div>
+                {stage === "primary" && (<>
+                  <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:20 }}>
+                    Can you have <span style={{ color:"var(--warm)" }}>{topName}</span> without <span style={{ color:"var(--warm)" }}>{bName}</span>?
+                  </div>
+                  <div style={{ display:"flex", gap:10 }}>
+                    <button onClick={() => primaryAnswer("yes")}
+                      style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>Yes</button>
+                    <button onClick={() => primaryAnswer("no")}
+                      style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>No</button>
+                  </div>
+                </>)}
+                {stage === "followup" && (<>
+                  <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:10 }}>You said no — <span style={{ color:"var(--warm)" }}>{topName}</span> depends on <span style={{ color:"var(--warm)" }}>{bName}</span>.</div>
+                  <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:20 }}>
+                    Does <span style={{ color:"var(--warm)" }}>{bName}</span> need to move above <span style={{ color:"var(--warm)" }}>{topName}</span>?
+                  </div>
+                  <div style={{ display:"flex", gap:10 }}>
+                    <button onClick={() => followupAnswer("yes")}
+                      style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>Yes — swap them</button>
+                    <button onClick={() => followupAnswer("no")}
+                      style={{ flex:1, padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600 }}>No — keep order</button>
+                  </div>
+                  <button onClick={() => set("hier_test_stage", "primary")}
+                    style={{ marginTop:12, background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, textDecoration:"underline" }}>← Back to previous question</button>
+                </>)}
+                {stage === "primary" && testIdx > 0 && (
+                  <button onClick={() => { set("hier_test_idx", testIdx - 1); set("hier_test_stage", "primary"); }}
                     style={{ marginTop:12, background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, textDecoration:"underline" }}>← Previous question</button>
                 )}
               </div>
             );
           }
+
           return (
             <div style={{ marginTop:20, padding:"22px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
               <div style={{ fontSize:11, color:"var(--text4)", letterSpacing:1.2, textTransform:"uppercase", marginBottom:10 }}>Results</div>
               <div style={{ fontFamily:"var(--serif)", fontSize:20, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:14 }}>
-                You tested <span style={{ color:"var(--warm)" }}>{topName}</span> against {pairs.length} other value{pairs.length === 1 ? "" : "s"}.
+                <span style={{ color:"var(--warm)" }}>{topName}</span> stands at the top after testing.
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16 }}>
-                {pairs.map((bIdx, i) => {
+                {order.slice(1).map((bIdx) => {
                   const bName = map?.[`val_${bIdx}_name`] || values[bIdx]?.name || `Value ${bIdx + 1}`;
                   const ans = map?.[`hier_test_${bIdx}`];
+                  const fu = map?.[`hier_test_${bIdx}_fu`];
+                  let label = "—";
+                  if (ans === "yes") label = "Stays below";
+                  else if (ans === "no" && fu === "yes") label = "Swapped above";
+                  else if (ans === "no" && fu === "no") label = "Kept below";
                   return (
                     <div key={bIdx} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 12px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, fontSize:13 }}>
-                      <span style={{ color:"var(--text2)" }}>Without <span style={{ color:"var(--warm)", fontWeight:600 }}>{bName}</span>?</span>
-                      <span style={{ fontWeight:600, color: ans === "yes" ? "var(--text)" : "var(--warm)", textTransform:"uppercase", fontSize:11, letterSpacing:1 }}>{ans || "—"}</span>
+                      <span style={{ color:"var(--text2)" }}>vs <span style={{ color:"var(--warm)", fontWeight:600 }}>{bName}</span></span>
+                      <span style={{ fontWeight:600, color: label === "Swapped above" ? "var(--warm)" : "var(--text3)", fontSize:11, letterSpacing:.5 }}>{label}</span>
                     </div>
                   );
                 })}
               </div>
-              <button onClick={() => { set("hier_test_idx", 0); }}
+              <button onClick={() => { set("hier_test_idx", 0); set("hier_test_stage", "primary"); }}
                 style={{ background:"none", border:"1px solid var(--border2)", color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, padding:"8px 14px", borderRadius:6 }}>
                 ↺ Retake
               </button>
