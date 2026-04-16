@@ -2707,6 +2707,28 @@ function A1({ intake, onDone }) {
                   {fStomp3.trim() && <Q num={5} label="What does this give you?" helper="Flip it — if this was fully honored, what would that feel like?" value={fGives1} k={`val_${i}_gives1`} />}
                   {fGives1.trim() && <Q num={6} label="And what does THAT give you?" value={fGives2} k={`val_${i}_gives2`} />}
                   {fGives2.trim() && <Q num={7} label="You've found your value. Give it a name." helper="One or two words — make it yours." value={fName} k={`val_${i}_name`} multiline={false} placeholder="e.g. Integrity" />}
+                  {fName.trim() && (
+                    <div style={{ marginBottom:14 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3, gap:8 }}>
+                        <label style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>
+                          <span style={{ color:"var(--warm)", fontWeight:700, marginRight:6 }}>Q8.</span>In one sentence, what does this value mean to you?
+                        </label>
+                        <button onClick={async () => {
+                          const sumKey = `valSum_${i}`;
+                          setBusy(b => ({ ...b, [sumKey]:true }));
+                          const prompt = `You are Katherine Breuss. ${name || "The user"} did the values peeling exercise and arrived at the value "${fName}". Their answers were:\nQ1 (irk): ${fIrk}\nQ2 (stomp1): ${fStomp1}\nQ3 (stomp2): ${fStomp2}\nQ4 (stomp3): ${fStomp3}\nQ5 (gives1): ${fGives1}\nQ6 (gives2): ${fGives2}\n\nWrite ONE sentence (max 25 words) in their voice that captures what "${fName}" means to them as a personal value. No fluff, no quotes, no preamble. Return JSON: {"summary":"..."}`;
+                          const r = await callStructured(prompt);
+                          if (r && r.summary) set(`val_${i}_summary`, r.summary);
+                          setBusy(b => ({ ...b, [sumKey]:false }));
+                        }} disabled={!!busy[`valSum_${i}`]}
+                          style={{ background:"none", border:"1px solid var(--border2)", borderRadius:5, color:"var(--warm)", cursor: busy[`valSum_${i}`] ? "wait" : "pointer", fontFamily:"var(--sans)", fontSize:10, padding:"4px 9px", flexShrink:0, whiteSpace:"nowrap" }}>
+                          {busy[`valSum_${i}`] ? "..." : "✦ Ask Katherine"}
+                        </button>
+                      </div>
+                      <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", marginBottom:5, lineHeight:1.5 }}>This is what shows in the rest of the app.</div>
+                      <TextArea value={map?.[`val_${i}_summary`] || ""} onChange={(v: string) => set(`val_${i}_summary`, v)} rows={2} placeholder="This is what shows in the rest of the app" style={{ fontSize:13 }} />
+                    </div>
+                  )}
                 </div>
               );
             })()}
