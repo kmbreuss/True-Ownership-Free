@@ -2508,21 +2508,22 @@ function A1({ intake, onDone }) {
       {validAnimals.length === 0 && (
         <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your animals first.</div>
       )}
-      {validAnimals.map((animal, i) => {
+      {validAnimals.map((animal, animalIdx) => {
+        const trueIdx = m2animals.findIndex(a => a.name === animal.name);
         const _chipSet = new Set((map.identity_chips||[]).map(c=>c.label.toLowerCase()));
         const caps = (animal.capabilities || []).filter(c => !c.name || !_chipSet.size || _chipSet.has(c.name.toLowerCase()));
-        const miKey = `mi_open_${i}`;
+        const miKey = `mi_open_${animalIdx}`;
         const miOpen = map?.[miKey] !== false;
-        const scores = caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
-        const avg = scores.length ? (scores.reduce((a:number,b:number)=>a+b,0)/scores.length) : null;
-        const avgCol = avg !== null ? (avg >= 7 ? "#34d399" : avg >= 4 ? "#f59e0b" : "#ef4444") : "var(--text4)";
+        const miScores = caps.map((_,ci) => (map?.[`align_cap_${trueIdx}_${ci}`] ?? 5) as number);
+        const miAvg = caps.length > 0 ? (miScores.reduce((a,b)=>a+b,0)/caps.length).toFixed(1) : null;
+        const avgCol = miAvg !== null ? (parseFloat(miAvg) >= 7 ? "#34d399" : parseFloat(miAvg) >= 4 ? "#f59e0b" : "#ef4444") : "var(--text4)";
         return (
-          <div key={i} style={{ marginBottom:22, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+          <div key={animalIdx} style={{ marginBottom:22, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
             <div onClick={() => set(miKey, !miOpen)}
               style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", background:"var(--bg3)", cursor:"pointer", userSelect:"none" }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</div>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                {avg !== null && <span style={{ fontSize:12, fontWeight:700, color:avgCol }}>avg {avg.toFixed(1)}/10</span>}
+                {miAvg !== null && <span style={{ fontSize:12, fontWeight:700, color:avgCol }}>avg {miAvg}/10</span>}
                 <span style={{ fontSize:14, color:"var(--text3)", transform: miOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
               </div>
             </div>
@@ -2534,7 +2535,7 @@ function A1({ intake, onDone }) {
                   Go to Step 2 · Capabilities to add capabilities for this animal.
                 </div>
               ) : caps.map((cap, ci) => {
-                const storeKey = `align_cap_${i}_${ci}`;
+                const storeKey = `align_cap_${trueIdx}_${ci}`;
                 const score = map[storeKey] ?? 5;
                 const col = score >= 7 ? "#34d399" : score >= 4 ? "#f59e0b" : "#ef4444";
                 return (
