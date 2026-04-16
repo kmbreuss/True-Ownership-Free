@@ -2651,16 +2651,7 @@ function A1({ intake, onDone }) {
       <div style={{ marginBottom:18, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
         <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"What irritates you most in others is often what you refuse to compromise on yourself."</div>
       </div>
-      <div style={{ marginBottom:18 }}>
-        <label style={{ display:"block", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>What behaviors in others genuinely irk you?</label>
-        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:6, lineHeight:1.6 }}>No filter. Be specific -- not just "rudeness" but what kind?</div>
-        <TextArea value={map.values_irks} onChange={v => set("values_irks", v)} rows={5} placeholder="People who don't follow through. When someone takes credit..." />
-      </div>
-      <div style={{ padding:"11px 14px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9, marginBottom:18 }}>
-        <div style={{ fontSize:11, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:4 }}>Peeling question</div>
-        <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.6, fontStyle:"italic", fontFamily:"var(--serif)" }}>"What are they stomping on? If they did the opposite, what would that tell me?" That's your value.</div>
-      </div>
-      <div style={{ fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:10 }}>Your top 3 values</div>
+      <div style={{ fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:10 }}>Your values</div>
       {values.map((val, i) => {
         const valOpenKey = `val_${i}_open`;
         const valOpen = map?.[valOpenKey] !== false;
@@ -2679,44 +2670,144 @@ function A1({ intake, onDone }) {
               </div>
             </div>
             {valOpen && (() => {
-              const fIrk    = map?.[`val_${i}_irk`]    || "";
-              const fStomp1 = map?.[`val_${i}_stomp1`] || "";
-              const fStomp2 = map?.[`val_${i}_stomp2`] || "";
-              const fStomp3 = map?.[`val_${i}_stomp3`] || "";
-              const fGives1 = map?.[`val_${i}_gives1`] || "";
-              const fGives2 = map?.[`val_${i}_gives2`] || "";
-              const fName   = map?.[`val_${i}_name`]   || "";
-              const Q = ({ num, label, helper, value, k, multiline = true, placeholder = "" }: any) => (
-                <div style={{ marginBottom:14 }}>
-                  <label style={{ display:"block", fontSize:12, fontWeight:600, color:"var(--text)", marginBottom:3 }}>
-                    <span style={{ color:"var(--warm)", fontWeight:700, marginRight:6 }}>Q{num}.</span>{label}
-                  </label>
-                  {helper && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", marginBottom:5, lineHeight:1.5 }}>{helper}</div>}
-                  {multiline
-                    ? <TextArea value={value} onChange={(v: string) => set(k, v)} rows={2} placeholder={placeholder} style={{ fontSize:13 }} />
-                    : <TextInput value={value} onChange={(v: string) => { set(k, v); setVal(i, "name", v); }} placeholder={placeholder} style={{ fontSize:14, fontWeight:600, padding:"8px 10px" }} />
-                  }
-                </div>
+              const fIrk      = map?.[`val_${i}_irk`]    || "";
+              const stomps    = (map?.[`val_${i}_stomps`] as string[]) || [];
+              const stompDone = !!map?.[`val_${i}_stomp_done`];
+              const gives     = (map?.[`val_${i}_gives`] as string[]) || [];
+              const givesDone = !!map?.[`val_${i}_gives_done`];
+              const fName     = map?.[`val_${i}_name`]   || "";
+              const fSummary  = map?.[`val_${i}_summary`]|| "";
+
+              const visibleStomps = stompDone
+                ? stomps
+                : (() => {
+                    if (stomps.length === 0) return [""];
+                    const last = stomps[stomps.length - 1] || "";
+                    return last.trim() ? [...stomps, ""] : stomps;
+                  })();
+              const visibleGives = givesDone
+                ? gives
+                : (() => {
+                    if (gives.length === 0) return [""];
+                    const last = gives[gives.length - 1] || "";
+                    return last.trim() ? [...gives, ""] : gives;
+                  })();
+              const setStomp = (idx: number, v: string) => {
+                const next = [...stomps];
+                while (next.length <= idx) next.push("");
+                next[idx] = v;
+                set(`val_${i}_stomps`, next);
+              };
+              const setGive = (idx: number, v: string) => {
+                const next = [...gives];
+                while (next.length <= idx) next.push("");
+                next[idx] = v;
+                set(`val_${i}_gives`, next);
+              };
+
+              const firstStompFilled = stomps.some(s => (s || "").trim());
+              const firstGiveFilled  = gives.some(g => (g || "").trim());
+              const showGives = stompDone;
+              const showName  = stompDone && givesDone;
+              const showSummary = showName && fName.trim();
+
+              const QLabel = ({ num, label }: any) => (
+                <label style={{ display:"block", fontSize:12, fontWeight:600, color:"var(--text)", marginBottom:3 }}>
+                  <span style={{ color:"var(--warm)", fontWeight:700, marginRight:6 }}>Q{num}.</span>{label}
+                </label>
               );
+              const Helper = ({ children }: any) => (
+                <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", marginBottom:5, lineHeight:1.5 }}>{children}</div>
+              );
+
+              let qNum = 1;
               return (
                 <div style={{ padding:"14px 16px" }}>
-                  <Q num={1} label="What behaviors in others — and maybe yourself — genuinely irk you?" value={fIrk} k={`val_${i}_irk`} placeholder="People who don't follow through. When someone takes credit..." />
-                  {fIrk.trim() && <Q num={2} label="What are they stomping on?" helper="If they did the opposite, what would that tell you they were honoring?" value={fStomp1} k={`val_${i}_stomp1`} />}
-                  {fStomp1.trim() && <Q num={3} label="What is THAT stomping on?" helper="Go deeper — keep asking what the violation points to." value={fStomp2} k={`val_${i}_stomp2`} />}
-                  {fStomp2.trim() && <Q num={4} label="And what is THAT stomping on?" value={fStomp3} k={`val_${i}_stomp3`} />}
-                  {fStomp3.trim() && <Q num={5} label="What does this give you?" helper="Flip it — if this was fully honored, what would that feel like?" value={fGives1} k={`val_${i}_gives1`} />}
-                  {fGives1.trim() && <Q num={6} label="And what does THAT give you?" value={fGives2} k={`val_${i}_gives2`} />}
-                  {fGives2.trim() && <Q num={7} label="You've found your value. Give it a name." helper="One or two words — make it yours." value={fName} k={`val_${i}_name`} multiline={false} placeholder="e.g. Integrity" />}
-                  {fName.trim() && (
+                  {/* Q1 irk */}
+                  <div style={{ marginBottom:14 }}>
+                    <QLabel num={qNum++} label="What behaviors in others — and maybe yourself — genuinely irk you?" />
+                    <TextArea value={fIrk} onChange={(v: string) => set(`val_${i}_irk`, v)} rows={2} placeholder="People who don't follow through. When someone takes credit..." style={{ fontSize:13 }} />
+                  </div>
+
+                  {/* Dynamic stomp chain */}
+                  {fIrk.trim() && visibleStomps.map((s, sIdx) => {
+                    const label = sIdx === 0 ? "What are they stomping on?" : "What is THAT stomping on?";
+                    const helper = sIdx === 0
+                      ? "If they did the opposite, what would that tell you they were honoring?"
+                      : "Go deeper — keep asking what the violation points to.";
+                    const n = qNum++;
+                    return (
+                      <div key={`stomp-${sIdx}`} style={{ marginBottom:14 }}>
+                        <QLabel num={n} label={label} />
+                        <Helper>{helper}</Helper>
+                        <TextArea value={s} onChange={(v: string) => setStomp(sIdx, v)} rows={2} placeholder="" style={{ fontSize:13 }} disabled={stompDone} />
+                      </div>
+                    );
+                  })}
+                  {fIrk.trim() && firstStompFilled && !stompDone && (
+                    <button onClick={() => {
+                      const trimmed = stomps.filter(s => (s || "").trim());
+                      set(`val_${i}_stomps`, trimmed);
+                      set(`val_${i}_stomp_done`, true);
+                    }} style={{ background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.35)", borderRadius:6, color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, fontWeight:500, padding:"7px 12px", marginBottom:14 }}>
+                      ✓ I've reached the root
+                    </button>
+                  )}
+                  {stompDone && !showGives && null}
+                  {stompDone && (
+                    <button onClick={() => { set(`val_${i}_stomp_done`, false); set(`val_${i}_gives_done`, false); }} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, marginBottom:14, textDecoration:"underline" }}>
+                      ↺ Keep peeling
+                    </button>
+                  )}
+
+                  {/* Dynamic gives chain */}
+                  {showGives && visibleGives.map((g, gIdx) => {
+                    const label = gIdx === 0 ? "What does this give you?" : "And what does THAT give you?";
+                    const helper = gIdx === 0 ? "Flip it — if this was fully honored, what would that feel like?" : "";
+                    const n = qNum++;
+                    return (
+                      <div key={`give-${gIdx}`} style={{ marginBottom:14 }}>
+                        <QLabel num={n} label={label} />
+                        {helper && <Helper>{helper}</Helper>}
+                        <TextArea value={g} onChange={(v: string) => setGive(gIdx, v)} rows={2} placeholder="" style={{ fontSize:13 }} disabled={givesDone} />
+                      </div>
+                    );
+                  })}
+                  {showGives && firstGiveFilled && !givesDone && (
+                    <button onClick={() => {
+                      const trimmed = gives.filter(g => (g || "").trim());
+                      set(`val_${i}_gives`, trimmed);
+                      set(`val_${i}_gives_done`, true);
+                    }} style={{ background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.35)", borderRadius:6, color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, fontWeight:500, padding:"7px 12px", marginBottom:14 }}>
+                      ✓ I'm at the highest level
+                    </button>
+                  )}
+                  {givesDone && (
+                    <button onClick={() => set(`val_${i}_gives_done`, false)} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, marginBottom:14, textDecoration:"underline" }}>
+                      ↺ Keep going higher
+                    </button>
+                  )}
+
+                  {/* Name the value */}
+                  {showName && (
+                    <div style={{ marginBottom:14 }}>
+                      <QLabel num={qNum++} label="You've found your value. Give it a name." />
+                      <Helper>One or two words — make it yours.</Helper>
+                      <TextInput value={fName} onChange={(v: string) => { set(`val_${i}_name`, v); setVal(i, "name", v); }} placeholder="e.g. Integrity" style={{ fontSize:14, fontWeight:600, padding:"8px 10px" }} />
+                    </div>
+                  )}
+
+                  {/* Summary with AI */}
+                  {showSummary && (
                     <div style={{ marginBottom:14 }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3, gap:8 }}>
-                        <label style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>
-                          <span style={{ color:"var(--warm)", fontWeight:700, marginRight:6 }}>Q8.</span>In one sentence, what does this value mean to you?
-                        </label>
+                        <QLabel num={qNum++} label="In one sentence, what does this value mean to you?" />
                         <button onClick={async () => {
                           const sumKey = `valSum_${i}`;
                           setBusy(b => ({ ...b, [sumKey]:true }));
-                          const prompt = `You are Katherine Breuss. ${name || "The user"} did the values peeling exercise and arrived at the value "${fName}". Their answers were:\nQ1 (irk): ${fIrk}\nQ2 (stomp1): ${fStomp1}\nQ3 (stomp2): ${fStomp2}\nQ4 (stomp3): ${fStomp3}\nQ5 (gives1): ${fGives1}\nQ6 (gives2): ${fGives2}\n\nWrite ONE sentence (max 25 words) in their voice that captures what "${fName}" means to them as a personal value. No fluff, no quotes, no preamble. Return JSON: {"summary":"..."}`;
+                          const stompList = stomps.map((s, n) => `  Level ${n+1}: ${s}`).join("\n");
+                          const givesList = gives.map((g, n) => `  Level ${n+1}: ${g}`).join("\n");
+                          const prompt = `You are Katherine Breuss. ${name || "The user"} did the values peeling exercise and arrived at the value "${fName}". Their answers:\nIrk: ${fIrk}\nStomp chain (what's being violated, deepest last):\n${stompList}\nGives chain (what it gives them, highest last):\n${givesList}\n\nWrite ONE sentence (max 25 words) in their voice that captures what "${fName}" means to them as a personal value. No fluff, no quotes, no preamble. Return JSON: {"summary":"..."}`;
                           const r = await callStructured(prompt);
                           if (r && r.summary) set(`val_${i}_summary`, r.summary);
                           setBusy(b => ({ ...b, [sumKey]:false }));
@@ -2725,8 +2816,8 @@ function A1({ intake, onDone }) {
                           {busy[`valSum_${i}`] ? "..." : "✦ Ask Katherine"}
                         </button>
                       </div>
-                      <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", marginBottom:5, lineHeight:1.5 }}>This is what shows in the rest of the app.</div>
-                      <TextArea value={map?.[`val_${i}_summary`] || ""} onChange={(v: string) => set(`val_${i}_summary`, v)} rows={2} placeholder="This is what shows in the rest of the app" style={{ fontSize:13 }} />
+                      <Helper>This is what shows in the rest of the app.</Helper>
+                      <TextArea value={fSummary} onChange={(v: string) => set(`val_${i}_summary`, v)} rows={2} placeholder="This is what shows in the rest of the app" style={{ fontSize:13 }} />
                     </div>
                   )}
                 </div>
