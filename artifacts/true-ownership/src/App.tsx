@@ -3013,8 +3013,9 @@ function A1({ intake, onDone }) {
           <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are never all equal. This is where you find out which ones you won't trade."</div>
         </div>
 
-        <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:10 }}>Phase 1 · Rank</div>
-        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>Drag to reorder. #1 is what you won't compromise when forced to choose.</div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6 }}>Phase 1 · Rank</div>
+        <div style={{ fontSize:13, fontWeight:600, color:"var(--text)", marginBottom:3 }}>Drag to rank — most important at the top</div>
+        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>1 = most important, non-negotiable.</div>
 
         {valCount === 0 && <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10 }}>Add values in Step 1 first.</div>}
 
