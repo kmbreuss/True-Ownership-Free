@@ -3013,11 +3013,21 @@ function A1({ intake, onDone }) {
           <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are never all equal. This is where you find out which ones you won't trade."</div>
         </div>
 
+        {(() => { const hp = map?.hier_phase || "rank"; return (<>
+        {hp === "rank" && (<>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6 }}>Phase 1 · Rank</div>
         <div style={{ fontSize:13, fontWeight:600, color:"var(--text)", marginBottom:3 }}>Drag to rank — most important at the top</div>
         <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>1 = most important, non-negotiable.</div>
+        </>)}
+        {hp === "test" && (<>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6 }}>Phase 2 · Test</div>
+        <div style={{ fontSize:13, fontWeight:600, color:"var(--text)", marginBottom:3 }}>Pressure-test your ranking</div>
+        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>Your current order — Phase 2 trade-off questions coming next.</div>
+        <button onClick={() => set("hier_phase", "rank")} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, marginBottom:14, textDecoration:"underline" }}>↺ Back to ranking</button>
+        </>)}
 
         {valCount === 0 && <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10 }}>Add values in Step 1 first.</div>}
+        </>); })()}
 
         {order.map((vIdx, pos) => {
           const vName = (map?.[`val_${vIdx}_name`] || values[vIdx]?.name || `Value ${vIdx + 1}`);
@@ -3056,6 +3066,13 @@ function A1({ intake, onDone }) {
             </div>
           );
         })}
+
+        {(map?.hier_phase || "rank") === "rank" && valCount > 0 && (
+          <button onClick={() => set("hier_phase", "test")}
+            style={{ width:"100%", marginTop:14, padding:"11px 14px", background:"var(--warm)", border:"none", borderRadius:8, color:"#000", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600, letterSpacing:".2px" }}>
+            Test My Ranking →
+          </button>
+        )}
 
         <div style={{ marginBottom:22, marginTop:18 }}>
           <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="hierarchy" placeholder="Ask Katherine about your ranking -- which ones are truly non-negotiable?" />
