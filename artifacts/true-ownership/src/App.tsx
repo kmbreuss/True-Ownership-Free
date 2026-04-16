@@ -1825,7 +1825,7 @@ function A1({ intake, onDone }) {
             <React.Fragment key={s.id}>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
                 <div style={{ width:32, height:32, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor: "pointer", transition:"all .2s" }}
-                  onClick={() => isDone && set("mirror1_sub", s.id)}>
+                  onClick={() => set("mirror1_sub", s.id)}>
                   {isDone ? <span style={{ fontSize:13, color:"#34d399" }}>✓</span> : <span>{s.icon}</span>}
                 </div>
                 <span style={{ fontSize:10, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", letterSpacing:0.5, textTransform:"uppercase", whiteSpace:"nowrap" }}>{s.label}</span>
