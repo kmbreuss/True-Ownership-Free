@@ -1813,30 +1813,35 @@ function A1({ intake, onDone }) {
     const m1sub = map.mirror1_sub || "purpose";
 
     // Sub-step progress indicator
-    const M1Progress = () => (
-      <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:22 }}>
-        {[
-          { id:"purpose",   label:"Purpose",   icon:"🔥" },
-          { id:"direction", label:"Direction", icon:"⛰️" },
-          { id:"output",    label:"The Mirror",icon:"🪞" },
-        ].map((s, i) => {
-          const isActive = m1sub === s.id;
-          const isDone = (m1sub === "direction" && s.id === "purpose") || (m1sub === "output" && s.id !== "output");
-          return (
-            <React.Fragment key={s.id}>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-                <div style={{ width:32, height:32, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor: "pointer", transition:"all .2s" }}
-                  onClick={() => set("mirror1_sub", s.id)}>
-                  {isDone ? <span style={{ fontSize:13, color:"#34d399" }}>✓</span> : <span>{s.icon}</span>}
+    const M1Progress = () => {
+      const steps = [
+        { id:"purpose",   label:"Purpose",   icon:"🔥" },
+        { id:"direction", label:"Direction", icon:"⛰️" },
+        { id:"output",    label:"The Mirror",icon:"🪞" },
+        { id:"alignment", label:"Alignment", icon:"🎯" },
+      ];
+      const currentIdx = steps.findIndex(s => s.id === m1sub);
+      return (
+        <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:22 }}>
+          {steps.map((s, i) => {
+            const isActive = m1sub === s.id;
+            const isDone = currentIdx > i;
+            return (
+              <React.Fragment key={s.id}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                  <div style={{ width:32, height:32, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, cursor: "pointer", transition:"all .2s" }}
+                    onClick={() => set("mirror1_sub", s.id)}>
+                    {isDone ? <span style={{ fontSize:13, color:"#34d399" }}>✓</span> : <span>{s.icon}</span>}
+                  </div>
+                  <span style={{ fontSize:10, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", letterSpacing:0.5, textTransform:"uppercase", whiteSpace:"nowrap" }}>{s.label}</span>
                 </div>
-                <span style={{ fontSize:10, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", letterSpacing:0.5, textTransform:"uppercase", whiteSpace:"nowrap" }}>{s.label}</span>
-              </div>
-              {i < 2 && <div style={{ flex:1, height:1, background: isDone || (m1sub === "output" && s.id === "direction") ? "#34d399" : "var(--border2)", margin:"0 8px", marginBottom:18, transition:"background .3s" }} />}
-            </React.Fragment>
-          );
-        })}
-      </div>
-    );
+                {i < steps.length - 1 && <div style={{ flex:1, height:1, background: isDone ? "#34d399" : "var(--border2)", margin:"0 8px", marginBottom:18, transition:"background .3s" }} />}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      );
+    };
 
     // 1a -- PURPOSE
     if (m1sub === "purpose") return wrapContent(<>
@@ -2061,9 +2066,113 @@ function A1({ intake, onDone }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror1_sub", "direction")}>← Direction</button>
-        <button className="btn" onClick={() => { markDone("mirror1"); goto("mirror2"); }}>Identity · Superpowers →</button>
+        <button className="btn" onClick={() => set("mirror1_sub", "alignment")}>Alignment →</button>
       </div>
     </>);
+
+    // 1d -- ALIGNMENT
+    if (m1sub === "alignment") {
+      const healthGoal = (map.life_areas || []).find(a => a.id === "health")?.goal || "";
+      const sections = [
+        { id:"time",   label:"Time",   sentence: map.time_summary   || "" },
+        { id:"health", label:"Health", sentence: healthGoal },
+        { id:"wealth", label:"Wealth", sentence: map.wealth_summary || "" },
+        { id:"growth", label:"Growth", sentence: map.growth_summary || map.bag_growth || "" },
+      ];
+      return wrapContent(<>
+        <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · Step 4</div>
+        {M1Progress()}
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Alignment</h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+          This is your synthesis. For each area of your direction, rate how fully you're living toward it right now.
+        </p>
+
+        {sections.map(sec => {
+          const storeKey = `align_dir_${sec.id}`;
+          const score = (map?.[storeKey] ?? 5) as number;
+          const col = score >= 7 ? "#34d399" : score >= 4 ? "#f59e0b" : "#ef4444";
+          const openKey = `align_dir_${sec.id}_open`;
+          const isOpen = map?.[openKey] !== false;
+          return (
+            <div key={sec.id} style={{ marginBottom:16, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+              <div onClick={() => set(openKey, !isOpen)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", background:"var(--bg3)", cursor:"pointer", userSelect:"none" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{sec.label}</div>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:col }}>{score}/10</span>
+                  <span style={{ fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                </div>
+              </div>
+              {isOpen && (
+                <div style={{ padding:"16px 18px", borderTop:"1px solid var(--border)" }}>
+                  {sec.sentence ? (
+                    <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)", lineHeight:1.6, marginBottom:14 }}>"{sec.sentence}"</div>
+                  ) : (
+                    <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5, marginBottom:14 }}>No {sec.label.toLowerCase()} statement yet — go to Direction to add one.</div>
+                  )}
+                  <input type="range" min={1} max={10} step={1} value={score}
+                    onChange={e => set(storeKey, Number(e.target.value))}
+                    style={{ width:"100%", accentColor: col }} />
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, marginTop:2 }}>
+                    <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                    <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {(() => {
+          const hasResult = !!ai.mirror1_align;
+          return (
+            <button className="btn" style={{ marginBottom:22, marginTop:6 }}
+              onClick={() => {
+                const summary = sections.map(sec => {
+                  const s = map?.[`align_dir_${sec.id}`] ?? 5;
+                  return `${sec.label}: ${s}/10${sec.sentence ? ` — "${sec.sentence}"` : ""}`;
+                }).join("; ");
+                let lowest = sections[0];
+                let lowestScore = (map?.[`align_dir_${sections[0].id}`] ?? 5) as number;
+                sections.forEach(sec => {
+                  const sc = (map?.[`align_dir_${sec.id}`] ?? 5) as number;
+                  if (sc < lowestScore) { lowestScore = sc; lowest = sec; }
+                });
+                runAI("mirror1_align",
+                  `You are Katherine Breuss, a direct but compassionate coach. ${name} has rated how fully they are living toward each area of their direction on a 1-10 scale (1 = living far from this, 10 = fully embodying it). Ratings: ${summary}. Purpose: "${map.purpose_final || map.purpose_draft || ""}". The lowest-scoring area is ${lowest.label} (${lowestScore}/10). Identify the single most important misalignment — usually (but not always) the lowest score, unless another gap is more consequential. Name the EXACT area. Then explain: why this matters for their direction, what to focus on first (one concrete action), and how shifting this connects forward. Be specific and personal — no generic coaching language. Return ONLY valid JSON in this exact shape: {"key_misalignment":"Area: X","why_it_matters":"...","focus_first":"...","bridge_to_a2":"..."}`
+                );
+              }}>
+              {busy.mirror1_align
+                ? <span className="dot-l"><span /><span /><span /></span>
+                : (hasResult ? "↻ Refresh Key Misalignment" : "See My Key Misalignment →")}
+            </button>
+          );
+        })()}
+        {ai.mirror1_align && (
+          <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:22 }}>
+            <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{ai.mirror1_align.key_misalignment}</div>
+            <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:11 }}>{ai.mirror1_align.why_it_matters}</div>
+            <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:9 }}>
+              <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
+              <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.mirror1_align.focus_first}</div>
+            </div>
+            {ai.mirror1_align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {ai.mirror1_align.bridge_to_a2}</div>}
+          </div>
+        )}
+
+        <div style={{ marginBottom:22 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="direction alignment"
+            placeholder="Ask Katherine about the gap between your direction and how you're living..." />
+        </div>
+
+        <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+          <button className="btn-g" onClick={() => set("mirror1_sub", "output")}>← The Mirror</button>
+          <button className="btn" onClick={() => { markDone("mirror1"); goto("mirror2"); }}>Identity · Superpowers →</button>
+        </div>
+      </>);
+    }
   }
 
   if (step === "mirror2") {
