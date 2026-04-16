@@ -2644,7 +2644,7 @@ function A1({ intake, onDone }) {
       {M3Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Values</h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>What you stand for internally. The fastest way to find your values is to find what makes your blood boil — then peel back one layer.</p>
-      <VideoBlock title="Values -- The Irks Exercise" duration="~7 min" points={["What irritates you is your fastest path to your values","The peeling question: what are they stomping on?","Why your top value is non-negotiable","Values as decision filters, not motivational posters"]} />
+      <VideoBlock title="Values — What You Actually Stand For" duration="~7 min" points={["Why irritation is your fastest path to values","The peeling method: from reaction to root","Values as decision filters, not motivational posters"]} />
       <div style={{ marginBottom:18, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
         <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are discovered, not invented. We find them through what makes your blood boil."</div>
       </div>
