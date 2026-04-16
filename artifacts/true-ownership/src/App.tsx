@@ -2511,21 +2511,22 @@ function A1({ intake, onDone }) {
       {validAnimals.map((animal, i) => {
         const _chipSet = new Set((map.identity_chips||[]).map(c=>c.label.toLowerCase()));
         const caps = (animal.capabilities || []).filter(c => !c.name || !_chipSet.size || _chipSet.has(c.name.toLowerCase()));
-        const idCardOpen = map[`identity_card_open_${i}`] === true;
+        const miKey = `mi_open_${i}`;
+        const miOpen = map?.[miKey] !== false;
         const scores = caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
         const avg = scores.length ? (scores.reduce((a:number,b:number)=>a+b,0)/scores.length) : null;
         const avgCol = avg !== null ? (avg >= 7 ? "#34d399" : avg >= 4 ? "#f59e0b" : "#ef4444") : "var(--text4)";
         return (
           <div key={i} style={{ marginBottom:22, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
-            <div onClick={() => set(`identity_card_open_${i}`, !idCardOpen)}
+            <div onClick={() => set(miKey, !miOpen)}
               style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", background:"var(--bg3)", cursor:"pointer", userSelect:"none" }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</div>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                 {avg !== null && <span style={{ fontSize:12, fontWeight:700, color:avgCol }}>avg {avg.toFixed(1)}/10</span>}
-                <span style={{ fontSize:14, color:"var(--text3)", transform: idCardOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                <span style={{ fontSize:14, color:"var(--text3)", transform: miOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
               </div>
             </div>
-            {idCardOpen && (
+            {miOpen && (
             <div style={{ padding:"16px 18px", borderTop:"1px solid var(--border)" }}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Capabilities</div>
               {caps.length === 0 ? (
