@@ -1124,6 +1124,7 @@ const EMPTY_MAP = {
   time_summary: "", wealth_summary: "", growth_summary: "",
   mirror1_reflection: "", mirror1_reflection_done: false,
   mirror2_sub: "qualities",
+  mirror3_sub: "values",
   lovedones_who: "", lovedones_input: "", lovedones_reflection: "",
   bag_growth: "",
   identity_adjectives: "",
@@ -2602,104 +2603,123 @@ function A1({ intake, onDone }) {
     </>);
   }
   if (step === "mirror3") {
+    const m3sub = map.mirror3_sub || "values";
     const values = map.values || [{ name:"", irk:"", behaviors:"" }];
     const setVal = (i, field, val) => { const n = [...values]; n[i] = { ...n[i], [field]:val }; set("values", n); };
-    return wrapContent(<>
-      <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3</div>
-      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Values <em style={{ color:"var(--text3)", fontSize:26 }}>reflect</em> Behaviors</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>What you stand for internally shows up as how you act. The fastest way to find your values is to find what makes your blood boil.</p>
-      <VideoBlock title="Values & Behaviors -- The Irks Exercise" duration="~7 min" points={["What irritates you is your fastest path to your values","The peeling question: what are they stomping on?","How to rank values -- which is non-negotiable","Values as decision filters, not motivational posters"]} />
-      <div className="mirror-grid">
-        <div className="mirror-side">
-          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:13 }}>
-            <span style={{ fontSize:17 }}>⚖️</span>
-            <div><div style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"var(--warm)" }}>VALUES · Internal</div><div style={{ fontSize:11, color:"var(--text3)" }}>What you stand for -- discovered through irks</div></div>
-          </div>
-          <div style={{ marginBottom:13 }}>
-            <label style={{ display:"block", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:3 }}>What behaviors in others genuinely irk you?</label>
-            <div style={{ fontSize:12, color:"var(--text3)", marginBottom:5, lineHeight:1.6 }}>No filter. Be specific -- not just "rudeness" but what kind?</div>
-            <TextArea value={map.values_irks} onChange={v => set("values_irks", v)} rows={5} placeholder="People who don't follow through. When someone takes credit..." />
-          </div>
-          <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.1)", borderRadius:7, marginBottom:13 }}>
-            <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Peeling question</div>
-            <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>"What are they stomping on? If they did the opposite, what would that tell me?" That's your value.</div>
-          </div>
-          <div style={{ fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:9 }}>Your top 3 values</div>
-          {values.map((val, i) => (
-            <div key={i} style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, marginBottom:9, overflow:"hidden" }}>
-              <div style={{ padding:"7px 13px", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <span style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" }}>Value {i + 1}{i === 0 ? " · Most important" : ""}</span>
-                {values.length > 1 && <button onClick={() => set("values", values.filter((_, idx) => idx !== i))} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:15, padding:0 }}>×</button>}
-              </div>
-              <div style={{ padding:"11px 13px" }}>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:7, marginBottom:7 }}>
-                  <div>
-                    <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:3, fontWeight:500 }}>Value name</label>
-                    <TextInput value={val.name} onChange={v => setVal(i, "name", v)} placeholder="e.g. Integrity" style={{ fontSize:13, fontWeight:500, padding:"7px 9px" }} />
+
+    const M3Progress = () => {
+      const order = ["values","behaviors","hierarchy","alignment"];
+      const currentIdx = order.indexOf(m3sub);
+      const steps = [
+        { id:"values",     label:"Values",     icon:"⚖️" },
+        { id:"behaviors",  label:"Behaviors",  icon:"🎯" },
+        { id:"hierarchy",  label:"Hierarchy",  icon:"📊" },
+        { id:"alignment",  label:"Alignment",  icon:"🪞" },
+      ];
+      return (
+        <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:22 }}>
+          {steps.map((s, i) => {
+            const isActive = m3sub === s.id;
+            const isDone = order.indexOf(s.id) < currentIdx;
+            return (
+              <React.Fragment key={s.id}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                  <div style={{ width:30, height:30, borderRadius:"50%", background: isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,.2)" : "var(--bg3)", border: isActive ? "none" : isDone ? "1px solid #34d399" : "1px solid var(--border2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, cursor:"pointer" }}
+                    onClick={() => set("mirror3_sub", s.id)}>
+                    {isDone ? <span style={{ fontSize:12, color:"#34d399" }}>✓</span> : <span>{s.icon}</span>}
                   </div>
-                  <div>
-                    <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:3, fontWeight:500 }}>The irk that revealed it</label>
-                    <TextInput value={val.irk} onChange={v => setVal(i, "irk", v)} placeholder="People who..." style={{ fontSize:13, padding:"7px 9px" }} />
-                  </div>
+                  <span style={{ fontSize:9, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", textTransform:"uppercase", whiteSpace:"nowrap", maxWidth:60, textAlign:"center", lineHeight:1.3 }}>{s.label}</span>
                 </div>
-              </div>
-            </div>
-          ))}
-          {values.length < 3 && <button onClick={() => set("values", [...values, { name:"", irk:"", behaviors:"" }])} style={{ width:"100%", padding:"9px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:7, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12 }}>+ Add value</button>}
+                {i < 3 && <div style={{ flex:1, height:1, background: order.indexOf(steps[i+1].id) <= currentIdx ? "#34d399" : "var(--border2)", margin:"0 4px", marginBottom:22 }} />}
+              </React.Fragment>
+            );
+          })}
         </div>
-        <div className="mirror-div">
-          <div className="mirror-line" />
-          <div style={{ width:30, height:30, borderRadius:"50%", border:"1px solid var(--border2)", background:"var(--bg)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, color:"var(--text4)", flexShrink:0 }}>🪞</div>
-          <div className="mirror-line" />
-        </div>
-        <div className="mirror-side">
-          <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:13 }}>
-            <span style={{ fontSize:17 }}>🎯</span>
-            <div><div style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"var(--accent)" }}>BEHAVIORS · External</div><div style={{ fontSize:11, color:"var(--text3)" }}>How your values show up in action</div></div>
-          </div>
-          <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.1)", borderRadius:7, marginBottom:13 }}>
-            <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Values aren't what you believe -- they're how you behave when it costs you something."</div>
-          </div>
-          {values.filter(v => v.name).map((val, i) => (
-            <div key={i} style={{ marginBottom:13 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:7 }}>
-                <div style={{ fontSize:13, fontWeight:500, color:"var(--warm)" }}>{val.name}</div>
-                <button onClick={() => runAI(`val${i}`, `You are Katherine Breuss. ${name}'s value is "${val.name}". Irk: "${val.irk}". Give a precise personal definition (not dictionary), 3 observable behaviors proving someone lives this value, and 1 violation signal. JSON: {"definition":"...","behaviors":["...","...","..."],"violation":"..."}`)}
-                  style={{ background:"none", border:"1px solid var(--border2)", borderRadius:5, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:10, padding:"4px 9px", flexShrink:0 }}>
-                  {busy[`val${i}`] ? <span className="dot-l"><span /><span /><span /></span> : "✦ Define"}
-                </button>
-              </div>
-              <div style={{ marginBottom:7 }}>
-                <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:3, fontWeight:500 }}>How does this show up in behavior?</label>
-                <TextArea value={val.behaviors} onChange={v => setVal(i, "behaviors", v)} rows={2} placeholder="They speak up even when uncomfortable..." style={{ fontSize:12 }} />
-              </div>
-              {ai[`val${i}`] && (
-                <div className="fade-in">
-                  <ResultCard color="var(--warm)" label="What it really means">{ai[`val${i}`].definition}</ResultCard>
-                  {ai[`val${i}`].behaviors && (
-                    <div style={{ padding:"9px 13px", background:"var(--bg3)", borderLeft:"2px solid #34d399", borderRadius:"0 7px 7px 0", marginBottom:7 }}>
-                      <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#34d399", marginBottom:4 }}>Behaviors that prove it</div>
-                      {ai[`val${i}`].behaviors.map((b, bi) => <div key={bi} style={{ fontSize:13, color:"var(--text)", marginBottom:3, paddingLeft:10, position:"relative" }}><span style={{ position:"absolute", left:0, color:"#34d399" }}>·</span>{b}</div>)}
-                    </div>
-                  )}
-                  {ai[`val${i}`].violation && <ResultCard color="#ef4444" label="Violation signal">{ai[`val${i}`].violation}</ResultCard>}
-                  <OwnItCheck context={`${val.name} value definition`} storageKey={`ownit_val${i}`} onComplete={(r) => set(`ownit_val${i}`, r)} />
-                </div>
-              )}
-            </div>
-          ))}
-          {values.filter(v => v.name).length === 0 && <div style={{ padding:"18px", textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Add your values on the left -- behavioral definitions appear here.</div>}
-          <div style={{ marginTop:12 }}>
-            <label style={{ display:"block", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:5 }}>Overall behaviors note</label>
-            <TextArea value={map.behaviors_note} onChange={v => set("behaviors_note", v)} rows={3} placeholder="When I look at my values and how I'm actually behaving, I notice..." />
-          </div>
-        </div>
+      );
+    };
+
+    // ── STEP 1: VALUES ───────────────────────────────────────────────────────
+    if (m3sub === "values") return wrapContent(<>
+      <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 1</div>
+      {M3Progress()}
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Values</h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>What you stand for internally. The fastest way to find your values is to find what makes your blood boil — then peel back one layer.</p>
+      <VideoBlock title="Values -- The Irks Exercise" duration="~7 min" points={["What irritates you is your fastest path to your values","The peeling question: what are they stomping on?","Why your top value is non-negotiable","Values as decision filters, not motivational posters"]} />
+      <div style={{ marginBottom:18 }}>
+        <label style={{ display:"block", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>What behaviors in others genuinely irk you?</label>
+        <div style={{ fontSize:12, color:"var(--text3)", marginBottom:6, lineHeight:1.6 }}>No filter. Be specific -- not just "rudeness" but what kind?</div>
+        <TextArea value={map.values_irks} onChange={v => set("values_irks", v)} rows={5} placeholder="People who don't follow through. When someone takes credit..." />
       </div>
-      <div style={{ marginBottom:22 }}>
-        <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="values or behaviors" placeholder="Ask Katherine about your values or behaviors -- she can see everything you've written..." />
+      <div style={{ padding:"11px 14px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9, marginBottom:18 }}>
+        <div style={{ fontSize:11, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:4 }}>Peeling question</div>
+        <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.6, fontStyle:"italic", fontFamily:"var(--serif)" }}>"What are they stomping on? If they did the opposite, what would that tell me?" That's your value.</div>
+      </div>
+      <div style={{ fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:10 }}>Your top 3 values</div>
+      {values.map((val, i) => (
+        <div key={i} style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, marginBottom:10, overflow:"hidden" }}>
+          <div style={{ padding:"8px 14px", borderBottom:"1px solid var(--border)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" }}>Value {i + 1}{i === 0 ? " · Most important" : ""}</span>
+            {values.length > 1 && <button onClick={() => set("values", values.filter((_, idx) => idx !== i))} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, padding:0 }}>×</button>}
+          </div>
+          <div style={{ padding:"12px 14px" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              <div>
+                <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Value name</label>
+                <TextInput value={val.name} onChange={v => setVal(i, "name", v)} placeholder="e.g. Integrity" style={{ fontSize:13, fontWeight:500, padding:"8px 10px" }} />
+              </div>
+              <div>
+                <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>The irk that revealed it</label>
+                <TextInput value={val.irk} onChange={v => setVal(i, "irk", v)} placeholder="People who..." style={{ fontSize:13, padding:"8px 10px" }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+      {values.length < 3 && <button onClick={() => set("values", [...values, { name:"", irk:"", behaviors:"" }])} style={{ width:"100%", padding:"10px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:8, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, marginBottom:18 }}>+ Add value</button>}
+      <div style={{ marginBottom:22, marginTop:14 }}>
+        <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="values" placeholder="Ask Katherine about your values -- she can see everything you've written..." />
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror2")}>← Identity · Superpowers</button>
+        <button className="btn" onClick={() => set("mirror3_sub", "behaviors")}>Behaviors →</button>
+      </div>
+    </>);
+
+    // ── STEP 2: BEHAVIORS (placeholder) ──────────────────────────────────────
+    if (m3sub === "behaviors") return wrapContent(<>
+      <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 2</div>
+      {M3Progress()}
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Behaviors</h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>How your values show up in action. Coming soon.</p>
+      <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10, marginBottom:22 }}>This step is under construction.</div>
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => set("mirror3_sub", "values")}>← Values</button>
+        <button className="btn" onClick={() => set("mirror3_sub", "hierarchy")}>Hierarchy →</button>
+      </div>
+    </>);
+
+    // ── STEP 3: HIERARCHY (placeholder) ──────────────────────────────────────
+    if (m3sub === "hierarchy") return wrapContent(<>
+      <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 3</div>
+      {M3Progress()}
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Hierarchy</h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>Rank your values. Coming soon.</p>
+      <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10, marginBottom:22 }}>This step is under construction.</div>
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => set("mirror3_sub", "behaviors")}>← Behaviors</button>
+        <button className="btn" onClick={() => set("mirror3_sub", "alignment")}>Alignment →</button>
+      </div>
+    </>);
+
+    // ── STEP 4: ALIGNMENT (placeholder) ──────────────────────────────────────
+    return wrapContent(<>
+      <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 4</div>
+      {M3Progress()}
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Alignment</h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>How aligned are you with your values right now? Coming soon.</p>
+      <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10, marginBottom:22 }}>This step is under construction.</div>
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => set("mirror3_sub", "hierarchy")}>← Hierarchy</button>
         <button className="btn" onClick={() => { markDone("mirror3"); goto("align"); }}>Alignment Check →</button>
       </div>
     </>);
