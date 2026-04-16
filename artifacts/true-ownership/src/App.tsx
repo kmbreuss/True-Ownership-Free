@@ -2516,14 +2516,13 @@ function A1({ intake, onDone }) {
         const miOpen = map?.[miKey] !== false;
         const miScores = caps.map((_,ci) => (map?.[`align_cap_${trueIdx}_${ci}`] ?? 5) as number);
         const miAvg = caps.length > 0 ? (miScores.reduce((a,b)=>a+b,0)/caps.length).toFixed(1) : null;
-        const avgCol = miAvg !== null ? (parseFloat(miAvg) >= 7 ? "#34d399" : parseFloat(miAvg) >= 4 ? "#f59e0b" : "#ef4444") : "var(--text4)";
         return (
           <div key={animalIdx} style={{ marginBottom:22, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
             <div onClick={() => set(miKey, !miOpen)}
               style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", background:"var(--bg3)", cursor:"pointer", userSelect:"none" }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</div>
               <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                {miAvg !== null && <span style={{ fontSize:12, fontWeight:700, color:avgCol }}>avg {miAvg}/10</span>}
+                {miAvg && <span style={{ fontSize:13, fontWeight:700, color:"var(--warm)" }}>Avg {miAvg}/10</span>}
                 <span style={{ fontSize:14, color:"var(--text3)", transform: miOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
               </div>
             </div>
