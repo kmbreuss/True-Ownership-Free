@@ -3250,29 +3250,48 @@ function A1({ intake, onDone }) {
           );
         })}
 
-        {valCount > 0 && !ai.mirror3_align && (
-          <button className="btn" style={{ marginBottom:22 }}
-            onClick={() => {
-              const summary = Array.from({ length: valCount }).map((_, i) => {
-                const vName = map?.[`val_${i}_name`] || values[i]?.name || "";
-                if (!vName) return null;
-                const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
-                const parts: string[] = [];
-                for (let j = 0; j < bCount; j++) {
-                  const bn = map?.[`beh_${i}_${j}_name`];
-                  if (!bn) continue;
-                  const s = map?.[`align_val_${i}_beh_${j}`];
-                  parts.push(`${bn}: ${s ?? "?"}/10`);
-                }
-                return `${vName} [${parts.join(", ") || "no behaviors"}]`;
-              }).filter(Boolean).join("; ");
-              runAI("mirror3_align",
-                `You are Katherine Breuss. ${name} has rated how fully they are living each behavior for each of their values. Ratings: ${summary}. Identify the single most important misalignment -- name the exact value and behavior. Explain why it matters, what to focus on first, and how it connects to the rest of their values work. JSON: {"key_misalignment":"...","why_it_matters":"...","focus_first":"...","bridge_to_a2":"..."}`
-              );
-            }}>
-            {busy.mirror3_align ? <span className="dot-l"><span /><span /><span /></span> : "See My Key Misalignment →"}
-          </button>
-        )}
+        {(() => {
+          const entries: { vName:string; beh: { name:string; score:number }[] }[] = [];
+          for (let i = 0; i < valCount; i++) {
+            const vName = map?.[`val_${i}_name`] || values[i]?.name || "";
+            if (!vName) continue;
+            const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+            const beh: { name:string; score:number }[] = [];
+            for (let j = 0; j < bCount; j++) {
+              const bn = map?.[`beh_${i}_${j}_name`];
+              if (!bn) continue;
+              const s = (map?.[`align_val_${i}_beh_${j}`] ?? 5) as number;
+              beh.push({ name: bn, score: s });
+            }
+            entries.push({ vName, beh });
+          }
+          const totalBehaviors = entries.reduce((a, e) => a + e.beh.length, 0);
+          if (valCount === 0) return null;
+          if (totalBehaviors === 0) {
+            return (
+              <div style={{ padding:"14px 16px", background:"var(--bg2)", border:"1px dashed var(--border2)", borderRadius:10, marginBottom:22, fontSize:13, color:"var(--text3)", lineHeight:1.6, fontStyle:"italic" }}>
+                Add at least one behavior to see your key misalignment.
+              </div>
+            );
+          }
+          const hasResult = !!ai.mirror3_align;
+          return (
+            <button className="btn" style={{ marginBottom:22 }}
+              onClick={() => {
+                const summary = entries.map(e => `${e.vName} [${e.beh.map(b => `${b.name}: ${b.score}/10`).join(", ")}]`).join("; ");
+                let lowestLabel = "";
+                let lowestScore = 11;
+                entries.forEach(e => e.beh.forEach(b => { if (b.score < lowestScore) { lowestScore = b.score; lowestLabel = `"${b.name}" under value "${e.vName}" (${b.score}/10)`; } }));
+                runAI("mirror3_align",
+                  `You are Katherine Breuss, a direct but compassionate coach. ${name} has rated how fully they are living each behavior for each of their values on a 1-10 scale (1 = living far from this, 10 = fully embodying it). Here are ALL their ratings: ${summary}. The lowest-scoring behavior is ${lowestLabel}. Your task: identify the single most important misalignment — usually (but not always) the lowest score, unless another gap is more consequential given context. Name the EXACT value and behavior. Then explain: why this matters for how they're showing up, what to focus on first (one concrete action), and how shifting this connects forward to the rest of their values work. Be specific and personal — no generic coaching language. Return ONLY valid JSON in this exact shape: {"key_misalignment":"Value: X — Behavior: Y","why_it_matters":"...","focus_first":"...","bridge_to_a2":"..."}`
+                );
+              }}>
+              {busy.mirror3_align
+                ? <span className="dot-l"><span /><span /><span /></span>
+                : (hasResult ? "↻ Refresh Key Misalignment" : "See My Key Misalignment →")}
+            </button>
+          );
+        })()}
         {ai.mirror3_align && (
           <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:22 }}>
             <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
