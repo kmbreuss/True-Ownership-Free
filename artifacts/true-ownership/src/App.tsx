@@ -2735,7 +2735,7 @@ function A1({ intake, onDone }) {
           </div>
         );
       })}
-      {values.length < 3 && <button onClick={() => set("values", [...values, { name:"", irk:"", behaviors:"" }])} style={{ width:"100%", padding:"10px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:8, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, marginBottom:18 }}>+ Add value</button>}
+      <button onClick={() => set("values", [...values, { name:"", irk:"", behaviors:"" }])} style={{ width:"100%", padding:"12px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:8, color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:500, marginBottom:18 }}>+ Add Another Value</button>
       <div style={{ marginBottom:22, marginTop:14 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="values" placeholder="Ask Katherine about your values -- she can see everything you've written..." />
       </div>
