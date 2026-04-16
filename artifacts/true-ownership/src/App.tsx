@@ -1091,7 +1091,7 @@ function Intake({ onDone }) {
           <div style={{ marginTop:18 }}>
             <button className="btn" onClick={() => onDone({ name, q1, q2, q3, defaultVoice:chosen })}>Begin All In It →</button>
           </div>
-        </>;
+        </>
       })()}
     </div>,
   ];
@@ -1480,19 +1480,9 @@ function extractKeywords(text: string, n = 6): string[] {
   return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, n).map(([w]) => w);
 }
 
-function CapAnimalCard({ animal, animalIdx, m2animals, set, map, allCollapsed }) {
+function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
   const [isOpen, setIsOpen] = useState(false);
   const [collapsedCaps, setCollapsedCaps] = useState<Record<number,boolean>>({});
-  useEffect(() => {
-    if (allCollapsed === true) {
-      const all: Record<number,boolean> = {};
-      const existingCaps = animal.capabilities || [];
-      for (let i = 0; i < Math.max(existingCaps.length, 5); i++) all[i] = true;
-      setCollapsedCaps(all);
-    } else if (allCollapsed === false) {
-      setCollapsedCaps({});
-    }
-  }, [allCollapsed]);
   const [chipInputs, setChipInputs] = useState<Record<number,string>>({});
   // Find true index in full m2animals array (chips use this index)
   const trueIdx = m2animals.findIndex(a => a.name === animal.name && a.name);
@@ -1506,6 +1496,11 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map, allCollapsed })
         return ex || { name: chip.label, description:"", example1:"", example2:"", score:7 };
       })
     : existingCaps.filter(c => c.name);
+  const filledCaps = caps.filter(c => c.name);
+  const avgScore = filledCaps.length > 0
+    ? Math.round(filledCaps.reduce((sum, c) => sum + (c.score || 5), 0) / filledCaps.length * 10) / 10
+    : null;
+  const avgCol = avgScore == null ? "var(--text4)" : avgScore >= 7 ? "#34d399" : avgScore >= 5 ? "#f59e0b" : "#ef4444";
   const animalTitle = [animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ");
 
   const updateCap = (ci, field, val) => {
@@ -1527,6 +1522,11 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map, allCollapsed })
       {/* Collapsible header */}
       <div style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 16px" }}>
         <span style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", flex:1 }}>{animalTitle}</span>
+        {avgScore != null && (
+          <span style={{ fontSize:11, fontWeight:700, color:avgCol, padding:"2px 8px", background:`rgba(${avgCol === "#34d399" ? "52,211,153" : avgCol === "#f59e0b" ? "245,158,11" : "239,68,68"},.1)`, border:`1px solid ${avgCol}`, borderRadius:20, flexShrink:0 }}>
+            avg {avgScore}/10
+          </span>
+        )}
         <div style={{ width:28, height:28, borderRadius:"50%", background: isOpen ? "rgba(201,168,76,.15)" : "var(--bg4)", border: `1px solid ${isOpen ? "rgba(201,168,76,.4)" : "var(--border2)"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all .2s", cursor:"pointer" }} onClick={() => setIsOpen(o => !o)}>
           <span style={{ fontSize:13, color: isOpen ? "var(--warm)" : "var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s", display:"block", lineHeight:1 }}>▾</span>
         </div>
@@ -2348,19 +2348,11 @@ function A1({ intake, onDone }) {
           "The examples are the most important part. They are your evidence -- your own proof that you are this person."
         </div>
       </div>
-      {validAnimals.length > 0 && (
-        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10 }}>
-          <button onClick={() => set("caps_all_collapsed", map?.caps_all_collapsed === true ? false : true)}
-            style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px", transition:"all .15s" }}>
-            {map?.caps_all_collapsed === true ? "Expand All" : "Collapse All"}
-          </button>
-        </div>
-      )}
       {validAnimals.length === 0 && (
         <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 and name your animals first.</div>
       )}
       {validAnimals.map((animal, animalIdx) => (
-        <CapAnimalCard key={animalIdx} animal={animal} animalIdx={animalIdx} m2animals={m2animals} set={set} map={map} allCollapsed={map?.caps_all_collapsed} />
+        <CapAnimalCard key={animalIdx} animal={animal} animalIdx={animalIdx} m2animals={m2animals} set={set} map={map} />
       ))}
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror2_sub", "qualities")}>← Qualities & Animals</button>
@@ -2381,21 +2373,6 @@ function A1({ intake, onDone }) {
         "This is the most important question in this section. Not who you are when things are good — who you are when things are hard. Be honest."
       </div>
     </div>
-    {validAnimals.length > 0 && (
-      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10 }}>
-        <button onClick={() => {
-            const expanding = map?.pressure_all_collapsed === true;
-            set("pressure_all_collapsed", !expanding);
-            validAnimals.forEach((animal) => {
-              const ti = m2animals.findIndex(a => a.name === animal.name);
-              (animal.capabilities || []).filter((c: any) => c.name).forEach((_: any, ci: number) => set(`up_open_${ti}_${ci}`, expanding));
-            });
-          }}
-          style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px", transition:"all .15s" }}>
-          {map?.pressure_all_collapsed === true ? "Expand All" : "Collapse All"}
-        </button>
-      </div>
-    )}
     {validAnimals.length === 0 && (
       <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your animals first.</div>
     )}
@@ -2441,8 +2418,8 @@ function A1({ intake, onDone }) {
                 <div style={{ padding:"14px 14px 10px", borderTop:"1px solid var(--border)" }}>
                 
                 {/* Superpower chips — read only */}
-                {supChips.length > 0 && <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:4 }}>Superpower</div>}
-                {supChips.length > 0 && (
+                                {supChips.length > 0 && <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:4 }}>Superpower</div>}
+{supChips.length > 0 && (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:12 }}>
                     {supChips.map((w: string) => (
                       <span key={w} style={{ fontSize:11, padding:"3px 10px", borderRadius:20, background:"rgba(201,168,76,.15)", border:"1px solid rgba(201,168,76,.35)", color:"var(--warm)", fontFamily:"var(--sans)" }}>{w}</span>
@@ -2538,7 +2515,7 @@ function A1({ intake, onDone }) {
         return (
           <div key={i} style={{ marginBottom:22, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
             <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", marginBottom:14 }}>{[animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ")}</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:16 }}>
               {/* Left: capability sliders */}
               <div>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Capabilities</div>
@@ -2559,17 +2536,23 @@ function A1({ intake, onDone }) {
                       <input type="range" min={1} max={10} step={1} value={score}
                         onChange={e => set(storeKey, Number(e.target.value))}
                         style={{ width:"100%", accentColor: col }} />
-                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}><span style={{ color:"#ef4444" }}>1 = living far from this</span><span style={{ color:"#34d399" }}>10 = fully embodying this</span></div>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, marginTop:2 }}><span style={{ color:"#ef4444" }}>1 = living far from this</span><span style={{ color:"#34d399" }}>10 = fully embodying this</span></div>
                     </div>
                   );
                 })}
               </div>
+            </div>
           </div>
+        );
+      })}
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => set("mirror2_sub", "lovedones")}>← Loved Ones</button>
+        <button className="btn" onClick={() => { markDone("mirror2"); goto("mirror3"); }}>Values · Behaviors →</button>
       </div>
     </>);
 
     // ── STEP 4: LOVED ONES ───────────────────────────────────────────────────
-    if (m2sub === "lovedones") return wrapContent(<>
+    return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 4</div>
       {M2Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>The Loved Ones Check</h2>
