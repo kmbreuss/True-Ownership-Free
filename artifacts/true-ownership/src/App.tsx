@@ -4052,9 +4052,10 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
         </div>
         {/* 3 columns, each row individually collapsible */}
         {(() => {
-          const Row = ({ icon, label, openKey, body }: { icon?: string; label: string; openKey: string; body: string }) => {
+          const Row = ({ icon, label, openKey, body }: { icon?: string; label: string; openKey: string; body: any }) => {
             const open = !!map?.[openKey];
-            const hasBody = !!(body && body.trim());
+            const bodyStr = typeof body === "string" ? body : (body == null ? "" : String(body));
+            const hasBody = !!bodyStr.trim();
             return (
               <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, marginBottom:6, overflow:"hidden" }}>
                 <div onClick={() => set(openKey, !open)} style={{ display:"flex", alignItems:"center", gap:7, padding:"8px 10px", cursor:"pointer", userSelect:"none" }}>
@@ -4064,7 +4065,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                 </div>
                 {open && (
                   <div style={{ padding:"6px 10px 10px 28px", borderTop:"1px solid var(--border)", fontSize:11, color:"var(--text3)", fontStyle: hasBody ? "italic" : "normal", lineHeight:1.6 }}>
-                    {hasBody ? body : <span style={{ color:"var(--text4)" }}>Not yet captured.</span>}
+                    {hasBody ? bodyStr : <span style={{ color:"var(--text4)" }}>Not yet captured.</span>}
                   </div>
                 )}
               </div>
