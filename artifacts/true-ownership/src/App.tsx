@@ -2086,10 +2086,10 @@ function A1({ intake, onDone }) {
         { key:"other",      label: map.bag_other_label || "Other", editable:true, labelKey:"bag_other_label" },
       ];
       const growthItems = [
-        { key:"skills",        label:"Skills & Learning", editable:false },
-        { key:"relationships", label:"Relationships", editable:false },
-        { key:"purpose",       label:"Purpose & Contribution", editable:false },
-        { key:"other",         label: map.bag_growth_label4 || "Other", editable:true, labelKey:"bag_growth_label4" },
+        { key:"skills",        label: map.bag_growth_label1 || "Skills & Learning",      editable:true, labelKey:"bag_growth_label1", placeholder:"Skills & Learning" },
+        { key:"relationships", label: map.bag_growth_label2 || "Relationships",          editable:true, labelKey:"bag_growth_label2", placeholder:"Relationships" },
+        { key:"purpose",       label: map.bag_growth_label3 || "Purpose & Contribution", editable:true, labelKey:"bag_growth_label3", placeholder:"Purpose & Contribution" },
+        { key:"other",         label: map.bag_growth_label4 || "Other",                  editable:true, labelKey:"bag_growth_label4", placeholder:"Other" },
       ];
       const sections = [
         { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_summary   || "", emptySentence:"Add your time vision in Direction first." },
@@ -2181,9 +2181,9 @@ function A1({ intake, onDone }) {
                         <div key={it.key} style={{ marginBottom:14 }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
                             {it.editable ? (
-                              <input type="text" value={map?.[it.labelKey] || ""} placeholder="Other"
+                              <input type="text" value={map?.[it.labelKey] || ""} placeholder={it.placeholder || "Other"}
                                 onChange={e => set(it.labelKey, e.target.value)}
-                                style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", background:"transparent", border:"1px dashed var(--border2)", borderRadius:4, padding:"1px 6px", outline:"none", width:160 }} />
+                                style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", background:"transparent", border:"1px dashed var(--border2)", borderRadius:4, padding:"1px 6px", outline:"none", width:200 }} />
                             ) : (
                               <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{it.label}</span>
                             )}
