@@ -2073,17 +2073,27 @@ function A1({ intake, onDone }) {
     // 1d -- ALIGNMENT
     if (m1sub === "alignment") {
       const lifeAreas = (map.life_areas || []) as any[];
+      const wealthItems = [
+        { key:"retirement", label:"Retirement" },
+        { key:"assets",     label:"Assets" },
+        { key:"cashflow",   label:"Cashflow & Salary" },
+        { key:"other",      label:"Other" },
+      ];
       const sections = [
         { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_summary   || "", emptySentence:"Add your time vision in Direction first." },
         { id:"wealth", label:"Wealth", icon:"$",  sentence: map.wealth_summary || "", emptySentence:"Add your wealth vision in Direction first." },
         { id:"growth", label:"Growth", icon:"↗",  sentence: map.growth_summary || map.bag_growth || "", emptySentence:"Add your growth vision in Direction first." },
       ];
 
-      // Per-card average (Time: avg of life_areas sliders. Wealth/Growth: single slider.)
+      // Per-card average (Time: avg of life_areas. Wealth: avg of wealthItems. Growth: single slider.)
       const cardAvg = (sec) => {
         if (sec.id === "time") {
           if (!lifeAreas.length) return null;
           const vals = lifeAreas.map(a => (map?.[`align1_time_${(a.label||a.id||"").toLowerCase()}`] ?? 5) as number);
+          return vals.reduce((s,v) => s+v, 0) / vals.length;
+        }
+        if (sec.id === "wealth") {
+          const vals = wealthItems.map(w => (map?.[`align1_wealth_${w.key}`] ?? 5) as number);
           return vals.reduce((s,v) => s+v, 0) / vals.length;
         }
         return (map?.[`align_dir_${sec.id}`] ?? 5) as number;
@@ -2146,6 +2156,27 @@ function A1({ intake, onDone }) {
                         );
                       })
                     )
+                  ) : sec.id === "wealth" ? (
+                    wealthItems.map((w) => {
+                      const k = `align1_wealth_${w.key}`;
+                      const sv = (map?.[k] ?? 5) as number;
+                      const sCol = sv >= 7 ? "#34d399" : sv >= 4 ? "#f59e0b" : "#ef4444";
+                      return (
+                        <div key={w.key} style={{ marginBottom:14 }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                            <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{w.label}</span>
+                            <span style={{ fontSize:12, fontWeight:700, color:sCol }}>{sv}/10</span>
+                          </div>
+                          <input type="range" min={1} max={10} step={1} value={sv}
+                            onChange={e => set(k, Number(e.target.value))}
+                            style={{ width:"100%", accentColor: sCol }} />
+                          <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, marginTop:2 }}>
+                            <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                            <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
+                          </div>
+                        </div>
+                      );
+                    })
                   ) : (
                     (() => {
                       const k = `align_dir_${sec.id}`;
@@ -2184,6 +2215,12 @@ function A1({ intake, onDone }) {
                       const al = a.label || a.id || "";
                       const v = map?.[`align1_time_${al.toLowerCase()}`] ?? 5;
                       return `${al}: ${v}/10`;
+                    }).join(", ") + "]";
+                  }
+                  if (sec.id === "wealth") {
+                    detail = " [" + wealthItems.map(w => {
+                      const v = map?.[`align1_wealth_${w.key}`] ?? 5;
+                      return `${w.label}: ${v}/10`;
                     }).join(", ") + "]";
                   }
                   return `${sec.label}: ${sStr}/10${sec.sentence ? ` — "${sec.sentence}"` : ""}${detail}`;
