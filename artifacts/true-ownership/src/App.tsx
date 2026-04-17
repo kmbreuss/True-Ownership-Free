@@ -4046,52 +4046,63 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             </div>
           ))}
         </div>
-        {/* 3 collapsible cards */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
-          <MiniCard label="Time" icon="⏳" open={timeOpen} toggle={() => set("map_time_open", !timeOpen)}>
-            {orderedAreas.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>None set</div>}
-            <div style={{ display:"flex", flexWrap:"wrap", gap:5, width:"100%" }}>
-              {orderedAreas.map((a: any, i: number) => (
-                <div key={a.id || i} style={chipStyle}>
-                  <span style={{ color:"var(--warm)", fontWeight:600, marginRight:5 }}>{i+1}</span>
-                  {a.icon && <span style={{ marginRight:4 }}>{a.icon}</span>}
-                  {a.label}
+        {/* 3 columns, each row individually collapsible */}
+        {(() => {
+          const Row = ({ icon, label, openKey, body }: { icon?: string; label: string; openKey: string; body: string }) => {
+            const open = !!map?.[openKey];
+            const hasBody = !!(body && body.trim());
+            return (
+              <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, marginBottom:6, overflow:"hidden" }}>
+                <div onClick={() => set(openKey, !open)} style={{ display:"flex", alignItems:"center", gap:7, padding:"8px 10px", cursor:"pointer", userSelect:"none" }}>
+                  {icon && <span style={{ fontSize:13 }}>{icon}</span>}
+                  <span style={{ fontSize:12, color:"var(--text)", fontWeight:600, flex:1 }}>{label}</span>
+                  <span style={{ fontSize:10, color:"var(--text4)" }}>{open ? "▾" : "▸"}</span>
                 </div>
-              ))}
+                {open && (
+                  <div style={{ padding:"6px 10px 10px 28px", borderTop:"1px solid var(--border)", fontSize:11, color:"var(--text3)", fontStyle: hasBody ? "italic" : "normal", lineHeight:1.6 }}>
+                    {hasBody ? body : <span style={{ color:"var(--text4)" }}>Not yet captured.</span>}
+                  </div>
+                )}
+              </div>
+            );
+          };
+          const timeKey = (a: any, i: number) => `mi_time_${(a.id || a.label || `area${i}`).toString().toLowerCase().replace(/\s+/g, "_")}_open`;
+          const wealthRows = [
+            { icon:"🏡",  label:"Retirement",         openKey:"mi_wealth_ret_open",   body: map.bag_retirement || "" },
+            { icon:"🏛️", label:"Assets",             openKey:"mi_wealth_ass_open",   body: map.bag_assets || "" },
+            { icon:"📈",  label:"Cash flow & Salary", openKey:"mi_wealth_cash_open",  body: map.bag_cashflow || "" },
+            { icon:"✦",   label: map.bag_other_label || "Other", openKey:"mi_wealth_other_open", body: map.bag_other || "" },
+          ];
+          const growthRows = [
+            { icon:"🧠", label: map.bag_growth_label1 || "Skills & Learning",      openKey:"mi_growth_1_open", body: map.bag_growth_1 || "" },
+            { icon:"🤝", label: map.bag_growth_label2 || "Relationships",          openKey:"mi_growth_2_open", body: map.bag_growth_2 || "" },
+            { icon:"✨", label: map.bag_growth_label3 || "Purpose & Contribution", openKey:"mi_growth_3_open", body: map.bag_growth_3 || "" },
+            { icon:"✦",  label: map.bag_growth_label4 || "Other",                  openKey:"mi_growth_4_open", body: map.bag_growth_4 || "" },
+          ];
+          const colHeader: React.CSSProperties = { display:"flex", alignItems:"center", gap:7, padding:"6px 2px 9px", fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" };
+          return (
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+              <div>
+                <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
+                {orderedAreas.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>None set</div>}
+                {orderedAreas.map((a: any, i: number) => (
+                  <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={a.feel || a.see || a.hear || ""} />
+                ))}
+                {map?.time_summary && (
+                  <div style={{ marginTop:8, fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>{map.time_summary}</div>
+                )}
+              </div>
+              <div>
+                <div style={colHeader}><span style={{ fontSize:14 }}>💰</span>Wealth</div>
+                {wealthRows.map(r => <Row key={r.openKey} {...r} />)}
+              </div>
+              <div>
+                <div style={colHeader}><span style={{ fontSize:14 }}>🌱</span>Growth</div>
+                {growthRows.map(r => <Row key={r.openKey} {...r} />)}
+              </div>
             </div>
-            {map?.time_summary && (
-              <div style={{ width:"100%", marginTop:8, fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>{map.time_summary}</div>
-            )}
-          </MiniCard>
-          <MiniCard label="Wealth" icon="💰" open={wealthOpen} toggle={() => set("map_wealth_open", !wealthOpen)}>
-            {wealthExpanded.map(w => {
-              const desc = (map[w.key] || "").trim();
-              return (
-                <div key={w.key} style={{ width:"100%", padding:"8px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:8, marginBottom:6 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: desc ? 4 : 0 }}>
-                    <span style={{ fontSize:12 }}>{w.icon}</span>
-                    <span style={{ fontSize:12, color:"var(--text)", fontWeight:600 }}>{w.label}</span>
-                  </div>
-                  {desc && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, paddingLeft:18 }}>{desc}</div>}
-                </div>
-              );
-            })}
-          </MiniCard>
-          <MiniCard label="Growth" icon="🌱" open={growthOpen} toggle={() => set("map_growth_open", !growthOpen)}>
-            {growthExpanded.map(g => {
-              const desc = (map[g.key] || "").trim();
-              return (
-                <div key={g.key} style={{ width:"100%", padding:"8px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:8, marginBottom:6 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: desc ? 4 : 0 }}>
-                    <span style={{ fontSize:12 }}>{g.icon}</span>
-                    <span style={{ fontSize:12, color:"var(--text)", fontWeight:600 }}>{g.label}</span>
-                  </div>
-                  {desc && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, paddingLeft:18 }}>{desc}</div>}
-                </div>
-              );
-            })}
-          </MiniCard>
-        </div>
+          );
+        })()}
       </div>
 
       {/* SECTION 3 — IDENTITY + SUPERPOWERS */}
