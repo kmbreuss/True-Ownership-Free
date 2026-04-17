@@ -382,7 +382,11 @@ function DirectionSection({ map, set }) {
     }
   };
 
-  const addCustom = (area) => { if (areas.length < 5) set("life_areas", [...areas, area]); };
+  const addCustom = (area) => {
+    if (areas.length >= 5) return;
+    if (areas.some(a => a.id === area.id)) return;
+    set("life_areas", [...areas, { see:"", hear:"", feel:"", ...area }]);
+  };
   const removeArea = (id) => set("life_areas", areas.filter(a => a.id !== id));
 
   const moveArea = (index, dir) => {
