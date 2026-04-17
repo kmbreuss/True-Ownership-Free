@@ -3807,8 +3807,8 @@ function A1({ intake, onDone }) {
             const valScores = row.behs.map(({ j }) => map[`align_val_${row.i}_beh_${j}`]).filter(s => s !== undefined);
             return (
               <div key={row.i} style={{ marginBottom:18 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:8, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
-                  <div style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"#34d399" }}>{row.name}</div>
+                <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+                  <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>"{row.name}"</div>
                   <AvgBadge scores={valScores} />
                 </div>
                 {row.summary && (
