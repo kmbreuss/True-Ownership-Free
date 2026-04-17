@@ -254,6 +254,29 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
             </button>
           );
         })}
+        {selected.filter(a => !LIFE_AREA_PRESETS.some(p => p.id === a.id)).map(area => {
+          const rank = selected.findIndex(a2 => a2.id === area.id) + 1;
+          return (
+            <button key={area.id}
+              onClick={() => onToggle(area)}
+              style={{
+                display:"flex", alignItems:"center", gap:6,
+                padding:"7px 13px",
+                background:"rgba(201,168,76,.15)",
+                border:"1px solid rgba(201,168,76,.5)",
+                borderRadius:20, cursor:"pointer",
+                fontFamily:"var(--sans)", fontSize:12,
+                color:"var(--warm)", transition:"all .18s"
+              }}>
+              <span style={{fontSize:13}}>{area.icon || "✦"}</span>
+              {area.label}
+              <span style={{fontSize:10,fontWeight:700,background:"var(--warm)",color:"#0d1b2e",borderRadius:"50%",width:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                {rank}
+              </span>
+              <span style={{fontSize:13, color:"var(--text4)", marginLeft:2}}>×</span>
+            </button>
+          );
+        })}
         {!showCustom && !atMax && (
           <button onClick={() => setShowCustom(true)}
             style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 13px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:20, cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>
