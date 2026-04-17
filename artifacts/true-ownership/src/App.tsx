@@ -3905,7 +3905,6 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.align.focus_first}</div>
           </div>
           {ai.align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6, marginBottom:4 }}>Carries into A2: {ai.align.bridge_to_a2}</div>}
-          <OwnItCheck context="alignment check result" storageKey="ownit_align" onComplete={(r) => set("ownit_align", r)} />
         </div>
       )}
       <div style={{ marginBottom:22 }}>
