@@ -3921,7 +3921,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                     {confirmed ? "✓ Confirmed — this carries into your Map of Me" : "Edit the wording, then confirm to carry into your Map of Me."}
                   </div>
                   <button
-                    onClick={() => { set("map_focus_text", focusDraft); set("map_focus_confirmed_flag", true); }}
+                    onClick={() => { set("map_focus_text", focusDraft); set("map_focus_confirmed_flag", true); markDone("align"); goto("map"); }}
                     disabled={confirmed || !focusDraft.trim()}
                     style={{ padding:"6px 13px", borderRadius:14, fontSize:11, fontWeight:600, cursor: confirmed || !focusDraft.trim() ? "default" : "pointer", border: confirmed ? "1px solid var(--warm)" : "1px solid var(--border2)", background: confirmed ? "var(--warm)" : "transparent", color: confirmed ? "#0d1b2e" : "var(--text2)", opacity: !focusDraft.trim() ? 0.5 : 1, whiteSpace:"nowrap" }}>
                     {confirmed ? "✓ Confirmed" : "✓ Confirm this as my focus"}
