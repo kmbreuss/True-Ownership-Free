@@ -4184,13 +4184,18 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           }
           if (rows.length === 0) return <div style={{ fontSize:12, color:"var(--text4)", padding:14 }}>No values defined yet.</div>;
           return rows.map(({ i, name: vName, summary: vSummary, behs }) => {
+          const valOpen = !!map?.[`mi_val_${i}_open`];
           return (
             <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
-                <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", marginBottom:6 }}>"{vName}"</div>
-                {vSummary && <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>{vSummary}</div>}
+                <div onClick={() => set(`mi_val_${i}_open`, !valOpen)}
+                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: valOpen && vSummary ? 6 : 0 }}>
+                  <span style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", flex:1 }}>"{vName}"</span>
+                  <span style={{ fontSize:11, color:"var(--text4)" }}>{valOpen ? "▾" : "▸"}</span>
+                </div>
+                {valOpen && vSummary && <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>{vSummary}</div>}
               </div>
-              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+              <div style={{ ...cardBase, display: valOpen ? "flex" : "none", flexDirection:"column" }}>
                 {behs.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No behaviours defined.</div>}
                 <ul style={{ listStyle:"none", padding:0, margin:0 }}>
                   {behs.map(b => (
