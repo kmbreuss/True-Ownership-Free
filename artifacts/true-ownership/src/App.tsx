@@ -612,15 +612,21 @@ function DirectionSection({ map, set }) {
                 className="to-field summary-field" style={{ fontSize:15, fontFamily:"var(--serif)", fontStyle:"italic", color:"#34d399", lineHeight:1.7 }} />
             </div>
             {[
-              { key:"bag_retirement", label:"Retirement",         icon:"🏡", placeholder:"What does retirement look like -- when, how, what does life feel like when you stop working by necessity?" },
-              { key:"bag_assets",     label:"Assets",             icon:"🏛️",  placeholder:"Property, investments, business equity -- what have you built and what does it generate?" },
-              { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈", placeholder:"What does your annual income or cash flow look like? What level creates genuine freedom?" },
-              { key:"bag_other",      label:"Other",              icon:"✦",  placeholder:"Legacy, giving, philanthropy, financial milestones..." },
+              { key:"bag_retirement", label:"Retirement",         icon:"🏡", placeholder:"What does retirement look like -- when, how, what does life feel like when you stop working by necessity?", editable:false },
+              { key:"bag_assets",     label:"Assets",             icon:"🏛️",  placeholder:"Property, investments, business equity -- what have you built and what does it generate?", editable:false },
+              { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈", placeholder:"What does your annual income or cash flow look like? What level creates genuine freedom?", editable:false },
+              { key:"bag_other",      label: map.bag_other_label || "Other", icon:"✦", placeholder:"Legacy, giving, philanthropy, financial milestones...", editable:true },
             ].map(f => (
               <div key={f.key} style={{ marginBottom:13 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
                   <span style={{ fontSize:13 }}>{f.icon}</span>
-                  <label style={{ fontSize:12, fontWeight:500, color:"#34d399" }}>{f.label}</label>
+                  {f.editable ? (
+                    <input type="text" value={map.bag_other_label || ""} placeholder="Other"
+                      onChange={e => set("bag_other_label", e.target.value)}
+                      style={{ fontSize:12, fontWeight:500, color:"#34d399", background:"transparent", border:"1px dashed rgba(52,211,153,.35)", borderRadius:4, padding:"1px 6px", outline:"none", fontFamily:"var(--sans)", width:140 }} />
+                  ) : (
+                    <label style={{ fontSize:12, fontWeight:500, color:"#34d399" }}>{f.label}</label>
+                  )}
                 </div>
                 <textarea rows={3} value={map[f.key] || ""} onChange={e => set(f.key, e.target.value)}
                   placeholder={f.placeholder} className="to-field" style={{ fontSize:13 }} />
@@ -2074,15 +2080,16 @@ function A1({ intake, onDone }) {
     if (m1sub === "alignment") {
       const lifeAreas = (map.life_areas || []) as any[];
       const wealthItems = [
-        { key:"retirement", label:"Retirement" },
-        { key:"assets",     label:"Assets" },
-        { key:"cashflow",   label:"Cashflow & Salary" },
-        { key:"other",      label:"Other" },
+        { key:"retirement", label:"Retirement", editable:false },
+        { key:"assets",     label:"Assets", editable:false },
+        { key:"cashflow",   label:"Cashflow & Salary", editable:false },
+        { key:"other",      label: map.bag_other_label || "Other", editable:true, labelKey:"bag_other_label" },
       ];
       const growthItems = [
-        { key:"skills",        label:"Skills & Learning" },
-        { key:"relationships", label:"Relationships" },
-        { key:"purpose",       label:"Purpose & Contribution" },
+        { key:"skills",        label:"Skills & Learning", editable:false },
+        { key:"relationships", label:"Relationships", editable:false },
+        { key:"purpose",       label:"Purpose & Contribution", editable:false },
+        { key:"other",         label: map.bag_growth_label4 || "Other", editable:true, labelKey:"bag_growth_label4" },
       ];
       const sections = [
         { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_summary   || "", emptySentence:"Add your time vision in Direction first." },
@@ -2166,14 +2173,20 @@ function A1({ intake, onDone }) {
                       })
                     )
                   ) : sec.id === "wealth" || sec.id === "growth" ? (
-                    (sec.id === "wealth" ? wealthItems : growthItems).map((it) => {
+                    (sec.id === "wealth" ? wealthItems : growthItems).map((it: any) => {
                       const k = `align1_${sec.id}_${it.key}`;
                       const sv = (map?.[k] ?? 5) as number;
                       const sCol = sv >= 7 ? "#34d399" : sv >= 4 ? "#f59e0b" : "#ef4444";
                       return (
                         <div key={it.key} style={{ marginBottom:14 }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                            <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{it.label}</span>
+                            {it.editable ? (
+                              <input type="text" value={map?.[it.labelKey] || ""} placeholder="Other"
+                                onChange={e => set(it.labelKey, e.target.value)}
+                                style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", background:"transparent", border:"1px dashed var(--border2)", borderRadius:4, padding:"1px 6px", outline:"none", width:160 }} />
+                            ) : (
+                              <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{it.label}</span>
+                            )}
                             <span style={{ fontSize:12, fontWeight:700, color:sCol }}>{sv}/10</span>
                           </div>
                           <input type="range" min={1} max={10} step={1} value={sv}
