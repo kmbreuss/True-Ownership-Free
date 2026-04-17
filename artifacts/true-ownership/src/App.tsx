@@ -4170,16 +4170,25 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                   </div>
                 )}
               </div>
-              <div style={{ ...cardBase, display: animalOpen ? "flex" : "none", flexDirection:"column" }}>
-                {caps.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No capabilities defined.</div>}
-                <ul style={{ listStyle:"none", padding:0, margin:0 }}>
-                  {caps.map((c: any, ci: number) => (
-                    <li key={ci} style={{ display:"flex", gap:8, marginBottom:7, alignItems:"flex-start", fontSize:13, color:"var(--text2)", lineHeight:1.5 }}>
-                      <span style={{ color:"var(--warm)", flexShrink:0, marginTop:1 }}>·</span>
-                      <div><span style={{ fontWeight:700, color:"var(--text)" }}>{c.name}</span>{c.description ? <> — {c.description}</> : null}</div>
-                    </li>
-                  ))}
-                </ul>
+              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+                {caps.length === 0 && !animalOpen && <div style={{ fontSize:12, color:"var(--text4)" }}>No capabilities defined.</div>}
+                {caps.length > 0 && (
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom: animalOpen ? 10 : 0 }}>
+                    {caps.map((c: any, ci: number) => (
+                      <div key={ci} style={{ padding:"3px 9px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:12, fontSize:11, color:"var(--text2)" }}>{c.name}</div>
+                    ))}
+                  </div>
+                )}
+                {animalOpen && caps.length > 0 && (
+                  <ul style={{ listStyle:"none", padding:0, margin:0 }}>
+                    {caps.map((c: any, ci: number) => (
+                      <li key={ci} style={{ display:"flex", gap:8, marginBottom:7, alignItems:"flex-start", fontSize:13, color:"var(--text2)", lineHeight:1.5 }}>
+                        <span style={{ color:"var(--warm)", flexShrink:0, marginTop:1 }}>·</span>
+                        <div><span style={{ fontWeight:700, color:"var(--text)" }}>{c.name}</span>{c.description ? <> — {c.description}</> : null}</div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           );
@@ -4221,16 +4230,25 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                 </div>
                 {vSummary && <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>{vSummary}</div>}
               </div>
-              <div style={{ ...cardBase, display: valOpen ? "flex" : "none", flexDirection:"column" }}>
-                {behs.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No behaviours defined.</div>}
-                <ul style={{ listStyle:"none", padding:0, margin:0 }}>
-                  {behs.map(b => (
-                    <li key={b.j} style={{ display:"flex", gap:8, marginBottom:7, alignItems:"flex-start", fontSize:13, color:"var(--text2)", lineHeight:1.5 }}>
-                      <span style={{ color:"#34d399", flexShrink:0, marginTop:1 }}>·</span>
-                      <span>{b.name}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+                {behs.length === 0 && !valOpen && <div style={{ fontSize:12, color:"var(--text4)" }}>No behaviours defined.</div>}
+                {behs.length > 0 && (
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom: valOpen ? 10 : 0 }}>
+                    {behs.map(b => (
+                      <div key={b.j} style={{ padding:"3px 9px", background:"rgba(52,211,153,.08)", border:"1px solid rgba(52,211,153,.25)", borderRadius:12, fontSize:11, color:"var(--text2)" }}>{b.name}</div>
+                    ))}
+                  </div>
+                )}
+                {valOpen && behs.length > 0 && (
+                  <ul style={{ listStyle:"none", padding:0, margin:0 }}>
+                    {behs.map(b => (
+                      <li key={b.j} style={{ display:"flex", gap:8, marginBottom:7, alignItems:"flex-start", fontSize:13, color:"var(--text2)", lineHeight:1.5 }}>
+                        <span style={{ color:"#34d399", flexShrink:0, marginTop:1 }}>·</span>
+                        <span>{b.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           );
