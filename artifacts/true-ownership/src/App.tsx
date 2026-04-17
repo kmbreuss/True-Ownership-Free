@@ -667,17 +667,21 @@ function DirectionSection({ map, set }) {
             <div style={{ height:14 }} />
 
             {[
-              { key:"bag_growth_1", labelKey:"bag_growth_label1", defaultLabel:"Skills & Learning",      icon:"🧠", placeholder:"Skills, knowledge, mastery -- what are you learning, building expertise in?" },
-              { key:"bag_growth_2", labelKey:"bag_growth_label2", defaultLabel:"Relationships",          icon:"🤝", placeholder:"How you show up in your closest relationships -- partner, family, friends..." },
-              { key:"bag_growth_3", labelKey:"bag_growth_label3", defaultLabel:"Purpose & Contribution", icon:"✨", placeholder:"How you contribute -- impact on others, communities, the world..." },
-              { key:"bag_growth_4", labelKey:"bag_growth_label4", defaultLabel:"Other",                  icon:"✦",  placeholder:"Anything else -- a dimension of growth that matters to you..." },
+              { key:"bag_growth_1", labelKey:"bag_growth_label1", defaultLabel:"Skills & Learning",      icon:"🧠", placeholder:"Skills, knowledge, mastery -- what are you learning, building expertise in?", editable:false },
+              { key:"bag_growth_2", labelKey:"bag_growth_label2", defaultLabel:"Relationships",          icon:"🤝", placeholder:"How you show up in your closest relationships -- partner, family, friends...", editable:false },
+              { key:"bag_growth_3", labelKey:"bag_growth_label3", defaultLabel:"Purpose & Contribution", icon:"✨", placeholder:"How you contribute -- impact on others, communities, the world...", editable:false },
+              { key:"bag_growth_4", labelKey:"bag_growth_label4", defaultLabel:"Other",                  icon:"✦",  placeholder:"Anything else -- a dimension of growth that matters to you...", editable:true },
             ].map(f => (
               <div key={f.key} style={{ marginBottom:13 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
                   <span style={{ fontSize:13 }}>{f.icon}</span>
-                  <input type="text" value={map[f.labelKey] || ""} placeholder={f.defaultLabel}
-                    onChange={e => set(f.labelKey, e.target.value)}
-                    style={{ fontSize:12, fontWeight:500, color:"#a78bfa", background:"transparent", border:"1px dashed rgba(167,139,250,.35)", borderRadius:4, padding:"1px 6px", outline:"none", fontFamily:"var(--sans)", width:200 }} />
+                  {f.editable ? (
+                    <input type="text" value={map[f.labelKey] || ""} placeholder={f.defaultLabel}
+                      onChange={e => set(f.labelKey, e.target.value)}
+                      style={{ fontSize:12, fontWeight:500, color:"#a78bfa", background:"transparent", border:"1px dashed rgba(167,139,250,.35)", borderRadius:4, padding:"1px 6px", outline:"none", fontFamily:"var(--sans)", width:200 }} />
+                  ) : (
+                    <label style={{ fontSize:12, fontWeight:500, color:"#a78bfa" }}>{f.defaultLabel}</label>
+                  )}
                 </div>
                 <textarea rows={3} value={map[f.key] || ""} onChange={e => set(f.key, e.target.value)}
                   placeholder={f.placeholder} className="to-field" style={{ fontSize:13 }} />
@@ -2106,10 +2110,10 @@ function A1({ intake, onDone }) {
         { key:"other",      label: map.bag_other_label || "Other", editable:true, labelKey:"bag_other_label" },
       ];
       const growthItems = [
-        { key:"skills",        label: map.bag_growth_label1 || "Skills & Learning",      editable:true, labelKey:"bag_growth_label1", placeholder:"Skills & Learning" },
-        { key:"relationships", label: map.bag_growth_label2 || "Relationships",          editable:true, labelKey:"bag_growth_label2", placeholder:"Relationships" },
-        { key:"purpose",       label: map.bag_growth_label3 || "Purpose & Contribution", editable:true, labelKey:"bag_growth_label3", placeholder:"Purpose & Contribution" },
-        { key:"other",         label: map.bag_growth_label4 || "Other",                  editable:true, labelKey:"bag_growth_label4", placeholder:"Other" },
+        { key:"skills",        label: "Skills & Learning",                editable:false },
+        { key:"relationships", label: "Relationships",                    editable:false },
+        { key:"purpose",       label: "Purpose & Contribution",           editable:false },
+        { key:"other",         label: map.bag_growth_label4 || "Other",   editable:true, labelKey:"bag_growth_label4", placeholder:"Other" },
       ];
       const sections = [
         { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_summary   || "", emptySentence:"Add your time vision in Direction first." },
