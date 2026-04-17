@@ -2079,10 +2079,15 @@ function A1({ intake, onDone }) {
         { key:"cashflow",   label:"Cashflow & Salary" },
         { key:"other",      label:"Other" },
       ];
+      const growthItems = [
+        { key:"skills",        label:"Skills & Learning" },
+        { key:"relationships", label:"Relationships" },
+        { key:"purpose",       label:"Purpose & Contribution" },
+      ];
       const sections = [
         { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_summary   || "", emptySentence:"Add your time vision in Direction first." },
         { id:"wealth", label:"Wealth", icon:"$",  sentence: map.wealth_summary || "", emptySentence:"Add your wealth vision in Direction first." },
-        { id:"growth", label:"Growth", icon:"↗",  sentence: map.growth_summary || map.bag_growth || "", emptySentence:"Add your growth vision in Direction first." },
+        { id:"growth", label:"Growth", icon:"🌱", sentence: map.growth_summary || map.bag_growth || "", emptySentence:"Add your growth vision in Direction first." },
       ];
 
       // Per-card average (Time: avg of life_areas. Wealth: avg of wealthItems. Growth: single slider.)
@@ -2094,6 +2099,10 @@ function A1({ intake, onDone }) {
         }
         if (sec.id === "wealth") {
           const vals = wealthItems.map(w => (map?.[`align1_wealth_${w.key}`] ?? 5) as number);
+          return vals.reduce((s,v) => s+v, 0) / vals.length;
+        }
+        if (sec.id === "growth") {
+          const vals = growthItems.map(g => (map?.[`align1_growth_${g.key}`] ?? 5) as number);
           return vals.reduce((s,v) => s+v, 0) / vals.length;
         }
         return (map?.[`align_dir_${sec.id}`] ?? 5) as number;
@@ -2156,15 +2165,15 @@ function A1({ intake, onDone }) {
                         );
                       })
                     )
-                  ) : sec.id === "wealth" ? (
-                    wealthItems.map((w) => {
-                      const k = `align1_wealth_${w.key}`;
+                  ) : sec.id === "wealth" || sec.id === "growth" ? (
+                    (sec.id === "wealth" ? wealthItems : growthItems).map((it) => {
+                      const k = `align1_${sec.id}_${it.key}`;
                       const sv = (map?.[k] ?? 5) as number;
                       const sCol = sv >= 7 ? "#34d399" : sv >= 4 ? "#f59e0b" : "#ef4444";
                       return (
-                        <div key={w.key} style={{ marginBottom:14 }}>
+                        <div key={it.key} style={{ marginBottom:14 }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                            <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{w.label}</span>
+                            <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{it.label}</span>
                             <span style={{ fontSize:12, fontWeight:700, color:sCol }}>{sv}/10</span>
                           </div>
                           <input type="range" min={1} max={10} step={1} value={sv}
@@ -2221,6 +2230,12 @@ function A1({ intake, onDone }) {
                     detail = " [" + wealthItems.map(w => {
                       const v = map?.[`align1_wealth_${w.key}`] ?? 5;
                       return `${w.label}: ${v}/10`;
+                    }).join(", ") + "]";
+                  }
+                  if (sec.id === "growth") {
+                    detail = " [" + growthItems.map(g => {
+                      const v = map?.[`align1_growth_${g.key}`] ?? 5;
+                      return `${g.label}: ${v}/10`;
                     }).join(", ") + "]";
                   }
                   return `${sec.label}: ${sStr}/10${sec.sentence ? ` — "${sec.sentence}"` : ""}${detail}`;
