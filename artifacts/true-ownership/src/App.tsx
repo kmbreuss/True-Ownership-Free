@@ -2072,10 +2072,8 @@ function A1({ intake, onDone }) {
 
     // 1d -- ALIGNMENT
     if (m1sub === "alignment") {
-      const healthGoal = (map.life_areas || []).find(a => a.id === "health")?.goal || "";
       const sections = [
         { id:"time",   label:"Time",   sentence: map.time_summary   || "" },
-        { id:"health", label:"Health", sentence: healthGoal },
         { id:"wealth", label:"Wealth", sentence: map.wealth_summary || "" },
         { id:"growth", label:"Growth", sentence: map.growth_summary || map.bag_growth || "" },
       ];
