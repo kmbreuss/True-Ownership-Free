@@ -663,6 +663,26 @@ function DirectionSection({ map, set }) {
             <textarea rows={5} value={map.bag_growth || ""} onChange={e => set("bag_growth", e.target.value)}
               placeholder="In 10–15 years, as a person I am... I show up... I have let go of... I have become..."
               className="to-field" style={{ fontSize:13, fontFamily:"var(--serif)", fontStyle:"italic", color:"var(--warm)" }} />
+
+            <div style={{ height:14 }} />
+
+            {[
+              { key:"bag_growth_1", labelKey:"bag_growth_label1", defaultLabel:"Skills & Learning",      icon:"🧠", placeholder:"Skills, knowledge, mastery -- what are you learning, building expertise in?" },
+              { key:"bag_growth_2", labelKey:"bag_growth_label2", defaultLabel:"Relationships",          icon:"🤝", placeholder:"How you show up in your closest relationships -- partner, family, friends..." },
+              { key:"bag_growth_3", labelKey:"bag_growth_label3", defaultLabel:"Purpose & Contribution", icon:"✨", placeholder:"How you contribute -- impact on others, communities, the world..." },
+              { key:"bag_growth_4", labelKey:"bag_growth_label4", defaultLabel:"Other",                  icon:"✦",  placeholder:"Anything else -- a dimension of growth that matters to you..." },
+            ].map(f => (
+              <div key={f.key} style={{ marginBottom:13 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
+                  <span style={{ fontSize:13 }}>{f.icon}</span>
+                  <input type="text" value={map[f.labelKey] || ""} placeholder={f.defaultLabel}
+                    onChange={e => set(f.labelKey, e.target.value)}
+                    style={{ fontSize:12, fontWeight:500, color:"#a78bfa", background:"transparent", border:"1px dashed rgba(167,139,250,.35)", borderRadius:4, padding:"1px 6px", outline:"none", fontFamily:"var(--sans)", width:200 }} />
+                </div>
+                <textarea rows={3} value={map[f.key] || ""} onChange={e => set(f.key, e.target.value)}
+                  placeholder={f.placeholder} className="to-field" style={{ fontSize:13 }} />
+              </div>
+            ))}
           </div>
         )}
       </div>
