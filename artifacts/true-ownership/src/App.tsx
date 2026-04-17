@@ -4084,10 +4084,16 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
               <div>
                 <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
-                {orderedAreas.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>None set</div>}
-                {orderedAreas.map((a: any, i: number) => (
-                  <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={a.feel || a.see || a.hear || ""} />
-                ))}
+                {orderedAreas.length === 0 && (
+                  <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:"6px 2px" }}>Go to Direction to add your time priorities.</div>
+                )}
+                {orderedAreas.map((a: any, i: number) => {
+                  const slug = (a.label || a.id || `area${i}`).toString().toLowerCase().replace(/\s+/g, "_");
+                  const body = a.feel || a.see || a.hear || map?.[`time_area_${slug}`] || "";
+                  return (
+                    <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={body} />
+                  );
+                })}
                 {map?.time_summary && (
                   <div style={{ marginTop:8, fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>{map.time_summary}</div>
                 )}
