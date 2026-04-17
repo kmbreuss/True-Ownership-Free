@@ -4090,8 +4090,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
               <div>
                 <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
                 {orderedAreas.map((a: any, i: number) => {
-                  const nameKey = (a.label || a.id || `area${i}`).toString().toLowerCase();
-                  const body = map?.[`time_vision_${nameKey}`] || map?.[`align1_time_${nameKey}`] || a.feel || a.see || a.hear || "";
+                  const body = a.id ? (map?.[`time_vision_${a.id}`] || "") : "";
                   return (
                     <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={body} />
                   );
