@@ -3962,8 +3962,11 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
     const validV = (map.values || []).filter(v => v.name);
     const validAreas = (map.life_areas || []);
     const hierOrder = (map?.hier_order as number[]) || [];
-    const orderedAreas = (hierOrder.length && hierOrder.length === validAreas.length)
-      ? hierOrder.map((i: number) => validAreas[i]).filter(Boolean)
+    const orderedAreas = hierOrder.length
+      ? [
+          ...hierOrder.map((i: number) => validAreas[i]).filter(Boolean),
+          ...validAreas.filter((_a: any, i: number) => !hierOrder.includes(i)),
+        ]
       : validAreas;
     const wealthExpanded = [
       { key:"bag_retirement", label:"Retirement",         icon:"🏡" },
