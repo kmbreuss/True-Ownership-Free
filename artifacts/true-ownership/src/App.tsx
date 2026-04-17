@@ -4064,7 +4064,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                   <span style={{ fontSize:10, color:"var(--text4)" }}>{open ? "▾" : "▸"}</span>
                 </div>
                 {open && (
-                  <div style={{ padding:"6px 10px 10px 28px", borderTop:"1px solid var(--border)", fontSize:11, color:"var(--text3)", fontStyle: hasBody ? "italic" : "normal", lineHeight:1.6 }}>
+                  <div style={{ padding:"6px 10px 10px 28px", borderTop:"1px solid var(--border)", fontSize:11, color:"var(--text3)", fontStyle: hasBody ? "italic" : "normal", lineHeight:1.6, whiteSpace:"pre-line" }}>
                     {hasBody ? bodyStr : <span style={{ color:"var(--text4)" }}>Not yet captured.</span>}
                   </div>
                 )}
@@ -4090,7 +4090,8 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
               <div>
                 <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
                 {orderedAreas.map((a: any, i: number) => {
-                  const body = a.id ? (map?.[`time_vision_${a.id}`] || "") : "";
+                  const parts = [a?.see, a?.hear, a?.feel].filter((s: any) => typeof s === "string" && s.trim());
+                  const body = parts.join("\n");
                   return (
                     <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={body} />
                   );
