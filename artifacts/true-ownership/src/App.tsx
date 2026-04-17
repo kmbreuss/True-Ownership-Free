@@ -198,6 +198,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 
 const LIFE_AREA_PRESETS = [
   { id:"family",    label:"Family",       icon:"👨‍👩‍👧‍👦", hint:"Where will your kids be? What does your relationship with your partner look like? What do you do together?" },
+  { id:"love",      label:"Love",         icon:"💛", hint:"Your romantic life -- partner, intimacy, the relationship you choose to build. What does love look like at your best?" },
   { id:"business",  label:"Business",     icon:"🏔️",  hint:"What are you building? Who are you leading? How much are you working? What is your role?" },
   { id:"health",    label:"Health",       icon:"⚡",  hint:"How do you feel physically? What are you doing regularly? What have you let go of?" },
   { id:"friends",   label:"Friends",      icon:"🤝",  hint:"Who is still in your life? How often do you connect? What do you do together?" },
@@ -4084,19 +4085,13 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
               <div>
                 <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
-                {orderedAreas.length === 0 && (
-                  <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:"6px 2px" }}>Go to Direction to add your time priorities.</div>
-                )}
                 {orderedAreas.map((a: any, i: number) => {
-                  const slug = (a.label || a.id || `area${i}`).toString().toLowerCase().replace(/\s+/g, "_");
-                  const body = a.feel || a.see || a.hear || map?.[`time_area_${slug}`] || "";
+                  const nameKey = (a.label || a.id || `area${i}`).toString().toLowerCase();
+                  const body = map?.[`time_vision_${nameKey}`] || map?.[`align1_time_${nameKey}`] || a.feel || a.see || a.hear || "";
                   return (
                     <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={body} />
                   );
                 })}
-                {map?.time_summary && (
-                  <div style={{ marginTop:8, fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>{map.time_summary}</div>
-                )}
               </div>
               <div>
                 <div style={colHeader}><span style={{ fontSize:14 }}>💰</span>Wealth</div>
@@ -4129,11 +4124,10 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
                 <div onClick={() => set(`mi_animal_${i}_open`, !animalOpen)}
-                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: animalOpen && chipList.length ? 10 : 0 }}>
+                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: chipList.length ? 10 : 0 }}>
                   <span style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", flex:1 }}>{animalLabel}</span>
-                  <span style={{ fontSize:11, color:"var(--text4)" }}>{animalOpen ? "▾" : "▸"}</span>
                 </div>
-                {animalOpen && chipList.length > 0 && (
+                {chipList.length > 0 && (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
                     {chipList.map((c: any, ci: number) => {
                       const txt = typeof c === "string" ? c : (c.label || c.name || "");
@@ -4189,11 +4183,10 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
                 <div onClick={() => set(`mi_val_${i}_open`, !valOpen)}
-                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: valOpen && vSummary ? 6 : 0 }}>
+                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: vSummary ? 6 : 0 }}>
                   <span style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", flex:1 }}>"{vName}"</span>
-                  <span style={{ fontSize:11, color:"var(--text4)" }}>{valOpen ? "▾" : "▸"}</span>
                 </div>
-                {valOpen && vSummary && <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>{vSummary}</div>}
+                {vSummary && <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>{vSummary}</div>}
               </div>
               <div style={{ ...cardBase, display: valOpen ? "flex" : "none", flexDirection:"column" }}>
                 {behs.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No behaviours defined.</div>}
