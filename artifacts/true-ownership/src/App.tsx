@@ -3685,7 +3685,7 @@ function A1({ intake, onDone }) {
           <div style={{ marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>⏳ Time Priorities</div>
-              <AvgBadge scores={lifeAreas.map(a => map[`align1_time_${(a.label||a.id||"").toLowerCase()}`]).filter(s => s !== undefined)} />
+              {lifeAreas.length > 0 && <AvgBadge scores={lifeAreas.map(a => map[`align1_time_${(a.label||a.id||"").toLowerCase()}`] ?? 5)} />}
             </div>
             {lifeAreas.length === 0 && (
               <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No life priorities set yet -- go back to Direction to add them.</div>
@@ -3706,7 +3706,7 @@ function A1({ intake, onDone }) {
           <div style={{ marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>💰 Wealth</div>
-              <AvgBadge scores={wealthItems.map(w => map[`align1_wealth_${w.key}`]).filter(s => s !== undefined)} />
+              <AvgBadge scores={wealthItems.map(w => map[`align1_wealth_${w.key}`] ?? 5)} />
             </div>
             {wealthItems.map(w => (
               <AlignSlider key={w.key}
@@ -3721,7 +3721,7 @@ function A1({ intake, onDone }) {
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>🌱 Growth</div>
-              <AvgBadge scores={growthItems.map(g => map[`align1_growth_${g.key}`]).filter(s => s !== undefined)} />
+              <AvgBadge scores={growthItems.map(g => map[`align1_growth_${g.key}`] ?? 5)} />
             </div>
             {growthItems.map(g => (
               <AlignSlider key={g.key}
