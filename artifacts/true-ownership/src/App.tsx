@@ -4104,18 +4104,24 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
         {validA.length === 0 && <div style={{ fontSize:12, color:"var(--text4)", padding:14 }}>No animals defined yet.</div>}
         {validA.map((a: any, i: number) => {
           const animalLabel = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
-          const assignedChips = (map?.identity_chips || []).filter((c: any) => c.assignedTo === i);
+          const perAnimalChips = (a.identity_chips || []) as any[];
+          const globalAssigned = (map?.identity_chips || []).filter((c: any) => c.assignedTo === i);
+          const chipList = perAnimalChips.length ? perAnimalChips : globalAssigned;
           const caps = (a.capabilities || []).filter((c: any) => c.name);
           return (
             <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
-                <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", marginBottom:10 }}>{animalLabel}</div>
-                <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                  {assignedChips.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>No identity chips assigned.</div>}
-                  {assignedChips.map((c: any) => (
-                    <div key={c.id} style={{ padding:"3px 9px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:12, fontSize:11, color:"var(--text2)" }}>{c.label}</div>
-                  ))}
-                </div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", marginBottom: chipList.length ? 10 : 0 }}>{animalLabel}</div>
+                {chipList.length > 0 && (
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                    {chipList.map((c: any, ci: number) => {
+                      const txt = typeof c === "string" ? c : (c.label || c.name || "");
+                      const k = typeof c === "string" ? `${i}-${ci}` : (c.id || `${i}-${ci}`);
+                      if (!txt) return null;
+                      return <div key={k} style={{ padding:"3px 9px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:12, fontSize:11, color:"var(--text2)" }}>{txt}</div>;
+                    })}
+                  </div>
+                )}
               </div>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
                 {caps.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No capabilities defined.</div>}
