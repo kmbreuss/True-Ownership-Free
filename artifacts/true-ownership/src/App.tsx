@@ -4144,16 +4144,24 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           <div style={sectionLbl}>Values</div>
           <div style={sectionLbl}>Behaviours</div>
         </div>
-        {validV.length === 0 && <div style={{ fontSize:12, color:"var(--text4)", padding:14 }}>No values defined yet.</div>}
-        {validV.map((val: any, i: number) => {
-          const vName = map?.[`val_${i}_name`] || val.name || `Value ${i + 1}`;
-          const vSummary = map?.[`val_${i}_summary`] || "";
-          const behCount = map?.[`beh_${i}_count`] || 1;
-          const behs: { j:number; name:string }[] = [];
-          for (let j = 0; j < behCount; j++) {
-            const bn = map?.[`beh_${i}_${j}_name`];
-            if (bn) behs.push({ j, name: bn });
+        {(() => {
+          const allValues = (map?.values || []) as any[];
+          const valCount = parseInt(map?.val_count) || allValues.length || 0;
+          const rows: { i:number; name:string; summary:string; behs:{j:number;name:string}[] }[] = [];
+          for (let i = 0; i < valCount; i++) {
+            const vName = map?.[`val_${i}_name`] || allValues[i]?.name || "";
+            if (!vName) continue;
+            const vSummary = map?.[`val_${i}_summary`] || "";
+            const behCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+            const behs: { j:number; name:string }[] = [];
+            for (let j = 0; j < behCount; j++) {
+              const bn = map?.[`beh_${i}_${j}_name`];
+              if (bn) behs.push({ j, name: bn });
+            }
+            rows.push({ i, name: vName, summary: vSummary, behs });
           }
+          if (rows.length === 0) return <div style={{ fontSize:12, color:"var(--text4)", padding:14 }}>No values defined yet.</div>;
+          return rows.map(({ i, name: vName, summary: vSummary, behs }) => {
           return (
             <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
@@ -4173,7 +4181,8 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
               </div>
             </div>
           );
-        })}
+          });
+        })()}
       </div>
 
       {/* SECTION 5 — THE ONE THING */}
