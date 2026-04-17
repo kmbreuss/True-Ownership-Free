@@ -3619,10 +3619,24 @@ function A1({ intake, onDone }) {
     const animals = (map.animals || []).filter(a => a.name);
     const values = (map.values || []).filter(v => v.name);
 
+    // Direction wealth/growth item definitions (mirrored from Mirror 1 Alignment)
+    const wealthItems = [
+      { key:"retirement", label:"Retirement" },
+      { key:"assets",     label:"Assets" },
+      { key:"cashflow",   label:"Cashflow & Salary" },
+      { key:"other",      label: map.bag_other_label || "Other" },
+    ];
+    const growthItems = [
+      { key:"skills",        label:"Skills & Learning" },
+      { key:"relationships", label:"Relationships" },
+      { key:"purpose",       label:"Purpose & Contribution" },
+      { key:"other",         label: map.bag_growth_label4 || "Other" },
+    ];
+
     const dirScores = [
-      ...lifeAreas.map((a,i) => map[`align_time_${a.id}`]),
-      ...["bag_retirement","bag_assets","bag_cashflow","bag_other"].map(k => map[`align_wealth_${k}`]),
-      map.align_growth,
+      ...lifeAreas.map(a => map[`align1_time_${(a.label||a.id||"").toLowerCase()}`]),
+      ...wealthItems.map(w => map[`align1_wealth_${w.key}`]),
+      ...growthItems.map(g => map[`align1_growth_${g.key}`]),
     ].filter(s => s !== undefined);
 
     const spScores = animals.flatMap((a,i) => {
@@ -3631,11 +3645,22 @@ function A1({ intake, onDone }) {
       return caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
     });
 
-    const bhvScores = values.flatMap((v,i) => {
-      const def = ai[`val${i}`];
-      if (!def || !def.behaviors) return [];
-      return def.behaviors.map((_,bi) => map[`align_bh_${i}_${bi}`]).filter(s => s !== undefined);
-    });
+    // Behaviors: read directly from map keys (val_${i}_name, beh_${i}_count, beh_${i}_${j}_name)
+    const valCountAlign = parseInt(map?.val_count) || values.length || 0;
+    const valueRows = Array.from({ length: valCountAlign }).map((_, i) => {
+      const vName = map?.[`val_${i}_name`] || values[i]?.name || "";
+      const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+      const behs: { j:number; name:string }[] = [];
+      for (let j = 0; j < bCount; j++) {
+        const bn = map?.[`beh_${i}_${j}_name`];
+        if (bn) behs.push({ j, name: bn });
+      }
+      return { i, name: vName, behs, summary: map?.[`val_${i}_summary`] || "" };
+    }).filter(r => r.name);
+
+    const bhvScores = valueRows.flatMap(r =>
+      r.behs.map(({ j }) => map[`align_val_${r.i}_beh_${j}`]).filter(s => s !== undefined)
+    );
 
     const avg = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10 : null;
 
@@ -3660,30 +3685,40 @@ function A1({ intake, onDone }) {
             {lifeAreas.length === 0 && (
               <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No life priorities set yet -- go back to Direction to add them.</div>
             )}
-            {lifeAreas.map((area, i) => (
-              <AlignSlider key={area.id}
-                storeKey={`align_time_${area.id}`}
-                label={`${area.icon} ${area.label}`}
-                desc={`How aligned is how you actually spend time with ${area.label}?`}
-                indent={true} />
-            ))}
+            {lifeAreas.map((area) => {
+              const aLabel = area.label || area.id || "";
+              return (
+                <AlignSlider key={area.id || aLabel}
+                  storeKey={`align1_time_${aLabel.toLowerCase()}`}
+                  label={`${area.icon || ""} ${aLabel}`.trim()}
+                  desc={`How aligned is how you actually spend time with ${aLabel}?`}
+                  indent={true} />
+              );
+            })}
           </div>
 
           {/* Wealth */}
           <div style={{ marginBottom:16 }}>
             <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#34d399", marginBottom:10 }}>💰 Wealth</div>
-            {[
-              { key:"align_wealth_bag_retirement", label:"Retirement", desc:"How on track are you for your retirement vision?" },
-              { key:"align_wealth_bag_assets",     label:"Assets",     desc:"How close are you to your assets target?" },
-              { key:"align_wealth_bag_cashflow",   label:"Cash flow & Salary", desc:"Does your income match your BAG?" },
-              { key:"align_wealth_bag_other",      label:"Other",      desc:"Other wealth goals -- how aligned?" },
-            ].map(f => <AlignSlider key={f.key} storeKey={f.key} label={f.label} desc={f.desc} indent={true} />)}
+            {wealthItems.map(w => (
+              <AlignSlider key={w.key}
+                storeKey={`align1_wealth_${w.key}`}
+                label={w.label}
+                desc={`How aligned are you with your ${w.label.toLowerCase()} vision?`}
+                indent={true} />
+            ))}
           </div>
 
           {/* Growth */}
           <div>
             <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>🌱 Growth</div>
-            <AlignSlider storeKey="align_growth" label="Personal growth" desc="How aligned is who you are today with who you described in Growth?" indent={true} />
+            {growthItems.map(g => (
+              <AlignSlider key={g.key}
+                storeKey={`align1_growth_${g.key}`}
+                label={g.label}
+                desc={`How aligned is who you are today with your ${g.label.toLowerCase()} vision?`}
+                indent={true} />
+            ))}
           </div>
 
         </div>
@@ -3748,44 +3783,33 @@ function A1({ intake, onDone }) {
           <span style={{ fontSize:11, color:"var(--text4)", marginLeft:2 }}>· how consistently you're living your values</span>
         </div>
         <div style={{ padding:"14px 18px" }}>
-          {values.length === 0 && (
+          {valueRows.length === 0 && (
             <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>No values set yet -- go back to Values · Behaviors to add them.</div>
           )}
-          {values.map((val, i) => {
-            const def = ai[`val${i}`];
-            const valScores = def?.behaviors
-              ? def.behaviors.map((_,bi) => map[`align_bh_${i}_${bi}`]).filter(s => s !== undefined)
-              : [];
+          {valueRows.map(row => {
+            const valScores = row.behs.map(({ j }) => map[`align_val_${row.i}_beh_${j}`]).filter(s => s !== undefined);
             return (
-              <div key={i} style={{ marginBottom:18 }}>
-                {/* Value header */}
+              <div key={row.i} style={{ marginBottom:18 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:8, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
-                  <div style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"#34d399" }}>{val.name}</div>
-                  {val.irk && <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>revealed by: "{val.irk.slice(0,50)}{val.irk.length > 50 ? "..." : ""}"</div>}
+                  <div style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"#34d399" }}>{row.name}</div>
                   <AvgBadge scores={valScores} />
                 </div>
-                {!def ? (
+                {row.summary && (
+                  <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", paddingLeft:14, marginBottom:8, borderLeft:"2px solid rgba(52,211,153,.3)" }}>{row.summary}</div>
+                )}
+                {row.behs.length === 0 ? (
                   <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", paddingLeft:14, borderLeft:"2px solid var(--border2)" }}>
-                    Go to Values · Behaviors and click "✦ Define" for this value first.
+                    No behaviors defined yet -- go to Values · Behaviors · Step 2 to add them.
                   </div>
                 ) : (
                   <div>
-                    {def.definition && (
-                      <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", paddingLeft:14, marginBottom:8, borderLeft:"2px solid rgba(52,211,153,.3)" }}>{def.definition}</div>
-                    )}
-                    {(def.behaviors || []).map((b, bi) => (
-                      <AlignSlider key={bi}
-                        storeKey={`align_bh_${i}_${bi}`}
-                        label={b}
+                    {row.behs.map(({ j, name }) => (
+                      <AlignSlider key={j}
+                        storeKey={`align_val_${row.i}_beh_${j}`}
+                        label={name}
                         desc="How consistently are you doing this?"
                         indent={true} />
                     ))}
-                    {def.violation && (
-                      <div style={{ padding:"8px 12px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:7, marginTop:4, marginLeft:14 }}>
-                        <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", color:"#ef4444", marginBottom:2 }}>Violation signal</div>
-                        <div style={{ fontSize:11, color:"var(--text3)" }}>{def.violation}</div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -3801,7 +3825,10 @@ function A1({ intake, onDone }) {
             const dAvg = avg(dirScores);
             const sAvg = avg(spScores);
             const bAvg = avg(bhvScores);
-            const areaSummary = lifeAreas.map((a,i) => `${a.label}: ${map[`align_time_${a.id}`] ?? "?"}/10`).join(", ");
+            const timeDetail  = lifeAreas.map(a => `${a.label}: ${map[`align1_time_${(a.label||a.id||"").toLowerCase()}`] ?? "?"}/10`).join(", ");
+            const wealthDetail = wealthItems.map(w => `${w.label}: ${map[`align1_wealth_${w.key}`] ?? "?"}/10`).join(", ");
+            const growthDetail = growthItems.map(g => `${g.label}: ${map[`align1_growth_${g.key}`] ?? "?"}/10`).join(", ");
+            const areaSummary = `Time [${timeDetail}]; Wealth [${wealthDetail}]; Growth [${growthDetail}]`;
             const animalSummary = animals.map((a,i) => {
               const caps = (a.capabilities || []).filter(c => c.name);
               const sc = caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s=>s!==undefined);
@@ -3809,11 +3836,11 @@ function A1({ intake, onDone }) {
                 .join(", ");
               return `${[a.adj1, a.adj2, a.name].filter(Boolean).join(" ")} [${capDetail || "no caps"}]: avg ${avg(sc) ?? "not rated"}/10`;
             }).join("; ");
-            const valueSummary = values.map((v,i) => {
-              const def = ai[`val${i}`];
-              const sc = def?.behaviors ? def.behaviors.map((_,bi) => map[`align_bh_${i}_${bi}`]).filter(s=>s!==undefined) : [];
-              return `${v.name}: ${avg(sc) ?? "not rated"}/10`;
-            }).join(", ");
+            const valueSummary = valueRows.map(row => {
+              const sc = row.behs.map(({ j }) => map[`align_val_${row.i}_beh_${j}`]).filter(s=>s!==undefined);
+              const behDetail = row.behs.map(({ j, name }) => `${name}: ${map[`align_val_${row.i}_beh_${j}`] ?? "?"}`).join(", ");
+              return `${row.name} [${behDetail || "no behaviors"}]: avg ${avg(sc) ?? "not rated"}/10`;
+            }).join("; ");
             runAI("align",
               `You are Katherine Breuss. ${name} has completed a detailed alignment check. Direction avg: ${dAvg}/10 (${areaSummary}). Superpowers avg: ${sAvg}/10 (${animalSummary}). Behaviors avg: ${bAvg}/10 (${valueSummary}). Purpose: "${map.purpose_final || map.purpose_draft}". Identify the single most important misalignment -- be specific and name the exact area or behavior. Why does it matter? What to focus on first. How it connects to A2. JSON: {"key_misalignment":"...","why_it_matters":"...","focus_first":"...","bridge_to_a2":"..."}`
             );
