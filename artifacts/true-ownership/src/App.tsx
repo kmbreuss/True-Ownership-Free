@@ -4293,7 +4293,6 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:9 }}>Katherine's Note</div>
           <div style={{ fontFamily:"var(--serif)", fontSize:16, lineHeight:1.9, color:"var(--text)", marginBottom:13, fontWeight:300 }}>{ai.close.note}</div>
           <div style={{ fontFamily:"var(--serif)", fontSize:19, fontStyle:"italic", fontWeight:400, color:"var(--accent)", lineHeight:1.5 }}>"{ai.close.identity_line}"</div>
-          <OwnItCheck context="Map of Me closing summary" storageKey="ownit_mapclose" onComplete={(r) => set("ownit_mapclose", r)} />
         </div>
       )}
       <div style={{ padding:"14px 17px", background:"rgba(167,139,250,.05)", border:"1px solid rgba(167,139,250,.17)", borderRadius:11, marginBottom:18 }}>
