@@ -3837,76 +3837,94 @@ function A1({ intake, onDone }) {
       ); })()}
 
       {/* Katherine's key misalignment read */}
-      {!ai.align && (
-        <button className="btn" style={{ marginBottom:22 }}
-          onClick={() => {
-            const purpose = (map.purpose_final && map.purpose_final.trim())
-              || ((map.purpose_layers || []).filter(l => (l||"").trim()).join(" ").trim())
-              || (map.purpose_draft || "").trim()
-              || "(no purpose statement set)";
+      {(() => {
+        const runMisalignment = (excludeAreas: string[] = []) => {
+          const purpose = (map.purpose_final && map.purpose_final.trim())
+            || ((map.purpose_layers || []).filter((l: string) => (l||"").trim()).join(" ").trim())
+            || (map.purpose_draft || "").trim()
+            || "(no purpose statement set)";
 
-            const lines: string[] = [];
-            // Direction · Time
-            lifeAreas.forEach(a => {
-              const lab = a.label || a.id || "";
-              const v = map[`align1_time_${lab.toLowerCase()}`];
-              lines.push(`Direction · Time · ${lab}: ${v ?? "not rated"}/10`);
+          const lines: string[] = [];
+          lifeAreas.forEach((a: any) => {
+            const lab = a.label || a.id || "";
+            const v = map[`align1_time_${lab.toLowerCase()}`];
+            lines.push(`Direction · Time · ${lab}: ${v ?? "not rated"}/10`);
+          });
+          wealthItems.forEach((w: any) => {
+            const v = map[`align1_wealth_${w.key}`];
+            lines.push(`Direction · Wealth · ${w.label}: ${v ?? "not rated"}/10`);
+          });
+          growthItems.forEach((g: any) => {
+            const v = map[`align1_growth_${g.key}`];
+            lines.push(`Direction · Growth · ${g.label}: ${v ?? "not rated"}/10`);
+          });
+          animals.forEach((a: any, i: number) => {
+            const animalLabel = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
+            const caps = (a.capabilities || []).filter((c: any) => c.name);
+            caps.forEach((cap: any, ci: number) => {
+              const v = map[`align_cap_${i}_${ci}`];
+              lines.push(`Superpowers · ${animalLabel} · ${cap.name}: ${v ?? "not rated"}/10`);
             });
-            // Direction · Wealth
-            wealthItems.forEach(w => {
-              const v = map[`align1_wealth_${w.key}`];
-              lines.push(`Direction · Wealth · ${w.label}: ${v ?? "not rated"}/10`);
+          });
+          valueRows.forEach((row: any) => {
+            row.behs.forEach(({ j, name: bn }: any) => {
+              const v = map[`align_val_${row.i}_beh_${j}`];
+              lines.push(`Values · ${row.name} · ${bn}: ${v ?? "not rated"}/10`);
             });
-            // Direction · Growth
-            growthItems.forEach(g => {
-              const v = map[`align1_growth_${g.key}`];
-              lines.push(`Direction · Growth · ${g.label}: ${v ?? "not rated"}/10`);
-            });
-            // Superpowers (per animal · per capability)
-            animals.forEach((a,i) => {
-              const animalLabel = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
-              const caps = (a.capabilities || []).filter(c => c.name);
-              caps.forEach((cap, ci) => {
-                const v = map[`align_cap_${i}_${ci}`];
-                lines.push(`Superpowers · ${animalLabel} · ${cap.name}: ${v ?? "not rated"}/10`);
-              });
-            });
-            // Values · Behaviors (per value · per behavior)
-            valueRows.forEach(row => {
-              row.behs.forEach(({ j, name: bn }) => {
-                const v = map[`align_val_${row.i}_beh_${j}`];
-                lines.push(`Values · ${row.name} · ${bn}: ${v ?? "not rated"}/10`);
-              });
-            });
+          });
 
-            const scoresBlock = lines.length ? lines.join("\n") : "(no scores recorded)";
+          const scoresBlock = lines.length ? lines.join("\n") : "(no scores recorded)";
+          const exclusion = excludeAreas.length
+            ? `\n\nIMPORTANT: Previous suggestions covered these areas: ${excludeAreas.map(a => `"${a}"`).join(", ")}. Identify a DIFFERENT area of misalignment -- not any of these. Pick the next biggest gap.`
+            : "";
 
-            runAI("align",
-              `You are Katherine Breuss, a direct but compassionate coach. ${name}'s purpose: "${purpose}".
+          runAI("align",
+            `You are Katherine Breuss, a direct but compassionate coach. ${name}'s purpose: "${purpose}".
 
 Their full alignment scores (1 = living far from this, 10 = fully embodying it):
 ${scoresBlock}
 
-Identify the single biggest gap between how they're living and their purpose. Give a specific 3-4 sentence insight: name the exact area, explain why this gap matters for their purpose, and give one concrete action they can take this week. No generic coaching language -- be specific to what they wrote.
+Identify the single biggest gap between how they're living and their purpose. Give a specific 3-4 sentence insight: name the exact area, explain why this gap matters for their purpose, and give one concrete action they can take this week. No generic coaching language -- be specific to what they wrote.${exclusion}
 
 Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters":"<why this gap matters for their purpose>","focus_first":"<one concrete action this week>","bridge_to_a2":"<one short sentence on how shifting this carries forward>"}`
-            );
-          }}>
-          {busy.align ? <span className="dot-l"><span /><span /><span /></span> : "See My Key Misalignment →"}
-        </button>
-      )}
-      {ai.align && (
-        <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:22 }}>
-          <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
-          <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{ai.align.key_misalignment}</div>
-          <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:11 }}>{ai.align.why_it_matters}</div>
-          <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:9 }}>
-            <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
-            <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.align.focus_first}</div>
-          </div>
-          {ai.align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6, marginBottom:4 }}>Carries into A2: {ai.align.bridge_to_a2}</div>}
-        </div>
-      )}
+          );
+        };
+
+        const prevAreas: string[] = (map.align_prev_areas as string[]) || [];
+
+        return (<>
+          {!ai.align && (
+            <button className="btn" style={{ marginBottom:22 }}
+              onClick={() => { set("align_prev_areas", []); runMisalignment([]); }}>
+              {busy.align ? <span className="dot-l"><span /><span /><span /></span> : "See My Key Misalignment →"}
+            </button>
+          )}
+          {ai.align && (
+            <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:14 }}>
+              <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{ai.align.key_misalignment}</div>
+              <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:11 }}>{ai.align.why_it_matters}</div>
+              <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:9 }}>
+                <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
+                <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.align.focus_first}</div>
+              </div>
+              {ai.align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6, marginBottom:4 }}>Carries into A2: {ai.align.bridge_to_a2}</div>}
+            </div>
+          )}
+          {ai.align && (
+            <button className="btn-g" style={{ marginBottom:22 }}
+              disabled={!!busy.align}
+              onClick={() => {
+                const cur = ai.align?.key_misalignment || "";
+                const nextPrev = cur ? [...prevAreas, cur] : prevAreas;
+                set("align_prev_areas", nextPrev);
+                runMisalignment(nextPrev);
+              }}>
+              {busy.align ? <span className="dot-l"><span /><span /><span /></span> : "↻ Give me another suggestion"}
+            </button>
+          )}
+        </>);
+      })()}
       <div style={{ marginBottom:22 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="alignment" placeholder="Ask Katherine about your alignment -- she can see everything you've written..." />
       </div>
