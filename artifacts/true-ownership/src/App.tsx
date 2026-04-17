@@ -4129,6 +4129,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                 <div onClick={() => set(`mi_animal_${i}_open`, !animalOpen)}
                   style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: chipList.length ? 10 : 0 }}>
                   <span style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", flex:1 }}>{animalLabel}</span>
+                  <span style={{ fontSize:11, color:"var(--text4)", flexShrink:0, transition:"transform .18s", transform: animalOpen ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
                 </div>
                 {chipList.length > 0 && (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
@@ -4188,6 +4189,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                 <div onClick={() => set(`mi_val_${i}_open`, !valOpen)}
                   style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: vSummary ? 6 : 0 }}>
                   <span style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", flex:1 }}>"{vName}"</span>
+                  <span style={{ fontSize:11, color:"var(--text4)", flexShrink:0, transition:"transform .18s", transform: valOpen ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
                 </div>
                 {vSummary && <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>{vSummary}</div>}
               </div>
