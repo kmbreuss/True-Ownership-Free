@@ -1578,7 +1578,7 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                 <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", cursor:"pointer" }}
                   onClick={() => setCollapsedCaps(p => ({ ...p, [ci]: !p[ci] }))}>
                   <div style={{ flex:1 }}>
-                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>Capability {ci+1}</span>
+                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>Superpower {ci+1}</span>
                     {cap.name && <span style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase" }}> · {cap.name}</span>}
                   </div>
                   <div style={{ width:24, height:24, borderRadius:"50%", background: isCapOpen ? "rgba(201,168,76,.15)" : "var(--bg4)", border: `1px solid ${isCapOpen ? "rgba(201,168,76,.4)" : "var(--border2)"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all .2s" }}>
@@ -2336,7 +2336,7 @@ function A1({ intake, onDone }) {
       const currentIdx = order.indexOf(m2sub);
       const steps = [
         { id:"qualities",    label:"Qualities", icon:"✦" },
-        { id:"capabilities", label:"Capabilities", icon:"⚡" },
+        { id:"capabilities", label:"Superpowers", icon:"⚡" },
         { id:"pressure",     label:"Under Pressure", icon:"🔥" },
         { id:"lovedones",    label:"Loved Ones", icon:"🤝" },
         { id:"myidentity",   label:"My Identity", icon:"🌟" },
@@ -2590,7 +2590,7 @@ function A1({ intake, onDone }) {
 
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => goto("mirror1")}>← Purpose · Direction</button>
-          <button className="btn" onClick={() => set("mirror2_sub", "capabilities")}>Capabilities →</button>
+          <button className="btn" onClick={() => set("mirror2_sub", "capabilities")}>Superpowers →</button>
         </div>
       </>);
     }
@@ -2599,9 +2599,9 @@ function A1({ intake, onDone }) {
     if (m2sub === "capabilities") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 2</div>
       {M2Progress()}
-      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Capabilities</h2>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Superpowers</h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
-        For each animal, name 3–5 capabilities -- what your qualities actually enable in practice. Describe each one in your own words and give two real examples of when you lived it.
+        For each animal, name 3–5 superpowers -- what your qualities actually enable in practice. Describe each one in your own words and give two real examples of when you lived it.
       </p>
       <div style={{ padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.14)", borderRadius:9, marginBottom:22 }}>
         <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>
@@ -2647,7 +2647,7 @@ function A1({ intake, onDone }) {
             </span>
           </div>
           {caps.length === 0 && (
-            <div style={{ padding:12, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 2 — Capabilities to add capabilities first.</div>
+            <div style={{ padding:12, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 2 — Superpowers to add superpowers first.</div>
           )}
           {caps.map((cap: any, ci: number) => {
             const supChips: string[] = cap.superpower_chips || [];
@@ -2752,7 +2752,7 @@ function A1({ intake, onDone }) {
       );
     })}
     <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-      <button className="btn-g" onClick={() => set("mirror2_sub", "capabilities")}>← Capabilities</button>
+      <button className="btn-g" onClick={() => set("mirror2_sub", "capabilities")}>← Superpowers</button>
       <button className="btn" onClick={() => set("mirror2_sub", "lovedones")}>Loved Ones →</button>
     </div>
   </>);
@@ -2789,10 +2789,10 @@ function A1({ intake, onDone }) {
             </div>
             {miOpen && (
             <div style={{ padding:"16px 18px", borderTop:"1px solid var(--border)" }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Capabilities</div>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Superpowers</div>
               {caps.length === 0 ? (
                 <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>
-                  Go to Step 2 · Capabilities to add capabilities for this animal.
+                  Go to Step 2 · Superpowers to add superpowers for this animal.
                 </div>
               ) : caps.map((cap, ci) => {
                 const storeKey = `align_cap_${trueIdx}_${ci}`;
@@ -3669,15 +3669,17 @@ function A1({ intake, onDone }) {
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>The gap between<br /><em>who you are and how you're showing up.</em></h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>Rate each area honestly -- not where you want to be, where you are right now.</p>
 
-      {/* ── DIRECTION ── */}
+      {/* ── PURPOSE · DIRECTION ── */}
+      {(() => { const isOpen = map?.align_check_dir_open !== false; return (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:14, overflow:"hidden" }}>
-        <div style={{ padding:"13px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:9 }}>
+        <div onClick={() => set("align_check_dir_open", !isOpen)}
+          style={{ padding:"13px 18px", borderBottom: isOpen ? "1px solid var(--border)" : "none", display:"flex", alignItems:"center", gap:9, cursor:"pointer", userSelect:"none" }}>
           <span style={{ fontSize:17 }}>⛰️</span>
-          <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Direction</span>
+          <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Purpose · Direction</span>
           <AvgBadge scores={dirScores} />
-          <span style={{ fontSize:11, color:"var(--text4)", marginLeft:2 }}>· external mirror</span>
+          <span style={{ marginLeft:"auto", fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
         </div>
-        <div style={{ padding:"14px 18px" }}>
+        {isOpen && (<div style={{ padding:"14px 18px" }}>
 
           {/* Time priorities */}
           <div style={{ marginBottom:16 }}>
@@ -3721,18 +3723,21 @@ function A1({ intake, onDone }) {
             ))}
           </div>
 
-        </div>
+        </div>)}
       </div>
+      ); })()}
 
-      {/* ── SUPERPOWERS ── */}
+      {/* ── IDENTITY · SUPERPOWERS ── */}
+      {(() => { const isOpen = map?.align_check_sup_open !== false; return (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:14, overflow:"hidden" }}>
-        <div style={{ padding:"13px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:9 }}>
+        <div onClick={() => set("align_check_sup_open", !isOpen)}
+          style={{ padding:"13px 18px", borderBottom: isOpen ? "1px solid var(--border)" : "none", display:"flex", alignItems:"center", gap:9, cursor:"pointer", userSelect:"none" }}>
           <span style={{ fontSize:17 }}>⚡</span>
-          <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Superpowers</span>
+          <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Identity · Superpowers</span>
           <AvgBadge scores={spScores} />
-          <span style={{ fontSize:11, color:"var(--text4)", marginLeft:2 }}>· how well you're living your animal capabilities</span>
+          <span style={{ marginLeft:"auto", fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
         </div>
-        <div style={{ padding:"14px 18px" }}>
+        {isOpen && (<div style={{ padding:"14px 18px" }}>
           {animals.length === 0 && (
             <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>No animals set yet -- go back to Identity to add them.</div>
           )}
@@ -3749,7 +3754,7 @@ function A1({ intake, onDone }) {
                 </div>
                 {capList.length === 0 ? (
                   <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", paddingLeft:14, borderLeft:"2px solid var(--border2)" }}>
-                    Go to Identity · Capabilities and add capabilities for this animal.
+                    Go to Identity · Superpowers and add superpowers for this animal.
                   </div>
                 ) : (
                   <div>
@@ -3757,7 +3762,7 @@ function A1({ intake, onDone }) {
                       <AlignSlider key={ci}
                         storeKey={`align_cap_${i}_${ci}`}
                         label={cap.name}
-                        desc={cap.description || `How fully are you living this capability right now?`}
+                        desc={cap.description || `How fully are you living this superpower right now?`}
                         indent={true} />
                     ))}
                     {pressureText && (
@@ -3771,18 +3776,21 @@ function A1({ intake, onDone }) {
               </div>
             );
           })}
-        </div>
+        </div>)}
       </div>
+      ); })()}
 
-      {/* ── BEHAVIORS / VALUES ── */}
+      {/* ── VALUES · BEHAVIORS ── */}
+      {(() => { const isOpen = map?.align_check_beh_open !== false; return (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:22, overflow:"hidden" }}>
-        <div style={{ padding:"13px 18px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:9 }}>
+        <div onClick={() => set("align_check_beh_open", !isOpen)}
+          style={{ padding:"13px 18px", borderBottom: isOpen ? "1px solid var(--border)" : "none", display:"flex", alignItems:"center", gap:9, cursor:"pointer", userSelect:"none" }}>
           <span style={{ fontSize:17 }}>🎯</span>
-          <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Behaviors</span>
+          <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Values · Behaviors</span>
           <AvgBadge scores={bhvScores} />
-          <span style={{ fontSize:11, color:"var(--text4)", marginLeft:2 }}>· how consistently you're living your values</span>
+          <span style={{ marginLeft:"auto", fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
         </div>
-        <div style={{ padding:"14px 18px" }}>
+        {isOpen && (<div style={{ padding:"14px 18px" }}>
           {valueRows.length === 0 && (
             <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>No values set yet -- go back to Values · Behaviors to add them.</div>
           )}
@@ -3815,8 +3823,9 @@ function A1({ intake, onDone }) {
               </div>
             );
           })}
-        </div>
+        </div>)}
       </div>
+      ); })()}
 
       {/* Katherine's key misalignment read */}
       {!ai.align && (
