@@ -3683,7 +3683,10 @@ function A1({ intake, onDone }) {
 
           {/* Time priorities */}
           <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#c9a84c", marginBottom:10 }}>⏳ Time Priorities</div>
+            <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>⏳ Time Priorities</div>
+              <AvgBadge scores={lifeAreas.map(a => map[`align1_time_${(a.label||a.id||"").toLowerCase()}`]).filter(s => s !== undefined)} />
+            </div>
             {lifeAreas.length === 0 && (
               <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No life priorities set yet -- go back to Direction to add them.</div>
             )}
@@ -3701,7 +3704,10 @@ function A1({ intake, onDone }) {
 
           {/* Wealth */}
           <div style={{ marginBottom:16 }}>
-            <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#34d399", marginBottom:10 }}>💰 Wealth</div>
+            <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>💰 Wealth</div>
+              <AvgBadge scores={wealthItems.map(w => map[`align1_wealth_${w.key}`]).filter(s => s !== undefined)} />
+            </div>
             {wealthItems.map(w => (
               <AlignSlider key={w.key}
                 storeKey={`align1_wealth_${w.key}`}
@@ -3713,7 +3719,10 @@ function A1({ intake, onDone }) {
 
           {/* Growth */}
           <div>
-            <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>🌱 Growth</div>
+            <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>🌱 Growth</div>
+              <AvgBadge scores={growthItems.map(g => map[`align1_growth_${g.key}`]).filter(s => s !== undefined)} />
+            </div>
             {growthItems.map(g => (
               <AlignSlider key={g.key}
                 storeKey={`align1_growth_${g.key}`}
