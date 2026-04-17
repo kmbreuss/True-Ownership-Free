@@ -3899,18 +3899,39 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
               {busy.align ? <span className="dot-l"><span /><span /><span /></span> : "See My Key Misalignment →"}
             </button>
           )}
-          {ai.align && (
+          {ai.align && (() => {
+            const focusDraft = (map?.map_focus_text != null && map.map_focus_text !== "") ? map.map_focus_text : (ai.align?.focus_first || "");
+            const confirmed = !!map?.map_focus_confirmed_flag;
+            return (
             <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:14 }}>
               <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
               <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{ai.align.key_misalignment}</div>
               <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:11 }}>{ai.align.why_it_matters}</div>
-              <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:9 }}>
-                <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
-                <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.align.focus_first}</div>
+              <div style={{ padding:"11px 13px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:11 }}>
+                <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:6 }}>Focus first on</div>
+                <textarea
+                  value={focusDraft}
+                  onChange={e => { set("map_focus_text", e.target.value); if (confirmed) set("map_focus_confirmed_flag", false); }}
+                  rows={3}
+                  style={{ width:"100%", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:6, color:"var(--text)", fontFamily:"var(--sans)", fontSize:13, padding:"8px 10px", lineHeight:1.6, resize:"vertical", marginBottom:8 }}
+                  placeholder="Edit the focus wording before confirming..."
+                />
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+                  <div style={{ fontSize:11, color: confirmed ? "var(--warm)" : "var(--text4)", fontStyle: confirmed ? "normal" : "italic" }}>
+                    {confirmed ? "✓ Confirmed — this carries into your Map of Me" : "Edit the wording, then confirm to carry into your Map of Me."}
+                  </div>
+                  <button
+                    onClick={() => { set("map_focus_text", focusDraft); set("map_focus_confirmed_flag", true); }}
+                    disabled={confirmed || !focusDraft.trim()}
+                    style={{ padding:"6px 13px", borderRadius:14, fontSize:11, fontWeight:600, cursor: confirmed || !focusDraft.trim() ? "default" : "pointer", border: confirmed ? "1px solid var(--warm)" : "1px solid var(--border2)", background: confirmed ? "var(--warm)" : "transparent", color: confirmed ? "#0d1b2e" : "var(--text2)", opacity: !focusDraft.trim() ? 0.5 : 1, whiteSpace:"nowrap" }}>
+                    {confirmed ? "✓ Confirmed" : "✓ Confirm this as my focus"}
+                  </button>
+                </div>
               </div>
               {ai.align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6, marginBottom:4 }}>Carries into A2: {ai.align.bridge_to_a2}</div>}
             </div>
-          )}
+            );
+          })()}
           {ai.align && (
             <button className="btn-g" style={{ marginBottom:22 }}
               disabled={!!busy.align}
@@ -3940,9 +3961,21 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
     const validV = (map.values || []).filter(v => v.name);
     const validAreas = (map.life_areas || []);
     const hierOrder = (map?.hier_order as number[]) || [];
-    const orderedAreas = hierOrder.length
+    const orderedAreas = (hierOrder.length && hierOrder.length === validAreas.length)
       ? hierOrder.map((i: number) => validAreas[i]).filter(Boolean)
       : validAreas;
+    const wealthExpanded = [
+      { key:"bag_retirement", label:"Retirement",         icon:"🏡" },
+      { key:"bag_assets",     label:"Assets",             icon:"🏛️" },
+      { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈" },
+      { key:"bag_other",      label: map.bag_other_label || "Other", icon:"✦" },
+    ];
+    const growthExpanded = [
+      { key:"bag_growth_1", label: map.bag_growth_label1 || "Skills & Learning",      icon:"🧠" },
+      { key:"bag_growth_2", label: map.bag_growth_label2 || "Relationships",          icon:"🤝" },
+      { key:"bag_growth_3", label: map.bag_growth_label3 || "Purpose & Contribution", icon:"✨" },
+      { key:"bag_growth_4", label: map.bag_growth_label4 || "Other",                  icon:"✦" },
+    ];
     const purposeText = (map.purpose_final && map.purpose_final.trim())
       || ((map.purpose_layers || []).filter((l: string) => (l||"").trim()).join(" ").trim())
       || (map.purpose_draft || "").trim()
@@ -4017,19 +4050,47 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
           <MiniCard label="Time" icon="⏳" open={timeOpen} toggle={() => set("map_time_open", !timeOpen)}>
             {orderedAreas.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>None set</div>}
-            {orderedAreas.map((a: any, i: number) => (
-              <div key={a.id || i} style={chipStyle}>
-                <span style={{ color:"var(--warm)", fontWeight:600, marginRight:5 }}>{i+1}</span>
-                {a.icon && <span style={{ marginRight:4 }}>{a.icon}</span>}
-                {a.label}
-              </div>
-            ))}
+            {orderedAreas.map((a: any, i: number) => {
+              const vision = a.feel || a.see || a.hear || "";
+              return (
+                <div key={a.id || i} style={{ width:"100%", padding:"8px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:8, marginBottom:6 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: vision ? 4 : 0 }}>
+                    <span style={{ fontSize:10, fontWeight:700, color:"var(--warm)", minWidth:14 }}>{i+1}</span>
+                    {a.icon && <span style={{ fontSize:12 }}>{a.icon}</span>}
+                    <span style={{ fontSize:12, color:"var(--text)", fontWeight:600 }}>{a.label}</span>
+                  </div>
+                  {vision && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, paddingLeft:20 }}>{vision}</div>}
+                </div>
+              );
+            })}
           </MiniCard>
           <MiniCard label="Wealth" icon="💰" open={wealthOpen} toggle={() => set("map_wealth_open", !wealthOpen)}>
-            {wealthChips.map((c, i) => <div key={i} style={chipStyle}>{c}</div>)}
+            {wealthExpanded.map(w => {
+              const desc = (map[w.key] || "").trim();
+              return (
+                <div key={w.key} style={{ width:"100%", padding:"8px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:8, marginBottom:6 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: desc ? 4 : 0 }}>
+                    <span style={{ fontSize:12 }}>{w.icon}</span>
+                    <span style={{ fontSize:12, color:"var(--text)", fontWeight:600 }}>{w.label}</span>
+                  </div>
+                  {desc && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, paddingLeft:18 }}>{desc}</div>}
+                </div>
+              );
+            })}
           </MiniCard>
           <MiniCard label="Growth" icon="🌱" open={growthOpen} toggle={() => set("map_growth_open", !growthOpen)}>
-            {growthChips.map((c, i) => <div key={i} style={chipStyle}>{c}</div>)}
+            {growthExpanded.map(g => {
+              const desc = (map[g.key] || "").trim();
+              return (
+                <div key={g.key} style={{ width:"100%", padding:"8px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:8, marginBottom:6 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: desc ? 4 : 0 }}>
+                    <span style={{ fontSize:12 }}>{g.icon}</span>
+                    <span style={{ fontSize:12, color:"var(--text)", fontWeight:600 }}>{g.label}</span>
+                  </div>
+                  {desc && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, paddingLeft:18 }}>{desc}</div>}
+                </div>
+              );
+            })}
           </MiniCard>
         </div>
       </div>
