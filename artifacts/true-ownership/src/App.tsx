@@ -2211,10 +2211,10 @@ function A1({ intake, onDone }) {
         })}
 
         {(() => {
-          const hasResult = !!ai.mirror1_align;
+          const hasResult = !!map.align1_dir_misalignment;
           return (
             <button className="btn" style={{ marginBottom:22, marginTop:6 }}
-              onClick={() => {
+              onClick={async () => {
                 const summary = sections.map(sec => {
                   const s = cardAvg(sec);
                   const sStr = s == null ? "n/a" : s.toFixed(1);
@@ -2246,9 +2246,12 @@ function A1({ intake, onDone }) {
                   const sc = cardAvg(sec) ?? 5;
                   if (sc < lowestScore) { lowestScore = sc; lowest = sec; }
                 });
-                runAI("mirror1_align",
+                setBusy(b => ({ ...b, mirror1_align: true }));
+                const result = await callStructured(
                   `You are Katherine Breuss, a direct but compassionate coach. ${name} has rated how fully they are living toward each area of their direction on a 1-10 scale (1 = living far from this, 10 = fully embodying it). Ratings: ${summary}. Purpose: "${map.purpose_final || map.purpose_draft || ""}". The lowest-scoring area is ${lowest.label} (${lowestScore}/10). Identify the single most important misalignment — usually (but not always) the lowest score, unless another gap is more consequential. Name the EXACT area. Then explain: why this matters for their direction, what to focus on first (one concrete action), and how shifting this connects forward. Be specific and personal — no generic coaching language. Return ONLY valid JSON in this exact shape: {"key_misalignment":"Area: X","why_it_matters":"...","focus_first":"...","bridge_to_a2":"..."}`
                 );
+                set("align1_dir_misalignment", result);
+                setBusy(b => ({ ...b, mirror1_align: false }));
               }}>
               {busy.mirror1_align
                 ? <span className="dot-l"><span /><span /><span /></span>
@@ -2256,16 +2259,16 @@ function A1({ intake, onDone }) {
             </button>
           );
         })()}
-        {ai.mirror1_align && (
+        {map.align1_dir_misalignment && (
           <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:22 }}>
             <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
-            <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{ai.mirror1_align.key_misalignment}</div>
-            <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:11 }}>{ai.mirror1_align.why_it_matters}</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{map.align1_dir_misalignment.key_misalignment}</div>
+            <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:11 }}>{map.align1_dir_misalignment.why_it_matters}</div>
             <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:9 }}>
               <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
-              <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.mirror1_align.focus_first}</div>
+              <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{map.align1_dir_misalignment.focus_first}</div>
             </div>
-            {ai.mirror1_align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {ai.mirror1_align.bridge_to_a2}</div>}
+            {map.align1_dir_misalignment.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {map.align1_dir_misalignment.bridge_to_a2}</div>}
           </div>
         )}
 
