@@ -4155,20 +4155,10 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
                 <div onClick={() => set(`mi_animal_${i}_open`, !animalOpen)}
-                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: chipList.length ? 10 : 0 }}>
+                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none" }}>
                   <span style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", flex:1 }}>{animalLabel}</span>
                   <span style={{ fontSize:11, color:"var(--text4)", flexShrink:0, transition:"transform .18s", transform: animalOpen ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
                 </div>
-                {chipList.length > 0 && (
-                  <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-                    {chipList.map((c: any, ci: number) => {
-                      const txt = typeof c === "string" ? c : (c.label || c.name || "");
-                      const k = typeof c === "string" ? `${i}-${ci}` : (c.id || `${i}-${ci}`);
-                      if (!txt) return null;
-                      return <div key={k} style={{ padding:"3px 9px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:12, fontSize:11, color:"var(--text2)" }}>{txt}</div>;
-                    })}
-                  </div>
-                )}
               </div>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
                 {caps.length === 0 && !animalOpen && <div style={{ fontSize:12, color:"var(--text4)" }}>No capabilities defined.</div>}
