@@ -3840,27 +3840,56 @@ function A1({ intake, onDone }) {
       {!ai.align && (
         <button className="btn" style={{ marginBottom:22 }}
           onClick={() => {
-            const dAvg = avg(dirScores);
-            const sAvg = avg(spScores);
-            const bAvg = avg(bhvScores);
-            const timeDetail  = lifeAreas.map(a => `${a.label}: ${map[`align1_time_${(a.label||a.id||"").toLowerCase()}`] ?? "?"}/10`).join(", ");
-            const wealthDetail = wealthItems.map(w => `${w.label}: ${map[`align1_wealth_${w.key}`] ?? "?"}/10`).join(", ");
-            const growthDetail = growthItems.map(g => `${g.label}: ${map[`align1_growth_${g.key}`] ?? "?"}/10`).join(", ");
-            const areaSummary = `Time [${timeDetail}]; Wealth [${wealthDetail}]; Growth [${growthDetail}]`;
-            const animalSummary = animals.map((a,i) => {
+            const purpose = (map.purpose_final && map.purpose_final.trim())
+              || ((map.purpose_layers || []).filter(l => (l||"").trim()).join(" ").trim())
+              || (map.purpose_draft || "").trim()
+              || "(no purpose statement set)";
+
+            const lines: string[] = [];
+            // Direction · Time
+            lifeAreas.forEach(a => {
+              const lab = a.label || a.id || "";
+              const v = map[`align1_time_${lab.toLowerCase()}`];
+              lines.push(`Direction · Time · ${lab}: ${v ?? "not rated"}/10`);
+            });
+            // Direction · Wealth
+            wealthItems.forEach(w => {
+              const v = map[`align1_wealth_${w.key}`];
+              lines.push(`Direction · Wealth · ${w.label}: ${v ?? "not rated"}/10`);
+            });
+            // Direction · Growth
+            growthItems.forEach(g => {
+              const v = map[`align1_growth_${g.key}`];
+              lines.push(`Direction · Growth · ${g.label}: ${v ?? "not rated"}/10`);
+            });
+            // Superpowers (per animal · per capability)
+            animals.forEach((a,i) => {
+              const animalLabel = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
               const caps = (a.capabilities || []).filter(c => c.name);
-              const sc = caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s=>s!==undefined);
-              const capDetail = caps.map((cap,ci) => `${cap.name}: ${map[`align_cap_${i}_${ci}`] ?? "?"}`)
-                .join(", ");
-              return `${[a.adj1, a.adj2, a.name].filter(Boolean).join(" ")} [${capDetail || "no caps"}]: avg ${avg(sc) ?? "not rated"}/10`;
-            }).join("; ");
-            const valueSummary = valueRows.map(row => {
-              const sc = row.behs.map(({ j }) => map[`align_val_${row.i}_beh_${j}`]).filter(s=>s!==undefined);
-              const behDetail = row.behs.map(({ j, name }) => `${name}: ${map[`align_val_${row.i}_beh_${j}`] ?? "?"}`).join(", ");
-              return `${row.name} [${behDetail || "no behaviors"}]: avg ${avg(sc) ?? "not rated"}/10`;
-            }).join("; ");
+              caps.forEach((cap, ci) => {
+                const v = map[`align_cap_${i}_${ci}`];
+                lines.push(`Superpowers · ${animalLabel} · ${cap.name}: ${v ?? "not rated"}/10`);
+              });
+            });
+            // Values · Behaviors (per value · per behavior)
+            valueRows.forEach(row => {
+              row.behs.forEach(({ j, name: bn }) => {
+                const v = map[`align_val_${row.i}_beh_${j}`];
+                lines.push(`Values · ${row.name} · ${bn}: ${v ?? "not rated"}/10`);
+              });
+            });
+
+            const scoresBlock = lines.length ? lines.join("\n") : "(no scores recorded)";
+
             runAI("align",
-              `You are Katherine Breuss. ${name} has completed a detailed alignment check. Direction avg: ${dAvg}/10 (${areaSummary}). Superpowers avg: ${sAvg}/10 (${animalSummary}). Behaviors avg: ${bAvg}/10 (${valueSummary}). Purpose: "${map.purpose_final || map.purpose_draft}". Identify the single most important misalignment -- be specific and name the exact area or behavior. Why does it matter? What to focus on first. How it connects to A2. JSON: {"key_misalignment":"...","why_it_matters":"...","focus_first":"...","bridge_to_a2":"..."}`
+              `You are Katherine Breuss, a direct but compassionate coach. ${name}'s purpose: "${purpose}".
+
+Their full alignment scores (1 = living far from this, 10 = fully embodying it):
+${scoresBlock}
+
+Identify the single biggest gap between how they're living and their purpose. Give a specific 3-4 sentence insight: name the exact area, explain why this gap matters for their purpose, and give one concrete action they can take this week. No generic coaching language -- be specific to what they wrote.
+
+Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters":"<why this gap matters for their purpose>","focus_first":"<one concrete action this week>","bridge_to_a2":"<one short sentence on how shifting this carries forward>"}`
             );
           }}>
           {busy.align ? <span className="dot-l"><span /><span /><span /></span> : "See My Key Misalignment →"}
