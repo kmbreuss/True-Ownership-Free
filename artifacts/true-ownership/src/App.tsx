@@ -4339,13 +4339,33 @@ function loadJsPDF(): Promise<any> {
   return _jspdfPromise;
 }
 
-function MapDownloadSection({ name, map }: { name: any; map: any }) {
-  const [busy, setBusy] = useState(false);
+let _logoPromise: Promise<string> | null = null;
+function loadLogoBase64(): Promise<string> {
+  if (_logoPromise) return _logoPromise;
+  _logoPromise = (async () => {
+    const res = await fetch(`${import.meta.env.BASE_URL}ag45_logo.png`);
+    if (!res.ok) throw new Error("logo fetch failed");
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(String(r.result));
+      r.onerror = () => reject(new Error("logo read failed"));
+      r.readAsDataURL(blob);
+    });
+  })();
+  return _logoPromise;
+}
 
-  const generate = async () => {
-    setBusy(true);
+function MapDownloadSection({ name, map }: { name: any; map: any }) {
+  const [busy, setBusy] = useState<null | "snapshot" | "full">(null);
+
+  const generate = async (mode: "snapshot" | "full") => {
+    setBusy(mode);
     try {
-      const JsPDF = await loadJsPDF();
+      const [JsPDF, logoData] = await Promise.all([
+        loadJsPDF(),
+        loadLogoBase64().catch(() => ""),
+      ]);
       const doc = new JsPDF({ unit: "pt", format: "a4" });
       const pw = doc.internal.pageSize.getWidth();
       const ph = doc.internal.pageSize.getHeight();
@@ -4358,13 +4378,27 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       const TEXT: [number, number, number] = [50, 50, 50];
       const MUTED: [number, number, number] = [100, 100, 100];
 
+      const HEADER_H = 70;
+      const LOGO_PT = 56.7;
+
       const drawHeader = () => {
         doc.setFillColor(...NAVY);
-        doc.rect(0, 0, pw, 56, "F");
+        doc.rect(0, 0, pw, HEADER_H, "F");
+        let textX = marginX;
+        if (logoData) {
+          try {
+            doc.addImage(logoData, "PNG", marginX / 2, (HEADER_H - LOGO_PT) / 2, LOGO_PT, LOGO_PT);
+            textX = marginX / 2 + LOGO_PT + 12;
+          } catch (e) { /* ignore */ }
+        }
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
+        doc.setFontSize(13);
         doc.setTextColor(255, 255, 255);
-        doc.text(`AccelerateGrowth45 | True Ownership | ${safeName}'s Map of Me`, marginX, 34);
+        doc.text("AccelerateGrowth45", textX, HEADER_H / 2 - 4);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(...GOLD);
+        doc.text(`True Ownership  ·  ${safeName}'s Map of Me`, textX, HEADER_H / 2 + 12);
       };
 
       const drawFooter = (pageNum: number, total: number) => {
@@ -4375,8 +4409,8 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         doc.text(`Page ${pageNum} of ${total}`, pw - marginX, ph - 20, { align: "right" });
       };
 
-      let y = 80;
-      const newPage = () => { doc.addPage(); drawHeader(); y = 80; };
+      let y = HEADER_H + 24;
+      const newPage = () => { doc.addPage(); drawHeader(); y = HEADER_H + 24; };
       const ensure = (need: number) => { if (y + need > ph - 40) newPage(); };
 
       const sectionHeading = (label: string) => {
@@ -4408,69 +4442,16 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         y += gap;
       };
 
-      drawHeader();
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.setTextColor(...NAVY);
-      ensure(28);
-      doc.text(`${safeName}'s Map of Me`, marginX, y);
-      y += 28;
-
       const purpose = map?.purpose_final || map?.purpose_draft || "";
-      if (purpose) {
-        sectionHeading("Purpose");
-        writeText(purpose, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 8 });
-      }
-
       const bagYear = map?.bag_year || "";
       const lifeAreas = ((map?.life_areas || []) as any[]).filter(a => a && (a.label || a.id));
-      if (lifeAreas.length) {
-        sectionHeading(`Time Priorities${bagYear ? ` · BAG Year ${bagYear}` : ""}`);
-        lifeAreas.forEach(a => {
-          writeText(`• ${a.label || a.id}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
-          if (a.see)  writeText(`See: ${a.see}`,   { indent: 14, color: MUTED, gap: 1 });
-          if (a.hear) writeText(`Hear: ${a.hear}`, { indent: 14, color: MUTED, gap: 1 });
-          if (a.feel) writeText(`Feel: ${a.feel}`, { indent: 14, color: MUTED, gap: 1 });
-          if (a.goal) writeText(`Goal: ${a.goal}`, { indent: 14, color: MUTED, gap: 1 });
-          y += 4;
-        });
-      }
-
       const wealthItems = [
         { label: "Retirement", body: map?.bag_retirement },
         { label: "Assets",     body: map?.bag_assets },
         { label: "Cashflow",   body: map?.bag_cashflow },
       ].filter(w => w.body);
-      if (wealthItems.length) {
-        sectionHeading("Wealth");
-        wealthItems.forEach(w => {
-          writeText(w.label, { style: "bold", size: 11, color: NAVY, gap: 2 });
-          writeText(w.body, { indent: 14, color: TEXT, gap: 6 });
-        });
-      }
-
       const growth = map?.bag_growth || "";
-      if (growth) {
-        sectionHeading("Growth");
-        writeText(growth, { color: TEXT, gap: 6 });
-      }
-
       const animals = ((map?.animals || []) as any[]).filter(a => a && (a.name || a.adj1 || a.adj2));
-      if (animals.length) {
-        sectionHeading("Identity & Superpowers");
-        animals.forEach(a => {
-          const label = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
-          writeText(label, { style: "bold", size: 12, color: NAVY, gap: 4 });
-          const caps = (a.capabilities || []).filter((c: any) => c?.name);
-          caps.forEach((c: any) => {
-            writeText(`• ${c.name}`, { style: "bold", indent: 14, color: TEXT, gap: 1 });
-            if (c.description) writeText(c.description, { font: "times", style: "italic", indent: 24, color: MUTED, gap: 3 });
-          });
-          y += 4;
-        });
-      }
-
       const valCount = parseInt(map?.val_count) || ((map?.values || []).length) || 0;
       const values: { name: string; summary: string; behs: { name: string; description?: string }[] }[] = [];
       for (let i = 0; i < valCount; i++) {
@@ -4485,23 +4466,104 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         }
         values.push({ name: vName, summary: vSummary, behs });
       }
-      if (values.length) {
-        sectionHeading("Values & Behaviours");
-        values.forEach(v => {
-          writeText(`"${v.name}"`, { style: "bold", size: 12, color: NAVY, gap: 3 });
-          if (v.summary) writeText(v.summary, { font: "times", style: "italic", indent: 14, color: MUTED, gap: 4 });
-          v.behs.forEach(b => {
-            writeText(`• ${b.name}`, { style: "bold", indent: 14, color: TEXT, gap: 1 });
-            if (b.description) writeText(b.description, { font: "times", style: "italic", indent: 24, color: MUTED, gap: 3 });
-          });
-          y += 4;
-        });
-      }
-
       const focusOne = (map?.map_focus_text != null ? map.map_focus_text : (map?.map_focus_default || "")) || "";
-      if (focusOne) {
-        sectionHeading("The One Thing");
-        writeText(focusOne, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 6 });
+
+      drawHeader();
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(mode === "snapshot" ? 17 : 20);
+      doc.setTextColor(...NAVY);
+      doc.text(`${safeName}'s Map of Me`, marginX, y);
+      y += mode === "snapshot" ? 22 : 28;
+
+      if (mode === "snapshot") {
+        if (purpose) {
+          sectionHeading("Purpose");
+          writeText(purpose, { font: "times", style: "italic", size: 11, color: TEXT, lineH: 14, gap: 6 });
+        }
+        if (lifeAreas.length) {
+          sectionHeading(`Time Priorities${bagYear ? ` · BAG Year ${bagYear}` : ""}`);
+          lifeAreas.forEach(a => {
+            writeText(`• ${a.label || a.id}`, { style: "bold", size: 10, color: NAVY, gap: 1 });
+          });
+          y += 2;
+        }
+        if (animals.length) {
+          sectionHeading("Identity & Superpowers");
+          animals.forEach(a => {
+            const label = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
+            const topCap = (a.capabilities || []).filter((c: any) => c?.name)[0]?.name || "";
+            writeText(label + (topCap ? `  —  ${topCap}` : ""), { style: "bold", size: 10, color: NAVY, gap: 2 });
+          });
+          y += 2;
+        }
+        if (values.length) {
+          sectionHeading("Values");
+          values.forEach(v => {
+            writeText(`• "${v.name}"`, { style: "bold", size: 10, color: NAVY, gap: 1 });
+          });
+          y += 2;
+        }
+        if (focusOne) {
+          sectionHeading("The One Thing");
+          writeText(focusOne, { font: "times", style: "italic", size: 11, color: TEXT, lineH: 14, gap: 4 });
+        }
+      } else {
+        if (purpose) {
+          sectionHeading("Purpose");
+          writeText(purpose, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 8 });
+        }
+        if (lifeAreas.length) {
+          sectionHeading(`Time Priorities${bagYear ? ` · BAG Year ${bagYear}` : ""}`);
+          lifeAreas.forEach(a => {
+            writeText(`• ${a.label || a.id}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
+            if (a.see)  writeText(`See: ${a.see}`,   { indent: 14, color: MUTED, gap: 1 });
+            if (a.hear) writeText(`Hear: ${a.hear}`, { indent: 14, color: MUTED, gap: 1 });
+            if (a.feel) writeText(`Feel: ${a.feel}`, { indent: 14, color: MUTED, gap: 1 });
+            if (a.goal) writeText(`Goal: ${a.goal}`, { indent: 14, color: MUTED, gap: 1 });
+            y += 4;
+          });
+        }
+        if (wealthItems.length) {
+          sectionHeading("Wealth");
+          wealthItems.forEach(w => {
+            writeText(w.label, { style: "bold", size: 11, color: NAVY, gap: 2 });
+            writeText(w.body, { indent: 14, color: TEXT, gap: 6 });
+          });
+        }
+        if (growth) {
+          sectionHeading("Growth");
+          writeText(growth, { color: TEXT, gap: 6 });
+        }
+        if (animals.length) {
+          sectionHeading("Identity & Superpowers");
+          animals.forEach(a => {
+            const label = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
+            writeText(label, { style: "bold", size: 12, color: NAVY, gap: 4 });
+            const caps = (a.capabilities || []).filter((c: any) => c?.name);
+            caps.forEach((c: any) => {
+              writeText(`• ${c.name}`, { style: "bold", indent: 14, color: TEXT, gap: 1 });
+              if (c.description) writeText(c.description, { font: "times", style: "italic", indent: 24, color: MUTED, gap: 3 });
+            });
+            y += 4;
+          });
+        }
+        if (values.length) {
+          sectionHeading("Values & Behaviours");
+          values.forEach(v => {
+            writeText(`"${v.name}"`, { style: "bold", size: 12, color: NAVY, gap: 3 });
+            if (v.summary) writeText(v.summary, { font: "times", style: "italic", indent: 14, color: MUTED, gap: 4 });
+            v.behs.forEach(b => {
+              writeText(`• ${b.name}`, { style: "bold", indent: 14, color: TEXT, gap: 1 });
+              if (b.description) writeText(b.description, { font: "times", style: "italic", indent: 24, color: MUTED, gap: 3 });
+            });
+            y += 4;
+          });
+        }
+        if (focusOne) {
+          sectionHeading("The One Thing");
+          writeText(focusOne, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 6 });
+        }
       }
 
       const total = doc.internal.getNumberOfPages();
@@ -4511,20 +4573,23 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       }
 
       const fileSafe = safeName.replace(/[^A-Za-z0-9_-]+/g, "_");
-      doc.save(`${fileSafe}-map-of-me.pdf`);
+      doc.save(`${fileSafe}-map-of-me${mode === "snapshot" ? "-snapshot" : ""}.pdf`);
     } catch (e) {
       console.error(e);
       alert("PDF generation failed. Please try again.");
     }
-    setBusy(false);
+    setBusy(null);
   };
 
   return (
     <div style={{ padding:"17px 20px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:22 }}>
       <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>Download your Map of Me</div>
       <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-        <button className="btn-g" disabled={busy} onClick={generate}>
-          {busy ? "Generating..." : "⬇ Download PDF"}
+        <button className="btn-g" disabled={!!busy} onClick={() => generate("snapshot")}>
+          {busy === "snapshot" ? "Generating..." : "⬇ Snapshot (1 page)"}
+        </button>
+        <button className="btn-g" disabled={!!busy} onClick={() => generate("full")}>
+          {busy === "full" ? "Generating..." : "⬇ Full Map"}
         </button>
       </div>
     </div>
