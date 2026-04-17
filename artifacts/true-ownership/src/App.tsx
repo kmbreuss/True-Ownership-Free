@@ -3666,8 +3666,8 @@ function A1({ intake, onDone }) {
 
     return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Alignment Check</div>
-      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>The gap between<br /><em>who you are and how you're showing up.</em></h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>Rate each area honestly -- not where you want to be, where you are right now.</p>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Your <em>Alignment Snapshot</em></h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>This isn't about doing everything — it's about finding the one shift that will most change who you are, how you show up, and the direction of your life.</p>
 
       {/* ── PURPOSE · DIRECTION ── */}
       {(() => { const isOpen = map?.align_check_dir_open !== false; return (
