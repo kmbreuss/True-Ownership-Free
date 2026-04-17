@@ -4124,11 +4124,16 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           const globalAssigned = (map?.identity_chips || []).filter((c: any) => c.assignedTo === i);
           const chipList = perAnimalChips.length ? perAnimalChips : globalAssigned;
           const caps = (a.capabilities || []).filter((c: any) => c.name);
+          const animalOpen = !!map?.[`mi_animal_${i}_open`];
           return (
             <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
               <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
-                <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", marginBottom: chipList.length ? 10 : 0 }}>{animalLabel}</div>
-                {chipList.length > 0 && (
+                <div onClick={() => set(`mi_animal_${i}_open`, !animalOpen)}
+                  style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none", marginBottom: animalOpen && chipList.length ? 10 : 0 }}>
+                  <span style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", flex:1 }}>{animalLabel}</span>
+                  <span style={{ fontSize:11, color:"var(--text4)" }}>{animalOpen ? "▾" : "▸"}</span>
+                </div>
+                {animalOpen && chipList.length > 0 && (
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
                     {chipList.map((c: any, ci: number) => {
                       const txt = typeof c === "string" ? c : (c.label || c.name || "");
@@ -4139,7 +4144,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                   </div>
                 )}
               </div>
-              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+              <div style={{ ...cardBase, display: animalOpen ? "flex" : "none", flexDirection:"column" }}>
                 {caps.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No capabilities defined.</div>}
                 <ul style={{ listStyle:"none", padding:0, margin:0 }}>
                   {caps.map((c: any, ci: number) => (
