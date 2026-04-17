@@ -4050,19 +4050,18 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
           <MiniCard label="Time" icon="⏳" open={timeOpen} toggle={() => set("map_time_open", !timeOpen)}>
             {orderedAreas.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>None set</div>}
-            {orderedAreas.map((a: any, i: number) => {
-              const vision = a.feel || a.see || a.hear || "";
-              return (
-                <div key={a.id || i} style={{ width:"100%", padding:"8px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:8, marginBottom:6 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: vision ? 4 : 0 }}>
-                    <span style={{ fontSize:10, fontWeight:700, color:"var(--warm)", minWidth:14 }}>{i+1}</span>
-                    {a.icon && <span style={{ fontSize:12 }}>{a.icon}</span>}
-                    <span style={{ fontSize:12, color:"var(--text)", fontWeight:600 }}>{a.label}</span>
-                  </div>
-                  {vision && <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, paddingLeft:20 }}>{vision}</div>}
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, width:"100%" }}>
+              {orderedAreas.map((a: any, i: number) => (
+                <div key={a.id || i} style={chipStyle}>
+                  <span style={{ color:"var(--warm)", fontWeight:600, marginRight:5 }}>{i+1}</span>
+                  {a.icon && <span style={{ marginRight:4 }}>{a.icon}</span>}
+                  {a.label}
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            {map?.time_summary && (
+              <div style={{ width:"100%", marginTop:8, fontSize:11, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>{map.time_summary}</div>
+            )}
           </MiniCard>
           <MiniCard label="Wealth" icon="💰" open={wealthOpen} toggle={() => set("map_wealth_open", !wealthOpen)}>
             {wealthExpanded.map(w => {
