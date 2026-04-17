@@ -3939,12 +3939,212 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
     const validA = (map.animals || []).filter(a => a.name);
     const validV = (map.values || []).filter(v => v.name);
     const validAreas = (map.life_areas || []);
+    const hierOrder = (map?.hier_order as number[]) || [];
+    const orderedAreas = hierOrder.length
+      ? hierOrder.map((i: number) => validAreas[i]).filter(Boolean)
+      : validAreas;
+    const purposeText = (map.purpose_final && map.purpose_final.trim())
+      || ((map.purpose_layers || []).filter((l: string) => (l||"").trim()).join(" ").trim())
+      || (map.purpose_draft || "").trim()
+      || "";
+    const wealthChips = ["Retirement", "Assets", "Cash flow", map.bag_other_label || "Other"];
+    const growthChips = [
+      map.bag_growth_label1 || "Skills & Learning",
+      map.bag_growth_label2 || "Relationships",
+      map.bag_growth_label3 || "Purpose & Contribution",
+      map.bag_growth_label4 || "Other",
+    ];
+    const timeOpen   = !!map?.map_time_open;
+    const wealthOpen = !!map?.map_wealth_open;
+    const growthOpen = !!map?.map_growth_open;
+    const focusConfirmed = !!map?.map_focus_confirmed_flag;
+    const focusEditOpen  = !!map?.map_focus_edit_open;
+    const focusDefault   = ai.align?.focus_first || "";
+    const focusText      = (map?.map_focus_text != null && map.map_focus_text !== "") ? map.map_focus_text : focusDefault;
+
+    const chipStyle: React.CSSProperties = { padding:"4px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:14, fontSize:11, color:"var(--text2)" };
+    const cardBase: React.CSSProperties = { background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"14px 16px" };
+    const sectionLbl: React.CSSProperties = { fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 };
+
+    const MiniCard = ({ label, icon, open, toggle, children }: any) => (
+      <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:10, overflow:"hidden" }}>
+        <div onClick={toggle} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 13px", cursor:"pointer", userSelect:"none", borderBottom: open ? "1px solid var(--border)" : "none" }}>
+          <span style={{ fontSize:15 }}>{icon}</span>
+          <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", flex:1 }}>{label}</span>
+          <span style={{ fontSize:10, color:"var(--text4)" }}>{open ? "▾" : "▸"}</span>
+        </div>
+        {open && <div style={{ padding:"11px 13px", display:"flex", flexWrap:"wrap", gap:5 }}>{children}</div>}
+      </div>
+    );
+
     return wrapContent(<>
       <div style={{ textAlign:"center", marginBottom:28 }}>
         <div className="lbl" style={{ marginBottom:9, display:"block" }}>Complete · A1</div>
         <h2 style={{ fontFamily:"var(--serif)", fontSize:44, fontWeight:400, lineHeight:1.1, letterSpacing:"-0.5px", marginBottom:9 }}>{name}'s<br /><em>Map of Me.</em></h2>
         <p style={{ fontSize:14, color:"var(--text3)", maxWidth:400, margin:"0 auto", lineHeight:1.7 }}>Your living reference. Come back when making decisions, feeling stuck, or checking alignment.</p>
       </div>
+
+      {/* SECTION 1 — PURPOSE */}
+      <div style={{ background:"linear-gradient(135deg, rgba(201,168,76,.14), rgba(201,168,76,.04))", border:"1px solid rgba(201,168,76,.35)", borderRadius:12, padding:"20px 24px", marginBottom:18 }}>
+        <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:10 }}>Purpose — the north star</div>
+        <div style={{ fontFamily:"var(--serif)", fontStyle:"italic", fontSize:22, lineHeight:1.5, color:"var(--text)", fontWeight:300 }}>"{purposeText || "Not yet completed"}"</div>
+      </div>
+
+      {/* SECTION 2 — DIRECTION */}
+      <div style={{ ...cardBase, marginBottom:18 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", color:"var(--text)" }}>Direction — The Journey</div>
+          {map.bag_year && (
+            <div style={{ padding:"4px 11px", background:"rgba(201,168,76,.14)", border:"1px solid rgba(201,168,76,.35)", borderRadius:14, fontSize:12, fontWeight:600, color:"var(--warm)" }}>BAG · {map.bag_year}</div>
+          )}
+        </div>
+        {/* Timeline */}
+        <div style={{ position:"relative", margin:"6px 4px 22px", height:38 }}>
+          <div style={{ position:"absolute", left:8, right:8, top:18, height:2, background:"var(--border2)", borderRadius:2 }} />
+          {[
+            { left:"0%",   label:"Now",        active:true,  color:"var(--warm)" },
+            { left:"33%",  label:"1 yr · A2",  active:false, color:"var(--text4)" },
+            { left:"66%",  label:"3 yr · A3",  active:false, color:"var(--text4)" },
+            { left:"100%", label: map.bag_year ? `BAG · ${map.bag_year}` : "BAG", active:true, color:"var(--warm)" },
+          ].map((d, i) => (
+            <div key={i} style={{ position:"absolute", left:d.left, top:0, transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+              <div style={{ width:10, height:10, borderRadius:"50%", marginTop:13, background: d.active ? "var(--warm)" : "var(--bg3)", border: d.active ? "none" : "1px dashed var(--border2)" }} />
+              <div style={{ fontSize:9.5, color:d.color, whiteSpace:"nowrap", marginTop:2 }}>{d.label}</div>
+            </div>
+          ))}
+        </div>
+        {/* 3 collapsible cards */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+          <MiniCard label="Time" icon="⏳" open={timeOpen} toggle={() => set("map_time_open", !timeOpen)}>
+            {orderedAreas.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>None set</div>}
+            {orderedAreas.map((a: any, i: number) => (
+              <div key={a.id || i} style={chipStyle}>
+                <span style={{ color:"var(--warm)", fontWeight:600, marginRight:5 }}>{i+1}</span>
+                {a.icon && <span style={{ marginRight:4 }}>{a.icon}</span>}
+                {a.label}
+              </div>
+            ))}
+          </MiniCard>
+          <MiniCard label="Wealth" icon="💰" open={wealthOpen} toggle={() => set("map_wealth_open", !wealthOpen)}>
+            {wealthChips.map((c, i) => <div key={i} style={chipStyle}>{c}</div>)}
+          </MiniCard>
+          <MiniCard label="Growth" icon="🌱" open={growthOpen} toggle={() => set("map_growth_open", !growthOpen)}>
+            {growthChips.map((c, i) => <div key={i} style={chipStyle}>{c}</div>)}
+          </MiniCard>
+        </div>
+      </div>
+
+      {/* SECTION 3 — IDENTITY + SUPERPOWERS */}
+      <div style={{ marginBottom:18 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:10 }}>
+          <div style={sectionLbl}>Identity</div>
+          <div style={sectionLbl}>Superpowers</div>
+        </div>
+        {validA.length === 0 && <div style={{ fontSize:12, color:"var(--text4)", padding:14 }}>No animals defined yet.</div>}
+        {validA.map((a: any, i: number) => {
+          const animalLabel = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
+          const assignedChips = (map?.identity_chips || []).filter((c: any) => c.assignedTo === i);
+          const caps = (a.capabilities || []).filter((c: any) => c.name);
+          return (
+            <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
+              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", marginBottom:10 }}>{animalLabel}</div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                  {assignedChips.length === 0 && <div style={{ fontSize:11, color:"var(--text4)" }}>No identity chips assigned.</div>}
+                  {assignedChips.map((c: any) => (
+                    <div key={c.id} style={{ padding:"3px 9px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:12, fontSize:11, color:"var(--text2)" }}>{c.label}</div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+                {caps.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No capabilities defined.</div>}
+                <ul style={{ listStyle:"none", padding:0, margin:0 }}>
+                  {caps.map((c: any, ci: number) => (
+                    <li key={ci} style={{ display:"flex", gap:8, marginBottom:7, alignItems:"flex-start", fontSize:13, color:"var(--text2)", lineHeight:1.5 }}>
+                      <span style={{ color:"var(--warm)", flexShrink:0, marginTop:1 }}>·</span>
+                      <div><span style={{ fontWeight:700, color:"var(--text)" }}>{c.name}</span>{c.description ? <> — {c.description}</> : null}</div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* SECTION 4 — VALUES + BEHAVIOURS */}
+      <div style={{ marginBottom:18 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:10 }}>
+          <div style={sectionLbl}>Values</div>
+          <div style={sectionLbl}>Behaviours</div>
+        </div>
+        {validV.length === 0 && <div style={{ fontSize:12, color:"var(--text4)", padding:14 }}>No values defined yet.</div>}
+        {validV.map((val: any, i: number) => {
+          const vName = map?.[`val_${i}_name`] || val.name || `Value ${i + 1}`;
+          const vSummary = map?.[`val_${i}_summary`] || "";
+          const behCount = map?.[`beh_${i}_count`] || 1;
+          const behs: { j:number; name:string }[] = [];
+          for (let j = 0; j < behCount; j++) {
+            const bn = map?.[`beh_${i}_${j}_name`];
+            if (bn) behs.push({ j, name: bn });
+          }
+          return (
+            <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, alignItems:"stretch", marginBottom:12 }}>
+              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--warm)", marginBottom:6 }}>"{vName}"</div>
+                {vSummary && <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>{vSummary}</div>}
+              </div>
+              <div style={{ ...cardBase, display:"flex", flexDirection:"column" }}>
+                {behs.length === 0 && <div style={{ fontSize:12, color:"var(--text4)" }}>No behaviours defined.</div>}
+                <ul style={{ listStyle:"none", padding:0, margin:0 }}>
+                  {behs.map(b => (
+                    <li key={b.j} style={{ display:"flex", gap:8, marginBottom:7, alignItems:"flex-start", fontSize:13, color:"var(--text2)", lineHeight:1.5 }}>
+                      <span style={{ color:"#34d399", flexShrink:0, marginTop:1 }}>·</span>
+                      <span>{b.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* SECTION 5 — THE ONE THING */}
+      <div style={{ background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.18)", borderLeft:"4px solid var(--warm)", borderRadius:11, padding:"16px 20px", marginBottom:18 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10, gap:10 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)" }}>The One Thing</div>
+          <div style={{ display:"flex", gap:6 }}>
+            <button onClick={() => set("map_focus_confirmed_flag", !focusConfirmed)}
+              style={{ padding:"5px 11px", borderRadius:14, fontSize:11, fontWeight:600, cursor:"pointer", border: focusConfirmed ? "1px solid var(--warm)" : "1px solid var(--border2)", background: focusConfirmed ? "var(--warm)" : "transparent", color: focusConfirmed ? "#0d1b2e" : "var(--text3)" }}>
+              {focusConfirmed ? "✓ Confirmed" : "✓ Confirm"}
+            </button>
+            <button onClick={() => set("map_focus_edit_open", !focusEditOpen)}
+              style={{ padding:"5px 11px", borderRadius:14, fontSize:11, fontWeight:600, cursor:"pointer", border:"1px solid var(--border2)", background:"transparent", color:"var(--text3)" }}>
+              ✏ Edit
+            </button>
+          </div>
+        </div>
+        {focusEditOpen ? (
+          <div>
+            <textarea
+              value={map?.map_focus_text != null ? map.map_focus_text : focusDefault}
+              onChange={e => set("map_focus_text", e.target.value)}
+              rows={3}
+              style={{ width:"100%", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:15, padding:"10px 12px", lineHeight:1.6, resize:"vertical" }}
+              placeholder="The single shift that will most change who you are..."
+            />
+            <div style={{ display:"flex", justifyContent:"flex-end", marginTop:7 }}>
+              <button onClick={() => set("map_focus_edit_open", false)} style={{ padding:"5px 12px", borderRadius:6, fontSize:11, cursor:"pointer", border:"1px solid var(--border2)", background:"var(--bg2)", color:"var(--text2)" }}>Done</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ fontFamily:"var(--serif)", fontStyle:"italic", fontSize:17, lineHeight:1.6, color:"var(--text)", fontWeight:300 }}>
+            {focusText || <span style={{ color:"var(--text4)", fontStyle:"normal", fontSize:13 }}>Run the Alignment Snapshot or click Edit to set your One Thing.</span>}
+          </div>
+        )}
+      </div>
+
       {!ai.close && (
         <div style={{ textAlign:"center", marginBottom:22 }}>
           <button className="btn" onClick={() => runAI("close", `You are Katherine Breuss. Completed Map of Me with ${name}. Purpose: "${map.purpose_final || map.purpose_draft}". Animals: ${validA.map(a => [a.adj1, a.adj2, a.name].filter(Boolean).join(" ")).join(", ")}. Values: ${validV.map(v => v.name).join(", ")}. Life priorities: ${validAreas.map((a,i) => `${i+1}. ${a.label}`).join(", ")}. BAG Growth: "${map.bag_growth}". Brought here: "${intake.q1}". Write 3-4 sentence closing note referencing something SPECIFIC. One identity line -- who they are and what they're building. JSON: {"note":"...","identity_line":"..."}`)}>
@@ -3960,68 +4160,6 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           <OwnItCheck context="Map of Me closing summary" storageKey="ownit_mapclose" onComplete={(r) => set("ownit_mapclose", r)} />
         </div>
       )}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 36px 1fr", gap:0, marginBottom:18 }}>
-        <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"17px 19px" }}>
-          <div style={{ fontSize:10, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:13 }}>Internal</div>
-          <div style={{ marginBottom:13 }}>
-            <div style={{ fontSize:11, color:"var(--text3)", marginBottom:3 }}>PURPOSE</div>
-            <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", fontWeight:300, color:"var(--text)", lineHeight:1.6 }}>"{map.purpose_final || map.purpose_draft || "Not completed"}"</div>
-          </div>
-          {validA.length > 0 && (
-            <div style={{ marginBottom:13 }}>
-              <div style={{ fontSize:11, color:"var(--text3)", marginBottom:5 }}>IDENTITY</div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
-                {validA.map((a, i) => <div key={i} style={{ padding:"4px 9px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:14, fontSize:11 }}><span style={{ fontStyle:"italic", color:"var(--warm)" }}>{[a.adj1, a.adj2].filter(Boolean).join(" ")}</span>{a.adj1 || a.adj2 ? " " : ""}<span style={{ color:"var(--text)", fontWeight:500 }}>{a.name}</span></div>)}
-              </div>
-            </div>
-          )}
-          {validV.length > 0 && (
-            <div>
-              <div style={{ fontSize:11, color:"var(--text3)", marginBottom:5 }}>VALUES</div>
-              <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                {validV.map((val, i) => <div key={i} style={{ padding:"4px 9px", background:"rgba(52,211,153,.07)", border:"1px solid rgba(52,211,153,.18)", borderRadius:14, fontSize:11, color:"#34d399" }}>{i + 1}. {val.name}</div>)}
-              </div>
-            </div>
-          )}
-        </div>
-        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4 }}>
-          <div style={{ flex:1, width:1, background:"var(--border)" }} />
-          <div style={{ fontSize:18 }}>🪞</div>
-          <div style={{ flex:1, width:1, background:"var(--border)" }} />
-        </div>
-        <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"17px 19px" }}>
-          <div style={{ fontSize:10, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--accent)", marginBottom:13 }}>External</div>
-          {validAreas.length > 0 && (
-            <div style={{ marginBottom:13 }}>
-              <div style={{ fontSize:11, color:"var(--text3)", marginBottom:5 }}>DIRECTION · LIFE PRIORITIES {map.bag_year ? `· ${map.bag_year}` : ""}</div>
-              {validAreas.map((a, i) => (
-                <div key={a.id} style={{ display:"flex", alignItems:"center", gap:7, marginBottom:4, padding:"4px 8px", background:"var(--bg3)", borderLeft:"2px solid rgba(201,168,76,.4)", borderRadius:"0 5px 5px 0" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:"var(--warm)", minWidth:14 }}>{i+1}</span>
-                  <span style={{ fontSize:11 }}>{a.icon}</span>
-                  <span style={{ fontSize:12, color:"var(--text2)" }}>{a.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          <div style={{ marginBottom:13 }}>
-            <div style={{ fontSize:11, color:"var(--text3)", marginBottom:5 }}>SUPERPOWERS</div>
-            {validA.map((a, i) => ai[`ani${i}`] && (
-              <div key={i} style={{ marginBottom:5, padding:"5px 9px", background:"var(--bg3)", borderLeft:"2px solid #34d399", borderRadius:"0 5px 5px 0" }}>
-                <div style={{ fontSize:10, fontStyle:"italic", color:"var(--text3)", marginBottom:1 }}>{[a.adj1, a.adj2, a.name].filter(Boolean).join(" ")}</div>
-                <div style={{ fontSize:12, color:"var(--text)", lineHeight:1.4 }}>{ai[`ani${i}`].superpower}</div>
-              </div>
-            ))}
-          </div>
-          <div>
-            <div style={{ fontSize:11, color:"var(--text3)", marginBottom:5 }}>ALIGNMENT</div>
-            {[{ l:"Direction", k:"align_direction" }, { l:"Superpowers", k:"align_superpowers" }, { l:"Behaviors", k:"align_behaviors" }].map(s => {
-              const val = map[s.k] || 5;
-              const col = val >= 7 ? "#34d399" : val >= 4 ? "#f59e0b" : "#ef4444";
-              return <div key={s.k} style={{ display:"flex", justifyContent:"space-between", fontSize:11, marginBottom:3 }}><span style={{ color:"var(--text3)" }}>{s.l}</span><span style={{ color:col, fontWeight:500 }}>{val}/10</span></div>;
-            })}
-          </div>
-        </div>
-      </div>
       <div style={{ padding:"14px 17px", background:"rgba(167,139,250,.05)", border:"1px solid rgba(167,139,250,.17)", borderRadius:11, marginBottom:18 }}>
         <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#a78bfa", marginBottom:9 }}>Ask Your Map</div>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="your map" placeholder="Ask anything -- a decision, which animal you need, whether something aligns..." />
