@@ -1439,7 +1439,7 @@ function ResultCard({ color, label, children, serif }) {
 
 function MirrorCard({ card, isOpen, onToggle, onGoto }) {
   return (
-    <div onClick={() => onToggle(card.id)} style={{ background:isOpen ? card.colorMuted : "var(--bg3)", border:`1px solid ${isOpen ? card.colorBorder : "var(--border2)"}`, borderRadius:10, cursor:"pointer", transition:"background .22s, border-color .22s", overflow:"hidden", marginBottom:7 }}>
+    <div onClick={() => onToggle(card.id)} style={{ background:isOpen ? card.colorMuted : "var(--bg3)", border:`1px solid ${isOpen ? card.colorBorder : "var(--border2)"}`, borderRadius:10, cursor:"pointer", transition:"background .22s, border-color .22s", overflow:"hidden", marginBottom:7, minHeight:80 }}>
       <div style={{ padding:"11px 14px", display:"flex", alignItems:"center", gap:9 }}>
         <span style={{ fontSize:16, lineHeight:1, flexShrink:0 }}>{card.icon}</span>
         <div style={{ flex:1, minWidth:0 }}>
@@ -1748,7 +1748,9 @@ function A1({ intake, onDone }) {
     <div style={{ width:186, flexShrink:0, paddingRight:22, borderRight:"1px solid var(--border)" }}>
       <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text2)", marginBottom:15, fontFamily:"var(--sans)" }}>All In It · A1</div>
       {STEPS.map(s => {
-        const active = step === s.id, isDone = done.includes(s.id);
+        const autoDone = (s.id === "intro"  && (((map.purpose_layers || [])[0] || "").trim() || step !== "intro")) ||
+                         (s.id === "mirror2" && (map.animals?.length >= 1 && map.animals[0]?.name));
+        const active = step === s.id, isDone = done.includes(s.id) || !!autoDone;
         return (
           <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => { if (s.id === "mirror1") set("mirror1_sub", "purpose"); goto(s.id); }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
