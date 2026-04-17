@@ -4343,7 +4343,7 @@ let _logoPromise: Promise<string> | null = null;
 function loadLogoBase64(): Promise<string> {
   if (_logoPromise) return _logoPromise;
   _logoPromise = (async () => {
-    const res = await fetch(`${import.meta.env.BASE_URL}ag45_logo.png`);
+    const res = await fetch(`${import.meta.env.BASE_URL}ag45_logo_transparent.png`);
     if (!res.ok) throw new Error("logo fetch failed");
     const blob = await res.blob();
     return await new Promise<string>((resolve, reject) => {
