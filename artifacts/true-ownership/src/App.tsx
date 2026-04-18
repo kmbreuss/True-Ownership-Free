@@ -1165,6 +1165,7 @@ function Intake({ onDone }) {
 }
 
 const STEPS = [
+  { id:"to_intro", label:"True Ownership" },
   { id:"intro",   label:"Introduction" },
   { id:"mirror1", label:"Purpose · Direction" },
   { id:"mirror2", label:"Identity · Superpowers" },
@@ -1693,7 +1694,7 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
 }
 
 function A1({ intake, onDone }) {
-  const [step, setStep] = useState("intro");
+  const [step, setStep] = useState("to_intro");
   const [voice, setVoice] = useState(intake.defaultVoice);
   const [done, setDone] = useState([]);
   const [map, setMap] = useState(EMPTY_MAP);
@@ -1809,11 +1810,155 @@ function A1({ intake, onDone }) {
     </>
   );
 
+  if (step === "to_intro") return wrapContent(<>
+    <div className="lbl" style={{ marginBottom:11, color:"#B07312" }}>AG45 · The OWN IT Methodology</div>
+
+    <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.05, marginBottom:16, letterSpacing:"-0.5px" }}>
+      You are the spine.<br /><em style={{ color:"#1D9E75" }}>How aligned are you?</em>
+    </h2>
+
+    <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.7, marginBottom:14, maxWidth:620 }}>
+      The 5 A&rsquo;s are the spine of True Ownership. Move through each one &mdash; first as the owner you are becoming, then as the business you are building.
+    </p>
+
+    {/* True Ownership destination banner */}
+    <div style={{ background:"linear-gradient(135deg,#12163A 0%,#0A2E22 100%)", borderRadius:16, padding:"22px 26px", textAlign:"center", color:"#fff", border:"1px solid rgba(186,117,23,0.35)", position:"relative", overflow:"hidden", margin:"18px 0 16px" }}>
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:"linear-gradient(90deg,#1B1F4B,#B07312,#0F6E56)" }} />
+      <div style={{ fontSize:9, letterSpacing:"0.24em", textTransform:"uppercase", color:"#FAC775", marginBottom:6, fontWeight:700 }}>The destination &middot; When both sides align</div>
+      <div style={{ fontFamily:"var(--serif)", fontSize:"1.6rem", fontWeight:700, color:"#fff", marginBottom:8, lineHeight:1.1 }}>True Ownership</div>
+      <div style={{ fontSize:13, opacity:0.82, lineHeight:1.65, maxWidth:540, margin:"0 auto 12px" }}>
+        Not the owner alone. Not the business alone. When you as the owner <em>and</em> your business are fully aligned &mdash; that is True Ownership. Soul Aligned Strategy, fully lived.
+      </div>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, flexWrap:"wrap" }}>
+        <div style={{ background:"rgba(255,255,255,0.1)", border:"0.5px solid rgba(255,255,255,0.25)", borderRadius:6, padding:"4px 12px", fontSize:11, fontWeight:500 }}>OWN IT</div>
+        <span style={{ fontSize:13, opacity:0.5 }}>+</span>
+        <div style={{ background:"rgba(255,255,255,0.1)", border:"0.5px solid rgba(255,255,255,0.25)", borderRadius:6, padding:"4px 12px", fontSize:11, fontWeight:500 }}>Leader-Run Business</div>
+        <span style={{ fontSize:13, color:"#FAC775", fontWeight:500 }}>=</span>
+        <span style={{ fontFamily:"var(--serif)", fontSize:13, fontWeight:700, color:"#FAC775", borderBottom:"1px solid rgba(186,117,23,0.5)", paddingBottom:1 }}>True Ownership</span>
+      </div>
+    </div>
+
+    {/* Guidance strip */}
+    <div style={{ margin:"14px 0 12px", display:"flex", alignItems:"center", justifyContent:"center", gap:14, padding:"10px 16px", background:"var(--bg2)", border:"1px dashed var(--border2)", borderRadius:12, fontSize:12, color:"var(--text2)", flexWrap:"wrap" }}>
+      <span style={{ display:"flex", alignItems:"center", gap:6, fontWeight:500, color:"#B07312", letterSpacing:"0.04em" }}>
+        <span>START HERE</span><span>&darr;</span><span>THEN</span><span>&rarr; &darr;</span>
+      </span>
+      <span style={{ fontStyle:"italic", fontSize:12.5, color:"var(--text3)" }}>Open each card as you go. Take in the owner side first, then the business side.</span>
+    </div>
+
+    {/* Column labels */}
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 1fr", gap:0, marginBottom:14, alignItems:"center" }}>
+      <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(155,170,224,0.08)", color:"#9BAAE0", border:"0.5px solid rgba(155,170,224,0.25)", position:"relative" }}>
+        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#B07312", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(176,115,18,0.3)" }}>STEP 1 &darr;</div>
+        <div style={{ fontSize:12, fontWeight:700 }}>The Owner</div>
+        <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How you personally move through each A</div>
+      </div>
+      <div style={{ textAlign:"center", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:"var(--text3)", lineHeight:1.4, fontWeight:600 }}>THE SPINE<br />THE 5 A&rsquo;s</div>
+      <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(93,202,165,0.08)", color:"#5DCAA5", border:"0.5px solid rgba(93,202,165,0.25)", position:"relative" }}>
+        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#0F6E56", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(15,110,86,0.3)" }}>STEP 2 &darr;</div>
+        <div style={{ fontSize:12, fontWeight:700 }}>The Business</div>
+        <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How this shows up in what you build</div>
+      </div>
+    </div>
+
+    {/* Main 5 A's grid */}
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 1fr", gap:0, rowGap:10 }}>
+      {[
+        { n:1, name:"All In It",     shift:"Commitment",    bg:"#1B1F4B", numCol:"#B8C0E8",
+          o:{ lens:"Owner · Commitment Shift",   hook:"“Stop hedging. Both feet in.”", body:"You stop negotiating with your goals. Mentally, emotionally, strategically — all in. Clarity on who you are, what matters, where you’re going.", refl:"Where are you still hedging instead of committing fully?" },
+          b:{ lens:"Business · Commitment Shift", hook:"“Your business needs your full bet.”", body:"Clear vision, short and long-term direction. You stop treating the business like a side hustle and start leading it like a CEO.", refl:"Is your business strategy built on full commitment or half-measures?" } },
+        { n:2, name:"Align With It", shift:"Integrity", bg:"#0F6E56", numCol:"#9FE1CB",
+          o:{ lens:"Owner · Integrity Shift", hook:"“Alignment isn’t fluff. It’s firepower.”", body:"Your desires, values and identity are the filter. You stop chasing what looks good and start channeling what’s true to you. People feel it.", refl:"Are you building a life that reflects your true power?" },
+          b:{ lens:"Business · Integrity Shift", hook:"“Everything rowing in one direction.”", body:"Strong foundation: purpose, values, brand, direction — aligned to your vision and your team. Strategy and offers coherent, not contradictory.", refl:"What part of the business feels most misaligned?" } },
+        { n:3, name:"Act On It", shift:"Momentum", bg:"#BA7517", numCol:"#FAC775",
+          o:{ lens:"Owner · Momentum Shift", hook:"“Ideas don’t change your life. Actions do.”", body:"Clarity without follow-through is mental clutter. You stop starting and start finishing. A rhythm that paves the path — powered by clarity, not fear.", refl:"Are your actions powered by fear or clarity?" },
+          b:{ lens:"Business · Momentum Shift", hook:"“Soul aligned strategy in motion.”", body:"Aligned strategy broken into measurable actions building toward the longer-term vision. Direction and rhythm — not a plan in a drawer.", refl:"Do your action steps actually move the business toward its vision?" } },
+        { n:4, name:"Accountable", shift:"Mastery", bg:"#2A3580", numCol:"#9FAAE0",
+          o:{ lens:"Owner · Mastery Shift", hook:"“Own the good, the bad, and the ugly.”", body:"You stop spinning when you stop tolerating your own avoidance. Face your results and rise from them. A rhythm that keeps you moving even when motivation fades.", refl:"What truth are you avoiding that needs accountability?" },
+          b:{ lens:"Business · Mastery Shift", hook:"“Show your follow-through, see your future.”", body:"Clear operating rhythm: scorecards, check-ins, accountability — where reflection and celebration become culture. Ambition turns into traction.", refl:"Does your business have a rhythm that holds results even without you?" } },
+        { n:5, name:"Advocate", shift:"Expansion", bg:"#085041", numCol:"#5DCAA5",
+          o:{ lens:"Owner · Expansion Shift", hook:"“Lone wolf energy won’t build legacy.”", body:"You don’t grow in isolation. You rise when you stop playing small and surround yourself with the right energy, influence and expertise. Let the right people in.", refl:"Do the people around you expand or contract you and your vision?" },
+          b:{ lens:"Business · Expansion Shift", hook:"“Growth partnerships. Team alignment.”", body:"Trusted advisors, an aligned team, strategic collaborators. The owner stops being the bottleneck and builds a business that grows beyond them.", refl:"What investment in people or partnerships would accelerate your growth?" } },
+      ].map((row:any) => {
+        const oKey = `to_intro_o${row.n}_open`;
+        const bKey = `to_intro_b${row.n}_open`;
+        const oOpen = !!map?.[oKey];
+        const bOpen = !!map?.[bKey];
+        const pathLeft = row.n;
+        const pathRight = row.n + 5;
+        return (
+          <React.Fragment key={row.n}>
+            {/* Owner card */}
+            <div style={{ position:"relative", borderRadius:11, border:"0.5px solid var(--border2)", background:"var(--bg2)", borderLeft:"3px solid #9BAAE0", overflow:"visible" }}>
+              <div style={{ position:"absolute", top:10, left:-10, width:22, height:22, borderRadius:"50%", background:"#B07312", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, boxShadow:"0 4px 10px rgba(176,115,18,0.45)", border:"2px solid var(--bg2)", zIndex:3 }}>{pathLeft}</div>
+              <div onClick={() => setMap({...map, [oKey]: !oOpen})} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0, flex:1 }}>
+                  <div style={{ fontFamily:"var(--serif)", fontSize:16, fontWeight:700, color:"#FAC775", minWidth:22, textAlign:"center" }}>A{row.n}</div>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <div style={{ fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--text3)", marginBottom:2, fontWeight:600 }}>{row.o.lens}</div>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text)", lineHeight:1.35 }}>{row.o.hook}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize:11, color:"var(--text3)", transform:oOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.25s", width:18, height:18, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center" }}>&#9662;</div>
+              </div>
+              {oOpen && (
+                <div style={{ padding:"0 12px 12px" }}>
+                  <div style={{ borderTop:"0.5px solid var(--border2)", paddingTop:10 }}>
+                    <div style={{ fontSize:12, color:"var(--text2)", lineHeight:1.6 }}>{row.o.body}</div>
+                    <div style={{ fontSize:11.5, color:"var(--text3)", marginTop:8, lineHeight:1.5, paddingTop:8, borderTop:"0.5px dashed var(--border)", fontStyle:"italic" }}>&rarr; {row.o.refl}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Vertebra center */}
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"6px 0" }}>
+              <div style={{ width:"100%", borderRadius:10, padding:"12px 8px", textAlign:"center", background:row.bg, color:"#fff" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:"1.5rem", fontWeight:700, lineHeight:1, color:row.numCol }}>{row.n}</div>
+                <div style={{ fontSize:9, fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", marginTop:3, lineHeight:1.2 }}>{row.name}</div>
+                <div style={{ fontSize:8.5, opacity:0.7, marginTop:2, fontStyle:"italic", lineHeight:1.2 }}>{row.shift}</div>
+              </div>
+            </div>
+
+            {/* Business card */}
+            <div style={{ position:"relative", borderRadius:11, border:"0.5px solid var(--border2)", background:"var(--bg2)", borderRight:"3px solid #5DCAA5", overflow:"visible" }}>
+              <div style={{ position:"absolute", top:10, right:-10, width:22, height:22, borderRadius:"50%", background:"#0F6E56", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, boxShadow:"0 4px 10px rgba(15,110,86,0.4)", border:"2px solid var(--bg2)", zIndex:3 }}>{pathRight}</div>
+              <div onClick={() => setMap({...map, [bKey]: !bOpen})} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0, flex:1 }}>
+                  <div style={{ fontFamily:"var(--serif)", fontSize:16, fontWeight:700, color:"#5DCAA5", minWidth:22, textAlign:"center" }}>A{row.n}</div>
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <div style={{ fontSize:9, letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--text3)", marginBottom:2, fontWeight:600 }}>{row.b.lens}</div>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text)", lineHeight:1.35 }}>{row.b.hook}</div>
+                  </div>
+                </div>
+                <div style={{ fontSize:11, color:"var(--text3)", transform:bOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.25s", width:18, height:18, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center" }}>&#9662;</div>
+              </div>
+              {bOpen && (
+                <div style={{ padding:"0 12px 12px" }}>
+                  <div style={{ borderTop:"0.5px solid var(--border2)", paddingTop:10 }}>
+                    <div style={{ fontSize:12, color:"var(--text2)", lineHeight:1.6 }}>{row.b.body}</div>
+                    <div style={{ fontSize:11.5, color:"var(--text3)", marginTop:8, lineHeight:1.5, paddingTop:8, borderTop:"0.5px dashed var(--border)", fontStyle:"italic" }}>&rarr; {row.b.refl}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+
+    {/* Continue button */}
+    <div style={{ marginTop:36, paddingTop:28, borderTop:"1px solid var(--border)", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
+      <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Open each card to take it in. When you&rsquo;re ready, continue.</div>
+      <button className="btn" onClick={() => goto("intro")}>Everything Starts With You &rarr;</button>
+    </div>
+  </>);
+
   if (step === "intro") return wrapContent(<>
     <div className="lbl" style={{ marginBottom:11 }}>A1 · All In It</div>
 
     <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.1, marginBottom:16, letterSpacing:"-0.5px" }}>
-      The foundation.<br /><em>Know yourself.<br />Then build everything else.</em>
+      <em>Everything Starts With You</em>
     </h2>
 
     <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:14, maxWidth:540 }}>
@@ -2322,11 +2467,11 @@ function A1({ intake, onDone }) {
               }}>
               {busy.mirror1_align
                 ? <span className="dot-l"><span /><span /><span /></span>
-                : (hasResult ? "↻ Refresh Key Misalignment" : "See My Key Misalignment →")}
+                : (hasResult ? "" : "")}
             </button>
           );
         })()}
-        {map.align1_dir_misalignment && (
+        {false && map.align1_dir_misalignment && (
           <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:22 }}>
             <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
             <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{map.align1_dir_misalignment.key_misalignment}</div>
@@ -3575,11 +3720,11 @@ function A1({ intake, onDone }) {
               }}>
               {busy.mirror3_align
                 ? <span className="dot-l"><span /><span /><span /></span>
-                : (hasResult ? "↻ Refresh Key Misalignment" : "See My Key Misalignment →")}
+                : (hasResult ? "" : "")}
             </button>
           );
         })()}
-        {ai.mirror3_align && (
+        {false && ai.mirror3_align && (
           <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:11, marginBottom:22 }}>
             <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"#f59e0b", marginBottom:11 }}>Your key misalignment to focus on</div>
             <div style={{ fontFamily:"var(--serif)", fontSize:17, fontWeight:400, color:"var(--text)", lineHeight:1.7, marginBottom:9 }}>{ai.mirror3_align.key_misalignment}</div>
@@ -3924,10 +4069,10 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           {!ai.align && (
             <button className="btn" style={{ marginBottom:22 }}
               onClick={() => { set("align_prev_areas", []); runMisalignment([]); }}>
-              {busy.align ? <span className="dot-l"><span /><span /><span /></span> : "See My Key Misalignment →"}
+              {busy.align ? <span className="dot-l"><span /><span /><span /></span> : ""}
             </button>
           )}
-          {ai.align && (() => {
+          {false && ai.align && (() => {
             const focusDraft = (map?.map_focus_text != null && map.map_focus_text !== "") ? map.map_focus_text : (ai.align?.focus_first || "");
             const confirmed = !!map?.map_focus_confirmed_flag;
             return (
@@ -3960,7 +4105,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             </div>
             );
           })()}
-          {ai.align && (
+          {false && ai.align && (
             <button className="btn-g" style={{ marginBottom:22 }}
               disabled={!!busy.align}
               onClick={() => {
@@ -4591,6 +4736,29 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         <button className="btn-g" disabled={!!busy} onClick={() => generate("full")}>
           {busy === "full" ? "Generating..." : "⬇ Full Map"}
         </button>
+          <button className="btn-g" onClick={() => {
+            try {
+              const backup: any = {};
+              ["to_done","to_map","to_phase","to_intake","to_step"].forEach(k => {
+                const v = localStorage.getItem(k);
+                if (v !== null) backup[k] = v;
+              });
+              let userName = "my";
+              try { userName = (JSON.parse(backup.to_intake || "{}").name || "my").replace(/[^A-Za-z0-9_-]+/g, "_"); } catch {}
+              backup._backup_meta = { exported_at: new Date().toISOString(), source: location.hostname, user: userName, version: "A1" };
+              const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `${userName}-true-ownership-backup-${new Date().toISOString().slice(0,10)}.json`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            } catch (err) { console.error(err); alert("Backup failed. Please try again."); }
+          }}>
+            ↓ Backup my data (JSON)
+          </button>
       </div>
     </div>
   );
