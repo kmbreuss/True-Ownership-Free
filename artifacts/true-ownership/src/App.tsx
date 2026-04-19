@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 const KEYS = {
   map:    "to_map",
@@ -49,70 +49,259 @@ function detectVoice(q3) {
 
 function buildFullContext(name, intake, mapData) {
   const lines = [];
-  lines.push(`Client name: ${name}`);
-  if (intake?.q1) lines.push(`What brought them here: "${intake.q1}"`);
-  if (intake?.q2) lines.push(`Who they are becoming: "${intake.q2}"`);
-  if (intake?.q3) lines.push(`What they most need: "${intake.q3}"`);
+  const year = new Date().getFullYear();
+  const push = (s) => lines.push(s);
+  const section = (heading) => { push(""); push(heading); };
+
+  // ── Identity (who they are coming in)
+  push(`Client name: ${name}`);
+  if (intake?.q1) push(`What brought them here: "${intake.q1}"`);
+  if (intake?.q2) push(`Who they are becoming: "${intake.q2}"`);
+  if (intake?.q3) push(`What they most need: "${intake.q3}"`);
+
+  // ── Purpose
   const layers = (mapData?.purpose_layers || []).filter(l => (l||"").trim());
   if (layers.length > 0) {
-    lines.push(`\nPurpose peeling layers (${layers.length} deep):`);
-    layers.forEach((l, i) => lines.push(`  Layer ${i + 1}: "${l}"`));
+    section(`Purpose peeling (${layers.length} layer${layers.length === 1 ? "" : "s"} deep):`);
+    layers.forEach((l, i) => push(`  Layer ${i + 1}: "${l}"`));
   }
-  if (mapData?.purpose_draft) lines.push(`Purpose draft (AI): "${mapData.purpose_draft}"`);
-  if (mapData?.purpose_final) lines.push(`Purpose final (their words): "${mapData.purpose_final}"`);
-  if (mapData?.bag_year) lines.push(`BAG target year: ${mapData.bag_year}`);
-  const areas = (mapData?.life_areas || []);
-  if (areas.length > 0) {
-    lines.push(`\nLife priorities (ranked):`);
-    areas.forEach((a, i) => {
-      lines.push(`  ${i+1}. ${a.label}`);
-      if (a.see) lines.push(`     See: "${a.see}"`);
-      if (a.hear) lines.push(`     Hear: "${a.hear}"`);
-      if (a.feel) lines.push(`     Feel: "${a.feel}"`);
+  if (mapData?.purpose_draft) push(`Purpose draft (AI): "${mapData.purpose_draft}"`);
+  if (mapData?.purpose_final) push(`Purpose final (their words): "${mapData.purpose_final}"`);
+
+  // ── Horizon helper: render a horizon's sections (Time / Wealth / Growth)
+  const renderHorizon = (label, prefix, opts = {}) => {
+    // opts.yearLabel = display year; opts.legacyLifeAreasAllowed = bool (BAG only)
+    const isBag = prefix === "bag";
+    // Key selection: BAG uses bare keys; others are prefixed
+    const k = (name) => isBag ? name : `${prefix}_${name}`;
+    const timePicked = (mapData?.[k("time_picked")] || []) as string[];
+    const wealthPicked = (mapData?.[k("wealth_picked")] || []) as string[];
+    // Horizons below BAG use their own picks if present, else fall back to BAG picks (pre-fill carries forward)
+    const effectiveTimePicked = timePicked.length > 0 ? timePicked : (isBag ? [] : (mapData?.time_picked || []));
+    const effectiveWealthPicked = wealthPicked.length > 0 ? wealthPicked : (isBag ? [] : (mapData?.wealth_picked || []));
+
+    const timeItemsMap = mapData?.[k("time_items")] || {};
+    const wealthItemsMap = mapData?.[k("wealth_items")] || {};
+
+    // Summary sentence keys differ between BAG and other horizons
+    const timeSummary   = isBag ? mapData?.time_overall_sentence   : mapData?.[`${prefix}_time_sentence`];
+    const wealthSummary = isBag ? mapData?.wealth_overall_sentence : mapData?.[`${prefix}_wealth_sentence`];
+    const growthSummary = isBag ? mapData?.growth_sentence         : mapData?.[`${prefix}_growth_sentence`];
+
+    // Anything at all at this horizon?
+    const hasAny = effectiveTimePicked.length > 0 || effectiveWealthPicked.length > 0
+      || timeSummary || wealthSummary || growthSummary
+      || mapData?.[k("growth_text")]  // only on 3yr / 1yr
+      || (isBag && (mapData?.life_areas || []).length > 0);  // legacy Time
+    if (!hasAny) return;
+
+    section(`Direction · ${label} (horizon ${opts.yearLabel || ""}):`);
+
+    // Time
+    if (effectiveTimePicked.length > 0) {
+      push(`  Time priorities:`);
+      effectiveTimePicked.forEach(id => {
+        const preset = (typeof TIME_AREA_PRESETS !== "undefined" ? TIME_AREA_PRESETS : []).find(p => p.id === id);
+        const stored = timeItemsMap[id] || {};
+        const label = preset?.label || stored.label || id;
+        const goal = (stored.goal || stored.text || "").trim();
+        push(`    - ${label}${goal ? `: "${goal}"` : ""}`);
+      });
+    } else if (isBag && (mapData?.life_areas || []).length > 0) {
+      // Legacy BAG Time fallback
+      push(`  Time priorities (legacy):`);
+      (mapData.life_areas || []).forEach((a, i) => {
+        push(`    - ${a.label}${a.goal ? `: "${a.goal}"` : ""}`);
+      });
+    }
+    if (timeSummary) push(`  Time -- in one sentence: "${timeSummary}"`);
+
+    // BAG-only S/H/F for Time
+    if (isBag) {
+      const shf = mapData?.time_see_hear_feel || {};
+      const shfBits = [shf.see, shf.hear, shf.feel].filter(Boolean);
+      if (shfBits.length > 0) {
+        if (shf.see)  push(`  Time · I will see: "${shf.see}"`);
+        if (shf.hear) push(`  Time · I will hear: "${shf.hear}"`);
+        if (shf.feel) push(`  Time · I will feel: "${shf.feel}"`);
+      }
+    }
+
+    // Wealth
+    if (effectiveWealthPicked.length > 0) {
+      push(`  Wealth priorities:`);
+      effectiveWealthPicked.forEach(id => {
+        const preset = (typeof WEALTH_AREA_PRESETS !== "undefined" ? WEALTH_AREA_PRESETS : []).find(p => p.id === id);
+        const stored = wealthItemsMap[id] || {};
+        const label = preset?.label || stored.label || id;
+        const goal = (stored.goal || stored.text || "").trim();
+        push(`    - ${label}${goal ? `: "${goal}"` : ""}`);
+      });
+    }
+    if (wealthSummary) push(`  Wealth -- in one sentence: "${wealthSummary}"`);
+
+    // BAG-only S/H/F for Wealth
+    if (isBag) {
+      const shf = mapData?.wealth_see_hear_feel || {};
+      if (shf.see)  push(`  Wealth · I will see: "${shf.see}"`);
+      if (shf.hear) push(`  Wealth · I will hear: "${shf.hear}"`);
+      if (shf.feel) push(`  Wealth · I will feel: "${shf.feel}"`);
+    }
+
+    // Growth
+    if (isBag) {
+      const shf = mapData?.growth_see_hear_feel || {};
+      if (shf.see)  push(`  Growth · I will see: "${shf.see}"`);
+      if (shf.hear) push(`  Growth · I will hear: "${shf.hear}"`);
+      if (shf.feel) push(`  Growth · I will feel: "${shf.feel}"`);
+    } else {
+      const freeText = mapData?.[`${prefix}_growth_text`];
+      if (freeText) push(`  Growth -- free writing: "${freeText}"`);
+    }
+    if (growthSummary) push(`  Growth -- in one sentence: "${growthSummary}"`);
+
+    // Tier ranking for this horizon
+    const tiers = mapData?.[`${prefix === "bag" ? "bag" : prefix}_tiers`] || {};
+    const tierKeys = Object.keys(tiers);
+    if (tierKeys.length > 0) {
+      const byTier = { "non-neg": [], imp: [], nth: [] };
+      const labelFor = (id) => {
+        if (id.startsWith("t_")) {
+          const p = (typeof TIME_AREA_PRESETS !== "undefined" ? TIME_AREA_PRESETS : []).find(pp => pp.id === id.slice(2));
+          return p?.label || (timeItemsMap[id.slice(2)]?.label) || id.slice(2);
+        }
+        if (id.startsWith("w_")) {
+          const p = (typeof WEALTH_AREA_PRESETS !== "undefined" ? WEALTH_AREA_PRESETS : []).find(pp => pp.id === id.slice(2));
+          return p?.label || (wealthItemsMap[id.slice(2)]?.label) || id.slice(2);
+        }
+        if (id === "g_main") return "Growth vision";
+        if (id.startsWith("g_iv_")) return "(Identity/Values seed)";
+        if (id.startsWith("g_custom_")) return "(custom growth)";
+        return id;
+      };
+      tierKeys.forEach(id => {
+        const t = tiers[id] || "nth";
+        if (byTier[t]) byTier[t].push(labelFor(id));
+      });
+      if (byTier["non-neg"].length || byTier.imp.length || byTier.nth.length) {
+        push(`  Tier ranking:`);
+        if (byTier["non-neg"].length) push(`    Non-negotiable (${byTier["non-neg"].length}/3): ${byTier["non-neg"].join(", ")}`);
+        if (byTier.imp.length)         push(`    Important: ${byTier.imp.join(", ")}`);
+        if (byTier.nth.length)         push(`    Nice to have: ${byTier.nth.join(", ")}`);
+      }
+    }
+  };
+
+  renderHorizon("BAG",    "bag",     { yearLabel: String(year + 12) });
+  renderHorizon("3-Year", "threeyr", { yearLabel: String(year + 3) });
+  renderHorizon("1-Year", "oneyr",   { yearLabel: String(year + 1) });
+
+  // ── 1-Year accepted Growth seeds (Identity/Values-derived)
+  const acceptedSeeds = mapData?.oneyr_growth_accepted || {};
+  const editedLabels  = mapData?.oneyr_growth_edited_labels || {};
+  const removedSeeds  = mapData?.oneyr_growth_removed || {};
+  const customGrowth  = mapData?.oneyr_growth_custom || [];
+  const acceptedIds = Object.keys(acceptedSeeds).filter(id => acceptedSeeds[id] && !removedSeeds[id]);
+  if (acceptedIds.length > 0 || customGrowth.length > 0) {
+    section(`1-Year Growth focus (accepted from inner work):`);
+    acceptedIds.forEach(id => {
+      const label = editedLabels[id] || "(seed)";
+      push(`  - ${label}`);
     });
+    customGrowth.forEach(item => push(`  - ${item.label} (their own)`));
   }
-  if (mapData?.time_summary) lines.push(`Time summary: "${mapData.time_summary}"`);
-  const goals = (mapData?.life_areas || []).filter(a => a.goal);
-  if (goals.length > 0) {
-    lines.push(`\nLife goals:`);
-    goals.forEach((a, i) => lines.push(`  ${i+1}. ${a.label}: "${a.goal}"`));
+
+  // ── Direction Alignment scores (feeds A2 — TODAY's reality vs each horizon priority)
+  const dirAlignKeys = Object.keys(mapData || {}).filter(k => k.startsWith("dir_align_"));
+  if (dirAlignKeys.length > 0) {
+    section(`Direction Alignment scores (TODAY's reality against each horizon, 1-10):`);
+    const byHorizon = { oneyr: [], threeyr: [], bag: [] };
+    dirAlignKeys.forEach(k => {
+      const m = k.match(/^dir_align_(oneyr|threeyr|bag)_(.+)$/);
+      if (!m) return;
+      const [, horizon, itemId] = m;
+      const score = mapData[k];
+      // Re-use same labelFor logic inline
+      let itemLabel = itemId;
+      const itemsMap = horizon === "bag" ? (mapData?.time_items || {}) : (mapData?.[`${horizon}_time_items`] || {});
+      const wItemsMap = horizon === "bag" ? (mapData?.wealth_items || {}) : (mapData?.[`${horizon}_wealth_items`] || {});
+      if (itemId.startsWith("t_")) {
+        const p = (typeof TIME_AREA_PRESETS !== "undefined" ? TIME_AREA_PRESETS : []).find(pp => pp.id === itemId.slice(2));
+        itemLabel = p?.label || itemsMap[itemId.slice(2)]?.label || itemId.slice(2);
+      } else if (itemId.startsWith("w_")) {
+        const p = (typeof WEALTH_AREA_PRESETS !== "undefined" ? WEALTH_AREA_PRESETS : []).find(pp => pp.id === itemId.slice(2));
+        itemLabel = p?.label || wItemsMap[itemId.slice(2)]?.label || itemId.slice(2);
+      } else if (itemId === "g_main") itemLabel = "Growth vision";
+      byHorizon[horizon].push(`${itemLabel}: ${score}/10`);
+    });
+    if (byHorizon.oneyr.length)   push(`  1-Year (${year+1}): ${byHorizon.oneyr.join(", ")}`);
+    if (byHorizon.threeyr.length) push(`  3-Year (${year+3}): ${byHorizon.threeyr.join(", ")}`);
+    if (byHorizon.bag.length)     push(`  BAG (${year+12}): ${byHorizon.bag.join(", ")}`);
   }
-  if (mapData?.bag_retirement) lines.push(`Wealth - Retirement: "${mapData.bag_retirement}"`);
-  if (mapData?.bag_assets) lines.push(`Wealth - Assets: "${mapData.bag_assets}"`);
-  if (mapData?.bag_cashflow) lines.push(`Wealth - Cash flow: "${mapData.bag_cashflow}"`);
-  if (mapData?.bag_other) lines.push(`Wealth - Other: "${mapData.bag_other}"`);
-  if (mapData?.wealth_summary) lines.push(`Wealth summary: "${mapData.wealth_summary}"`);
-  if (mapData?.growth_summary) lines.push(`Growth summary: "${mapData.growth_summary}"`);
-  if (mapData?.bag_growth) lines.push(`Growth: "${mapData.bag_growth}"`);
-  const animals = (mapData?.animals || []).filter(a => a.name);
+
+  // ── Identity (animals + capabilities + alignment scores)
+  const animals = (mapData?.animals || []).filter(a => a && a.name);
   if (animals.length > 0) {
-    lines.push(`\nIdentity animals:`);
-    animals.forEach(a => { const t = [a.adj1, a.adj2, a.name].filter(Boolean).join(" "); lines.push(`  "${t}" -- alignment ${a.alignment}/10`); });
+    section(`Identity -- animals:`);
+    animals.forEach((a, i) => {
+      const title = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
+      const line = [`  ${title || a.name}`];
+      if (a.alignment !== undefined) line.push(`overall alignment ${a.alignment}/10`);
+      push(line.join(" -- "));
+      const caps = (a.capabilities || []).filter(c => c && c.name);
+      caps.forEach((c, ci) => {
+        const key = `align_cap_${i}_${ci}`;
+        const score = mapData?.[key];
+        push(`    • ${c.name}${score !== undefined ? ` -- scored ${score}/10` : ""}`);
+      });
+    });
   }
   const chipLabels = (mapData?.identity_chips || []).map(c => c.label);
   const qualitiesStr = chipLabels.length > 0 ? chipLabels.join(", ") : (mapData?.identity_adjectives || "");
-  if (qualitiesStr) lines.push(`Qualities: "${qualitiesStr}"`);
-  if (mapData?.capabilities_note) lines.push(`Superpowers note: "${mapData.capabilities_note}"`);
-  const values = (mapData?.values || []).filter(v => v.name);
-  if (values.length > 0) {
-    lines.push(`\nValues (top ${values.length}):`);
-    values.forEach((v, i) => {
-      lines.push(`  ${i + 1}. ${v.name}${v.irk ? ` -- revealed by: "${v.irk}"` : ""}${v.behaviors ? ` -- behaviors: "${v.behaviors}"` : ""}`);
-    });
+  if (qualitiesStr) push(`Qualities: "${qualitiesStr}"`);
+  if (mapData?.capabilities_note) push(`Superpowers note: "${mapData.capabilities_note}"`);
+
+  // ── Values (hierarchy + behaviors + alignment scores)
+  const valCount = parseInt(mapData?.val_count) || (mapData?.values || []).filter(v => v && v.name).length || 0;
+  if (valCount > 0) {
+    section(`Values -- hierarchy:`);
+    for (let i = 0; i < valCount; i++) {
+      const vName = mapData?.[`val_${i}_name`] || (mapData?.values || [])[i]?.name || "";
+      if (!vName) continue;
+      push(`  ${i + 1}. ${vName}`);
+      const bCount = parseInt(mapData?.[`beh_${i}_count`]) || 0;
+      for (let j = 0; j < bCount; j++) {
+        const bName = mapData?.[`beh_${i}_${j}_name`];
+        if (!bName) continue;
+        const score = mapData?.[`align_val_${i}_beh_${j}`];
+        push(`    • ${bName}${score !== undefined ? ` -- scored ${score}/10` : ""}`);
+      }
+      // Fallback to old values array shape if no new-state behaviors
+      if (bCount === 0) {
+        const legacy = (mapData?.values || [])[i];
+        if (legacy?.behaviors) push(`    • behaviors: "${legacy.behaviors}"`);
+        if (legacy?.irk) push(`    (revealed by: "${legacy.irk}")`);
+      }
+    }
   }
-  if (mapData?.values_irks) lines.push(`Values irks dump: "${mapData.values_irks}"`);
-  if (mapData?.behaviors_note) lines.push(`Behaviors note: "${mapData.behaviors_note}"`);
+  if (mapData?.values_irks) push(`Values irks dump: "${mapData.values_irks}"`);
+  if (mapData?.behaviors_note) push(`Behaviors note: "${mapData.behaviors_note}"`);
+
+  // ── Legacy three-slider alignment (kept if present)
   if (mapData?.align_direction !== undefined || mapData?.align_superpowers !== undefined || mapData?.align_behaviors !== undefined) {
-    lines.push(`\nAlignment ratings:`);
-    if (mapData.align_direction   !== undefined) lines.push(`  Direction: ${mapData.align_direction}/10`);
-    if (mapData.align_superpowers !== undefined) lines.push(`  Superpowers: ${mapData.align_superpowers}/10`);
-    if (mapData.align_behaviors   !== undefined) lines.push(`  Behaviors: ${mapData.align_behaviors}/10`);
+    section(`Overall alignment ratings:`);
+    if (mapData.align_direction   !== undefined) push(`  Direction: ${mapData.align_direction}/10`);
+    if (mapData.align_superpowers !== undefined) push(`  Superpowers: ${mapData.align_superpowers}/10`);
+    if (mapData.align_behaviors   !== undefined) push(`  Behaviors: ${mapData.align_behaviors}/10`);
   }
+
+  // ── Purpose peeling session history
   const sessions = (mapData?.purpose_sessions || []);
   if (sessions.length > 0) {
-    lines.push(`\nPurpose peeling sessions (${sessions.length} total):`);
-    sessions.forEach((s, i) => lines.push(`  Session ${i + 1} (${s.date || ""}): draft = "${s.draft || ""}", verbs = ${(s.verbs || []).join(", ")}`));
+    section(`Purpose peeling sessions (${sessions.length} total):`);
+    sessions.forEach((s, i) => push(`  Session ${i + 1} (${s.date || ""}): draft = "${s.draft || ""}", verbs = ${(s.verbs || []).join(", ")}`));
   }
+
   return lines.join("\n");
 }
 
@@ -206,6 +395,1615 @@ const LIFE_AREA_PRESETS = [
   { id:"community", label:"Community",    icon:"🌍",  hint:"What are you contributing to? Who do you serve beyond your immediate circle?" },
   { id:"adventure", label:"Adventure",    icon:"🧭",  hint:"Where have you been? What have you experienced? What risks have you taken?" },
 ];
+
+// ----- DIRECTION: Wealth Areas (W.1) -----
+const WEALTH_AREA_PRESETS = [
+  { id:"retirement",     label:"Retirement",     icon:"🏖️", hint:"When, how, what does life feel like when you stop working by necessity?" },
+  { id:"assets",         label:"Assets",         icon:"🏛️", hint:"Property, investments, business equity -- what have you built and what does it generate?" },
+  { id:"cashflow",       label:"Cashflow",       icon:"💸", hint:"Annual income or cash flow. What level creates genuine freedom?" },
+  { id:"investments",    label:"Investments",    icon:"📈", hint:"Portfolio, markets, compounding. What is your investment picture?" },
+  { id:"passive-income", label:"Passive Income", icon:"💰", hint:"Income that doesn't require your direct time. What streams are running?" },
+  { id:"real-estate",    label:"Real Estate",    icon:"🏡", hint:"Properties you own, how they work for you, what they enable." },
+];
+
+// W.1a-ext: Time presets (9 cards, prototype parity)
+const TIME_AREA_PRESETS = [
+  { id:"family",       label:"Family",       icon:"👨‍👩‍👧", hint:"How does your time shape your family life? What does a typical week look like?" },
+  { id:"love",         label:"Love",         icon:"💛",     hint:"Your intimate relationship -- how do you show up, how do you spend time together?" },
+  { id:"business",     label:"Business",     icon:"🏔️",     hint:"Your work, craft, or venture -- what are you building, what's your rhythm?" },
+  { id:"health",       label:"Health",       icon:"⚡",     hint:"Movement, recovery, energy -- what are you doing regularly to stay vital?" },
+  { id:"friends",      label:"Friends",      icon:"🤝",     hint:"Friendships, community -- who's in your inner circle and how do you stay close?" },
+  { id:"spirituality", label:"Spirituality", icon:"🌿",     hint:"Your inner practice -- how do you connect with something beyond yourself?" },
+  { id:"community",    label:"Community",    icon:"🌍",     hint:"Where you give back, contribute, or belong to something bigger." },
+  { id:"adventure",    label:"Adventure",    icon:"🧭",     hint:"Travel, exploration, the edges of your comfort zone." },
+  { id:"wellbeing",    label:"Wellbeing",    icon:"✦",     hint:"Mental space, rest, the quality of your inner life day-to-day." },
+];
+
+// W.1c: Tier ranking constants (prototype parity)
+const TIERS = [
+  { id: "non-neg", label: "Non-negotiable", color: "#ef4444" },
+  { id: "imp",     label: "Important",     color: "#f59e0b" },
+  { id: "nth",     label: "Nice to have",   color: "#6b7a99" },
+];
+const NON_NEG_CAP = 3;
+const segColor = (seg) =>
+  seg === "Time" ? "var(--warm)" :
+  seg === "Wealth" ? "#34d399" :
+  "#a78bfa"; // Growth
+
+function WealthChipSelector({ selected, onToggle, onAddCustom }) {
+  const [customInput, setCustomInput] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
+  const selectedIds = selected.map(a => a.id);
+  const addCustom = () => {
+    const label = customInput.trim();
+    if (!label) return;
+    const id = "custom_w_" + label.toLowerCase().replace(/\s+/g, "_");
+    onAddCustom({ id, label, icon:"✨", hint:"Describe your vision for " + label + " in 10-15 years.", text:"", goal:"" });
+    setCustomInput("");
+    setShowCustom(false);
+  };
+  return (
+    <div style={{ marginBottom:16 }}>
+      <div style={{ fontSize:12, color:"var(--text3)", marginBottom:10, lineHeight:1.5 }}>
+        Pick the wealth areas that matter in your 10-15 year financial life. No limit -- add as many as you need.
+      </div>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:10 }}>
+        {WEALTH_AREA_PRESETS.map(area => {
+          const isSelected = selectedIds.includes(area.id);
+          return (
+            <button key={area.id} onClick={() => onToggle(area)}
+              style={{
+                display:"flex", alignItems:"center", gap:6,
+                padding:"7px 12px", borderRadius:20,
+                border: isSelected ? "1px solid #34d399" : "1px solid var(--border2)",
+                background: isSelected ? "rgba(52,211,153,0.12)" : "var(--bg2)",
+                color: isSelected ? "#34d399" : "var(--text3)",
+                fontSize:12, fontWeight:500, fontFamily:"var(--sans)",
+                cursor:"pointer", transition:"all 0.15s"
+              }}>
+              <span style={{ fontSize:13 }}>{area.icon}</span>
+              <span>{area.label}</span>
+            </button>
+          );
+        })}
+        {selected.filter(a => !WEALTH_AREA_PRESETS.some(p => p.id === a.id)).map(area => (
+          <button key={area.id} onClick={() => onToggle(area)}
+            style={{
+              display:"flex", alignItems:"center", gap:6,
+              padding:"7px 12px", borderRadius:20,
+              border:"1px solid #34d399", background:"rgba(52,211,153,0.12)",
+              color:"#34d399", fontSize:12, fontWeight:500, fontFamily:"var(--sans)",
+              cursor:"pointer"
+            }}>
+            <span style={{ fontSize:13 }}>{area.icon}</span>
+            <span>{area.label}</span>
+          </button>
+        ))}
+        {!showCustom && (
+          <button onClick={() => setShowCustom(true)}
+            style={{
+              padding:"7px 12px", borderRadius:20,
+              border:"1px dashed var(--border2)", background:"transparent",
+              color:"var(--text4)", fontSize:12, fontFamily:"var(--sans)",
+              cursor:"pointer"
+            }}>
+            + Add your own
+          </button>
+        )}
+      </div>
+      {showCustom && (
+        <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+          <input type="text" value={customInput} onChange={e => setCustomInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addCustom()}
+            placeholder="e.g. Crypto, Collectibles, Trust..."
+            style={{
+              flex:1, padding:"7px 12px", borderRadius:6,
+              border:"1px solid var(--border2)", background:"var(--bg2)",
+              color:"var(--text)", fontSize:12, fontFamily:"var(--sans)", outline:"none"
+            }} />
+          <button onClick={addCustom}
+            style={{
+              padding:"7px 14px", borderRadius:6,
+              background:"#34d399", color:"#0a0a0a", border:"none",
+              fontSize:12, fontWeight:600, cursor:"pointer"
+            }}>Add</button>
+          <button onClick={() => { setShowCustom(false); setCustomInput(""); }}
+            style={{
+              padding:"7px 10px", borderRadius:6,
+              background:"transparent", color:"var(--text4)",
+              border:"1px solid var(--border2)", fontSize:12, cursor:"pointer"
+            }}>Cancel</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WealthItemCard({ area, onRemove, onChange }) {
+  return (
+    <div style={{ marginBottom:13, padding:"12px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:9 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:7 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+          <span style={{ fontSize:14 }}>{area.icon}</span>
+          <label style={{ fontSize:12, fontWeight:600, color:"#34d399", fontFamily:"var(--sans)" }}>{area.label}</label>
+        </div>
+        <button onClick={onRemove}
+          style={{ background:"transparent", border:"none", color:"var(--text4)", fontSize:11, cursor:"pointer", fontFamily:"var(--sans)" }}>
+          remove
+        </button>
+      </div>
+      {area.hint && (
+        <div style={{ fontSize:11, color:"var(--text4)", marginBottom:6, fontStyle:"italic" }}>{area.hint}</div>
+      )}
+      <textarea rows={3}
+        value={area.text || ""}
+        onChange={e => onChange("text", e.target.value)}
+        placeholder={"Describe your vision for " + area.label + " in 10-15 years..."}
+        className="to-field"
+        style={{ fontSize:13, marginBottom:6 }} />
+      <button
+        onClick={() => onChange("goal", area.text || "")}
+        disabled={!(area.text && area.text.trim())}
+        style={{
+          padding:"5px 11px", borderRadius:5,
+          background: (area.text && area.text.trim()) ? "rgba(52,211,153,0.15)" : "var(--bg3)",
+          border:"1px solid rgba(52,211,153,0.3)",
+          color:"#34d399", fontSize:11, fontWeight:500, fontFamily:"var(--sans)",
+          cursor: (area.text && area.text.trim()) ? "pointer" : "not-allowed",
+          opacity: (area.text && area.text.trim()) ? 1 : 0.5
+        }}>
+        Summarise into a goal →
+      </button>
+      {area.goal && (
+        <div style={{ marginTop:8, padding:"8px 10px", background:"rgba(52,211,153,0.06)", borderLeft:"2px solid #34d399", borderRadius:3 }}>
+          <div style={{ fontSize:10, fontWeight:600, color:"#34d399", textTransform:"uppercase", letterSpacing:0.5, marginBottom:3 }}>Goal</div>
+          <div style={{ fontSize:12, fontFamily:"var(--serif)", fontStyle:"italic", color:"var(--text)", lineHeight:1.5 }}>{area.goal}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── W.1a: Prototype components (structural parity with a1_direction_prototype_v2.jsx) ────────
+// Using existing CSS vars for now; W.1b will migrate to prototype's exact design tokens.
+
+function CollapsibleSegment_v2({ icon, title, color, confirmed, confirmedSummary, children }) {
+  // Auto-rule: open unless confirmed. User can override via click.
+  // On confirm transition (false → true), auto-collapse to satisfy v3.1 principle #2.
+  const [userState, setUserState] = useState(null); // null | true | false
+  const prevConfirmedRef = useRef(confirmed);
+  useEffect(() => {
+    if (!prevConfirmedRef.current && confirmed) {
+      // Just became confirmed -- force closed regardless of prior user override.
+      setUserState(false);
+    }
+    prevConfirmedRef.current = confirmed;
+  }, [confirmed]);
+  const autoOpen = !confirmed;
+  const isOpen = userState === null ? autoOpen : userState;
+  const toggle = () => setUserState(!isOpen);
+  return (
+    <div style={{
+      marginTop:20, marginBottom:14,
+      background: `${color}10`,
+      borderRadius:8, borderLeft: `4px solid ${color}`,
+      overflow:"hidden",
+      transition:"all .2s ease",
+    }}>
+      <div onClick={toggle} style={{
+        padding:"12px 16px",
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        cursor:"pointer", gap:10,
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
+          <div style={{
+            fontFamily:"var(--serif)", fontSize:20, fontWeight:500,
+            color:"var(--text)", flexShrink:0,
+          }}>{icon} {title}</div>
+          <div style={{
+            fontSize:10, letterSpacing:1.2, textTransform:"uppercase",
+            fontWeight:600, padding:"2px 8px", borderRadius:10,
+            background: confirmed ? "rgba(52,211,153,.15)" : `${color}15`,
+            color: confirmed ? "#34d399" : color,
+            border: `1px solid ${confirmed ? "#34d399" : color}40`,
+            flexShrink:0,
+          }}>{confirmed ? "✓ Confirmed" : "In progress"}</div>
+        </div>
+        <div style={{
+          fontSize:14, color:"var(--text3)",
+          transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)",
+          transition:"transform .2s ease",
+          flexShrink:0,
+        }}>▾</div>
+      </div>
+      {!isOpen && confirmedSummary && (
+        <div style={{ padding:"0 16px 14px" }}>
+          <div style={{
+            padding:"10px 14px",
+            background:"rgba(0,0,0,.2)",
+            borderRadius:6,
+            fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic",
+            color:"var(--text)", lineHeight:1.5,
+          }}>
+            "{confirmedSummary}"
+          </div>
+          <div style={{
+            fontSize:11, color:"var(--text4)", fontStyle:"italic",
+            marginTop:6, textAlign:"center",
+          }}>Click above to expand and edit.</div>
+        </div>
+      )}
+      {isOpen && (
+        <div style={{ padding:"0 16px 16px" }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SubLabel_v2({ children }) {
+  return (
+    <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:10, marginTop:14 }}>
+      {children}
+    </div>
+  );
+}
+
+function CardPicker_v2({ cards, picked, onToggle, onAddCustom, color }) {
+  const [customText, setCustomText] = useState("");
+  const [addingCustom, setAddingCustom] = useState(false);
+  const commitCustom = () => {
+    const label = customText.trim();
+    if (label && onAddCustom) {
+      onAddCustom(label);
+    }
+    setAddingCustom(false);
+    setCustomText("");
+  };
+  return (
+    <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
+      {cards.map(c => {
+        const isPicked = picked.includes(c.id);
+        return (
+          <div key={c.id} onClick={() => onToggle(c.id)} style={{
+            padding:"8px 14px", borderRadius:18,
+            background: isPicked ? `${color}20` : "rgba(255,255,255,.03)",
+            color: isPicked ? color : "var(--text2)",
+            border: `1px solid ${isPicked ? color : "var(--border2)"}`,
+            fontSize:13, fontWeight:500, cursor:"pointer",
+            display:"inline-flex", alignItems:"center", gap:6,
+            transition:"all .15s",
+          }}>
+            {c.icon && <span>{c.icon}</span>}
+            {c.label}
+            {isPicked && (
+              <span style={{
+                fontSize:10, background:color, color:"var(--bg)",
+                borderRadius:8, padding:"1px 6px", fontWeight:700,
+                marginLeft:2,
+              }}>✓</span>
+            )}
+          </div>
+        );
+      })}
+      {addingCustom ? (
+        <input autoFocus value={customText}
+          onChange={e => setCustomText(e.target.value)}
+          onBlur={commitCustom}
+          onKeyDown={e => {
+            if (e.key === "Enter") { e.preventDefault(); commitCustom(); }
+            else if (e.key === "Escape") { setAddingCustom(false); setCustomText(""); }
+          }}
+          placeholder="Type and press Enter..."
+          style={{
+            padding:"8px 14px", borderRadius:18,
+            background:"transparent", color:"var(--text)",
+            border:`1px dashed ${color}`, fontSize:13,
+            fontFamily:"var(--sans)", outline:"none", minWidth:180,
+          }} />
+      ) : (
+        <div onClick={() => setAddingCustom(true)} style={{
+          padding:"8px 14px", borderRadius:18,
+          background:"transparent", color:"var(--text3)",
+          border:"1px dashed var(--border2)",
+          fontSize:13, cursor:"pointer",
+        }}>+ Add your own</div>
+      )}
+    </div>
+  );
+}
+
+function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange }) {
+  const [summarising, setSummarising] = useState(false);
+  const summarise = () => {
+    setSummarising(true);
+    // Simulated AI: extract first sentence from free writing, with 600ms delay
+    setTimeout(() => {
+      const first = (text || "").split(/[.!?]/)[0].trim();
+      onGoalChange(first ? `${first}.` : "Goal will be generated from your writing above.");
+      setSummarising(false);
+    }, 600);
+  };
+  return (
+    <div style={{
+      marginBottom:14, padding:"16px 18px",
+      background:"rgba(255,255,255,.03)",
+      border:"1px solid var(--border2)", borderLeft:`3px solid ${color}`,
+      borderRadius:8,
+    }}>
+      <div style={{
+        display:"flex", alignItems:"center", gap:8, marginBottom:10,
+      }}>
+        {icon && <span style={{ fontSize:18 }}>{icon}</span>}
+        <div style={{
+          fontFamily:"var(--serif)", fontSize:19, fontWeight:500, color:"var(--text)",
+        }}>{label}</div>
+      </div>
+      <div style={{
+        fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:8,
+      }}>{promptText}</div>
+      <textarea value={text || ""} onChange={e => onTextChange(e.target.value)}
+        placeholder="Write freely here..." rows={3}
+        style={{
+          width:"100%", background:"rgba(0,0,0,.2)",
+          border:"1px solid var(--border2)", borderRadius:4,
+          padding:"10px 12px", color:"var(--text)",
+          fontFamily:"var(--serif)", fontSize:15, lineHeight:1.6,
+          resize:"vertical", outline:"none",
+        }} />
+      <div style={{
+        display:"flex", gap:10, marginTop:10, flexWrap:"wrap", alignItems:"center",
+      }}>
+        <button onClick={summarise} disabled={!(text || "").trim() || summarising} style={{
+          padding:"6px 14px", borderRadius:14,
+          background:"transparent",
+          color: (text || "").trim() ? "var(--warm)" : "var(--text4)",
+          border:`1px solid ${(text || "").trim() ? "var(--warm)" : "var(--border2)"}`,
+          cursor: (text || "").trim() ? "pointer" : "default",
+          fontSize:12, fontWeight:600,
+        }}>{summarising ? "..." : "✨ Summarise into a goal"}</button>
+        {goal && (
+          <div style={{
+            flex:1, minWidth:200,
+            padding:"6px 10px", borderRadius:6,
+            background:`${color}15`, color:"var(--text)",
+            fontSize:13, fontStyle:"italic",
+          }}>
+            <span style={{
+              fontSize:9, letterSpacing:1.2, textTransform:"uppercase",
+              color, fontWeight:600, marginRight:8,
+            }}>GOAL</span>
+            {goal}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SHFField_v2({ label, placeholder, value, onChange }) {
+  return (
+    <div style={{ marginBottom:10 }}>
+      <div style={{ fontSize:11, color:"var(--warm)", fontWeight:600, marginBottom:4 }}>{label}</div>
+      <textarea value={value || ""} onChange={e => onChange(e.target.value)}
+        placeholder={placeholder} rows={2}
+        style={{
+          width:"100%", background:"rgba(0,0,0,.2)",
+          border:"1px solid var(--border2)", borderRadius:4,
+          padding:"8px 10px", color:"var(--text)",
+          fontFamily:"var(--serif)", fontSize:14, lineHeight:1.5,
+          resize:"vertical", outline:"none",
+        }} />
+    </div>
+  );
+}
+
+function SeeHearFeelBlock_v2({ title, subtitle, color, values, onChange }) {
+  return (
+    <div style={{
+      marginTop:20, marginBottom:14,
+      padding:"18px 20px",
+      background:`linear-gradient(135deg, ${color}10, rgba(255,255,255,.02))`,
+      border:`1px solid ${color}40`, borderRadius:10,
+    }}>
+      <div style={{
+        fontSize:11, letterSpacing:2, textTransform:"uppercase",
+        color, fontWeight:700, marginBottom:4,
+      }}>{title}</div>
+      <div style={{
+        fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:14,
+      }}>{subtitle}</div>
+      <SHFField_v2 label="👁 I will see..."
+        placeholder="The scenes, people, spaces..."
+        value={values.see}
+        onChange={v => onChange("see", v)} />
+      <SHFField_v2 label="👂 I will hear..."
+        placeholder="The words, sounds, conversations..."
+        value={values.hear}
+        onChange={v => onChange("hear", v)} />
+      <SHFField_v2 label="❤ I will feel..."
+        placeholder="The emotions, energy, sense of self..."
+        value={values.feel}
+        onChange={v => onChange("feel", v)} />
+    </div>
+  );
+}
+
+function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConfirmed, bottomTitle }) {
+  // State machine: idle | generating | editing
+  const [state, setState] = useState("idle");
+  const [draft, setDraft] = useState("");
+
+  const generate = () => {
+    if (!sourceText.trim()) return;
+    setState("generating");
+    setTimeout(() => {
+      // W.4 fix: draft from ALL sub-items, not just the first sentence.
+      // Splits source into fragments (periods, !, ?), drops very short ones,
+      // then joins them Oxford-comma style so the draft includes everything the user wrote.
+      const fragments = sourceText
+        .split(/[.!?]\s*/)
+        .map(s => s.trim())
+        .filter(s => s.length > 3);
+      let compressed;
+      if (fragments.length === 0) {
+        compressed = sourceText.slice(0, 180);
+      } else if (fragments.length === 1) {
+        compressed = fragments[0];
+      } else if (fragments.length === 2) {
+        compressed = `${fragments[0]} and ${fragments[1]}`;
+      } else {
+        const last = fragments[fragments.length - 1];
+        const rest = fragments.slice(0, -1);
+        compressed = `${rest.join(", ")}, and ${last}`;
+      }
+      // Ensure trailing period
+      if (compressed && !/[.!?]$/.test(compressed)) compressed += ".";
+      setDraft(compressed);
+      setState("editing");
+    }, 700);
+  };
+  const confirm = () => {
+    if (!draft.trim()) return;
+    onConfirm(draft.trim());
+    setState("idle");
+  };
+  const startOver = () => {
+    setState("idle");
+    setDraft("");
+  };
+
+  // Confirmed state with regenerate option
+  if (existingConfirmed && state === "idle") {
+    return (
+      <div style={{
+        marginTop:18, marginBottom:24,
+        padding:"16px 18px",
+        background:"linear-gradient(135deg, rgba(52,211,153,.08), rgba(201,168,76,.04))",
+        border:"1px solid #34d399", borderRadius:10,
+        position:"relative",
+      }}>
+        <div style={{
+          position:"absolute", top:-10, right:14,
+          background:"#34d399", color:"var(--bg)",
+          fontSize:10, letterSpacing:1.5, textTransform:"uppercase",
+          fontWeight:700, padding:"2px 10px", borderRadius:10,
+        }}>✓ Confirmed summary</div>
+        <div style={{
+          fontSize:10, letterSpacing:2, textTransform:"uppercase",
+          color:"#34d399", fontWeight:600, marginBottom:8,
+        }}>{bottomTitle || `${label} summary`}</div>
+        <div style={{
+          fontFamily:"var(--serif)", fontSize:17, lineHeight:1.5,
+          color:"var(--text)", fontStyle:"italic", marginBottom:10,
+        }}>"{existingConfirmed}"</div>
+        <button onClick={generate} style={{
+          padding:"5px 12px", borderRadius:12,
+          background:"transparent", color:"var(--text3)",
+          border:"1px solid var(--border2)", cursor:"pointer",
+          fontSize:11,
+        }}>↻ Regenerate from my writing</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      marginTop:18, marginBottom:24,
+      padding:"14px 16px",
+      background:"rgba(0,0,0,.25)",
+      border:`1px dashed ${color}`, borderRadius:8,
+    }}>
+      <div style={{
+        fontSize:11, letterSpacing:1.5, textTransform:"uppercase",
+        color, fontWeight:600, marginBottom:6,
+      }}>{bottomTitle || `Ready to summarise ${label}?`}</div>
+      <div style={{
+        fontSize:13, color:"var(--text2)", lineHeight:1.5, marginBottom:12, fontStyle:"italic",
+      }}>
+        You've done the writing. Let me stitch it into one sentence you can edit, then confirm.
+      </div>
+      {state === "idle" && (
+        <button onClick={generate} disabled={!sourceText.trim()} style={{
+          padding:"8px 16px", borderRadius:16,
+          background: sourceText.trim() ? color : "transparent",
+          color: sourceText.trim() ? "var(--bg)" : "var(--text4)",
+          border:`1px solid ${sourceText.trim() ? color : "var(--border2)"}`,
+          cursor: sourceText.trim() ? "pointer" : "default",
+          fontSize:13, fontWeight:600,
+        }}>✨ Summarise into one sentence</button>
+      )}
+      {state === "generating" && (
+        <div style={{ padding:"8px 14px", fontSize:13, color:"var(--text3)", fontStyle:"italic" }}>
+          ✨ Reading your writing and stitching...
+        </div>
+      )}
+      {state === "editing" && (
+        <div>
+          <div style={{
+            fontSize:11, letterSpacing:1.5, textTransform:"uppercase",
+            color:"var(--text3)", fontWeight:600, marginBottom:6,
+          }}>Draft — edit freely, then confirm</div>
+          <textarea value={draft} onChange={e => setDraft(e.target.value)}
+            rows={3}
+            style={{
+              width:"100%", background:"rgba(0,0,0,.3)",
+              border:`1px solid ${color}60`, borderRadius:4,
+              padding:"10px 12px", color:"var(--text)",
+              fontFamily:"var(--serif)", fontSize:16, lineHeight:1.5,
+              resize:"vertical", outline:"none", marginBottom:10,
+            }} />
+          <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+            <button onClick={confirm} disabled={!draft.trim()} style={{
+              padding:"8px 18px", borderRadius:16,
+              background: draft.trim() ? color : "transparent",
+              color: draft.trim() ? "var(--bg)" : "var(--text4)",
+              border:`1px solid ${draft.trim() ? color : "var(--border2)"}`,
+              cursor: draft.trim() ? "pointer" : "default",
+              fontSize:13, fontWeight:700,
+            }}>✓ Confirm</button>
+            <button onClick={generate} style={{
+              padding:"8px 14px", borderRadius:16,
+              background:"transparent", color:"var(--text2)",
+              border:"1px solid var(--border2)", cursor:"pointer",
+              fontSize:12,
+            }}>↻ Try again</button>
+            <button onClick={startOver} style={{
+              padding:"8px 14px", borderRadius:16,
+              background:"transparent", color:"var(--text3)",
+              border:"none", cursor:"pointer", fontSize:12,
+            }}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+// W.1c: TierRankingSection_v2 — port from prototype (a1_direction_prototype_v2.jsx line 1435)
+// Non-negotiable capped at NON_NEG_CAP (3). No ordering within tiers — tier IS the ranking signal.
+function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed, onConfirmed }) {
+  const [openPill, setOpenPill] = useState(null);
+  const [capWarning, setCapWarning] = useState(false);
+  const [userState, setUserState] = useState(null);
+
+  const byTier = useMemo(() => {
+    const g = { "non-neg": [], imp: [], nth: [] };
+    items.forEach(i => {
+      const t = tiers[i.id] || "nth";
+      g[t].push(i);
+    });
+    return g;
+  }, [items, tiers]);
+
+  const nonNegCount = byTier["non-neg"].length;
+  const nonNegFull = nonNegCount >= NON_NEG_CAP;
+  const hasAnyRanking = nonNegCount > 0 || byTier.imp.length > 0;
+
+  // Auto-rule: open unless confirmed. Auto-collapse on confirm transition (v3.1 principle #2).
+  const prevConfirmedRef = useRef(confirmed);
+  useEffect(() => {
+    if (!prevConfirmedRef.current && confirmed) {
+      setUserState(false);
+    }
+    prevConfirmedRef.current = confirmed;
+  }, [confirmed]);
+  const autoOpen = !confirmed;
+  const isOpen = userState === null ? autoOpen : userState;
+  const toggle = () => setUserState(!isOpen);
+
+  const setTier = (itemId, tierId) => {
+    const currentTier = tiers[itemId] || "nth";
+    if (tierId === "non-neg" && currentTier !== "non-neg" && nonNegFull) {
+      setCapWarning(true);
+      setTimeout(() => setCapWarning(false), 2500);
+      setOpenPill(null);
+      return;
+    }
+    setTiers({ ...tiers, [itemId]: tierId });
+    setOpenPill(null);
+  };
+
+  return (
+    <div style={{
+      marginTop: 36, marginBottom: 14,
+      background: "rgba(201,168,76,.08)",
+      borderRadius: 8, borderLeft: "4px solid var(--warm)",
+      overflow: "hidden",
+      transition: "all .2s ease",
+    }}>
+      {/* Collapsible header */}
+      <div onClick={toggle} style={{
+        padding: "12px 16px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        cursor: "pointer", gap: 10,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: "var(--serif)", fontSize: 22, fontWeight: 500, color: "var(--text)",
+            flexShrink: 0,
+          }}>📊 Rank your priorities</div>
+          <div style={{
+            fontSize: 10, letterSpacing: 1.2, textTransform: "uppercase",
+            fontWeight: 600, padding: "2px 8px", borderRadius: 10,
+            background: confirmed ? "rgba(52,211,153,.15)" : "rgba(201,168,76,.15)",
+            color: confirmed ? "#34d399" : "var(--warm)",
+            border: `1px solid ${confirmed ? "#34d399" : "var(--warm)"}40`,
+            flexShrink: 0,
+          }}>{confirmed ? "✓ Confirmed" : hasAnyRanking ? "In progress" : "Not started"}</div>
+        </div>
+        <div style={{
+          fontSize: 18, color: "var(--text3)",
+          transform: isOpen ? "rotate(0deg)" : "rotate(-90deg)",
+          transition: "transform .2s ease",
+          flexShrink: 0,
+        }}>▾</div>
+      </div>
+
+      {/* Collapsed: compact ranking summary */}
+      {!isOpen && (
+        <div style={{ padding: "0 16px 14px" }}>
+          <div style={{
+            padding: "10px 14px",
+            background: "rgba(0,0,0,.2)",
+            borderRadius: 6,
+          }}>
+            <div style={{
+              fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase",
+              color: "#ef4444", fontWeight: 700, marginBottom: 8,
+            }}>Non-negotiable · {nonNegCount}/{NON_NEG_CAP}</div>
+            {byTier["non-neg"].length === 0 ? (
+              <div style={{ fontSize: 12, color: "var(--text4)", fontStyle: "italic" }}>
+                — none yet —
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {byTier["non-neg"].map(item => (
+                  <div key={item.id} style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "4px 10px", borderRadius: 12,
+                    background: "rgba(0,0,0,.3)",
+                    borderLeft: `3px solid ${segColor(item.segment)}`,
+                    fontSize: 12, color: "var(--text)",
+                  }}>
+                    {item.icon && <span>{item.icon}</span>}
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{
+              marginTop: 10, fontSize: 11, color: "var(--text3)",
+              display: "flex", gap: 14, flexWrap: "wrap",
+            }}>
+              <span>{byTier.imp.length} Important</span>
+              <span>{byTier.nth.length} Nice to have</span>
+            </div>
+          </div>
+          <div style={{
+            fontSize: 11, color: "var(--text3)", fontStyle: "italic",
+            marginTop: 6, textAlign: "center",
+          }}>Click above to expand and edit.</div>
+        </div>
+      )}
+
+      {/* Open: full ranking UI */}
+      {isOpen && (
+        <div style={{ padding: "0 16px 16px" }}>
+          {items.length === 0 && (
+            <div style={{
+              padding: "14px 16px",
+              background: "rgba(255,255,255,.03)",
+              border: "1px solid var(--border2)", borderRadius: 10,
+              fontSize: 13, color: "var(--text3)", fontStyle: "italic", lineHeight: 1.6,
+            }}>
+              Complete your Time, Wealth, and/or Growth segments above first -- then come back here to rank them.
+            </div>
+          )}
+
+          {items.length > 0 && (<>
+            <div style={{
+              padding: "18px 20px",
+              background: "rgba(255,255,255,.03)",
+              border: "1px solid var(--border2)", borderRadius: 10,
+            }}>
+              <div style={{ fontSize: 12, color: "var(--text3)", fontStyle: "italic", marginBottom: 4 }}>
+                What matters MOST for {horizonLabel}? Tap each to assign a tier.
+              </div>
+
+              <div style={{
+                marginTop: 10, padding: "8px 12px",
+                background: nonNegFull ? "rgba(248,113,113,.08)" : "rgba(201,168,76,.05)",
+                borderLeft: `2px solid ${nonNegFull ? "#f59e0b" : "var(--warm)"}`,
+                borderRadius: 4,
+                fontSize: 12, color: "var(--text2)", lineHeight: 1.5,
+              }}>
+                <strong style={{ color: "var(--warm)" }}>Rule:</strong> Non-negotiable is capped at {NON_NEG_CAP} items -- only three
+                things can truly be non-negotiable for this horizon. Currently: <strong style={{
+                  color: nonNegFull ? "#f59e0b" : "#34d399",
+                }}>{nonNegCount}/{NON_NEG_CAP}</strong>.
+                {nonNegFull && " To pick a different Non-negotiable, move one of your current three to Important first."}
+              </div>
+
+              {capWarning && (
+                <div style={{
+                  marginTop: 10, padding: "10px 14px",
+                  background: "rgba(248,113,113,.15)",
+                  border: "1px solid #ef4444", borderRadius: 6,
+                  fontSize: 13, color: "var(--text)", lineHeight: 1.5,
+                }}>
+                  You've already got 3 Non-negotiables. Move one to Important first, then try again.
+                </div>
+              )}
+
+              <div style={{ marginTop: 12 }}>
+                {items.map(item => {
+                  const currentTier = tiers[item.id] || "nth";
+                  const tierObj = TIERS.find(t => t.id === currentTier);
+                  const isPillOpen = openPill === item.id;
+                  return (
+                    <div key={item.id} style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      padding: "8px 10px 8px 12px", marginBottom: 4,
+                      background: "rgba(0,0,0,.2)",
+                      borderLeft: `3px solid ${segColor(item.segment)}`,
+                      borderRadius: 4, flexWrap: "nowrap",
+                    }}>
+                      <div style={{
+                        fontSize: 9, letterSpacing: 1.2, textTransform: "uppercase",
+                        color: segColor(item.segment), fontWeight: 600,
+                        width: 60, flexShrink: 0,
+                      }}>{item.segment}</div>
+                      <div style={{ flex: 1, fontSize: 13, color: "var(--text)", minWidth: 0 }}>
+                        {item.icon && <span style={{ marginRight: 6 }}>{item.icon}</span>}
+                        {item.label}
+                      </div>
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <button onClick={() => setOpenPill(isPillOpen ? null : item.id)} style={{
+                          padding: "5px 12px", borderRadius: 12,
+                          background: `${tierObj.color}20`, color: tierObj.color,
+                          border: `1px solid ${tierObj.color}60`,
+                          fontSize: 12, fontWeight: 600, cursor: "pointer",
+                          fontFamily: "var(--sans)", display: "flex", alignItems: "center", gap: 6,
+                          minHeight: 28,
+                        }}>{tierObj.label}<span style={{ fontSize: 9 }}>▾</span></button>
+                        {isPillOpen && (
+                          <div style={{
+                            position: "absolute", top: "calc(100% + 4px)", right: 0,
+                            background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 6,
+                            minWidth: 160, zIndex: 20, boxShadow: "0 8px 20px rgba(0,0,0,.4)",
+                          }}>
+                            {TIERS.map(t => {
+                              const isDisabled = t.id === "non-neg"
+                                && currentTier !== "non-neg"
+                                && nonNegFull;
+                              return (
+                                <div key={t.id}
+                                  onClick={() => !isDisabled && setTier(item.id, t.id)}
+                                  title={isDisabled ? `${NON_NEG_CAP}/${NON_NEG_CAP} Non-negotiables used` : undefined}
+                                  style={{
+                                    padding: "8px 12px", fontSize: 12,
+                                    color: isDisabled ? "var(--text4)" : t.color,
+                                    cursor: isDisabled ? "not-allowed" : "pointer",
+                                    borderBottom: "1px solid var(--border2)",
+                                    background: currentTier === t.id ? "rgba(255,255,255,.05)" : "transparent",
+                                    opacity: isDisabled ? 0.5 : 1,
+                                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                                  }}>
+                                  <span>{t.label}</span>
+                                  {t.id === "non-neg" && (
+                                    <span style={{
+                                      fontSize: 10, color: isDisabled ? "#ef4444" : "var(--text3)",
+                                      fontWeight: 600,
+                                    }}>{nonNegCount}/{NON_NEG_CAP}</span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ marginTop: 24 }}>
+              <div style={{
+                fontSize: 10, letterSpacing: 2, textTransform: "uppercase",
+                color: "var(--text3)", fontWeight: 600, marginBottom: 10, textAlign: "center",
+              }}>Your ranking for {horizonLabel}</div>
+              {TIERS.map(tier => {
+                const itemsInTier = byTier[tier.id];
+                const isNonNeg = tier.id === "non-neg";
+                const atCap = isNonNeg && itemsInTier.length === NON_NEG_CAP;
+                return (
+                  <div key={tier.id} style={{
+                    marginBottom: 10, padding: "12px 14px",
+                    background: `${tier.color}10`,
+                    border: `1px solid ${atCap ? tier.color : `${tier.color}40`}`,
+                    borderRadius: 8,
+                    boxShadow: atCap ? `0 0 0 1px ${tier.color}40` : "none",
+                  }}>
+                    <div style={{
+                      fontSize: 10, letterSpacing: 2, textTransform: "uppercase",
+                      color: tier.color, fontWeight: 700, marginBottom: 8,
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                    }}>
+                      <span>
+                        {tier.label}
+                        {atCap && <span style={{ marginLeft: 8, fontSize: 9, color: "#34d399" }}>✓ FULL</span>}
+                      </span>
+                      <span style={{ color: "var(--text3)", fontWeight: 500 }}>
+                        {isNonNeg ? `${itemsInTier.length}/${NON_NEG_CAP}` : `${itemsInTier.length} items`}
+                      </span>
+                    </div>
+                    {itemsInTier.length === 0 ? (
+                      <div style={{ fontSize: 12, color: "var(--text4)", fontStyle: "italic" }}>
+                        {isNonNeg ? `— pick your top ${NON_NEG_CAP} only —` : "— nothing here —"}
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {itemsInTier.map(item => (
+                          <div key={item.id} style={{
+                            display: "inline-flex", alignItems: "center", gap: 6,
+                            padding: "4px 10px", borderRadius: 12,
+                            background: "rgba(0,0,0,.25)",
+                            borderLeft: `3px solid ${segColor(item.segment)}`,
+                            fontSize: 12, color: "var(--text)",
+                          }}>
+                            {item.icon && <span>{item.icon}</span>}
+                            {item.label}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Confirm ranking button */}
+            {!confirmed && hasAnyRanking && onConfirmed && (
+              <div style={{ marginTop: 16, textAlign: "center" }}>
+                <button onClick={onConfirmed} style={{
+                  padding: "10px 22px", borderRadius: 16,
+                  background: "#34d399", color: "var(--bg)",
+                  border: "none", cursor: "pointer",
+                  fontSize: 13, fontWeight: 700,
+                }}>✓ Confirm my ranking</button>
+                <div style={{
+                  fontSize: 11, color: "var(--text3)", fontStyle: "italic", marginTop: 8,
+                }}>Once you confirm, this section collapses to a compact view. You can expand and change it anytime.</div>
+              </div>
+            )}
+          </>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// W.2: SimpleItemCard_v2 — used on 3-Year + 1-Year pages (simpler than PriorityItemCard_v2, no prompt sub-label needed)
+function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange, hintText, hintLabel }) {
+  const [summarising, setSummarising] = useState(false);
+  const [hintOpen, setHintOpen] = useState(false);
+  const summarise = () => {
+    if (!(text || "").trim()) return;
+    setSummarising(true);
+    setTimeout(() => {
+      const first = (text || "").split(/[.!?]/)[0].trim();
+      onGoalChange(first ? `${first}.` : "");
+      setSummarising(false);
+    }, 600);
+  };
+  return (
+    <div style={{
+      marginBottom:10, padding:"12px 14px",
+      background:"rgba(255,255,255,.02)",
+      borderLeft:`3px solid ${color}`, borderRadius:6,
+    }}>
+      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
+        {icon && <span style={{ fontSize:14 }}>{icon}</span>}
+        <div style={{ fontFamily:"var(--serif)", fontSize:16, fontWeight:500, color:"var(--text)" }}>{label}</div>
+      </div>
+      {hintText && (
+        <div style={{ marginBottom:8 }}>
+          <button onClick={() => setHintOpen(o => !o)} style={{
+            background:"transparent", border:"none", cursor:"pointer",
+            padding:0, fontSize:10, fontWeight:600, letterSpacing:1.2, textTransform:"uppercase",
+            color:"var(--text3)", display:"inline-flex", alignItems:"center", gap:4,
+          }}>
+            <span>📎</span>
+            <span>{hintOpen ? "▴" : "▾"} {hintLabel || "From BAG"}</span>
+          </button>
+          {hintOpen && (
+            <div style={{
+              marginTop:6, padding:"8px 10px",
+              background:"rgba(201,168,76,.06)",
+              borderLeft:"2px solid var(--warm)", borderRadius:4,
+              fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic",
+              color:"var(--text2)", lineHeight:1.5,
+            }}>
+              "{hintText}"
+            </div>
+          )}
+        </div>
+      )}
+      <textarea value={text || ""} onChange={e => onTextChange(e.target.value)}
+        placeholder={promptText} rows={2}
+        style={{
+          width:"100%", background:"rgba(0,0,0,.2)",
+          border:"1px solid var(--border2)", borderRadius:4,
+          padding:"8px 10px", color:"var(--text)",
+          fontFamily:"var(--serif)", fontSize:14, outline:"none",
+          resize:"vertical", lineHeight:1.5,
+        }} />
+      <div style={{ display:"flex", gap:8, marginTop:8, flexWrap:"wrap", alignItems:"center" }}>
+        <button onClick={summarise} disabled={!(text || "").trim() || summarising} style={{
+          padding:"5px 12px", borderRadius:12,
+          background:"transparent",
+          color: (text || "").trim() ? color : "var(--text4)",
+          border: `1px solid ${(text || "").trim() ? color : "var(--border2)"}`,
+          cursor: (text || "").trim() ? "pointer" : "default",
+          fontSize:11, fontWeight:600,
+        }}>{summarising ? "..." : "✨ Summarise into a goal"}</button>
+        {goal && (
+          <div style={{
+            flex:1, minWidth:180,
+            padding:"4px 10px", borderRadius:6,
+            background:`${color}15`, color:"var(--text)",
+            fontSize:12, fontStyle:"italic",
+          }}>
+            <span style={{
+              fontSize:9, letterSpacing:1.2, textTransform:"uppercase",
+              color, fontWeight:600, marginRight:6,
+            }}>GOAL</span>
+            {goal}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// W.2: PrefillNote_v2 — green-left-bar notice for 3-Year / 1-Year pre-fill explainer
+function PrefillNote_v2({ children }) {
+  return (
+    <div style={{
+      marginTop:20, marginBottom:14, padding:"10px 14px",
+      background:"rgba(52,211,153,.08)",
+      borderLeft:"3px solid #34d399", borderRadius:4,
+      fontSize:12, color:"var(--text2)", fontStyle:"italic", lineHeight:1.5,
+    }}>{children}</div>
+  );
+}
+
+// W.2: DirectionTimeline_v2 — port from prototype (line 239 of a1_direction_prototype_v2.jsx)
+// Shows 1-YEAR · 3-YEAR · BAG near-to-far. Dots become clickable when that horizon has a confirmed Growth sentence.
+// Click a completed dot to expand a preview card showing the sentence.
+function DirectionTimeline_v2({ activeHorizon, map }) {
+  const year = new Date().getFullYear();
+  const points = [
+    { key: "oneyr",  label: "1-YEAR", year: String(year + 1) },
+    { key: "threeyr", label: "3-YEAR", year: String(year + 3) },
+    { key: "bag",    label: "BAG",    year: String(year + 12) },
+  ];
+  // W.4 fix: a horizon is "complete enough to preview" if ANY of its three segments
+  // (Time / Wealth / Growth) has a confirmed summary — not only Growth.
+  const summariesByHorizon = {
+    bag: [
+      { label: "Time",   color: "var(--warm)", text: map.time_overall_confirmed   ? map.time_overall_sentence   : "" },
+      { label: "Wealth", color: "#34d399",     text: map.wealth_overall_confirmed ? map.wealth_overall_sentence : "" },
+      { label: "Growth", color: "#a78bfa",     text: map.growth_confirmed         ? map.growth_sentence         : "" },
+    ],
+    threeyr: [
+      { label: "Time",   color: "var(--warm)", text: map.threeyr_time_confirmed   ? map.threeyr_time_sentence   : "" },
+      { label: "Wealth", color: "#34d399",     text: map.threeyr_wealth_confirmed ? map.threeyr_wealth_sentence : "" },
+      { label: "Growth", color: "#a78bfa",     text: map.threeyr_growth_confirmed ? map.threeyr_growth_sentence : "" },
+    ],
+    oneyr: [
+      { label: "Time",   color: "var(--warm)", text: map.oneyr_time_confirmed   ? map.oneyr_time_sentence   : "" },
+      { label: "Wealth", color: "#34d399",     text: map.oneyr_wealth_confirmed ? map.oneyr_wealth_sentence : "" },
+      { label: "Growth", color: "#a78bfa",     text: map.oneyr_growth_confirmed ? map.oneyr_growth_sentence : "" },
+    ],
+  };
+  const completed = {
+    bag:     summariesByHorizon.bag.some(s => (s.text || "").trim().length > 0),
+    threeyr: summariesByHorizon.threeyr.some(s => (s.text || "").trim().length > 0),
+    oneyr:   summariesByHorizon.oneyr.some(s => (s.text || "").trim().length > 0),
+  };
+  const [expandedKey, setExpandedKey] = useState(null);
+
+  return (
+    <div style={{
+      background:"linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05))",
+      borderBottom:"1px solid var(--border2)",
+      padding:"14px 24px 18px",
+      marginBottom: 20,
+      borderRadius: 8,
+    }}>
+      <div style={{
+        fontSize:9, letterSpacing:2, textTransform:"uppercase",
+        color:"var(--text3)", fontWeight:600, textAlign:"center", marginBottom:10,
+      }}>Your Direction · Near to Far</div>
+
+      <div style={{ position:"relative", maxWidth:700, margin:"0 auto" }}>
+        <div style={{
+          position:"absolute", left:"16%", right:"16%", top:11,
+          height:2, background:"var(--border2)", borderRadius:1,
+        }} />
+        <div style={{
+          position:"absolute", left:"16%", top:11,
+          height:2, background:"var(--warm)", borderRadius:1,
+          width: completed.oneyr && completed.threeyr && completed.bag ? "68%"
+            : completed.threeyr && completed.bag ? "34%"
+            : "0%",
+          transition:"width .4s ease",
+        }} />
+
+        <div style={{ display:"flex", justifyContent:"space-between", position:"relative" }}>
+          {points.map(p => {
+            const isComplete = completed[p.key];
+            const isActive = activeHorizon === p.key;
+            return (
+              <div key={p.key}
+                onClick={() => isComplete && setExpandedKey(expandedKey === p.key ? null : p.key)}
+                style={{
+                  display:"flex", flexDirection:"column", alignItems:"center",
+                  width:"33%", cursor: isComplete ? "pointer" : "default", padding:"4px 0",
+                }}>
+                <div style={{
+                  width: isActive ? 20 : 14, height: isActive ? 20 : 14, borderRadius:10,
+                  background: isActive || isComplete ? "var(--warm)" : "var(--bg)",
+                  border: `2px solid ${isActive || isComplete ? "var(--warm)" : "var(--border2)"}`,
+                  display:"grid", placeItems:"center",
+                  boxShadow: isActive ? "0 0 0 4px rgba(201,168,76,.2)" : "none",
+                  color:"var(--bg)", fontSize:9, fontWeight:700, transition:"all .2s ease",
+                }}>{isComplete && !isActive && "✓"}</div>
+                <div style={{ marginTop:6, textAlign:"center" }}>
+                  <div style={{
+                    fontSize:9, letterSpacing:1.5, textTransform:"uppercase",
+                    color: isActive ? "var(--warm)" : isComplete ? "var(--text2)" : "var(--text4)",
+                    fontWeight:600,
+                  }}>{p.label}</div>
+                  <div style={{
+                    fontFamily:"var(--serif)", fontSize:12,
+                    color: isActive ? "var(--warm)" : isComplete ? "var(--text)" : "var(--text4)",
+                  }}>{p.year}</div>
+                  {isComplete && (
+                    <div style={{
+                      fontSize:9, color:"var(--text3)", marginTop:2,
+                      opacity: expandedKey === p.key ? 1 : 0.6,
+                    }}>{expandedKey === p.key ? "▴ hide" : "▾ preview"}</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {expandedKey && completed[expandedKey] && (
+          <div style={{
+            marginTop:12, padding:"12px 16px",
+            background:"rgba(201,168,76,.08)", border:"1px solid var(--warm)",
+            borderRadius:6, maxWidth:640, margin:"12px auto 0",
+          }}>
+            <div style={{
+              fontSize:9, letterSpacing:1.5, textTransform:"uppercase",
+              color:"var(--warm)", fontWeight:600, marginBottom:8,
+              fontFamily:"var(--sans)",
+            }}>
+              {points.find(p => p.key === expandedKey)?.label} · {points.find(p => p.key === expandedKey)?.year}
+            </div>
+            {summariesByHorizon[expandedKey]
+              .filter(s => (s.text || "").trim().length > 0)
+              .map(s => (
+                <div key={s.label} style={{ marginBottom:8, display:"flex", alignItems:"flex-start", gap:10 }}>
+                  <div style={{
+                    fontSize:9, letterSpacing:1.2, textTransform:"uppercase",
+                    color: s.color, fontWeight:700,
+                    minWidth:52, flexShrink:0, marginTop:3,
+                  }}>{s.label}</div>
+                  <div style={{
+                    fontFamily:"var(--serif)", fontSize:13.5, fontStyle:"italic",
+                    color:"var(--text)", lineHeight:1.5, flex:1,
+                  }}>"{s.text}"</div>
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// W.2 (1-Year): Compute Growth suggestions from lowest-scoring Identity capabilities + Values behaviors.
+// Returns top-N worst-scored items as seed suggestions with source attribution.
+function computeIdentityValuesSeeds(map, topN = 4) {
+  const seeds = [];
+
+  // Identity: iterate animals → capabilities → align_cap_{i}_{ci} scores
+  const animals = (map.animals || []).filter(a => a && a.name);
+  animals.forEach((animal, i) => {
+    const caps = (animal.capabilities || []).filter(c => c && c.name);
+    caps.forEach((cap, ci) => {
+      const key = `align_cap_${i}_${ci}`;
+      const raw = map?.[key];
+      if (raw === undefined || raw === null) return;
+      const score = Number(raw);
+      const animalLabel = [animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ") || animal.name;
+      seeds.push({
+        id: `iv_cap_${i}_${ci}`,
+        label: cap.name,
+        source: `Identity · ${animalLabel}`,
+        score,
+        kind: "identity",
+      });
+    });
+  });
+
+  // Values: iterate val_count + val_{i}_name + beh_{i}_count + beh_{i}_{j}_name → align_val_{i}_beh_{j} scores
+  const valCount = parseInt(map?.val_count) || (map?.values || []).filter(v => v && v.name).length || 0;
+  for (let i = 0; i < valCount; i++) {
+    const vName = map?.[`val_${i}_name`] || (map?.values || [])[i]?.name || "";
+    if (!vName) continue;
+    const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+    for (let j = 0; j < bCount; j++) {
+      const bName = map?.[`beh_${i}_${j}_name`];
+      if (!bName) continue;
+      const key = `align_val_${i}_beh_${j}`;
+      const raw = map?.[key];
+      if (raw === undefined || raw === null) continue;
+      const score = Number(raw);
+      seeds.push({
+        id: `iv_val_${i}_beh_${j}`,
+        label: bName,
+        source: `Values · ${vName}`,
+        score,
+        kind: "values",
+      });
+    }
+  }
+
+  // Sort ascending by score (lowest first), Identity before Values on ties
+  seeds.sort((a, b) => {
+    if (a.score !== b.score) return a.score - b.score;
+    if (a.kind !== b.kind) return a.kind === "identity" ? -1 : 1;
+    return 0;
+  });
+
+  return seeds.slice(0, topN);
+}
+
+// W.2 (1-Year): GrowthSuggestions_v2 — renders computed seeds with Accept/Edit/Remove + custom add.
+// All state persisted to map via provided setters. Seeds are rendered LIVE from computeIdentityValuesSeeds.
+function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setEditedLabels, removed, setRemoved, custom, setCustom }) {
+  const [editingId, setEditingId] = useState(null);
+  const [draftLabel, setDraftLabel] = useState("");
+  const [newCustom, setNewCustom] = useState("");
+
+  const startEdit = (id, currentLabel) => {
+    setEditingId(id);
+    setDraftLabel(currentLabel);
+  };
+  const saveEdit = (id) => {
+    const trimmed = (draftLabel || "").trim();
+    if (trimmed) {
+      setEditedLabels({ ...editedLabels, [id]: trimmed });
+    }
+    setEditingId(null);
+    setDraftLabel("");
+  };
+  const cancelEdit = () => {
+    setEditingId(null);
+    setDraftLabel("");
+  };
+  const toggleAccept = (id) => {
+    setAccepted({ ...accepted, [id]: !accepted[id] });
+  };
+  const removeSeed = (id) => {
+    setRemoved({ ...removed, [id]: true });
+  };
+  const addCustomItem = () => {
+    const label = newCustom.trim();
+    if (!label) return;
+    const id = `custom_${Date.now().toString(36)}`;
+    setCustom([...(custom || []), { id, label }]);
+    setNewCustom("");
+  };
+  const removeCustom = (id) => {
+    setCustom((custom || []).filter(x => x.id !== id));
+  };
+
+  const visibleSeeds = seeds.filter(s => !removed[s.id]);
+
+  if (visibleSeeds.length === 0 && (!custom || custom.length === 0)) {
+    return (
+      <div style={{
+        marginTop:14, marginBottom:16, padding:"18px 20px",
+        background:"rgba(201,168,76,.06)",
+        border:"1px dashed var(--border2)", borderRadius:10,
+      }}>
+        <div style={{
+          fontSize:10, letterSpacing:2, textTransform:"uppercase",
+          color:"var(--warm)", fontWeight:600, marginBottom:6,
+        }}>Growth suggestions from your inner work</div>
+        <div style={{ fontSize:13, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, marginBottom:10 }}>
+          Complete the Identity · Superpowers and Values · Behaviors pages -- your lowest-scoring items will surface here as Growth suggestions for the year ahead.
+        </div>
+        <div style={{
+          padding:"10px 12px", marginTop:8,
+          background:"rgba(255,255,255,.02)",
+          border:"1px dashed var(--border2)", borderRadius:6,
+        }}>
+          <div style={{
+            fontSize:10, letterSpacing:1.5, textTransform:"uppercase",
+            color:"var(--text3)", marginBottom:6, fontWeight:600,
+          }}>+ Add your own Growth focus</div>
+          <div style={{ display:"flex", gap:8 }}>
+            <input value={newCustom} onChange={e => setNewCustom(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && addCustomItem()}
+              placeholder="Something else that matters..."
+              style={{
+                flex:1, background:"transparent", border:"none", outline:"none",
+                color:"var(--text)", fontSize:14, fontFamily:"var(--sans)",
+              }} />
+            {newCustom.trim() && (
+              <button onClick={addCustomItem} style={{
+                padding:"4px 10px", borderRadius:10,
+                background:"var(--warm)", color:"var(--bg)",
+                border:"none", cursor:"pointer", fontSize:11, fontWeight:700,
+              }}>Add</button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      marginTop:14, marginBottom:16, padding:"18px 20px",
+      background:"linear-gradient(135deg, rgba(201,168,76,.12), rgba(245,158,11,.05))",
+      border:"1px solid var(--warm)", borderRadius:10,
+    }}>
+      <div style={{
+        fontSize:10, letterSpacing:2, textTransform:"uppercase",
+        color:"var(--warm)", fontWeight:600, marginBottom:4,
+      }}>Growth suggestions from your inner work</div>
+      <div style={{ fontSize:13, color:"var(--text2)", marginBottom:14, lineHeight:1.5 }}>
+        Lowest-scoring items from your Identity &amp; Values alignment. Accept, edit the wording, or remove any that don't fit.
+        Accepted items flow into your tier ranking below.
+      </div>
+
+      {visibleSeeds.map(s => {
+        const isEditing = editingId === s.id;
+        const isAccepted = !!accepted[s.id];
+        const currentLabel = editedLabels[s.id] ?? s.label;
+        return (
+          <div key={s.id} style={{
+            padding:"10px 12px", marginBottom:8,
+            background: isAccepted ? "rgba(201,168,76,.12)" : "rgba(255,255,255,.02)",
+            border: `1px ${isAccepted ? "solid" : "dashed"} var(--warm)`,
+            borderRadius:6,
+          }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
+              <div onClick={() => toggleAccept(s.id)} style={{
+                width:20, height:20, borderRadius:4, flexShrink:0,
+                background: isAccepted ? "var(--warm)" : "transparent",
+                border:"1px solid var(--warm)",
+                display:"grid", placeItems:"center", cursor:"pointer",
+                color:"var(--bg)", fontWeight:700, fontSize:12,
+              }}>{isAccepted && "✓"}</div>
+              <div style={{ flex:1, minWidth:180 }}>
+                {isEditing ? (
+                  <input autoFocus
+                    value={draftLabel}
+                    onChange={e => setDraftLabel(e.target.value)}
+                    onBlur={() => saveEdit(s.id)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") saveEdit(s.id);
+                      if (e.key === "Escape") cancelEdit();
+                    }}
+                    style={{
+                      width:"100%", background:"rgba(0,0,0,.3)",
+                      border:"1px solid var(--warm)", borderRadius:4,
+                      padding:"4px 8px", color:"var(--text)",
+                      fontSize:14, fontFamily:"var(--sans)", outline:"none",
+                    }} />
+                ) : (
+                  <>
+                    <div style={{ fontSize:14, color:"var(--text)" }}>{currentLabel}</div>
+                    <div style={{ fontSize:10, color:"var(--text3)", marginTop:2 }}>
+                      {s.source} · scored {s.score}/10
+                    </div>
+                  </>
+                )}
+              </div>
+              {!isEditing && (
+                <div style={{ display:"flex", gap:4 }}>
+                  <button onClick={() => startEdit(s.id, currentLabel)} title="Edit wording" style={{
+                    padding:"4px 8px", borderRadius:10,
+                    background:"transparent", color:"var(--text3)",
+                    border:"1px solid var(--border2)", cursor:"pointer",
+                    fontSize:11,
+                  }}>✎ Edit</button>
+                  <button onClick={() => removeSeed(s.id)} title="Remove this suggestion" style={{
+                    padding:"4px 8px", borderRadius:10,
+                    background:"transparent", color:"#ef4444",
+                    border:"1px solid rgba(239,68,68,.25)", cursor:"pointer",
+                    fontSize:11,
+                  }}>× Remove</button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Custom items */}
+      {(custom || []).map(item => (
+        <div key={item.id} style={{
+          padding:"10px 12px", marginBottom:8,
+          background:"rgba(201,168,76,.12)",
+          border:"1px solid var(--warm)", borderRadius:6,
+          display:"flex", alignItems:"center", gap:10,
+        }}>
+          <div style={{
+            width:20, height:20, borderRadius:4,
+            background:"var(--warm)", display:"grid", placeItems:"center",
+            color:"var(--bg)", fontWeight:700, fontSize:12,
+          }}>✓</div>
+          <div style={{ flex:1, fontSize:14 }}>{item.label}</div>
+          <div style={{
+            fontSize:9, color:"var(--warm)", padding:"1px 6px", borderRadius:4,
+            background:"rgba(201,168,76,.1)", border:"1px solid var(--border)",
+          }}>YOUR OWN</div>
+          <button onClick={() => removeCustom(item.id)} style={{
+            padding:"4px 8px", borderRadius:10,
+            background:"transparent", color:"#ef4444",
+            border:"1px solid rgba(239,68,68,.25)", cursor:"pointer", fontSize:11,
+          }}>× Remove</button>
+        </div>
+      ))}
+
+      {/* Add your own */}
+      <div style={{
+        padding:"10px 12px", marginTop:8,
+        background:"rgba(255,255,255,.02)",
+        border:"1px dashed var(--border2)", borderRadius:6,
+      }}>
+        <div style={{
+          fontSize:10, letterSpacing:1.5, textTransform:"uppercase",
+          color:"var(--text3)", marginBottom:6, fontWeight:600,
+        }}>+ Add your own Growth focus</div>
+        <div style={{ display:"flex", gap:8 }}>
+          <input value={newCustom} onChange={e => setNewCustom(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addCustomItem()}
+            placeholder="Something else that matters..."
+            style={{
+              flex:1, background:"transparent", border:"none", outline:"none",
+              color:"var(--text)", fontSize:14, fontFamily:"var(--sans)",
+            }} />
+          {newCustom.trim() && (
+            <button onClick={addCustomItem} style={{
+              padding:"4px 10px", borderRadius:10,
+              background:"var(--warm)", color:"var(--bg)",
+              border:"none", cursor:"pointer", fontSize:11, fontWeight:700,
+            }}>Add</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// W.3: Helper — assemble items + tier assignment for a given horizon (bag / threeyr / oneyr)
+// For 1-Year, additionally includes accepted Identity/Values seeds + custom growth items.
+function computeHorizonItems(map, horizon, seeds) {
+  const items = [];
+  const tiers = map[`${horizon}_tiers`] || {};
+  const getTier = (id) => tiers[id] || "nth";
+
+  (map.time_picked || []).forEach(id => {
+    const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+    const stored = (map.time_items || {})[id] || {};
+    items.push({
+      id: `t_${id}`,
+      segment: "Time",
+      label: preset?.label || stored.label || id,
+      icon:  preset?.icon  || stored.icon  || "",
+      tier: getTier(`t_${id}`),
+    });
+  });
+  (map.wealth_picked || []).forEach(id => {
+    const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+    const stored = (map.wealth_items || {})[id] || {};
+    items.push({
+      id: `w_${id}`,
+      segment: "Wealth",
+      label: preset?.label || stored.label || id,
+      icon:  preset?.icon  || stored.icon  || "",
+      tier: getTier(`w_${id}`),
+    });
+  });
+  // Growth vision — if that horizon's growth sentence is confirmed
+  const growthConfirmedKey = horizon === "bag" ? "growth_confirmed" : `${horizon}_growth_confirmed`;
+  const growthSentenceKey  = horizon === "bag" ? "growth_sentence"  : `${horizon}_growth_sentence`;
+  if (map[growthConfirmedKey] && (map[growthSentenceKey] || "").trim()) {
+    items.push({ id: "g_main", segment: "Growth", label: "Growth vision", icon: "🌱", tier: getTier("g_main") });
+  }
+  // 1-Year only: accepted seeds + custom growth items
+  if (horizon === "oneyr") {
+    const accepted = map.oneyr_growth_accepted || {};
+    const editedLabels = map.oneyr_growth_edited_labels || {};
+    const removed = map.oneyr_growth_removed || {};
+    (seeds || []).forEach(s => {
+      if (removed[s.id]) return;
+      if (!accepted[s.id]) return;
+      const gid = `g_${s.id}`;
+      items.push({
+        id: gid,
+        segment: "Growth",
+        label: editedLabels[s.id] ?? s.label,
+        icon: s.kind === "identity" ? "⚡" : "🧭",
+        tier: getTier(gid),
+        suggested: true,
+      });
+    });
+    (map.oneyr_growth_custom || []).forEach(item => {
+      const gid = `g_custom_${item.id}`;
+      items.push({
+        id: gid,
+        segment: "Growth",
+        label: item.label,
+        icon: "✦",
+        tier: getTier(gid),
+      });
+    });
+  }
+  return items;
+}
+
+// W.3: CollapsibleTier_v2 — inside Direction Alignment column. Non-negotiable opens by default.
+// Per-item interactive slider 1–10. Avg badge in header (red ≤4, amber ≤6, green ≥7).
+function CollapsibleTier_v2({ tier, items, horizonKey, map, set }) {
+  const defaultOpen = tier.id === "non-neg";
+  const [open, setOpen] = useState(defaultOpen);
+  const scoreOf = (itemId) => {
+    const key = `dir_align_${horizonKey}_${itemId}`;
+    const raw = map[key];
+    return raw === undefined || raw === null ? 5 : Number(raw);
+  };
+  const scoreColor = (score) => score <= 4 ? "#ef4444" : score <= 6 ? "#f59e0b" : "#34d399";
+  const avg = items.length === 0
+    ? 0
+    : Number((items.reduce((s, i) => s + scoreOf(i.id), 0) / items.length).toFixed(1));
+  const avgColor = scoreColor(avg);
+
+  return (
+    <div style={{
+      marginBottom:12,
+      background: `${tier.color}10`,
+      border: `1px solid ${tier.color}40`,
+      borderRadius:6, overflow:"hidden",
+    }}>
+      <div onClick={() => setOpen(!open)} style={{
+        padding:"10px 12px",
+        display:"flex", justifyContent:"space-between", alignItems:"center",
+        cursor:"pointer", gap:8,
+      }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flex:1, minWidth:0 }}>
+          <span style={{
+            fontSize:9, letterSpacing:1.5, textTransform:"uppercase",
+            color: tier.color, fontWeight:700,
+          }}>{tier.label}</span>
+          <span style={{ fontSize:10, color:"var(--text3)", fontWeight:500 }}>
+            {items.length} {items.length === 1 ? "item" : "items"}
+          </span>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          {items.length > 0 && (
+            <span style={{
+              fontSize:12, fontWeight:700,
+              color: avgColor,
+              padding:"2px 8px", borderRadius:10,
+              background: `${avgColor}15`,
+              border: `1px solid ${avgColor}40`,
+            }}>avg {avg}</span>
+          )}
+          <span style={{
+            fontSize:14, color:"var(--text3)",
+            transform: open ? "rotate(0deg)" : "rotate(-90deg)",
+            transition:"transform .2s ease",
+          }}>▾</span>
+        </div>
+      </div>
+
+      {open && (
+        <div style={{ padding:"0 12px 10px" }}>
+          {items.length === 0 ? (
+            <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>—</div>
+          ) : items.map(item => {
+            const score = scoreOf(item.id);
+            const col = scoreColor(score);
+            const storeKey = `dir_align_${horizonKey}_${item.id}`;
+            return (
+              <div key={item.id} style={{ marginBottom:10 }}>
+                <div style={{
+                  display:"flex", justifyContent:"space-between", fontSize:11, marginBottom:3, gap:8,
+                }}>
+                  <span style={{ color:"var(--text2)", flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {item.icon && <span style={{ marginRight:4 }}>{item.icon}</span>}
+                    {item.label}
+                  </span>
+                  <span style={{ color: col, fontWeight:600, flexShrink:0 }}>{score}</span>
+                </div>
+                <input type="range" min={1} max={10} step={1}
+                  value={score}
+                  onChange={e => set(storeKey, Number(e.target.value))}
+                  style={{ width:"100%", accentColor: col }} />
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// W.3: HorizonAlignmentColumn_v2 — one column (1-Year / 3-Year / BAG) with 3 CollapsibleTiers
+function HorizonAlignmentColumn_v2({ horizonKey, horizonLabel, items, map, set }) {
+  const byTier = useMemo(() => {
+    const g = { "non-neg": [], imp: [], nth: [] };
+    items.forEach(i => { g[i.tier || "nth"].push(i); });
+    return g;
+  }, [items]);
+  return (
+    <div style={{
+      padding:"16px",
+      background:"rgba(255,255,255,.03)",
+      border:"1px solid var(--border2)", borderRadius:8,
+    }}>
+      <div style={{
+        fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic",
+        color:"var(--warm)", marginBottom:14, textAlign:"center",
+      }}>{horizonLabel}</div>
+      {TIERS.map(t => (
+        <CollapsibleTier_v2 key={t.id}
+          tier={t}
+          items={byTier[t.id]}
+          horizonKey={horizonKey}
+          map={map} set={set} />
+      ))}
+    </div>
+  );
+}
+
+// ─── end W.1a components ──────────────────────────────────────────────────────────────────────
 
 function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
   const [customInput, setCustomInput] = useState("");
@@ -428,6 +2226,36 @@ function DirectionSection({ map, set }) {
   const [wealthOpen, setWealthOpen] = useState(false);
   const [growthOpen, setGrowthOpen] = useState(false);
 
+  // W.1c: Assemble all items that flow to tier ranking
+  const bagItems = useMemo(() => {
+    const items = [];
+    (map.time_picked || []).forEach(id => {
+      const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.time_items || {})[id] || {};
+      items.push({
+        id: `t_${id}`,
+        segment: "Time",
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "",
+      });
+    });
+    (map.wealth_picked || []).forEach(id => {
+      const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.wealth_items || {})[id] || {};
+      items.push({
+        id: `w_${id}`,
+        segment: "Wealth",
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "",
+      });
+    });
+    // Growth appears as a single ranking item only once the user has confirmed their Growth sentence
+    if (map.growth_confirmed && (map.growth_sentence || "").trim()) {
+      items.push({ id: "g_main", segment: "Growth", label: "Growth vision", icon: "🌱" });
+    }
+    return items;
+  }, [map.time_picked, map.time_items, map.wealth_picked, map.wealth_items, map.growth_confirmed, map.growth_sentence]);
+
   const SectionHeader = ({ icon, label, color, isOpen, onToggle, summary, summaryColor }) => (
     <button onClick={onToggle}
       style={{ display:"flex", alignItems:"center", gap:10, width:"100%", background:"none", border:"none", cursor:"pointer", padding:"13px 0", textAlign:"left" }}>
@@ -452,272 +2280,899 @@ function DirectionSection({ map, set }) {
 
   return (
     <div>
-      {/* BAG Date */}
-      <div style={{ marginBottom:20, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.2)", borderRadius:10 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:11 }}>
-          <div style={{ flex:1 }}>
-            <div style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"var(--warm)", letterSpacing:1, textTransform:"uppercase", marginBottom:3 }}>BAG Target Year</div>
-            <div style={{ fontSize:11, color:"var(--text3)" }}>When does this version of your life exist?</div>
-          </div>
-          <input type="text" value={map.bag_year || ""} onChange={e => set("bag_year", e.target.value)}
-            placeholder={String(new Date().getFullYear() + 12)}
-            style={{ background:"var(--bg4)", border:"1px solid rgba(201,168,76,.3)", borderRadius:8, color:"var(--warm)", fontFamily:"var(--serif)", fontSize:22, fontStyle:"italic", fontWeight:400, width:100, padding:"7px 13px", outline:"none", textAlign:"center" }} />
+      <DirectionTimeline_v2 activeHorizon="bag" map={map} />
+
+      {/* TIME -- W.1a-ext: prototype structural parity */}
+      <CollapsibleSegment_v2
+        icon="⏳" title="Time -- Your Life Priorities" color="var(--warm)"
+        confirmed={!!map.time_overall_confirmed}
+        confirmedSummary={map.time_overall_confirmed ? map.time_overall_sentence : null}>
+
+        <SubLabel_v2>Pick the areas of life that matter most. You'll write a bit about each.</SubLabel_v2>
+
+        <CardPicker_v2
+          cards={TIME_AREA_PRESETS}
+          picked={map.time_picked || []}
+          color="var(--warm)"
+          onToggle={id => {
+            const picked = map.time_picked || [];
+            const items = { ...(map.time_items || {}) };
+            if (picked.includes(id)) {
+              set("time_picked", picked.filter(p => p !== id));
+              delete items[id];
+              set("time_items", items);
+            } else {
+              const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+              set("time_picked", [...picked, id]);
+              if (!items[id]) {
+                items[id] = {
+                  text: "", goal: "",
+                  label: preset?.label || id,
+                  icon: preset?.icon || "✨",
+                  hint: preset?.hint || "",
+                };
+                set("time_items", items);
+              }
+            }
+          }}
+          onAddCustom={label => {
+            const picked = map.time_picked || [];
+            const id = `custom-${label.toLowerCase().replace(/\s+/g, "-")}-${Date.now().toString(36).slice(-4)}`;
+            const items = { ...(map.time_items || {}) };
+            items[id] = { text: "", goal: "", label, icon: "✨", hint: "" };
+            set("time_picked", [...picked, id]);
+            set("time_items", items);
+          }}
+        />
+
+        {(map.time_picked || []).map(id => {
+          const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+          const stored = (map.time_items || {})[id] || { text: "", goal: "" };
+          const meta = preset || { label: stored.label || id, icon: stored.icon || "✨", hint: stored.hint || "" };
+          return (
+            <PriorityItemCard_v2
+              key={id}
+              icon={meta.icon}
+              label={meta.label}
+              color="var(--warm)"
+              text={stored.text}
+              goal={stored.goal}
+              promptText={meta.hint || "How does your time shape this? What are you doing regularly? What have you let go of?"}
+              onTextChange={v => {
+                const items = { ...(map.time_items || {}) };
+                items[id] = { ...(items[id] || {}), text: v };
+                set("time_items", items);
+                // W.1a-ext: mirror to legacy life_areas for BAG Dashboard/PDF
+                const updatedItems = items;
+                const legacyAreas = (map.time_picked || []).map(pid => {
+                  const p = TIME_AREA_PRESETS.find(x => x.id === pid);
+                  const s = updatedItems[pid] || {};
+                  return {
+                    id: pid,
+                    label: p?.label || s.label || pid,
+                    icon: p?.icon || s.icon || "✨",
+                    see: "", hear: "", feel: "",
+                    goal: s.goal || "",
+                  };
+                });
+                set("life_areas", legacyAreas);
+              }}
+              onGoalChange={v => {
+                const items = { ...(map.time_items || {}) };
+                items[id] = { ...(items[id] || {}), goal: v };
+                set("time_items", items);
+                // W.1a-ext: mirror to legacy life_areas
+                const updatedItems = items;
+                const legacyAreas = (map.time_picked || []).map(pid => {
+                  const p = TIME_AREA_PRESETS.find(x => x.id === pid);
+                  const s = updatedItems[pid] || {};
+                  return {
+                    id: pid,
+                    label: p?.label || s.label || pid,
+                    icon: p?.icon || s.icon || "✨",
+                    see: "", hear: "", feel: "",
+                    goal: s.goal || "",
+                  };
+                });
+                set("life_areas", legacyAreas);
+              }}
+            />
+          );
+        })}
+
+        <SeeHearFeelBlock_v2
+          title="Overall Time -- See · Hear · Feel"
+          subtitle={`When you picture your whole life in ${String(new Date().getFullYear() + 12)}, what's the sensory texture?`}
+          color="var(--warm)"
+          values={map.time_see_hear_feel || { see: "", hear: "", feel: "" }}
+          onChange={(field, value) => {
+            const current = map.time_see_hear_feel || { see: "", hear: "", feel: "" };
+            set("time_see_hear_feel", { ...current, [field]: value });
+          }}
+        />
+
+        <SummaryGenerator_v2
+          color="var(--warm)"
+          label="Time"
+          bottomTitle={`In one sentence, my time in ${String(new Date().getFullYear() + 12)} is...`}
+          sourceText={(() => {
+            const shf = map.time_see_hear_feel || { see: "", hear: "", feel: "" };
+            const items = map.time_items || {};
+            const itemBits = Object.values(items).flatMap(i => [i.goal, i.text]).filter(Boolean);
+            return [shf.see, shf.hear, shf.feel, ...itemBits].filter(Boolean).join(". ");
+          })()}
+          existingConfirmed={map.time_overall_confirmed ? map.time_overall_sentence : null}
+          onConfirm={text => {
+            set("time_overall_sentence", text);
+            set("time_overall_confirmed", true);
+            set("time_summary", text); // W.1a-ext transition: keep legacy field populated
+          }}
+        />
+      </CollapsibleSegment_v2>
+
+      {/* WEALTH -- W.1a: prototype structural parity (CollapsibleSegment_v2 + CardPicker + PriorityItemCards + SeeHearFeelBlock + SummaryGenerator) */}
+      <CollapsibleSegment_v2
+        icon="💰" title="Wealth -- What you own, what flows" color="#34d399"
+        confirmed={!!map.wealth_overall_confirmed}
+        confirmedSummary={map.wealth_overall_confirmed ? map.wealth_overall_sentence : null}>
+
+        <SubLabel_v2>Pick the wealth categories that matter for this horizon.</SubLabel_v2>
+
+        <CardPicker_v2
+          cards={WEALTH_AREA_PRESETS}
+          picked={map.wealth_picked || []}
+          color="#34d399"
+          onToggle={id => {
+            const picked = map.wealth_picked || [];
+            const items = { ...(map.wealth_items || {}) };
+            if (picked.includes(id)) {
+              set("wealth_picked", picked.filter(p => p !== id));
+              delete items[id];
+              set("wealth_items", items);
+            } else {
+              const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+              set("wealth_picked", [...picked, id]);
+              if (!items[id]) {
+                items[id] = {
+                  text: "", goal: "",
+                  label: preset?.label || id,
+                  icon: preset?.icon || "✨",
+                  hint: preset?.hint || "",
+                };
+                set("wealth_items", items);
+              }
+            }
+          }}
+          onAddCustom={label => {
+            const picked = map.wealth_picked || [];
+            const id = `custom-${label.toLowerCase().replace(/\s+/g, "-")}-${Date.now().toString(36).slice(-4)}`;
+            const items = { ...(map.wealth_items || {}) };
+            items[id] = { text: "", goal: "", label, icon: "✨", hint: "" };
+            set("wealth_picked", [...picked, id]);
+            set("wealth_items", items);
+          }}
+        />
+
+        {(map.wealth_picked || []).map(id => {
+          const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+          const stored = (map.wealth_items || {})[id] || { text: "", goal: "" };
+          const meta = preset || { label: stored.label || id, icon: stored.icon || "✨", hint: stored.hint || "" };
+          return (
+            <PriorityItemCard_v2
+              key={id}
+              icon={meta.icon}
+              label={meta.label}
+              color="#34d399"
+              text={stored.text}
+              goal={stored.goal}
+              promptText={meta.hint || `What does this look like in ${String(new Date().getFullYear() + 12)}? Be specific.`}
+              onTextChange={v => {
+                const items = { ...(map.wealth_items || {}) };
+                items[id] = { ...(items[id] || {}), text: v };
+                set("wealth_items", items);
+              }}
+              onGoalChange={v => {
+                const items = { ...(map.wealth_items || {}) };
+                items[id] = { ...(items[id] || {}), goal: v };
+                set("wealth_items", items);
+              }}
+            />
+          );
+        })}
+
+        <SeeHearFeelBlock_v2
+          title="Overall Wealth -- See · Hear · Feel"
+          subtitle={`When you picture your financial life in ${String(new Date().getFullYear() + 12)}, what do you see, hear, feel?`}
+          color="#34d399"
+          values={map.wealth_see_hear_feel || { see: "", hear: "", feel: "" }}
+          onChange={(field, value) => {
+            const current = map.wealth_see_hear_feel || { see: "", hear: "", feel: "" };
+            set("wealth_see_hear_feel", { ...current, [field]: value });
+          }}
+        />
+
+        <SummaryGenerator_v2
+          color="#34d399"
+          label="Wealth"
+          bottomTitle={`In one sentence, my wealth in ${String(new Date().getFullYear() + 12)} is...`}
+          sourceText={(() => {
+            const shf = map.wealth_see_hear_feel || { see: "", hear: "", feel: "" };
+            const items = map.wealth_items || {};
+            const itemBits = Object.values(items).flatMap(i => [i.goal, i.text]).filter(Boolean);
+            return [shf.see, shf.hear, shf.feel, ...itemBits].filter(Boolean).join(". ");
+          })()}
+          existingConfirmed={map.wealth_overall_confirmed ? map.wealth_overall_sentence : null}
+          onConfirm={text => {
+            set("wealth_overall_sentence", text);
+            set("wealth_overall_confirmed", true);
+            set("wealth_summary", text); // W.1a transition: keep legacy field populated so dashboard + PDF still render
+          }}
+        />
+      </CollapsibleSegment_v2>
+
+      {/* GROWTH -- W.1a-ext: prototype structural parity (no card picker — just S/H/F + summary) */}
+      <CollapsibleSegment_v2
+        icon="🌱" title="Growth -- Who you are becoming" color="#a78bfa"
+        confirmed={!!map.growth_confirmed}
+        confirmedSummary={map.growth_confirmed ? map.growth_sentence : null}>
+
+        <div style={{
+          fontSize:13, color:"var(--text2)", lineHeight:1.6, marginBottom:18, marginTop:8,
+          padding:"12px 16px",
+          background:"rgba(255,255,255,.03)",
+          borderLeft:"2px solid #a78bfa", borderRadius:4,
+        }}>
+          Growth is who you become. Do the See/Hear/Feel below to paint who you are in {String(new Date().getFullYear() + 12)},
+          then summarise it into one sentence at the bottom.
         </div>
-      </div>
 
-      <div style={{ padding:"9px 13px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.1)", borderRadius:7, marginBottom:20 }}>
-        <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Dreamy and a bit scary. 25% believable. If you can see exactly how to get there, it's not big enough."</div>
-      </div>
+        <SeeHearFeelBlock_v2
+          title="Growth -- See · Hear · Feel"
+          subtitle={`When you picture the person you've become in ${String(new Date().getFullYear() + 12)}, what do you see, hear, feel?`}
+          color="#a78bfa"
+          values={map.growth_see_hear_feel || { see: "", hear: "", feel: "" }}
+          onChange={(field, value) => {
+            const current = map.growth_see_hear_feel || { see: "", hear: "", feel: "" };
+            set("growth_see_hear_feel", { ...current, [field]: value });
+          }}
+        />
 
-      {/* BAG SUMMARY DASHBOARD -- shows once any section has content */}
-      {(map.time_summary || areas.some(a=>a.goal) || map.wealth_summary || map.growth_summary) && (
-        <div style={{ marginBottom:20, background:"var(--bg2)", border:"1px solid rgba(201,168,76,.2)", borderRadius:11, overflow:"hidden" }}>
-          <div style={{ padding:"10px 16px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ fontSize:13 }}>🪞</span>
-            <div style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)" }}>
-              Your BAG {map.bag_year ? `· ${map.bag_year}` : ""}
-            </div>
+        <SummaryGenerator_v2
+          color="#a78bfa"
+          label="Growth"
+          bottomTitle={`In one sentence, who I am in ${String(new Date().getFullYear() + 12)}...`}
+          sourceText={(() => {
+            const shf = map.growth_see_hear_feel || { see: "", hear: "", feel: "" };
+            return [shf.see, shf.hear, shf.feel].filter(Boolean).join(". ");
+          })()}
+          existingConfirmed={map.growth_confirmed ? map.growth_sentence : null}
+          onConfirm={text => {
+            set("growth_sentence", text);
+            set("growth_confirmed", true);
+            set("growth_summary", text); // W.1a-ext: keep legacy field populated for dashboard/PDF
+            set("bag_growth", text);      // W.1a-ext: keep legacy long-form field populated too
+          }}
+        />
+      </CollapsibleSegment_v2>
+
+      {/* W.1c: Tier ranking (prototype parity) */}
+      <TierRankingSection_v2
+        items={bagItems}
+        tiers={map.bag_tiers || {}}
+        setTiers={next => set("bag_tiers", next)}
+        horizonLabel={String(new Date().getFullYear() + 12)}
+        confirmed={!!map.bag_ranking_confirmed}
+        onConfirmed={() => set("bag_ranking_confirmed", true)}
+      />
+    </div>
+  );
+}
+
+// W.2: ThreeYearPage -- Direction · 3-Year (v3.1 Page 3)
+// Pre-fills Time and Wealth from BAG. No S/H/F. Growth is free-writing + Summary Generator.
+// Includes tier ranking at bottom. User re-ranks fresh for this horizon.
+function ThreeYearPage({ map, set }) {
+  const year = new Date().getFullYear() + 3;
+
+  // Pre-fill Time and Wealth items from BAG on first visit
+  useEffect(() => {
+    const hasTimeItems = Object.keys(map.threeyr_time_items || {}).length > 0;
+    const hasWealthItems = Object.keys(map.threeyr_wealth_items || {}).length > 0;
+    if (!hasTimeItems && (map.time_picked || []).length > 0) {
+      const seeded = {};
+      (map.time_picked || []).forEach(id => {
+        seeded[id] = { text: "", goal: "" };
+      });
+      set("threeyr_time_items", seeded);
+    }
+    if (!hasWealthItems && (map.wealth_picked || []).length > 0) {
+      const seeded = {};
+      (map.wealth_picked || []).forEach(id => {
+        seeded[id] = { text: "", goal: "" };
+      });
+      set("threeyr_wealth_items", seeded);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Assemble items for tier ranking (Time picks + Wealth picks + Growth if confirmed)
+  const threeyrItems = useMemo(() => {
+    const items = [];
+    (map.time_picked || []).forEach(id => {
+      const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.time_items || {})[id] || {};
+      items.push({
+        id: `t_${id}`,
+        segment: "Time",
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "",
+      });
+    });
+    (map.wealth_picked || []).forEach(id => {
+      const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.wealth_items || {})[id] || {};
+      items.push({
+        id: `w_${id}`,
+        segment: "Wealth",
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "",
+      });
+    });
+    if (map.threeyr_growth_confirmed && (map.threeyr_growth_sentence || "").trim()) {
+      items.push({ id: "g_main", segment: "Growth", label: "Growth vision", icon: "🌱" });
+    }
+    return items;
+  }, [map.time_picked, map.time_items, map.wealth_picked, map.wealth_items, map.threeyr_growth_confirmed, map.threeyr_growth_sentence]);
+
+  const timePicked = (map.time_picked || []) as string[];
+  const wealthPicked = (map.wealth_picked || []) as string[];
+  const hasBagData = timePicked.length > 0 || wealthPicked.length > 0;
+
+  const updateTimeItem = (id, field, value) => {
+    const items = { ...(map.threeyr_time_items || {}) };
+    items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
+    set("threeyr_time_items", items);
+  };
+  const updateWealthItem = (id, field, value) => {
+    const items = { ...(map.threeyr_wealth_items || {}) };
+    items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
+    set("threeyr_wealth_items", items);
+  };
+
+  return (
+    <div>
+      {!hasBagData && (
+        <div style={{
+          padding:"18px 20px", marginBottom:20,
+          background:"rgba(201,168,76,.06)", borderLeft:"3px solid var(--warm)",
+          borderRadius:8,
+          fontSize:13, color:"var(--text2)", lineHeight:1.6,
+        }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", marginBottom:8 }}>
+            Come back here after BAG.
           </div>
-          <div style={{ padding:"14px 16px", display:"flex", flexDirection:"column", gap:14 }}>
-
-            {/* TIME */}
-            {(map.time_summary || areas.some(a=>a.goal)) && (
-              <div>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#c9a84c", marginBottom:7, display:"flex", alignItems:"center", gap:6 }}>
-                  <span>⏳</span> Time
-                </div>
-                {map.time_summary && (
-                  <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6, marginBottom: areas.some(a=>a.goal) ? 8 : 0 }}>
-                    {map.time_summary}
-                  </div>
-                )}
-                {areas.filter(a=>a.goal).map((area, i) => (
-                  <div key={area.id} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginTop:3 }}>
-                      <div style={{ width:14, height:14, borderRadius:"50%", background:"rgba(201,168,76,.3)", border:"1px solid rgba(201,168,76,.5)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                        <span style={{ fontSize:7, fontWeight:700, color:"var(--warm)" }}>{areas.findIndex(a=>a.id===area.id)+1}</span>
-                      </div>
-                      <span style={{ fontSize:11 }}>{area.icon}</span>
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:700, color:"var(--warm)", marginBottom:2 }}>{area.label}</div>
-                      <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>{area.goal}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* WEALTH */}
-            {map.wealth_summary && (
-              <div style={{ paddingTop:14, borderTop:"1px solid var(--border)" }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#34d399", marginBottom:7, display:"flex", alignItems:"center", gap:6 }}>
-                  <span>💰</span> Wealth
-                </div>
-                <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#34d399", lineHeight:1.6, marginBottom: (map.bag_retirement || map.bag_assets || map.bag_cashflow || map.bag_other) ? 8 : 0 }}>
-                  {map.wealth_summary}
-                </div>
-                {[
-                  { key:"bag_retirement", icon:"🏡", label:"Retirement" },
-                  { key:"bag_assets",     icon:"🏛️",  label:"Assets" },
-                  { key:"bag_cashflow",   icon:"📈", label:"Cash flow" },
-                  { key:"bag_other",      icon:"✦",  label:"Other" },
-                ].filter(f => map[f.key]).map(f => (
-                  <div key={f.key} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginTop:3 }}>
-                      <span style={{ fontSize:11, color:"#34d399" }}>·</span>
-                      <span style={{ fontSize:11 }}>{f.icon}</span>
-                      <span style={{ fontSize:10, fontWeight:600, color:"#34d399", textTransform:"uppercase", letterSpacing:0.5 }}>{f.label}</span>
-                    </div>
-                    <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)", lineHeight:1.5, flex:1 }}>{map[f.key].slice(0,100)}{map[f.key].length > 100 ? "..." : ""}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* GROWTH */}
-            {(map.growth_summary || map.bag_growth) && (
-              <div style={{ paddingTop:14, borderTop:"1px solid var(--border)" }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:7, display:"flex", alignItems:"center", gap:6 }}>
-                  <span>🌱</span> Growth
-                </div>
-                {map.growth_summary && (
-                  <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#a78bfa", lineHeight:1.6, marginBottom: map.bag_growth ? 8 : 0 }}>
-                    {map.growth_summary}
-                  </div>
-                )}
-                {map.bag_growth && (
-                  <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)", lineHeight:1.5 }}>
-                    {map.bag_growth.slice(0, 150)}{map.bag_growth.length > 150 ? "..." : ""}
-                  </div>
-                )}
-              </div>
-            )}
-
-          </div>
+          Pick your Time and Wealth priorities in the BAG page first — this 3-Year page refines them rather than starting blank.
         </div>
       )}
 
-      {/* TIME -- collapsible */}
-      <div style={{ marginBottom:10, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:11, overflow:"hidden" }}>
-        <div style={{ padding:"4px 14px 0", borderBottom: timeOpen ? "1px solid var(--border)" : "none" }}>
-          <SectionHeader icon="⏳" label="Time -- Your Life Priorities" color="#c9a84c"
-            isOpen={timeOpen} onToggle={() => setTimeOpen(o => !o)}
-            summary={map.time_summary || (areas.some(a=>a.goal) ? areas.filter(a=>a.goal).map(a=>a.goal).join(" · ") : null)}
-            summaryColor="var(--warm)" />
-        </div>
-        {timeOpen && (
-          <div className="fade-in" style={{ padding:"14px 14px 18px" }}>
-            <div style={{ fontSize:12, color:"var(--text3)", marginBottom:12, lineHeight:1.6 }}>
-              In 10–15 years, where does your time go -- and does it match what matters most to you?
-            </div>
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-                <span style={{ fontSize:12 }}>✍️</span>
-                <label style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"var(--warm)" }}>In one sentence -- my time in {String(new Date().getFullYear() + 12)} looks like...</label>
-              </div>
-              <div style={{ fontSize:11, color:"var(--text4)", marginBottom:6 }}>This is what gets shown in your mirror. Make it vivid.</div>
-              <textarea rows={2} value={map.time_summary || ""} onChange={e => set("time_summary", e.target.value)}
-                placeholder="e.g. I spend my days building things that matter, present with the people I love, with space for adventure and stillness..."
-                className="to-field summary-field" style={{ fontSize:15, fontFamily:"var(--serif)", fontStyle:"italic", color:"var(--warm)", lineHeight:1.7 }} />
-            </div>
-            {areas.some(a => a.goal) && (
-              <div className="fade-in" style={{ marginBottom:16, padding:"14px 16px", background:"var(--bg2)", border:"1px solid rgba(201,168,76,.2)", borderRadius:10 }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:10 }}>
-                  Your Life Goals {map.bag_year ? `· ${map.bag_year}` : ""}
-                </div>
-                {areas.filter(a => a.goal).map((area, i) => (
-                  <div key={area.id} style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom: i < areas.filter(a=>a.goal).length - 1 ? 10 : 0, paddingBottom: i < areas.filter(a=>a.goal).length - 1 ? 10 : 0, borderBottom: i < areas.filter(a=>a.goal).length - 1 ? "1px solid var(--border)" : "none" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0, marginTop:3 }}>
-                      <div style={{ width:18, height:18, borderRadius:"50%", background:"var(--warm)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                        <span style={{ fontSize:8, fontWeight:700, color:"#0d1b2e" }}>{areas.findIndex(a => a.id === area.id) + 1}</span>
-                      </div>
-                      <span style={{ fontSize:14 }}>{area.icon}</span>
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"var(--warm)", marginBottom:2 }}>{area.label}</div>
-                      <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--text)", lineHeight:1.6 }}>{area.goal}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <LifeAreaSelector selected={areas} onToggle={toggleArea} onAddCustom={addCustom} />
-            {areas.length > 0 && (
-              <div style={{ marginTop:14 }}>
-                <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:10 }}>
-                  Priority order -- use ▲▼ to reorder · 1 = most important
-                </div>
-                {areas.map((area, i) => (
-                  <LifeAreaCard key={area.id} area={area} rank={i + 1} total={areas.length}
-                    onMoveUp={() => moveArea(i, -1)} onMoveDown={() => moveArea(i, 1)}
-                    onRemove={() => removeArea(area.id)}
-                    onChange={(field, val) => updateArea(area.id, field, val)} />
-                ))}
-              </div>
-            )}
+      {hasBagData && (<>
+        <PrefillNote_v2>
+          Your priorities from BAG have been carried forward. Refine what each one looks like at 3 years out.
+        </PrefillNote_v2>
+
+        {/* TIME */}
+        <CollapsibleSegment_v2
+          icon="⏳" title="Time" color="var(--warm)"
+          confirmed={!!map.threeyr_time_confirmed}
+          confirmedSummary={map.threeyr_time_confirmed ? map.threeyr_time_sentence : null}>
+          {timePicked.map(id => {
+            const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+            const stored = (map.threeyr_time_items || {})[id] || { text: "", goal: "" };
+            const bagStored = (map.time_items || {})[id] || {};
+            const meta = preset || { label: bagStored.label || id, icon: bagStored.icon || "✨" };
+            const bagHint = (bagStored.goal || bagStored.text || "").trim();
+            return (
+              <SimpleItemCard_v2
+                key={id}
+                icon={meta.icon}
+                label={meta.label}
+                color="var(--warm)"
+                text={stored.text}
+                goal={stored.goal}
+                promptText={`What does this look like in ${year}?`}
+                hintText={bagHint || null}
+                hintLabel={`From BAG · ${new Date().getFullYear() + 12}`}
+                onTextChange={v => updateTimeItem(id, "text", v)}
+                onGoalChange={v => updateTimeItem(id, "goal", v)}
+              />
+            );
+          })}
+          <SummaryGenerator_v2
+            color="var(--warm)"
+            label="Time"
+            bottomTitle={`In one sentence, my time in ${year} is...`}
+            sourceText={Object.values(map.threeyr_time_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
+            existingConfirmed={map.threeyr_time_confirmed ? map.threeyr_time_sentence : null}
+            onConfirm={text => {
+              set("threeyr_time_sentence", text);
+              set("threeyr_time_confirmed", true);
+            }}
+          />
+        </CollapsibleSegment_v2>
+
+        {/* WEALTH */}
+        <CollapsibleSegment_v2
+          icon="💰" title="Wealth" color="#34d399"
+          confirmed={!!map.threeyr_wealth_confirmed}
+          confirmedSummary={map.threeyr_wealth_confirmed ? map.threeyr_wealth_sentence : null}>
+          {wealthPicked.map(id => {
+            const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+            const stored = (map.threeyr_wealth_items || {})[id] || { text: "", goal: "" };
+            const bagStored = (map.wealth_items || {})[id] || {};
+            const meta = preset || { label: bagStored.label || id, icon: bagStored.icon || "✨" };
+            const bagHint = (bagStored.goal || bagStored.text || "").trim();
+            return (
+              <SimpleItemCard_v2
+                key={id}
+                icon={meta.icon}
+                label={meta.label}
+                color="#34d399"
+                text={stored.text}
+                goal={stored.goal}
+                promptText={`What does this look like in ${year}?`}
+                hintText={bagHint || null}
+                hintLabel={`From BAG · ${new Date().getFullYear() + 12}`}
+                onTextChange={v => updateWealthItem(id, "text", v)}
+                onGoalChange={v => updateWealthItem(id, "goal", v)}
+              />
+            );
+          })}
+          <SummaryGenerator_v2
+            color="#34d399"
+            label="Wealth"
+            bottomTitle={`In one sentence, my wealth in ${year} is...`}
+            sourceText={Object.values(map.threeyr_wealth_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
+            existingConfirmed={map.threeyr_wealth_confirmed ? map.threeyr_wealth_sentence : null}
+            onConfirm={text => {
+              set("threeyr_wealth_sentence", text);
+              set("threeyr_wealth_confirmed", true);
+            }}
+          />
+        </CollapsibleSegment_v2>
+
+        {/* GROWTH -- free writing + Summary Generator (no cards, no S/H/F per v3.1) */}
+        <CollapsibleSegment_v2
+          icon="🌱" title="Growth" color="#a78bfa"
+          confirmed={!!map.threeyr_growth_confirmed}
+          confirmedSummary={map.threeyr_growth_confirmed ? map.threeyr_growth_sentence : null}>
+          <div style={{
+            fontSize:13, color:"var(--text2)", lineHeight:1.6, marginBottom:14, marginTop:8,
+            padding:"10px 14px",
+            background:"rgba(255,255,255,.03)",
+            borderLeft:"2px solid #a78bfa", borderRadius:4,
+          }}>
+            Who are you in {year}? Write freely about who you're becoming -- then summarise into one sentence at the bottom.
           </div>
-        )}
-      </div>
-
-      {/* WEALTH -- collapsible */}
-      <div style={{ marginBottom:10, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:11, overflow:"hidden" }}>
-        <div style={{ padding:"4px 14px 0", borderBottom: wealthOpen ? "1px solid var(--border)" : "none" }}>
-          <SectionHeader icon="💰" label="Wealth" color="#34d399"
-            isOpen={wealthOpen} onToggle={() => setWealthOpen(o => !o)}
-            summary={map.wealth_summary} summaryColor="#34d399" />
-        </div>
-        {wealthOpen && (
-          <div className="fade-in" style={{ padding:"14px 14px 18px" }}>
-            <div style={{ marginBottom:16 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-                <span style={{ fontSize:12 }}>✍️</span>
-                <label style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"#34d399" }}>In one sentence -- my financial life in {String(new Date().getFullYear() + 12)} looks like...</label>
-              </div>
-              <div style={{ fontSize:11, color:"var(--text4)", marginBottom:6 }}>This is what gets shown in your mirror. Make it vivid.</div>
-              <textarea rows={2} value={map.wealth_summary || ""} onChange={e => set("wealth_summary", e.target.value)}
-                placeholder="e.g. I have complete financial freedom -- my assets generate income, my family is secure, and I give generously without thinking twice..."
-                className="to-field summary-field" style={{ fontSize:15, fontFamily:"var(--serif)", fontStyle:"italic", color:"#34d399", lineHeight:1.7 }} />
-            </div>
-            {[
-              { key:"bag_retirement", label:"Retirement",         icon:"🏡", placeholder:"What does retirement look like -- when, how, what does life feel like when you stop working by necessity?", editable:false },
-              { key:"bag_assets",     label:"Assets",             icon:"🏛️",  placeholder:"Property, investments, business equity -- what have you built and what does it generate?", editable:false },
-              { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈", placeholder:"What does your annual income or cash flow look like? What level creates genuine freedom?", editable:false },
-              { key:"bag_other",      label: map.bag_other_label || "Other", icon:"✦", placeholder:"Legacy, giving, philanthropy, financial milestones...", editable:true },
-            ].map(f => (
-              <div key={f.key} style={{ marginBottom:13 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-                  <span style={{ fontSize:13 }}>{f.icon}</span>
-                  {f.editable ? (
-                    <input type="text" value={map.bag_other_label || ""} placeholder="Other"
-                      onChange={e => set("bag_other_label", e.target.value)}
-                      style={{ fontSize:12, fontWeight:500, color:"#34d399", background:"transparent", border:"1px dashed rgba(52,211,153,.35)", borderRadius:4, padding:"1px 6px", outline:"none", fontFamily:"var(--sans)", width:140 }} />
-                  ) : (
-                    <label style={{ fontSize:12, fontWeight:500, color:"#34d399" }}>{f.label}</label>
-                  )}
-                </div>
-                <textarea rows={3} value={map[f.key] || ""} onChange={e => set(f.key, e.target.value)}
-                  placeholder={f.placeholder} className="to-field" style={{ fontSize:13 }} />
-              </div>
-            ))}
+          <div style={{
+            marginBottom:12, padding:"12px 14px",
+            background:"rgba(255,255,255,.03)",
+            border:"1px solid var(--border2)",
+            borderLeft:"3px solid #a78bfa",
+            borderRadius:6,
+          }}>
+            <div style={{
+              fontSize:11, letterSpacing:1.5, textTransform:"uppercase",
+              color:"#a78bfa", fontWeight:600, marginBottom:6,
+            }}>Who you are in {year} -- write freely</div>
+            <textarea
+              value={map.threeyr_growth_text || ""}
+              onChange={e => set("threeyr_growth_text", e.target.value)}
+              placeholder="Who have you become? What have you built? What's different about you?"
+              rows={4}
+              style={{
+                width:"100%", background:"rgba(0,0,0,.2)",
+                border:"1px solid var(--border2)", borderRadius:4,
+                padding:"8px 10px", color:"var(--text)",
+                fontFamily:"var(--serif)", fontSize:14, outline:"none",
+                resize:"vertical", lineHeight:1.5,
+              }} />
           </div>
-        )}
-      </div>
+          <SummaryGenerator_v2
+            color="#a78bfa"
+            label="Growth"
+            bottomTitle={`In one sentence, who I am in ${year}...`}
+            sourceText={map.threeyr_growth_text || ""}
+            existingConfirmed={map.threeyr_growth_confirmed ? map.threeyr_growth_sentence : null}
+            onConfirm={text => {
+              set("threeyr_growth_sentence", text);
+              set("threeyr_growth_confirmed", true);
+            }}
+          />
+        </CollapsibleSegment_v2>
 
-      {/* GROWTH -- collapsible */}
-      <div style={{ marginBottom:10, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:11, overflow:"hidden" }}>
-        <div style={{ padding:"4px 14px 0", borderBottom: growthOpen ? "1px solid var(--border)" : "none" }}>
-          <SectionHeader icon="🌱" label="Growth" color="#a78bfa"
-            isOpen={growthOpen} onToggle={() => setGrowthOpen(o => !o)}
-            summary={map.growth_summary} summaryColor="#a78bfa" />
-        </div>
-        {growthOpen && (
-          <div className="fade-in" style={{ padding:"14px 14px 18px" }}>
-            <div style={{ marginBottom:14 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-                <span style={{ fontSize:12 }}>✍️</span>
-                <label style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"#a78bfa" }}>In one sentence -- who I am in {String(new Date().getFullYear() + 12)}...</label>
-              </div>
-              <div style={{ fontSize:11, color:"var(--text4)", marginBottom:6 }}>This is what gets shown in your mirror. Make it personal.</div>
-              <textarea rows={2} value={map.growth_summary || ""} onChange={e => set("growth_summary", e.target.value)}
-                placeholder="e.g. I am deeply grounded, I show up with full presence, I have let go of needing to prove myself..."
-                className="to-field summary-field" style={{ fontSize:15, fontFamily:"var(--serif)", fontStyle:"italic", color:"#a78bfa", lineHeight:1.7 }} />
-            </div>
-            <div style={{ padding:"9px 13px", background:"rgba(167,139,250,.05)", border:"1px solid rgba(167,139,250,.15)", borderRadius:7, marginBottom:10 }}>
-              <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)", lineHeight:1.6 }}>
-                Describe more fully -- who are you? How do you show up? What have you let go of? What have you stepped into?
-              </div>
-            </div>
-            <textarea rows={5} value={map.bag_growth || ""} onChange={e => set("bag_growth", e.target.value)}
-              placeholder="In 10–15 years, as a person I am... I show up... I have let go of... I have become..."
-              className="to-field" style={{ fontSize:13, fontFamily:"var(--serif)", fontStyle:"italic", color:"var(--warm)" }} />
+        {/* TIER RANKING -- fresh ranking for this horizon */}
+        <TierRankingSection_v2
+          items={threeyrItems}
+          tiers={map.threeyr_tiers || {}}
+          setTiers={next => set("threeyr_tiers", next)}
+          horizonLabel={String(year)}
+          confirmed={!!map.threeyr_ranking_confirmed}
+          onConfirmed={() => set("threeyr_ranking_confirmed", true)}
+        />
+      </>)}
+    </div>
+  );
+}
 
-            <div style={{ height:14 }} />
+// W.2: OneYearPage -- Direction · 1-Year (v3.1 Page 7)
+// Pre-fills Time and Wealth categories from BAG. Growth pulls from Identity/Values lowest scores.
+// Tier ranking includes Time + Wealth + accepted Identity/Values seeds + custom growth items.
+function OneYearPage({ map, set }) {
+  const year = new Date().getFullYear() + 1;
 
-            {[
-              { key:"bag_growth_1", labelKey:"bag_growth_label1", defaultLabel:"Skills & Learning",      icon:"🧠", placeholder:"Skills, knowledge, mastery -- what are you learning, building expertise in?", editable:false },
-              { key:"bag_growth_2", labelKey:"bag_growth_label2", defaultLabel:"Relationships",          icon:"🤝", placeholder:"How you show up in your closest relationships -- partner, family, friends...", editable:false },
-              { key:"bag_growth_3", labelKey:"bag_growth_label3", defaultLabel:"Purpose & Contribution", icon:"✨", placeholder:"How you contribute -- impact on others, communities, the world...", editable:false },
-              { key:"bag_growth_4", labelKey:"bag_growth_label4", defaultLabel:"Other",                  icon:"✦",  placeholder:"Anything else -- a dimension of growth that matters to you...", editable:true },
-            ].map(f => (
-              <div key={f.key} style={{ marginBottom:13 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-                  <span style={{ fontSize:13 }}>{f.icon}</span>
-                  {f.editable ? (
-                    <input type="text" value={map[f.labelKey] || ""} placeholder={f.defaultLabel}
-                      onChange={e => set(f.labelKey, e.target.value)}
-                      style={{ fontSize:12, fontWeight:500, color:"#a78bfa", background:"transparent", border:"1px dashed rgba(167,139,250,.35)", borderRadius:4, padding:"1px 6px", outline:"none", fontFamily:"var(--sans)", width:200 }} />
-                  ) : (
-                    <label style={{ fontSize:12, fontWeight:500, color:"#a78bfa" }}>{f.defaultLabel}</label>
-                  )}
-                </div>
-                <textarea rows={3} value={map[f.key] || ""} onChange={e => set(f.key, e.target.value)}
-                  placeholder={f.placeholder} className="to-field" style={{ fontSize:13 }} />
-              </div>
-            ))}
+  // Pre-fill on first visit (same pattern as 3-Year)
+  useEffect(() => {
+    const hasTimeItems = Object.keys(map.oneyr_time_items || {}).length > 0;
+    const hasWealthItems = Object.keys(map.oneyr_wealth_items || {}).length > 0;
+    if (!hasTimeItems && (map.time_picked || []).length > 0) {
+      const seeded = {};
+      (map.time_picked || []).forEach(id => { seeded[id] = { text: "", goal: "" }; });
+      set("oneyr_time_items", seeded);
+    }
+    if (!hasWealthItems && (map.wealth_picked || []).length > 0) {
+      const seeded = {};
+      (map.wealth_picked || []).forEach(id => { seeded[id] = { text: "", goal: "" }; });
+      set("oneyr_wealth_items", seeded);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Compute live Identity/Values growth seeds (lowest-scoring items)
+  const seeds = useMemo(() => computeIdentityValuesSeeds(map, 4), [
+    map.animals, map.values, map.val_count,
+    // Depend on all the underlying scores — shallow diff is fine since map is rewritten on each set()
+    JSON.stringify(Object.keys(map).filter(k => k.startsWith("align_cap_") || k.startsWith("align_val_")).reduce((o, k) => ((o[k] = map[k]), o), {})),
+  ]);
+
+  // Tier ranking items: Time + Wealth picks + Growth vision (if confirmed) + accepted seeds + custom items
+  const oneyrItems = useMemo(() => {
+    const items = [];
+    (map.time_picked || []).forEach(id => {
+      const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.time_items || {})[id] || {};
+      items.push({
+        id: `t_${id}`,
+        segment: "Time",
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "",
+      });
+    });
+    (map.wealth_picked || []).forEach(id => {
+      const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.wealth_items || {})[id] || {};
+      items.push({
+        id: `w_${id}`,
+        segment: "Wealth",
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "",
+      });
+    });
+    if (map.oneyr_growth_confirmed && (map.oneyr_growth_sentence || "").trim()) {
+      items.push({ id: "g_main", segment: "Growth", label: "Growth vision", icon: "🌱" });
+    }
+    // Accepted Identity/Values seeds
+    const accepted = map.oneyr_growth_accepted || {};
+    const editedLabels = map.oneyr_growth_edited_labels || {};
+    const removed = map.oneyr_growth_removed || {};
+    seeds.forEach(s => {
+      if (removed[s.id]) return;
+      if (!accepted[s.id]) return;
+      items.push({
+        id: `g_${s.id}`,
+        segment: "Growth",
+        label: editedLabels[s.id] ?? s.label,
+        icon: s.kind === "identity" ? "⚡" : "🧭",
+        suggested: true,
+      });
+    });
+    // Custom growth items (always accepted)
+    (map.oneyr_growth_custom || []).forEach(item => {
+      items.push({
+        id: `g_custom_${item.id}`,
+        segment: "Growth",
+        label: item.label,
+        icon: "✦",
+      });
+    });
+    return items;
+  }, [map.time_picked, map.time_items, map.wealth_picked, map.wealth_items,
+      map.oneyr_growth_confirmed, map.oneyr_growth_sentence,
+      map.oneyr_growth_accepted, map.oneyr_growth_edited_labels,
+      map.oneyr_growth_removed, map.oneyr_growth_custom,
+      seeds]);
+
+  const timePicked = (map.time_picked || []) as string[];
+  const wealthPicked = (map.wealth_picked || []) as string[];
+  const hasBagData = timePicked.length > 0 || wealthPicked.length > 0;
+
+  const updateTimeItem = (id, field, value) => {
+    const items = { ...(map.oneyr_time_items || {}) };
+    items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
+    set("oneyr_time_items", items);
+  };
+  const updateWealthItem = (id, field, value) => {
+    const items = { ...(map.oneyr_wealth_items || {}) };
+    items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
+    set("oneyr_wealth_items", items);
+  };
+
+  return (
+    <div>
+      {!hasBagData && (
+        <div style={{
+          padding:"18px 20px", marginBottom:20,
+          background:"rgba(201,168,76,.06)", borderLeft:"3px solid var(--warm)",
+          borderRadius:8,
+          fontSize:13, color:"var(--text2)", lineHeight:1.6,
+        }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", marginBottom:8 }}>
+            Come back here after BAG.
           </div>
-        )}
-      </div>
+          Pick your Time and Wealth priorities in the BAG page first -- this 1-Year page refines them rather than starting blank.
+        </div>
+      )}
+
+      {hasBagData && (<>
+        <PrefillNote_v2>
+          Pre-filled from your 3-Year. Refine what each looks like for {year}.
+        </PrefillNote_v2>
+
+        {/* TIME */}
+        <CollapsibleSegment_v2
+          icon="⏳" title="Time" color="var(--warm)"
+          confirmed={!!map.oneyr_time_confirmed}
+          confirmedSummary={map.oneyr_time_confirmed ? map.oneyr_time_sentence : null}>
+          {timePicked.map(id => {
+            const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+            const stored = (map.oneyr_time_items || {})[id] || { text: "", goal: "" };
+            const threeyrStored = (map.threeyr_time_items || {})[id] || {};
+            const bagStored = (map.time_items || {})[id] || {};
+            const meta = preset || { label: bagStored.label || id, icon: bagStored.icon || "✨" };
+            // Hint: prefer 3-Year text (closer horizon), fall back to BAG
+            const hintFromThreeYr = (threeyrStored.goal || threeyrStored.text || "").trim();
+            const hintFromBag = (bagStored.goal || bagStored.text || "").trim();
+            const hintText = hintFromThreeYr || hintFromBag || null;
+            const hintLabel = hintFromThreeYr
+              ? `From 3-Year · ${new Date().getFullYear() + 3}`
+              : `From BAG · ${new Date().getFullYear() + 12}`;
+            return (
+              <SimpleItemCard_v2
+                key={id}
+                icon={meta.icon}
+                label={meta.label}
+                color="var(--warm)"
+                text={stored.text}
+                goal={stored.goal}
+                promptText={`What does this look like in ${year}?`}
+                hintText={hintText}
+                hintLabel={hintLabel}
+                onTextChange={v => updateTimeItem(id, "text", v)}
+                onGoalChange={v => updateTimeItem(id, "goal", v)}
+              />
+            );
+          })}
+          <SummaryGenerator_v2
+            color="var(--warm)"
+            label="Time"
+            bottomTitle={`In one sentence, my time in ${year} is...`}
+            sourceText={Object.values(map.oneyr_time_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
+            existingConfirmed={map.oneyr_time_confirmed ? map.oneyr_time_sentence : null}
+            onConfirm={text => {
+              set("oneyr_time_sentence", text);
+              set("oneyr_time_confirmed", true);
+            }}
+          />
+        </CollapsibleSegment_v2>
+
+        {/* WEALTH */}
+        <CollapsibleSegment_v2
+          icon="💰" title="Wealth" color="#34d399"
+          confirmed={!!map.oneyr_wealth_confirmed}
+          confirmedSummary={map.oneyr_wealth_confirmed ? map.oneyr_wealth_sentence : null}>
+          {wealthPicked.map(id => {
+            const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+            const stored = (map.oneyr_wealth_items || {})[id] || { text: "", goal: "" };
+            const threeyrStored = (map.threeyr_wealth_items || {})[id] || {};
+            const bagStored = (map.wealth_items || {})[id] || {};
+            const meta = preset || { label: bagStored.label || id, icon: bagStored.icon || "✨" };
+            const hintFromThreeYr = (threeyrStored.goal || threeyrStored.text || "").trim();
+            const hintFromBag = (bagStored.goal || bagStored.text || "").trim();
+            const hintText = hintFromThreeYr || hintFromBag || null;
+            const hintLabel = hintFromThreeYr
+              ? `From 3-Year · ${new Date().getFullYear() + 3}`
+              : `From BAG · ${new Date().getFullYear() + 12}`;
+            return (
+              <SimpleItemCard_v2
+                key={id}
+                icon={meta.icon}
+                label={meta.label}
+                color="#34d399"
+                text={stored.text}
+                goal={stored.goal}
+                promptText={`What does this look like in ${year}?`}
+                hintText={hintText}
+                hintLabel={hintLabel}
+                onTextChange={v => updateWealthItem(id, "text", v)}
+                onGoalChange={v => updateWealthItem(id, "goal", v)}
+              />
+            );
+          })}
+          <SummaryGenerator_v2
+            color="#34d399"
+            label="Wealth"
+            bottomTitle={`In one sentence, my wealth in ${year} is...`}
+            sourceText={Object.values(map.oneyr_wealth_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
+            existingConfirmed={map.oneyr_wealth_confirmed ? map.oneyr_wealth_sentence : null}
+            onConfirm={text => {
+              set("oneyr_wealth_sentence", text);
+              set("oneyr_wealth_confirmed", true);
+            }}
+          />
+        </CollapsibleSegment_v2>
+
+        {/* GROWTH -- 1-Year special: suggestions from Identity/Values + free-writing + summary */}
+        <CollapsibleSegment_v2
+          icon="🌱" title="Growth" color="#a78bfa"
+          confirmed={!!map.oneyr_growth_confirmed}
+          confirmedSummary={map.oneyr_growth_confirmed ? map.oneyr_growth_sentence : null}>
+          <div style={{
+            fontSize:13, color:"var(--text2)", lineHeight:1.6, marginBottom:14, marginTop:8,
+            padding:"10px 14px",
+            background:"rgba(255,255,255,.03)",
+            borderLeft:"2px solid #a78bfa", borderRadius:4,
+          }}>
+            Your 1-year Growth pulls from your Identity &amp; Values alignment below.
+            Accept the suggestions, edit them, or remove them and add your own.
+          </div>
+
+          <GrowthSuggestions_v2
+            seeds={seeds}
+            accepted={map.oneyr_growth_accepted || {}}
+            setAccepted={v => set("oneyr_growth_accepted", v)}
+            editedLabels={map.oneyr_growth_edited_labels || {}}
+            setEditedLabels={v => set("oneyr_growth_edited_labels", v)}
+            removed={map.oneyr_growth_removed || {}}
+            setRemoved={v => set("oneyr_growth_removed", v)}
+            custom={map.oneyr_growth_custom || []}
+            setCustom={v => set("oneyr_growth_custom", v)}
+          />
+
+          <div style={{
+            marginBottom:12, padding:"12px 14px",
+            background:"rgba(255,255,255,.03)",
+            border:"1px solid var(--border2)",
+            borderLeft:"3px solid #a78bfa",
+            borderRadius:6,
+          }}>
+            <div style={{
+              fontSize:11, letterSpacing:1.5, textTransform:"uppercase",
+              color:"#a78bfa", fontWeight:600, marginBottom:6,
+            }}>Who you are in {year} -- write freely</div>
+            <textarea
+              value={map.oneyr_growth_text || ""}
+              onChange={e => set("oneyr_growth_text", e.target.value)}
+              placeholder="What are you becoming this year? What are you doing differently?"
+              rows={4}
+              style={{
+                width:"100%", background:"rgba(0,0,0,.2)",
+                border:"1px solid var(--border2)", borderRadius:4,
+                padding:"8px 10px", color:"var(--text)",
+                fontFamily:"var(--serif)", fontSize:14, outline:"none",
+                resize:"vertical", lineHeight:1.5,
+              }} />
+          </div>
+          <SummaryGenerator_v2
+            color="#a78bfa"
+            label="Growth"
+            bottomTitle={`In one sentence, who I am in ${year}...`}
+            sourceText={map.oneyr_growth_text || ""}
+            existingConfirmed={map.oneyr_growth_confirmed ? map.oneyr_growth_sentence : null}
+            onConfirm={text => {
+              set("oneyr_growth_sentence", text);
+              set("oneyr_growth_confirmed", true);
+            }}
+          />
+        </CollapsibleSegment_v2>
+
+        {/* TIER RANKING -- fresh ranking for this horizon */}
+        <TierRankingSection_v2
+          items={oneyrItems}
+          tiers={map.oneyr_tiers || {}}
+          setTiers={next => set("oneyr_tiers", next)}
+          horizonLabel={String(year)}
+          confirmed={!!map.oneyr_ranking_confirmed}
+          onConfirmed={() => set("oneyr_ranking_confirmed", true)}
+        />
+      </>)}
+    </div>
+  );
+}
+
+// W.3: DirectionAlignmentPage -- Direction Alignment (v3.1 Page 8)
+// 3 horizons × 3 tiers × N items. Per-item sliders score TODAY's reality against each priority.
+// Feeds A2's Misalignment engine. This is the final page of A1.
+function DirectionAlignmentPage({ map, set }) {
+  const year = new Date().getFullYear();
+  // Compute 1-Year seeds the same way OneYearPage does — needed for 1-Year items
+  const seeds = useMemo(() => computeIdentityValuesSeeds(map, 4), [
+    map.animals, map.values, map.val_count,
+    JSON.stringify(Object.keys(map).filter(k => k.startsWith("align_cap_") || k.startsWith("align_val_")).reduce((o, k) => ((o[k] = map[k]), o), {})),
+  ]);
+
+  const oneyrItems  = useMemo(() => computeHorizonItems(map, "oneyr", seeds), [map, seeds]);
+  const threeyrItems = useMemo(() => computeHorizonItems(map, "threeyr"), [map]);
+  const bagItems    = useMemo(() => computeHorizonItems(map, "bag"), [map]);
+
+  const totalItems = oneyrItems.length + threeyrItems.length + bagItems.length;
+
+  return (
+    <div>
+      {totalItems === 0 && (
+        <div style={{
+          padding:"18px 20px", marginBottom:20,
+          background:"rgba(201,168,76,.06)", borderLeft:"3px solid var(--warm)",
+          borderRadius:8,
+          fontSize:13, color:"var(--text2)", lineHeight:1.6,
+        }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", marginBottom:8 }}>
+            Complete your horizons first.
+          </div>
+          Build out your BAG, 3-Year, and 1-Year priorities before scoring. Once you've picked priorities and ranked them, you'll score TODAY's reality against each one here.
+        </div>
+      )}
+
+      {totalItems > 0 && (<>
+        <div style={{
+          marginTop:18, marginBottom:18, padding:"12px 16px",
+          background:"rgba(201,168,76,.08)",
+          borderLeft:"3px solid var(--warm)", borderRadius:6,
+          fontSize:13, color:"var(--text2)", lineHeight:1.6,
+        }}>
+          <strong style={{ color:"var(--warm)" }}>How to read this:</strong> Your 1-Year Non-negotiable average
+          should be higher than your BAG Non-negotiable average -- because 1-year is closer to today.
+          If a far-horizon Non-negotiable scores higher than a near-horizon Non-negotiable, that IS the misalignment.
+        </div>
+
+        <div style={{
+          display:"grid",
+          gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))",
+          gap:14, marginTop:14, marginBottom:18,
+        }}>
+          <HorizonAlignmentColumn_v2
+            horizonKey="oneyr"
+            horizonLabel={`1-Year · ${year + 1}`}
+            items={oneyrItems} map={map} set={set} />
+          <HorizonAlignmentColumn_v2
+            horizonKey="threeyr"
+            horizonLabel={`3-Year · ${year + 3}`}
+            items={threeyrItems} map={map} set={set} />
+          <HorizonAlignmentColumn_v2
+            horizonKey="bag"
+            horizonLabel={`BAG · ${year + 12}`}
+            items={bagItems} map={map} set={set} />
+        </div>
+
+        <div style={{
+          padding:"12px 16px",
+          background:"rgba(201,168,76,.08)",
+          borderLeft:"3px solid var(--warm)", borderRadius:6,
+          fontSize:13, color:"var(--text2)", lineHeight:1.6,
+        }}>
+          <strong style={{ color:"var(--warm)" }}>Feeds into A2:</strong> these scores become the raw data for
+          A2's Key Misalignment surfacing. The biggest gap between tier priority and actual score --
+          especially Non-negotiable items at 1-year -- is where the misalignment diagnosis starts.
+        </div>
+      </>)}
     </div>
   );
 }
@@ -1034,6 +3489,109 @@ function VideoBlock({ title, duration, points }) {
   );
 }
 
+// W.4: Lightweight name-only intake for beta testing phase.
+// Appears at app root when localStorage has no intake data.
+// Produces the same intake shape as the full Intake component so downstream code is unchanged.
+function NameModal({ onDone }) {
+  const [name, setName] = useState("");
+  const trimmed = name.trim();
+  const canSubmit = trimmed.length >= 1;
+
+  const submit = () => {
+    if (!canSubmit) return;
+    onDone({
+      name: trimmed,
+      q1: "",
+      q2: "",
+      q3: "",
+      defaultVoice: "coach",
+    });
+  };
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#0d1b2e",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 28,
+    }}>
+      <style>{CSS}</style>
+      <div className="fade-up" style={{
+        maxWidth: 440,
+        width: "100%",
+        background: "var(--bg2)",
+        border: "1px solid rgba(201,168,76,.25)",
+        borderRadius: 14,
+        padding: "36px 32px",
+      }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase",
+          color: "#c9a84c", marginBottom: 14, fontFamily: "var(--sans)",
+        }}>AG45 · True Ownership</div>
+
+        <h1 style={{
+          fontFamily: "var(--serif)", fontSize: 36, fontWeight: 400, lineHeight: 1.15,
+          letterSpacing: "-0.3px", marginBottom: 14, color: "var(--text)",
+        }}>Welcome.<br /><em>Let's begin.</em></h1>
+
+        <p style={{
+          fontSize: 14, color: "var(--text2)", lineHeight: 1.7, marginBottom: 26,
+        }}>
+          Before we start -- what should I call you?
+        </p>
+
+        <div style={{ marginBottom: 18 }}>
+          <label style={{
+            display: "block", fontSize: 10, fontWeight: 700, letterSpacing: 2,
+            textTransform: "uppercase", color: "var(--warm)", marginBottom: 8,
+            fontFamily: "var(--sans)",
+          }}>Your name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && canSubmit) submit(); }}
+            autoFocus
+            placeholder="First name is fine"
+            style={{
+              width: "100%",
+              background: "var(--bg)",
+              border: "1px solid var(--border2)",
+              borderRadius: 8,
+              color: "var(--text)",
+              fontFamily: "var(--sans)",
+              fontSize: 16,
+              padding: "12px 14px",
+              outline: "none",
+            }}
+          />
+        </div>
+
+        <button
+          onClick={submit}
+          disabled={!canSubmit}
+          className="btn"
+          style={{
+            width: "100%",
+            opacity: canSubmit ? 1 : 0.4,
+            cursor: canSubmit ? "pointer" : "not-allowed",
+          }}>
+          Begin All In It →
+        </button>
+
+        <div style={{
+          marginTop: 20, fontSize: 11, color: "var(--text4)",
+          fontFamily: "var(--sans)", lineHeight: 1.6, textAlign: "center",
+        }}>
+          Your answers are saved to this browser. Progress is safe -- come back any time.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Intake({ onDone }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -1168,8 +3726,11 @@ const STEPS = [
   { id:"to_intro", label:"True Ownership" },
   { id:"intro",   label:"Introduction" },
   { id:"mirror1", label:"Purpose · Direction" },
+  { id:"direction_3yr",   label:"Direction · 3-Year" },
   { id:"mirror2", label:"Identity · Superpowers" },
   { id:"mirror3", label:"Values · Behaviors" },
+  { id:"direction_1yr",   label:"Direction · 1-Year" },
+  { id:"direction_align", label:"Direction Alignment" },
   { id:"align",   label:"Alignment Check" },
   { id:"map",     label:"My Map of Me" },
 ];
@@ -1180,6 +3741,36 @@ const EMPTY_MAP = {
   bag_year: "",
   life_areas: [],
   bag_retirement: "", bag_assets: "", bag_cashflow: "", bag_other: "",
+  wealth_chips: [], bag_wealth_items: {},
+  // W.1a: new wealth state shape (prototype parity)
+  wealth_picked: [], wealth_items: {},
+  wealth_see_hear_feel: { see: "", hear: "", feel: "" },
+  wealth_overall_sentence: "", wealth_overall_confirmed: false,
+  // W.1a-ext: new time state shape (prototype parity)
+  time_picked: [], time_items: {},
+  time_see_hear_feel: { see: "", hear: "", feel: "" },
+  time_overall_sentence: "", time_overall_confirmed: false,
+  // W.1a-ext: new growth state shape (prototype parity — no cards, just S/H/F + sentence)
+  growth_see_hear_feel: { see: "", hear: "", feel: "" },
+  growth_sentence: "", growth_confirmed: false,
+  // W.1c: tier ranking state for BAG
+  bag_tiers: {}, bag_ranking_confirmed: false,
+  // W.2: Direction · 3-Year state (pre-fills from BAG)
+  threeyr_time_items: {}, threeyr_wealth_items: {},
+  threeyr_time_sentence: "", threeyr_time_confirmed: false,
+  threeyr_wealth_sentence: "", threeyr_wealth_confirmed: false,
+  threeyr_growth_text: "",
+  threeyr_growth_sentence: "", threeyr_growth_confirmed: false,
+  threeyr_tiers: {}, threeyr_ranking_confirmed: false,
+  // W.2: Direction · 1-Year state (pre-fills from BAG; Growth pulls from Identity/Values lowest scores)
+  oneyr_time_items: {}, oneyr_wealth_items: {},
+  oneyr_time_sentence: "", oneyr_time_confirmed: false,
+  oneyr_wealth_sentence: "", oneyr_wealth_confirmed: false,
+  oneyr_growth_text: "",
+  oneyr_growth_sentence: "", oneyr_growth_confirmed: false,
+  oneyr_growth_accepted: {}, oneyr_growth_edited_labels: {},
+  oneyr_growth_removed: {}, oneyr_growth_custom: [],
+  oneyr_tiers: {}, oneyr_ranking_confirmed: false,
   time_summary: "", wealth_summary: "", growth_summary: "",
   mirror1_reflection: "", mirror1_reflection_done: false,
   mirror2_sub: "qualities",
@@ -1777,7 +4368,8 @@ function A1({ intake, onDone }) {
     <div style={{ width:186, flexShrink:0, paddingRight:22, borderRight:"1px solid var(--border)" }}>
       <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text2)", marginBottom:15, fontFamily:"var(--sans)" }}>All In It · A1</div>
       {STEPS.map(s => {
-        const autoDone = (s.id === "intro"  && (((map.purpose_layers || [])[0] || "").trim() || step !== "intro")) ||
+        const autoDone = (s.id === "to_intro" && step !== "to_intro") ||
+                         (s.id === "intro"  && (((map.purpose_layers || [])[0] || "").trim() || step !== "intro")) ||
                          (s.id === "mirror2" && (map.animals?.length >= 1 && map.animals[0]?.name));
         const active = step === s.id, isDone = done.includes(s.id) || !!autoDone;
         return (
@@ -1805,10 +4397,76 @@ function A1({ intake, onDone }) {
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           {savedAt ? (<><div style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", flexShrink:0 }} /><span style={{ fontFamily:"var(--sans)", fontSize:11, color:"#34d399" }}>Auto-saved · {savedAt.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}</span></>) : (<><div style={{ width:6, height:6, borderRadius:"50%", background:"var(--text4)", flexShrink:0 }} /><span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Auto-saving your answers as you type</span></>)}
         </div>
-        <span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Your progress is safe -- come back any time</span>
+        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+          <button
+            onClick={() => {
+              if (!confirm(`Change your name? (Your progress stays -- just your name is updated.)`)) return;
+              const newName = (window.prompt("What should I call you?", name) || "").trim();
+              if (!newName) return;
+              const updatedIntake = { ...intake, name: newName };
+              saveData(KEYS.intake, updatedIntake);
+              // Reload so the updated intake propagates everywhere (name is read in many places)
+              window.location.reload();
+            }}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              fontFamily: "var(--sans)", fontSize: 11, color: "var(--text4)",
+              padding: 0, textDecoration: "underline",
+            }}
+            title="Change your name"
+          >Not {name}?</button>
+          <span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Your progress is safe -- come back any time</span>
+        </div>
       </div>
     </>
   );
+
+  if (step === "direction_1yr") {
+    return wrapContent(<>
+      <DirectionTimeline_v2 activeHorizon="oneyr" map={map} />
+      <div className="lbl" style={{ marginBottom:12 }}>Direction · 1-Year</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
+        1-Year · {new Date().getFullYear() + 1}
+      </h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:560 }}>
+        Closest horizon. This is what you can commit to. Your 1-year Growth draws
+        from your Identity &amp; Values alignment -- the lowest-scoring items surface below as suggestions.
+      </p>
+      <OneYearPage map={map} set={set} />
+      <div style={{ marginBottom:22, marginTop:18 }}>
+        <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+          sectionLabel="1-year direction"
+          placeholder="Ask Katherine about your 1-year commitments..." />
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
+        <button className="btn" onClick={() => { markDone("direction_1yr"); goto("direction_align"); }}>Direction Alignment →</button>
+      </div>
+    </>);
+  }
+  if (step === "direction_align") {
+    return wrapContent(<>
+      <DirectionTimeline_v2 map={map} />
+      <div className="lbl" style={{ marginBottom:12 }}>Direction Alignment</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
+        Direction Alignment
+      </h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:560 }}>
+        You've built your ladder. Now score TODAY's reality against each horizon.
+        The further the horizon, the bigger the gap should be -- unless something's misaligned.
+      </p>
+      <DirectionAlignmentPage map={map} set={set} />
+      <div style={{ marginBottom:22, marginTop:18 }}>
+        <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+          sectionLabel="direction alignment"
+          placeholder="Ask Katherine about the gaps between today and your direction..." />
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-Year</button>
+        <button className="btn" onClick={() => { markDone("direction_align"); goto("align"); }}>Alignment Check →</button>
+      </div>
+    </>);
+  }
 
   if (step === "to_intro") return wrapContent(<>
     <div className="lbl" style={{ marginBottom:11, color:"#B07312" }}>AG45 · The OWN IT Methodology</div>
@@ -1950,7 +4608,7 @@ function A1({ intake, onDone }) {
     {/* Continue button */}
     <div style={{ marginTop:36, paddingTop:28, borderTop:"1px solid var(--border)", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
       <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Open each card to take it in. When you&rsquo;re ready, continue.</div>
-      <button className="btn" onClick={() => goto("intro")}>Everything Starts With You &rarr;</button>
+      <button className="btn" onClick={() => { markDone("to_intro"); goto("intro"); }}>Everything Starts With You &rarr;</button>
     </div>
   </>);
 
@@ -2087,8 +4745,6 @@ function A1({ intake, onDone }) {
       {M1Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Direction</h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>Your BAG -- Big Ass Goal. The 10–15 year summit that your purpose points toward.</p>
-      <VideoBlock title="Direction -- Your Big Ass Goal" duration="~6 min"
-        points={["Your BAG: Time priorities, Wealth, and Growth","What you will see, hear, and feel in each life area","Dreamy and a bit scary -- 25% believable","How your BAG reflects your purpose"]} />
       <DirectionSection map={map} set={set} />
       <div style={{ marginBottom:22, marginTop:8 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
@@ -2146,57 +4802,98 @@ function A1({ intake, onDone }) {
             <span style={{ fontSize:18 }}>⛰️</span>
             <div>
               <div style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--accent)" }}>Direction · External</div>
-              <div style={{ fontSize:11, color:"var(--text4)" }}>Your BAG{map.bag_year ? ` · ${map.bag_year}` : " · 10–15 year summit"}</div>
+              <div style={{ fontSize:11, color:"var(--text4)" }}>Your BAG · {new Date().getFullYear() + 12}-year summit</div>
             </div>
           </div>
 
-          {/* Time summary */}
-          {map.time_summary && (
-            <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Time</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6 }}>"{map.time_summary}"</div>
-            </div>
-          )}
-
-          {/* Life goals list -- show goals if any, else chips */}
-          {(map.life_areas || []).length > 0 && (
-            <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:8 }}>
-                Life Goals {map.bag_year ? `· ${map.bag_year}` : ""}
-              </div>
-              {(map.life_areas || []).map((area, i) => (
-                <div key={area.id} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:9 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginTop:3 }}>
-                    <div style={{ width:15, height:15, borderRadius:"50%", background:"var(--warm)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                      <span style={{ fontSize:7, fontWeight:700, color:"#0d1b2e" }}>{i+1}</span>
+          {(() => {
+            // Reusable renderer for Time / Wealth segments: summary sentence + per-item list
+            const renderSegment = ({ label, color, pickedKey, itemsKey, summaryNew, summaryLegacy, presets, legacyList }) => {
+              const picked = (map[pickedKey] || []) as string[];
+              const itemsMap = (map[itemsKey] || {}) as Record<string, any>;
+              const summary = summaryNew || summaryLegacy || "";
+              // Build display items from new state first, falling back to legacy life_areas for Time
+              let displayItems: { id: string; icon: string; label: string; goal: string }[] = [];
+              if (picked.length > 0) {
+                displayItems = picked.map(id => {
+                  const preset = presets.find((p: any) => p.id === id);
+                  const stored = itemsMap[id] || {};
+                  return {
+                    id,
+                    icon:  preset?.icon  || stored.icon  || "•",
+                    label: preset?.label || stored.label || id,
+                    goal:  stored.goal || stored.text || "",
+                  };
+                });
+              } else if (legacyList && legacyList.length > 0) {
+                // Legacy fallback for Time (life_areas shape)
+                displayItems = legacyList.map((a: any) => ({
+                  id: a.id, icon: a.icon || "•", label: a.label || "", goal: a.goal || "",
+                }));
+              }
+              if (!summary && displayItems.length === 0) return null;
+              return (
+                <div style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>{label}</div>
+                  {summary && (
+                    <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color, lineHeight:1.6, marginBottom: displayItems.length > 0 ? 10 : 0 }}>"{summary}"</div>
+                  )}
+                  {displayItems.length > 0 && (
+                    <div>
+                      {displayItems.map((item, i) => (
+                        <div key={item.id} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:9 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginTop:3 }}>
+                            <div style={{ width:15, height:15, borderRadius:"50%", background: color, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                              <span style={{ fontSize:7, fontWeight:700, color:"#0d1b2e" }}>{i+1}</span>
+                            </div>
+                            <span style={{ fontSize:12 }}>{item.icon}</span>
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontFamily:"var(--sans)", fontSize:10, fontWeight:700, color, letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>{item.label}</div>
+                            {item.goal
+                              ? <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>{item.goal}</div>
+                              : <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>Not yet written</div>
+                            }
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <span style={{ fontSize:12 }}>{area.icon}</span>
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontFamily:"var(--sans)", fontSize:10, fontWeight:700, color:"var(--warm)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>{area.label}</div>
-                    {area.goal
-                      ? <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>{area.goal}</div>
-                      : <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>Goal not yet written</div>
-                    }
-                  </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            };
 
-          {/* Wealth summary */}
-          {map.wealth_summary && (
-            <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Wealth</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#34d399", lineHeight:1.6 }}>"{map.wealth_summary}"</div>
-            </div>
-          )}
+            return (<>
+              {renderSegment({
+                label: "Time",
+                color: "var(--warm)",
+                pickedKey: "time_picked",
+                itemsKey:  "time_items",
+                summaryNew:    map.time_overall_sentence,
+                summaryLegacy: map.time_summary,
+                presets: TIME_AREA_PRESETS,
+                legacyList: map.life_areas,
+              })}
+              {renderSegment({
+                label: "Wealth",
+                color: "#34d399",
+                pickedKey: "wealth_picked",
+                itemsKey:  "wealth_items",
+                summaryNew:    map.wealth_overall_sentence,
+                summaryLegacy: map.wealth_summary,
+                presets: WEALTH_AREA_PRESETS,
+                legacyList: null,
+              })}
+            </>);
+          })()}
 
-          {/* Growth summary */}
-          {(map.growth_summary || map.bag_growth) && (
+          {/* Growth summary -- summary-only, no list-out */}
+          {(map.growth_sentence || map.growth_summary || map.bag_growth) && (
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Growth</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#a78bfa", lineHeight:1.6 }}>"{map.growth_summary || map.bag_growth.slice(0, 120)}{!map.growth_summary && map.bag_growth.length > 120 ? "..." : ""}"</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#a78bfa", lineHeight:1.6 }}>
+                "{map.growth_sentence || map.growth_summary || (map.bag_growth || "").slice(0, 120) + ((map.bag_growth || "").length > 120 ? "..." : "")}"
+              </div>
             </div>
           )}
 
@@ -2208,13 +4905,55 @@ function A1({ intake, onDone }) {
       </div>
 
       {/* Katherine's read on alignment */}
-      {!ai.mirror1_align && (map.purpose_final || map.purpose_draft) && (map.life_areas || []).length > 0 && (
+      {!ai.mirror1_align && (map.purpose_final || map.purpose_draft) && (
+        (map.time_picked || []).length > 0 ||
+        (map.wealth_picked || []).length > 0 ||
+        (map.life_areas || []).length > 0
+      ) && (
         <div style={{ textAlign:"center", marginBottom:22 }}>
           <button className="btn" onClick={() => (() => {
-              const prioritiesList = (map.life_areas || []).map((a,i) => (i+1) + ". " + a.label + (a.feel ? " (feel: " + a.feel.slice(0,60) + ")" : "")).join(", ");
-              runAI("mirror1_align",
-                "You are Katherine Breuss. " + name + " has completed their Purpose and Direction. Purpose: \"" + (map.purpose_final || map.purpose_draft) + "\". Life priorities ranked: " + prioritiesList + ". BAG year: " + (map.bag_year || "not set") + ". Growth: \"" + (map.bag_growth || "") + "\". In 2-3 sentences: what is the thread between their purpose and their priorities? Does the ranking reflect their purpose? Name one specific alignment you see and one potential tension. Respond ONLY with a JSON object, no preamble: {\"thread\":\"...\",\"alignment\":\"...\",\"tension\":\"...\"}"
-              );
+              const year = new Date().getFullYear() + 12;
+              const purpose = map.purpose_final || map.purpose_draft || "";
+              // Time picks (new state preferred, legacy fallback)
+              const timePresetLabels = (map.time_picked || []).map(id => {
+                const p = TIME_AREA_PRESETS.find(pp => pp.id === id);
+                const stored = (map.time_items || {})[id] || {};
+                return p?.label || stored.label || id;
+              });
+              const legacyTimeLabels = (map.life_areas || []).map(a => a.label || a.id);
+              const timeLabels = timePresetLabels.length ? timePresetLabels : legacyTimeLabels;
+              // Wealth picks
+              const wealthLabels = (map.wealth_picked || []).map(id => {
+                const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id);
+                const stored = (map.wealth_items || {})[id] || {};
+                return p?.label || stored.label || id;
+              });
+              // Summary sentences (new preferred, legacy fallback)
+              const timeSummary   = map.time_overall_sentence   || map.time_summary   || "";
+              const wealthSummary = map.wealth_overall_sentence || map.wealth_summary || "";
+              const growthSummary = map.growth_sentence || map.growth_summary || map.bag_growth || "";
+
+              const prompt =
+                `You are Katherine Breuss, a direct but compassionate coach. ${name} has just set their Purpose and their BAG (big-ass goal -- their ${year} vision).
+Purpose: "${purpose}".
+BAG vision:
+- Time priorities: ${timeLabels.join(", ") || "none picked"}${timeSummary ? `. In one sentence: "${timeSummary}"` : ""}
+- Wealth priorities: ${wealthLabels.join(", ") || "none picked"}${wealthSummary ? `. In one sentence: "${wealthSummary}"` : ""}
+- Growth: "${growthSummary || "not yet written"}"
+
+This is the first time they see Purpose and Direction side-by-side. In 2-3 sentences each:
+1. What is the THREAD you see between their purpose and the vision they've painted?
+2. Name one specific ALIGNMENT -- where does the vision clearly serve the purpose? Reference their actual wording.
+3. Name one TENSION -- something to sit with, not fix right now.
+
+IMPORTANT CONSTRAINTS:
+- Do NOT critique how items are ranked or prioritised. Tier-ranking work happens later in Direction Alignment.
+- Do NOT tell them something is "last" or "non-negotiable" -- those words belong to tier-ranking pages.
+- Frame tension as "something to notice and sit with" -- A1 is construction, not diagnosis.
+- Be specific to what they wrote. No generic coaching phrases.
+
+Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..."}`;
+              runAI("mirror1_align", prompt);
             })()}>
             {busy.mirror1_align ? <span className="dot-l"><span /><span /><span /></span> : "✦ See how Purpose and Direction align"}
           </button>
@@ -2277,39 +5016,67 @@ function A1({ intake, onDone }) {
 
     // 1d -- ALIGNMENT
     if (m1sub === "alignment") {
-      const lifeAreas = (map.life_areas || []) as any[];
-      const wealthItems = [
-        { key:"retirement", label:"Retirement", editable:false },
-        { key:"assets",     label:"Assets", editable:false },
-        { key:"cashflow",   label:"Cashflow & Salary", editable:false },
-        { key:"other",      label: map.bag_other_label || "Other", editable:true, labelKey:"bag_other_label" },
-      ];
-      const growthItems = [
-        { key:"skills",        label: "Skills & Learning",                editable:false },
-        { key:"relationships", label: "Relationships",                    editable:false },
-        { key:"purpose",       label: "Purpose & Contribution",           editable:false },
-        { key:"other",         label: map.bag_growth_label4 || "Other",   editable:true, labelKey:"bag_growth_label4", placeholder:"Other" },
-      ];
+      // W.1b-A: Pull items from new state shape (time_picked / wealth_picked)
+      // with fallback to legacy life_areas for Time if the user hasn't migrated yet.
+      const timePicked = (map.time_picked || []) as string[];
+      const timeItemsMap = (map.time_items || {}) as Record<string, any>;
+      const timeItems = timePicked.length > 0
+        ? timePicked.map(id => {
+            const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+            const stored = timeItemsMap[id] || {};
+            return {
+              id,
+              label: preset?.label || stored.label || id,
+              icon:  preset?.icon  || stored.icon  || "✨",
+            };
+          })
+        // Legacy fallback: use life_areas array if no time_picked yet
+        : ((map.life_areas || []) as any[]).map(a => ({
+            id: a.id || a.label,
+            label: a.label || a.id || "",
+            icon: a.icon || "⏳",
+          }));
+
+      const wealthPicked = (map.wealth_picked || []) as string[];
+      const wealthItemsMap = (map.wealth_items || {}) as Record<string, any>;
+      const wealthItems = wealthPicked.map(id => {
+        const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+        const stored = wealthItemsMap[id] || {};
+        return {
+          id,
+          label: preset?.label || stored.label || id,
+          icon:  preset?.icon  || stored.icon  || "✨",
+        };
+      });
+
       const sections = [
-        { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_summary   || "", emptySentence:"Add your time vision in Direction first." },
-        { id:"wealth", label:"Wealth", icon:"$",  sentence: map.wealth_summary || "", emptySentence:"Add your wealth vision in Direction first." },
-        { id:"growth", label:"Growth", icon:"🌱", sentence: map.growth_summary || map.bag_growth || "", emptySentence:"Add your growth vision in Direction first." },
+        { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_overall_sentence || map.time_summary || "",
+          emptySentence:"Add your time vision in Direction first.",
+          emptyItems:"Pick your life priorities in Direction first." },
+        { id:"wealth", label:"Wealth", icon:"💰", sentence: map.wealth_overall_sentence || map.wealth_summary || "",
+          emptySentence:"Add your wealth vision in Direction first.",
+          emptyItems:"Pick your wealth categories in Direction first." },
+        { id:"growth", label:"Growth", icon:"🌱", sentence: map.growth_sentence || map.growth_summary || "",
+          emptySentence:"Write your growth vision in Direction first.",
+          emptyItems:"" },
       ];
 
-      // Per-card average (Time: avg of life_areas. Wealth: avg of wealthItems. Growth: single slider.)
-      const cardAvg = (sec) => {
+      // Per-card average
+      // Time: avg of per-item sliders (by id). Wealth: avg of per-item sliders (by id). Growth: single slider.
+      const cardAvg = (sec: any) => {
         if (sec.id === "time") {
-          if (!lifeAreas.length) return null;
-          const vals = lifeAreas.map(a => (map?.[`align1_time_${(a.label||a.id||"").toLowerCase()}`] ?? 5) as number);
+          if (!timeItems.length) return null;
+          const vals = timeItems.map(a => (map?.[`align1_time_${a.id}`] ?? 5) as number);
           return vals.reduce((s,v) => s+v, 0) / vals.length;
         }
         if (sec.id === "wealth") {
-          const vals = wealthItems.map(w => (map?.[`align1_wealth_${w.key}`] ?? 5) as number);
+          if (!wealthItems.length) return null;
+          const vals = wealthItems.map(w => (map?.[`align1_wealth_${w.id}`] ?? 5) as number);
           return vals.reduce((s,v) => s+v, 0) / vals.length;
         }
         if (sec.id === "growth") {
-          const vals = growthItems.map(g => (map?.[`align1_growth_${g.key}`] ?? 5) as number);
-          return vals.reduce((s,v) => s+v, 0) / vals.length;
+          if (!sec.sentence) return null;
+          return (map?.[`align1_growth`] ?? 5) as number;
         }
         return (map?.[`align_dir_${sec.id}`] ?? 5) as number;
       };
@@ -2346,18 +5113,17 @@ function A1({ intake, onDone }) {
                   )}
 
                   {sec.id === "time" ? (
-                    lifeAreas.length === 0 ? (
-                      <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>Select your life areas in Direction first.</div>
+                    timeItems.length === 0 ? (
+                      <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>{sec.emptyItems}</div>
                     ) : (
-                      lifeAreas.map((a) => {
-                        const aLabel = a.label || a.id || "";
-                        const k = `align1_time_${aLabel.toLowerCase()}`;
+                      timeItems.map((a) => {
+                        const k = `align1_time_${a.id}`;
                         const sv = (map?.[k] ?? 5) as number;
                         const sCol = sv >= 7 ? "#34d399" : sv >= 4 ? "#f59e0b" : "#ef4444";
                         return (
-                          <div key={a.id || aLabel} style={{ marginBottom:14 }}>
+                          <div key={a.id} style={{ marginBottom:14 }}>
                             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                              <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{aLabel}</span>
+                              <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{a.icon} {a.label}</span>
                               <span style={{ fontSize:12, fontWeight:700, color:sCol }}>{sv}/10</span>
                             </div>
                             <input type="range" min={1} max={10} step={1} value={sv}
@@ -2371,21 +5137,42 @@ function A1({ intake, onDone }) {
                         );
                       })
                     )
-                  ) : sec.id === "wealth" || sec.id === "growth" ? (
-                    (sec.id === "wealth" ? wealthItems : growthItems).map((it: any) => {
-                      const k = `align1_${sec.id}_${it.key}`;
+                  ) : sec.id === "wealth" ? (
+                    wealthItems.length === 0 ? (
+                      <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>{sec.emptyItems}</div>
+                    ) : (
+                      wealthItems.map((it) => {
+                        const k = `align1_wealth_${it.id}`;
+                        const sv = (map?.[k] ?? 5) as number;
+                        const sCol = sv >= 7 ? "#34d399" : sv >= 4 ? "#f59e0b" : "#ef4444";
+                        return (
+                          <div key={it.id} style={{ marginBottom:14 }}>
+                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                              <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{it.icon} {it.label}</span>
+                              <span style={{ fontSize:12, fontWeight:700, color:sCol }}>{sv}/10</span>
+                            </div>
+                            <input type="range" min={1} max={10} step={1} value={sv}
+                              onChange={e => set(k, Number(e.target.value))}
+                              style={{ width:"100%", accentColor: sCol }} />
+                            <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, marginTop:2 }}>
+                              <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                              <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )
+                  ) : sec.id === "growth" ? (
+                    !sec.sentence ? (
+                      <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>Write your growth vision in Direction first, then rate how fully you're embodying it.</div>
+                    ) : (() => {
+                      const k = `align1_growth`;
                       const sv = (map?.[k] ?? 5) as number;
                       const sCol = sv >= 7 ? "#34d399" : sv >= 4 ? "#f59e0b" : "#ef4444";
                       return (
-                        <div key={it.key} style={{ marginBottom:14 }}>
+                        <div>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                            {it.editable ? (
-                              <input type="text" value={map?.[it.labelKey] || ""} placeholder={it.placeholder || "Other"}
-                                onChange={e => set(it.labelKey, e.target.value)}
-                                style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", background:"transparent", border:"1px dashed var(--border2)", borderRadius:4, padding:"1px 6px", outline:"none", width:200 }} />
-                            ) : (
-                              <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{it.label}</span>
-                            )}
+                            <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>Living toward who I'm becoming</span>
                             <span style={{ fontSize:12, fontWeight:700, color:sCol }}>{sv}/10</span>
                           </div>
                           <input type="range" min={1} max={10} step={1} value={sv}
@@ -2397,7 +5184,7 @@ function A1({ intake, onDone }) {
                           </div>
                         </div>
                       );
-                    })
+                    })()
                   ) : (
                     (() => {
                       const k = `align_dir_${sec.id}`;
@@ -2425,30 +5212,27 @@ function A1({ intake, onDone }) {
         {(() => {
           const hasResult = !!map.align1_dir_misalignment;
           return (
-            <button className="btn" style={{ marginBottom:22, marginTop:6 }}
+            <button className="btn" style={{display:"none", marginBottom:22, marginTop:6 }}
               onClick={async () => {
                 const summary = sections.map(sec => {
                   const s = cardAvg(sec);
                   const sStr = s == null ? "n/a" : s.toFixed(1);
                   let detail = "";
-                  if (sec.id === "time" && lifeAreas.length) {
-                    detail = " [" + lifeAreas.map(a => {
-                      const al = a.label || a.id || "";
-                      const v = map?.[`align1_time_${al.toLowerCase()}`] ?? 5;
-                      return `${al}: ${v}/10`;
+                  if (sec.id === "time" && timeItems.length) {
+                    detail = " [" + timeItems.map(a => {
+                      const v = map?.[`align1_time_${a.id}`] ?? 5;
+                      return `${a.label}: ${v}/10`;
                     }).join(", ") + "]";
                   }
-                  if (sec.id === "wealth") {
+                  if (sec.id === "wealth" && wealthItems.length) {
                     detail = " [" + wealthItems.map(w => {
-                      const v = map?.[`align1_wealth_${w.key}`] ?? 5;
+                      const v = map?.[`align1_wealth_${w.id}`] ?? 5;
                       return `${w.label}: ${v}/10`;
                     }).join(", ") + "]";
                   }
-                  if (sec.id === "growth") {
-                    detail = " [" + growthItems.map(g => {
-                      const v = map?.[`align1_growth_${g.key}`] ?? 5;
-                      return `${g.label}: ${v}/10`;
-                    }).join(", ") + "]";
+                  if (sec.id === "growth" && sec.sentence) {
+                    const v = map?.[`align1_growth`] ?? 5;
+                    detail = ` [Growth: ${v}/10]`;
                   }
                   return `${sec.label}: ${sStr}/10${sec.sentence ? ` — "${sec.sentence}"` : ""}${detail}`;
                 }).join("; ");
@@ -2492,7 +5276,7 @@ function A1({ intake, onDone }) {
 
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror1_sub", "output")}>← The Mirror</button>
-          <button className="btn" onClick={() => { markDone("mirror1"); goto("mirror2"); }}>Identity · Superpowers →</button>
+          <button className="btn" onClick={() => { markDone("mirror1"); goto("direction_3yr"); }}>Direction · 3-Year →</button>
         </div>
       </>);
     }
@@ -2762,7 +5546,7 @@ function A1({ intake, onDone }) {
         </div>
 
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-          <button className="btn-g" onClick={() => goto("mirror1")}>← Purpose · Direction</button>
+          <button className="btn-g" onClick={() => goto("direction_3yr")}>← Direction · 3-Year</button>
           <button className="btn" onClick={() => set("mirror2_sub", "capabilities")}>Superpowers →</button>
         </div>
       </>);
@@ -2843,13 +5627,13 @@ function A1({ intake, onDone }) {
                   style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"var(--bg4)", cursor:"pointer", userSelect:"none" }}>
                   <div style={{ fontSize:13, fontWeight:700, color:"var(--text)" }}>{cap.name}</div>
                   <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    
+
                     <span style={{ fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
                   </div>
                 </div>
                 {isOpen && (
                 <div style={{ padding:"14px 14px 10px", borderTop:"1px solid var(--border)" }}>
-                
+
                 {/* Superpower chips — read only */}
                                 {supChips.length > 0 && <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:4 }}>Superpower</div>}
 {supChips.length > 0 && (
@@ -3708,7 +6492,7 @@ function A1({ intake, onDone }) {
           }
           const hasResult = !!ai.mirror3_align;
           return (
-            <button className="btn" style={{ marginBottom:22 }}
+            <button className="btn" style={{display:"none", marginBottom:22 }}
               onClick={() => {
                 const summary = entries.map(e => `${e.vName} [${e.beh.map(b => `${b.name}: ${b.score}/10`).join(", ")}]`).join("; ");
                 let lowestLabel = "";
@@ -3744,10 +6528,34 @@ function A1({ intake, onDone }) {
 
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror3_sub", "hierarchy")}>← Hierarchy</button>
-          <button className="btn" onClick={() => { markDone("mirror3"); goto("align"); }}>Alignment Check →</button>
+          <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-Year →</button>
         </div>
       </>);
     }
+  }
+
+  if (step === "direction_3yr") {
+    return wrapContent(<>
+      <DirectionTimeline_v2 activeHorizon="threeyr" map={map} />
+      <div className="lbl" style={{ marginBottom:12 }}>Direction · 3-Year</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
+        3-Year · {new Date().getFullYear() + 3}
+      </h2>
+      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>
+        Pull the horizon closer. Same priorities, refined for {new Date().getFullYear() + 3}.
+        No sensory work here -- just get specific about what each area looks like.
+      </p>
+      <ThreeYearPage map={map} set={set} />
+      <div style={{ marginBottom:22, marginTop:18 }}>
+        <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+          sectionLabel="3-year direction"
+          placeholder="Ask Katherine about refining your 3-year horizon..." />
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
+        <button className="btn-g" onClick={() => goto("mirror1")}>← Purpose · Direction</button>
+        <button className="btn" onClick={() => { markDone("direction_3yr"); goto("mirror2"); }}>Identity · Superpowers →</button>
+      </div>
+    </>);
   }
 
   if (step === "align") {
@@ -3788,28 +6596,45 @@ function A1({ intake, onDone }) {
     };
 
     // Compute all sub-scores for the final Katherine prompt
-    const lifeAreas = map.life_areas || [];
+    // W.1b-A: Pull time/wealth items from new state shape. Legacy fallback for Time only.
+    const timePicked = (map.time_picked || []) as string[];
+    const timeItemsMap = (map.time_items || {}) as Record<string, any>;
+    const timeItems = timePicked.length > 0
+      ? timePicked.map(id => {
+          const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+          const stored = timeItemsMap[id] || {};
+          return {
+            id,
+            label: preset?.label || stored.label || id,
+            icon:  preset?.icon  || stored.icon  || "",
+          };
+        })
+      : ((map.life_areas || []) as any[]).map(a => ({
+          id: a.id || a.label,
+          label: a.label || a.id || "",
+          icon:  a.icon  || "",
+        }));
+
+    const wealthPicked = (map.wealth_picked || []) as string[];
+    const wealthItemsMap = (map.wealth_items || {}) as Record<string, any>;
+    const wealthItems = wealthPicked.map(id => {
+      const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+      const stored = wealthItemsMap[id] || {};
+      return {
+        id,
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "",
+      };
+    });
+
+    const growthSentence = map.growth_sentence || map.growth_summary || "";
     const animals = (map.animals || []).filter(a => a.name);
     const values = (map.values || []).filter(v => v.name);
 
-    // Direction wealth/growth item definitions (mirrored from Mirror 1 Alignment)
-    const wealthItems = [
-      { key:"retirement", label:"Retirement" },
-      { key:"assets",     label:"Assets" },
-      { key:"cashflow",   label:"Cashflow & Salary" },
-      { key:"other",      label: map.bag_other_label || "Other" },
-    ];
-    const growthItems = [
-      { key:"skills",        label:"Skills & Learning" },
-      { key:"relationships", label:"Relationships" },
-      { key:"purpose",       label:"Purpose & Contribution" },
-      { key:"other",         label: map.bag_growth_label4 || "Other" },
-    ];
-
     const dirScores = [
-      ...lifeAreas.map(a => map[`align1_time_${(a.label||a.id||"").toLowerCase()}`]),
-      ...wealthItems.map(w => map[`align1_wealth_${w.key}`]),
-      ...growthItems.map(g => map[`align1_growth_${g.key}`]),
+      ...timeItems.map(a => map[`align1_time_${a.id}`]),
+      ...wealthItems.map(w => map[`align1_wealth_${w.id}`]),
+      growthSentence ? map[`align1_growth`] : undefined,
     ].filter(s => s !== undefined);
 
     const spScores = animals.flatMap((a,i) => {
@@ -3858,51 +6683,52 @@ function A1({ intake, onDone }) {
           <div style={{ marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>⏳ Time Priorities</div>
-              {lifeAreas.length > 0 && <AvgBadge scores={lifeAreas.map(a => map[`align1_time_${(a.label||a.id||"").toLowerCase()}`] ?? 5)} />}
+              {timeItems.length > 0 && <AvgBadge scores={timeItems.map(a => map[`align1_time_${a.id}`] ?? 5)} />}
             </div>
-            {lifeAreas.length === 0 && (
+            {timeItems.length === 0 && (
               <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No life priorities set yet -- go back to Direction to add them.</div>
             )}
-            {lifeAreas.map((area) => {
-              const aLabel = area.label || area.id || "";
-              return (
-                <AlignSlider key={area.id || aLabel}
-                  storeKey={`align1_time_${aLabel.toLowerCase()}`}
-                  label={`${area.icon || ""} ${aLabel}`.trim()}
-                  desc={`How aligned is how you actually spend time with ${aLabel}?`}
-                  indent={true} />
-              );
-            })}
+            {timeItems.map((a) => (
+              <AlignSlider key={a.id}
+                storeKey={`align1_time_${a.id}`}
+                label={`${a.icon} ${a.label}`.trim()}
+                desc={`How aligned is how you actually spend time with ${a.label}?`}
+                indent={true} />
+            ))}
           </div>
 
           {/* Wealth */}
           <div style={{ marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>💰 Wealth</div>
-              <AvgBadge scores={wealthItems.map(w => map[`align1_wealth_${w.key}`] ?? 5)} />
+              {wealthItems.length > 0 && <AvgBadge scores={wealthItems.map(w => map[`align1_wealth_${w.id}`] ?? 5)} />}
             </div>
+            {wealthItems.length === 0 && (
+              <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No wealth categories set yet -- go back to Direction to add them.</div>
+            )}
             {wealthItems.map(w => (
-              <AlignSlider key={w.key}
-                storeKey={`align1_wealth_${w.key}`}
-                label={w.label}
+              <AlignSlider key={w.id}
+                storeKey={`align1_wealth_${w.id}`}
+                label={`${w.icon} ${w.label}`.trim()}
                 desc={`How aligned are you with your ${w.label.toLowerCase()} vision?`}
                 indent={true} />
             ))}
           </div>
 
-          {/* Growth */}
+          {/* Growth -- single slider (prototype parity) */}
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>🌱 Growth</div>
-              <AvgBadge scores={growthItems.map(g => map[`align1_growth_${g.key}`] ?? 5)} />
             </div>
-            {growthItems.map(g => (
-              <AlignSlider key={g.key}
-                storeKey={`align1_growth_${g.key}`}
-                label={g.label}
-                desc={`How aligned is who you are today with your ${g.label.toLowerCase()} vision?`}
+            {!growthSentence ? (
+              <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>Write your growth vision in Direction first.</div>
+            ) : (
+              <AlignSlider
+                storeKey={`align1_growth`}
+                label="Living toward who I'm becoming"
+                desc="How aligned is who you are today with the person you're becoming?"
                 indent={true} />
-            ))}
+            )}
           </div>
 
         </div>)}
@@ -4018,19 +6844,18 @@ function A1({ intake, onDone }) {
             || "(no purpose statement set)";
 
           const lines: string[] = [];
-          lifeAreas.forEach((a: any) => {
-            const lab = a.label || a.id || "";
-            const v = map[`align1_time_${lab.toLowerCase()}`];
-            lines.push(`Direction · Time · ${lab}: ${v ?? "not rated"}/10`);
+          timeItems.forEach((a: any) => {
+            const v = map[`align1_time_${a.id}`];
+            lines.push(`Direction · Time · ${a.label}: ${v ?? "not rated"}/10`);
           });
           wealthItems.forEach((w: any) => {
-            const v = map[`align1_wealth_${w.key}`];
+            const v = map[`align1_wealth_${w.id}`];
             lines.push(`Direction · Wealth · ${w.label}: ${v ?? "not rated"}/10`);
           });
-          growthItems.forEach((g: any) => {
-            const v = map[`align1_growth_${g.key}`];
-            lines.push(`Direction · Growth · ${g.label}: ${v ?? "not rated"}/10`);
-          });
+          if (growthSentence) {
+            const v = map[`align1_growth`];
+            lines.push(`Direction · Growth · Living toward who I'm becoming: ${v ?? "not rated"}/10`);
+          }
           animals.forEach((a: any, i: number) => {
             const animalLabel = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
             const caps = (a.capabilities || []).filter((c: any) => c.name);
@@ -4067,7 +6892,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
 
         return (<>
           {!ai.align && (
-            <button className="btn" style={{ marginBottom:22 }}
+            <button className="btn" style={{display:"none", marginBottom:22 }}
               onClick={() => { set("align_prev_areas", []); runMisalignment([]); }}>
               {busy.align ? <span className="dot-l"><span /><span /><span /></span> : ""}
             </button>
@@ -4106,7 +6931,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             );
           })()}
           {false && ai.align && (
-            <button className="btn-g" style={{ marginBottom:22 }}
+            <button className="btn-g" style={{display:"none", marginBottom:22 }}
               disabled={!!busy.align}
               onClick={() => {
                 const cur = ai.align?.key_misalignment || "";
@@ -4130,48 +6955,98 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
   }
 
   if (step === "map") {
+    const year = new Date().getFullYear();
     const validA = (map.animals || []).filter(a => a.name);
-    const validV = (map.values || []).filter(v => v.name);
-    const validAreas = (map.life_areas || []);
-    const hierOrder = (map?.hier_order as number[]) || [];
-    const orderedAreas = hierOrder.length
-      ? [
-          ...hierOrder.map((i: number) => validAreas[i]).filter(Boolean),
-          ...validAreas.filter((_a: any, i: number) => !hierOrder.includes(i)),
-        ]
-      : validAreas;
-    const wealthExpanded = [
-      { key:"bag_retirement", label:"Retirement",         icon:"🏡" },
-      { key:"bag_assets",     label:"Assets",             icon:"🏛️" },
-      { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈" },
-      { key:"bag_other",      label: map.bag_other_label || "Other", icon:"✦" },
-    ];
-    const growthExpanded = [
-      { key:"bag_growth_1", label: map.bag_growth_label1 || "Skills & Learning",      icon:"🧠" },
-      { key:"bag_growth_2", label: map.bag_growth_label2 || "Relationships",          icon:"🤝" },
-      { key:"bag_growth_3", label: map.bag_growth_label3 || "Purpose & Contribution", icon:"✨" },
-      { key:"bag_growth_4", label: map.bag_growth_label4 || "Other",                  icon:"✦" },
-    ];
+
     const purposeText = (map.purpose_final && map.purpose_final.trim())
       || ((map.purpose_layers || []).filter((l: string) => (l||"").trim()).join(" ").trim())
       || (map.purpose_draft || "").trim()
       || "";
-    const wealthChips = ["Retirement", "Assets", "Cash flow", map.bag_other_label || "Other"];
-    const growthChips = [
-      map.bag_growth_label1 || "Skills & Learning",
-      map.bag_growth_label2 || "Relationships",
-      map.bag_growth_label3 || "Purpose & Contribution",
-      map.bag_growth_label4 || "Other",
-    ];
-    const timeOpen   = !!map?.map_time_open;
-    const wealthOpen = !!map?.map_wealth_open;
-    const growthOpen = !!map?.map_growth_open;
+
+    // W.4: New state horizon data for Direction section
+    const timePicked   = (map.time_picked   || []) as string[];
+    const wealthPicked = (map.wealth_picked || []) as string[];
+
+    // Tier ranking lookups per horizon
+    // W.4 fix: resolve real labels for seed/custom growth IDs; filter orphan tiers
+    // (tier entries whose ID is no longer in the current item pool for that horizon).
+    const oneyrSeedsLive = (typeof computeIdentityValuesSeeds === "function"
+      ? computeIdentityValuesSeeds(map) : []) as any[];
+    const oneyrEditedLabels = (map.oneyr_growth_edited_labels || {}) as Record<string, string>;
+    const oneyrCustomGrowth = (map.oneyr_growth_custom || []) as any[];
+
+    const tierLabel = (id: string) => {
+      if (id.startsWith("t_")) {
+        const p = TIME_AREA_PRESETS.find(pp => pp.id === id.slice(2));
+        return p?.label || ((map.time_items || {})[id.slice(2)]?.label) || id.slice(2);
+      }
+      if (id.startsWith("w_")) {
+        const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id.slice(2));
+        return p?.label || ((map.wealth_items || {})[id.slice(2)]?.label) || id.slice(2);
+      }
+      if (id === "g_main") return "Growth vision";
+      if (id.startsWith("g_custom_")) {
+        const cid = id.slice("g_custom_".length);
+        const match = oneyrCustomGrowth.find((c: any) => String(c.id) === cid);
+        return match?.label || "Custom growth";
+      }
+      if (id.startsWith("g_iv_")) {
+        // Seeds are keyed as g_{seedId} where seedId itself starts with "iv_" — rebuild seedId
+        const seedId = id.slice("g_".length); // e.g. "iv_0_1"
+        // Prefer user's edited label
+        if (oneyrEditedLabels[seedId]) return oneyrEditedLabels[seedId];
+        // Fall back to the live computed label
+        const seedMatch = oneyrSeedsLive.find((s: any) => s.id === seedId);
+        return seedMatch?.label || "Growth focus";
+      }
+      return id;
+    };
+
+    // Valid ID set for each horizon — used to strip orphan tier entries that reference
+    // items the user has since un-picked.
+    const validBagIds = new Set<string>([
+      ...(map.time_picked   || []).map((id: string) => `t_${id}`),
+      ...(map.wealth_picked || []).map((id: string) => `w_${id}`),
+      ...(map.growth_confirmed ? ["g_main"] : []),
+    ]);
+    const validThreeyrIds = new Set<string>([
+      ...(map.time_picked   || []).map((id: string) => `t_${id}`),
+      ...(map.wealth_picked || []).map((id: string) => `w_${id}`),
+      ...(map.threeyr_growth_confirmed ? ["g_main"] : []),
+    ]);
+    const oneyrAccepted = (map.oneyr_growth_accepted || {}) as Record<string, boolean>;
+    const oneyrRemoved  = (map.oneyr_growth_removed  || {}) as Record<string, boolean>;
+    const validOneyrIds = new Set<string>([
+      ...(map.time_picked   || []).map((id: string) => `t_${id}`),
+      ...(map.wealth_picked || []).map((id: string) => `w_${id}`),
+      ...(map.oneyr_growth_confirmed ? ["g_main"] : []),
+      ...oneyrSeedsLive
+        .filter((s: any) => oneyrAccepted[s.id] && !oneyrRemoved[s.id])
+        .map((s: any) => `g_${s.id}`),
+      ...oneyrCustomGrowth.map((c: any) => `g_custom_${c.id}`),
+    ]);
+
+    const bucketTiers = (tiers: Record<string, string> = {}, validIds: Set<string>) => {
+      const g: Record<string, string[]> = { "non-neg": [], imp: [], nth: [] };
+      Object.entries(tiers || {}).forEach(([id, tier]) => {
+        if (!validIds.has(id)) return; // skip orphans
+        if (g[tier]) g[tier].push(tierLabel(id));
+      });
+      return g;
+    };
+    const bagTiers     = bucketTiers(map.bag_tiers,     validBagIds);
+    const threeyrTiers = bucketTiers(map.threeyr_tiers, validThreeyrIds);
+    const oneyrTiers   = bucketTiers(map.oneyr_tiers,   validOneyrIds);
+
+    // Collapsible open flags
+    const bagOpen     = map?.map_bag_open === undefined ? true : !!map.map_bag_open;
+    const threeyrOpen = !!map?.map_threeyr_open;
+    const oneyrOpen   = !!map?.map_oneyr_open;
+
     const focusConfirmed = !!map?.map_focus_confirmed_flag;
     const focusEditOpen  = !!map?.map_focus_edit_open;
-    const focusDefault   = ai.align?.focus_first || "";
-    const focusText      = (map?.map_focus_text != null && map.map_focus_text !== "") ? map.map_focus_text : focusDefault;
+    const focusText      = (map?.map_focus_text != null && map.map_focus_text !== "") ? map.map_focus_text : "";
 
-    const chipStyle: React.CSSProperties = { padding:"4px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:14, fontSize:11, color:"var(--text2)" };
     const cardBase: React.CSSProperties = { background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"14px 16px" };
     const sectionLbl: React.CSSProperties = { fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 };
 
@@ -4203,81 +7078,205 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
       <div style={{ ...cardBase, marginBottom:18 }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
           <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", color:"var(--text)" }}>Direction — The Journey</div>
-          {map.bag_year && (
-            <div style={{ padding:"4px 11px", background:"rgba(201,168,76,.14)", border:"1px solid rgba(201,168,76,.35)", borderRadius:14, fontSize:12, fontWeight:600, color:"var(--warm)" }}>BAG · {map.bag_year}</div>
-          )}
+          <div style={{ padding:"4px 11px", background:"rgba(201,168,76,.14)", border:"1px solid rgba(201,168,76,.35)", borderRadius:14, fontSize:12, fontWeight:600, color:"var(--warm)" }}>BAG · {year + 12}</div>
         </div>
-        {/* Timeline */}
-        <div style={{ position:"relative", margin:"6px 4px 22px", height:38 }}>
-          <div style={{ position:"absolute", left:8, right:8, top:18, height:2, background:"var(--border2)", borderRadius:2 }} />
-          {[
-            { left:"0%",   label:"Now",        active:true,  color:"var(--warm)" },
-            { left:"33%",  label:"1 yr · A2",  active:false, color:"var(--text4)" },
-            { left:"66%",  label:"3 yr · A3",  active:false, color:"var(--text4)" },
-            { left:"100%", label: map.bag_year ? `BAG · ${map.bag_year}` : "BAG", active:true, color:"var(--warm)" },
-          ].map((d, i) => (
-            <div key={i} style={{ position:"absolute", left:d.left, top:0, transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
-              <div style={{ width:10, height:10, borderRadius:"50%", marginTop:13, background: d.active ? "var(--warm)" : "var(--bg3)", border: d.active ? "none" : "1px dashed var(--border2)" }} />
-              <div style={{ fontSize:9.5, color:d.color, whiteSpace:"nowrap", marginTop:2 }}>{d.label}</div>
-            </div>
-          ))}
-        </div>
-        {/* 3 columns, each row individually collapsible */}
+
+        <DirectionTimeline_v2 activeHorizon={null as any} map={map} />
+
+        {/* ── HORIZON: BAG (default open, richest content) ── */}
         {(() => {
-          const Row = ({ icon, label, openKey, body }: { icon?: string; label: string; openKey: string; body: any }) => {
-            const open = !!map?.[openKey];
-            const bodyStr = typeof body === "string" ? body : (body == null ? "" : String(body));
-            const hasBody = !!bodyStr.trim();
+          // Render a collapsible horizon block with 3 columns (Time / Wealth / Growth)
+          // for BAG. For 3Y/1Y we render the same structure but default collapsed.
+          const RowItem = ({ icon, label, body, color }: { icon?: string; label: string; body: string; color: string }) => (
+            <div style={{ padding:"8px 10px", marginBottom:6, background:"rgba(0,0,0,.18)", borderLeft:`3px solid ${color}`, borderRadius:4 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: body ? 4 : 0 }}>
+                {icon && <span style={{ fontSize:12 }}>{icon}</span>}
+                <span style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:600, color, letterSpacing:0.5, textTransform:"uppercase" }}>{label}</span>
+              </div>
+              {body && (
+                <div style={{ fontFamily:"var(--serif)", fontSize:12, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>{body}</div>
+              )}
+              {!body && (
+                <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic" }}>Not yet captured.</div>
+              )}
+            </div>
+          );
+
+          const colHeader: React.CSSProperties = { display:"flex", alignItems:"center", gap:7, padding:"6px 2px 9px", fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" };
+
+          const TierPills = ({ tiers }: { tiers: Record<string, string[]> }) => {
+            const any = (tiers["non-neg"].length + tiers.imp.length + tiers.nth.length) > 0;
+            if (!any) return null;
             return (
-              <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, marginBottom:6, overflow:"hidden" }}>
-                <div onClick={() => set(openKey, !open)} style={{ display:"flex", alignItems:"center", gap:7, padding:"8px 10px", cursor:"pointer", userSelect:"none" }}>
-                  {icon && <span style={{ fontSize:13 }}>{icon}</span>}
-                  <span style={{ fontSize:12, color:"var(--text)", fontWeight:600, flex:1 }}>{label}</span>
-                  <span style={{ fontSize:10, color:"var(--text4)" }}>{open ? "▾" : "▸"}</span>
-                </div>
-                {open && (
-                  <div style={{ padding:"6px 10px 10px 28px", borderTop:"1px solid var(--border)", fontSize:11, color:"var(--text3)", fontStyle: hasBody ? "italic" : "normal", lineHeight:1.6, whiteSpace:"pre-line" }}>
-                    {hasBody ? bodyStr : <span style={{ color:"var(--text4)" }}>Not yet captured.</span>}
+              <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.2)", borderRadius:6 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:8 }}>Tier ranking</div>
+                {tiers["non-neg"].length > 0 && (
+                  <div style={{ marginBottom:6 }}>
+                    <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color:"#ef4444", marginRight:8 }}>NON-NEGOTIABLE · {tiers["non-neg"].length}/3</span>
+                    {tiers["non-neg"].map((lbl, i) => (
+                      <span key={i} style={{ display:"inline-block", padding:"2px 8px", marginRight:5, marginBottom:4, borderRadius:10, background:"rgba(239,68,68,.12)", border:"1px solid rgba(239,68,68,.3)", fontSize:11, color:"var(--text)" }}>{lbl}</span>
+                    ))}
+                  </div>
+                )}
+                {tiers.imp.length > 0 && (
+                  <div style={{ marginBottom:6 }}>
+                    <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color:"#f59e0b", marginRight:8 }}>IMPORTANT</span>
+                    {tiers.imp.map((lbl, i) => (
+                      <span key={i} style={{ display:"inline-block", padding:"2px 8px", marginRight:5, marginBottom:4, borderRadius:10, background:"rgba(245,158,11,.1)", border:"1px solid rgba(245,158,11,.3)", fontSize:11, color:"var(--text2)" }}>{lbl}</span>
+                    ))}
+                  </div>
+                )}
+                {tiers.nth.length > 0 && (
+                  <div>
+                    <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color:"#6b7a99", marginRight:8 }}>NICE TO HAVE</span>
+                    {tiers.nth.map((lbl, i) => (
+                      <span key={i} style={{ display:"inline-block", padding:"2px 8px", marginRight:5, marginBottom:4, borderRadius:10, background:"rgba(107,122,153,.1)", border:"1px solid rgba(107,122,153,.35)", fontSize:11, color:"var(--text3)" }}>{lbl}</span>
+                    ))}
                   </div>
                 )}
               </div>
             );
           };
-          const timeKey = (a: any, i: number) => `mi_time_${(a.id || a.label || `area${i}`).toString().toLowerCase().replace(/\s+/g, "_")}_open`;
-          const wealthRows = [
-            { icon:"🏡",  label:"Retirement",         openKey:"mi_wealth_ret_open",   body: map.bag_retirement || "" },
-            { icon:"🏛️", label:"Assets",             openKey:"mi_wealth_ass_open",   body: map.bag_assets || "" },
-            { icon:"📈",  label:"Cash flow & Salary", openKey:"mi_wealth_cash_open",  body: map.bag_cashflow || "" },
-            { icon:"✦",   label: map.bag_other_label || "Other", openKey:"mi_wealth_other_open", body: map.bag_other || "" },
-          ];
-          const growthRows = [
-            { icon:"🧠", label: map.bag_growth_label1 || "Skills & Learning",      openKey:"mi_growth_1_open", body: map.bag_growth_1 || "" },
-            { icon:"🤝", label: map.bag_growth_label2 || "Relationships",          openKey:"mi_growth_2_open", body: map.bag_growth_2 || "" },
-            { icon:"✨", label: map.bag_growth_label3 || "Purpose & Contribution", openKey:"mi_growth_3_open", body: map.bag_growth_3 || "" },
-            { icon:"✦",  label: map.bag_growth_label4 || "Other",                  openKey:"mi_growth_4_open", body: map.bag_growth_4 || "" },
-          ];
-          const colHeader: React.CSSProperties = { display:"flex", alignItems:"center", gap:7, padding:"6px 2px 9px", fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" };
-          return (
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
-              <div>
-                <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
-                {orderedAreas.map((a: any, i: number) => {
-                  const parts = [a?.see, a?.hear, a?.feel].filter((s: any) => typeof s === "string" && s.trim());
-                  const body = parts.join("\n");
-                  return (
-                    <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={body} />
-                  );
-                })}
+
+          // ── BAG HORIZON ──────────────────────────────────────────────
+          const bagHeader = (
+            <div onClick={() => set("map_bag_open", !bagOpen)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", cursor:"pointer", userSelect:"none", background:"rgba(201,168,76,.08)", borderRadius:8, marginBottom: bagOpen ? 12 : 0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:14 }}>⛰️</span>
+                <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--warm)", letterSpacing:1.5, textTransform:"uppercase" }}>BAG · {year + 12}</span>
+                <span style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic" }}>the 10–15 year vision</span>
               </div>
-              <div>
-                <div style={colHeader}><span style={{ fontSize:14 }}>💰</span>Wealth</div>
-                {wealthRows.map(r => <Row key={r.openKey} {...r} />)}
-              </div>
-              <div>
-                <div style={colHeader}><span style={{ fontSize:14 }}>🌱</span>Growth</div>
-                {growthRows.map(r => <Row key={r.openKey} {...r} />)}
-              </div>
+              <span style={{ fontSize:11, color:"var(--text3)" }}>{bagOpen ? "▾ hide" : "▸ show"}</span>
             </div>
+          );
+
+          const bagBody = bagOpen && (
+            <>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+                <div>
+                  <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
+                  {timePicked.length === 0 && (
+                    <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:8 }}>No picks yet.</div>
+                  )}
+                  {timePicked.map(id => {
+                    const p = TIME_AREA_PRESETS.find(pp => pp.id === id);
+                    const stored = (map.time_items || {})[id] || {};
+                    const body = stored.goal || stored.text || "";
+                    return <RowItem key={id} icon={p?.icon || "•"} label={p?.label || stored.label || id} body={body} color="var(--warm)" />;
+                  })}
+                  {map.time_overall_confirmed && map.time_overall_sentence && (
+                    <div style={{ marginTop:8, padding:"8px 10px", background:"rgba(201,168,76,.1)", borderRadius:4, fontFamily:"var(--serif)", fontSize:12, fontStyle:"italic", color:"var(--warm)", lineHeight:1.5 }}>
+                      "{map.time_overall_sentence}"
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div style={colHeader}><span style={{ fontSize:14 }}>💰</span>Wealth</div>
+                  {wealthPicked.length === 0 && (
+                    <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:8 }}>No picks yet.</div>
+                  )}
+                  {wealthPicked.map(id => {
+                    const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id);
+                    const stored = (map.wealth_items || {})[id] || {};
+                    const body = stored.goal || stored.text || "";
+                    return <RowItem key={id} icon={p?.icon || "•"} label={p?.label || stored.label || id} body={body} color="#34d399" />;
+                  })}
+                  {map.wealth_overall_confirmed && map.wealth_overall_sentence && (
+                    <div style={{ marginTop:8, padding:"8px 10px", background:"rgba(52,211,153,.1)", borderRadius:4, fontFamily:"var(--serif)", fontSize:12, fontStyle:"italic", color:"#34d399", lineHeight:1.5 }}>
+                      "{map.wealth_overall_sentence}"
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div style={colHeader}><span style={{ fontSize:14 }}>🌱</span>Growth</div>
+                  {map.growth_confirmed && map.growth_sentence ? (
+                    <div style={{ padding:"10px 12px", background:"rgba(167,139,250,.08)", borderLeft:"3px solid #a78bfa", borderRadius:4, fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text)", lineHeight:1.6 }}>
+                      "{map.growth_sentence}"
+                    </div>
+                  ) : (
+                    <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:8 }}>Growth vision not yet confirmed.</div>
+                  )}
+                </div>
+              </div>
+              <TierPills tiers={bagTiers} />
+            </>
+          );
+
+          // ── 3-YEAR HORIZON (collapsed summary) ────────────────────
+          const threeyrSummaries = [
+            { label:"Time",   color:"var(--warm)", text: map.threeyr_time_confirmed   ? map.threeyr_time_sentence   : "" },
+            { label:"Wealth", color:"#34d399",     text: map.threeyr_wealth_confirmed ? map.threeyr_wealth_sentence : "" },
+            { label:"Growth", color:"#a78bfa",     text: map.threeyr_growth_confirmed ? map.threeyr_growth_sentence : "" },
+          ];
+          const threeyrHasAny = threeyrSummaries.some(s => (s.text || "").trim());
+          const threeyrHeader = (
+            <div onClick={() => set("map_threeyr_open", !threeyrOpen)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", cursor:"pointer", userSelect:"none", background:"rgba(201,168,76,.04)", borderRadius:8, marginTop:14, marginBottom: threeyrOpen ? 12 : 0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:14 }}>◉</span>
+                <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text2)", letterSpacing:1.5, textTransform:"uppercase" }}>3-Year · {year + 3}</span>
+                <span style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic" }}>{threeyrHasAny ? "refinement of BAG" : "not yet completed"}</span>
+              </div>
+              <span style={{ fontSize:11, color:"var(--text3)" }}>{threeyrOpen ? "▾ hide" : "▸ show"}</span>
+            </div>
+          );
+          const threeyrBody = threeyrOpen && (
+            <>
+              {threeyrSummaries.filter(s => (s.text||"").trim()).length === 0 ? (
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 12px" }}>3-Year refinements not yet confirmed.</div>
+              ) : (
+                threeyrSummaries.map(s => (s.text||"").trim() && (
+                  <div key={s.label} style={{ marginBottom:8, padding:"8px 12px", background:"rgba(0,0,0,.15)", borderLeft:`3px solid ${s.color}`, borderRadius:4 }}>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", color: s.color, marginBottom:3 }}>{s.label}</div>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:12.5, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>"{s.text}"</div>
+                  </div>
+                ))
+              )}
+              <TierPills tiers={threeyrTiers} />
+            </>
+          );
+
+          // ── 1-YEAR HORIZON (collapsed summary) ────────────────────
+          const oneyrSummaries = [
+            { label:"Time",   color:"var(--warm)", text: map.oneyr_time_confirmed   ? map.oneyr_time_sentence   : "" },
+            { label:"Wealth", color:"#34d399",     text: map.oneyr_wealth_confirmed ? map.oneyr_wealth_sentence : "" },
+            { label:"Growth", color:"#a78bfa",     text: map.oneyr_growth_confirmed ? map.oneyr_growth_sentence : "" },
+          ];
+          const oneyrHasAny = oneyrSummaries.some(s => (s.text || "").trim());
+          const oneyrHeader = (
+            <div onClick={() => set("map_oneyr_open", !oneyrOpen)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", cursor:"pointer", userSelect:"none", background:"rgba(201,168,76,.04)", borderRadius:8, marginTop:10, marginBottom: oneyrOpen ? 12 : 0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:14 }}>●</span>
+                <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text2)", letterSpacing:1.5, textTransform:"uppercase" }}>1-Year · {year + 1}</span>
+                <span style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic" }}>{oneyrHasAny ? "closest commitment" : "not yet completed"}</span>
+              </div>
+              <span style={{ fontSize:11, color:"var(--text3)" }}>{oneyrOpen ? "▾ hide" : "▸ show"}</span>
+            </div>
+          );
+          const oneyrBody = oneyrOpen && (
+            <>
+              {oneyrSummaries.filter(s => (s.text||"").trim()).length === 0 ? (
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 12px" }}>1-Year commitments not yet confirmed.</div>
+              ) : (
+                oneyrSummaries.map(s => (s.text||"").trim() && (
+                  <div key={s.label} style={{ marginBottom:8, padding:"8px 12px", background:"rgba(0,0,0,.15)", borderLeft:`3px solid ${s.color}`, borderRadius:4 }}>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", color: s.color, marginBottom:3 }}>{s.label}</div>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:12.5, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>"{s.text}"</div>
+                  </div>
+                ))
+              )}
+              <TierPills tiers={oneyrTiers} />
+            </>
+          );
+
+          return (
+            <>
+              {bagHeader}
+              {bagBody}
+              {threeyrHeader}
+              {threeyrBody}
+              {oneyrHeader}
+              {oneyrBody}
+            </>
           );
         })()}
       </div>
@@ -4391,10 +7390,10 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
         })()}
       </div>
 
-      {/* SECTION 5 — THE ONE THING */}
+      {/* SECTION 5 — THE ONE THING (quick-win framing) */}
       <div style={{ background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.18)", borderLeft:"4px solid var(--warm)", borderRadius:11, padding:"16px 20px", marginBottom:18 }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10, gap:10 }}>
-          <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)" }}>The One Thing</div>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6, gap:10 }}>
+          <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)" }}>Your One Thing</div>
           <div style={{ display:"flex", gap:6 }}>
             <button onClick={() => set("map_focus_confirmed_flag", !focusConfirmed)}
               style={{ padding:"5px 11px", borderRadius:14, fontSize:11, fontWeight:600, cursor:"pointer", border: focusConfirmed ? "1px solid var(--warm)" : "1px solid var(--border2)", background: focusConfirmed ? "var(--warm)" : "transparent", color: focusConfirmed ? "#0d1b2e" : "var(--text3)" }}>
@@ -4406,14 +7405,17 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
             </button>
           </div>
         </div>
+        <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6, marginBottom:10, fontStyle:"italic" }}>
+          Something small you can start tomorrow to move toward your direction. A quick win -- not a big commitment. Just one thing.
+        </div>
         {focusEditOpen ? (
           <div>
             <textarea
-              value={map?.map_focus_text != null ? map.map_focus_text : focusDefault}
-              onChange={e => set("map_focus_text", e.target.value)}
+              value={map?.map_focus_text || ""}
+              onChange={e => { set("map_focus_text", e.target.value); if (focusConfirmed) set("map_focus_confirmed_flag", false); }}
               rows={3}
               style={{ width:"100%", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:15, padding:"10px 12px", lineHeight:1.6, resize:"vertical" }}
-              placeholder="The single shift that will most change who you are..."
+              placeholder="Tomorrow I will..."
             />
             <div style={{ display:"flex", justifyContent:"flex-end", marginTop:7 }}>
               <button onClick={() => set("map_focus_edit_open", false)} style={{ padding:"5px 12px", borderRadius:6, fontSize:11, cursor:"pointer", border:"1px solid var(--border2)", background:"var(--bg2)", color:"var(--text2)" }}>Done</button>
@@ -4421,14 +7423,50 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           </div>
         ) : (
           <div style={{ fontFamily:"var(--serif)", fontStyle:"italic", fontSize:17, lineHeight:1.6, color:"var(--text)", fontWeight:300 }}>
-            {focusText || <span style={{ color:"var(--text4)", fontStyle:"normal", fontSize:13 }}>Run the Alignment Snapshot or click Edit to set your One Thing.</span>}
+            {focusText || <span style={{ color:"var(--text4)", fontStyle:"normal", fontSize:13 }}>Click Edit to write your one thing for tomorrow.</span>}
           </div>
         )}
       </div>
 
       {!ai.close && (
         <div style={{ textAlign:"center", marginBottom:22 }}>
-          <button className="btn" onClick={() => runAI("close", `You are Katherine Breuss. Completed Map of Me with ${name}. Purpose: "${map.purpose_final || map.purpose_draft}". Animals: ${validA.map(a => [a.adj1, a.adj2, a.name].filter(Boolean).join(" ")).join(", ")}. Values: ${validV.map(v => v.name).join(", ")}. Life priorities: ${validAreas.map((a,i) => `${i+1}. ${a.label}`).join(", ")}. BAG Growth: "${map.bag_growth}". Brought here: "${intake.q1}". Write 3-4 sentence closing note referencing something SPECIFIC. One identity line -- who they are and what they're building. JSON: {"note":"...","identity_line":"..."}`)}>
+          <button className="btn" onClick={() => {
+              // W.4: Build Katherine's closing note prompt from NEW state, not legacy
+              const purposeFinal = map.purpose_final || map.purpose_draft || "";
+              const animalSummary = validA.map(a => [a.adj1, a.adj2, a.name].filter(Boolean).join(" ")).join(", ");
+              // Values list from new state
+              const valCount = parseInt(map?.val_count) || ((map?.values || []).length) || 0;
+              const valNames: string[] = [];
+              for (let i = 0; i < valCount; i++) {
+                const vn = map?.[`val_${i}_name`] || (map?.values || [])[i]?.name;
+                if (vn) valNames.push(vn);
+              }
+              // BAG Non-negotiable tier as the commitment signal
+              const bagNN = bagTiers["non-neg"] || [];
+              // 1-Year commitments (prefer sentences; fall back to picks)
+              const oneyrBits: string[] = [];
+              if (map.oneyr_time_confirmed && map.oneyr_time_sentence)   oneyrBits.push(`Time: "${map.oneyr_time_sentence}"`);
+              if (map.oneyr_wealth_confirmed && map.oneyr_wealth_sentence) oneyrBits.push(`Wealth: "${map.oneyr_wealth_sentence}"`);
+              if (map.oneyr_growth_confirmed && map.oneyr_growth_sentence) oneyrBits.push(`Growth: "${map.oneyr_growth_sentence}"`);
+              // BAG growth sentence for identity line reference
+              const bagGrowth = map.growth_sentence || map.growth_summary || map.bag_growth || "";
+              const oneThing = map.map_focus_text || "";
+
+              const prompt = `You are Katherine Breuss. ${name} has just completed A1 -- All In It. Write them a closing note.
+Purpose: "${purposeFinal}".
+Identity animals: ${animalSummary || "(none set)"}.
+Values: ${valNames.join(", ") || "(none set)"}.
+BAG Non-negotiable priorities: ${bagNN.join(", ") || "(not ranked yet)"}.
+1-Year commitments: ${oneyrBits.join(" · ") || "(not yet completed)"}.
+BAG Growth vision: "${bagGrowth}".
+Their one thing to start tomorrow: "${oneThing || "(not yet written)"}".
+They originally came for: "${intake?.q1 || ""}".
+
+Write a 3-4 sentence closing note that references something SPECIFIC they wrote -- not generic coaching language. Warm, direct, no-BS. Then one identity line: a single sentence describing who they are and what they're building, referencing their animal(s) or top value.
+
+Respond ONLY with JSON: {"note":"...","identity_line":"..."}`;
+              runAI("close", prompt);
+            }}>
             {busy.close ? <span className="dot-l"><span /><span /><span /></span> : "✦ Get Katherine's Closing Note"}
           </button>
         </div>
@@ -4587,15 +7625,123 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         y += gap;
       };
 
+      const year = new Date().getFullYear();
       const purpose = map?.purpose_final || map?.purpose_draft || "";
-      const bagYear = map?.bag_year || "";
-      const lifeAreas = ((map?.life_areas || []) as any[]).filter(a => a && (a.label || a.id));
-      const wealthItems = [
-        { label: "Retirement", body: map?.bag_retirement },
-        { label: "Assets",     body: map?.bag_assets },
-        { label: "Cashflow",   body: map?.bag_cashflow },
-      ].filter(w => w.body);
-      const growth = map?.bag_growth || "";
+      const bagYear = String(year + 12);
+
+      // W.4: BAG Time items (new state, with legacy life_areas fallback)
+      const timePicked = (map?.time_picked || []) as string[];
+      const timeAreas = timePicked.length
+        ? timePicked.map(id => {
+            const p = TIME_AREA_PRESETS.find(pp => pp.id === id);
+            const stored = (map?.time_items || {})[id] || {};
+            return {
+              label: p?.label || stored.label || id,
+              icon:  p?.icon  || stored.icon  || "",
+              goal:  (stored.goal || stored.text || "").trim(),
+            };
+          })
+        : ((map?.life_areas || []) as any[])
+            .filter(a => a && (a.label || a.id))
+            .map(a => ({ label: a.label || a.id, icon: a.icon || "", goal: (a.goal || "").trim() }));
+      const timeSummary = map?.time_overall_sentence || map?.time_summary || "";
+
+      // W.4: BAG Wealth items (new state, with legacy fallback)
+      const wealthPicked = (map?.wealth_picked || []) as string[];
+      const wealthAreas = wealthPicked.length
+        ? wealthPicked.map(id => {
+            const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id);
+            const stored = (map?.wealth_items || {})[id] || {};
+            return {
+              label: p?.label || stored.label || id,
+              icon:  p?.icon  || stored.icon  || "",
+              goal:  (stored.goal || stored.text || "").trim(),
+            };
+          })
+        : ([
+            { label: "Retirement", goal: map?.bag_retirement || "", icon: "" },
+            { label: "Assets",     goal: map?.bag_assets     || "", icon: "" },
+            { label: "Cashflow",   goal: map?.bag_cashflow   || "", icon: "" },
+          ] as any[]).filter(w => w.goal);
+      const wealthSummary = map?.wealth_overall_sentence || map?.wealth_summary || "";
+
+      // W.4: Growth sentence (new state, with legacy fallback)
+      const growthSummary = map?.growth_sentence || map?.growth_summary || map?.bag_growth || "";
+
+      // W.4: 3-Year / 1-Year summary sentences
+      const threeyrTime   = map?.threeyr_time_confirmed   ? (map?.threeyr_time_sentence || "")   : "";
+      const threeyrWealth = map?.threeyr_wealth_confirmed ? (map?.threeyr_wealth_sentence || "") : "";
+      const threeyrGrowth = map?.threeyr_growth_confirmed ? (map?.threeyr_growth_sentence || "") : "";
+      const oneyrTime     = map?.oneyr_time_confirmed     ? (map?.oneyr_time_sentence || "")     : "";
+      const oneyrWealth   = map?.oneyr_wealth_confirmed   ? (map?.oneyr_wealth_sentence || "")   : "";
+      const oneyrGrowth   = map?.oneyr_growth_confirmed   ? (map?.oneyr_growth_sentence || "")   : "";
+
+      // W.4: Tier ranking per horizon (labels only, bucketed). Resolves real labels
+      // for seed/custom growth IDs; filters orphan tiers that reference un-picked items.
+      const oneyrSeedsLivePDF = (typeof computeIdentityValuesSeeds === "function"
+        ? computeIdentityValuesSeeds(map) : []) as any[];
+      const oneyrEditedLabelsPDF = (map?.oneyr_growth_edited_labels || {}) as Record<string, string>;
+      const oneyrCustomGrowthPDF = (map?.oneyr_growth_custom || []) as any[];
+
+      const tierLabelPDF = (id: string) => {
+        if (id.startsWith("t_")) {
+          const p = TIME_AREA_PRESETS.find(pp => pp.id === id.slice(2));
+          return p?.label || ((map?.time_items || {})[id.slice(2)]?.label) || id.slice(2);
+        }
+        if (id.startsWith("w_")) {
+          const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id.slice(2));
+          return p?.label || ((map?.wealth_items || {})[id.slice(2)]?.label) || id.slice(2);
+        }
+        if (id === "g_main") return "Growth vision";
+        if (id.startsWith("g_custom_")) {
+          const cid = id.slice("g_custom_".length);
+          const match = oneyrCustomGrowthPDF.find((c: any) => String(c.id) === cid);
+          return match?.label || "Custom growth";
+        }
+        if (id.startsWith("g_iv_")) {
+          const seedId = id.slice("g_".length);
+          if (oneyrEditedLabelsPDF[seedId]) return oneyrEditedLabelsPDF[seedId];
+          const seedMatch = oneyrSeedsLivePDF.find((s: any) => s.id === seedId);
+          return seedMatch?.label || "Growth focus";
+        }
+        return id;
+      };
+
+      // Valid ID sets per horizon — strip orphan tier entries
+      const validBagIdsPDF = new Set<string>([
+        ...(map?.time_picked   || []).map((id: string) => `t_${id}`),
+        ...(map?.wealth_picked || []).map((id: string) => `w_${id}`),
+        ...(map?.growth_confirmed ? ["g_main"] : []),
+      ]);
+      const validThreeyrIdsPDF = new Set<string>([
+        ...(map?.time_picked   || []).map((id: string) => `t_${id}`),
+        ...(map?.wealth_picked || []).map((id: string) => `w_${id}`),
+        ...(map?.threeyr_growth_confirmed ? ["g_main"] : []),
+      ]);
+      const oneyrAcceptedPDF = (map?.oneyr_growth_accepted || {}) as Record<string, boolean>;
+      const oneyrRemovedPDF  = (map?.oneyr_growth_removed  || {}) as Record<string, boolean>;
+      const validOneyrIdsPDF = new Set<string>([
+        ...(map?.time_picked   || []).map((id: string) => `t_${id}`),
+        ...(map?.wealth_picked || []).map((id: string) => `w_${id}`),
+        ...(map?.oneyr_growth_confirmed ? ["g_main"] : []),
+        ...oneyrSeedsLivePDF
+          .filter((s: any) => oneyrAcceptedPDF[s.id] && !oneyrRemovedPDF[s.id])
+          .map((s: any) => `g_${s.id}`),
+        ...oneyrCustomGrowthPDF.map((c: any) => `g_custom_${c.id}`),
+      ]);
+
+      const bucketTiersPDF = (tiers: Record<string, string> = {}, validIds: Set<string>) => {
+        const g: Record<string, string[]> = { "non-neg": [], imp: [], nth: [] };
+        Object.entries(tiers || {}).forEach(([id, tier]) => {
+          if (!validIds.has(id)) return; // skip orphans
+          if (g[tier]) g[tier].push(tierLabelPDF(id));
+        });
+        return g;
+      };
+      const bagTiersPDF     = bucketTiersPDF(map?.bag_tiers,     validBagIdsPDF);
+      const threeyrTiersPDF = bucketTiersPDF(map?.threeyr_tiers, validThreeyrIdsPDF);
+      const oneyrTiersPDF   = bucketTiersPDF(map?.oneyr_tiers,   validOneyrIdsPDF);
+
       const animals = ((map?.animals || []) as any[]).filter(a => a && (a.name || a.adj1 || a.adj2));
       const valCount = parseInt(map?.val_count) || ((map?.values || []).length) || 0;
       const values: { name: string; summary: string; behs: { name: string; description?: string }[] }[] = [];
@@ -4611,7 +7757,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         }
         values.push({ name: vName, summary: vSummary, behs });
       }
-      const focusOne = (map?.map_focus_text != null ? map.map_focus_text : (map?.map_focus_default || "")) || "";
+      const focusOne = map?.map_focus_text || "";
 
       drawHeader();
 
@@ -4626,10 +7772,17 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
           sectionHeading("Purpose");
           writeText(purpose, { font: "times", style: "italic", size: 11, color: TEXT, lineH: 14, gap: 6 });
         }
-        if (lifeAreas.length) {
-          sectionHeading(`Time Priorities${bagYear ? ` · BAG Year ${bagYear}` : ""}`);
-          lifeAreas.forEach(a => {
-            writeText(`• ${a.label || a.id}`, { style: "bold", size: 10, color: NAVY, gap: 1 });
+        if (timeAreas.length) {
+          sectionHeading(`Time Priorities${bagYear ? ` · BAG ${bagYear}` : ""}`);
+          timeAreas.forEach(a => {
+            writeText(`• ${a.label}`, { style: "bold", size: 10, color: NAVY, gap: 1 });
+          });
+          y += 2;
+        }
+        if (wealthAreas.length) {
+          sectionHeading(`Wealth Priorities${bagYear ? ` · BAG ${bagYear}` : ""}`);
+          wealthAreas.forEach(w => {
+            writeText(`• ${w.label}`, { style: "bold", size: 10, color: NAVY, gap: 1 });
           });
           y += 2;
         }
@@ -4650,7 +7803,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
           y += 2;
         }
         if (focusOne) {
-          sectionHeading("The One Thing");
+          sectionHeading("Your One Thing");
           writeText(focusOne, { font: "times", style: "italic", size: 11, color: TEXT, lineH: 14, gap: 4 });
         }
       } else {
@@ -4658,28 +7811,74 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
           sectionHeading("Purpose");
           writeText(purpose, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 8 });
         }
-        if (lifeAreas.length) {
-          sectionHeading(`Time Priorities${bagYear ? ` · BAG Year ${bagYear}` : ""}`);
-          lifeAreas.forEach(a => {
-            writeText(`• ${a.label || a.id}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
-            if (a.see)  writeText(`See: ${a.see}`,   { indent: 14, color: MUTED, gap: 1 });
-            if (a.hear) writeText(`Hear: ${a.hear}`, { indent: 14, color: MUTED, gap: 1 });
-            if (a.feel) writeText(`Feel: ${a.feel}`, { indent: 14, color: MUTED, gap: 1 });
-            if (a.goal) writeText(`Goal: ${a.goal}`, { indent: 14, color: MUTED, gap: 1 });
-            y += 4;
+
+        // ── BAG Horizon ──────────────────────────────
+        if (timeAreas.length || wealthAreas.length || growthSummary) {
+          sectionHeading(`BAG · ${bagYear}`);
+        }
+        if (timeAreas.length) {
+          writeText("Time", { style: "bold", size: 11, color: GOLD, gap: 3 });
+          timeAreas.forEach(a => {
+            writeText(`• ${a.label}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
+            if (a.goal) writeText(a.goal, { font: "times", style: "italic", indent: 14, color: MUTED, gap: 3 });
           });
+          if (timeSummary) writeText(`In one sentence: "${timeSummary}"`, { font: "times", style: "italic", color: TEXT, gap: 6 });
+          y += 2;
         }
-        if (wealthItems.length) {
-          sectionHeading("Wealth");
-          wealthItems.forEach(w => {
-            writeText(w.label, { style: "bold", size: 11, color: NAVY, gap: 2 });
-            writeText(w.body, { indent: 14, color: TEXT, gap: 6 });
+        if (wealthAreas.length) {
+          writeText("Wealth", { style: "bold", size: 11, color: GOLD, gap: 3 });
+          wealthAreas.forEach(w => {
+            writeText(`• ${w.label}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
+            if (w.goal) writeText(w.goal, { font: "times", style: "italic", indent: 14, color: MUTED, gap: 3 });
           });
+          if (wealthSummary) writeText(`In one sentence: "${wealthSummary}"`, { font: "times", style: "italic", color: TEXT, gap: 6 });
+          y += 2;
         }
-        if (growth) {
-          sectionHeading("Growth");
-          writeText(growth, { color: TEXT, gap: 6 });
+        if (growthSummary) {
+          writeText("Growth", { style: "bold", size: 11, color: GOLD, gap: 3 });
+          writeText(growthSummary, { font: "times", style: "italic", color: TEXT, gap: 6 });
         }
+        // BAG tier ranking
+        if (bagTiersPDF["non-neg"].length || bagTiersPDF.imp.length || bagTiersPDF.nth.length) {
+          writeText("Tier ranking", { style: "bold", size: 10, color: GOLD, gap: 2 });
+          if (bagTiersPDF["non-neg"].length) writeText(`Non-negotiable: ${bagTiersPDF["non-neg"].join(", ")}`, { indent: 14, color: TEXT, gap: 2 });
+          if (bagTiersPDF.imp.length)         writeText(`Important: ${bagTiersPDF.imp.join(", ")}`,           { indent: 14, color: TEXT, gap: 2 });
+          if (bagTiersPDF.nth.length)         writeText(`Nice to have: ${bagTiersPDF.nth.join(", ")}`,        { indent: 14, color: MUTED, gap: 2 });
+          y += 4;
+        }
+
+        // ── 3-Year Horizon ──────────────────────────
+        if (threeyrTime || threeyrWealth || threeyrGrowth) {
+          sectionHeading(`3-Year · ${year + 3}`);
+          if (threeyrTime)   writeText(`Time: "${threeyrTime}"`,     { font: "times", style: "italic", color: TEXT, gap: 4 });
+          if (threeyrWealth) writeText(`Wealth: "${threeyrWealth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
+          if (threeyrGrowth) writeText(`Growth: "${threeyrGrowth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
+          if (threeyrTiersPDF["non-neg"].length || threeyrTiersPDF.imp.length || threeyrTiersPDF.nth.length) {
+            y += 2;
+            writeText("Tier ranking", { style: "bold", size: 10, color: GOLD, gap: 2 });
+            if (threeyrTiersPDF["non-neg"].length) writeText(`Non-negotiable: ${threeyrTiersPDF["non-neg"].join(", ")}`, { indent: 14, color: TEXT, gap: 2 });
+            if (threeyrTiersPDF.imp.length)         writeText(`Important: ${threeyrTiersPDF.imp.join(", ")}`,           { indent: 14, color: TEXT, gap: 2 });
+            if (threeyrTiersPDF.nth.length)         writeText(`Nice to have: ${threeyrTiersPDF.nth.join(", ")}`,        { indent: 14, color: MUTED, gap: 2 });
+          }
+          y += 4;
+        }
+
+        // ── 1-Year Horizon ──────────────────────────
+        if (oneyrTime || oneyrWealth || oneyrGrowth) {
+          sectionHeading(`1-Year · ${year + 1}`);
+          if (oneyrTime)   writeText(`Time: "${oneyrTime}"`,     { font: "times", style: "italic", color: TEXT, gap: 4 });
+          if (oneyrWealth) writeText(`Wealth: "${oneyrWealth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
+          if (oneyrGrowth) writeText(`Growth: "${oneyrGrowth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
+          if (oneyrTiersPDF["non-neg"].length || oneyrTiersPDF.imp.length || oneyrTiersPDF.nth.length) {
+            y += 2;
+            writeText("Tier ranking", { style: "bold", size: 10, color: GOLD, gap: 2 });
+            if (oneyrTiersPDF["non-neg"].length) writeText(`Non-negotiable: ${oneyrTiersPDF["non-neg"].join(", ")}`, { indent: 14, color: TEXT, gap: 2 });
+            if (oneyrTiersPDF.imp.length)         writeText(`Important: ${oneyrTiersPDF.imp.join(", ")}`,           { indent: 14, color: TEXT, gap: 2 });
+            if (oneyrTiersPDF.nth.length)         writeText(`Nice to have: ${oneyrTiersPDF.nth.join(", ")}`,        { indent: 14, color: MUTED, gap: 2 });
+          }
+          y += 4;
+        }
+
         if (animals.length) {
           sectionHeading("Identity & Superpowers");
           animals.forEach(a => {
@@ -4706,7 +7905,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
           });
         }
         if (focusOne) {
-          sectionHeading("The One Thing");
+          sectionHeading("Your One Thing");
           writeText(focusOne, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 6 });
         }
       }
@@ -4779,7 +7978,7 @@ export default function App() {
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
-      {phase === "intake" && <Intake onDone={doneIntake} />}
+      {phase === "intake" && <NameModal onDone={doneIntake} />}
       {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} />}
       {phase === "done" && (
         <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:36 }}>

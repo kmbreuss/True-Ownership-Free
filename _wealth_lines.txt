@@ -1,0 +1,51 @@
+80:  if (mapData?.bag_retirement) lines.push(`Wealth - Retirement: "${mapData.bag_retirement}"`);
+81:  if (mapData?.bag_assets) lines.push(`Wealth - Assets: "${mapData.bag_assets}"`);
+82:  if (mapData?.bag_cashflow) lines.push(`Wealth - Cash flow: "${mapData.bag_cashflow}"`);
+83:  if (mapData?.bag_other) lines.push(`Wealth - Other: "${mapData.bag_other}"`);
+84:  if (mapData?.wealth_summary) lines.push(`Wealth summary: "${mapData.wealth_summary}"`);
+428:  const [wealthOpen, setWealthOpen] = useState(false);
+431:  const SectionHeader = ({ icon, label, color, isOpen, onToggle, summary, summaryColor }) => (
+473:      {(map.time_summary || areas.some(a=>a.goal) || map.wealth_summary || map.growth_summary) && (
+511:            {/* WEALTH */}
+512:            {map.wealth_summary && (
+517:                <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#34d399", lineHeight:1.6, marginBottom: (map.bag_retirement || map.bag_assets || map.bag_cashflow || map.bag_other) ? 8 : 0 }}>
+518:                  {map.wealth_summary}
+521:                  { key:"bag_retirement", icon:"🏡", label:"Retirement" },
+522:                  { key:"bag_assets",     icon:"🏛️",  label:"Assets" },
+523:                  { key:"bag_cashflow",   icon:"📈", label:"Cash flow" },
+524:                  { key:"bag_other",      icon:"✦",  label:"Other" },
+564:          <SectionHeader icon="⏳" label="Time -- Your Life Priorities" color="#c9a84c"
+623:      {/* WEALTH -- collapsible */}
+625:        <div style={{ padding:"4px 14px 0", borderBottom: wealthOpen ? "1px solid var(--border)" : "none" }}>
+626:          <SectionHeader icon="💰" label="Wealth" color="#34d399"
+627:            isOpen={wealthOpen} onToggle={() => setWealthOpen(o => !o)}
+628:            summary={map.wealth_summary} summaryColor="#34d399" />
+630:        {wealthOpen && (
+638:              <textarea rows={2} value={map.wealth_summary || ""} onChange={e => set("wealth_summary", e.target.value)}
+643:              { key:"bag_retirement", label:"Retirement",         icon:"🏡", placeholder:"What does retirement look like -- when, how, what does life feel like when you stop working by necessity?", editable:false },
+644:              { key:"bag_assets",     label:"Assets",             icon:"🏛️",  placeholder:"Property, investments, business equity -- what have you built and what does it generate?", editable:false },
+645:              { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈", placeholder:"What does your annual income or cash flow look like? What level creates genuine freedom?", editable:false },
+646:              { key:"bag_other",      label: map.bag_other_label || "Other", icon:"✦", placeholder:"Legacy, giving, philanthropy, financial milestones...", editable:true },
+652:                    <input type="text" value={map.bag_other_label || ""} placeholder="Other"
+653:                      onChange={e => set("bag_other_label", e.target.value)}
+670:          <SectionHeader icon="🌱" label="Growth" color="#a78bfa"
+1185:  bag_retirement: "", bag_assets: "", bag_cashflow: "", bag_other: "",
+1186:  time_summary: "", wealth_summary: "", growth_summary: "",
+2213:          {map.wealth_summary && (
+2216:              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#34d399", lineHeight:1.6 }}>"{map.wealth_summary}"</div>
+2310:        { key:"other",      label: map.bag_other_label || "Other", editable:true, labelKey:"bag_other_label" },
+2320:        { id:"wealth", label:"Wealth", icon:"$",  sentence: map.wealth_summary || "", emptySentence:"Add your wealth vision in Direction first." },
+3825:      { key:"other",      label: map.bag_other_label || "Other" },
+4169:      { key:"bag_retirement", label:"Retirement",         icon:"🏡" },
+4170:      { key:"bag_assets",     label:"Assets",             icon:"🏛️" },
+4171:      { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈" },
+4172:      { key:"bag_other",      label: map.bag_other_label || "Other", icon:"✦" },
+4184:    const wealthChips = ["Retirement", "Assets", "Cash flow", map.bag_other_label || "Other"];
+4192:    const wealthOpen = !!map?.map_wealth_open;
+4273:            { icon:"🏡",  label:"Retirement",         openKey:"mi_wealth_ret_open",   body: map.bag_retirement || "" },
+4274:            { icon:"🏛️", label:"Assets",             openKey:"mi_wealth_ass_open",   body: map.bag_assets || "" },
+4275:            { icon:"📈",  label:"Cash flow & Salary", openKey:"mi_wealth_cash_open",  body: map.bag_cashflow || "" },
+4276:            { icon:"✦",   label: map.bag_other_label || "Other", openKey:"mi_wealth_other_open", body: map.bag_other || "" },
+4619:        { label: "Retirement", body: map?.bag_retirement },
+4620:        { label: "Assets",     body: map?.bag_assets },
+4621:        { label: "Cashflow",   body: map?.bag_cashflow },
