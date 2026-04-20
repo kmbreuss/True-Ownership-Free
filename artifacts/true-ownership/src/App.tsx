@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-
 const KEYS = {
   map:    "to_map",
   done:   "to_done",
@@ -8,10 +7,8 @@ const KEYS = {
   intake: "to_intake",
   phase:  "to_phase",
 };
-
 function saveData(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 function loadData(k) { try { const r = localStorage.getItem(k); return Promise.resolve(r ? JSON.parse(r) : null); } catch { return Promise.resolve(null); } }
-
 const VOICES = {
   own:         { id:"own",         label:"Your Voice",             short:"Your Voice",  icon:"◎", color:"#a78bfa", muted:"rgba(167,139,250,0.1)",  border:"rgba(167,139,250,0.3)" },
   coach:       { id:"coach",       label:"Katherine · Coach",      short:"Coach",       icon:"◈", color:"#c9a84c", muted:"rgba(79,203,242,0.1)",   border:"rgba(79,203,242,0.3)"  },
@@ -36,7 +33,6 @@ const VOICE_REASON = {
   advice:"You're ready to move. Direct guidance will serve you better than more questions.",
   truth:"You're asking for honesty. That takes courage.",
 };
-
 function detectVoice(q3) {
   const t = (q3||"").toLowerCase();
   if (/don.t know|scared|lost|not sure|overwhelm|finally|help|afraid|anxious|support/.test(t)) return "supportive";
@@ -46,265 +42,74 @@ function detectVoice(q3) {
   if (/truth|honest|real|hard|uncomfortable|brutal/.test(t)) return "truth";
   return "coach";
 }
-
 function buildFullContext(name, intake, mapData) {
   const lines = [];
-  const year = new Date().getFullYear();
-  const push = (s) => lines.push(s);
-  const section = (heading) => { push(""); push(heading); };
-
-  // ── Identity (who they are coming in)
-  push(`Client name: ${name}`);
-  if (intake?.q1) push(`What brought them here: "${intake.q1}"`);
-  if (intake?.q2) push(`Who they are becoming: "${intake.q2}"`);
-  if (intake?.q3) push(`What they most need: "${intake.q3}"`);
-
-  // ── Purpose
+  lines.push(`Client name: ${name}`);
+  if (intake?.q1) lines.push(`What brought them here: "${intake.q1}"`);
+  if (intake?.q2) lines.push(`Who they are becoming: "${intake.q2}"`);
+  if (intake?.q3) lines.push(`What they most need: "${intake.q3}"`);
   const layers = (mapData?.purpose_layers || []).filter(l => (l||"").trim());
   if (layers.length > 0) {
-    section(`Purpose peeling (${layers.length} layer${layers.length === 1 ? "" : "s"} deep):`);
-    layers.forEach((l, i) => push(`  Layer ${i + 1}: "${l}"`));
+    lines.push(`\nPurpose peeling layers (${layers.length} deep):`);
+    layers.forEach((l, i) => lines.push(`  Layer ${i + 1}: "${l}"`));
   }
-  if (mapData?.purpose_draft) push(`Purpose draft (AI): "${mapData.purpose_draft}"`);
-  if (mapData?.purpose_final) push(`Purpose final (their words): "${mapData.purpose_final}"`);
-
-  // ── Horizon helper: render a horizon's sections (Time / Wealth / Growth)
-  const renderHorizon = (label, prefix, opts = {}) => {
-    // opts.yearLabel = display year; opts.legacyLifeAreasAllowed = bool (BAG only)
-    const isBag = prefix === "bag";
-    // Key selection: BAG uses bare keys; others are prefixed
-    const k = (name) => isBag ? name : `${prefix}_${name}`;
-    const timePicked = (mapData?.[k("time_picked")] || []) as string[];
-    const wealthPicked = (mapData?.[k("wealth_picked")] || []) as string[];
-    // Horizons below BAG use their own picks if present, else fall back to BAG picks (pre-fill carries forward)
-    const effectiveTimePicked = timePicked.length > 0 ? timePicked : (isBag ? [] : (mapData?.time_picked || []));
-    const effectiveWealthPicked = wealthPicked.length > 0 ? wealthPicked : (isBag ? [] : (mapData?.wealth_picked || []));
-
-    const timeItemsMap = mapData?.[k("time_items")] || {};
-    const wealthItemsMap = mapData?.[k("wealth_items")] || {};
-
-    // Summary sentence keys differ between BAG and other horizons
-    const timeSummary   = isBag ? mapData?.time_overall_sentence   : mapData?.[`${prefix}_time_sentence`];
-    const wealthSummary = isBag ? mapData?.wealth_overall_sentence : mapData?.[`${prefix}_wealth_sentence`];
-    const growthSummary = isBag ? mapData?.growth_sentence         : mapData?.[`${prefix}_growth_sentence`];
-
-    // Anything at all at this horizon?
-    const hasAny = effectiveTimePicked.length > 0 || effectiveWealthPicked.length > 0
-      || timeSummary || wealthSummary || growthSummary
-      || mapData?.[k("growth_text")]  // only on 3yr / 1yr
-      || (isBag && (mapData?.life_areas || []).length > 0);  // legacy Time
-    if (!hasAny) return;
-
-    section(`Direction · ${label} (horizon ${opts.yearLabel || ""}):`);
-
-    // Time
-    if (effectiveTimePicked.length > 0) {
-      push(`  Time priorities:`);
-      effectiveTimePicked.forEach(id => {
-        const preset = (typeof TIME_AREA_PRESETS !== "undefined" ? TIME_AREA_PRESETS : []).find(p => p.id === id);
-        const stored = timeItemsMap[id] || {};
-        const label = preset?.label || stored.label || id;
-        const goal = (stored.goal || stored.text || "").trim();
-        push(`    - ${label}${goal ? `: "${goal}"` : ""}`);
-      });
-    } else if (isBag && (mapData?.life_areas || []).length > 0) {
-      // Legacy BAG Time fallback
-      push(`  Time priorities (legacy):`);
-      (mapData.life_areas || []).forEach((a, i) => {
-        push(`    - ${a.label}${a.goal ? `: "${a.goal}"` : ""}`);
-      });
-    }
-    if (timeSummary) push(`  Time -- in one sentence: "${timeSummary}"`);
-
-    // BAG-only S/H/F for Time
-    if (isBag) {
-      const shf = mapData?.time_see_hear_feel || {};
-      const shfBits = [shf.see, shf.hear, shf.feel].filter(Boolean);
-      if (shfBits.length > 0) {
-        if (shf.see)  push(`  Time · I will see: "${shf.see}"`);
-        if (shf.hear) push(`  Time · I will hear: "${shf.hear}"`);
-        if (shf.feel) push(`  Time · I will feel: "${shf.feel}"`);
-      }
-    }
-
-    // Wealth
-    if (effectiveWealthPicked.length > 0) {
-      push(`  Wealth priorities:`);
-      effectiveWealthPicked.forEach(id => {
-        const preset = (typeof WEALTH_AREA_PRESETS !== "undefined" ? WEALTH_AREA_PRESETS : []).find(p => p.id === id);
-        const stored = wealthItemsMap[id] || {};
-        const label = preset?.label || stored.label || id;
-        const goal = (stored.goal || stored.text || "").trim();
-        push(`    - ${label}${goal ? `: "${goal}"` : ""}`);
-      });
-    }
-    if (wealthSummary) push(`  Wealth -- in one sentence: "${wealthSummary}"`);
-
-    // BAG-only S/H/F for Wealth
-    if (isBag) {
-      const shf = mapData?.wealth_see_hear_feel || {};
-      if (shf.see)  push(`  Wealth · I will see: "${shf.see}"`);
-      if (shf.hear) push(`  Wealth · I will hear: "${shf.hear}"`);
-      if (shf.feel) push(`  Wealth · I will feel: "${shf.feel}"`);
-    }
-
-    // Growth
-    if (isBag) {
-      const shf = mapData?.growth_see_hear_feel || {};
-      if (shf.see)  push(`  Growth · I will see: "${shf.see}"`);
-      if (shf.hear) push(`  Growth · I will hear: "${shf.hear}"`);
-      if (shf.feel) push(`  Growth · I will feel: "${shf.feel}"`);
-    } else {
-      const freeText = mapData?.[`${prefix}_growth_text`];
-      if (freeText) push(`  Growth -- free writing: "${freeText}"`);
-    }
-    if (growthSummary) push(`  Growth -- in one sentence: "${growthSummary}"`);
-
-    // Tier ranking for this horizon
-    const tiers = mapData?.[`${prefix === "bag" ? "bag" : prefix}_tiers`] || {};
-    const tierKeys = Object.keys(tiers);
-    if (tierKeys.length > 0) {
-      const byTier = { "non-neg": [], imp: [], nth: [] };
-      const labelFor = (id) => {
-        if (id.startsWith("t_")) {
-          const p = (typeof TIME_AREA_PRESETS !== "undefined" ? TIME_AREA_PRESETS : []).find(pp => pp.id === id.slice(2));
-          return p?.label || (timeItemsMap[id.slice(2)]?.label) || id.slice(2);
-        }
-        if (id.startsWith("w_")) {
-          const p = (typeof WEALTH_AREA_PRESETS !== "undefined" ? WEALTH_AREA_PRESETS : []).find(pp => pp.id === id.slice(2));
-          return p?.label || (wealthItemsMap[id.slice(2)]?.label) || id.slice(2);
-        }
-        if (id === "g_main") return "Growth vision";
-        if (id.startsWith("g_iv_")) return "(Identity/Values seed)";
-        if (id.startsWith("g_custom_")) return "(custom growth)";
-        return id;
-      };
-      tierKeys.forEach(id => {
-        const t = tiers[id] || "nth";
-        if (byTier[t]) byTier[t].push(labelFor(id));
-      });
-      if (byTier["non-neg"].length || byTier.imp.length || byTier.nth.length) {
-        push(`  Tier ranking:`);
-        if (byTier["non-neg"].length) push(`    Non-negotiable (${byTier["non-neg"].length}/3): ${byTier["non-neg"].join(", ")}`);
-        if (byTier.imp.length)         push(`    Important: ${byTier.imp.join(", ")}`);
-        if (byTier.nth.length)         push(`    Nice to have: ${byTier.nth.join(", ")}`);
-      }
-    }
-  };
-
-  renderHorizon("BAG",    "bag",     { yearLabel: String(year + 12) });
-  renderHorizon("3-Year", "threeyr", { yearLabel: String(year + 3) });
-  renderHorizon("1-Year", "oneyr",   { yearLabel: String(year + 1) });
-
-  // ── 1-Year accepted Growth seeds (Identity/Values-derived)
-  const acceptedSeeds = mapData?.oneyr_growth_accepted || {};
-  const editedLabels  = mapData?.oneyr_growth_edited_labels || {};
-  const removedSeeds  = mapData?.oneyr_growth_removed || {};
-  const customGrowth  = mapData?.oneyr_growth_custom || [];
-  const acceptedIds = Object.keys(acceptedSeeds).filter(id => acceptedSeeds[id] && !removedSeeds[id]);
-  if (acceptedIds.length > 0 || customGrowth.length > 0) {
-    section(`1-Year Growth focus (accepted from inner work):`);
-    acceptedIds.forEach(id => {
-      const label = editedLabels[id] || "(seed)";
-      push(`  - ${label}`);
+  if (mapData?.purpose_draft) lines.push(`Purpose draft (AI): "${mapData.purpose_draft}"`);
+  if (mapData?.purpose_final) lines.push(`Purpose final (their words): "${mapData.purpose_final}"`);
+  if (mapData?.bag_year) lines.push(`BAG target year: ${mapData.bag_year}`);
+  const areas = (mapData?.life_areas || []);
+  if (areas.length > 0) {
+    lines.push(`\nLife priorities (ranked):`);
+    areas.forEach((a, i) => {
+      lines.push(`  ${i+1}. ${a.label}`);
+      if (a.see) lines.push(`     See: "${a.see}"`);
+      if (a.hear) lines.push(`     Hear: "${a.hear}"`);
+      if (a.feel) lines.push(`     Feel: "${a.feel}"`);
     });
-    customGrowth.forEach(item => push(`  - ${item.label} (their own)`));
   }
-
-  // ── Direction Alignment scores (feeds A2 — TODAY's reality vs each horizon priority)
-  const dirAlignKeys = Object.keys(mapData || {}).filter(k => k.startsWith("dir_align_"));
-  if (dirAlignKeys.length > 0) {
-    section(`Direction Alignment scores (TODAY's reality against each horizon, 1-10):`);
-    const byHorizon = { oneyr: [], threeyr: [], bag: [] };
-    dirAlignKeys.forEach(k => {
-      const m = k.match(/^dir_align_(oneyr|threeyr|bag)_(.+)$/);
-      if (!m) return;
-      const [, horizon, itemId] = m;
-      const score = mapData[k];
-      // Re-use same labelFor logic inline
-      let itemLabel = itemId;
-      const itemsMap = horizon === "bag" ? (mapData?.time_items || {}) : (mapData?.[`${horizon}_time_items`] || {});
-      const wItemsMap = horizon === "bag" ? (mapData?.wealth_items || {}) : (mapData?.[`${horizon}_wealth_items`] || {});
-      if (itemId.startsWith("t_")) {
-        const p = (typeof TIME_AREA_PRESETS !== "undefined" ? TIME_AREA_PRESETS : []).find(pp => pp.id === itemId.slice(2));
-        itemLabel = p?.label || itemsMap[itemId.slice(2)]?.label || itemId.slice(2);
-      } else if (itemId.startsWith("w_")) {
-        const p = (typeof WEALTH_AREA_PRESETS !== "undefined" ? WEALTH_AREA_PRESETS : []).find(pp => pp.id === itemId.slice(2));
-        itemLabel = p?.label || wItemsMap[itemId.slice(2)]?.label || itemId.slice(2);
-      } else if (itemId === "g_main") itemLabel = "Growth vision";
-      byHorizon[horizon].push(`${itemLabel}: ${score}/10`);
-    });
-    if (byHorizon.oneyr.length)   push(`  1-Year (${year+1}): ${byHorizon.oneyr.join(", ")}`);
-    if (byHorizon.threeyr.length) push(`  3-Year (${year+3}): ${byHorizon.threeyr.join(", ")}`);
-    if (byHorizon.bag.length)     push(`  BAG (${year+12}): ${byHorizon.bag.join(", ")}`);
+  if (mapData?.time_summary) lines.push(`Time summary: "${mapData.time_summary}"`);
+  const goals = (mapData?.life_areas || []).filter(a => a.goal);
+  if (goals.length > 0) {
+    lines.push(`\nLife goals:`);
+    goals.forEach((a, i) => lines.push(`  ${i+1}. ${a.label}: "${a.goal}"`));
   }
-
-  // ── Identity (animals + capabilities + alignment scores)
-  const animals = (mapData?.animals || []).filter(a => a && a.name);
+  if (mapData?.bag_retirement) lines.push(`Wealth - Retirement: "${mapData.bag_retirement}"`);
+  if (mapData?.bag_assets) lines.push(`Wealth - Assets: "${mapData.bag_assets}"`);
+  if (mapData?.bag_cashflow) lines.push(`Wealth - Cash flow: "${mapData.bag_cashflow}"`);
+  if (mapData?.bag_other) lines.push(`Wealth - Other: "${mapData.bag_other}"`);
+  if (mapData?.wealth_summary) lines.push(`Wealth summary: "${mapData.wealth_summary}"`);
+  if (mapData?.growth_summary) lines.push(`Growth summary: "${mapData.growth_summary}"`);
+  if (mapData?.bag_growth) lines.push(`Growth: "${mapData.bag_growth}"`);
+  const animals = (mapData?.animals || []).filter(a => a.name);
   if (animals.length > 0) {
-    section(`Identity -- animals:`);
-    animals.forEach((a, i) => {
-      const title = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
-      const line = [`  ${title || a.name}`];
-      if (a.alignment !== undefined) line.push(`overall alignment ${a.alignment}/10`);
-      push(line.join(" -- "));
-      const caps = (a.capabilities || []).filter(c => c && c.name);
-      caps.forEach((c, ci) => {
-        const key = `align_cap_${i}_${ci}`;
-        const score = mapData?.[key];
-        push(`    • ${c.name}${score !== undefined ? ` -- scored ${score}/10` : ""}`);
-      });
-    });
+    lines.push(`\nIdentity animals:`);
+    animals.forEach(a => { const t = [a.adj1, a.adj2, a.name].filter(Boolean).join(" "); lines.push(`  "${t}" -- alignment ${a.alignment}/10`); });
   }
   const chipLabels = (mapData?.identity_chips || []).map(c => c.label);
   const qualitiesStr = chipLabels.length > 0 ? chipLabels.join(", ") : (mapData?.identity_adjectives || "");
-  if (qualitiesStr) push(`Qualities: "${qualitiesStr}"`);
-  if (mapData?.capabilities_note) push(`Superpowers note: "${mapData.capabilities_note}"`);
-
-  // ── Values (hierarchy + behaviors + alignment scores)
-  const valCount = parseInt(mapData?.val_count) || (mapData?.values || []).filter(v => v && v.name).length || 0;
-  if (valCount > 0) {
-    section(`Values -- hierarchy:`);
-    for (let i = 0; i < valCount; i++) {
-      const vName = mapData?.[`val_${i}_name`] || (mapData?.values || [])[i]?.name || "";
-      if (!vName) continue;
-      push(`  ${i + 1}. ${vName}`);
-      const bCount = parseInt(mapData?.[`beh_${i}_count`]) || 0;
-      for (let j = 0; j < bCount; j++) {
-        const bName = mapData?.[`beh_${i}_${j}_name`];
-        if (!bName) continue;
-        const score = mapData?.[`align_val_${i}_beh_${j}`];
-        push(`    • ${bName}${score !== undefined ? ` -- scored ${score}/10` : ""}`);
-      }
-      // Fallback to old values array shape if no new-state behaviors
-      if (bCount === 0) {
-        const legacy = (mapData?.values || [])[i];
-        if (legacy?.behaviors) push(`    • behaviors: "${legacy.behaviors}"`);
-        if (legacy?.irk) push(`    (revealed by: "${legacy.irk}")`);
-      }
-    }
+  if (qualitiesStr) lines.push(`Qualities: "${qualitiesStr}"`);
+  if (mapData?.capabilities_note) lines.push(`Superpowers note: "${mapData.capabilities_note}"`);
+  const values = (mapData?.values || []).filter(v => v.name);
+  if (values.length > 0) {
+    lines.push(`\nValues (top ${values.length}):`);
+    values.forEach((v, i) => {
+      lines.push(`  ${i + 1}. ${v.name}${v.irk ? ` -- revealed by: "${v.irk}"` : ""}${v.behaviors ? ` -- behaviors: "${v.behaviors}"` : ""}`);
+    });
   }
-  if (mapData?.values_irks) push(`Values irks dump: "${mapData.values_irks}"`);
-  if (mapData?.behaviors_note) push(`Behaviors note: "${mapData.behaviors_note}"`);
-
-  // ── Legacy three-slider alignment (kept if present)
+  if (mapData?.values_irks) lines.push(`Values irks dump: "${mapData.values_irks}"`);
+  if (mapData?.behaviors_note) lines.push(`Behaviors note: "${mapData.behaviors_note}"`);
   if (mapData?.align_direction !== undefined || mapData?.align_superpowers !== undefined || mapData?.align_behaviors !== undefined) {
-    section(`Overall alignment ratings:`);
-    if (mapData.align_direction   !== undefined) push(`  Direction: ${mapData.align_direction}/10`);
-    if (mapData.align_superpowers !== undefined) push(`  Superpowers: ${mapData.align_superpowers}/10`);
-    if (mapData.align_behaviors   !== undefined) push(`  Behaviors: ${mapData.align_behaviors}/10`);
+    lines.push(`\nAlignment ratings:`);
+    if (mapData.align_direction   !== undefined) lines.push(`  Direction: ${mapData.align_direction}/10`);
+    if (mapData.align_superpowers !== undefined) lines.push(`  Superpowers: ${mapData.align_superpowers}/10`);
+    if (mapData.align_behaviors   !== undefined) lines.push(`  Behaviors: ${mapData.align_behaviors}/10`);
   }
-
-  // ── Purpose peeling session history
   const sessions = (mapData?.purpose_sessions || []);
   if (sessions.length > 0) {
-    section(`Purpose peeling sessions (${sessions.length} total):`);
-    sessions.forEach((s, i) => push(`  Session ${i + 1} (${s.date || ""}): draft = "${s.draft || ""}", verbs = ${(s.verbs || []).join(", ")}`));
+    lines.push(`\nPurpose peeling sessions (${sessions.length} total):`);
+    sessions.forEach((s, i) => lines.push(`  Session ${i + 1} (${s.date || ""}): draft = "${s.draft || ""}", verbs = ${(s.verbs || []).join(", ")}`));
   }
-
   return lines.join("\n");
 }
-
 function buildPrompt(voiceId, name, intake, mapData) {
   const ctx = buildFullContext(name, intake, mapData);
   const voiceInstructions = {
@@ -317,7 +122,6 @@ function buildPrompt(voiceId, name, intake, mapData) {
   };
   return `${voiceInstructions[voiceId]}\n\nEverything ${name} has entered so far:\n${ctx}`;
 }
-
 async function callAI(voiceId, name, intake, mapData, message, history=[]) {
   const res = await fetch("/api/claude", {
     method:"POST", headers:{"Content-Type":"application/json"},
@@ -328,7 +132,6 @@ async function callAI(voiceId, name, intake, mapData, message, history=[]) {
   const d = await res.json();
   return d.content?.map(b=>b.text||"").join("")||"Something went wrong.";
 }
-
 async function callStructured(prompt) {
   const res = await fetch("/api/claude", {
     method:"POST", headers:{"Content-Type":"application/json"},
@@ -339,7 +142,6 @@ async function callStructured(prompt) {
   const text = d.content?.map(b=>b.text||"").join("")||"{}";
   try { return JSON.parse(text.replace(/```json|```/g,"").trim()); } catch { return {}; }
 }
-
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -382,9 +184,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .chip-drag{cursor:grab;}.chip-drag:active{cursor:grabbing;}
 .drop-zone{transition:border-color .2s,background .2s;}.drop-zone.over{background:rgba(201,168,76,.04);}
 `;
-
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
-
 const LIFE_AREA_PRESETS = [
   { id:"family",    label:"Family",       icon:"👨‍👩‍👧‍👦", hint:"Where will your kids be? What does your relationship with your partner look like? What do you do together?" },
   { id:"love",      label:"Love",         icon:"💛", hint:"Your romantic life -- partner, intimacy, the relationship you choose to build. What does love look like at your best?" },
@@ -395,7 +195,6 @@ const LIFE_AREA_PRESETS = [
   { id:"community", label:"Community",    icon:"🌍",  hint:"What are you contributing to? Who do you serve beyond your immediate circle?" },
   { id:"adventure", label:"Adventure",    icon:"🧭",  hint:"Where have you been? What have you experienced? What risks have you taken?" },
 ];
-
 // ----- DIRECTION: Wealth Areas (W.1) -----
 const WEALTH_AREA_PRESETS = [
   { id:"retirement",     label:"Retirement",     icon:"🏖️", hint:"When, how, what does life feel like when you stop working by necessity?" },
@@ -405,7 +204,6 @@ const WEALTH_AREA_PRESETS = [
   { id:"passive-income", label:"Passive Income", icon:"💰", hint:"Income that doesn't require your direct time. What streams are running?" },
   { id:"real-estate",    label:"Real Estate",    icon:"🏡", hint:"Properties you own, how they work for you, what they enable." },
 ];
-
 // W.1a-ext: Time presets (9 cards, prototype parity)
 const TIME_AREA_PRESETS = [
   { id:"family",       label:"Family",       icon:"👨‍👩‍👧", hint:"How does your time shape your family life? What does a typical week look like?" },
@@ -418,19 +216,17 @@ const TIME_AREA_PRESETS = [
   { id:"adventure",    label:"Adventure",    icon:"🧭",     hint:"Travel, exploration, the edges of your comfort zone." },
   { id:"wellbeing",    label:"Wellbeing",    icon:"✦",     hint:"Mental space, rest, the quality of your inner life day-to-day." },
 ];
-
 // W.1c: Tier ranking constants (prototype parity)
 const TIERS = [
   { id: "non-neg", label: "Non-negotiable", color: "#ef4444" },
   { id: "imp",     label: "Important",     color: "#f59e0b" },
-  { id: "nth",     label: "Nice to have",   color: "#6b7a99" },
+  { id: "nth",     label: "Nice to have",  color: "#94a3b8" },
 ];
 const NON_NEG_CAP = 3;
 const segColor = (seg) =>
   seg === "Time" ? "var(--warm)" :
   seg === "Wealth" ? "#34d399" :
   "#a78bfa"; // Growth
-
 function WealthChipSelector({ selected, onToggle, onAddCustom }) {
   const [customInput, setCustomInput] = useState("");
   const [showCustom, setShowCustom] = useState(false);
@@ -519,7 +315,6 @@ function WealthChipSelector({ selected, onToggle, onAddCustom }) {
     </div>
   );
 }
-
 function WealthItemCard({ area, onRemove, onChange }) {
   return (
     <div style={{ marginBottom:13, padding:"12px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:9 }}>
@@ -564,10 +359,8 @@ function WealthItemCard({ area, onRemove, onChange }) {
     </div>
   );
 }
-
 // ─── W.1a: Prototype components (structural parity with a1_direction_prototype_v2.jsx) ────────
 // Using existing CSS vars for now; W.1b will migrate to prototype's exact design tokens.
-
 function CollapsibleSegment_v2({ icon, title, color, confirmed, confirmedSummary, children }) {
   // Auto-rule: open unless confirmed. User can override via click.
   // On confirm transition (false → true), auto-collapse to satisfy v3.1 principle #2.
@@ -642,7 +435,6 @@ function CollapsibleSegment_v2({ icon, title, color, confirmed, confirmedSummary
     </div>
   );
 }
-
 function SubLabel_v2({ children }) {
   return (
     <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:10, marginTop:14 }}>
@@ -650,7 +442,6 @@ function SubLabel_v2({ children }) {
     </div>
   );
 }
-
 function CardPicker_v2({ cards, picked, onToggle, onAddCustom, color }) {
   const [customText, setCustomText] = useState("");
   const [addingCustom, setAddingCustom] = useState(false);
@@ -714,7 +505,6 @@ function CardPicker_v2({ cards, picked, onToggle, onAddCustom, color }) {
     </div>
   );
 }
-
 function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange }) {
   const [summarising, setSummarising] = useState(false);
   const summarise = () => {
@@ -782,7 +572,6 @@ function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTex
     </div>
   );
 }
-
 function SHFField_v2({ label, placeholder, value, onChange }) {
   return (
     <div style={{ marginBottom:10 }}>
@@ -799,7 +588,6 @@ function SHFField_v2({ label, placeholder, value, onChange }) {
     </div>
   );
 }
-
 function SeeHearFeelBlock_v2({ title, subtitle, color, values, onChange }) {
   return (
     <div style={{
@@ -830,37 +618,16 @@ function SeeHearFeelBlock_v2({ title, subtitle, color, values, onChange }) {
     </div>
   );
 }
-
 function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConfirmed, bottomTitle }) {
   // State machine: idle | generating | editing
   const [state, setState] = useState("idle");
   const [draft, setDraft] = useState("");
-
   const generate = () => {
     if (!sourceText.trim()) return;
     setState("generating");
     setTimeout(() => {
-      // W.4 fix: draft from ALL sub-items, not just the first sentence.
-      // Splits source into fragments (periods, !, ?), drops very short ones,
-      // then joins them Oxford-comma style so the draft includes everything the user wrote.
-      const fragments = sourceText
-        .split(/[.!?]\s*/)
-        .map(s => s.trim())
-        .filter(s => s.length > 3);
-      let compressed;
-      if (fragments.length === 0) {
-        compressed = sourceText.slice(0, 180);
-      } else if (fragments.length === 1) {
-        compressed = fragments[0];
-      } else if (fragments.length === 2) {
-        compressed = `${fragments[0]} and ${fragments[1]}`;
-      } else {
-        const last = fragments[fragments.length - 1];
-        const rest = fragments.slice(0, -1);
-        compressed = `${rest.join(", ")}, and ${last}`;
-      }
-      // Ensure trailing period
-      if (compressed && !/[.!?]$/.test(compressed)) compressed += ".";
+      const sentences = sourceText.split(/[.!?]/).map(s => s.trim()).filter(s => s.length > 10);
+      const compressed = sentences[0] || sourceText.slice(0, 180);
       setDraft(compressed);
       setState("editing");
     }, 700);
@@ -874,7 +641,6 @@ function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConf
     setState("idle");
     setDraft("");
   };
-
   // Confirmed state with regenerate option
   if (existingConfirmed && state === "idle") {
     return (
@@ -908,7 +674,6 @@ function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConf
       </div>
     );
   }
-
   return (
     <div style={{
       marginTop:18, marginBottom:24,
@@ -987,7 +752,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
   const [openPill, setOpenPill] = useState(null);
   const [capWarning, setCapWarning] = useState(false);
   const [userState, setUserState] = useState(null);
-
   const byTier = useMemo(() => {
     const g = { "non-neg": [], imp: [], nth: [] };
     items.forEach(i => {
@@ -996,11 +760,9 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
     });
     return g;
   }, [items, tiers]);
-
   const nonNegCount = byTier["non-neg"].length;
   const nonNegFull = nonNegCount >= NON_NEG_CAP;
   const hasAnyRanking = nonNegCount > 0 || byTier.imp.length > 0;
-
   // Auto-rule: open unless confirmed. Auto-collapse on confirm transition (v3.1 principle #2).
   const prevConfirmedRef = useRef(confirmed);
   useEffect(() => {
@@ -1012,7 +774,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
   const autoOpen = !confirmed;
   const isOpen = userState === null ? autoOpen : userState;
   const toggle = () => setUserState(!isOpen);
-
   const setTier = (itemId, tierId) => {
     const currentTier = tiers[itemId] || "nth";
     if (tierId === "non-neg" && currentTier !== "non-neg" && nonNegFull) {
@@ -1024,7 +785,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
     setTiers({ ...tiers, [itemId]: tierId });
     setOpenPill(null);
   };
-
   return (
     <div style={{
       marginTop: 36, marginBottom: 14,
@@ -1060,7 +820,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
           flexShrink: 0,
         }}>▾</div>
       </div>
-
       {/* Collapsed: compact ranking summary */}
       {!isOpen && (
         <div style={{ padding: "0 16px 14px" }}>
@@ -1107,7 +866,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
           }}>Click above to expand and edit.</div>
         </div>
       )}
-
       {/* Open: full ranking UI */}
       {isOpen && (
         <div style={{ padding: "0 16px 16px" }}>
@@ -1121,7 +879,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
               Complete your Time, Wealth, and/or Growth segments above first -- then come back here to rank them.
             </div>
           )}
-
           {items.length > 0 && (<>
             <div style={{
               padding: "18px 20px",
@@ -1131,7 +888,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
               <div style={{ fontSize: 12, color: "var(--text3)", fontStyle: "italic", marginBottom: 4 }}>
                 What matters MOST for {horizonLabel}? Tap each to assign a tier.
               </div>
-
               <div style={{
                 marginTop: 10, padding: "8px 12px",
                 background: nonNegFull ? "rgba(248,113,113,.08)" : "rgba(201,168,76,.05)",
@@ -1145,7 +901,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
                 }}>{nonNegCount}/{NON_NEG_CAP}</strong>.
                 {nonNegFull && " To pick a different Non-negotiable, move one of your current three to Important first."}
               </div>
-
               {capWarning && (
                 <div style={{
                   marginTop: 10, padding: "10px 14px",
@@ -1156,7 +911,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
                   You've already got 3 Non-negotiables. Move one to Important first, then try again.
                 </div>
               )}
-
               <div style={{ marginTop: 12 }}>
                 {items.map(item => {
                   const currentTier = tiers[item.id] || "nth";
@@ -1229,7 +983,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
                 })}
               </div>
             </div>
-
             <div style={{ marginTop: 24 }}>
               <div style={{
                 fontSize: 10, letterSpacing: 2, textTransform: "uppercase",
@@ -1284,7 +1037,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
                 );
               })}
             </div>
-
             {/* Confirm ranking button */}
             {!confirmed && hasAnyRanking && onConfirmed && (
               <div style={{ marginTop: 16, textAlign: "center" }}>
@@ -1305,7 +1057,6 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
     </div>
   );
 }
-
 // W.2: SimpleItemCard_v2 — used on 3-Year + 1-Year pages (simpler than PriorityItemCard_v2, no prompt sub-label needed)
 function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange, hintText, hintLabel }) {
   const [summarising, setSummarising] = useState(false);
@@ -1388,7 +1139,6 @@ function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextC
     </div>
   );
 }
-
 // W.2: PrefillNote_v2 — green-left-bar notice for 3-Year / 1-Year pre-fill explainer
 function PrefillNote_v2({ children }) {
   return (
@@ -1400,151 +1150,172 @@ function PrefillNote_v2({ children }) {
     }}>{children}</div>
   );
 }
-
 // W.2: DirectionTimeline_v2 — port from prototype (line 239 of a1_direction_prototype_v2.jsx)
 // Shows 1-YEAR · 3-YEAR · BAG near-to-far. Dots become clickable when that horizon has a confirmed Growth sentence.
 // Click a completed dot to expand a preview card showing the sentence.
 function DirectionTimeline_v2({ activeHorizon, map }) {
   const year = new Date().getFullYear();
   const points = [
-    { key: "oneyr",  label: "1-YEAR", year: String(year + 1) },
-    { key: "threeyr", label: "3-YEAR", year: String(year + 3) },
-    { key: "bag",    label: "BAG",    year: String(year + 12) },
+    { key: "bag",     label: "BAG",    year: String(year + 12), completed: !!map.growth_confirmed },
+    { key: "threeyr", label: "3-YEAR", year: String(year + 3),  completed: !!map.threeyr_growth_confirmed },
+    { key: "oneyr",   label: "1-YEAR", year: String(year + 1),  completed: !!map.oneyr_growth_confirmed },
   ];
-  // W.4 fix: a horizon is "complete enough to preview" if ANY of its three segments
-  // (Time / Wealth / Growth) has a confirmed summary — not only Growth.
-  const summariesByHorizon = {
-    bag: [
-      { label: "Time",   color: "var(--warm)", text: map.time_overall_confirmed   ? map.time_overall_sentence   : "" },
-      { label: "Wealth", color: "#34d399",     text: map.wealth_overall_confirmed ? map.wealth_overall_sentence : "" },
-      { label: "Growth", color: "#a78bfa",     text: map.growth_confirmed         ? map.growth_sentence         : "" },
-    ],
-    threeyr: [
-      { label: "Time",   color: "var(--warm)", text: map.threeyr_time_confirmed   ? map.threeyr_time_sentence   : "" },
-      { label: "Wealth", color: "#34d399",     text: map.threeyr_wealth_confirmed ? map.threeyr_wealth_sentence : "" },
-      { label: "Growth", color: "#a78bfa",     text: map.threeyr_growth_confirmed ? map.threeyr_growth_sentence : "" },
-    ],
-    oneyr: [
-      { label: "Time",   color: "var(--warm)", text: map.oneyr_time_confirmed   ? map.oneyr_time_sentence   : "" },
-      { label: "Wealth", color: "#34d399",     text: map.oneyr_wealth_confirmed ? map.oneyr_wealth_sentence : "" },
-      { label: "Growth", color: "#a78bfa",     text: map.oneyr_growth_confirmed ? map.oneyr_growth_sentence : "" },
-    ],
+  const horizonData = {
+    bag: {
+      time:   map.time_overall_sentence   || map.time_summary   || map.bag_time_sentence   || map.growth_time_sentence   || "",
+      wealth: map.wealth_overall_sentence || map.wealth_summary || map.bag_wealth_sentence || map.growth_wealth_sentence || "",
+      growth: map.growth_sentence || map.growth_summary || "",
+    },
+    threeyr: {
+      time:   map.threeyr_time_sentence   || "",
+      wealth: map.threeyr_wealth_sentence || "",
+      growth: map.threeyr_growth_sentence || "",
+    },
+    oneyr: {
+      time:   map.oneyr_time_sentence   || "",
+      wealth: map.oneyr_wealth_sentence || "",
+      growth: map.oneyr_growth_sentence || "",
+    },
   };
-  const completed = {
-    bag:     summariesByHorizon.bag.some(s => (s.text || "").trim().length > 0),
-    threeyr: summariesByHorizon.threeyr.some(s => (s.text || "").trim().length > 0),
-    oneyr:   summariesByHorizon.oneyr.some(s => (s.text || "").trim().length > 0),
-  };
-  const [expandedKey, setExpandedKey] = useState(null);
+  // Default opened: the activeHorizon if passed, otherwise none
+  const [openKey, setOpenKey] = useState(activeHorizon || null);
+  const onDotClick = (k) => setOpenKey(openKey === k ? null : k);
 
-  return (
+  const pillarRow = (label, text, color) => (
     <div style={{
-      background:"linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05))",
-      borderBottom:"1px solid var(--border2)",
-      padding:"14px 24px 18px",
-      marginBottom: 20,
-      borderRadius: 8,
+      display:"grid", gridTemplateColumns:"62px 1fr", gap:10,
+      alignItems:"start", marginBottom:8,
     }}>
-      <div style={{
-        fontSize:9, letterSpacing:2, textTransform:"uppercase",
-        color:"var(--text3)", fontWeight:600, textAlign:"center", marginBottom:10,
-      }}>Your Direction · Near to Far</div>
-
-      <div style={{ position:"relative", maxWidth:700, margin:"0 auto" }}>
-        <div style={{
-          position:"absolute", left:"16%", right:"16%", top:11,
-          height:2, background:"var(--border2)", borderRadius:1,
-        }} />
-        <div style={{
-          position:"absolute", left:"16%", top:11,
-          height:2, background:"var(--warm)", borderRadius:1,
-          width: completed.oneyr && completed.threeyr && completed.bag ? "68%"
-            : completed.threeyr && completed.bag ? "34%"
-            : "0%",
-          transition:"width .4s ease",
-        }} />
-
-        <div style={{ display:"flex", justifyContent:"space-between", position:"relative" }}>
-          {points.map(p => {
-            const isComplete = completed[p.key];
-            const isActive = activeHorizon === p.key;
-            return (
-              <div key={p.key}
-                onClick={() => isComplete && setExpandedKey(expandedKey === p.key ? null : p.key)}
-                style={{
-                  display:"flex", flexDirection:"column", alignItems:"center",
-                  width:"33%", cursor: isComplete ? "pointer" : "default", padding:"4px 0",
-                }}>
-                <div style={{
-                  width: isActive ? 20 : 14, height: isActive ? 20 : 14, borderRadius:10,
-                  background: isActive || isComplete ? "var(--warm)" : "var(--bg)",
-                  border: `2px solid ${isActive || isComplete ? "var(--warm)" : "var(--border2)"}`,
-                  display:"grid", placeItems:"center",
-                  boxShadow: isActive ? "0 0 0 4px rgba(201,168,76,.2)" : "none",
-                  color:"var(--bg)", fontSize:9, fontWeight:700, transition:"all .2s ease",
-                }}>{isComplete && !isActive && "✓"}</div>
-                <div style={{ marginTop:6, textAlign:"center" }}>
-                  <div style={{
-                    fontSize:9, letterSpacing:1.5, textTransform:"uppercase",
-                    color: isActive ? "var(--warm)" : isComplete ? "var(--text2)" : "var(--text4)",
-                    fontWeight:600,
-                  }}>{p.label}</div>
-                  <div style={{
-                    fontFamily:"var(--serif)", fontSize:12,
-                    color: isActive ? "var(--warm)" : isComplete ? "var(--text)" : "var(--text4)",
-                  }}>{p.year}</div>
-                  {isComplete && (
-                    <div style={{
-                      fontSize:9, color:"var(--text3)", marginTop:2,
-                      opacity: expandedKey === p.key ? 1 : 0.6,
-                    }}>{expandedKey === p.key ? "▴ hide" : "▾ preview"}</div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {expandedKey && completed[expandedKey] && (
+      <span style={{
+        fontSize:9, color:"var(--text3)", letterSpacing:1.2,
+        textTransform:"uppercase", fontWeight:600, paddingTop:4,
+      }}>{label}</span>
+      <div style={{ minWidth:0 }}>
+        {text && text.trim() ? (
           <div style={{
-            marginTop:12, padding:"12px 16px",
-            background:"rgba(201,168,76,.08)", border:"1px solid var(--warm)",
-            borderRadius:6, maxWidth:640, margin:"12px auto 0",
-          }}>
-            <div style={{
-              fontSize:9, letterSpacing:1.5, textTransform:"uppercase",
-              color:"var(--warm)", fontWeight:600, marginBottom:8,
-              fontFamily:"var(--sans)",
-            }}>
-              {points.find(p => p.key === expandedKey)?.label} · {points.find(p => p.key === expandedKey)?.year}
-            </div>
-            {summariesByHorizon[expandedKey]
-              .filter(s => (s.text || "").trim().length > 0)
-              .map(s => (
-                <div key={s.label} style={{ marginBottom:8, display:"flex", alignItems:"flex-start", gap:10 }}>
-                  <div style={{
-                    fontSize:9, letterSpacing:1.2, textTransform:"uppercase",
-                    color: s.color, fontWeight:700,
-                    minWidth:52, flexShrink:0, marginTop:3,
-                  }}>{s.label}</div>
-                  <div style={{
-                    fontFamily:"var(--serif)", fontSize:13.5, fontStyle:"italic",
-                    color:"var(--text)", lineHeight:1.5, flex:1,
-                  }}>"{s.text}"</div>
-                </div>
-              ))}
+            fontFamily:"var(--serif)", fontSize:13, lineHeight:1.6,
+            fontStyle:"italic", padding:"6px 11px", borderRadius:4,
+            background:"rgba(0,0,0,.2)", borderLeft:`2px solid ${color}`,
+            color:"var(--text)",
+          }}>"{text}"</div>
+        ) : (
+          <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic", padding:"6px 11px" }}>
+            Not yet captured in A1.
           </div>
         )}
       </div>
     </div>
   );
-}
 
+  const openPoint = points.find(p => p.key === openKey);
+  const data = openKey ? horizonData[openKey] : null;
+
+  return (
+    <div style={{
+      background:"linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05))",
+      border:"1px solid var(--border2)", borderRadius:10,
+      padding:"14px 20px 16px", marginBottom:20,
+    }}>
+      <div style={{
+        fontSize:9, letterSpacing:2, textTransform:"uppercase",
+        color:"var(--text3)", fontWeight:600, textAlign:"center",
+        marginBottom:14,
+      }}>Your Direction · Near to Far · <span style={{ color:"var(--warm)" }}>click a dot to see that horizon</span></div>
+
+      {/* Dots strip — clickable */}
+      <div style={{ position:"relative", maxWidth:640, margin:"0 auto" }}>
+        <div style={{
+          position:"absolute", left:"16%", right:"16%", top:7,
+          height:2, background:"var(--border2)", borderRadius:1,
+        }} />
+        <div style={{
+          position:"absolute", left:"16%", top:7, height:2,
+          background:"var(--warm)", borderRadius:1,
+          width: points.filter(p => p.completed).length === 3 ? "68%"
+            : points.filter(p => p.completed).length === 2 ? "34%"
+            : "0%",
+          transition:"width .4s ease",
+        }} />
+        <div style={{ display:"flex", justifyContent:"space-between", position:"relative" }}>
+          {points.map(p => {
+            const isOpen = openKey === p.key;
+            const isActive = activeHorizon === p.key;
+            return (
+              <div key={p.key}
+                onClick={() => onDotClick(p.key)}
+                style={{
+                  display:"flex", flexDirection:"column", alignItems:"center",
+                  width:"33%", padding:"2px 0", cursor:"pointer", userSelect:"none",
+                }}>
+                <div style={{
+                  width: isOpen ? 20 : isActive ? 18 : 14,
+                  height: isOpen ? 20 : isActive ? 18 : 14,
+                  borderRadius:10,
+                  background: isOpen || isActive || p.completed ? "var(--warm)" : "var(--bg)",
+                  border:`2px solid ${isOpen || isActive || p.completed ? "var(--warm)" : "var(--border2)"}`,
+                  display:"grid", placeItems:"center",
+                  boxShadow: isOpen ? "0 0 0 5px rgba(201,168,76,.3)" : isActive ? "0 0 0 4px rgba(201,168,76,.2)" : "none",
+                  color:"var(--bg)", fontSize:9, fontWeight:700, transition:"all .2s ease",
+                }}>{p.completed && !isOpen && !isActive && "✓"}</div>
+                <div style={{ marginTop:6, textAlign:"center" }}>
+                  <div style={{
+                    fontSize:9, letterSpacing:1.5, textTransform:"uppercase",
+                    color: isOpen || isActive ? "var(--warm)" : p.completed ? "var(--text2)" : "var(--text4)",
+                    fontWeight:600,
+                  }}>{p.label}</div>
+                  <div style={{
+                    fontFamily:"var(--serif)", fontSize:11,
+                    color: isOpen || isActive ? "var(--warm)" : p.completed ? "var(--text)" : "var(--text4)",
+                  }}>{p.year}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Opened horizon card — shows Time / Wealth / Growth */}
+      {openPoint && data && (
+        <div style={{
+          marginTop:18, padding:"14px 16px",
+          background:"rgba(201,168,76,.06)",
+          border:"1px solid rgba(201,168,76,.4)",
+          borderRadius:8,
+        }}>
+          <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:12 }}>
+            <span style={{
+              fontFamily:"var(--sans)", fontSize:10, letterSpacing:2,
+              textTransform:"uppercase", fontWeight:700, color:"var(--warm)",
+            }}>{openPoint.label}</span>
+            <span style={{ fontSize:9, color:"var(--text4)", fontFamily:"var(--serif)", fontStyle:"italic" }}>
+              {openPoint.year}
+            </span>
+            <span style={{ fontSize:10, color:"var(--text4)", marginLeft:"auto", cursor:"pointer" }}
+              onClick={() => setOpenKey(null)}>
+              ✕ close
+            </span>
+          </div>
+          {pillarRow("Time",   data.time,   "var(--warm)")}
+          {pillarRow("Wealth", data.wealth, "#34d399")}
+          {pillarRow("Growth", data.growth, "#a78bfa")}
+        </div>
+      )}
+
+      {!openPoint && (
+        <div style={{
+          marginTop:14, fontSize:10, color:"var(--text4)",
+          fontStyle:"italic", textAlign:"center",
+        }}>
+          Tap a dot above to see Time, Wealth, and Growth for that horizon.
+        </div>
+      )}
+    </div>
+  );
+}
 // W.2 (1-Year): Compute Growth suggestions from lowest-scoring Identity capabilities + Values behaviors.
 // Returns top-N worst-scored items as seed suggestions with source attribution.
 function computeIdentityValuesSeeds(map, topN = 4) {
   const seeds = [];
-
   // Identity: iterate animals → capabilities → align_cap_{i}_{ci} scores
   const animals = (map.animals || []).filter(a => a && a.name);
   animals.forEach((animal, i) => {
@@ -1564,7 +1335,6 @@ function computeIdentityValuesSeeds(map, topN = 4) {
       });
     });
   });
-
   // Values: iterate val_count + val_{i}_name + beh_{i}_count + beh_{i}_{j}_name → align_val_{i}_beh_{j} scores
   const valCount = parseInt(map?.val_count) || (map?.values || []).filter(v => v && v.name).length || 0;
   for (let i = 0; i < valCount; i++) {
@@ -1587,24 +1357,20 @@ function computeIdentityValuesSeeds(map, topN = 4) {
       });
     }
   }
-
   // Sort ascending by score (lowest first), Identity before Values on ties
   seeds.sort((a, b) => {
     if (a.score !== b.score) return a.score - b.score;
     if (a.kind !== b.kind) return a.kind === "identity" ? -1 : 1;
     return 0;
   });
-
   return seeds.slice(0, topN);
 }
-
 // W.2 (1-Year): GrowthSuggestions_v2 — renders computed seeds with Accept/Edit/Remove + custom add.
 // All state persisted to map via provided setters. Seeds are rendered LIVE from computeIdentityValuesSeeds.
 function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setEditedLabels, removed, setRemoved, custom, setCustom }) {
   const [editingId, setEditingId] = useState(null);
   const [draftLabel, setDraftLabel] = useState("");
   const [newCustom, setNewCustom] = useState("");
-
   const startEdit = (id, currentLabel) => {
     setEditingId(id);
     setDraftLabel(currentLabel);
@@ -1637,9 +1403,7 @@ function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setE
   const removeCustom = (id) => {
     setCustom((custom || []).filter(x => x.id !== id));
   };
-
   const visibleSeeds = seeds.filter(s => !removed[s.id]);
-
   if (visibleSeeds.length === 0 && (!custom || custom.length === 0)) {
     return (
       <div style={{
@@ -1683,7 +1447,6 @@ function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setE
       </div>
     );
   }
-
   return (
     <div style={{
       marginTop:14, marginBottom:16, padding:"18px 20px",
@@ -1698,7 +1461,6 @@ function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setE
         Lowest-scoring items from your Identity &amp; Values alignment. Accept, edit the wording, or remove any that don't fit.
         Accepted items flow into your tier ranking below.
       </div>
-
       {visibleSeeds.map(s => {
         const isEditing = editingId === s.id;
         const isAccepted = !!accepted[s.id];
@@ -1763,7 +1525,6 @@ function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setE
           </div>
         );
       })}
-
       {/* Custom items */}
       {(custom || []).map(item => (
         <div key={item.id} style={{
@@ -1789,7 +1550,6 @@ function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setE
           }}>× Remove</button>
         </div>
       ))}
-
       {/* Add your own */}
       <div style={{
         padding:"10px 12px", marginTop:8,
@@ -1820,14 +1580,12 @@ function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setE
     </div>
   );
 }
-
 // W.3: Helper — assemble items + tier assignment for a given horizon (bag / threeyr / oneyr)
 // For 1-Year, additionally includes accepted Identity/Values seeds + custom growth items.
 function computeHorizonItems(map, horizon, seeds) {
   const items = [];
   const tiers = map[`${horizon}_tiers`] || {};
   const getTier = (id) => tiers[id] || "nth";
-
   (map.time_picked || []).forEach(id => {
     const preset = TIME_AREA_PRESETS.find(p => p.id === id);
     const stored = (map.time_items || {})[id] || {};
@@ -1888,6 +1646,177 @@ function computeHorizonItems(map, horizon, seeds) {
   return items;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// A2 · Key Misalignment — ranking engine
+// Ports from a2_key_misalignment_prototype.jsx (v1)
+// final_gap = (10 - score) × type_weight × tier_weight × horizon_weight
+//   type_weight:    direction 1.0 · identity 0.8 · values 0.8
+//   tier_weight:    non-neg 1.5 · imp 1.0 · nth 0.6 · untiered 1.0
+//   horizon_weight: 1-Year 1.3 · 3-Year 1.0 · BAG 0.7 · not-horizoned 1.0
+// Tie-breakers: kind (direction > identity > values) → horizon (oneyr > threeyr > bag) → alpha
+// ═══════════════════════════════════════════════════════════════════════════
+const A2_TIER_META = {
+  "non-neg": { id: "non-neg", label: "Non-negotiable", color: "#ef4444", weight: 1.5 },
+  "imp":     { id: "imp",     label: "Important",      color: "#f59e0b", weight: 1.0 },
+  "nth":     { id: "nth",     label: "Nice to have",   color: "#6b7a99", weight: 0.6 },
+};
+const A2_HORIZON_META = {
+  oneyr:   { label: "1-Year", yearOffset: 1,  weight: 1.3 },
+  threeyr: { label: "3-Year", yearOffset: 3,  weight: 1.0 },
+  bag:     { label: "BAG",    yearOffset: 12, weight: 0.7 },
+};
+
+function computeMisalignments(map) {
+  const items = [];
+  const horizons = ["oneyr", "threeyr", "bag"];
+
+  horizons.forEach(horizon => {
+    const tiers = map[`${horizon}_tiers`] || {};
+    const getTier = (id) => tiers[id] || "nth";
+    const hw = A2_HORIZON_META[horizon].weight;
+    const hLabel = A2_HORIZON_META[horizon].label;
+
+    // Time
+    (map.time_picked || []).forEach(id => {
+      const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.time_items || {})[id] || {};
+      const itemId = `t_${id}`;
+      const raw = map[`dir_align_${horizon}_${itemId}`];
+      if (raw === undefined || raw === null) return;
+      const score = Number(raw);
+      const tier = getTier(itemId);
+      const tw = A2_TIER_META[tier]?.weight ?? 1.0;
+      const gap_raw = 10 - score;
+      items.push({
+        id: `${horizon}_${itemId}`,
+        itemId, kind: "direction", segment: "Time",
+        horizon, horizonLabel: hLabel,
+        tier, tierLabel: A2_TIER_META[tier].label,
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "⏳",
+        source: `${hLabel} · ${A2_TIER_META[tier].label}`,
+        score, gap_raw,
+        type_weight: 1.0, tier_weight: tw, horizon_weight: hw,
+        final_gap: gap_raw * 1.0 * tw * hw,
+      });
+    });
+
+    // Wealth
+    (map.wealth_picked || []).forEach(id => {
+      const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+      const stored = (map.wealth_items || {})[id] || {};
+      const itemId = `w_${id}`;
+      const raw = map[`dir_align_${horizon}_${itemId}`];
+      if (raw === undefined || raw === null) return;
+      const score = Number(raw);
+      const tier = getTier(itemId);
+      const tw = A2_TIER_META[tier]?.weight ?? 1.0;
+      const gap_raw = 10 - score;
+      items.push({
+        id: `${horizon}_${itemId}`,
+        itemId, kind: "direction", segment: "Wealth",
+        horizon, horizonLabel: hLabel,
+        tier, tierLabel: A2_TIER_META[tier].label,
+        label: preset?.label || stored.label || id,
+        icon:  preset?.icon  || stored.icon  || "💰",
+        source: `${hLabel} · ${A2_TIER_META[tier].label}`,
+        score, gap_raw,
+        type_weight: 1.0, tier_weight: tw, horizon_weight: hw,
+        final_gap: gap_raw * 1.0 * tw * hw,
+      });
+    });
+
+    // Growth vision
+    const growthConfirmedKey = horizon === "bag" ? "growth_confirmed" : `${horizon}_growth_confirmed`;
+    const growthSentenceKey  = horizon === "bag" ? "growth_sentence"  : `${horizon}_growth_sentence`;
+    if (map[growthConfirmedKey] && (map[growthSentenceKey] || "").trim()) {
+      const itemId = "g_main";
+      const raw = map[`dir_align_${horizon}_${itemId}`];
+      if (raw !== undefined && raw !== null) {
+        const score = Number(raw);
+        const tier = getTier(itemId);
+        const tw = A2_TIER_META[tier]?.weight ?? 1.0;
+        const gap_raw = 10 - score;
+        items.push({
+          id: `${horizon}_${itemId}`,
+          itemId, kind: "direction", segment: "Growth",
+          horizon, horizonLabel: hLabel,
+          tier, tierLabel: A2_TIER_META[tier].label,
+          label: "Growth vision", icon: "🌱",
+          source: `${hLabel} · ${A2_TIER_META[tier].label}`,
+          score, gap_raw,
+          type_weight: 1.0, tier_weight: tw, horizon_weight: hw,
+          final_gap: gap_raw * 1.0 * tw * hw,
+        });
+      }
+    }
+  });
+
+  // Identity capabilities
+  (map.animals || []).filter(a => a && a.name).forEach((animal, i) => {
+    (animal.capabilities || []).filter(c => c && c.name).forEach((cap, ci) => {
+      const raw = map[`align_cap_${i}_${ci}`];
+      if (raw === undefined || raw === null) return;
+      const score = Number(raw);
+      const gap_raw = 10 - score;
+      const tw = 0.8;
+      const animalLabel = [animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ") || animal.name;
+      items.push({
+        id: `id_cap_${i}_${ci}`,
+        itemId: `cap_${i}_${ci}`,
+        kind: "identity", horizon: null, tier: null,
+        animalName: animal.name,
+        label: cap.name, icon: "⚡",
+        source: `Identity · ${animalLabel}`,
+        score, gap_raw,
+        type_weight: tw, tier_weight: 1.0, horizon_weight: 1.0,
+        final_gap: gap_raw * tw,
+      });
+    });
+  });
+
+  // Values behaviors
+  const valCount = parseInt(map.val_count) || 0;
+  for (let i = 0; i < valCount; i++) {
+    const vName = map[`val_${i}_name`];
+    if (!vName) continue;
+    const bCount = parseInt(map[`beh_${i}_count`]) || 0;
+    for (let j = 0; j < bCount; j++) {
+      const bName = map[`beh_${i}_${j}_name`];
+      if (!bName) continue;
+      const raw = map[`align_val_${i}_beh_${j}`];
+      if (raw === undefined || raw === null) continue;
+      const score = Number(raw);
+      const gap_raw = 10 - score;
+      const tw = 0.8;
+      items.push({
+        id: `val_${i}_beh_${j}`,
+        itemId: `val_${i}_beh_${j}`,
+        kind: "values", horizon: null, tier: null,
+        valueName: vName,
+        label: bName, icon: "⚖️",
+        source: `Values · ${vName}`,
+        score, gap_raw,
+        type_weight: tw, tier_weight: 1.0, horizon_weight: 1.0,
+        final_gap: gap_raw * tw,
+      });
+    }
+  }
+
+  // Sort: final_gap DESC → kind → horizon → alpha
+  const kindRank = { direction: 0, identity: 1, values: 2 };
+  const horizonRank = { oneyr: 0, threeyr: 1, bag: 2 };
+  items.sort((a, b) => {
+    if (a.final_gap !== b.final_gap) return b.final_gap - a.final_gap;
+    if (kindRank[a.kind] !== kindRank[b.kind]) return kindRank[a.kind] - kindRank[b.kind];
+    const ah = horizonRank[a.horizon] ?? 3;
+    const bh = horizonRank[b.horizon] ?? 3;
+    if (ah !== bh) return ah - bh;
+    return (a.label || "").localeCompare(b.label || "");
+  });
+  return items.map((item, rank) => ({ ...item, rank: rank + 1 }));
+}
+
 // W.3: CollapsibleTier_v2 — inside Direction Alignment column. Non-negotiable opens by default.
 // Per-item interactive slider 1–10. Avg badge in header (red ≤4, amber ≤6, green ≥7).
 function CollapsibleTier_v2({ tier, items, horizonKey, map, set }) {
@@ -1903,12 +1832,11 @@ function CollapsibleTier_v2({ tier, items, horizonKey, map, set }) {
     ? 0
     : Number((items.reduce((s, i) => s + scoreOf(i.id), 0) / items.length).toFixed(1));
   const avgColor = scoreColor(avg);
-
   return (
     <div style={{
       marginBottom:12,
       background: `${tier.color}10`,
-      border: `1px solid ${tier.color}40`,
+      border: `1.5px solid ${tier.color}60`,
       borderRadius:6, overflow:"hidden",
     }}>
       <div onClick={() => setOpen(!open)} style={{
@@ -1942,7 +1870,6 @@ function CollapsibleTier_v2({ tier, items, horizonKey, map, set }) {
           }}>▾</span>
         </div>
       </div>
-
       {open && (
         <div style={{ padding:"0 12px 10px" }}>
           {items.length === 0 ? (
@@ -1974,7 +1901,6 @@ function CollapsibleTier_v2({ tier, items, horizonKey, map, set }) {
     </div>
   );
 }
-
 // W.3: HorizonAlignmentColumn_v2 — one column (1-Year / 3-Year / BAG) with 3 CollapsibleTiers
 function HorizonAlignmentColumn_v2({ horizonKey, horizonLabel, items, map, set }) {
   const byTier = useMemo(() => {
@@ -2002,15 +1928,12 @@ function HorizonAlignmentColumn_v2({ horizonKey, horizonLabel, items, map, set }
     </div>
   );
 }
-
 // ─── end W.1a components ──────────────────────────────────────────────────────────────────────
-
 function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
   const [customInput, setCustomInput] = useState("");
   const [showCustom, setShowCustom] = useState(false);
   const selectedIds = selected.map(a => a.id);
   const atMax = selected.length >= 5;
-
   const addCustom = () => {
     const label = customInput.trim();
     if (!label) return;
@@ -2019,7 +1942,6 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
     setCustomInput("");
     setShowCustom(false);
   };
-
   return (
     <div style={{ marginBottom:16 }}>
       <div style={{ fontSize:12, color:"var(--text3)", marginBottom:10, lineHeight:1.5 }}>
@@ -2096,11 +2018,9 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
     </div>
   );
 }
-
 function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onChange }) {
   const [expanded, setExpanded] = useState(true);
   const [summarising, setSummarising] = useState(false);
-
   const summarise = async () => {
     if (!area.see && !area.hear && !area.feel) return;
     setSummarising(true);
@@ -2117,9 +2037,7 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
     } catch {}
     setSummarising(false);
   };
-
   const hasContent = area.see || area.hear || area.feel;
-
   return (
     <div className="fade-up" style={{ background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:11, marginBottom:10, overflow:"hidden" }}>
       <div style={{ padding:"11px 14px", display:"flex", alignItems:"center", gap:10 }}>
@@ -2164,7 +2082,6 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
                 style={{ fontSize:13, fontFamily:"var(--sans)", fontStyle:"normal", color:"var(--warm)", lineHeight:1.7 }} />
             </div>
           ))}
-
           {/* Goal statement */}
           {area.goal && (
             <div style={{ padding:"11px 14px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:9, marginBottom:10 }}>
@@ -2174,7 +2091,6 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
                 className="to-field" style={{ fontSize:14, fontFamily:"var(--serif)", fontStyle:"italic", color:"var(--warm)", marginBottom:0 }} />
             </div>
           )}
-
           {/* Summarise button */}
           <button onClick={summarise} disabled={!hasContent || summarising}
             style={{ display:"flex", alignItems:"center", gap:7, background:"none", border:"1px solid rgba(201,168,76,.3)", borderRadius:20, color:"var(--warm)", cursor: !hasContent || summarising ? "not-allowed" : "pointer", fontFamily:"var(--sans)", fontSize:12, fontWeight:500, padding:"7px 16px", opacity: !hasContent ? 0.5 : 1, transition:"all .2s" }}
@@ -2190,10 +2106,8 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
     </div>
   );
 }
-
 function DirectionSection({ map, set }) {
   const areas = map.life_areas || [];
-
   const toggleArea = (area) => {
     const ids = areas.map(a => a.id);
     if (ids.includes(area.id)) {
@@ -2202,14 +2116,12 @@ function DirectionSection({ map, set }) {
       set("life_areas", [...areas, { ...area, see:"", hear:"", feel:"" }]);
     }
   };
-
   const addCustom = (area) => {
     if (areas.length >= 5) return;
     if (areas.some(a => a.id === area.id)) return;
     set("life_areas", [...areas, { see:"", hear:"", feel:"", ...area }]);
   };
   const removeArea = (id) => set("life_areas", areas.filter(a => a.id !== id));
-
   const moveArea = (index, dir) => {
     const next = [...areas];
     const swap = index + dir;
@@ -2217,15 +2129,12 @@ function DirectionSection({ map, set }) {
     [next[index], next[swap]] = [next[swap], next[index]];
     set("life_areas", next);
   };
-
   const updateArea = (id, field, val) => {
     set("life_areas", areas.map(a => a.id === id ? { ...a, [field]: val } : a));
   };
-
   const [timeOpen, setTimeOpen] = useState(true);
   const [wealthOpen, setWealthOpen] = useState(false);
   const [growthOpen, setGrowthOpen] = useState(false);
-
   // W.1c: Assemble all items that flow to tier ranking
   const bagItems = useMemo(() => {
     const items = [];
@@ -2255,7 +2164,6 @@ function DirectionSection({ map, set }) {
     }
     return items;
   }, [map.time_picked, map.time_items, map.wealth_picked, map.wealth_items, map.growth_confirmed, map.growth_sentence]);
-
   const SectionHeader = ({ icon, label, color, isOpen, onToggle, summary, summaryColor }) => (
     <button onClick={onToggle}
       style={{ display:"flex", alignItems:"center", gap:10, width:"100%", background:"none", border:"none", cursor:"pointer", padding:"13px 0", textAlign:"left" }}>
@@ -2277,19 +2185,15 @@ function DirectionSection({ map, set }) {
       </div>
     </button>
   );
-
   return (
     <div>
       <DirectionTimeline_v2 activeHorizon="bag" map={map} />
-
       {/* TIME -- W.1a-ext: prototype structural parity */}
       <CollapsibleSegment_v2
         icon="⏳" title="Time -- Your Life Priorities" color="var(--warm)"
         confirmed={!!map.time_overall_confirmed}
         confirmedSummary={map.time_overall_confirmed ? map.time_overall_sentence : null}>
-
         <SubLabel_v2>Pick the areas of life that matter most. You'll write a bit about each.</SubLabel_v2>
-
         <CardPicker_v2
           cards={TIME_AREA_PRESETS}
           picked={map.time_picked || []}
@@ -2324,7 +2228,6 @@ function DirectionSection({ map, set }) {
             set("time_items", items);
           }}
         />
-
         {(map.time_picked || []).map(id => {
           const preset = TIME_AREA_PRESETS.find(p => p.id === id);
           const stored = (map.time_items || {})[id] || { text: "", goal: "" };
@@ -2379,7 +2282,6 @@ function DirectionSection({ map, set }) {
             />
           );
         })}
-
         <SeeHearFeelBlock_v2
           title="Overall Time -- See · Hear · Feel"
           subtitle={`When you picture your whole life in ${String(new Date().getFullYear() + 12)}, what's the sensory texture?`}
@@ -2390,7 +2292,6 @@ function DirectionSection({ map, set }) {
             set("time_see_hear_feel", { ...current, [field]: value });
           }}
         />
-
         <SummaryGenerator_v2
           color="var(--warm)"
           label="Time"
@@ -2409,15 +2310,12 @@ function DirectionSection({ map, set }) {
           }}
         />
       </CollapsibleSegment_v2>
-
       {/* WEALTH -- W.1a: prototype structural parity (CollapsibleSegment_v2 + CardPicker + PriorityItemCards + SeeHearFeelBlock + SummaryGenerator) */}
       <CollapsibleSegment_v2
         icon="💰" title="Wealth -- What you own, what flows" color="#34d399"
         confirmed={!!map.wealth_overall_confirmed}
         confirmedSummary={map.wealth_overall_confirmed ? map.wealth_overall_sentence : null}>
-
         <SubLabel_v2>Pick the wealth categories that matter for this horizon.</SubLabel_v2>
-
         <CardPicker_v2
           cards={WEALTH_AREA_PRESETS}
           picked={map.wealth_picked || []}
@@ -2452,7 +2350,6 @@ function DirectionSection({ map, set }) {
             set("wealth_items", items);
           }}
         />
-
         {(map.wealth_picked || []).map(id => {
           const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
           const stored = (map.wealth_items || {})[id] || { text: "", goal: "" };
@@ -2479,7 +2376,6 @@ function DirectionSection({ map, set }) {
             />
           );
         })}
-
         <SeeHearFeelBlock_v2
           title="Overall Wealth -- See · Hear · Feel"
           subtitle={`When you picture your financial life in ${String(new Date().getFullYear() + 12)}, what do you see, hear, feel?`}
@@ -2490,7 +2386,6 @@ function DirectionSection({ map, set }) {
             set("wealth_see_hear_feel", { ...current, [field]: value });
           }}
         />
-
         <SummaryGenerator_v2
           color="#34d399"
           label="Wealth"
@@ -2509,13 +2404,11 @@ function DirectionSection({ map, set }) {
           }}
         />
       </CollapsibleSegment_v2>
-
       {/* GROWTH -- W.1a-ext: prototype structural parity (no card picker — just S/H/F + summary) */}
       <CollapsibleSegment_v2
         icon="🌱" title="Growth -- Who you are becoming" color="#a78bfa"
         confirmed={!!map.growth_confirmed}
         confirmedSummary={map.growth_confirmed ? map.growth_sentence : null}>
-
         <div style={{
           fontSize:13, color:"var(--text2)", lineHeight:1.6, marginBottom:18, marginTop:8,
           padding:"12px 16px",
@@ -2525,7 +2418,6 @@ function DirectionSection({ map, set }) {
           Growth is who you become. Do the See/Hear/Feel below to paint who you are in {String(new Date().getFullYear() + 12)},
           then summarise it into one sentence at the bottom.
         </div>
-
         <SeeHearFeelBlock_v2
           title="Growth -- See · Hear · Feel"
           subtitle={`When you picture the person you've become in ${String(new Date().getFullYear() + 12)}, what do you see, hear, feel?`}
@@ -2536,7 +2428,6 @@ function DirectionSection({ map, set }) {
             set("growth_see_hear_feel", { ...current, [field]: value });
           }}
         />
-
         <SummaryGenerator_v2
           color="#a78bfa"
           label="Growth"
@@ -2554,7 +2445,6 @@ function DirectionSection({ map, set }) {
           }}
         />
       </CollapsibleSegment_v2>
-
       {/* W.1c: Tier ranking (prototype parity) */}
       <TierRankingSection_v2
         items={bagItems}
@@ -2567,13 +2457,11 @@ function DirectionSection({ map, set }) {
     </div>
   );
 }
-
 // W.2: ThreeYearPage -- Direction · 3-Year (v3.1 Page 3)
 // Pre-fills Time and Wealth from BAG. No S/H/F. Growth is free-writing + Summary Generator.
 // Includes tier ranking at bottom. User re-ranks fresh for this horizon.
 function ThreeYearPage({ map, set }) {
   const year = new Date().getFullYear() + 3;
-
   // Pre-fill Time and Wealth items from BAG on first visit
   useEffect(() => {
     const hasTimeItems = Object.keys(map.threeyr_time_items || {}).length > 0;
@@ -2594,7 +2482,6 @@ function ThreeYearPage({ map, set }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   // Assemble items for tier ranking (Time picks + Wealth picks + Growth if confirmed)
   const threeyrItems = useMemo(() => {
     const items = [];
@@ -2623,11 +2510,9 @@ function ThreeYearPage({ map, set }) {
     }
     return items;
   }, [map.time_picked, map.time_items, map.wealth_picked, map.wealth_items, map.threeyr_growth_confirmed, map.threeyr_growth_sentence]);
-
   const timePicked = (map.time_picked || []) as string[];
   const wealthPicked = (map.wealth_picked || []) as string[];
   const hasBagData = timePicked.length > 0 || wealthPicked.length > 0;
-
   const updateTimeItem = (id, field, value) => {
     const items = { ...(map.threeyr_time_items || {}) };
     items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
@@ -2638,7 +2523,6 @@ function ThreeYearPage({ map, set }) {
     items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
     set("threeyr_wealth_items", items);
   };
-
   return (
     <div>
       {!hasBagData && (
@@ -2654,12 +2538,10 @@ function ThreeYearPage({ map, set }) {
           Pick your Time and Wealth priorities in the BAG page first — this 3-Year page refines them rather than starting blank.
         </div>
       )}
-
       {hasBagData && (<>
         <PrefillNote_v2>
           Your priorities from BAG have been carried forward. Refine what each one looks like at 3 years out.
         </PrefillNote_v2>
-
         {/* TIME */}
         <CollapsibleSegment_v2
           icon="⏳" title="Time" color="var(--warm)"
@@ -2699,7 +2581,6 @@ function ThreeYearPage({ map, set }) {
             }}
           />
         </CollapsibleSegment_v2>
-
         {/* WEALTH */}
         <CollapsibleSegment_v2
           icon="💰" title="Wealth" color="#34d399"
@@ -2739,7 +2620,6 @@ function ThreeYearPage({ map, set }) {
             }}
           />
         </CollapsibleSegment_v2>
-
         {/* GROWTH -- free writing + Summary Generator (no cards, no S/H/F per v3.1) */}
         <CollapsibleSegment_v2
           icon="🌱" title="Growth" color="#a78bfa"
@@ -2789,7 +2669,6 @@ function ThreeYearPage({ map, set }) {
             }}
           />
         </CollapsibleSegment_v2>
-
         {/* TIER RANKING -- fresh ranking for this horizon */}
         <TierRankingSection_v2
           items={threeyrItems}
@@ -2803,13 +2682,11 @@ function ThreeYearPage({ map, set }) {
     </div>
   );
 }
-
 // W.2: OneYearPage -- Direction · 1-Year (v3.1 Page 7)
 // Pre-fills Time and Wealth categories from BAG. Growth pulls from Identity/Values lowest scores.
 // Tier ranking includes Time + Wealth + accepted Identity/Values seeds + custom growth items.
 function OneYearPage({ map, set }) {
   const year = new Date().getFullYear() + 1;
-
   // Pre-fill on first visit (same pattern as 3-Year)
   useEffect(() => {
     const hasTimeItems = Object.keys(map.oneyr_time_items || {}).length > 0;
@@ -2826,14 +2703,12 @@ function OneYearPage({ map, set }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   // Compute live Identity/Values growth seeds (lowest-scoring items)
   const seeds = useMemo(() => computeIdentityValuesSeeds(map, 4), [
     map.animals, map.values, map.val_count,
     // Depend on all the underlying scores — shallow diff is fine since map is rewritten on each set()
     JSON.stringify(Object.keys(map).filter(k => k.startsWith("align_cap_") || k.startsWith("align_val_")).reduce((o, k) => ((o[k] = map[k]), o), {})),
   ]);
-
   // Tier ranking items: Time + Wealth picks + Growth vision (if confirmed) + accepted seeds + custom items
   const oneyrItems = useMemo(() => {
     const items = [];
@@ -2890,11 +2765,9 @@ function OneYearPage({ map, set }) {
       map.oneyr_growth_accepted, map.oneyr_growth_edited_labels,
       map.oneyr_growth_removed, map.oneyr_growth_custom,
       seeds]);
-
   const timePicked = (map.time_picked || []) as string[];
   const wealthPicked = (map.wealth_picked || []) as string[];
   const hasBagData = timePicked.length > 0 || wealthPicked.length > 0;
-
   const updateTimeItem = (id, field, value) => {
     const items = { ...(map.oneyr_time_items || {}) };
     items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
@@ -2905,7 +2778,6 @@ function OneYearPage({ map, set }) {
     items[id] = { ...(items[id] || { text: "", goal: "" }), [field]: value };
     set("oneyr_wealth_items", items);
   };
-
   return (
     <div>
       {!hasBagData && (
@@ -2921,12 +2793,10 @@ function OneYearPage({ map, set }) {
           Pick your Time and Wealth priorities in the BAG page first -- this 1-Year page refines them rather than starting blank.
         </div>
       )}
-
       {hasBagData && (<>
         <PrefillNote_v2>
           Pre-filled from your 3-Year. Refine what each looks like for {year}.
         </PrefillNote_v2>
-
         {/* TIME */}
         <CollapsibleSegment_v2
           icon="⏳" title="Time" color="var(--warm)"
@@ -2973,7 +2843,6 @@ function OneYearPage({ map, set }) {
             }}
           />
         </CollapsibleSegment_v2>
-
         {/* WEALTH */}
         <CollapsibleSegment_v2
           icon="💰" title="Wealth" color="#34d399"
@@ -3019,7 +2888,6 @@ function OneYearPage({ map, set }) {
             }}
           />
         </CollapsibleSegment_v2>
-
         {/* GROWTH -- 1-Year special: suggestions from Identity/Values + free-writing + summary */}
         <CollapsibleSegment_v2
           icon="🌱" title="Growth" color="#a78bfa"
@@ -3034,7 +2902,6 @@ function OneYearPage({ map, set }) {
             Your 1-year Growth pulls from your Identity &amp; Values alignment below.
             Accept the suggestions, edit them, or remove them and add your own.
           </div>
-
           <GrowthSuggestions_v2
             seeds={seeds}
             accepted={map.oneyr_growth_accepted || {}}
@@ -3046,7 +2913,6 @@ function OneYearPage({ map, set }) {
             custom={map.oneyr_growth_custom || []}
             setCustom={v => set("oneyr_growth_custom", v)}
           />
-
           <div style={{
             marginBottom:12, padding:"12px 14px",
             background:"rgba(255,255,255,.03)",
@@ -3083,7 +2949,6 @@ function OneYearPage({ map, set }) {
             }}
           />
         </CollapsibleSegment_v2>
-
         {/* TIER RANKING -- fresh ranking for this horizon */}
         <TierRankingSection_v2
           items={oneyrItems}
@@ -3097,7 +2962,6 @@ function OneYearPage({ map, set }) {
     </div>
   );
 }
-
 // W.3: DirectionAlignmentPage -- Direction Alignment (v3.1 Page 8)
 // 3 horizons × 3 tiers × N items. Per-item sliders score TODAY's reality against each priority.
 // Feeds A2's Misalignment engine. This is the final page of A1.
@@ -3108,13 +2972,10 @@ function DirectionAlignmentPage({ map, set }) {
     map.animals, map.values, map.val_count,
     JSON.stringify(Object.keys(map).filter(k => k.startsWith("align_cap_") || k.startsWith("align_val_")).reduce((o, k) => ((o[k] = map[k]), o), {})),
   ]);
-
   const oneyrItems  = useMemo(() => computeHorizonItems(map, "oneyr", seeds), [map, seeds]);
   const threeyrItems = useMemo(() => computeHorizonItems(map, "threeyr"), [map]);
   const bagItems    = useMemo(() => computeHorizonItems(map, "bag"), [map]);
-
   const totalItems = oneyrItems.length + threeyrItems.length + bagItems.length;
-
   return (
     <div>
       {totalItems === 0 && (
@@ -3130,7 +2991,6 @@ function DirectionAlignmentPage({ map, set }) {
           Build out your BAG, 3-Year, and 1-Year priorities before scoring. Once you've picked priorities and ranked them, you'll score TODAY's reality against each one here.
         </div>
       )}
-
       {totalItems > 0 && (<>
         <div style={{
           marginTop:18, marginBottom:18, padding:"12px 16px",
@@ -3142,7 +3002,6 @@ function DirectionAlignmentPage({ map, set }) {
           should be higher than your BAG Non-negotiable average -- because 1-year is closer to today.
           If a far-horizon Non-negotiable scores higher than a near-horizon Non-negotiable, that IS the misalignment.
         </div>
-
         <div style={{
           display:"grid",
           gridTemplateColumns:"repeat(auto-fit, minmax(260px, 1fr))",
@@ -3161,36 +3020,20 @@ function DirectionAlignmentPage({ map, set }) {
             horizonLabel={`BAG · ${year + 12}`}
             items={bagItems} map={map} set={set} />
         </div>
-
-        <div style={{
-          padding:"12px 16px",
-          background:"rgba(201,168,76,.08)",
-          borderLeft:"3px solid var(--warm)", borderRadius:6,
-          fontSize:13, color:"var(--text2)", lineHeight:1.6,
-        }}>
-          <strong style={{ color:"var(--warm)" }}>Feeds into A2:</strong> these scores become the raw data for
-          A2's Key Misalignment surfacing. The biggest gap between tier priority and actual score --
-          especially Non-negotiable items at 1-year -- is where the misalignment diagnosis starts.
-        </div>
       </>)}
     </div>
   );
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
-
 // OWN_IT_QUESTIONS removed -- replaced by slider-based OwnItCheck
-
 function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChange }) {
   const [open, setOpen] = useState(true);
   const [scores, setScores] = useState({ body:5, lights:5, meant:5 });
   const [missing, setMissing] = useState("");
   const [confirmed, setConfirmed] = useState(null); // null | true | false
   const [saved, setSaved] = useState(false);
-
   const avg = Math.round((scores.body + scores.lights + scores.meant) / 3 * 10) / 10;
   const allHigh = scores.body >= 7 && scores.lights >= 7 && scores.meant >= 7;
-
   const confirm = async (yes) => {
     setConfirmed(yes);
     if (yes && purposeFinal) {
@@ -3199,7 +3042,6 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
       setSaved(true);
     }
   };
-
   const ScoreSlider = ({ id, label, emoji }) => {
     const val = scores[id];
     const col = val >= 8 ? "#34d399" : val >= 5 ? "#f59e0b" : "#ef4444";
@@ -3223,14 +3065,12 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
       </div>
     );
   };
-
   if (!open) return (
     <button onClick={() => setOpen(true)}
       style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"1px solid rgba(201,168,76,.22)", borderRadius:20, padding:"6px 14px", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, color:"var(--warm)", marginTop:12 }}>
       <span style={{ fontSize:10 }}>◎</span> {saved ? "✓ Purpose confirmed" : "Own It Check"}
     </button>
   );
-
   return (
     <div className="fade-in" style={{ marginTop:16, background:"rgba(232,149,109,.04)", border:"1px solid rgba(201,168,76,.2)", borderRadius:13, overflow:"hidden" }}>
       <div style={{ padding:"12px 18px", borderBottom:"1px solid rgba(201,168,76,.12)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -3243,18 +3083,15 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
         </div>
         <button onClick={() => setOpen(false)} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, padding:0, lineHeight:1 }}>×</button>
       </div>
-
       <div style={{ padding:"16px 18px" }}>
         {/* Instruction */}
         <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text3)", lineHeight:1.7, marginBottom:18 }}>
           Read your purpose statement back. When I read my purpose statement...
         </div>
-
         {/* 3 sliders */}
         <ScoreSlider id="body"   label="Feels right in my body"             emoji="🫀" />
         <ScoreSlider id="lights" label="Lights me up"                        emoji="✨" />
         <ScoreSlider id="meant"  label="Sounds like what I'm meant to do"    emoji="🧭" />
-
         {/* What's missing */}
         <div style={{ marginBottom:16 }}>
           <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:500, color:"var(--text)", marginBottom:3 }}>What's missing or not quite right?</div>
@@ -3263,7 +3100,6 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
             placeholder="What I'd change or add is..."
             className="to-field" style={{ fontSize:13 }} />
         </div>
-
         {/* Yes / No confirmation */}
         {confirmed === null && (
           <div style={{ padding:"13px 16px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:9 }}>
@@ -3286,7 +3122,6 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
             </div>
           </div>
         )}
-
         {/* Confirmed YES */}
         {confirmed === true && saved && (
           <div className="fade-in" style={{ padding:"14px 16px", background:"rgba(52,211,153,.07)", border:"1px solid rgba(52,211,153,.25)", borderRadius:9 }}>
@@ -3302,7 +3137,6 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
             </button>
           </div>
         )}
-
         {/* Confirmed NO */}
         {confirmed === false && (
           <div className="fade-in" style={{ padding:"13px 16px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)", borderRadius:9 }}>
@@ -3319,9 +3153,7 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
     </div>
   );
 }
-
 // OwnItField removed -- no longer used
-
 const TextArea = ({ value, onChange, rows, placeholder, className, style: s }) => {
   const ref = useRef(null);
   const lastVal = useRef(value);
@@ -3329,7 +3161,6 @@ const TextArea = ({ value, onChange, rows, placeholder, className, style: s }) =
   const handleChange = (e) => { lastVal.current = e.target.value; onChange(e.target.value); };
   return <textarea ref={ref} rows={rows || 4} placeholder={placeholder} defaultValue={value || ""} onChange={handleChange} className={`to-field${className ? " " + className : ""}`} style={s} />;
 };
-
 const TextInput = ({ value, onChange, placeholder, style: s }) => {
   const ref = useRef(null);
   const lastVal = useRef(value);
@@ -3337,7 +3168,6 @@ const TextInput = ({ value, onChange, placeholder, style: s }) => {
   const handleChange = (e) => { lastVal.current = e.target.value; onChange(e.target.value); };
   return <input type="text" ref={ref} placeholder={placeholder} defaultValue={value || ""} onChange={handleChange} className="to-field" style={{ ...(s || {}), resize:"none" }} />;
 };
-
 function VoiceDropdown({ voiceId, onSelect }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -3366,7 +3196,6 @@ function VoiceDropdown({ voiceId, onSelect }) {
     </div>
   );
 }
-
 function VoiceGrid({ selected, onSelect }) {
   return (
     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
@@ -3383,7 +3212,6 @@ function VoiceGrid({ selected, onSelect }) {
     </div>
   );
 }
-
 function AIChat({ voiceId, onVoiceChange, name, intake, mapData, sectionLabel, placeholder }) {
   const [msgs, setMsgs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -3465,7 +3293,6 @@ function AIChat({ voiceId, onVoiceChange, name, intake, mapData, sectionLabel, p
     </div>
   );
 }
-
 function VideoBlock({ title, duration, points }) {
   return (
     <div className="vid-block">
@@ -3488,110 +3315,3176 @@ function VideoBlock({ title, duration, points }) {
     </div>
   );
 }
+const A2_STEPS = [
+  { id: "intro",        label: "Introduction" },
+  { id: "dir_align",    label: "Direction Alignment" },
+  { id: "iv_align",     label: "Identity & Values Alignment" },
+  { id: "snapshot",     label: "Alignment Snapshot" },
+  { id: "key_mis",      label: "Key Misalignment" },
+  { id: "time_audit",   label: "Time Audit" },
+  { id: "letter",       label: "Future Self Letter" },
+  { id: "mirror",       label: "A2 Mirror" },
+  { id: "map",          label: "My Map of Me" },
+];
+const A2_MAP_STEP = { id: "map", label: "My Map of Me" };
+function A2({ intake, onDone, phase, setPhase }) {
+  const [a2Step, setA2Step] = useState("intro");
+  const [a2Done, setA2Done] = useState([]);
+  const a2Goto = (s) => { setA2Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const currentLabel = [...A2_STEPS, A2_MAP_STEP].find(s => s.id === a2Step)?.label || "Align With It";
 
-// W.4: Lightweight name-only intake for beta testing phase.
-// Appears at app root when localStorage has no intake data.
-// Produces the same intake shape as the full Intake component so downstream code is unchanged.
-function NameModal({ onDone }) {
-  const [name, setName] = useState("");
-  const trimmed = name.trim();
-  const canSubmit = trimmed.length >= 1;
+  // ─── 4a: A2 data plumbing ──────────────────────────────────────────────
+  // Shares KEYS.map / KEYS.done / KEYS.voice with A1 so state flows between them.
+  // a2Step is NOT restored from localStorage — it's A2's own in-memory routing.
+  const [voice, setVoice] = useState(intake?.defaultVoice || "coach");
+  const [done, setDone] = useState([]);
+  const [map, setMap] = useState(EMPTY_MAP);
+  const [ai, setAi] = useState({});
+  const [busy, setBusy] = useState({});
+  const [savedAt, setSavedAt] = useState(null);
+  const saveTimer = useRef(null);
+  const { name } = intake || {};
 
-  const submit = () => {
-    if (!canSubmit) return;
-    onDone({
-      name: trimmed,
-      q1: "",
-      q2: "",
-      q3: "",
-      defaultVoice: "coach",
+  useEffect(() => {
+    Promise.all([loadData(KEYS.map), loadData(KEYS.done), loadData(KEYS.voice)]).then(([m, d, v]) => {
+      if (m) {
+        // Honor a pending target step (set by A1 "Back to A2" buttons), then clear it
+        if (m.a2_pending_step) {
+          const pending = m.a2_pending_step;
+          const cleared = { ...m };
+          delete cleared.a2_pending_step;
+          setMap({ ...EMPTY_MAP, ...cleared });
+          setA2Step(pending);
+          saveData(KEYS.map, cleared);
+        } else {
+          setMap({ ...EMPTY_MAP, ...m });
+        }
+      }
+      if (d) setDone(d);
+      if (v) setVoice(v);
     });
+  }, []);
+
+  const saveMap = useCallback((next) => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => { await saveData(KEYS.map, next); setSavedAt(new Date()); }, 800);
+  }, []);
+
+  const set = useCallback((key, val) => {
+    setMap(prev => { const next = { ...prev, [key]: val }; saveMap(next); return next; });
+  }, [saveMap]);
+
+  const setVoicePersist = (v) => { setVoice(v); saveData(KEYS.voice, v); };
+  const markDone = (s) => setDone(prev => { const n = [...new Set([...prev, s])]; saveData(KEYS.done, n); return n; });
+  const runAI = async (key, prompt) => {
+    setBusy(b => ({ ...b, [key]: true }));
+    const r = await callStructured(prompt);
+    setAi(a => ({ ...a, [key]: r }));
+    setBusy(b => ({ ...b, [key]: false }));
   };
+  // ─── end 4a ────────────────────────────────────────────────────────────
+  const phaseTabs = (
+    <div style={{ display:"flex", gap:5 }}>
+      {["A1","A2","A3","A4","A5"].map((a) => {
+        const key = a.toLowerCase();
+        const isActive = phase === key;
+        const isAvailable = key === "a1" || key === "a2" || phase === "done";
+        return (
+          <div key={a}
+            onClick={() => { if (isAvailable) setPhase(key); }}
+            title={isAvailable ? (isActive ? `You are in ${a}` : `Jump to ${a}`) : `${a} coming soon`}
+            style={{ width:25, height:25, borderRadius:"50%", background: isActive ? "rgba(201,168,76,.18)" : "transparent", border:`1px solid ${isActive ? "rgba(232,149,109,.55)" : "var(--border)"}`, display:"flex", alignItems:"center", justifyContent:"center", cursor: isAvailable ? "pointer" : "not-allowed", opacity: isAvailable ? 1 : 0.4 }}>
+            <span style={{ fontFamily:"var(--sans)", fontSize:10, color: isActive ? "var(--warm)" : "var(--text4)", fontWeight: isActive ? 700 : 500 }}>{a}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+  const hdr = (
+    <div style={{ borderBottom:"1px solid #1a1a16", padding:"11px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", position:"sticky", top:0, background:"rgba(13,27,46,.96)", backdropFilter:"blur(12px)", zIndex:50 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:11 }}>
+        <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--warm)", animation:"pulse 3s ease-in-out infinite" }} />
+        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>· {intake?.name || ""}</div>
+      </div>
+      {phaseTabs}
+    </div>
+  );
+  const sidebar = (
+    <div style={{ width:206, flexShrink:0, paddingRight:22, borderRight:"1px solid var(--border)" }}>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text2)", marginBottom:15, fontFamily:"var(--sans)" }}>Align With It · A2</div>
+      {A2_STEPS.map(s => {
+        const active = a2Step === s.id;
+        const isDone = a2Done.includes(s.id);
+        return (
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a2Goto(s.id)}>
+            <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
+            <span style={{ fontSize:12, color:active ? "var(--warm)" : isDone ? "var(--text)" : "var(--text2)", fontWeight:active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#0d1b2e",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 28,
-    }}>
-      <style>{CSS}</style>
-      <div className="fade-up" style={{
-        maxWidth: 440,
-        width: "100%",
-        background: "var(--bg2)",
-        border: "1px solid rgba(201,168,76,.25)",
-        borderRadius: 14,
-        padding: "36px 32px",
-      }}>
-        <div style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: 4, textTransform: "uppercase",
-          color: "#c9a84c", marginBottom: 14, fontFamily: "var(--sans)",
-        }}>AG45 · True Ownership</div>
-
-        <h1 style={{
-          fontFamily: "var(--serif)", fontSize: 36, fontWeight: 400, lineHeight: 1.15,
-          letterSpacing: "-0.3px", marginBottom: 14, color: "var(--text)",
-        }}>Welcome.<br /><em>Let's begin.</em></h1>
-
-        <p style={{
-          fontSize: 14, color: "var(--text2)", lineHeight: 1.7, marginBottom: 26,
-        }}>
-          Before we start -- what should I call you?
-        </p>
-
-        <div style={{ marginBottom: 18 }}>
-          <label style={{
-            display: "block", fontSize: 10, fontWeight: 700, letterSpacing: 2,
-            textTransform: "uppercase", color: "var(--warm)", marginBottom: 8,
-            fontFamily: "var(--sans)",
-          }}>Your name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && canSubmit) submit(); }}
-            autoFocus
-            placeholder="First name is fine"
-            style={{
-              width: "100%",
-              background: "var(--bg)",
-              border: "1px solid var(--border2)",
-              borderRadius: 8,
-              color: "var(--text)",
-              fontFamily: "var(--sans)",
-              fontSize: 16,
-              padding: "12px 14px",
-              outline: "none",
-            }}
-          />
-        </div>
-
-        <button
-          onClick={submit}
-          disabled={!canSubmit}
-          className="btn"
-          style={{
-            width: "100%",
-            opacity: canSubmit ? 1 : 0.4,
-            cursor: canSubmit ? "pointer" : "not-allowed",
-          }}>
-          Begin All In It →
-        </button>
-
-        <div style={{
-          marginTop: 20, fontSize: 11, color: "var(--text4)",
-          fontFamily: "var(--sans)", lineHeight: 1.6, textAlign: "center",
-        }}>
-          Your answers are saved to this browser. Progress is safe -- come back any time.
-        </div>
+  const wrapA2 = (children) => (
+    <>
+      {hdr}
+      <div style={{ display:"flex", gap:32, padding:"32px 28px 80px", maxWidth:980, margin:"0 auto" }}>
+        {sidebar}
+        <div style={{ flex:1, minWidth:0 }} className="fade-up">{children}</div>
+      </div>
+    </>
+  );
+  // Stub page renderer (used for all 10 pages until real content is built)
+  const renderStub = (title, description) => (
+    <div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · {title}</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:300, lineHeight:1.2, marginBottom:13, letterSpacing:"-0.5px" }}>{title}</h2>
+      <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:620 }}>{description}</p>
+      <div style={{ padding:"20px 24px", background:"rgba(201,168,76,.06)", border:"1px dashed rgba(201,168,76,.3)", borderRadius:10, marginBottom:26 }}>
+        <div style={{ fontSize:11, color:"var(--warm)", fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:6 }}>Coming next</div>
+        <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, fontStyle:"italic" }}>This page is a scaffolding stub. The real content is being built next.</div>
+      </div>
+      <div style={{ display:"flex", gap:8 }}>
+        {a2Step !== "intro" && <button className="btn-g" onClick={() => {
+          const idx = A2_STEPS.findIndex(s => s.id === a2Step);
+          if (idx > 0) a2Goto(A2_STEPS[idx - 1].id);
+          else if (a2Step === "map") a2Goto(A2_STEPS[A2_STEPS.length - 1].id);
+        }}>← Back</button>}
+        {a2Step !== "map" && <button className="btn" onClick={() => {
+          const idx = A2_STEPS.findIndex(s => s.id === a2Step);
+          if (idx >= 0 && idx < A2_STEPS.length - 1) a2Goto(A2_STEPS[idx + 1].id);
+          else a2Goto("map");
+        }}>Next →</button>}
+        <button className="btn-g" onClick={onDone}>← Back to Map of Me</button>
       </div>
     </div>
   );
-}
+  if (a2Step === "intro") {
+    const introIdx = A2_STEPS.findIndex(s => s.id === "intro");
+    const nextStep = A2_STEPS[introIdx + 1];
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Introduction</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.15, marginBottom:16, letterSpacing:"-0.5px" }}>
+          <em>A1 named the pull. A2 sees the drift.</em>
+        </h2>
 
+        <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:14, maxWidth:620 }}>
+          A1 showed you what you're moving toward. A2 shows you where your life today is pulling the other way — and where your time is going instead.
+        </p>
+        <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:14, maxWidth:620 }}>
+          {name}, in A1 you built the Map of Me. Purpose, direction, identity, values, behaviors. That map is the life you say you're moving toward.
+        </p>
+        <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:620 }}>
+          A2 is where we hold that map up against your life as it is today — and look honestly at the gap. Not to judge. To see. Alignment isn't about perfection; it's about <em>knowing where you actually are</em> so you can move on purpose.
+        </p>
+
+        {/* Core principle card */}
+        <div style={{ padding:"18px 22px", background:"rgba(201,168,76,.07)", border:"1px solid rgba(201,168,76,.18)", borderRadius:11, marginBottom:26 }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:10, fontFamily:"var(--sans)" }}>Before we start — one principle</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--text)", lineHeight:1.85, marginBottom:10 }}>
+            "Your time is telling the truth about what you've chosen. A2 is where you let it."
+          </div>
+          <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.7 }}>
+            You don't need to fix anything here. You just need to look. Most of the work of A2 is the looking itself — everything you build in A3, A4, and A5 stands on what you see in these ten pages.
+          </div>
+        </div>
+
+        {/* What you'll do in A2 — the 10 pages, collapsible */}
+        {(() => {
+          const open = !!map.a2_intro_pages_open;
+          return (
+            <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:26, overflow:"hidden" }}>
+              <div onClick={() => set("a2_intro_pages_open", !open)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 22px", cursor:"pointer", userSelect:"none" }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontFamily:"var(--sans)" }}>The ten pages ahead</div>
+                <span style={{ fontSize:14, color:"var(--warm)", flexShrink:0, transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+              </div>
+              {open && (
+                <div style={{ padding:"4px 22px 18px", borderTop:"1px solid var(--border)" }}>
+                  {[
+                    { icon:"🧭", label:"Direction Alignment", desc:"Score the Time priorities from your BAG, 3-year, and 1-year against today. Where is the pull strong? Where has it weakened?" },
+                    { icon:"✨", label:"Identity & Values Alignment", desc:"Score each of your animals and values 1–10 on how much you're living them right now." },
+                    { icon:"📊", label:"Alignment Snapshot", desc:"All your scores in one view — the shape of where your life is in line with who you said you are." },
+                    { icon:"🎯", label:"Key Misalignment", desc:"The single item pulling furthest — chosen by weight across direction, identity, and values. Your A2 focus." },
+                    { icon:"⏳", label:"Time Audit", desc:"Where your week actually goes. Sort it. See what's missing. Map the trades you'd need to make." },
+                    { icon:"✍️", label:"Future Self Letter", desc:"A letter from ten years ahead — not generated, written by you. Four short sections. Leave a reflection at the end." },
+                    { icon:"🪞", label:"A2 Mirror", desc:"Everything you've seen, gathered in one place. Confirm the direction. Decide if it's still the pull." },
+                    { icon:"🗺️", label:"My Map of Me", desc:"Your living document. One Thing at the top — one sentence, your words — and the trades you committed to carry forward." },
+                  ].map((item, i, arr) => (
+                    <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:11, marginTop:14, marginBottom: i < arr.length - 1 ? 0 : 0 }}>
+                      <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>{item.icon}</span>
+                      <div>
+                        <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)" }}>{item.label}</span>
+                        <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, marginTop:2 }}>{item.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* What you walk away with */}
+        <div style={{ padding:"18px 22px", background:"rgba(96,165,250,.05)", border:"1px solid rgba(96,165,250,.22)", borderLeft:"3px solid #60a5fa", borderRadius:11, marginBottom:26 }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"#60a5fa", marginBottom:10, fontFamily:"var(--sans)" }}>What you walk away with</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.85, marginBottom:10 }}>
+            Three things, in this order: <strong style={{ fontStyle:"normal", fontWeight:500, color:"var(--warm)" }}>the truth of where you are.</strong> The honesty about <strong style={{ fontStyle:"normal", fontWeight:500, color:"var(--warm)" }}>where the gap is biggest.</strong> And the sentence — your <strong style={{ fontStyle:"normal", fontWeight:500, color:"var(--warm)" }}>One Thing</strong> — that names who you're becoming next.
+          </div>
+          <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.7 }}>
+            Plus a short list of trades to carry into A4, and a Future Self Letter you can re-read in 90 days.
+          </div>
+        </div>
+
+        {/* Katherine's ask — tone-setter */}
+        <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text2)", lineHeight:1.85, padding:"14px 18px", borderLeft:"2px solid var(--warm)", marginBottom:28 }}>
+          "Come in open. Leave the story about what you should be doing at the door. The only useful question in A2 is: <span style={{ color:"var(--warm)" }}>what's actually true about my life right now?</span>"
+          <div style={{ fontFamily:"var(--sans)", fontStyle:"normal", fontSize:11, color:"var(--text4)", marginTop:8, letterSpacing:1.5, textTransform:"uppercase", fontWeight:600 }}>— Katherine</div>
+        </div>
+
+        <div style={{ marginBottom:22 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="a2 introduction"
+            placeholder="Ask Katherine what A2 is asking of you before you start..." />
+        </div>
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"flex-end", gap:8 }}>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "intro"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "dir_align") {
+    const dirAlignIdx = A2_STEPS.findIndex(s => s.id === "dir_align");
+    const prevStep = A2_STEPS[dirAlignIdx - 1];
+    const nextStep = A2_STEPS[dirAlignIdx + 1];
+    const year = new Date().getFullYear();
+    const seedsDA = computeIdentityValuesSeeds(map, 4);
+    const oneyrItemsDA  = computeHorizonItems(map, "oneyr", seedsDA);
+    const threeyrItemsDA = computeHorizonItems(map, "threeyr");
+    const bagItemsDA    = computeHorizonItems(map, "bag");
+    const totalItems = oneyrItemsDA.length + threeyrItemsDA.length + bagItemsDA.length;
+    const tierLabel = (t) => t === "non-neg" ? "Non-neg" : t === "imp" ? "Important" : "Nice";
+    const tierColor = (t) => t === "non-neg" ? "var(--warm)" : t === "imp" ? "#a78bfa" : "var(--text4)";
+    const ctxBagOpen = !!map.a2_dir_ctx_bag_open;
+    const ctxThreeyrOpen = !!map.a2_dir_ctx_threeyr_open;
+
+    const ContextPane = ({ label, items, openKey, open }) => (
+      <div style={{ marginBottom:10, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden", background:"rgba(255,255,255,.02)" }}>
+        <div onClick={() => set(openKey, !open)}
+          style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"11px 16px", cursor:"pointer", userSelect:"none" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", fontWeight:700, color:"var(--text3)" }}>{label}</span>
+            <span style={{ fontSize:10, color:"var(--text4)" }}>· {items.length} priorit{items.length === 1 ? "y" : "ies"}</span>
+          </div>
+          <span style={{ fontSize:12, color:"var(--text4)", transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+        </div>
+        {open && items.length > 0 && (
+          <div style={{ padding:"10px 16px 14px", borderTop:"1px solid var(--border)" }}>
+            {items.map(it => (
+              <div key={it.id} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, fontSize:12, color:"var(--text2)" }}>
+                <span style={{ fontSize:13, flexShrink:0 }}>{it.icon}</span>
+                <span style={{ flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.label}</span>
+                <span style={{ fontSize:9, padding:"2px 7px", borderRadius:10, color: tierColor(it.tier), border:`1px solid ${tierColor(it.tier)}`, fontWeight:700, letterSpacing:0.5, textTransform:"uppercase", flexShrink:0 }}>
+                  {tierLabel(it.tier)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+        {open && items.length === 0 && (
+          <div style={{ padding:"10px 16px 14px", borderTop:"1px solid var(--border)", fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>
+            Nothing captured for this horizon in A1.
+          </div>
+        )}
+      </div>
+    );
+
+    return wrapA2(
+      <div>
+        <DirectionTimeline_v2 map={map} />
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Direction Alignment</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>1-Year Alignment · {year + 1}</h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:10, maxWidth:600 }}>
+          Your daily actions reveal 1-year alignment most honestly. Today's hours either ladder up to this year — or they don't.
+        </p>
+        <p style={{ fontSize:13, color:"var(--text3)", lineHeight:1.7, marginBottom:22, maxWidth:600, fontStyle:"italic" }}>
+          BAG and 3-year are aspirational distance markers — they don't have a clean "am I living this today?" test, so we don't score them here. They sit above as context.
+        </p>
+
+        {totalItems === 0 ? (
+          <div style={{
+            padding:"18px 20px", marginBottom:20,
+            background:"rgba(201,168,76,.06)", borderLeft:"3px solid var(--warm)", borderRadius:8,
+            fontSize:13, color:"var(--text2)", lineHeight:1.6,
+          }}>
+            <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", marginBottom:8 }}>
+              Complete your horizons first.
+            </div>
+            Build out your BAG, 3-Year, and 1-Year priorities in A1 before scoring.
+          </div>
+        ) : (
+          <>
+            {/* Context: BAG + 3-Year (read-only) */}
+            <div style={{ marginBottom:26 }}>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, marginBottom:10 }}>
+                Your distance markers · from A1
+              </div>
+              <ContextPane label={`BAG · ${year + 12}`}    items={bagItemsDA}    openKey="a2_dir_ctx_bag_open"    open={ctxBagOpen} />
+              <ContextPane label={`3-Year · ${year + 3}`}  items={threeyrItemsDA} openKey="a2_dir_ctx_threeyr_open" open={ctxThreeyrOpen} />
+            </div>
+
+            {/* Active: 1-Year scoring */}
+            <div style={{ marginBottom:22 }}>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:10 }}>
+                This is where we score · 1-Year
+              </div>
+              {oneyrItemsDA.length > 0 ? (
+                <HorizonAlignmentColumn_v2
+                  horizonKey="oneyr"
+                  horizonLabel={`1-Year · ${year + 1}`}
+                  items={oneyrItemsDA}
+                  map={map} set={set} />
+              ) : (
+                <div style={{ padding:"14px 18px", background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:8, fontSize:13, color:"var(--text3)", fontStyle:"italic" }}>
+                  Build your 1-Year priorities in A1 before scoring.
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        <div style={{ marginBottom:22, marginTop:18 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="direction alignment"
+            placeholder="Ask Katherine about the gaps between today and your 1-year..." />
+        </div>
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "dir_align"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "iv_align") {
+    const ivIdx = A2_STEPS.findIndex(s => s.id === "iv_align");
+    const prevStep = A2_STEPS[ivIdx - 1];
+    const nextStep = A2_STEPS[ivIdx + 1];
+    const animals = (map.animals || []).filter(a => a && a.name);
+    const valCount = parseInt(map?.val_count) || (map?.values || []).filter(v => v && v.name).length || 0;
+    const scoreColor = (s) => s >= 7 ? "#34d399" : s >= 4 ? "#f59e0b" : "#ef4444";
+    const totalAnimals = animals.length;
+    const totalValues = (() => {
+      let count = 0;
+      for (let i = 0; i < valCount; i++) {
+        const name = map?.[`val_${i}_name`] || (map?.values || [])[i]?.name;
+        if (name) count++;
+      }
+      return count;
+    })();
+
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Identity & Values Alignment</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Identity &amp; Values Alignment</h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:560 }}>
+          You named who you are and what you stand for in A1. Now score how fully you're living each one today. The gaps are the data — not the judgment.
+        </p>
+
+        {totalAnimals === 0 && totalValues === 0 && (
+          <div style={{ padding:"18px 20px", marginBottom:20, background:"rgba(201,168,76,.06)", borderLeft:"3px solid var(--warm)", borderRadius:8, fontSize:13, color:"var(--text2)", lineHeight:1.6 }}>
+            <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", marginBottom:8 }}>Go back to A1 first.</div>
+            Complete your animals + capabilities (Identity · Superpowers) and your values + behaviors (Values · Behaviors) before scoring alignment here.
+          </div>
+        )}
+
+        {/* IDENTITY section */}
+        {totalAnimals > 0 && (
+          <div style={{ marginBottom:28 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:14, paddingBottom:8, borderBottom:"1px solid var(--border)" }}>
+              <span style={{ fontSize:18 }}>🦁</span>
+              <div style={{ fontFamily:"var(--sans)", fontSize:15, fontWeight:700, color:"var(--text)", letterSpacing:0.3 }}>Identity</div>
+              <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>Your animals and their superpowers</div>
+              <button onClick={async () => {
+                set("return_to_a2", "iv_align");
+                await saveData(KEYS.step, "mirror2");
+                await saveData(KEYS.phase, "a1");
+                set("mirror2_sub", "pressure");
+                setPhase("a1");
+              }}
+                style={{ marginLeft:"auto", padding:"5px 11px", borderRadius:12, background:"transparent", color:"var(--warm)", border:"1px solid var(--warm)", cursor:"pointer", fontSize:11, flexShrink:0 }}>
+                See what you wrote →
+              </button>
+            </div>
+            {animals.map((animal, i) => {
+              const animalLabel = [animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ");
+              const caps = (animal.capabilities || []).filter(c => c && c.name);
+              const openKey = `a2_iv_animal_${i}_open`;
+              const isOpen = map?.[openKey] !== false;
+              const scores = caps.map((_, ci) => (map?.[`align_cap_${i}_${ci}`] ?? 5));
+              const avg = caps.length > 0 ? (scores.reduce((a,b) => a+b, 0) / caps.length).toFixed(1) : null;
+              const avgCol = avg !== null ? scoreColor(parseFloat(avg)) : "var(--warm)";
+              return (
+                <div key={i} style={{ marginBottom:14, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+                  <div onClick={() => set(openKey, !isOpen)}
+                    style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", background:"var(--bg3)", cursor:"pointer", userSelect:"none" }}>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)" }}>{animalLabel}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      {avg && <span style={{ fontSize:13, fontWeight:700, color:avgCol }}>Avg {avg}/10</span>}
+                      <span style={{ fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                    </div>
+                  </div>
+                  {isOpen && (
+                    <div style={{ padding:"16px 18px", borderTop:"1px solid var(--border)" }}>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Superpowers</div>
+                      {caps.length === 0 ? (
+                        <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>
+                          Go to A1 · Identity · Superpowers to add superpowers for this animal.
+                        </div>
+                      ) : caps.map((cap, ci) => {
+                        const storeKey = `align_cap_${i}_${ci}`;
+                        const score = map?.[storeKey] ?? 5;
+                        const col = scoreColor(score);
+                        return (
+                          <div key={ci} style={{ marginBottom:14 }}>
+                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                              <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{cap.name}</span>
+                              <span style={{ fontSize:13, fontWeight:700, color:col }}>{score}/10</span>
+                            </div>
+                            <input type="range" min={1} max={10} step={1} value={score}
+                              onChange={e => set(storeKey, Number(e.target.value))}
+                              style={{ width:"100%", accentColor:col }} />
+                            <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, marginTop:2 }}>
+                              <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                              <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* VALUES section */}
+        {totalValues > 0 && (
+          <div style={{ marginBottom:28 }}>
+            <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:14, paddingBottom:8, borderBottom:"1px solid var(--border)" }}>
+              <span style={{ fontSize:18 }}>⚖️</span>
+              <div style={{ fontFamily:"var(--sans)", fontSize:15, fontWeight:700, color:"var(--text)", letterSpacing:0.3 }}>Values</div>
+              <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>What you stand for and the behaviors that prove it</div>
+              <button onClick={async () => {
+                set("return_to_a2", "iv_align");
+                await saveData(KEYS.step, "mirror3");
+                await saveData(KEYS.phase, "a1");
+                set("mirror3_sub", "behaviors");
+                setPhase("a1");
+              }}
+                style={{ marginLeft:"auto", padding:"5px 11px", borderRadius:12, background:"transparent", color:"var(--warm)", border:"1px solid var(--warm)", cursor:"pointer", fontSize:11, flexShrink:0 }}>
+                See what you wrote →
+              </button>
+            </div>
+            {Array.from({ length: valCount }).map((_, i) => {
+              const vName = map?.[`val_${i}_name`] || (map?.values || [])[i]?.name || "";
+              if (!vName) return null;
+              const vSummary = map?.[`val_${i}_summary`] || "";
+              const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+              const behs = [];
+              for (let j = 0; j < bCount; j++) {
+                const bn = map?.[`beh_${i}_${j}_name`];
+                if (bn) behs.push({ j, name: bn });
+              }
+              const openKey = `a2_iv_val_${i}_open`;
+              const isOpen = map?.[openKey] !== false;
+              const scores = behs.map(({ j }) => (map?.[`align_val_${i}_beh_${j}`] ?? 5));
+              const avg = behs.length > 0 ? (scores.reduce((a,b) => a+b, 0) / behs.length).toFixed(1) : null;
+              const avgCol = avg !== null ? scoreColor(parseFloat(avg)) : "#34d399";
+              return (
+                <div key={i} style={{ marginBottom:14, border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+                  <div onClick={() => set(openKey, !isOpen)}
+                    style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 18px", background:"var(--bg3)", cursor:"pointer", userSelect:"none" }}>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"#34d399" }}>"{vName}"</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      {avg && <span style={{ fontSize:13, fontWeight:700, color:avgCol }}>Avg {avg}/10</span>}
+                      <span style={{ fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                    </div>
+                  </div>
+                  {isOpen && (
+                    <div style={{ padding:"16px 18px", borderTop:"1px solid var(--border)" }}>
+                      <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#a78bfa", marginBottom:10 }}>Behaviors</div>
+                      {vSummary && <div style={{ fontSize:12, fontStyle:"italic", color:"var(--text3)", lineHeight:1.5, marginBottom:12 }}>{vSummary}</div>}
+                      {behs.length === 0 ? (
+                        <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>
+                          Go to A1 · Values · Behaviors to add behaviors for this value.
+                        </div>
+                      ) : behs.map(({ j, name }) => {
+                        const storeKey = `align_val_${i}_beh_${j}`;
+                        const score = map?.[storeKey] ?? 5;
+                        const col = scoreColor(score);
+                        return (
+                          <div key={j} style={{ marginBottom:14 }}>
+                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                              <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{name}</span>
+                              <span style={{ fontSize:13, fontWeight:700, color:col }}>{score}/10</span>
+                            </div>
+                            <input type="range" min={1} max={10} step={1} value={score}
+                              onChange={e => set(storeKey, Number(e.target.value))}
+                              style={{ width:"100%", accentColor:col }} />
+                            <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, marginTop:2 }}>
+                              <span style={{ color:"#ef4444" }}>1 = living far from this</span>
+                              <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div style={{ marginBottom:22, marginTop:8 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="identity and values alignment"
+            placeholder="Ask Katherine about the gap between who you are and how you're living..." />
+        </div>
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "iv_align"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "snapshot") {
+    const snapIdx = A2_STEPS.findIndex(s => s.id === "snapshot");
+    const prevStep = A2_STEPS[snapIdx - 1];
+    const nextStep = A2_STEPS[snapIdx + 1];
+
+    // Helpers matching A1's Alignment Check
+    const AlignSlider = ({ storeKey, label, desc, color="#c9a84c", indent=false }) => {
+      const val = map[storeKey] !== undefined ? map[storeKey] : 5;
+      const col = val >= 7 ? "#34d399" : val >= 4 ? "#f59e0b" : "#ef4444";
+      return (
+        <div style={{ marginBottom:10, paddingLeft: indent ? 14 : 0, borderLeft: indent ? "2px solid var(--border2)" : "none" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+            <div>
+              <div style={{ fontSize: indent ? 12 : 13, fontWeight: indent ? 400 : 600, color: indent ? "var(--text2)" : "var(--text)" }}>{label}</div>
+              {desc && <div style={{ fontSize:11, color:"var(--text4)", marginTop:1 }}>{desc}</div>}
+            </div>
+            <div style={{ fontFamily:"var(--serif)", fontSize: indent ? 16 : 19, fontWeight:300, color:col, flexShrink:0, marginLeft:12 }}>{val}<span style={{ fontSize:10 }}>/10</span></div>
+          </div>
+          <input type="range" min={0} max={10} step={1} value={val}
+            onChange={e => set(storeKey, Number(e.target.value))}
+            style={{ accentColor:col, width:"100%" }} />
+          <div style={{ fontSize:10, color:"var(--text4)", marginTop:2 }}>
+            {val >= 8 ? "Strong alignment" : val >= 5 ? "Partial -- something in the way" : "Low -- needs attention"}
+          </div>
+        </div>
+      );
+    };
+    const ScoreRow = ({ storeKey, label, desc, indent=false, defaultVal=5 }) => {
+      const val = map[storeKey] !== undefined ? map[storeKey] : defaultVal;
+      const col = val >= 7 ? "#34d399" : val >= 4 ? "#f59e0b" : "#ef4444";
+      const isScored = map[storeKey] !== undefined;
+      return (
+        <div style={{ marginBottom:8, paddingLeft: indent ? 14 : 0, borderLeft: indent ? "2px solid var(--border2)" : "none" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+            <div style={{ minWidth:0, flex:1 }}>
+              <div style={{ fontSize: indent ? 12 : 13, fontWeight: indent ? 400 : 600, color: indent ? "var(--text2)" : "var(--text)" }}>{label}</div>
+              {desc && <div style={{ fontSize:11, color:"var(--text4)", marginTop:1 }}>{desc}</div>}
+            </div>
+            {isScored ? (
+              <div style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:300, color:col, flexShrink:0 }}>{val}<span style={{ fontSize:10 }}>/10</span></div>
+            ) : (
+              <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic", flexShrink:0 }}>not scored</div>
+            )}
+          </div>
+        </div>
+      );
+    };
+    const AvgBadge = ({ scores }) => {
+      const valid = scores.filter(s => s !== undefined && s !== null);
+      if (valid.length === 0) return null;
+      const avg = Math.round(valid.reduce((a,b) => a+b, 0) / valid.length * 10) / 10;
+      const col = avg >= 7 ? "#34d399" : avg >= 4 ? "#f59e0b" : "#ef4444";
+      return (
+        <div style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 10px", background:`rgba(${avg >= 7 ? "52,211,153" : avg >= 4 ? "245,158,11" : "239,68,68"},.1)`, border:`1px solid ${col}`, borderRadius:20, marginLeft:10 }}>
+          <span style={{ fontSize:11, fontWeight:700, color:col }}>avg {avg}/10</span>
+        </div>
+      );
+    };
+
+    // --- DIRECTION data (1-Year only — uses A2 Direction Alignment scores) ---
+    const seedsSnap = computeIdentityValuesSeeds(map, 4);
+    const oneyrItemsSnap = computeHorizonItems(map, "oneyr", seedsSnap);
+    const oneyrTimeItems   = oneyrItemsSnap.filter(i => i.segment === "Time");
+    const oneyrWealthItems = oneyrItemsSnap.filter(i => i.segment === "Wealth");
+    const oneyrGrowthItems = oneyrItemsSnap.filter(i => i.segment === "Growth");
+    const dirScores = oneyrItemsSnap
+      .map(i => map[`dir_align_oneyr_${i.id}`])
+      .filter(s => s !== undefined);
+
+    // --- IDENTITY data ---
+    const animals = (map.animals || []).filter(a => a && a.name);
+    const spScores = animals.flatMap((a, i) => {
+      const caps = (a.capabilities || []).filter(c => c.name);
+      return caps.map((_, ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
+    });
+
+    // --- VALUES data ---
+    const valCount = parseInt(map?.val_count) || (map?.values || []).filter(v => v && v.name).length || 0;
+    const valueRows = Array.from({ length: valCount }).map((_, i) => {
+      const vName = map?.[`val_${i}_name`] || (map?.values || [])[i]?.name || "";
+      const bCount = parseInt(map?.[`beh_${i}_count`]) || 0;
+      const behs = [];
+      for (let j = 0; j < bCount; j++) {
+        const bn = map?.[`beh_${i}_${j}_name`];
+        if (bn) behs.push({ j, name: bn });
+      }
+      return { i, name: vName, behs, summary: map?.[`val_${i}_summary`] || "" };
+    }).filter(r => r.name);
+    const bhvScores = valueRows.flatMap(r =>
+      r.behs.map(({ j }) => map[`align_val_${r.i}_beh_${j}`]).filter(s => s !== undefined)
+    );
+
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Alignment Snapshot</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Your <em>Alignment Snapshot</em></h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>This isn't about doing everything — it's about finding the one shift that will most change who you are, how you show up, and the direction of your life.</p>
+
+        {/* ── PURPOSE · DIRECTION ── */}
+        {(() => { const isOpen = map?.a2_snap_dir_open !== false; return (
+        <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:14, overflow:"hidden" }}>
+          <div onClick={() => set("a2_snap_dir_open", !isOpen)}
+            style={{ padding:"13px 18px", borderBottom: isOpen ? "1px solid var(--border)" : "none", display:"flex", alignItems:"center", gap:9, cursor:"pointer", userSelect:"none" }}>
+            <span style={{ fontSize:17 }}>⛰️</span>
+            <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Purpose · Direction</span>
+            <AvgBadge scores={dirScores} />
+            <span style={{ marginLeft:"auto", fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+          </div>
+          {isOpen && (<div style={{ padding:"14px 18px" }}>
+            <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", marginBottom:14, padding:"6px 10px", background:"rgba(0,0,0,.2)", borderRadius:6 }}>
+              Read-only view of your 1-Year scores. To adjust, return to Direction Alignment.
+            </div>
+            {/* Time priorities */}
+            <div style={{ marginBottom:16 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>⏳ Time Priorities</div>
+                {oneyrTimeItems.length > 0 && <AvgBadge scores={oneyrTimeItems.map(it => map[`dir_align_oneyr_${it.id}`]).filter(s => s !== undefined)} />}
+              </div>
+              {oneyrTimeItems.length === 0 && (
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-Year time priorities — go to A1 Direction · 1-Year to add them.</div>
+              )}
+              {oneyrTimeItems.map((it) => (
+                <ScoreRow key={it.id}
+                  storeKey={`dir_align_oneyr_${it.id}`}
+                  label={`${it.icon} ${it.label}`.trim()}
+                  indent={true} />
+              ))}
+            </div>
+            {/* Wealth */}
+            <div style={{ marginBottom:16 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>💰 Wealth</div>
+                {oneyrWealthItems.length > 0 && <AvgBadge scores={oneyrWealthItems.map(it => map[`dir_align_oneyr_${it.id}`]).filter(s => s !== undefined)} />}
+              </div>
+              {oneyrWealthItems.length === 0 && (
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-Year wealth items.</div>
+              )}
+              {oneyrWealthItems.map(it => (
+                <ScoreRow key={it.id}
+                  storeKey={`dir_align_oneyr_${it.id}`}
+                  label={`${it.icon} ${it.label}`.trim()}
+                  indent={true} />
+              ))}
+            </div>
+            {/* Growth */}
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>🌱 Growth</div>
+                {oneyrGrowthItems.length > 0 && <AvgBadge scores={oneyrGrowthItems.map(it => map[`dir_align_oneyr_${it.id}`]).filter(s => s !== undefined)} />}
+              </div>
+              {oneyrGrowthItems.length === 0 ? (
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-Year growth items.</div>
+              ) : (
+                oneyrGrowthItems.map(it => (
+                  <ScoreRow key={it.id}
+                    storeKey={`dir_align_oneyr_${it.id}`}
+                    label={`${it.icon} ${it.label}`.trim()}
+                    indent={true} />
+                ))
+              )}
+            </div>
+          </div>)}
+        </div>
+        ); })()}
+
+        {/* ── IDENTITY · SUPERPOWERS ── */}
+        {(() => { const isOpen = map?.a2_snap_sup_open !== false; return (
+        <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:14, overflow:"hidden" }}>
+          <div onClick={() => set("a2_snap_sup_open", !isOpen)}
+            style={{ padding:"13px 18px", borderBottom: isOpen ? "1px solid var(--border)" : "none", display:"flex", alignItems:"center", gap:9, cursor:"pointer", userSelect:"none" }}>
+            <span style={{ fontSize:17 }}>⚡</span>
+            <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Identity · Superpowers</span>
+            <AvgBadge scores={spScores} />
+            <span style={{ marginLeft:"auto", fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+          </div>
+          {isOpen && (<div style={{ padding:"14px 18px" }}>
+            {animals.length === 0 && (
+              <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>No animals set yet -- go back to A1 Identity to add them.</div>
+            )}
+            {animals.map((a, i) => {
+              const capList = (a.capabilities || []).filter(c => c.name);
+              const animalScores = capList.map((_, ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
+              const pressureText = a.under_pressure || "";
+              return (
+                <div key={i} style={{ marginBottom:18 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>"{[a.adj1, a.adj2, a.name].filter(Boolean).join(" ")}"</div>
+                    <AvgBadge scores={animalScores} />
+                  </div>
+                  {capList.length === 0 ? (
+                    <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", paddingLeft:14, borderLeft:"2px solid var(--border2)" }}>
+                      Go to A1 · Identity · Superpowers and add superpowers for this animal.
+                    </div>
+                  ) : (
+                    <div>
+                      {capList.map((cap, ci) => (
+                        <ScoreRow key={ci}
+                          storeKey={`align_cap_${i}_${ci}`}
+                          label={cap.name}
+                          desc={cap.description || ""}
+                          indent={true} />
+                      ))}
+                      {pressureText && (
+                        <div style={{ padding:"8px 12px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:7, marginTop:6, marginLeft:14 }}>
+                          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", color:"#ef4444", marginBottom:3 }}>Under Pressure</div>
+                          <div style={{ fontSize:11, color:"var(--text3)", lineHeight:1.5 }}>{pressureText}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>)}
+        </div>
+        ); })()}
+
+        {/* ── VALUES · BEHAVIORS ── */}
+        {(() => { const isOpen = map?.a2_snap_beh_open !== false; return (
+        <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:22, overflow:"hidden" }}>
+          <div onClick={() => set("a2_snap_beh_open", !isOpen)}
+            style={{ padding:"13px 18px", borderBottom: isOpen ? "1px solid var(--border)" : "none", display:"flex", alignItems:"center", gap:9, cursor:"pointer", userSelect:"none" }}>
+            <span style={{ fontSize:17 }}>🎯</span>
+            <span style={{ fontFamily:"var(--sans)", fontSize:14, fontWeight:700, color:"var(--text)" }}>Values · Behaviors</span>
+            <AvgBadge scores={bhvScores} />
+            <span style={{ marginLeft:"auto", fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+          </div>
+          {isOpen && (<div style={{ padding:"14px 18px" }}>
+            {valueRows.length === 0 && (
+              <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>No values set yet -- go back to A1 Values · Behaviors to add them.</div>
+            )}
+            {valueRows.map(row => {
+              const valScores = row.behs.map(({ j }) => map[`align_val_${row.i}_beh_${j}`]).filter(s => s !== undefined);
+              return (
+                <div key={row.i} style={{ marginBottom:18 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--warm)" }}>"{row.name}"</div>
+                    <AvgBadge scores={valScores} />
+                  </div>
+                  {row.summary && (
+                    <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", paddingLeft:14, marginBottom:8, borderLeft:"2px solid rgba(52,211,153,.3)" }}>{row.summary}</div>
+                  )}
+                  {row.behs.length === 0 ? (
+                    <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", paddingLeft:14, borderLeft:"2px solid var(--border2)" }}>
+                      No behaviors defined yet -- go to A1 Values · Behaviors · Step 2 to add them.
+                    </div>
+                  ) : (
+                    <div>
+                      {row.behs.map(({ j, name }) => (
+                        <ScoreRow key={j}
+                          storeKey={`align_val_${row.i}_beh_${j}`}
+                          label={name}
+                          indent={true} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>)}
+        </div>
+        ); })()}
+
+        <div style={{ marginBottom:22 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="alignment snapshot"
+            placeholder="Ask Katherine about what this snapshot is showing you..." />
+        </div>
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "snapshot"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "key_mis") {
+    const kmIdx = A2_STEPS.findIndex(s => s.id === "key_mis");
+    const prevStep = A2_STEPS[kmIdx - 1];
+    const nextStep = A2_STEPS[kmIdx + 1];
+
+    const scoreColor = (s) => s <= 4 ? "#ef4444" : s <= 6 ? "#f59e0b" : "#34d399";
+    const misalignments = computeMisalignments(map);
+    const hasDirScores = Object.keys(map).some(k => k.startsWith("dir_align_"));
+
+    const noItems = misalignments.length === 0;
+    const noDirScores = !hasDirScores && misalignments.length > 0;
+    const top = misalignments[0];
+    const allAligned = top && top.score >= 8;
+
+    const pinnedId = map.a2_km_pinned_id || null;
+    const primaryId = map.a2_km_primary_id || (misalignments[0]?.id || null);
+    const primary = misalignments.find(m => m.id === primaryId) || misalignments[0];
+    const secondaries = primary ? misalignments.filter(m => m.id !== primary.id).slice(0, 3) : [];
+    const pinned = primary && pinnedId === primary.id;
+
+    const h1 = allAligned ? "You're closer than you think" : "Where the pull is strongest";
+    const lead = allAligned
+      ? "No major gaps surfaced from your map. The work now is protection, not correction. Here's what to keep guarding."
+      : "A1 showed you what you're moving toward. This is where your life today is pulling the other way. The gap isn't something to fix in one go — it's a signal about where your time is most worth protecting.";
+    const secondariesLabel = allAligned ? "What to protect" : "Also worth looking at";
+
+    const primaryCopy = (item) => {
+      if (!item) return "";
+      if (item.kind === "direction") {
+        const t = (item.tierLabel || "priority").toLowerCase();
+        return `You said this is a ${t}. Your life today doesn't reflect that yet. That's the pull we follow in the rest of A2.`;
+      }
+      if (item.kind === "identity") {
+        return `You said this capability defines you. Today you scored it ${item.score}/10. Something is getting in the way of the version of you that knows this.`;
+      }
+      if (item.kind === "values") {
+        return `You said this is how you live out ${item.valueName}. Today you scored it ${item.score}/10. Time to look at why.`;
+      }
+      return "";
+    };
+
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Key Misalignment</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:40, fontWeight:400, lineHeight:1.15, marginBottom:16, letterSpacing:"-0.5px" }}>{h1}</h2>
+        <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.7, marginBottom:32, maxWidth:640 }}>{lead}</p>
+
+        {/* Empty state: nothing surfaces at all */}
+        {noItems && (
+          <div style={{ padding:"40px 32px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.3)", borderRadius:12, textAlign:"center" }}>
+            <div style={{ fontSize:28, marginBottom:14 }}>⏳</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:22, color:"var(--text)", marginBottom:10 }}>Direction Alignment isn't complete yet.</div>
+            <div style={{ fontSize:14, color:"var(--text2)", lineHeight:1.6, maxWidth:460, margin:"0 auto 20px" }}>
+              Head back to A2 · Direction Alignment and score TODAY's reality against each of your horizons. Once you've done that, your Key Misalignment will surface here.
+            </div>
+            <button className="btn" onClick={() => a2Goto("dir_align")}>← Back to Direction Alignment</button>
+          </div>
+        )}
+
+        {/* Partial view: no direction scores but identity/values do exist */}
+        {!noItems && noDirScores && (
+          <div style={{ padding:"14px 18px", marginBottom:24, background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.3)", borderRadius:8, fontSize:13, color:"var(--text2)", lineHeight:1.6 }}>
+            <strong style={{ color:"var(--warm)" }}>Partial view.</strong>{" "}
+            Direction Alignment isn't scored yet — these surfaces come only from your Identity &amp; Values work.{" "}
+            <button onClick={() => a2Goto("dir_align")} style={{ background:"none", border:"none", color:"var(--warm)", cursor:"pointer", textDecoration:"underline", padding:0, fontFamily:"inherit", fontSize:"inherit" }}>Finish Direction Alignment</button> to see the full picture.
+          </div>
+        )}
+
+        {/* Primary card */}
+        {primary && (() => {
+          const col = scoreColor(primary.score);
+          return (
+            <div style={{
+              padding:"28px 30px",
+              background: pinned
+                ? "linear-gradient(135deg, rgba(201,168,76,.12), rgba(255,255,255,.02))"
+                : "linear-gradient(135deg, rgba(239,68,68,.08), rgba(255,255,255,.02))",
+              border:`1px solid ${pinned ? "var(--warm)" : "rgba(239,68,68,.4)"}`,
+              borderRadius:12, marginBottom:32, position:"relative",
+            }}>
+              {pinned && (
+                <div style={{ position:"absolute", top:-10, right:16, background:"var(--warm)", color:"var(--bg)", fontSize:10, letterSpacing:1.5, textTransform:"uppercase", fontWeight:700, padding:"2px 10px", borderRadius:10 }}>
+                  ✓ Your A2 focus
+                </div>
+              )}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color: pinned ? "var(--warm)" : "#ef4444", fontWeight:700 }}>{primary.source}</div>
+                <div style={{ fontSize:10, color:"var(--text3)", fontWeight:500, padding:"2px 8px", border:"1px solid var(--border2)", borderRadius:8 }}>gap {primary.final_gap.toFixed(1)}</div>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:14 }}>
+                <div style={{ fontSize:32, lineHeight:1 }}>{primary.icon}</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:26, fontWeight:400, color:"var(--text)", lineHeight:1.2 }}>{primary.label}</div>
+              </div>
+              <div style={{ fontSize:13, color:"var(--text2)", marginBottom:16, fontFamily:"var(--serif)", fontStyle:"italic" }}>
+                You scored this <span style={{ color:col, fontWeight:600, fontStyle:"normal" }}>{primary.score}/10</span> today.
+              </div>
+              <div style={{ fontSize:15, color:"var(--text)", lineHeight:1.7, marginBottom:22 }}>
+                {primaryCopy(primary)}
+              </div>
+              {!pinned ? (
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                  <button onClick={() => set("a2_km_pinned_id", primary.id)}
+                    style={{ padding:"10px 20px", borderRadius:16, background:"var(--warm)", color:"var(--bg)", border:"none", cursor:"pointer", fontSize:13, fontWeight:700 }}>
+                    ✓ Pin this as my focus
+                  </button>
+                  <button onClick={() => set("a2_km_picker_open", !map.a2_km_picker_open)}
+                    style={{ padding:"10px 16px", borderRadius:16, background:"transparent", color:"var(--text2)", border:"1px solid var(--border2)", cursor:"pointer", fontSize:12, fontWeight:500 }}>
+                    {map.a2_km_picker_open ? "Close picker" : "Choose a different focus"}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ padding:"14px 18px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:8 }}>
+                  <div style={{ fontSize:14, color:"var(--text)", fontFamily:"var(--serif)", fontStyle:"italic", marginBottom:12, lineHeight:1.6 }}>
+                    Pinned. Now let's look at how it plays out day-to-day.
+                  </div>
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                    <button onClick={() => a2Goto("time_audit")}
+                      style={{ padding:"10px 20px", borderRadius:16, background:"var(--warm)", color:"var(--bg)", border:"none", cursor:"pointer", fontSize:13, fontWeight:700 }}>
+                      Continue → Time Audit
+                    </button>
+                    <button onClick={() => { set("a2_km_pinned_id", null); set("a2_km_picker_open", true); }}
+                      style={{ padding:"10px 14px", borderRadius:16, background:"transparent", color:"var(--text3)", border:"1px solid var(--border2)", cursor:"pointer", fontSize:12 }}>
+                      Change focus
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Full picker — opens when user wants to choose a different focus */}
+        {map.a2_km_picker_open && misalignments.length > 0 && (
+          <div style={{ marginBottom:32, padding:"20px 22px", background:"rgba(255,255,255,.02)", border:"1px solid var(--border2)", borderRadius:10 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+              <div>
+                <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:4 }}>Choose your focus</div>
+                <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic" }}>
+                  Katherine's ranking is a suggestion — you choose what matters most. {misalignments.length} scored item{misalignments.length === 1 ? "" : "s"}.
+                </div>
+              </div>
+              <button onClick={() => set("a2_km_picker_open", false)}
+                style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:18, padding:0, lineHeight:1 }}>×</button>
+            </div>
+            <div style={{ maxHeight:360, overflowY:"auto", paddingRight:4 }}>
+              {misalignments.map(item => {
+                const col = scoreColor(item.score);
+                const isPrimary = item.id === primary?.id;
+                return (
+                  <div key={item.id}
+                    onClick={() => {
+                      set("a2_km_primary_id", item.id);
+                      set("a2_km_picker_open", false);
+                    }}
+                    style={{
+                      display:"flex", alignItems:"center", gap:12,
+                      padding:"10px 12px", marginBottom:6,
+                      background: isPrimary ? "rgba(201,168,76,.1)" : "transparent",
+                      border:`1px solid ${isPrimary ? "rgba(201,168,76,.35)" : "transparent"}`,
+                      borderRadius:8, cursor:"pointer", transition:"all .12s"
+                    }}
+                    onMouseEnter={e => { if (!isPrimary) e.currentTarget.style.background = "rgba(255,255,255,.04)"; }}
+                    onMouseLeave={e => { if (!isPrimary) e.currentTarget.style.background = "transparent"; }}>
+                    <span style={{ fontSize:10, color:"var(--text4)", fontWeight:600, minWidth:24, textAlign:"right" }}>#{item.rank}</span>
+                    <span style={{ fontSize:16 }}>{item.icon}</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:13, color:"var(--text)", fontWeight:500, lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.label}</div>
+                      <div style={{ fontSize:10, color:"var(--text4)", marginTop:2 }}>{item.source}</div>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:2, flexShrink:0 }}>
+                      <span style={{ fontSize:12, fontWeight:700, color:col }}>{item.score}/10</span>
+                      <span style={{ fontSize:9, color:"var(--text4)" }}>gap {item.final_gap.toFixed(1)}</span>
+                    </div>
+                    {isPrimary && <span style={{ fontSize:11, color:"var(--warm)", fontWeight:700, flexShrink:0, marginLeft:4 }}>✓</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Secondaries */}
+        {secondaries.length > 0 && (
+          <>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:12 }}>
+              {secondariesLabel}
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))", gap:12, marginBottom:16 }}>
+              {secondaries.map(item => {
+                const col = scoreColor(item.score);
+                const borderCol = allAligned ? "#34d399" : (item.score <= 4 ? "#ef4444" : "#f59e0b");
+                return (
+                  <div key={item.id}
+                    onClick={() => { if (!pinned) set("a2_km_primary_id", item.id); }}
+                    style={{ padding:"14px 16px", background:"rgba(255,255,255,.03)", border:`1px solid ${borderCol}30`, borderRadius:10, cursor: pinned ? "default" : "pointer", transition:"all .15s ease", opacity: pinned ? 0.7 : 1 }}
+                    onMouseEnter={e => { if (!pinned) { e.currentTarget.style.background = "rgba(255,255,255,.06)"; e.currentTarget.style.borderColor = `${borderCol}80`; }}}
+                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,.03)"; e.currentTarget.style.borderColor = `${borderCol}30`; }}>
+                    <div style={{ fontSize:9, letterSpacing:1.5, textTransform:"uppercase", color:borderCol, fontWeight:700, marginBottom:8 }}>{item.source}</div>
+                    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                      <div style={{ fontSize:20, lineHeight:1 }}>{item.icon}</div>
+                      <div style={{ fontSize:14, color:"var(--text)", fontWeight:500, lineHeight:1.3, flex:1, minWidth:0 }}>{item.label}</div>
+                    </div>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:11, color:"var(--text3)" }}>
+                      <span>score <span style={{ color:col, fontWeight:600 }}>{item.score}/10</span></span>
+                      <span>gap {item.final_gap.toFixed(1)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {!pinned && (
+              <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", textAlign:"center", marginBottom:12 }}>
+                Click any card above to make it the primary.
+              </div>
+            )}
+          </>
+        )}
+
+        {!noItems && (
+          <div style={{ marginBottom:22, marginTop:18 }}>
+            <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+              sectionLabel="key misalignment"
+              placeholder="Ask Katherine why this surfaced — or whether you agree..." />
+          </div>
+        )}
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "key_mis"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "time_audit") {
+    const taIdx = A2_STEPS.findIndex(s => s.id === "time_audit");
+    const prevStep = A2_STEPS[taIdx - 1];
+    const nextStep = A2_STEPS[taIdx + 1];
+
+    const acts = map.a2_ta_acts || [];
+    const p1Done = !!map.a2_ta_p1_done;
+    const p2Done = !!map.a2_ta_p2_done;
+    const totalHours = acts.reduce((t, a) => t + (Number(a.hours) || 0), 0);
+    const readyP1 = acts.length >= 5;
+    const sortedCount = acts.filter(a => a.feeling && a.pri).length;
+    const readyP2 = sortedCount === acts.length && acts.length > 0;
+
+    const HOURS_OPTS = [1, 3, 5, 8, 10, 12, 15, 20];
+
+    // Feelings
+    const FEELING_META = {
+      love:    { label: "Love",    emoji: "💛", color: "#34d399" },
+      like:    { label: "Like",    emoji: "👍", color: "#34d399" },
+      dislike: { label: "Dislike", emoji: "👎", color: "#f59e0b" },
+      despise: { label: "Despise", emoji: "😤", color: "#ef4444" },
+    };
+
+    // Priority list — user's A1 time picks + Wealth + Personal Growth + None
+    const priorityList = (() => {
+      const list = [];
+      (map.time_picked || []).forEach(id => {
+        const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+        const stored = (map.time_items || {})[id] || {};
+        list.push({
+          id: `t_${id}`,
+          label: preset?.label || stored.label || id,
+          icon:  preset?.icon  || stored.icon  || "⏳",
+          kind: "time",
+          subtitle: null,
+        });
+      });
+      // Fallback: if user hasn't picked time in new shape, use legacy life_areas
+      if (list.length === 0 && (map.life_areas || []).length > 0) {
+        (map.life_areas || []).forEach(a => {
+          list.push({
+            id: `t_${a.id || a.label}`,
+            label: a.label || a.id || "",
+            icon: a.icon || "⏳",
+            kind: "time",
+            subtitle: null,
+          });
+        });
+      }
+      // Wealth summary
+      const wealthLabels = (map.wealth_picked || []).map(id => {
+        const preset = WEALTH_AREA_PRESETS.find(p => p.id === id);
+        return preset?.label || id;
+      });
+      list.push({
+        id: "wealth",
+        label: "Wealth",
+        icon: "💰",
+        kind: "wealth",
+        subtitle: wealthLabels.length > 0 ? wealthLabels.join(" · ") : null,
+      });
+      // Personal Growth
+      const growthSentence = map.oneyr_growth_sentence || map.growth_sentence || map.growth_summary || "";
+      list.push({
+        id: "growth",
+        label: "Personal Growth",
+        icon: "🌱",
+        kind: "growth",
+        subtitle: growthSentence || null,
+      });
+      // None
+      list.push({
+        id: "none",
+        label: "None of my priorities",
+        icon: "·",
+        kind: "none",
+        subtitle: null,
+      });
+      return list;
+    })();
+    const priById = (id) => priorityList.find(p => p.id === id) || null;
+
+    const addAct = () => {
+      const labelEl = document.getElementById("a2_ta_newLbl");
+      const hrsEl = document.getElementById("a2_ta_newHrs");
+      const label = (labelEl?.value || "").trim();
+      if (!label) return;
+      const hours = Number(hrsEl?.value || 5);
+      const next = [...acts, { id: `a${Date.now()}`, label, hours, feeling: null, pri: null }];
+      set("a2_ta_acts", next);
+      if (labelEl) { labelEl.value = ""; labelEl.focus(); }
+    };
+    const removeAct = (id) => set("a2_ta_acts", acts.filter(a => a.id !== id));
+    const editHours = (id, hrs) => set("a2_ta_acts", acts.map(a => a.id === id ? { ...a, hours: Number(hrs) } : a));
+    const setPri = (id, pri) => set("a2_ta_acts", acts.map(a => a.id === id ? { ...a, pri: pri || null } : a));
+    const setFeel = (id, feeling) => set("a2_ta_acts", acts.map(a => a.id === id ? { ...a, feeling: a.feeling === feeling ? null : feeling } : a));
+
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Time Audit</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:400, lineHeight:1.2, marginBottom:10, letterSpacing:"-0.3px" }}>Where your time is really going</h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:28, maxWidth:620 }}>
+          You told A1 where you're going. You just saw the biggest gap between that direction and today. Now — the hours you said you didn't have. They're here, somewhere. Let's look honestly.
+        </p>
+
+        {/* ─── PHASE 1 ─── */}
+        {p1Done ? (
+          <div style={{ marginBottom:16, padding:"12px 16px", background:"rgba(52,211,153,.06)", border:"1px solid rgba(52,211,153,.35)", borderRadius:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"#34d399", marginBottom:4 }}>✓ Phase 1 · Name your week</div>
+              <div style={{ fontSize:13, color:"var(--text2)" }}>{acts.length} activities · {totalHours} hrs/week</div>
+            </div>
+            <button onClick={() => set("a2_ta_p1_done", false)}
+              style={{ padding:"5px 12px", background:"transparent", color:"var(--text3)", border:"1px solid var(--border2)", borderRadius:12, cursor:"pointer", fontSize:11 }}>
+              Edit
+            </button>
+          </div>
+        ) : (
+          <div style={{ marginBottom:16, padding:"24px 28px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:10 }}>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--warm)", marginBottom:4 }}>Phase 1 · Name your week</div>
+            <h3 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, margin:"0 0 7px", color:"var(--text)", letterSpacing:"-0.3px" }}>List the things that actually take up your typical week.</h3>
+            <p style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, margin:"0 0 18px" }}>
+              Work, home, fun, obligations — everything. Don't filter. 15 minutes of scrolling counts. The 3am anxiety loop counts. Get it all down.
+            </p>
+
+            {/* Add row */}
+            <div style={{ display:"flex", gap:8, alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,.2)", border:"1px dashed rgba(201,168,76,.4)", borderRadius:8, marginBottom:14 }}>
+              <span style={{ color:"var(--warm)", fontSize:18 }}>+</span>
+              <input id="a2_ta_newLbl" placeholder="Add an activity... (e.g. Morning meetings)"
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAct(); } }}
+                style={{ flex:1, background:"transparent", border:"none", outline:"none", color:"var(--text)", fontSize:14, fontFamily:"var(--sans)" }} />
+              <select id="a2_ta_newHrs" defaultValue={5}
+                style={{ fontFamily:"var(--sans)", fontSize:12, background:"var(--bg3)", color:"var(--text2)", border:"1px solid var(--border2)", borderRadius:6, padding:"4px 8px", cursor:"pointer" }}>
+                {HOURS_OPTS.map(h => <option key={h} value={h}>{h} hrs</option>)}
+                <option value={25}>20+ hrs</option>
+              </select>
+              <button onClick={addAct}
+                style={{ padding:"6px 14px", background:"var(--warm)", color:"var(--bg)", border:"none", borderRadius:6, fontFamily:"var(--sans)", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+                Add
+              </button>
+            </div>
+
+            {/* List */}
+            {acts.length === 0 ? (
+              <div style={{ padding:"24px 14px", textAlign:"center", fontSize:13, color:"var(--text4)", fontStyle:"italic" }}>
+                Nothing yet. Start with one — anything that takes a chunk of your week.
+              </div>
+            ) : (
+              <>
+                {acts.map(a => (
+                  <div key={a.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", marginBottom:6, background:"rgba(0,0,0,.2)", borderRadius:6 }}>
+                    <span style={{ flex:1, fontSize:14, color:"var(--text)" }}>{a.label}</span>
+                    <select value={a.hours} onChange={e => editHours(a.id, e.target.value)}
+                      style={{ fontFamily:"var(--sans)", fontSize:12, background:"var(--bg3)", color:"var(--text2)", border:"1px solid var(--border2)", borderRadius:6, padding:"4px 8px", cursor:"pointer" }}>
+                      {HOURS_OPTS.map(h => <option key={h} value={h}>{h} hrs</option>)}
+                      <option value={25}>20+ hrs</option>
+                    </select>
+                    <button onClick={() => removeAct(a.id)}
+                      style={{ background:"transparent", color:"var(--text4)", border:"none", cursor:"pointer", fontSize:18, padding:"0 6px", lineHeight:1 }}>
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <div style={{ marginTop:12, padding:"4px 12px", fontSize:11, color:"var(--text3)", textAlign:"right" }}>
+                  {acts.length} activities · {totalHours} hrs/week total
+                </div>
+              </>
+            )}
+
+            {/* Ready */}
+            <div style={{ marginTop:18, textAlign:"center", paddingTop:16, borderTop:"1px solid var(--border)" }}>
+              <button disabled={!readyP1} onClick={() => set("a2_ta_p1_done", true)}
+                style={{ padding:"10px 24px", borderRadius:16, background: readyP1 ? "var(--warm)" : "transparent", color: readyP1 ? "var(--bg)" : "var(--text4)", border: readyP1 ? "none" : "1px solid var(--border2)", cursor: readyP1 ? "pointer" : "not-allowed", fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>
+                Next · Sort it →
+              </button>
+              {!readyP1 && (
+                <div style={{ marginTop:8, fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>
+                  Add at least 5 activities to continue.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ─── PHASE 2 ─── */}
+        {!p1Done ? (
+          <div style={{ marginBottom:16, padding:"12px 16px", background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:8, opacity:0.55 }}>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--text4)", marginBottom:4 }}>Phase 2 · Sort it (locked)</div>
+            <div style={{ fontSize:12, color:"var(--text4)" }}>
+              Name your week first, then we'll sort each activity — priority + how it feels.
+            </div>
+          </div>
+        ) : p2Done ? (
+          <div style={{ marginBottom:16, padding:"12px 16px", background:"rgba(52,211,153,.06)", border:"1px solid rgba(52,211,153,.35)", borderRadius:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"#34d399", marginBottom:4 }}>✓ Phase 2 · Sort it</div>
+              <div style={{ fontSize:13, color:"var(--text2)" }}>{acts.length} activities sorted</div>
+            </div>
+            <button onClick={() => set("a2_ta_p2_done", false)}
+              style={{ padding:"5px 12px", background:"transparent", color:"var(--text3)", border:"1px solid var(--border2)", borderRadius:12, cursor:"pointer", fontSize:11 }}>
+              Edit
+            </button>
+          </div>
+        ) : (
+          <div style={{ marginBottom:16, padding:"24px 28px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:10 }}>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--warm)", marginBottom:4 }}>Phase 2 · Sort it</div>
+            <h3 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, margin:"0 0 7px", color:"var(--text)", letterSpacing:"-0.3px" }}>For each one — which priority does it serve, and how does it feel?</h3>
+            <p style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, margin:"0 0 18px" }}>
+              Priority comes from your A1 picks. Feeling is gut. If something doesn't serve any priority you named, tag it "None of my priorities" — that's useful data too.
+            </p>
+
+            {acts.map(a => {
+              const both = a.pri && a.feeling;
+              const noneBorder = a.feeling === "despise" ? "#ef4444"
+                : a.feeling === "dislike" ? "#f59e0b"
+                : (a.feeling === "love" || a.feeling === "like") ? "#34d399"
+                : "var(--border2)";
+              const noneBg = a.feeling === "despise" ? "rgba(239,68,68,.04)"
+                : a.feeling === "dislike" ? "rgba(245,158,11,.04)"
+                : (a.feeling === "love" || a.feeling === "like") ? "rgba(52,211,153,.04)"
+                : "rgba(0,0,0,.2)";
+              const prObj = a.pri ? priById(a.pri) : null;
+              const priBorder = a.pri === "none" ? "rgba(239,68,68,.3)"
+                : a.pri ? "var(--warm)"
+                : "var(--border2)";
+              const priColor = a.pri === "none" ? "#ef4444"
+                : a.pri ? "var(--text)"
+                : "var(--text2)";
+              return (
+                <div key={a.id} style={{
+                  padding:"14px 16px", marginBottom:8,
+                  background: both ? noneBg : "rgba(0,0,0,.2)",
+                  border: `1px solid ${both ? noneBorder : "var(--border2)"}`,
+                  borderRadius:8,
+                }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                    <span style={{ fontSize:14, color:"var(--text)", fontWeight:500 }}>{a.label}</span>
+                    <span style={{ fontSize:11, color:"var(--text3)" }}>{a.hours} hrs/wk</span>
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"230px 1fr", gap:14, alignItems:"start" }}>
+                    {/* Priority select */}
+                    <div>
+                      <div style={{ fontSize:9, letterSpacing:1.2, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:5 }}>Priority</div>
+                      <select value={a.pri || ""} onChange={e => setPri(a.id, e.target.value)}
+                        style={{ width:"100%", fontFamily:"var(--sans)", fontSize:12, background:"var(--bg3)", color: priColor, border:`1px solid ${priBorder}`, borderRadius:6, padding:"6px 8px", cursor:"pointer" }}>
+                        <option value="">— Which priority does this serve? —</option>
+                        {priorityList.map(p => (
+                          <option key={p.id} value={p.id}>{p.icon} {p.label}</option>
+                        ))}
+                      </select>
+                      {prObj?.subtitle && (
+                        <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic", marginTop:4, lineHeight:1.4 }}>{prObj.subtitle}</div>
+                      )}
+                    </div>
+                    {/* Feeling buttons */}
+                    <div>
+                      <div style={{ fontSize:9, letterSpacing:1.2, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:5 }}>Feeling</div>
+                      <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                        {Object.entries(FEELING_META).map(([k, f]) => {
+                          const sel = a.feeling === k;
+                          return (
+                            <button key={k} onClick={() => setFeel(a.id, k)}
+                              style={{
+                                padding:"5px 10px", borderRadius:14,
+                                border: sel ? `1px solid ${f.color}` : "1px solid var(--border2)",
+                                background: sel ? `${f.color}22` : "transparent",
+                                color: sel ? f.color : "var(--text2)",
+                                cursor:"pointer", fontFamily:"var(--sans)", fontSize:11,
+                                fontWeight: sel ? 700 : 500,
+                                display:"inline-flex", alignItems:"center", gap:4,
+                              }}>
+                              {f.emoji} {f.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div style={{ marginTop:12, padding:"4px 12px", fontSize:11, color:"var(--text3)", textAlign:"right" }}>
+              {sortedCount} of {acts.length} sorted
+            </div>
+
+            <div style={{ marginTop:18, textAlign:"center", paddingTop:16, borderTop:"1px solid var(--border)" }}>
+              <button disabled={!readyP2} onClick={() => set("a2_ta_p2_done", true)}
+                style={{ padding:"10px 24px", borderRadius:16, background: readyP2 ? "var(--warm)" : "transparent", color: readyP2 ? "var(--bg)" : "var(--text4)", border: readyP2 ? "none" : "1px solid var(--border2)", cursor: readyP2 ? "pointer" : "not-allowed", fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>
+                Next · What's missing →
+              </button>
+              {!readyP2 && (
+                <div style={{ marginTop:8, fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>
+                  Sort every activity to continue.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ─── PHASE 3 ─── */}
+        {!p2Done ? (
+          <div style={{ marginBottom:16, padding:"12px 16px", background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:8, opacity:0.55 }}>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--text4)", marginBottom:4 }}>Phase 3 · What's missing (locked)</div>
+            <div style={{ fontSize:12, color:"var(--text4)" }}>
+              Sort your week first, then we'll look at what's NOT on the list.
+            </div>
+          </div>
+        ) : (() => {
+          const wishes = map.a2_ta_wishes || [];
+          const p3Done = !!map.a2_ta_p3_done;
+          const wishHours = wishes.reduce((t, w) => t + (Number(w.hours) || 0), 0);
+          const readyP3 = wishes.length >= 1 && wishes.every(w => w.pri && w.feeling);
+
+          // Bucket helper — mirrors prototype bucketFor
+          const bucketFor = (a) => {
+            if (!a.feeling || !a.pri) return null;
+            const isNone = a.pri === "none";
+            const f = a.feeling;
+            if (f === "despise") return "leaks";
+            if (f === "dislike" && isNone) return "leaks";
+            if (isNone) return "leaks";
+            if (f === "love") return "supports";
+            if (f === "like") return "supports";
+            return "reshape";
+          };
+          const enrichedActs = acts.map(a => ({ ...a, bucket: bucketFor(a) })).filter(a => a.bucket);
+          const leaksActs = enrichedActs.filter(a => a.bucket === "leaks").sort((x,y) => y.hours - x.hours);
+          const reshapeActs = enrichedActs.filter(a => a.bucket === "reshape").sort((x,y) => y.hours - x.hours);
+          const supportsActs = enrichedActs.filter(a => a.bucket === "supports").sort((x,y) => y.hours - x.hours);
+          const showSupports = !!map.a2_ta_show_supports;
+          const reclaimPool = [...leaksActs, ...reshapeActs, ...(showSupports ? supportsActs : [])];
+
+          const swaps = map.a2_ta_swaps || {};
+          const setSwap = (wid, patch) => {
+            const next = { ...swaps, [wid]: { ...(swaps[wid] || {}), ...patch } };
+            set("a2_ta_swaps", next);
+          };
+          const swapPatch = (wid) => swaps[wid] || {};
+
+          const TIMELINES = [
+            { id: "3mo",  label: "< 3 months" },
+            { id: "6mo",  label: "< 6 months" },
+            { id: "12mo", label: "> 12 months" },
+          ];
+          const BLOCK_OPTIONS = [
+            { id: "fear",       label: "Fear / doubt" },
+            { id: "permission", label: "Permission from someone else" },
+            { id: "identity",   label: "Identity — 'I'm not someone who does this'" },
+            { id: "skill",      label: "Skill — I don't know how to start" },
+            { id: "money",      label: "Money" },
+            { id: "energy",     label: "Energy — I'm exhausted" },
+            { id: "social",     label: "Social — no one around me does this" },
+            { id: "other",      label: "Something else" },
+          ];
+          const SHIFT_HOURS = [1, 2, 3, 5, 8, 10];
+
+          const hasNonTimeBlock = Object.values(swaps).some(sw => sw && (sw.block === "not_time" || sw.block === "both"));
+
+          const addWish = () => {
+            const labelEl = document.getElementById("a2_ta_newWishLbl");
+            const hrsEl = document.getElementById("a2_ta_newWishHrs");
+            const label = (labelEl?.value || "").trim();
+            if (!label) return;
+            const hours = Number(hrsEl?.value || 3);
+            const next = [...wishes, { id: `w${Date.now()}`, label, hours, feeling: null, pri: null }];
+            set("a2_ta_wishes", next);
+            if (labelEl) { labelEl.value = ""; labelEl.focus(); }
+          };
+          const removeWish = (id) => set("a2_ta_wishes", wishes.filter(w => w.id !== id));
+          const editWishHours = (id, hrs) => set("a2_ta_wishes", wishes.map(w => w.id === id ? { ...w, hours: Number(hrs) } : w));
+          const setWishPri = (id, pri) => set("a2_ta_wishes", wishes.map(w => w.id === id ? { ...w, pri: pri || null } : w));
+          const setWishFeel = (id, feeling) => set("a2_ta_wishes", wishes.map(w => w.id === id ? { ...w, feeling: w.feeling === feeling ? null : feeling } : w));
+
+          if (p3Done) {
+            return (
+              <div style={{ marginBottom:16, padding:"12px 16px", background:"rgba(52,211,153,.06)", border:"1px solid rgba(52,211,153,.35)", borderRadius:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"#34d399", marginBottom:4 }}>✓ Phase 3 · What's missing</div>
+                  <div style={{ fontSize:13, color:"var(--text2)" }}>{wishes.length} wishlist item{wishes.length === 1 ? "" : "s"} · {wishHours} hrs/week needed</div>
+                </div>
+                <button onClick={() => set("a2_ta_p3_done", false)}
+                  style={{ padding:"5px 12px", background:"transparent", color:"var(--text3)", border:"1px solid var(--border2)", borderRadius:12, cursor:"pointer", fontSize:11 }}>
+                  Edit
+                </button>
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ marginBottom:16, padding:"24px 28px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:10 }}>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--warm)", marginBottom:4 }}>Phase 3 · What's missing</div>
+              <h3 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, margin:"0 0 7px", color:"var(--text)", letterSpacing:"-0.3px" }}>What keeps getting pushed off the list?</h3>
+              <p style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, margin:"0 0 18px" }}>
+                The things you keep saying "I'd do it if I had time." List them. How many hours/week would you need? Tag the priority it serves and how you'd feel doing it (because "should exercise but will hate it" is real data too).
+              </p>
+
+              {/* Add row */}
+              <div style={{ display:"flex", gap:8, alignItems:"center", padding:"10px 12px", background:"rgba(0,0,0,.2)", border:"1px dashed rgba(201,168,76,.4)", borderRadius:8, marginBottom:14 }}>
+                <span style={{ color:"var(--warm)", fontSize:18 }}>+</span>
+                <input id="a2_ta_newWishLbl" placeholder="Add something you've been postponing... (e.g. Book writing)"
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addWish(); } }}
+                  style={{ flex:1, background:"transparent", border:"none", outline:"none", color:"var(--text)", fontSize:14, fontFamily:"var(--sans)" }} />
+                <select id="a2_ta_newWishHrs" defaultValue={3}
+                  style={{ fontFamily:"var(--sans)", fontSize:12, background:"var(--bg3)", color:"var(--text2)", border:"1px solid var(--border2)", borderRadius:6, padding:"4px 8px", cursor:"pointer" }}>
+                  {HOURS_OPTS.map(h => <option key={h} value={h}>{h} hrs</option>)}
+                </select>
+                <button onClick={addWish}
+                  style={{ padding:"6px 14px", background:"var(--warm)", color:"var(--bg)", border:"none", borderRadius:6, fontFamily:"var(--sans)", fontSize:12, fontWeight:700, cursor:"pointer" }}>
+                  Add
+                </button>
+              </div>
+
+              {/* Wishlist rows */}
+              {wishes.length === 0 ? (
+                <div style={{ padding:"24px 14px", textAlign:"center", fontSize:13, color:"var(--text4)", fontStyle:"italic" }}>
+                  Nothing yet. What's something you've been meaning to make time for?
+                </div>
+              ) : (
+                <>
+                  {wishes.map(w => {
+                    const both = w.pri && w.feeling;
+                    const noneBorder = w.feeling === "despise" ? "#ef4444"
+                      : w.feeling === "dislike" ? "#f59e0b"
+                      : (w.feeling === "love" || w.feeling === "like") ? "#34d399"
+                      : "var(--border2)";
+                    const noneBg = w.feeling === "despise" ? "rgba(239,68,68,.04)"
+                      : w.feeling === "dislike" ? "rgba(245,158,11,.04)"
+                      : (w.feeling === "love" || w.feeling === "like") ? "rgba(52,211,153,.04)"
+                      : "rgba(0,0,0,.2)";
+                    const prObj = w.pri ? priById(w.pri) : null;
+                    const priBorder = w.pri ? "var(--warm)" : "var(--border2)";
+                    const priColor = w.pri ? "var(--text)" : "var(--text2)";
+                    return (
+                      <div key={w.id} style={{
+                        padding:"14px 16px", marginBottom:8,
+                        background: both ? noneBg : "rgba(0,0,0,.2)",
+                        border: `1px solid ${both ? noneBorder : "var(--border2)"}`,
+                        borderRadius:8,
+                      }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, gap:10 }}>
+                          <span style={{ fontSize:14, color:"var(--text)", fontWeight:500 }}>{w.label}</span>
+                          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                            <select value={w.hours} onChange={e => editWishHours(w.id, e.target.value)}
+                              style={{ fontFamily:"var(--sans)", fontSize:11, background:"var(--bg3)", color:"var(--text2)", border:"1px solid var(--border2)", borderRadius:6, padding:"3px 6px", cursor:"pointer" }}>
+                              {HOURS_OPTS.map(h => <option key={h} value={h}>{h} hrs/wk</option>)}
+                            </select>
+                            <button onClick={() => removeWish(w.id)}
+                              style={{ background:"transparent", color:"var(--text4)", border:"none", cursor:"pointer", fontSize:18, padding:"0 4px", lineHeight:1 }}>
+                              ×
+                            </button>
+                          </div>
+                        </div>
+                        <div style={{ display:"grid", gridTemplateColumns:"230px 1fr", gap:14, alignItems:"start" }}>
+                          <div>
+                            <div style={{ fontSize:9, letterSpacing:1.2, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:5 }}>Priority</div>
+                            <select value={w.pri || ""} onChange={e => setWishPri(w.id, e.target.value)}
+                              style={{ width:"100%", fontFamily:"var(--sans)", fontSize:12, background:"var(--bg3)", color: priColor, border:`1px solid ${priBorder}`, borderRadius:6, padding:"6px 8px", cursor:"pointer" }}>
+                              <option value="">— Which priority would this serve? —</option>
+                              {priorityList.filter(p => p.id !== "none").map(p => (
+                                <option key={p.id} value={p.id}>{p.icon} {p.label}</option>
+                              ))}
+                            </select>
+                            {prObj?.subtitle && (
+                              <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic", marginTop:4, lineHeight:1.4 }}>{prObj.subtitle}</div>
+                            )}
+                          </div>
+                          <div>
+                            <div style={{ fontSize:9, letterSpacing:1.2, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:5 }}>Feeling (if you did it)</div>
+                            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                              {Object.entries(FEELING_META).map(([k, f]) => {
+                                const sel = w.feeling === k;
+                                return (
+                                  <button key={k} onClick={() => setWishFeel(w.id, k)}
+                                    style={{
+                                      padding:"5px 10px", borderRadius:14,
+                                      border: sel ? `1px solid ${f.color}` : "1px solid var(--border2)",
+                                      background: sel ? `${f.color}22` : "transparent",
+                                      color: sel ? f.color : "var(--text2)",
+                                      cursor:"pointer", fontFamily:"var(--sans)", fontSize:11,
+                                      fontWeight: sel ? 700 : 500,
+                                      display:"inline-flex", alignItems:"center", gap:4,
+                                    }}>
+                                    {f.emoji} {f.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ marginTop:12, padding:"4px 12px", fontSize:11, color:"var(--text3)", textAlign:"right" }}>
+                    {wishes.length} item{wishes.length === 1 ? "" : "s"} · {wishHours} hrs/week needed
+                  </div>
+                </>
+              )}
+
+              {/* ─── SWAP FLOW — "Imagine the trade" ─── */}
+              {readyP3 && (
+                <div style={{ marginTop:26, paddingTop:24, borderTop:"1px solid var(--border)" }}>
+                  <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--warm)", marginBottom:6 }}>Imagine the trade</div>
+                  <p style={{ fontSize:14, color:"var(--text)", lineHeight:1.7, margin:"0 0 12px", fontFamily:"var(--serif)", fontStyle:"italic" }}>
+                    Nothing has to change today. But — imagine the trade. What would you hand off, reshape, or stop, to make room for what's missing?
+                  </p>
+                  <div style={{ padding:"10px 14px", marginBottom:18, background:"rgba(0,0,0,.25)", borderRadius:6, fontSize:12, color:"var(--text2)", lineHeight:1.6 }}>
+                    <strong style={{ color:"var(--warm)" }}>Just the thought experiment for now.</strong>{" "}
+                    Whatever trades you nominate here carry forward to <strong>A4 — Act On It</strong>, where you'll turn each one into the first concrete step. Here, you're mapping intent, not committing to a plan.
+                  </div>
+
+                  {/* Supports toggle */}
+                  <div onClick={() => set("a2_ta_show_supports", !showSupports)}
+                    style={{
+                      display:"inline-flex", alignItems:"center", gap:8, marginBottom:14,
+                      padding:"7px 12px", background:"rgba(0,0,0,.2)",
+                      border: `1px solid ${showSupports ? "var(--warm)" : "var(--border2)"}`,
+                      borderRadius:14, cursor:"pointer", fontSize:11,
+                      color: showSupports ? "var(--warm)" : "var(--text2)",
+                    }}>
+                    <span style={{
+                      width:8, height:8, borderRadius:"50%",
+                      background: showSupports ? "var(--warm)" : "transparent",
+                      border: `1px solid ${showSupports ? "var(--warm)" : "var(--text3)"}`,
+                    }} />
+                    <span>Also show activities I love (some great time might still be misallocated)</span>
+                  </div>
+
+                  {/* Per-wish swap rows */}
+                  {wishes.map(w => {
+                    const sw = swapPatch(w.id);
+                    const haveTime = sw.fromId === "__have_time__";
+                    const fromAct = !haveTime && sw.fromId
+                      ? [...leaksActs, ...reshapeActs, ...supportsActs].find(a => a.id === sw.fromId)
+                      : null;
+                    const maxShift = fromAct ? Math.min(fromAct.hours, w.hours) : w.hours;
+                    const shiftOptions = SHIFT_HOURS.filter(h => h <= (maxShift || 20));
+                    const hoursDisabled = haveTime || !sw.fromId;
+                    const coreFilled = sw.fromId && sw.when && (haveTime || sw.hours);
+                    const needsDetail = sw.block === "not_time" || sw.block === "both";
+                    const showNameIt = needsDetail && sw.blockDetail === "other";
+                    const fEmoji = FEELING_META[w.feeling]?.emoji || "";
+                    const pl = priById(w.pri)?.label || "";
+
+                    return (
+                      <div key={w.id} style={{ padding:"14px 16px", marginBottom:10, background:"rgba(0,0,0,.2)", border:"1px solid var(--border2)", borderRadius:8 }}>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                          <span style={{ fontSize:14, fontWeight:500, color:"var(--text)" }}>
+                            <span style={{ marginRight:6 }}>{fEmoji}</span>{w.label}
+                          </span>
+                          <span style={{ fontSize:11, color:"var(--text3)" }}>{pl} · needs {w.hours} hrs/wk</span>
+                        </div>
+
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:"10px 14px", alignItems:"start" }}>
+                          {/* Trade from */}
+                          <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                            <span style={{ fontSize:9, color:"var(--text3)", letterSpacing:1.2, textTransform:"uppercase", fontWeight:600 }}>Trade from</span>
+                            <select value={sw.fromId || ""} onChange={e => setSwap(w.id, { fromId: e.target.value || null, hours: null })}
+                              style={{
+                                width:"100%", fontFamily:"var(--sans)", fontSize:12,
+                                background:"var(--bg3)",
+                                color: haveTime ? "#60a5fa" : sw.fromId ? "var(--text)" : "var(--text2)",
+                                border: haveTime ? "1px solid #60a5fa" : sw.fromId ? "1px solid var(--warm)" : "1px solid var(--border2)",
+                                borderRadius:6, padding:"6px 8px", cursor:"pointer",
+                              }}>
+                              <option value="">— Reclaim hours from... —</option>
+                              <option value="__have_time__">— I have the time, no trade needed —</option>
+                              {reclaimPool.map(a => {
+                                const pl2 = priById(a.pri)?.label || "";
+                                const bucketTag = a.bucket === "supports" ? " (you love this)" : "";
+                                const tail = pl2 && a.pri !== "none" ? ` · ${pl2}` : "";
+                                return (
+                                  <option key={a.id} value={a.id}>{a.label} · {a.hours} hrs/wk{tail}{bucketTag}</option>
+                                );
+                              })}
+                            </select>
+                          </div>
+
+                          {/* Hours to shift */}
+                          <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                            <span style={{ fontSize:9, color:"var(--text3)", letterSpacing:1.2, textTransform:"uppercase", fontWeight:600 }}>Hours to shift</span>
+                            <select value={sw.hours || ""} onChange={e => setSwap(w.id, { hours: e.target.value ? Number(e.target.value) : null })}
+                              disabled={hoursDisabled}
+                              style={{
+                                width:84, fontFamily:"var(--sans)", fontSize:12,
+                                background:"var(--bg3)",
+                                color: sw.hours && !haveTime ? "var(--text)" : "var(--text2)",
+                                border: sw.hours && !haveTime ? "1px solid var(--warm)" : "1px solid var(--border2)",
+                                borderRadius:6, padding:"6px 8px",
+                                cursor: hoursDisabled ? "not-allowed" : "pointer",
+                                opacity: hoursDisabled ? 0.4 : 1,
+                              }}>
+                              <option value="">— hrs —</option>
+                              {shiftOptions.map(h => <option key={h} value={h}>{h} hrs</option>)}
+                            </select>
+                          </div>
+
+                          {/* Timeline */}
+                          <div style={{ gridColumn:"1 / -1", display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+                            <span style={{ fontSize:9, color:"var(--text3)", letterSpacing:1.2, textTransform:"uppercase", fontWeight:600, alignSelf:"center" }}>Timeline to act:</span>
+                            {TIMELINES.map(t => {
+                              const sel = sw.when === t.id;
+                              return (
+                                <button key={t.id} onClick={() => setSwap(w.id, { when: t.id })}
+                                  style={{
+                                    padding:"5px 12px", borderRadius:14,
+                                    border: sel ? "1px solid var(--warm)" : "1px solid var(--border2)",
+                                    background: sel ? "rgba(201,168,76,.18)" : "transparent",
+                                    color: sel ? "var(--warm)" : "var(--text2)",
+                                    cursor:"pointer", fontFamily:"var(--sans)", fontSize:11,
+                                    fontWeight: sel ? 700 : 500,
+                                  }}>
+                                  {t.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Block question — appears once core is filled */}
+                          {coreFilled && (
+                            <div style={{ gridColumn:"1 / -1", marginTop:12, padding:"12px 14px", background:"rgba(0,0,0,.2)", border:"1px dashed var(--border2)", borderRadius:6 }}>
+                              <div style={{ fontSize:12, color:"var(--text)", marginBottom:8, fontWeight:500 }}>What's truly stopping you from starting this right now?</div>
+                              <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom: needsDetail ? 8 : 0 }}>
+                                {[
+                                  { v: "not_time", label: "Not time" },
+                                  { v: "time",     label: "Time" },
+                                  { v: "both",     label: "Time and something else" },
+                                ].map(b => {
+                                  const sel = sw.block === b.v;
+                                  return (
+                                    <button key={b.v} onClick={() => setSwap(w.id, { block: b.v, blockDetail: b.v === "time" ? null : sw.blockDetail, blockFreehand: b.v === "time" ? null : sw.blockFreehand })}
+                                      style={{
+                                        padding:"5px 12px", borderRadius:14,
+                                        border: sel ? "1px solid #60a5fa" : "1px solid var(--border2)",
+                                        background: sel ? "rgba(96,165,250,.2)" : "transparent",
+                                        color: sel ? "#60a5fa" : "var(--text2)",
+                                        cursor:"pointer", fontFamily:"var(--sans)", fontSize:11,
+                                        fontWeight: sel ? 700 : 500,
+                                      }}>
+                                      {b.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Detail dropdown — only if not_time or both */}
+                              {needsDetail && (
+                                <div style={{ marginTop:8 }}>
+                                  <div style={{ fontSize:9, color:"var(--text3)", letterSpacing:1.2, textTransform:"uppercase", fontWeight:600, marginBottom:4 }}>What is it?</div>
+                                  <select value={sw.blockDetail || ""} onChange={e => setSwap(w.id, { blockDetail: e.target.value || null })}
+                                    style={{
+                                      width:"100%", fontFamily:"var(--sans)", fontSize:12,
+                                      background:"var(--bg3)",
+                                      color: sw.blockDetail ? "var(--text)" : "var(--text2)",
+                                      border: sw.blockDetail ? "1px solid #60a5fa" : "1px solid var(--border2)",
+                                      borderRadius:6, padding:"6px 8px", cursor:"pointer",
+                                    }}>
+                                    <option value="">— Pick the obstacle —</option>
+                                    {BLOCK_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+                                  </select>
+                                  {sw.blockDetail && (
+                                    <div style={{ marginTop:10 }}>
+                                      <div style={{ fontSize:9, color:"var(--text3)", letterSpacing:1.2, textTransform:"uppercase", fontWeight:600, marginBottom:4 }}>Name it — in your words</div>
+                                      <input type="text" value={sw.blockFreehand || ""}
+                                        onChange={e => setSwap(w.id, { blockFreehand: e.target.value })}
+                                        placeholder={
+                                          sw.blockDetail === "fear" ? "What are you actually afraid of?"
+                                          : sw.blockDetail === "permission" ? "Whose permission? What would they say?"
+                                          : sw.blockDetail === "identity" ? "Who do you think this is for, if not you?"
+                                          : sw.blockDetail === "skill" ? "What would you need to learn first?"
+                                          : sw.blockDetail === "money" ? "What's the money story?"
+                                          : sw.blockDetail === "energy" ? "What's draining you most?"
+                                          : sw.blockDetail === "social" ? "Who do you wish was doing this too?"
+                                          : "What's actually in the way?"
+                                        }
+                                        style={{
+                                          width:"100%", fontFamily:"var(--sans)", fontSize:13,
+                                          background:"var(--bg3)",
+                                          color:"var(--text)",
+                                          border: sw.blockFreehand ? "1px solid #60a5fa" : "1px solid var(--border2)",
+                                          borderRadius:6, padding:"7px 10px", outline:"none",
+                                        }} />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Hypothetical swap card */}
+                        {coreFilled && (haveTime ? (
+                          <div style={{ marginTop:10, padding:"12px 14px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.35)", borderRadius:6, fontSize:13, lineHeight:1.6 }}>
+                            <div style={{ color:"var(--text3)", fontStyle:"italic", fontSize:11, marginBottom:4, fontFamily:"var(--serif)" }}>If you could...</div>
+                            <div><span style={{ color:"#34d399" }}>Start {w.label}</span> — no trade needed.</div>
+                            <span style={{ display:"block", marginTop:4, color:"var(--text2)", fontSize:12 }}>
+                              You'd aim to start this within {TIMELINES.find(t => t.id === sw.when)?.label.replace("<", "under ").replace(">", "over ")}.
+                            </span>
+                          </div>
+                        ) : (
+                          <div style={{ marginTop:10, padding:"12px 14px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.35)", borderRadius:6, fontSize:13, lineHeight:1.6 }}>
+                            <div style={{ color:"var(--text3)", fontStyle:"italic", fontSize:11, marginBottom:4, fontFamily:"var(--serif)" }}>If you could...</div>
+                            <div>
+                              <span style={{ color: fromAct?.bucket === "supports" ? "#34d399" : fromAct?.bucket === "reshape" ? "#f59e0b" : "#ef4444" }}>
+                                trade {sw.hours} hrs from {fromAct?.label}
+                              </span>
+                              <span style={{ color:"var(--warm)", margin:"0 6px", fontWeight:700 }}>→</span>
+                              <span style={{ color:"#34d399" }}>{sw.hours} hrs for {w.label}</span>
+                            </div>
+                            <span style={{ display:"block", marginTop:4, color:"var(--text2)", fontSize:12 }}>
+                              You'd aim to start this within {TIMELINES.find(t => t.id === sw.when)?.label.replace("<", "under ").replace(">", "over ")}.
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+
+                  {/* A3 tee-up — appears when at least one non-time block is set */}
+                  {hasNonTimeBlock && (
+                    <div style={{ marginTop:16, padding:"14px 18px", background:"rgba(96,165,250,.06)", border:"1px solid rgba(96,165,250,.3)", borderRadius:8 }}>
+                      <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"#60a5fa", marginBottom:6 }}>Tee-up for A3</div>
+                      <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.7 }}>
+                        Notice — some of these aren't time problems. A3 is where we look at what's really holding you back: the people, habits, places, and thoughts that keep pulling you back. Time can be moved. The rest needs a different kind of look.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ marginTop:18, textAlign:"center", paddingTop:16, borderTop:"1px solid var(--border)" }}>
+                <button disabled={!readyP3} onClick={() => set("a2_ta_p3_done", true)}
+                  style={{ padding:"10px 24px", borderRadius:16, background: readyP3 ? "var(--warm)" : "transparent", color: readyP3 ? "var(--bg)" : "var(--text4)", border: readyP3 ? "none" : "1px solid var(--border2)", cursor: readyP3 ? "pointer" : "not-allowed", fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>
+                  Next · See it →
+                </button>
+                {!readyP3 && wishes.length === 0 && (
+                  <div style={{ marginTop:8, fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>
+                    Add at least one thing you want to be doing.
+                  </div>
+                )}
+                {!readyP3 && wishes.length > 0 && (
+                  <div style={{ marginTop:8, fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>
+                    Tag priority + feeling on each one.
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ─── PHASE 4 ─── */}
+        {!(map.a2_ta_p2_done && map.a2_ta_p3_done) ? (
+          <div style={{ marginBottom:16, padding:"12px 16px", background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:8, opacity:0.55 }}>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--text4)", marginBottom:4 }}>Phase 4 · See it (locked)</div>
+            <div style={{ fontSize:12, color:"var(--text4)" }}>
+              Name what's missing, then we'll show you what your time is saying.
+            </div>
+          </div>
+        ) : (() => {
+          // Rebuild the buckets and focus detail in Phase 4's scope
+          const bucketFor4 = (a) => {
+            if (!a.feeling || !a.pri) return null;
+            const isNone = a.pri === "none";
+            const f = a.feeling;
+            if (f === "despise") return "leaks";
+            if (f === "dislike" && isNone) return "leaks";
+            if (isNone) return "leaks";
+            if (f === "love") return "supports";
+            if (f === "like") return "supports";
+            return "reshape";
+          };
+          const enriched = acts.map(a => ({ ...a, bucket: bucketFor4(a) })).filter(a => a.bucket);
+          const sum = (arr) => arr.reduce((t, a) => t + (Number(a.hours) || 0), 0);
+          const supports = enriched.filter(a => a.bucket === "supports").sort((x,y) => y.hours - x.hours);
+          const reshape = enriched.filter(a => a.bucket === "reshape").sort((x,y) => y.hours - x.hours);
+          const leaks = enriched.filter(a => a.bucket === "leaks").sort((x,y) => y.hours - x.hours);
+          const totalCount = enriched.length;
+          const totalHrs = sum(enriched);
+
+          // Pinned key misalignment (from Key Misalignment page)
+          const misalignments = computeMisalignments(map);
+          const pinnedId = map.a2_km_pinned_id;
+          const primary = pinnedId ? misalignments.find(m => m.id === pinnedId) : null;
+          const focusItemId = primary?.itemId || null;
+          const focusActs = focusItemId ? enriched.filter(a => a.pri === focusItemId) : [];
+          const fQuality = focusActs.filter(a => a.feeling === "love" || a.feeling === "like");
+          const fReshape = focusActs.filter(a => a.feeling === "dislike" || a.feeling === "despise");
+          const fQualityHrs = sum(fQuality);
+          const fReshapeHrs = sum(fReshape);
+          const fTotalHrs = sum(focusActs);
+
+          const BucketBlock = ({ bucketKey, title, subtitle, items, color, bgColor }) => {
+            if (items.length === 0) return null;
+            const hrs = sum(items);
+            return (
+              <div style={{ marginBottom:22 }}>
+                <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:10 }}>
+                  <span style={{ fontSize:11, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color }}>{title}</span>
+                  <span style={{ fontSize:11, color:"var(--text3)" }}>
+                    {items.length} {items.length === 1 ? "activity" : "activities"} · {hrs} hrs/wk
+                  </span>
+                </div>
+                <div style={{ borderLeft:`2px solid ${bgColor}` }}>
+                  {items.map(a => {
+                    const feel = FEELING_META[a.feeling];
+                    const prObj = priById(a.pri);
+                    const pLabel = prObj?.label || "";
+                    const isNone = a.pri === "none";
+                    return (
+                      <div key={a.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", marginBottom:5, marginLeft:8, background:"rgba(0,0,0,.2)", borderRadius:6 }}>
+                        <span style={{ fontSize:18 }}>{feel?.emoji}</span>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontSize:13, color:"var(--text)", fontWeight:500 }}>{a.label}</div>
+                          {pLabel && (
+                            <div style={{ fontSize:10, color: isNone ? "#ef4444" : "var(--text3)", marginTop:2 }}>
+                              → {pLabel}
+                            </div>
+                          )}
+                        </div>
+                        <span style={{ fontSize:11, color:"var(--text3)", flexShrink:0 }}>{a.hours} hrs</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop:8, marginLeft:12, fontSize:13, color:"var(--text2)", fontStyle:"italic", lineHeight:1.6, fontFamily:"var(--serif)" }}>
+                  {subtitle}
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <div style={{ marginBottom:16 }}>
+              {/* FOCUS DETAIL CARD — only shows if Key Misalignment is pinned */}
+              {primary && (
+                <div style={{
+                  padding:"24px 28px", marginBottom:22,
+                  background:"linear-gradient(135deg, rgba(201,168,76,.12), rgba(255,255,255,.02))",
+                  border:"1px solid var(--warm)", borderRadius:10,
+                }}>
+                  <div style={{ fontSize:10, color:"var(--warm)", fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginBottom:10 }}>Your A2 focus, up close</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
+                    <span style={{ fontSize:28 }}>{primary.icon}</span>
+                    <div>
+                      <div style={{ fontFamily:"var(--serif)", fontSize:24, color:"var(--text)", lineHeight:1.2 }}>{primary.label}</div>
+                      <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{primary.source} · scored {primary.score}/10 today</div>
+                    </div>
+                  </div>
+
+                  {focusActs.length === 0 ? (
+                    <div style={{ padding:"12px 16px", background:"rgba(0,0,0,.25)", borderRadius:6, fontSize:13, color:"var(--text2)", lineHeight:1.7 }}>
+                      None of your weekly activities are tagged to <strong>{primary.label}</strong>. That's the gap — your time isn't going here at all. The swap flow above is where the first trades get nominated.
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontSize:14, color:"var(--text)", lineHeight:1.7, marginBottom:16 }}>
+                        You have <strong>{fTotalHrs} hours/week</strong> tagged to {primary.label}. Here's what that time actually is:
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
+                        <div style={{ padding:"14px 16px", borderRadius:8, background:"rgba(52,211,153,.08)", border:"1px solid rgba(52,211,153,.3)" }}>
+                          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#34d399", marginBottom:6 }}>Quality time here</div>
+                          <div style={{ fontFamily:"var(--serif)", fontSize:20, color:"var(--text)", marginBottom:8 }}>
+                            {fQualityHrs} <span style={{ fontSize:11, color:"var(--text3)", fontFamily:"var(--sans)" }}>hrs/wk</span>
+                          </div>
+                          {fQuality.length > 0 ? fQuality.map(a => (
+                            <div key={a.id} style={{ padding:"6px 10px", background:"rgba(0,0,0,.2)", borderRadius:5, marginBottom:4, fontSize:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                              <span style={{ marginRight:5 }}>{FEELING_META[a.feeling]?.emoji}</span>
+                              <span style={{ flex:1, color:"var(--text)" }}>{a.label}</span>
+                              <span style={{ color:"var(--text3)", fontSize:11 }}>{a.hours} hrs</span>
+                            </div>
+                          )) : (
+                            <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"4px 0" }}>No quality time here yet.</div>
+                          )}
+                        </div>
+                        <div style={{ padding:"14px 16px", borderRadius:8, background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.3)" }}>
+                          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#f59e0b", marginBottom:6 }}>Could be reshaped</div>
+                          <div style={{ fontFamily:"var(--serif)", fontSize:20, color:"var(--text)", marginBottom:8 }}>
+                            {fReshapeHrs} <span style={{ fontSize:11, color:"var(--text3)", fontFamily:"var(--sans)" }}>hrs/wk</span>
+                          </div>
+                          {fReshape.length > 0 ? fReshape.map(a => (
+                            <div key={a.id} style={{ padding:"6px 10px", background:"rgba(0,0,0,.2)", borderRadius:5, marginBottom:4, fontSize:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                              <span style={{ marginRight:5 }}>{FEELING_META[a.feeling]?.emoji}</span>
+                              <span style={{ flex:1, color:"var(--text)" }}>{a.label}</span>
+                              <span style={{ color:"var(--text3)", fontSize:11 }}>{a.hours} hrs</span>
+                            </div>
+                          )) : (
+                            <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"4px 0" }}>Nothing to reshape here.</div>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ padding:"12px 16px", background:"rgba(0,0,0,.25)", borderLeft:"3px solid var(--warm)", borderRadius:4, fontFamily:"var(--serif)", fontStyle:"italic", fontSize:14, color:"var(--text)", lineHeight:1.7 }}>
+                        {fReshape.length > 0
+                          ? <>Of your {fTotalHrs} hours tagged to {primary.label}, <strong>{fReshapeHrs} feel draining</strong>. Those hours aren't lost — they're <strong>redirect candidates</strong>. Could this become shared? Outsourced? Reshaped? The time stays with {primary.label}, but how you spend it shifts.</>
+                          : <>Everything you've tagged to {primary.label} feels good. The gap isn't in <em>how</em> you spend the time — it's that you need <strong>more of it</strong>. The swap flow above is where those hours come from.</>
+                        }
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* THREE BUCKETS — collapsible */}
+              {(() => {
+                const fullWeekOpen = map.a2_ta_full_week_open !== false;
+                return (
+                  <div style={{ background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
+                    <div onClick={() => set("a2_ta_full_week_open", !fullWeekOpen)}
+                      style={{ padding:"16px 24px", cursor:"pointer", userSelect:"none", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+                      <div style={{ minWidth:0 }}>
+                        <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--warm)", marginBottom:4 }}>Phase 4 · See it</div>
+                        <h3 style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, margin:0, color:"var(--text)", letterSpacing:"-0.3px" }}>Your full week</h3>
+                        {!fullWeekOpen && (
+                          <div style={{ fontSize:11, color:"var(--text3)", marginTop:4, fontStyle:"italic" }}>
+                            {totalCount} activities · {totalHrs} hrs/wk — {supports.length} support, {reshape.length} reshape, {leaks.length} leak.
+                          </div>
+                        )}
+                      </div>
+                      <span style={{ fontSize:16, color:"var(--warm)", flexShrink:0, transform: fullWeekOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                    </div>
+                    {fullWeekOpen && (
+                      <div style={{ padding:"0 28px 24px", borderTop:"1px solid var(--border)" }}>
+                        <p style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, margin:"18px 0 20px" }}>
+                          Every activity, sorted by what they do to your energy and direction. {totalCount} activities · {totalHrs} hrs/wk — {supports.length} support, {reshape.length} reshape, {leaks.length} leak.
+                        </p>
+
+                        <BucketBlock
+                          bucketKey="supports" title="Supports"
+                          subtitle="These are your fuel. Protect the time."
+                          items={supports}
+                          color="#34d399" bgColor="rgba(52,211,153,.4)"
+                        />
+                        <BucketBlock
+                          bucketKey="reshape" title="Reshape these"
+                          subtitle="Not draining, not driving — move them, reshape them, or let them be."
+                          items={reshape}
+                          color="#f59e0b" bgColor="rgba(245,158,11,.4)"
+                        />
+                        <BucketBlock
+                          bucketKey="leaks" title="Leaks"
+                          subtitle="These are the hours you said you didn't have. They're here."
+                          items={leaks}
+                          color="#ef4444" bgColor="rgba(239,68,68,.4)"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Closing copy — always visible */}
+              <div style={{ marginTop:18, padding:"16px 20px", background:"rgba(201,168,76,.06)", borderLeft:"3px solid var(--warm)", borderRadius:6 }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--text)", lineHeight:1.7 }}>
+                  You're not broken. Your time is telling you the truth. The work now isn't to do more — it's to <strong>protect the supports, reshape what you can, and let the leaks be seen</strong>. A4 turns the trades you named above into real moves.
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        <div style={{ marginBottom:22, marginTop:18 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="time audit"
+            placeholder="Ask Katherine about what you're seeing..." />
+        </div>
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "time_audit"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "letter") {
+    const letterIdx = A2_STEPS.findIndex(s => s.id === "letter");
+    const prevStep = A2_STEPS[letterIdx - 1];
+    const nextStep = A2_STEPS[letterIdx + 1];
+
+    const ctxOpen = !!map.a2_fsl_context_open;
+    const s1 = map.a2_fsl_s1 || "";
+    const s2 = map.a2_fsl_s2 || "";
+    const s3 = map.a2_fsl_s3 || "";
+    const s4 = map.a2_fsl_reflection || "";
+    const s4text = map.a2_fsl_s4 || "";
+
+    // Pull real data from map
+    const purpose = map.purpose_final || map.purpose_draft || "";
+    const bagGrowth = map.growth_sentence || map.growth_summary || "";
+    const threeyrGrowth = map.threeyr_growth_sentence || "";
+    const oneyrGrowth = map.oneyr_growth_sentence || "";
+    const bagYear = map.bag_year || "";
+    const animals = (map.animals || []).filter(a => a && a.name);
+    const animalNames = animals.map(a => a.name);
+    // Values — pull top values from val_*_name
+    const valCount2 = parseInt(map?.val_count) || 0;
+    const topValues = [];
+    for (let i = 0; i < valCount2; i++) {
+      const vn = map?.[`val_${i}_name`];
+      if (vn) topValues.push(vn);
+    }
+    // Time picks
+    const timePickLabels = (map.time_picked || []).map(id => {
+      const preset = TIME_AREA_PRESETS.find(p => p.id === id);
+      return preset?.label || id;
+    });
+
+    // A2 data
+    const bucketFor5 = (a) => {
+      if (!a.feeling || !a.pri) return null;
+      const isNone = a.pri === "none";
+      const f = a.feeling;
+      if (f === "despise") return "leaks";
+      if (f === "dislike" && isNone) return "leaks";
+      if (isNone) return "leaks";
+      if (f === "love") return "supports";
+      if (f === "like") return "supports";
+      return "reshape";
+    };
+    const actsL = (map.a2_ta_acts || []).map(a => ({ ...a, bucket: bucketFor5(a) })).filter(a => a.bucket);
+    const sumL = (arr) => arr.reduce((t, a) => t + (Number(a.hours) || 0), 0);
+    const leaksHrs = sumL(actsL.filter(a => a.bucket === "leaks"));
+    const leakList = actsL.filter(a => a.bucket === "leaks").sort((x,y) => y.hours - x.hours).slice(0, 4).map(a => a.label);
+
+    // Focus from pinned key misalignment
+    const misalignL = computeMisalignments(map);
+    const pinnedIdL = map.a2_km_pinned_id;
+    const primaryL = pinnedIdL ? misalignL.find(m => m.id === pinnedIdL) : null;
+    const focusLabel = primaryL?.label || "your top priority";
+    const focusActsL = primaryL?.itemId ? actsL.filter(a => a.pri === primaryL.itemId) : [];
+    const focusQualityHrs = sumL(focusActsL.filter(a => a.feeling === "love" || a.feeling === "like"));
+
+    // Wishlist
+    const wishesL = map.a2_ta_wishes || [];
+    const wishLabels = wishesL.map(w => w.label);
+
+    const setText = (key, val) => set(key, val);
+    const totalWords = [s1, s2, s3, s4text, s4].join(" ").split(/\s+/).filter(w => w.length > 0).length;
+    const allWritten = s1.trim() && s2.trim() && s3.trim() && s4text.trim();
+
+    const countWords = (txt) => (txt || "").split(/\s+/).filter(w => w.length > 0).length;
+
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Future Self Letter</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:400, lineHeight:1.2, marginBottom:10, letterSpacing:"-0.3px" }}>A letter from your future self</h2>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:620 }}>
+          Four sections. Each one pulls from what you've already built. You write in your own words — as if the version of you who's already lived this is speaking back to you now.
+        </p>
+
+        {/* Context toggle */}
+        <div onClick={() => set("a2_fsl_context_open", !ctxOpen)}
+          style={{
+            display:"inline-flex", alignItems:"center", gap:10, padding:"10px 16px",
+            background:"rgba(0,0,0,.25)", border:`1px solid ${ctxOpen ? "var(--warm)" : "var(--border2)"}`,
+            borderRadius:10, cursor:"pointer", fontSize:12,
+            color: ctxOpen ? "var(--text)" : "var(--text2)", marginBottom:24,
+            transition:"all .15s",
+          }}>
+          <span style={{ color:"var(--warm)", transform: ctxOpen ? "rotate(90deg)" : "none", transition:"transform .15s" }}>▸</span>
+          <span style={{ fontWeight:500 }}>{ctxOpen ? "Hide" : "Show"} what you said in A1 — your BAG, Identity, Values</span>
+        </div>
+
+        {/* Context panel */}
+        {ctxOpen && (
+          <div style={{
+            padding:"20px 24px", marginBottom:24,
+            background:"linear-gradient(180deg, rgba(201,168,76,.06), rgba(0,0,0,.1))",
+            border:"1px solid var(--border2)", borderLeft:"3px solid var(--warm)",
+            borderRadius:8,
+          }}>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:10 }}>From your A1 Map of Me</div>
+
+            {purpose && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>Purpose — your north star</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, lineHeight:1.6, color:"var(--text)", fontStyle:"italic" }}>"{purpose}"</div>
+              </div>
+            )}
+
+            {bagGrowth && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>BAG — your 10–15 year vision</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, lineHeight:1.6, color:"var(--text)", fontStyle:"italic" }}>"{bagGrowth}"</div>
+              </div>
+            )}
+
+            {threeyrGrowth && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>3-Year growth</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, lineHeight:1.6, color:"var(--text)", fontStyle:"italic" }}>"{threeyrGrowth}"</div>
+              </div>
+            )}
+
+            {oneyrGrowth && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>1-Year growth</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, lineHeight:1.6, color:"var(--text)", fontStyle:"italic" }}>"{oneyrGrowth}"</div>
+              </div>
+            )}
+
+            {animalNames.length > 0 && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>Identity — the animals you chose</div>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {animalNames.map((a, i) => (
+                    <span key={i} style={{ padding:"4px 10px", background:"rgba(201,168,76,.12)", color:"var(--text)", border:"1px solid rgba(201,168,76,.3)", borderRadius:12, fontSize:12 }}>{a}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {topValues.length > 0 && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>Top values</div>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {topValues.map((v, i) => (
+                    <span key={i} style={{ padding:"4px 10px", background:"rgba(201,168,76,.12)", color:"var(--text)", border:"1px solid rgba(201,168,76,.3)", borderRadius:12, fontSize:12 }}>{v}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {timePickLabels.length > 0 && (
+              <div style={{ marginBottom:0 }}>
+                <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>Time priorities</div>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {timePickLabels.map((v, i) => (
+                    <span key={i} style={{ padding:"4px 10px", background:"rgba(201,168,76,.12)", color:"var(--text)", border:"1px solid rgba(201,168,76,.3)", borderRadius:12, fontSize:12 }}>{v}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Opening */}
+        <div style={{ padding:"24px 28px", background:"var(--bg2)", border:"1px solid var(--warm)", borderRadius:10, marginBottom:28 }}>
+          <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:12 }}>From your future self</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, lineHeight:1.8, color:"var(--text)", fontStyle:"italic" }}>
+            I'm writing from the life you're still building toward. You've just looked at your week honestly. Now I want to speak to what I see. Not to tell you what to do. To show you what I already know about the time you're spending. The four sections below are yours to fill. I'll prompt you with what you've already said you want. You answer me — in your own words. Don't skip this.
+          </div>
+        </div>
+
+        {/* Section 1 — On the time that matters */}
+        <div style={{ marginBottom:32 }}>
+          <h3 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, color:"var(--text)", margin:"0 0 14px", letterSpacing:"-0.2px" }}>On the time that matters</h3>
+          <div style={{ padding:"14px 16px 14px 18px", background:"rgba(201,168,76,.05)", borderLeft:"2px solid var(--warm)", borderRadius:4, marginBottom:12, fontFamily:"var(--serif)", fontStyle:"italic", fontSize:15, lineHeight:1.7, color:"var(--text2)" }}>
+            {animalNames.length > 0 && <>You chose <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>{animalNames.join(" and ")}</strong> as your Identity. </>}
+            {focusQualityHrs > 0 && focusLabel !== "your top priority" && <>You tagged <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>{focusQualityHrs} hours/week with {focusLabel} as Love or Like</strong>. </>}
+            {purpose && <>And your purpose, in your own words, was: <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>"{purpose}"</strong> </>}
+            What would I — the version of you who's already built that life — say about these hours? Why do they matter? What happens to who you become if you protect them?
+          </div>
+          <textarea value={s1} onChange={e => setText("a2_fsl_s1", e.target.value)}
+            placeholder="Write what I would say to you about these hours..."
+            style={{ width:"100%", minHeight:140, padding:"16px 18px", background:"rgba(0,0,0,.22)", border:`1px solid ${s1.trim() ? "var(--warm)" : "var(--border2)"}`, borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:16, lineHeight:1.7, resize:"vertical", outline:"none" }} />
+          <div style={{ marginTop:6, fontSize:10, color: s1.trim() ? "#34d399" : "var(--text4)", textAlign:"right" }}>{countWords(s1)} words</div>
+        </div>
+
+        {/* Section 2 — On the time to let go */}
+        <div style={{ marginBottom:32 }}>
+          <h3 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, color:"var(--text)", margin:"0 0 14px", letterSpacing:"-0.2px" }}>On the time to let go</h3>
+          <div style={{ padding:"14px 16px 14px 18px", background:"rgba(201,168,76,.05)", borderLeft:"2px solid var(--warm)", borderRadius:4, marginBottom:12, fontFamily:"var(--serif)", fontStyle:"italic", fontSize:15, lineHeight:1.7, color:"var(--text2)" }}>
+            {leaksHrs > 0 ? (
+              <>You marked <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>{leaksHrs} hours a week</strong> as Leaks{leakList.length > 0 && <> — {leakList.join(", ")}</>}. You said none of it serves a priority you named. But you do it anyway. </>
+            ) : (
+              <>You just looked at where your hours go. Some of it serves what you said matters. Some of it doesn't. </>
+            )}
+            {topValues.length > 0 && <>And you said one of your top values is <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>{topValues[0]}</strong>. </>}
+            What would I say to you about this gap — between what you say matters and where your hours actually go?
+          </div>
+          <textarea value={s2} onChange={e => setText("a2_fsl_s2", e.target.value)}
+            placeholder="Write what I would say to you about what has to stop..."
+            style={{ width:"100%", minHeight:140, padding:"16px 18px", background:"rgba(0,0,0,.22)", border:`1px solid ${s2.trim() ? "var(--warm)" : "var(--border2)"}`, borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:16, lineHeight:1.7, resize:"vertical", outline:"none" }} />
+          <div style={{ marginTop:6, fontSize:10, color: s2.trim() ? "#34d399" : "var(--text4)", textAlign:"right" }}>{countWords(s2)} words</div>
+        </div>
+
+        {/* URGENCY */}
+        <div style={{ margin:"36px 0", padding:"28px 32px", background:"linear-gradient(135deg, rgba(0,0,0,.4), rgba(201,168,76,.1))", border:"1px solid var(--warm)", borderRadius:10, textAlign:"center" }}>
+          <div style={{ fontSize:10, letterSpacing:2.5, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:14 }}>A pause, from me</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:22, lineHeight:1.5, color:"var(--text)", fontStyle:"italic", fontWeight:400 }}>
+            The clock is running. Mine has more behind it than yours does ahead. Don't waste it.
+          </div>
+        </div>
+
+        {/* Section 3 — On what you haven't started */}
+        <div style={{ marginBottom:32 }}>
+          <h3 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, color:"var(--text)", margin:"0 0 14px", letterSpacing:"-0.2px" }}>On what you haven't started</h3>
+          <div style={{ padding:"14px 16px 14px 18px", background:"rgba(201,168,76,.05)", borderLeft:"2px solid var(--warm)", borderRadius:4, marginBottom:12, fontFamily:"var(--serif)", fontStyle:"italic", fontSize:15, lineHeight:1.7, color:"var(--text2)" }}>
+            {wishLabels.length > 0 ? (
+              <>You wrote a wishlist. <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>{wishLabels.slice(0, 4).join(". ")}.</strong> </>
+            ) : (
+              <>You named what's been getting pushed off the list. </>
+            )}
+            {oneyrGrowth && <>And your 1-Year growth vision, in your own words, was: <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>"{oneyrGrowth}"</strong> </>}
+            What would I say to you about starting these — not later, but now?
+          </div>
+          <textarea value={s3} onChange={e => setText("a2_fsl_s3", e.target.value)}
+            placeholder="Write what I would say to you about what you haven't started..."
+            style={{ width:"100%", minHeight:140, padding:"16px 18px", background:"rgba(0,0,0,.22)", border:`1px solid ${s3.trim() ? "var(--warm)" : "var(--border2)"}`, borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:16, lineHeight:1.7, resize:"vertical", outline:"none" }} />
+          <div style={{ marginTop:6, fontSize:10, color: s3.trim() ? "#34d399" : "var(--text4)", textAlign:"right" }}>{countWords(s3)} words</div>
+        </div>
+
+        {/* Section 4 — On why this is urgent */}
+        <div style={{ marginBottom:32 }}>
+          <h3 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, color:"var(--text)", margin:"0 0 14px", letterSpacing:"-0.2px" }}>On why this is urgent</h3>
+          <div style={{ padding:"14px 16px 14px 18px", background:"rgba(201,168,76,.05)", borderLeft:"2px solid var(--warm)", borderRadius:4, marginBottom:12, fontFamily:"var(--serif)", fontStyle:"italic", fontSize:15, lineHeight:1.7, color:"var(--text2)" }}>
+            {bagGrowth ? (
+              <>Your BAG — your {bagYear ? `${bagYear} ` : "10-to-15-year "}vision, in your own words — was: <strong style={{ color:"var(--text)", fontStyle:"normal", fontWeight:500 }}>"{bagGrowth}"</strong> </>
+            ) : (
+              <>You named the life you're building toward. </>
+            )}
+            What would I say to you about how important this work is — not just for what you do, but for who you become?
+          </div>
+          <textarea value={s4text} onChange={e => setText("a2_fsl_s4", e.target.value)}
+            placeholder="Write what I would say to you about why this can't wait..."
+            style={{ width:"100%", minHeight:140, padding:"16px 18px", background:"rgba(0,0,0,.22)", border:`1px solid ${s4text.trim() ? "var(--warm)" : "var(--border2)"}`, borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:16, lineHeight:1.7, resize:"vertical", outline:"none" }} />
+          <div style={{ marginTop:6, fontSize:10, color: s4text.trim() ? "#34d399" : "var(--text4)", textAlign:"right" }}>{countWords(s4text)} words</div>
+        </div>
+
+        {/* Closing */}
+        <div style={{ marginTop:32, padding:"24px 28px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:10 }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, lineHeight:1.8, color:"var(--text)", fontStyle:"italic" }}>
+            You already know what I'm going to ask. Go back to those words. The ones you just wrote. Read them tomorrow morning. Read them in six months. Read them when you're tempted to not start, or to quit. Your hand wrote them. Your body will remember.
+          </div>
+          <div style={{ marginTop:14, fontFamily:"var(--serif)", fontSize:14, color:"var(--warm)", fontStyle:"italic" }}>
+            — You, from your future
+          </div>
+        </div>
+
+        {/* Reflection */}
+        <div style={{ marginTop:32, padding:"24px 28px", background:"rgba(96,165,250,.06)", border:"1px solid rgba(96,165,250,.3)", borderLeft:"3px solid #60a5fa", borderRadius:8 }}>
+          <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"#60a5fa", fontWeight:700, marginBottom:10 }}>Before you close this</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:19, lineHeight:1.5, color:"var(--text)", marginBottom:14 }}>
+            What's one thing from what you just wrote that's sitting with you?
+          </div>
+          <textarea value={s4} onChange={e => setText("a2_fsl_reflection", e.target.value)}
+            placeholder="Write the one line..."
+            style={{ width:"100%", minHeight:72, padding:"12px 14px", background:"rgba(0,0,0,.22)", border:`1px solid ${s4.trim() ? "#60a5fa" : "var(--border2)"}`, borderRadius:6, color:"var(--text)", fontFamily:"var(--sans)", fontSize:14, lineHeight:1.6, resize:"vertical", outline:"none" }} />
+        </div>
+
+        <div style={{ marginBottom:22, marginTop:24 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="future self letter"
+            placeholder="Ask Katherine about what came up as you wrote..." />
+        </div>
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "letter"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "mirror") {
+    const mirIdx = A2_STEPS.findIndex(s => s.id === "mirror");
+    const prevStep = A2_STEPS[mirIdx - 1];
+    const nextStep = A2_STEPS[mirIdx + 1];
+
+    // A1 anchors
+    const purposeMir = map.purpose_final || map.purpose_draft || "";
+    const bagTimeMir = map.growth_time_sentence || map.bag_time_sentence || "";
+    const bagWealthMir = map.growth_wealth_sentence || map.bag_wealth_sentence || "";
+    const bagGrowthMir = map.growth_sentence || map.growth_summary || "";
+    const threeyrTimeMir = map.threeyr_time_sentence || "";
+    const threeyrWealthMir = map.threeyr_wealth_sentence || "";
+    const threeyrGrowthMir = map.threeyr_growth_sentence || "";
+    const oneyrTimeMir = map.oneyr_time_sentence || "";
+    const oneyrWealthMir = map.oneyr_wealth_sentence || "";
+    const oneyrGrowthMir = map.oneyr_growth_sentence || "";
+    const thisYearMir = new Date().getFullYear();
+    const hasAnyHorizonData = [bagTimeMir, bagWealthMir, bagGrowthMir, threeyrTimeMir, threeyrWealthMir, threeyrGrowthMir, oneyrTimeMir, oneyrWealthMir, oneyrGrowthMir].some(s => s && s.trim());
+
+    // A2 — Key Misalignment
+    const misalignMir = computeMisalignments(map);
+    const pinnedIdMir = map.a2_km_pinned_id;
+    const primaryMir = pinnedIdMir ? misalignMir.find(m => m.id === pinnedIdMir) : null;
+
+    // A2 — Time Audit buckets
+    const bucketForMir = (a) => {
+      if (!a.feeling || !a.pri) return null;
+      const isNone = a.pri === "none";
+      const f = a.feeling;
+      if (f === "despise") return "leaks";
+      if (f === "dislike" && isNone) return "leaks";
+      if (isNone) return "leaks";
+      if (f === "love") return "supports";
+      if (f === "like") return "supports";
+      return "reshape";
+    };
+    const actsMir = (map.a2_ta_acts || []).map(a => ({ ...a, bucket: bucketForMir(a) })).filter(a => a.bucket);
+    const sumMir = (arr) => arr.reduce((t, a) => t + (Number(a.hours) || 0), 0);
+    const supportsHrsMir = sumMir(actsMir.filter(a => a.bucket === "supports"));
+    const reshapeHrsMir = sumMir(actsMir.filter(a => a.bucket === "reshape"));
+    const leaksHrsMir = sumMir(actsMir.filter(a => a.bucket === "leaks"));
+    const hasTimeData = supportsHrsMir + reshapeHrsMir + leaksHrsMir > 0;
+
+    // A2 — Swaps
+    const swapsMir = map.a2_ta_swaps || {};
+    const wishesMir = map.a2_ta_wishes || [];
+    const actsByIdMir = (map.a2_ta_acts || []).reduce((o, a) => ({ ...o, [a.id]: a }), {});
+    const swapList = Object.entries(swapsMir)
+      .filter(([wid, sw]) => sw && sw.fromId && sw.when && (sw.fromId === "__have_time__" || sw.hours))
+      .map(([wid, sw]) => {
+        const wish = wishesMir.find(w => w.id === wid);
+        if (!wish) return null;
+        const fromAct = sw.fromId !== "__have_time__" ? actsByIdMir[sw.fromId] : null;
+        const whenLabel = sw.when === "3mo" ? "< 3 months" : sw.when === "6mo" ? "< 6 months" : "> 12 months";
+        return {
+          id: wid,
+          haveTime: sw.fromId === "__have_time__",
+          from: fromAct?.label || "",
+          to: wish.label,
+          hours: sw.hours || wish.hours,
+          when: whenLabel,
+          hasNonTimeBlock: sw.block === "not_time" || sw.block === "both",
+        };
+      })
+      .filter(Boolean);
+
+    // Letter
+    const letterReflectionMir = map.a2_fsl_reflection || "";
+    const fslSectionsMir = [map.a2_fsl_s1, map.a2_fsl_s2, map.a2_fsl_s3, map.a2_fsl_s4].filter(s => s && s.trim()).length;
+
+    // One Thing + direction check
+    const oneThingValM = map.a2_one_thing || "";
+    const a1OneThingMir = map.one_thing || map.a1_one_thing || "";
+    const dirAnswer = map.a2_mir_dir_answer || null;
+    const dirShift = map.a2_mir_dir_shift || "";
+    const showShift = dirAnswer === "no" || dirAnswer === "shifted";
+
+    // Horizon block
+    const HorizonBlock = ({ name, year, primary, time, wealth, growth }) => {
+      const row = (label, text, color) => (
+        <div style={{ display:"grid", gridTemplateColumns:"70px 1fr", gap:10, alignItems:"start", marginBottom:10 }}>
+          <span style={{ fontSize:9, color:"var(--text3)", letterSpacing:1.2, textTransform:"uppercase", fontWeight:600, paddingTop:4 }}>{label}</span>
+          <div style={{ minWidth:0 }}>
+            {text && text.trim() ? (
+              <div style={{ fontFamily:"var(--serif)", fontSize: primary ? 15 : 14, lineHeight:1.65, fontStyle:"italic", padding:"8px 12px", borderRadius:5, background:"rgba(0,0,0,.2)", borderLeft:`2px solid ${color}`, color:"var(--text)" }}>
+                "{text}"
+              </div>
+            ) : (
+              <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:"8px 12px" }}>No summary captured in A1.</div>
+            )}
+          </div>
+        </div>
+      );
+      return (
+        <div style={{ padding: primary ? "20px 22px" : "16px 18px", marginBottom:10, background: primary ? "rgba(201,168,76,.06)" : "rgba(0,0,0,.18)", border:`1px solid ${primary ? "rgba(201,168,76,.4)" : "var(--border2)"}`, borderRadius:8 }}>
+          <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:12 }}>
+            <span style={{ fontFamily:"var(--sans)", fontSize:11, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color: primary ? "var(--warm)" : "var(--text2)" }}>{name}</span>
+            <span style={{ fontSize:10, color:"var(--text4)", fontFamily:"var(--serif)", fontStyle:"italic" }}>{year}</span>
+          </div>
+          {row("Time", time, "var(--warm)")}
+          {row("Wealth", wealth, "#34d399")}
+          {row("Growth", growth, "#a78bfa")}
+        </div>
+      );
+    };
+
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · A2 Mirror</div>
+        <h1 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:400, lineHeight:1.2, margin:"0 0 10px", color:"var(--text)", letterSpacing:"-0.3px" }}>Look honestly at what you've seen. Then name what you're carrying.</h1>
+        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, margin:"0 0 28px", maxWidth:640 }}>
+          You just did real work. You saw your time honestly. You wrote a letter from the life you're building toward. Everything you did in A2 is here — pulled back together. Read it. Sit with it. Then, in your own words, name the one thing you're carrying forward.
+        </p>
+
+        {/* ── 01 · What you've seen ── */}
+        <div style={{ fontFamily:"var(--sans)", fontSize:10, letterSpacing:2.5, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, margin:"36px 0 16px", paddingBottom:8, borderBottom:"1px solid var(--border)" }}>
+          · 01 · What you've seen
+        </div>
+
+        {/* Purpose */}
+        {purposeMir && (
+          <div style={{ padding:"18px 22px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:10, marginBottom:14 }}>
+            <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:6 }}>Purpose — your north star</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:18, lineHeight:1.5, color:"var(--text)", fontStyle:"italic" }}>"{purposeMir}"</div>
+          </div>
+        )}
+
+        {/* Horizons — collapsible */}
+        {hasAnyHorizonData && (() => {
+          const open = map.a2_mir_horiz_open !== false;
+          return (
+            <div style={{ marginTop:14, marginBottom:14, background:"rgba(201,168,76,.04)", border:"1px solid rgba(201,168,76,.35)", borderRadius:12, overflow:"hidden" }}>
+              <div onClick={() => set("a2_mir_horiz_open", !open)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, padding:"16px 20px", cursor:"pointer", userSelect:"none", background: open ? "rgba(201,168,76,.06)" : "transparent" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
+                  <span style={{ fontSize:20, flexShrink:0 }}>🧭</span>
+                  <span style={{ fontSize:12, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700 }}>Your direction · from A1</span>
+                </div>
+                <span style={{ fontSize:14, color:"var(--warm)", flexShrink:0, transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+              </div>
+              {open && (
+                <div style={{ padding:"16px 24px 20px", borderTop:"1px solid var(--border)" }}>
+                  <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:700, marginBottom:14 }}>
+                    Pulled from A1 exactly as you wrote it
+                  </div>
+                  <DirectionTimeline_v2 activeHorizon="oneyr" map={map} />
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Key Misalignment card — collapsible */}
+        {primaryMir && (() => {
+          const open = map.a2_mir_km_open !== false;
+          return (
+            <div style={{ marginBottom:14, background:"rgba(239,68,68,.04)", border:"1px solid rgba(239,68,68,.35)", borderRadius:12, overflow:"hidden" }}>
+              <div onClick={() => set("a2_mir_km_open", !open)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, padding:"16px 20px", cursor:"pointer", userSelect:"none", background: open ? "rgba(239,68,68,.06)" : "transparent" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
+                  <span style={{ fontSize:20, flexShrink:0 }}>{primaryMir.icon}</span>
+                  <span style={{ fontSize:12, letterSpacing:2, textTransform:"uppercase", color:"#ef4444", fontWeight:700 }}>Key misalignment · your A2 focus</span>
+                </div>
+                <span style={{ fontSize:14, color:"#ef4444", flexShrink:0, transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+              </div>
+              {open && (
+                <div style={{ padding:"0 24px 20px", borderTop:"1px solid var(--border)" }}>
+                  <div style={{ fontFamily:"var(--serif)", fontSize:22, lineHeight:1.4, color:"var(--text)", marginTop:16, marginBottom:10 }}>
+                    {primaryMir.label} — {primaryMir.source}, scored {primaryMir.score}/10.
+                  </div>
+                  {primaryMir.note && (
+                    <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.6 }}>{primaryMir.note}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Time piece — collapsible */}
+        {hasTimeData && (() => {
+          const open = map.a2_mir_time_open !== false;
+          return (
+            <div style={{ marginBottom:14, background:"rgba(201,168,76,.04)", border:"1px solid rgba(201,168,76,.35)", borderRadius:12, overflow:"hidden" }}>
+              <div onClick={() => set("a2_mir_time_open", !open)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, padding:"16px 20px", cursor:"pointer", userSelect:"none", background: open ? "rgba(201,168,76,.06)" : "transparent" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
+                  <span style={{ fontSize:20, flexShrink:0 }}>⏳</span>
+                  <span style={{ fontSize:12, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700 }}>Where your time is telling the truth</span>
+                </div>
+                <span style={{ fontSize:14, color:"var(--warm)", flexShrink:0, transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+              </div>
+              {open && (
+                <div style={{ padding:"16px 24px 20px", borderTop:"1px solid var(--border)" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:14 }}>
+              <div style={{ padding:"12px 14px", background:"rgba(52,211,153,.08)", border:"1px solid rgba(52,211,153,.3)", borderRadius:8, textAlign:"center" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:24, color:"#34d399", lineHeight:1 }}>{supportsHrsMir}<span style={{ fontSize:11, color:"var(--text3)", fontFamily:"var(--sans)", marginLeft:3 }}>hrs</span></div>
+                <div style={{ fontSize:10, color:"#34d399", letterSpacing:1.2, textTransform:"uppercase", fontWeight:700, marginTop:4 }}>Supports</div>
+              </div>
+              <div style={{ padding:"12px 14px", background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.3)", borderRadius:8, textAlign:"center" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:24, color:"#f59e0b", lineHeight:1 }}>{reshapeHrsMir}<span style={{ fontSize:11, color:"var(--text3)", fontFamily:"var(--sans)", marginLeft:3 }}>hrs</span></div>
+                <div style={{ fontSize:10, color:"#f59e0b", letterSpacing:1.2, textTransform:"uppercase", fontWeight:700, marginTop:4 }}>Reshape</div>
+              </div>
+              <div style={{ padding:"12px 14px", background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.3)", borderRadius:8, textAlign:"center" }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:24, color:"#ef4444", lineHeight:1 }}>{leaksHrsMir}<span style={{ fontSize:11, color:"var(--text3)", fontFamily:"var(--sans)", marginLeft:3 }}>hrs</span></div>
+                <div style={{ fontSize:10, color:"#ef4444", letterSpacing:1.2, textTransform:"uppercase", fontWeight:700, marginTop:4 }}>Leaks</div>
+              </div>
+            </div>
+            <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.7, fontFamily:"var(--serif)", fontStyle:"italic" }}>
+              {leaksHrsMir > supportsHrsMir
+                ? "More of your week is leaking than feeding you. That's not a failure — that's data."
+                : leaksHrsMir === 0
+                  ? "No leaks. Your hours are serving your priorities. The work now is protection, not correction."
+                  : "Your supports outweigh your leaks. Now protect them."}
+            </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Trades you mapped — collapsible */}
+        {swapList.length > 0 && (() => {
+          const open = map.a2_mir_trades_open !== false;
+          return (
+            <div style={{ marginBottom:14, background:"rgba(201,168,76,.04)", border:"1px solid rgba(201,168,76,.35)", borderRadius:12, overflow:"hidden" }}>
+              <div onClick={() => set("a2_mir_trades_open", !open)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, padding:"16px 20px", cursor:"pointer", userSelect:"none", background: open ? "rgba(201,168,76,.06)" : "transparent" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
+                  <span style={{ fontSize:20, flexShrink:0 }}>⇄</span>
+                  <span style={{ fontSize:12, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700 }}>Trades you mapped · {swapList.length}</span>
+                </div>
+                <span style={{ fontSize:14, color:"var(--warm)", flexShrink:0, transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+              </div>
+              {open && (
+                <div style={{ padding:"16px 24px 20px", borderTop:"1px solid var(--border)" }}>
+            {swapList.map(sw => (
+              <div key={sw.id} style={{ padding:"12px 16px", marginBottom:6, background:"rgba(0,0,0,.25)", borderRadius:8, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                {!sw.haveTime ? (
+                  <>
+                    <span style={{ color:"#ef4444", fontSize:14, fontWeight:500 }}>{sw.hours}h from {sw.from}</span>
+                    <span style={{ color:"var(--warm)", fontWeight:700, fontSize:14 }}>→</span>
+                    <span style={{ color:"#34d399", fontSize:14, fontWeight:500 }}>{sw.to}</span>
+                  </>
+                ) : (
+                  <span style={{ color:"#34d399", fontSize:14, fontWeight:500 }}>{sw.hours}h for {sw.to}</span>
+                )}
+                <span style={{ color:"var(--text3)", fontSize:12, flexShrink:0, marginLeft:"auto" }}>
+                  {sw.when}
+                  {sw.hasNonTimeBlock && <> · <span style={{ color:"#60a5fa" }}>non-time block</span></>}
+                </span>
+              </div>
+            ))}
+            <div style={{ marginTop:10, fontSize:13, color:"var(--text2)", lineHeight:1.6 }}>
+              These carry forward to A4. Non-time blocks route to A3.
+            </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+
+
+        {/* Direction check — AFTER all time pieces */}
+        <div style={{ padding:"20px 24px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:10, marginTop:22, marginBottom:14 }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:20, color:"var(--text)", lineHeight:1.4, marginBottom:14, fontStyle:"italic" }}>
+            After seeing your time honestly — is this still the pull?
+          </div>
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+            {[
+              { v:"yes", label:"Yes — this is still it", color:"#34d399", bg:"rgba(52,211,153,.18)" },
+              { v:"shifted", label:"Something shifted", color:"#f59e0b", bg:"rgba(245,158,11,.18)" },
+              { v:"no", label:"No — it's different now", color:"#ef4444", bg:"rgba(239,68,68,.18)" },
+            ].map(b => {
+              const sel = dirAnswer === b.v;
+              return (
+                <button key={b.v} onClick={() => set("a2_mir_dir_answer", sel ? null : b.v)}
+                  style={{ padding:"8px 16px", borderRadius:18, border: sel ? `1px solid ${b.color}` : "1px solid var(--border2)", background: sel ? b.bg : "transparent", color: sel ? b.color : "var(--text2)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight: sel ? 700 : 500 }}>
+                  {b.label}
+                </button>
+              );
+            })}
+          </div>
+          {showShift && (
+            <div style={{ marginTop:14, padding:"14px 16px", background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.25)", borderLeft:"3px solid #f59e0b", borderRadius:6 }}>
+              <div style={{ fontSize:11, color:"#f59e0b", fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:8 }}>
+                {dirAnswer === "no" ? "What's changed?" : "What shifted?"}
+              </div>
+              <textarea value={dirShift} onChange={e => set("a2_mir_dir_shift", e.target.value)}
+                placeholder="A sentence or two. You'll work this in A4."
+                style={{ width:"100%", minHeight:72, padding:"10px 12px", background:"rgba(0,0,0,.22)", border:"1px solid var(--border2)", borderRadius:6, color:"var(--text)", fontFamily:"var(--sans)", fontSize:13, lineHeight:1.6, resize:"vertical", outline:"none" }} />
+            </div>
+          )}
+        </div>
+
+        {/* Letter echo — collapsible */}
+        {letterReflectionMir ? (() => {
+          const open = map.a2_mir_letter_open !== false;
+          return (
+            <div style={{ marginBottom:14, background:"rgba(96,165,250,.04)", border:"1px solid rgba(96,165,250,.35)", borderRadius:12, overflow:"hidden" }}>
+              <div onClick={() => set("a2_mir_letter_open", !open)}
+                style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, padding:"16px 20px", cursor:"pointer", userSelect:"none", background: open ? "rgba(96,165,250,.06)" : "transparent" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
+                  <span style={{ fontSize:20, flexShrink:0 }}>✍</span>
+                  <span style={{ fontSize:12, letterSpacing:2, textTransform:"uppercase", color:"#60a5fa", fontWeight:700 }}>From your Future Self Letter · what's sitting with you</span>
+                </div>
+                <span style={{ fontSize:14, color:"#60a5fa", flexShrink:0, transform: open ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+              </div>
+              {open && (
+                <div style={{ padding:"16px 24px 20px", borderTop:"1px solid var(--border)" }}>
+                  <div style={{ fontFamily:"var(--serif)", fontStyle:"italic", fontSize:15, lineHeight:1.7, color:"var(--text)", padding:"10px 14px", background:"rgba(96,165,250,.05)", borderLeft:"2px solid #60a5fa", borderRadius:4 }}>
+                    "{letterReflectionMir}"
+                  </div>
+                  <div style={{ marginTop:10, fontSize:12, color:"var(--text3)", lineHeight:1.6 }}>
+                    Your own words, from the end of the Letter. This is the thread you're pulling on.
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })() : fslSectionsMir > 0 && (
+          <div style={{ padding:"16px 20px", marginBottom:14, background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:10 }}>
+            <div style={{ fontSize:11, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, marginBottom:8 }}>From your Future Self Letter</div>
+            <div style={{ fontSize:13, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>
+              You wrote {fslSectionsMir} of 4 letter sections. Go back to <button onClick={() => a2Goto("letter")} style={{ background:"none", border:"none", color:"var(--warm)", cursor:"pointer", textDecoration:"underline", padding:0, font:"inherit" }}>Future Self Letter</button> and leave a reflection line at the bottom.
+            </div>
+          </div>
+        )}
+
+        {/* ── 02 · What you're carrying ── */}
+        <div style={{ fontFamily:"var(--sans)", fontSize:10, letterSpacing:2.5, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, margin:"36px 0 16px", paddingBottom:8, borderBottom:"1px solid rgba(201,168,76,.3)" }}>
+          · 02 · What you're carrying
+        </div>
+
+        <div style={{ padding:"28px 32px", background:"linear-gradient(135deg, rgba(201,168,76,.08), rgba(0,0,0,.2))", border:"1px solid var(--warm)", borderRadius:12, marginTop:14 }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, lineHeight:1.75, color:"var(--text)", fontStyle:"italic", margin:"0 0 20px" }}>
+            Everything you just did feeds into one thing. <strong style={{ fontStyle:"normal", fontWeight:500, color:"var(--warm)" }}>One sentence, in your own words.</strong> What you carry forward into this year and beyond — the direction you named, the time you saw, the letter you wrote, all of it — distilled.
+          </div>
+
+          {a1OneThingMir && !oneThingValM && (
+            <div style={{ padding:"12px 16px", marginBottom:16, background:"rgba(0,0,0,.25)", borderLeft:"2px solid var(--text3)", borderRadius:4 }}>
+              <div style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:6 }}>In A1 you said:</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6 }}>"{a1OneThingMir}"</div>
+            </div>
+          )}
+
+          <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:14, lineHeight:1.4 }}>
+            So — who are you, now?
+          </div>
+          <textarea value={oneThingValM} onChange={e => set("a2_one_thing", e.target.value)}
+            placeholder="I am the one who..."
+            style={{ width:"100%", minHeight:100, padding:"18px 20px", background:"rgba(0,0,0,.3)", border:`1px solid ${oneThingValM.trim() ? "var(--warm)" : "var(--border2)"}`, borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:20, fontStyle:"italic", lineHeight:1.6, resize:"vertical", outline:"none" }} />
+          <div style={{ marginTop:12, fontSize:12, color:"var(--text3)", lineHeight:1.6, fontStyle:"italic" }}>
+            A model that often works: <em>"I am the one who [verb] [what]."</em> But if that doesn't fit, throw it out. The shape of the sentence matters less than the truth of it. You'll come back to this quarterly — read it, feel it, adjust it.
+          </div>
+        </div>
+
+        {/* A3 tease */}
+        <div style={{ marginTop:32, padding:"24px 28px", background:"linear-gradient(180deg, rgba(96,165,250,.08), rgba(96,165,250,.02))", border:"1px solid #60a5fa", borderLeft:"3px solid #60a5fa", borderRadius:10 }}>
+          <div style={{ fontSize:10, color:"#60a5fa", letterSpacing:2.5, textTransform:"uppercase", fontWeight:700, marginBottom:10 }}>Next · A3 Advocate</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, lineHeight:1.7, color:"var(--text)", fontStyle:"italic", margin:0 }}>
+            We are all leaders of our own life. The question is — <strong style={{ color:"#60a5fa", fontWeight:500, fontStyle:"normal" }}>how well are we leading?</strong> You have clarity now. Let's look at how you surround yourself — the people, habits, places, and thoughts that either hold the new way in place, or keep pulling you back to the old one.
+          </div>
+        </div>
+
+        <div style={{ marginBottom:22, marginTop:24 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="a2 mirror"
+            placeholder="Ask Katherine about what your One Thing is asking of you..." />
+        </div>
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "mirror"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+        </div>
+      </div>
+    );
+  }
+  if (a2Step === "map") {
+    const mapIdx = A2_STEPS.findIndex(s => s.id === "map");
+    const prevStep = A2_STEPS[mapIdx - 1];
+
+    // A1 anchors
+    const purposeM = map.purpose_final || map.purpose_draft || "";
+    const bagM = map.growth_sentence || map.growth_summary || "";
+    const oneyrM = map.oneyr_growth_sentence || "";
+
+    // A2 One Thing
+    const a2OneThing2 = map.a2_one_thing || "";
+    const a2OneThingConfirmed2 = !!map.a2_one_thing_confirmed;
+
+    // A2 Key Misalignment focus
+    const misalignP = computeMisalignments(map);
+    const pinnedIdP = map.a2_km_pinned_id;
+    const primaryP = pinnedIdP ? misalignP.find(m => m.id === pinnedIdP) : null;
+
+    // A2 Trades from Time Audit Phase 3
+    const swapsP = map.a2_ta_swaps || {};
+    const wishesP = map.a2_ta_wishes || [];
+    const actsMapP = (map.a2_ta_acts || []).reduce((o, a) => ({ ...o, [a.id]: a }), {});
+    const tradesList = Object.entries(swapsP)
+      .filter(([wid, sw]) => sw && sw.fromId && sw.when && (sw.fromId === "__have_time__" || sw.hours))
+      .map(([wid, sw]) => {
+        const wish = wishesP.find(w => w.id === wid);
+        if (!wish) return null;
+        const fromAct = sw.fromId !== "__have_time__" ? actsMapP[sw.fromId] : null;
+        const timelineLabel = sw.fromId === "__have_time__"
+          ? (sw.when === "3mo" ? "Starting in under 3 months" : sw.when === "6mo" ? "Starting in under 6 months" : "Over 12 months")
+          : (sw.when === "3mo" ? "Within 3 months" : sw.when === "6mo" ? "Within 6 months" : "Over 12 months");
+        return {
+          id: wid,
+          haveTime: sw.fromId === "__have_time__",
+          from: fromAct?.label || "",
+          to: wish.label,
+          hours: sw.hours || wish.hours,
+          when: timelineLabel,
+          hasNonTimeBlock: sw.block === "not_time" || sw.block === "both",
+        };
+      })
+      .filter(Boolean);
+
+    // Future Self Letter data
+    const fslSectionsMap = [map.a2_fsl_s1, map.a2_fsl_s2, map.a2_fsl_s3, map.a2_fsl_s4];
+    const fslWritten = fslSectionsMap.filter(s => s && s.trim()).length;
+    const fslReflectionMap = map.a2_fsl_reflection || "";
+
+    // Modal state
+    const editOpen = !!map.a2_mm_edit_open;
+    const editDraft = map.a2_mm_edit_draft !== undefined ? map.a2_mm_edit_draft : a2OneThing2;
+    const history = map.a2_one_thing_history || [];
+
+    const openEdit = () => {
+      set("a2_mm_edit_draft", a2OneThing2);
+      set("a2_mm_edit_open", true);
+    };
+    const closeEdit = () => {
+      set("a2_mm_edit_open", false);
+      set("a2_mm_edit_draft", undefined);
+    };
+    const saveEdit = () => {
+      const newText = (editDraft || "").trim();
+      if (!newText) { closeEdit(); return; }
+      if (a2OneThing2 && a2OneThing2 !== newText) {
+        const now = new Date().toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+        set("a2_one_thing_history", [{ date: now, text: a2OneThing2 }, ...history]);
+      }
+      set("a2_one_thing", newText);
+      closeEdit();
+    };
+
+    const buildBrandedPdf = async (docTitle, render) => {
+      const [JsPDF, logoData] = await Promise.all([
+        loadJsPDF(),
+        loadLogoBase64().catch(() => ""),
+      ]);
+      const doc = new JsPDF({ unit: "pt", format: "a4" });
+      const pw = doc.internal.pageSize.getWidth();
+      const ph = doc.internal.pageSize.getHeight();
+      const marginX = 40;
+      const maxW = pw - marginX * 2;
+      const safeName = (map.name || intake?.name || "User").toString();
+      const NAVY = [27, 42, 75];
+      const GOLD = [201, 168, 76];
+      const TEXT = [50, 50, 50];
+      const MUTED = [100, 100, 100];
+      const HEADER_H = 70;
+      const LOGO_PT = 56.7;
+      const drawHeader = () => {
+        doc.setFillColor(NAVY[0], NAVY[1], NAVY[2]);
+        doc.rect(0, 0, pw, HEADER_H, "F");
+        let textX = marginX;
+        if (logoData) {
+          try {
+            doc.addImage(logoData, "PNG", marginX / 2, (HEADER_H - LOGO_PT) / 2, LOGO_PT, LOGO_PT);
+            textX = marginX / 2 + LOGO_PT + 12;
+          } catch (e) {}
+        }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(255, 255, 255);
+        doc.text("AccelerateGrowth45", textX, HEADER_H / 2 - 4);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.text(`True Ownership  ·  ${safeName}'s ${docTitle}`, textX, HEADER_H / 2 + 12);
+      };
+      const drawFooter = () => {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+        doc.text(new Date().toLocaleDateString(), marginX, ph - 20);
+        const pageNum = doc.internal.getNumberOfPages();
+        doc.text(`Page ${pageNum}`, pw - marginX, ph - 20, { align: "right" });
+      };
+      drawHeader();
+      let y = HEADER_H + 24;
+      const newPage = () => { doc.addPage(); drawHeader(); y = HEADER_H + 24; };
+      const ensure = (need) => { if (y + need > ph - 40) newPage(); };
+      const sectionHeading = (label) => {
+        ensure(36);
+        y += 8;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.text(label.toUpperCase(), marginX, y);
+        y += 6;
+        doc.setDrawColor(GOLD[0], GOLD[1], GOLD[2]);
+        doc.setLineWidth(0.7);
+        doc.line(marginX, y, marginX + 60, y);
+        y += 16;
+      };
+      const writeText = (text, opts = {}) => {
+        if (!text) return;
+        const { font = "helvetica", style = "normal", size = 10, color = TEXT, indent = 0, lineH = 14, gap = 4 } = opts;
+        doc.setFont(font, style);
+        doc.setFontSize(size);
+        doc.setTextColor(color[0], color[1], color[2]);
+        const lines = doc.splitTextToSize(String(text), maxW - indent);
+        for (const line of lines) {
+          ensure(lineH);
+          doc.text(line, marginX + indent, y);
+          y += lineH;
+        }
+        y += gap;
+      };
+      // Run page-content callback
+      render({ doc, sectionHeading, writeText, ensure, GOLD, TEXT, MUTED, NAVY, marginX, maxW, getY: () => y, setY: (v) => { y = v; } });
+      // Footer on every page
+      const total = doc.internal.getNumberOfPages();
+      for (let p = 1; p <= total; p++) { doc.setPage(p); drawFooter(); }
+      return doc;
+    };
+
+    const downloadLetter = async () => {
+      try {
+        const docName = map.name || intake?.name || "you";
+        const doc = await buildBrandedPdf("Future Self Letter", ({ sectionHeading, writeText, TEXT, GOLD }) => {
+          // Title block
+          writeText("A Letter to " + docName, { font: "times", style: "bolditalic", size: 22, color: TEXT, lineH: 26, gap: 4 });
+          writeText("From your future self", { font: "helvetica", style: "italic", size: 11, color: GOLD, lineH: 14, gap: 18 });
+
+          const sections = [
+            { label: "On the time that matters",  body: map.a2_fsl_s1 || "" },
+            { label: "On the time to let go",     body: map.a2_fsl_s2 || "" },
+            { label: "On what you haven't started", body: map.a2_fsl_s3 || "" },
+            { label: "On why this is urgent",     body: map.a2_fsl_s4 || "" },
+          ];
+          sections.forEach((s, idx) => {
+            sectionHeading(s.label);
+            if (s.body && s.body.trim()) {
+              writeText(s.body, { font: "times", style: "italic", size: 12, color: TEXT, lineH: 17, gap: 8 });
+            } else {
+              writeText("(not written)", { font: "helvetica", style: "italic", size: 10, color: [150, 150, 150], lineH: 13, gap: 8 });
+            }
+            // Urgency line between section 2 and 3
+            if (idx === 1) {
+              writeText("The clock is running. Mine has more behind it than yours does ahead. Don't waste it.",
+                { font: "times", style: "italic", size: 11, color: [180, 80, 60], lineH: 15, gap: 14 });
+            }
+          });
+          // Signature
+          writeText("— You, from your future", { font: "times", style: "italic", size: 12, color: TEXT, lineH: 16, gap: 8 });
+
+          if ((map.a2_fsl_reflection || "").trim()) {
+            sectionHeading("Reflection — what's sitting with me");
+            writeText(map.a2_fsl_reflection, { font: "times", style: "italic", size: 11, color: TEXT, lineH: 15, gap: 4 });
+          }
+        });
+        doc.save(`${docName.toLowerCase().replace(/\s+/g, "-")}-future-self-letter.pdf`);
+      } catch (e) {
+        console.error("Letter PDF failed:", e);
+        alert("PDF download failed. Please try again.");
+      }
+    };
+
+    const downloadSnapshot = async () => {
+      try {
+        const docName = map.name || intake?.name || "you";
+        const todayStr = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+        const doc = await buildBrandedPdf("One Thing Snapshot", ({ sectionHeading, writeText, TEXT, GOLD, MUTED }) => {
+          writeText("Your One Thing", { font: "times", style: "bolditalic", size: 22, color: TEXT, lineH: 26, gap: 4 });
+          writeText(todayStr + "  ·  this year and beyond", { font: "helvetica", style: "italic", size: 11, color: GOLD, lineH: 14, gap: 22 });
+
+          // Purpose
+          if (purposeM) {
+            sectionHeading("Purpose");
+            writeText(purposeM, { font: "times", style: "italic", size: 12, color: TEXT, lineH: 16, gap: 6 });
+          }
+
+          // The One Thing
+          sectionHeading("Your One Thing");
+          if (a2OneThing2) {
+            writeText("\"" + a2OneThing2 + "\"", { font: "times", style: "italic", size: 16, color: TEXT, lineH: 22, gap: 8 });
+          } else {
+            writeText("(not yet written)", { font: "helvetica", style: "italic", size: 11, color: [150, 150, 150], lineH: 14, gap: 6 });
+          }
+
+          // Focus
+          if (primaryP) {
+            sectionHeading("Your A2 Focus");
+            writeText(primaryP.label, { font: "helvetica", style: "bold", size: 12, color: TEXT, lineH: 15, gap: 2 });
+            writeText(primaryP.source + "  ·  scored " + primaryP.score + "/10", { font: "helvetica", style: "normal", size: 10, color: MUTED, lineH: 13, gap: 8 });
+          }
+
+          // Trades
+          if (tradesList.length > 0) {
+            sectionHeading("Trades you committed to");
+            tradesList.forEach((t) => {
+              const line = t.haveTime
+                ? "·  Start " + t.to + "   (" + t.when + ")"
+                : "·  " + t.hours + "h from " + t.from + "  →  " + t.to + "   (" + t.when + ")";
+              writeText(line, { font: "helvetica", style: "normal", size: 10, color: TEXT, lineH: 15, gap: 2 });
+              if (t.hasNonTimeBlock) {
+                writeText("    routes to A3 (non-time block)", { font: "helvetica", style: "italic", size: 9, color: MUTED, lineH: 12, gap: 4 });
+              }
+            });
+            writeText("", { gap: 8 });
+            writeText("These carry forward to A4. Non-time blocks route to A3.", { font: "helvetica", style: "italic", size: 9, color: MUTED, lineH: 12, gap: 4 });
+          }
+        });
+        doc.save(`${docName.toLowerCase().replace(/\s+/g, "-")}-one-thing-snapshot.pdf`);
+      } catch (e) {
+        console.error("Snapshot PDF failed:", e);
+        alert("PDF download failed. Please try again.");
+      }
+    };
+
+    return wrapA2(
+      <div>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:10 }}>My Map of Me</div>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:400, lineHeight:1.2, marginBottom:8, letterSpacing:"-0.3px" }}>What you're carrying</h2>
+        <p style={{ fontSize:13, color:"var(--text3)", fontStyle:"italic", margin:"0 0 28px" }}>
+          Return here quarterly. Read slowly.
+        </p>
+
+        {!a2OneThing2 ? (
+          <div style={{
+            padding:"32px 36px", marginBottom:40,
+            background:"linear-gradient(145deg, rgba(201,168,76,.08), rgba(96,165,250,.04))",
+            border:"1px solid rgba(201,168,76,.25)", borderRadius:16,
+          }}>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:18 }}>A2 · what you're carrying</div>
+            {purposeM && (
+              <div style={{ marginBottom:22, padding:"14px 18px", background:"rgba(0,0,0,.25)", borderLeft:"2px solid var(--text3)", borderRadius:4 }}>
+                <div style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:6 }}>Purpose · from A1</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6 }}>"{purposeM}"</div>
+              </div>
+            )}
+            <div style={{ padding:"28px 24px", background:"rgba(0,0,0,.3)", border:"1px dashed var(--border2)", borderRadius:10, textAlign:"center" }}>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, marginBottom:10 }}>Your One Thing</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text4)", lineHeight:1.7, marginBottom:14 }}>
+                Complete A2 to write your One Thing.
+              </div>
+              <button onClick={() => a2Goto("mirror")}
+                style={{ padding:"8px 18px", borderRadius:14, background:"var(--warm)", color:"var(--bg)", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                Go to A2 Mirror →
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            padding:"32px 36px", marginBottom:40,
+            background:"linear-gradient(145deg, rgba(201,168,76,.08), rgba(96,165,250,.04))",
+            border:"1px solid rgba(201,168,76,.25)", borderRadius:16,
+          }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18, gap:10, flexWrap:"wrap" }}>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700 }}>A2 · what you're carrying</div>
+              {history.length > 0 && (
+                <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic" }}>
+                  {history.length} previous version{history.length === 1 ? "" : "s"}
+                </div>
+              )}
+            </div>
+
+            {/* Purpose pull-forward */}
+            {purposeM && (
+              <div style={{ marginBottom:22, padding:"14px 18px", background:"rgba(0,0,0,.25)", borderLeft:"2px solid var(--text3)", borderRadius:4 }}>
+                <div style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", fontWeight:600, marginBottom:6 }}>Purpose · from A1</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6 }}>"{purposeM}"</div>
+              </div>
+            )}
+
+            {/* One Thing hero */}
+            <div style={{ padding:"26px 28px", background:"rgba(0,0,0,.35)", border:"1.5px solid var(--warm)", borderRadius:12, marginBottom:26 }}>
+              <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:12 }}>Your One Thing · this year and beyond</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:22, fontStyle:"italic", color:"var(--text)", lineHeight:1.6, marginBottom:16 }}>
+                "{a2OneThing2}"
+              </div>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                <button onClick={openEdit}
+                  style={{ padding:"7px 14px", borderRadius:14, background:"transparent", color:"var(--text2)", border:"1px solid var(--border2)", cursor:"pointer", fontSize:12 }}>
+                  ✎ Edit
+                </button>
+                {history.length > 0 && (
+                  <button onClick={openEdit}
+                    style={{ padding:"7px 14px", borderRadius:14, background:"transparent", color:"var(--text2)", border:"1px solid var(--border2)", cursor:"pointer", fontSize:12 }}>
+                    📜 See previous versions
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Focus */}
+            {primaryP && (
+              <div style={{ marginBottom:26, padding:"18px 22px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.25)", borderRadius:10 }}>
+                <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"#ef4444", fontWeight:700, marginBottom:8 }}>Your A2 focus</div>
+                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ fontSize:22 }}>{primaryP.icon}</span>
+                  <div>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:18, color:"var(--text)", lineHeight:1.2 }}>{primaryP.label}</div>
+                    <div style={{ fontSize:11, color:"var(--text3)", marginTop:3 }}>{primaryP.source} · scored {primaryP.score}/10 when you looked</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Trades */}
+            {tradesList.length > 0 && (
+              <div style={{ marginBottom:26 }}>
+                <div style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, marginBottom:10 }}>
+                  Trades you committed to · {tradesList.length}
+                </div>
+                {tradesList.map(t => (
+                  <div key={t.id} style={{ padding:"12px 16px", marginBottom:8, background:"rgba(0,0,0,.22)", border:"1px solid var(--border2)", borderRadius:8, display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                    <div style={{ fontSize:13, color:"var(--text)", fontFamily:"var(--serif)" }}>
+                      {t.haveTime ? (
+                        <><span style={{ color:"#34d399" }}>Start {t.to}</span> <span style={{ color:"var(--text4)", fontSize:11 }}>— no trade needed</span></>
+                      ) : (
+                        <><span style={{ color:"#ef4444" }}>{t.hours}h from {t.from}</span> <span style={{ color:"var(--warm)", margin:"0 6px", fontWeight:700 }}>→</span> <span style={{ color:"#34d399" }}>{t.to}</span></>
+                      )}
+                      {t.hasNonTimeBlock && (
+                        <div style={{ fontSize:10, color:"#60a5fa", fontStyle:"italic", marginTop:4 }}>· non-time block · routes to A3</div>
+                      )}
+                    </div>
+                    <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", flexShrink:0 }}>{t.when}</div>
+                  </div>
+                ))}
+                <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", marginTop:8 }}>
+                  You'll turn these into scheduled action in A4. Non-time blocks get worked in A3.
+                </div>
+              </div>
+            )}
+
+            {/* Reflection from Future Self Letter */}
+            {fslReflectionMap && (
+              <div style={{ marginBottom:26, padding:"16px 20px", background:"rgba(96,165,250,.06)", borderLeft:"3px solid #60a5fa", borderRadius:6 }}>
+                <div style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", color:"#60a5fa", fontWeight:700, marginBottom:8 }}>Sitting with you</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.6 }}>"{fslReflectionMap}"</div>
+              </div>
+            )}
+
+            {/* Downloads */}
+            <div style={{ display:"flex", gap:10, flexWrap:"wrap", paddingTop:10, borderTop:"1px solid rgba(255,255,255,.05)" }}>
+              {fslWritten >= 1 && (
+                <button onClick={downloadLetter}
+                  style={{ padding:"10px 18px", borderRadius:14, background:"var(--warm)", color:"var(--bg)", border:"none", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                  ↓ Future Self Letter (PDF)
+                </button>
+              )}
+              <button onClick={downloadSnapshot}
+                style={{ padding:"10px 18px", borderRadius:14, background:"transparent", color:"var(--warm)", border:"1px solid var(--warm)", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                ↓ One Thing Snapshot (PDF)
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Divider to A1 content */}
+        <div style={{ margin:"40px 0 28px", textAlign:"center" }}>
+          <div style={{ display:"inline-block", padding:"6px 18px", background:"var(--bg3)", borderRadius:14, fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600 }}>
+            ↓ Everything you built in A1
+          </div>
+        </div>
+
+        {/* A1 pull-forward summary */}
+        <div style={{ padding:"24px 28px", background:"rgba(255,255,255,.02)", border:"1px solid var(--border2)", borderRadius:12, marginBottom:24 }}>
+          <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, marginBottom:16 }}>A1 · Your Direction</div>
+          {bagM && (
+            <div style={{ marginBottom:14 }}>
+              <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:4 }}>BAG · 10–15 year vision</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.6 }}>"{bagM}"</div>
+            </div>
+          )}
+          {oneyrM && (
+            <div style={{ marginBottom:0 }}>
+              <div style={{ fontSize:10, color:"var(--text3)", letterSpacing:1.5, textTransform:"uppercase", fontWeight:600, marginBottom:4 }}>1-Year growth</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.6 }}>"{oneyrM}"</div>
+            </div>
+          )}
+          {!bagM && !oneyrM && (
+            <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>
+              Your A1 content sits here. Head back to A1 to see it in full.
+            </div>
+          )}
+          <div style={{ marginTop:16, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+            <button onClick={async () => {
+              await saveData(KEYS.step, "map");
+              await saveData(KEYS.phase, "a1");
+              setPhase("a1");
+            }}
+              style={{ padding:"8px 16px", borderRadius:14, background:"transparent", color:"var(--warm)", border:"1px solid var(--warm)", cursor:"pointer", fontSize:12 }}>
+              Open A1 Map of Me →
+            </button>
+          </div>
+        </div>
+
+        {/* Edit modal */}
+        {editOpen && (
+          <div onClick={e => { if (e.target === e.currentTarget) closeEdit(); }}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.75)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(4px)" }}>
+            <div style={{ maxWidth:620, width:"100%", maxHeight:"85vh", overflowY:"auto", padding:"28px 32px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:12 }}>
+              <h2 style={{ fontFamily:"var(--serif)", fontSize:24, fontWeight:400, margin:"0 0 8px", color:"var(--text)" }}>Your One Thing</h2>
+              <p style={{ fontSize:13, color:"var(--text3)", fontStyle:"italic", margin:"0 0 16px", lineHeight:1.6 }}>
+                Rewrite it if something has shifted. Your previous version will be kept below for reference — you'll see how your becoming has evolved over time.
+              </p>
+              <textarea value={editDraft} onChange={e => set("a2_mm_edit_draft", e.target.value)}
+                autoFocus
+                style={{ width:"100%", minHeight:120, padding:"14px 16px", background:"rgba(0,0,0,.3)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", lineHeight:1.7, resize:"vertical", outline:"none" }} />
+              <div style={{ display:"flex", gap:10, marginTop:16, justifyContent:"flex-end" }}>
+                <button onClick={closeEdit}
+                  style={{ padding:"9px 18px", borderRadius:14, background:"transparent", color:"var(--text2)", border:"1px solid var(--border2)", cursor:"pointer", fontSize:13 }}>
+                  Cancel
+                </button>
+                <button onClick={saveEdit}
+                  style={{ padding:"9px 18px", borderRadius:14, background:"var(--warm)", color:"var(--bg)", border:"none", cursor:"pointer", fontSize:13, fontWeight:700 }}>
+                  Save as current
+                </button>
+              </div>
+              {history.length > 0 && (
+                <div style={{ marginTop:24, paddingTop:20, borderTop:"1px solid var(--border)" }}>
+                  <div style={{ fontSize:10, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, marginBottom:10 }}>Previous versions</div>
+                  {history.map((h, i) => (
+                    <div key={i} style={{ padding:"12px 14px", marginBottom:6, background:"rgba(0,0,0,.22)", borderRadius:6 }}>
+                      <div style={{ fontSize:10, color:"var(--text4)", marginBottom:4 }}>{h.date}</div>
+                      <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6 }}>"{h.text}"</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginBottom:22, marginTop:24 }}>
+          <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
+            sectionLabel="my map of me"
+            placeholder="Ask Katherine about your One Thing, or what to return to first..." />
+        </div>
+
+        <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
+          <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "map"])]); onDone && onDone(); }}>
+            A2 complete ✓
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return wrapA2(<div>Unknown step: {a2Step}</div>);
+}
 function Intake({ onDone }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -3610,19 +6503,15 @@ function Intake({ onDone }) {
   const screens = [
     <div key="n" className="fade-up" style={{ maxWidth:540 }}>
       <div style={{ fontSize:11, fontWeight:700, letterSpacing:4, textTransform:"uppercase", color:"#c9a84c", marginBottom:14, fontFamily:"var(--sans)" }}>AG45 · True Ownership</div>
-
       <h1 style={{ fontFamily:"var(--serif)", fontSize:52, fontWeight:400, lineHeight:1.0, letterSpacing:"-0.5px", marginBottom:18 }}>
         To own your life,<br /><em>you must first<br />belong to yourself.</em>
       </h1>
-
       <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, maxWidth:480, marginBottom:22 }}>
         True Ownership is not about your business or your role. It is about being the CEO of your life -- knowing who you are, what you want, and where you are going. And beginning to live by that person.
       </p>
-
       <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, maxWidth:480, marginBottom:28 }}>
         That means trusting yourself -- your intuition, your logic, your experiences. It also means building the right advocates around you. But you cannot choose them wisely until you are clear about yourself. Everything starts with you.
       </p>
-
       {/* The 5 As */}
       <div style={{ marginBottom:28, padding:"18px 20px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:11 }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:14, fontFamily:"var(--sans)" }}>The Five As -- Your Journey</div>
@@ -3644,13 +6533,11 @@ function Intake({ onDone }) {
           </div>
         ))}
       </div>
-
       <div style={{ padding:"14px 18px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.14)", borderRadius:9, marginBottom:28 }}>
         <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.8 }}>
           "This system is one of your board of advisors -- a mirror that reflects your own thinking back more clearly. It does not think for you. You are the authority on your own life."
         </div>
       </div>
-
       <label style={{ display:"block", fontFamily:"var(--sans)", fontSize:13, color:"var(--text3)", marginBottom:7 }}>What's your first name?</label>
       <TextInput value={name} onChange={setName} placeholder="Your name..." style={{ fontSize:13, fontWeight:500, padding:"15px 19px", marginBottom:20 }} />
       <button className="btn" disabled={!name.trim()} onClick={() => setStep(1)}>Begin →</button>
@@ -3721,7 +6608,6 @@ function Intake({ onDone }) {
     </div>
   );
 }
-
 const STEPS = [
   { id:"to_intro", label:"True Ownership" },
   { id:"intro",   label:"Introduction" },
@@ -3734,7 +6620,6 @@ const STEPS = [
   { id:"align",   label:"Alignment Check" },
   { id:"map",     label:"My Map of Me" },
 ];
-
 const EMPTY_MAP = {
   purpose_layers: [""],
   purpose_draft: "", purpose_final: "",
@@ -3786,7 +6671,6 @@ const EMPTY_MAP = {
   behaviors_note: "",
   align_direction:5, align_superpowers:5, align_behaviors:5,
 };
-
 const MIRROR_CARDS = [
   { side:"internal", id:"purpose",    icon:"🔥", label:"Purpose",    color:"#c9a84c", colorMuted:"rgba(232,149,109,0.08)", colorBorder:"rgba(232,149,109,0.2)", pair:"mirror1", tagline:"Your internal north star",          description:"Purpose is the internal reason you exist -- the impact your presence creates regardless of any role or outcome. Not your business, not your family -- those are expressions of it. Your purpose stays constant when everything else changes. Short enough to say in the car. True enough to get you out of bed on a hard day.", katherine:"\"When I ask people what their purpose is, they usually say their kids or their business. That's not purpose -- those are attachments. Purpose needs to be 100% internal to you.\"" },
   { side:"internal", id:"identity",   icon:"🦁", label:"Identity",   color:"#c9a84c", colorMuted:"rgba(79,203,242,0.08)",  colorBorder:"rgba(79,203,242,0.2)",  pair:"mirror2", tagline:"Who you are at your best",           description:"Identity is your internal superpowers anchored to animals -- because people remember images, not word lists. Two adjectives make it specific to you, not the generic animal. And if you're too aligned with one animal, you might be in detriment of the others.", katherine:"\"I had a client tell me: 'I was in my crazy monkey and I realized I needed to bring the lion out.' That's how this works -- you glance at it and immediately know what you need.\"" },
@@ -3795,7 +6679,6 @@ const MIRROR_CARDS = [
   { side:"external", id:"superpowers",icon:"⚡", label:"Superpowers",color:"#a78bfa", colorMuted:"rgba(167,139,250,0.08)", colorBorder:"rgba(167,139,250,0.2)", pair:"mirror2", tagline:"How your identity shows up in the world",description:"Each animal has a superpower and a detriment. The superpower is what it enables when working for you. The detriment is what happens when it goes too far. Knowing both lets you call on the right animal at the right moment -- and catch yourself when one is running unchecked.", katherine:"\"The superpower is why you chose this animal. The dark side is the thing that costs you when it's out of balance. Both are data.\"" },
   { side:"external", id:"behaviors",  icon:"🎯", label:"Behaviors",  color:"#34d399", colorMuted:"rgba(52,211,153,0.08)",  colorBorder:"rgba(52,211,153,0.2)",  pair:"mirror3", tagline:"How your values show up in action",     description:"Behaviors are the external proof of your values. Not what you believe -- how you act when it costs you something. For each value we define what living it looks like, and the violation signal that tells you it's being stomped on. Values become a decision filter, not a motivational poster.", katherine:"\"A value without a behavior attached to it is just a word on a wall. We define the behavior so you can actually use it.\"" },
 ];
-
 function SoWhatLayer({ index, value, onChange, isLatest, onGoDeeper, onReachedBottom, loading, done }) {
   const ref = useRef(null);
   const lastVal = useRef(value);
@@ -3859,18 +6742,15 @@ function SoWhatLayer({ index, value, onChange, isLatest, onGoDeeper, onReachedBo
     </div>
   );
 }
-
 function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalChange, purposeResult, onResult, name, intake, allSessions, onSessionSave }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(!!purposeResult);
   const [sessionKey, setSessionKey] = useState(0);
   const [peelingExpanded, setPeelingExpanded] = useState(false);
   const sessions = allSessions || [];
-
   const updateLayer = useCallback((i, val) => {
     const next = [...layers]; next[i] = val; onLayersChange(next);
   }, [layers, onLayersChange]);
-
   const goDeeper = useCallback(() => {
     const domTextareas = document.querySelectorAll('.purpose-peel-ta');
     if (domTextareas.length > 0) {
@@ -3880,7 +6760,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
       onLayersChange([...layers, ""]);
     }
   }, [layers, onLayersChange]);
-
   const reachedBottom = useCallback(async () => {
     const domTextareas = document.querySelectorAll('.purpose-peel-ta');
     const currentLayers = domTextareas.length > 0 ? Array.from(domTextareas).map(ta => ta.value || "") : layers;
@@ -3921,9 +6800,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
     }
     setLoading(false);
   }, [name, intake, onResult, onFinalChange, sessions, onSessionSave, purposeFinal, layers]);
-
   const latestIndex = layers.length - 1;
-
   const restartPeeling = useCallback(() => {
     onLayersChange([""]);
     onResult(null);
@@ -3932,7 +6809,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
     setPeelingExpanded(false);
     setSessionKey(k => k + 1);
   }, [onLayersChange, onResult, onFinalChange]);
-
   return (
     <div>
       {sessions.length > 0 && (
@@ -3952,7 +6828,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
           {sessions.length > 0 ? `"Welcome back, ${name}. Each time you return to this, you go deeper. What surfaces today may be different -- and that is the point."` : '"Purpose is discovered by peeling -- not by thinking hard. Answer each so what\'s? until something feels final."'}
         </div>
       </div>
-
       {/* COLLAPSED VIEW */}
       {done && !peelingExpanded && (
         <div className="fade-in" style={{ marginBottom:14, padding:"12px 14px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
@@ -3961,7 +6836,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
           <button onClick={() => setPeelingExpanded(true)} style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px" }}>▾ Show peeling layers</button>
         </div>
       )}
-
       {/* EXPANDED VIEW */}
       {(!done || peelingExpanded) && (
         <>
@@ -3979,7 +6853,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
           )}
         </>
       )}
-
       {purposeResult && (
         <div className="fade-in" style={{ marginTop:8 }}>
           {purposeResult._error && (
@@ -4047,7 +6920,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
     </div>
   );
 }
-
 function ResultCard({ color, label, children, serif }) {
   return (
     <div style={{ padding:"9px 13px", background:"var(--bg3)", borderLeft:`2px solid ${color}`, borderRadius:"0 7px 7px 0", marginBottom:7 }}>
@@ -4056,7 +6928,6 @@ function ResultCard({ color, label, children, serif }) {
     </div>
   );
 }
-
 function MirrorCard({ card, isOpen, onToggle, onGoto }) {
   return (
     <div onClick={() => onToggle(card.id)} style={{ background:isOpen ? card.colorMuted : "var(--bg3)", border:`1px solid ${isOpen ? card.colorBorder : "var(--border2)"}`, borderRadius:10, cursor:"pointer", transition:"background .22s, border-color .22s", overflow:"hidden", marginBottom:7, minHeight:80 }}>
@@ -4081,7 +6952,6 @@ function MirrorCard({ card, isOpen, onToggle, onGoto }) {
     </div>
   );
 }
-
 const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
   const [expanded, setExpanded] = useState(null);
   const toggle = useCallback((id) => setExpanded(prev => prev === id ? null : id), []);
@@ -4121,16 +6991,13 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
     </div>
   );
 });
-
 const STOP_WORDS = new Set(["i","a","an","the","and","or","but","in","on","at","to","for","of","with","it","is","are","was","were","be","been","being","have","has","had","do","does","did","will","would","could","should","may","might","this","that","these","those","my","your","their","our","what","how","when","where","who","which","not","no","so","as","if","by","from","up","about","into","than","then","its","me","him","her","us","them","can","get","got","just","also","very","more","most","some","any","all","both","each","few","much","many","other","own","same","too","only","over","such","even","after","before","there","here","out","one","two","three","way","time","day","make","made","like","go","come","know","take","see","think","really","actually","show","shows","something","someone","things","thing","because","able","often","well","always","never","still","yet","already","now","back","first","last","through","every","another","again","around","new","good","great","right","down","off","really","it's","i'm","don't","won't","isn't","wasn't","doesn't","didn't","can't","that's","they're","we're","you're"]);
-
 function extractKeywords(text: string, n = 6): string[] {
   const words = text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
   const freq: Record<string, number> = {};
   words.forEach(w => { if (!STOP_WORDS.has(w)) freq[w] = (freq[w] || 0) + 1; });
   return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, n).map(([w]) => w);
 }
-
 function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
   const [isOpen, setIsOpen] = useState(false);
   const [collapsedCaps, setCollapsedCaps] = useState<Record<number,boolean>>({});
@@ -4153,7 +7020,6 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
     : null;
   const avgCol = avgScore == null ? "var(--text4)" : avgScore >= 7 ? "#34d399" : avgScore >= 5 ? "#f59e0b" : "#ef4444";
   const animalTitle = [animal.adj1, animal.adj2, animal.name].filter(Boolean).join(" ");
-
   const updateCap = (ci, field, val) => {
     const nextAnimals = [...m2animals];
     const nextCaps = [...caps];
@@ -4167,7 +7033,6 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
     nextAnimals[animalIdx] = { ...nextAnimals[animalIdx], capabilities: nextCaps };
     set("animals", nextAnimals);
   };
-
   return (
     <div style={{ marginBottom:14, background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, overflow:"hidden" }}>
       {/* Collapsible header */}
@@ -4277,14 +7142,12 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
               + Add capability
             </button>
           )}
-
         </div>
       )}
     </div>
   );
 }
-
-function A1({ intake, onDone }) {
+function A1({ intake, onDone, phase, setPhase }) {
   const [step, setStep] = useState("to_intro");
   const [voice, setVoice] = useState(intake.defaultVoice);
   const [done, setDone] = useState([]);
@@ -4296,7 +7159,6 @@ function A1({ intake, onDone }) {
   const [dragOver, setDragOver] = useState(null);
   const saveTimer = useRef(null);
   const { name } = intake;
-
   useEffect(() => {
     Promise.all([loadData(KEYS.map), loadData(KEYS.done), loadData(KEYS.step), loadData(KEYS.voice)]).then(([m, d, s, v]) => {
       if (m) setMap({ ...EMPTY_MAP, ...m });
@@ -4305,16 +7167,13 @@ function A1({ intake, onDone }) {
       if (v) setVoice(v);
     });
   }, []);
-
   const saveMap = useCallback((next) => {
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => { await saveData(KEYS.map, next); setSavedAt(new Date()); }, 800);
   }, []);
-
   const set = useCallback((key, val) => {
     setMap(prev => { const next = { ...prev, [key]:val }; saveMap(next); return next; });
   }, [saveMap]);
-
   // Auto-seed capabilities from chips when entering capabilities step
   useEffect(() => {
     if (map.mirror2_sub !== "capabilities") return;
@@ -4335,12 +7194,10 @@ function A1({ intake, onDone }) {
     saveMap(next);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map.mirror2_sub]);
-
   const setVoicePersist = (v) => { setVoice(v); saveData(KEYS.voice, v); };
   const goto = (s) => { setStep(s); saveData(KEYS.step, s); window.scrollTo({ top:0, behavior:"smooth" }); };
   const markDone = (s) => setDone(prev => { const n = [...new Set([...prev, s])]; saveData(KEYS.done, n); return n; });
   const runAI = async (key, prompt) => { setBusy(b => ({ ...b, [key]:true })); const r = await callStructured(prompt); setAi(a => ({ ...a, [key]:r })); setBusy(b => ({ ...b, [key]:false })); };
-
   const hdr = (
     <div style={{ borderBottom:"1px solid #1a1a16", padding:"11px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", position:"sticky", top:0, background:"rgba(13,27,46,.96)", backdropFilter:"blur(12px)", zIndex:50 }}>
       <div style={{ display:"flex", alignItems:"center", gap:11 }}>
@@ -4354,22 +7211,28 @@ function A1({ intake, onDone }) {
           <span style={{ fontFamily:"var(--sans)", fontSize:11, color:"#34d399" }}>{savedAt ? `Saved ${savedAt.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}` : ""}</span>
         </div>
         <div style={{ display:"flex", gap:5 }}>
-          {["A1","A2","A3","A4","A5"].map((a, i) => (
-            <div key={a} style={{ width:25, height:25, borderRadius:"50%", background:i === 0 ? "rgba(201,168,76,.1)" : "transparent", border:`1px solid ${i === 0 ? "rgba(232,149,109,.32)" : "var(--border)"}`, display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <span style={{ fontFamily:"var(--sans)", fontSize:10, color:i === 0 ? "var(--warm)" : "var(--text4)", fontWeight:500 }}>{a}</span>
-            </div>
-          ))}
+          {["A1","A2","A3","A4","A5"].map((a, i) => {
+            const key = a.toLowerCase();
+            const isActive = phase === key;
+            const isAvailable = key === "a1" || key === "a2" || phase === "done";
+            return (
+              <div key={a}
+                onClick={() => { if (isAvailable) setPhase(key); }}
+                title={isAvailable ? (isActive ? `You are in ${a}` : `Jump to ${a}`) : `${a} coming soon`}
+                style={{ width:25, height:25, borderRadius:"50%", background: isActive ? "rgba(201,168,76,.18)" : "transparent", border:`1px solid ${isActive ? "rgba(232,149,109,.55)" : "var(--border)"}`, display:"flex", alignItems:"center", justifyContent:"center", cursor: isAvailable ? "pointer" : "not-allowed", opacity: isAvailable ? 1 : 0.4, transition:"background .15s, border-color .15s" }}>
+                <span style={{ fontFamily:"var(--sans)", fontSize:10, color: isActive ? "var(--warm)" : "var(--text4)", fontWeight: isActive ? 700 : 500 }}>{a}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
-
   const sidebar = (
     <div style={{ width:186, flexShrink:0, paddingRight:22, borderRight:"1px solid var(--border)" }}>
       <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text2)", marginBottom:15, fontFamily:"var(--sans)" }}>All In It · A1</div>
-      {STEPS.map(s => {
-        const autoDone = (s.id === "to_intro" && step !== "to_intro") ||
-                         (s.id === "intro"  && (((map.purpose_layers || [])[0] || "").trim() || step !== "intro")) ||
+      {STEPS.filter(s => s.id !== "direction_align" && s.id !== "align").map(s => {
+        const autoDone = (s.id === "intro"  && (((map.purpose_layers || [])[0] || "").trim() || step !== "intro")) ||
                          (s.id === "mirror2" && (map.animals?.length >= 1 && map.animals[0]?.name));
         const active = step === s.id, isDone = done.includes(s.id) || !!autoDone;
         return (
@@ -4385,7 +7248,6 @@ function A1({ intake, onDone }) {
       </div>
     </div>
   );
-
   const wrapContent = (children) => (
     <>
       {hdr}
@@ -4397,30 +7259,10 @@ function A1({ intake, onDone }) {
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           {savedAt ? (<><div style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", flexShrink:0 }} /><span style={{ fontFamily:"var(--sans)", fontSize:11, color:"#34d399" }}>Auto-saved · {savedAt.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}</span></>) : (<><div style={{ width:6, height:6, borderRadius:"50%", background:"var(--text4)", flexShrink:0 }} /><span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Auto-saving your answers as you type</span></>)}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-          <button
-            onClick={() => {
-              if (!confirm(`Change your name? (Your progress stays -- just your name is updated.)`)) return;
-              const newName = (window.prompt("What should I call you?", name) || "").trim();
-              if (!newName) return;
-              const updatedIntake = { ...intake, name: newName };
-              saveData(KEYS.intake, updatedIntake);
-              // Reload so the updated intake propagates everywhere (name is read in many places)
-              window.location.reload();
-            }}
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              fontFamily: "var(--sans)", fontSize: 11, color: "var(--text4)",
-              padding: 0, textDecoration: "underline",
-            }}
-            title="Change your name"
-          >Not {name}?</button>
-          <span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Your progress is safe -- come back any time</span>
-        </div>
+        <span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Your progress is safe -- come back any time</span>
       </div>
     </>
   );
-
   if (step === "direction_1yr") {
     return wrapContent(<>
       <DirectionTimeline_v2 activeHorizon="oneyr" map={map} />
@@ -4440,7 +7282,7 @@ function A1({ intake, onDone }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
-        <button className="btn" onClick={() => { markDone("direction_1yr"); goto("direction_align"); }}>Direction Alignment →</button>
+        <button className="btn" onClick={() => { markDone("direction_1yr"); goto("map"); }}>My Map of Me →</button>
       </div>
     </>);
   }
@@ -4463,22 +7305,18 @@ function A1({ intake, onDone }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-Year</button>
-        <button className="btn" onClick={() => { markDone("direction_align"); goto("align"); }}>Alignment Check →</button>
+        <button className="btn" onClick={() => { markDone("direction_align"); goto("map"); }}>My Map of Me →</button>
       </div>
     </>);
   }
-
   if (step === "to_intro") return wrapContent(<>
     <div className="lbl" style={{ marginBottom:11, color:"#B07312" }}>AG45 · The OWN IT Methodology</div>
-
     <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.05, marginBottom:16, letterSpacing:"-0.5px" }}>
       You are the spine.<br /><em style={{ color:"#1D9E75" }}>How aligned are you?</em>
     </h2>
-
     <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.7, marginBottom:14, maxWidth:620 }}>
       The 5 A&rsquo;s are the spine of True Ownership. Move through each one &mdash; first as the owner you are becoming, then as the business you are building.
     </p>
-
     {/* True Ownership destination banner */}
     <div style={{ background:"linear-gradient(135deg,#12163A 0%,#0A2E22 100%)", borderRadius:16, padding:"22px 26px", textAlign:"center", color:"#fff", border:"1px solid rgba(186,117,23,0.35)", position:"relative", overflow:"hidden", margin:"18px 0 16px" }}>
       <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:"linear-gradient(90deg,#1B1F4B,#B07312,#0F6E56)" }} />
@@ -4495,7 +7333,6 @@ function A1({ intake, onDone }) {
         <span style={{ fontFamily:"var(--serif)", fontSize:13, fontWeight:700, color:"#FAC775", borderBottom:"1px solid rgba(186,117,23,0.5)", paddingBottom:1 }}>True Ownership</span>
       </div>
     </div>
-
     {/* Guidance strip */}
     <div style={{ margin:"14px 0 12px", display:"flex", alignItems:"center", justifyContent:"center", gap:14, padding:"10px 16px", background:"var(--bg2)", border:"1px dashed var(--border2)", borderRadius:12, fontSize:12, color:"var(--text2)", flexWrap:"wrap" }}>
       <span style={{ display:"flex", alignItems:"center", gap:6, fontWeight:500, color:"#B07312", letterSpacing:"0.04em" }}>
@@ -4503,7 +7340,6 @@ function A1({ intake, onDone }) {
       </span>
       <span style={{ fontStyle:"italic", fontSize:12.5, color:"var(--text3)" }}>Open each card as you go. Take in the owner side first, then the business side.</span>
     </div>
-
     {/* Column labels */}
     <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 1fr", gap:0, marginBottom:14, alignItems:"center" }}>
       <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(155,170,224,0.08)", color:"#9BAAE0", border:"0.5px solid rgba(155,170,224,0.25)", position:"relative" }}>
@@ -4518,7 +7354,6 @@ function A1({ intake, onDone }) {
         <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How this shows up in what you build</div>
       </div>
     </div>
-
     {/* Main 5 A's grid */}
     <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 1fr", gap:0, rowGap:10 }}>
       {[
@@ -4526,17 +7361,17 @@ function A1({ intake, onDone }) {
           o:{ lens:"Owner · Commitment Shift",   hook:"“Stop hedging. Both feet in.”", body:"You stop negotiating with your goals. Mentally, emotionally, strategically — all in. Clarity on who you are, what matters, where you’re going.", refl:"Where are you still hedging instead of committing fully?" },
           b:{ lens:"Business · Commitment Shift", hook:"“Your business needs your full bet.”", body:"Clear vision, short and long-term direction. You stop treating the business like a side hustle and start leading it like a CEO.", refl:"Is your business strategy built on full commitment or half-measures?" } },
         { n:2, name:"Align With It", shift:"Integrity", bg:"#0F6E56", numCol:"#9FE1CB",
-          o:{ lens:"Owner · Integrity Shift", hook:"“Alignment isn’t fluff. It’s firepower.”", body:"Your desires, values and identity are the filter. You stop chasing what looks good and start channeling what’s true to you. People feel it.", refl:"Are you building a life that reflects your true power?" },
-          b:{ lens:"Business · Integrity Shift", hook:"“Everything rowing in one direction.”", body:"Strong foundation: purpose, values, brand, direction — aligned to your vision and your team. Strategy and offers coherent, not contradictory.", refl:"What part of the business feels most misaligned?" } },
-        { n:3, name:"Act On It", shift:"Momentum", bg:"#BA7517", numCol:"#FAC775",
-          o:{ lens:"Owner · Momentum Shift", hook:"“Ideas don’t change your life. Actions do.”", body:"Clarity without follow-through is mental clutter. You stop starting and start finishing. A rhythm that paves the path — powered by clarity, not fear.", refl:"Are your actions powered by fear or clarity?" },
-          b:{ lens:"Business · Momentum Shift", hook:"“Soul aligned strategy in motion.”", body:"Aligned strategy broken into measurable actions building toward the longer-term vision. Direction and rhythm — not a plan in a drawer.", refl:"Do your action steps actually move the business toward its vision?" } },
-        { n:4, name:"Accountable", shift:"Mastery", bg:"#2A3580", numCol:"#9FAAE0",
-          o:{ lens:"Owner · Mastery Shift", hook:"“Own the good, the bad, and the ugly.”", body:"You stop spinning when you stop tolerating your own avoidance. Face your results and rise from them. A rhythm that keeps you moving even when motivation fades.", refl:"What truth are you avoiding that needs accountability?" },
-          b:{ lens:"Business · Mastery Shift", hook:"“Show your follow-through, see your future.”", body:"Clear operating rhythm: scorecards, check-ins, accountability — where reflection and celebration become culture. Ambition turns into traction.", refl:"Does your business have a rhythm that holds results even without you?" } },
-        { n:5, name:"Advocate", shift:"Expansion", bg:"#085041", numCol:"#5DCAA5",
+          o:{ lens:"Owner · Integrity Shift", hook:"“Alignment isn’t fluff. It’s firepower.”", body:"Align your why, who you are, and where you’re going with what you want. When your time reflects your values, pressure becomes clarity.", refl:"Is your time aligned with what matters most?" },
+          b:{ lens:"Business · Integrity Shift", hook:"“Everything rowing in one direction.”", body:"Prioritize how and where you spend your time — and get your team bought in. When everyone is rowing in one direction, the business moves.", refl:"Where is your time — and your team’s — most misaligned?" } },
+        { n:3, name:"Advocate", shift:"Expansion", bg:"#085041", numCol:"#5DCAA5",
           o:{ lens:"Owner · Expansion Shift", hook:"“Lone wolf energy won’t build legacy.”", body:"You don’t grow in isolation. You rise when you stop playing small and surround yourself with the right energy, influence and expertise. Let the right people in.", refl:"Do the people around you expand or contract you and your vision?" },
           b:{ lens:"Business · Expansion Shift", hook:"“Growth partnerships. Team alignment.”", body:"Trusted advisors, an aligned team, strategic collaborators. The owner stops being the bottleneck and builds a business that grows beyond them.", refl:"What investment in people or partnerships would accelerate your growth?" } },
+        { n:4, name:"Act On It", shift:"Momentum", bg:"#BA7517", numCol:"#FAC775",
+          o:{ lens:"Owner · Momentum Shift", hook:"“Ideas don’t change your life. Actions do.”", body:"Clarity without follow-through is mental clutter. You stop starting and start finishing. A rhythm that paves the path — powered by clarity, not fear.", refl:"Are your actions powered by fear or clarity?" },
+          b:{ lens:"Business · Momentum Shift", hook:"“Soul aligned strategy in motion.”", body:"Aligned strategy broken into measurable actions building toward the longer-term vision. Direction and rhythm — not a plan in a drawer.", refl:"Do your action steps actually move the business toward its vision?" } },
+        { n:5, name:"Accountable", shift:"Mastery", bg:"#2A3580", numCol:"#9FAAE0",
+          o:{ lens:"Owner · Mastery Shift", hook:"“Own the good, the bad, and the ugly.”", body:"You stop spinning when you stop tolerating your own avoidance. Face your results and rise from them. A rhythm that keeps you moving even when motivation fades.", refl:"What truth are you avoiding that needs accountability?" },
+          b:{ lens:"Business · Mastery Shift", hook:"“Show your follow-through, see your future.”", body:"Clear operating rhythm: scorecards, check-ins, accountability — where reflection and celebration become culture. Ambition turns into traction.", refl:"Does your business have a rhythm that holds results even without you?" } },
       ].map((row:any) => {
         const oKey = `to_intro_o${row.n}_open`;
         const bKey = `to_intro_b${row.n}_open`;
@@ -4568,7 +7403,6 @@ function A1({ intake, onDone }) {
                 </div>
               )}
             </div>
-
             {/* Vertebra center */}
             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"6px 0" }}>
               <div style={{ width:"100%", borderRadius:10, padding:"12px 8px", textAlign:"center", background:row.bg, color:"#fff" }}>
@@ -4577,7 +7411,6 @@ function A1({ intake, onDone }) {
                 <div style={{ fontSize:8.5, opacity:0.7, marginTop:2, fontStyle:"italic", lineHeight:1.2 }}>{row.shift}</div>
               </div>
             </div>
-
             {/* Business card */}
             <div style={{ position:"relative", borderRadius:11, border:"0.5px solid var(--border2)", background:"var(--bg2)", borderRight:"3px solid #5DCAA5", overflow:"visible" }}>
               <div style={{ position:"absolute", top:10, right:-10, width:22, height:22, borderRadius:"50%", background:"#0F6E56", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, boxShadow:"0 4px 10px rgba(15,110,86,0.4)", border:"2px solid var(--bg2)", zIndex:3 }}>{pathRight}</div>
@@ -4604,29 +7437,23 @@ function A1({ intake, onDone }) {
         );
       })}
     </div>
-
     {/* Continue button */}
     <div style={{ marginTop:36, paddingTop:28, borderTop:"1px solid var(--border)", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
       <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Open each card to take it in. When you&rsquo;re ready, continue.</div>
-      <button className="btn" onClick={() => { markDone("to_intro"); goto("intro"); }}>Everything Starts With You &rarr;</button>
+      <button className="btn" onClick={() => goto("intro")}>Everything Starts With You &rarr;</button>
     </div>
   </>);
-
   if (step === "intro") return wrapContent(<>
     <div className="lbl" style={{ marginBottom:11 }}>A1 · All In It</div>
-
     <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.1, marginBottom:16, letterSpacing:"-0.5px" }}>
       <em>Everything Starts With You</em>
     </h2>
-
     <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:14, maxWidth:540 }}>
       {name}, before you can build a life that is truly yours -- you need to know who is building it. Not the role. Not the title. <em>You.</em>
     </p>
-
     <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:540 }}>
       A1 is your Map of Me. Your internal world -- purpose, identity, values -- reflected against your external world -- direction, superpowers, behaviours. We build both sides together, then hold them up to the mirror.
     </p>
-
     {/* Core principle */}
     <div style={{ padding:"18px 20px", background:"rgba(201,168,76,.07)", border:"1px solid rgba(201,168,76,.18)", borderRadius:11, marginBottom:22 }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:10, fontFamily:"var(--sans)" }}>Before we start -- one principle</div>
@@ -4637,7 +7464,6 @@ function A1({ intake, onDone }) {
         The voices here -- Katherine, the coach, the challenger -- are a board of advisors. They help you think. But your voice leads. That is why in this programme, you write first. The board responds after.
       </div>
     </div>
-
     <VideoBlock title="All In It -- Why the Foundation Changes Everything" duration="~8 min"
       points={[
         "Why belonging to yourself comes before building anything else",
@@ -4645,9 +7471,7 @@ function A1({ intake, onDone }) {
         "How the Map of Me works as a living document",
         "Why the order of the three mirror pairs is deliberate"
       ]} />
-
     <MirrorIntroCards goto={goto} />
-
     {/* What you will build */}
     <div style={{ padding:"16px 18px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:28 }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:12, fontFamily:"var(--sans)" }}>What you build in A1</div>
@@ -4668,20 +7492,16 @@ function A1({ intake, onDone }) {
         </div>
       ))}
     </div>
-
     <button className="btn" onClick={() => { set("mirror1_sub", "purpose"); goto("mirror1"); }}>Start with Purpose →</button>
   </>);
-
   if (step === "mirror1") {
     const m1sub = map.mirror1_sub || "purpose";
-
     // Sub-step progress indicator
     const M1Progress = () => {
       const steps = [
         { id:"purpose",   label:"Purpose",   icon:"🔥" },
         { id:"direction", label:"Direction", icon:"⛰️" },
         { id:"output",    label:"The Mirror",icon:"🪞" },
-        { id:"alignment", label:"Alignment", icon:"🎯" },
       ];
       const currentIdx = steps.findIndex(s => s.id === m1sub);
       return (
@@ -4705,7 +7525,6 @@ function A1({ intake, onDone }) {
         </div>
       );
     };
-
     // 1a -- PURPOSE
     if (m1sub === "purpose") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · Step 1</div>
@@ -4738,7 +7557,6 @@ function A1({ intake, onDone }) {
         <button className="btn" onClick={() => set("mirror1_sub", "direction")}>Direction → Your BAG</button>
       </div>
     </>);
-
     // 1b -- DIRECTION
     if (m1sub === "direction") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · Step 2</div>
@@ -4756,14 +7574,12 @@ function A1({ intake, onDone }) {
         <button className="btn" onClick={() => set("mirror1_sub", "output")}>See the Mirror →</button>
       </div>
     </>);
-
     // 1c -- OUTPUT / MIRROR
     if (m1sub === "output") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · The Mirror</div>
       {M1Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Purpose <em style={{ color:"var(--text3)", fontSize:26 }}>reflects</em> Direction</h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:24, maxWidth:540 }}>Your internal why, mirrored against your external summit. This is where alignment begins.</p>
-
       {/* THE MIRROR -- side by side output */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 40px 1fr", gap:0, marginBottom:28 }}>
         {/* PURPOSE side */}
@@ -4788,185 +7604,92 @@ function A1({ intake, onDone }) {
             ✎ Edit Purpose
           </button>
         </div>
-
         {/* Mirror divider */}
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6 }}>
           <div style={{ flex:1, width:1, background:"var(--border)", opacity:0.4 }} />
           <div style={{ width:32, height:32, borderRadius:"50%", border:"1px solid var(--border2)", background:"var(--bg)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15 }}>🪞</div>
           <div style={{ flex:1, width:1, background:"var(--border)", opacity:0.4 }} />
         </div>
-
         {/* DIRECTION side */}
         <div style={{ background:"var(--bg2)", border:"1px solid rgba(79,203,242,.2)", borderRadius:12, padding:"22px 20px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
             <span style={{ fontSize:18 }}>⛰️</span>
             <div>
               <div style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--accent)" }}>Direction · External</div>
-              <div style={{ fontSize:11, color:"var(--text4)" }}>Your BAG · {new Date().getFullYear() + 12}-year summit</div>
+              <div style={{ fontSize:11, color:"var(--text4)" }}>Your BAG{map.bag_year ? ` · ${map.bag_year}` : " · 10–15 year summit"}</div>
             </div>
           </div>
-
-          {(() => {
-            // Reusable renderer for Time / Wealth segments: summary sentence + per-item list
-            const renderSegment = ({ label, color, pickedKey, itemsKey, summaryNew, summaryLegacy, presets, legacyList }) => {
-              const picked = (map[pickedKey] || []) as string[];
-              const itemsMap = (map[itemsKey] || {}) as Record<string, any>;
-              const summary = summaryNew || summaryLegacy || "";
-              // Build display items from new state first, falling back to legacy life_areas for Time
-              let displayItems: { id: string; icon: string; label: string; goal: string }[] = [];
-              if (picked.length > 0) {
-                displayItems = picked.map(id => {
-                  const preset = presets.find((p: any) => p.id === id);
-                  const stored = itemsMap[id] || {};
-                  return {
-                    id,
-                    icon:  preset?.icon  || stored.icon  || "•",
-                    label: preset?.label || stored.label || id,
-                    goal:  stored.goal || stored.text || "",
-                  };
-                });
-              } else if (legacyList && legacyList.length > 0) {
-                // Legacy fallback for Time (life_areas shape)
-                displayItems = legacyList.map((a: any) => ({
-                  id: a.id, icon: a.icon || "•", label: a.label || "", goal: a.goal || "",
-                }));
-              }
-              if (!summary && displayItems.length === 0) return null;
-              return (
-                <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>{label}</div>
-                  {summary && (
-                    <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color, lineHeight:1.6, marginBottom: displayItems.length > 0 ? 10 : 0 }}>"{summary}"</div>
-                  )}
-                  {displayItems.length > 0 && (
-                    <div>
-                      {displayItems.map((item, i) => (
-                        <div key={item.id} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:9 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginTop:3 }}>
-                            <div style={{ width:15, height:15, borderRadius:"50%", background: color, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                              <span style={{ fontSize:7, fontWeight:700, color:"#0d1b2e" }}>{i+1}</span>
-                            </div>
-                            <span style={{ fontSize:12 }}>{item.icon}</span>
-                          </div>
-                          <div style={{ flex:1 }}>
-                            <div style={{ fontFamily:"var(--sans)", fontSize:10, fontWeight:700, color, letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>{item.label}</div>
-                            {item.goal
-                              ? <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>{item.goal}</div>
-                              : <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>Not yet written</div>
-                            }
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            };
-
-            return (<>
-              {renderSegment({
-                label: "Time",
-                color: "var(--warm)",
-                pickedKey: "time_picked",
-                itemsKey:  "time_items",
-                summaryNew:    map.time_overall_sentence,
-                summaryLegacy: map.time_summary,
-                presets: TIME_AREA_PRESETS,
-                legacyList: map.life_areas,
-              })}
-              {renderSegment({
-                label: "Wealth",
-                color: "#34d399",
-                pickedKey: "wealth_picked",
-                itemsKey:  "wealth_items",
-                summaryNew:    map.wealth_overall_sentence,
-                summaryLegacy: map.wealth_summary,
-                presets: WEALTH_AREA_PRESETS,
-                legacyList: null,
-              })}
-            </>);
-          })()}
-
-          {/* Growth summary -- summary-only, no list-out */}
-          {(map.growth_sentence || map.growth_summary || map.bag_growth) && (
+          {/* Time summary */}
+          {map.time_summary && (
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Growth</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#a78bfa", lineHeight:1.6 }}>
-                "{map.growth_sentence || map.growth_summary || (map.bag_growth || "").slice(0, 120) + ((map.bag_growth || "").length > 120 ? "..." : "")}"
-              </div>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Time</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6 }}>"{map.time_summary}"</div>
             </div>
           )}
-
+          {/* Life goals list -- show goals if any, else chips */}
+          {(map.life_areas || []).length > 0 && (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:8 }}>
+                Life Goals {map.bag_year ? `· ${map.bag_year}` : ""}
+              </div>
+              {(map.life_areas || []).map((area, i) => (
+                <div key={area.id} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:9 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0, marginTop:3 }}>
+                    <div style={{ width:15, height:15, borderRadius:"50%", background:"var(--warm)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <span style={{ fontSize:7, fontWeight:700, color:"#0d1b2e" }}>{i+1}</span>
+                    </div>
+                    <span style={{ fontSize:12 }}>{area.icon}</span>
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:"var(--sans)", fontSize:10, fontWeight:700, color:"var(--warm)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>{area.label}</div>
+                    {area.goal
+                      ? <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>{area.goal}</div>
+                      : <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic" }}>Goal not yet written</div>
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Wealth summary */}
+          {map.wealth_summary && (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Wealth</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#34d399", lineHeight:1.6 }}>"{map.wealth_summary}"</div>
+            </div>
+          )}
+          {/* Growth summary */}
+          {(map.growth_summary || map.bag_growth) && (
+            <div style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Growth</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#a78bfa", lineHeight:1.6 }}>"{map.growth_summary || map.bag_growth.slice(0, 120)}{!map.growth_summary && map.bag_growth.length > 120 ? "..." : ""}"</div>
+            </div>
+          )}
           <button onClick={() => set("mirror1_sub", "direction")}
             style={{ marginTop:4, background:"none", border:"1px solid rgba(79,203,242,.3)", borderRadius:20, color:"var(--accent)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 13px" }}>
             ✎ Edit Direction
           </button>
         </div>
       </div>
-
       {/* Katherine's read on alignment */}
-      {!ai.mirror1_align && (map.purpose_final || map.purpose_draft) && (
-        (map.time_picked || []).length > 0 ||
-        (map.wealth_picked || []).length > 0 ||
-        (map.life_areas || []).length > 0
-      ) && (
+      {!ai.mirror1_align && (map.purpose_final || map.purpose_draft) && (map.life_areas || []).length > 0 && (
         <div style={{ textAlign:"center", marginBottom:22 }}>
           <button className="btn" onClick={() => (() => {
-              const year = new Date().getFullYear() + 12;
-              const purpose = map.purpose_final || map.purpose_draft || "";
-              // Time picks (new state preferred, legacy fallback)
-              const timePresetLabels = (map.time_picked || []).map(id => {
-                const p = TIME_AREA_PRESETS.find(pp => pp.id === id);
-                const stored = (map.time_items || {})[id] || {};
-                return p?.label || stored.label || id;
-              });
-              const legacyTimeLabels = (map.life_areas || []).map(a => a.label || a.id);
-              const timeLabels = timePresetLabels.length ? timePresetLabels : legacyTimeLabels;
-              // Wealth picks
-              const wealthLabels = (map.wealth_picked || []).map(id => {
-                const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id);
-                const stored = (map.wealth_items || {})[id] || {};
-                return p?.label || stored.label || id;
-              });
-              // Summary sentences (new preferred, legacy fallback)
-              const timeSummary   = map.time_overall_sentence   || map.time_summary   || "";
-              const wealthSummary = map.wealth_overall_sentence || map.wealth_summary || "";
-              const growthSummary = map.growth_sentence || map.growth_summary || map.bag_growth || "";
-
-              const prompt =
-                `You are Katherine Breuss, a direct but compassionate coach. ${name} has just set their Purpose and their BAG (big-ass goal -- their ${year} vision).
-Purpose: "${purpose}".
-BAG vision:
-- Time priorities: ${timeLabels.join(", ") || "none picked"}${timeSummary ? `. In one sentence: "${timeSummary}"` : ""}
-- Wealth priorities: ${wealthLabels.join(", ") || "none picked"}${wealthSummary ? `. In one sentence: "${wealthSummary}"` : ""}
-- Growth: "${growthSummary || "not yet written"}"
-
-This is the first time they see Purpose and Direction side-by-side. In 2-3 sentences each:
-1. What is the THREAD you see between their purpose and the vision they've painted?
-2. Name one specific ALIGNMENT -- where does the vision clearly serve the purpose? Reference their actual wording.
-3. Name one TENSION -- something to sit with, not fix right now.
-
-IMPORTANT CONSTRAINTS:
-- Do NOT critique how items are ranked or prioritised. Tier-ranking work happens later in Direction Alignment.
-- Do NOT tell them something is "last" or "non-negotiable" -- those words belong to tier-ranking pages.
-- Frame tension as "something to notice and sit with" -- A1 is construction, not diagnosis.
-- Be specific to what they wrote. No generic coaching phrases.
-
-Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..."}`;
-              runAI("mirror1_align", prompt);
+              const prioritiesList = (map.life_areas || []).map((a,i) => (i+1) + ". " + a.label + (a.feel ? " (feel: " + a.feel.slice(0,60) + ")" : "")).join(", ");
+              runAI("mirror1_align",
+                "You are Katherine Breuss. " + name + " has completed their Purpose and Direction. Purpose: \"" + (map.purpose_final || map.purpose_draft) + "\". Life priorities ranked: " + prioritiesList + ". BAG year: " + (map.bag_year || "not set") + ". Growth: \"" + (map.bag_growth || "") + "\". In 2-3 sentences: what is the thread between their purpose and their priorities? Does the ranking reflect their purpose? Name one specific alignment you see and one potential tension. Respond ONLY with a JSON object, no preamble: {\"thread\":\"...\",\"alignment\":\"...\",\"tension\":\"...\"}"
+              );
             })()}>
             {busy.mirror1_align ? <span className="dot-l"><span /><span /><span /></span> : "✦ See how Purpose and Direction align"}
           </button>
         </div>
       )}
-
       {ai.mirror1_align && (
         <div className="fade-up" style={{ padding:"18px 22px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.2)", borderRadius:11, marginBottom:22 }}>
           <div style={{ fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>Katherine's read on your mirror</div>
           <ResultCard color="var(--warm)" label="The thread">{ai.mirror1_align.thread}</ResultCard>
           <ResultCard color="#34d399" label="What aligns">{ai.mirror1_align.alignment}</ResultCard>
           <ResultCard color="#f59e0b" label="A tension to notice">{ai.mirror1_align.tension}</ResultCard>
-
           {/* Reflection -- replaces Own It Check */}
           <div style={{ marginTop:16, padding:"16px 18px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10 }}>
             <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", marginBottom:4 }}>
@@ -5002,7 +7725,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
           </div>
         </div>
       )}
-
       <div style={{ marginBottom:22 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
           sectionLabel="purpose and direction"
@@ -5010,10 +7732,9 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror1_sub", "direction")}>← Direction</button>
-        <button className="btn" onClick={() => set("mirror1_sub", "alignment")}>Alignment →</button>
+        <button className="btn" onClick={() => { markDone("mirror1"); goto("mirror2"); }}>Identity · Superpowers →</button>
       </div>
     </>);
-
     // 1d -- ALIGNMENT
     if (m1sub === "alignment") {
       // W.1b-A: Pull items from new state shape (time_picked / wealth_picked)
@@ -5036,7 +7757,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             label: a.label || a.id || "",
             icon: a.icon || "⏳",
           }));
-
       const wealthPicked = (map.wealth_picked || []) as string[];
       const wealthItemsMap = (map.wealth_items || {}) as Record<string, any>;
       const wealthItems = wealthPicked.map(id => {
@@ -5048,7 +7768,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
           icon:  preset?.icon  || stored.icon  || "✨",
         };
       });
-
       const sections = [
         { id:"time",   label:"Time",   icon:"⏳", sentence: map.time_overall_sentence || map.time_summary || "",
           emptySentence:"Add your time vision in Direction first.",
@@ -5060,7 +7779,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
           emptySentence:"Write your growth vision in Direction first.",
           emptyItems:"" },
       ];
-
       // Per-card average
       // Time: avg of per-item sliders (by id). Wealth: avg of per-item sliders (by id). Growth: single slider.
       const cardAvg = (sec: any) => {
@@ -5080,7 +7798,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         }
         return (map?.[`align_dir_${sec.id}`] ?? 5) as number;
       };
-
       return wrapContent(<>
         <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · Step 4</div>
         {M1Progress()}
@@ -5088,7 +7805,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
           This is your synthesis. For each area of your direction, rate how fully you're living toward it right now.
         </p>
-
         {sections.map(sec => {
           const avg = cardAvg(sec);
           const col = avg == null ? "var(--text4)" : avg >= 7 ? "#34d399" : avg >= 4 ? "#f59e0b" : "#ef4444";
@@ -5111,7 +7827,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                   ) : (
                     <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5, marginBottom:14 }}>{sec.emptySentence}</div>
                   )}
-
                   {sec.id === "time" ? (
                     timeItems.length === 0 ? (
                       <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", lineHeight:1.5 }}>{sec.emptyItems}</div>
@@ -5208,7 +7923,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             </div>
           );
         })}
-
         {(() => {
           const hasResult = !!map.align1_dir_misalignment;
           return (
@@ -5267,13 +7981,11 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             {map.align1_dir_misalignment.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {map.align1_dir_misalignment.bridge_to_a2}</div>}
           </div>
         )}
-
         <div style={{ marginBottom:22 }}>
           <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
             sectionLabel="direction alignment"
             placeholder="Ask Katherine about the gap between your direction and how you're living..." />
         </div>
-
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror1_sub", "output")}>← The Mirror</button>
           <button className="btn" onClick={() => { markDone("mirror1"); goto("direction_3yr"); }}>Direction · 3-Year →</button>
@@ -5281,12 +7993,10 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
       </>);
     }
   }
-
   if (step === "mirror2") {
     const m2sub = map.mirror2_sub || "qualities";
     const m2animals = map.animals || [];
     const validAnimals = m2animals.filter(a => a.name);
-
     // Sub-step progress
     const M2Progress = () => {
       const order = ["qualities","capabilities","pressure","lovedones","myidentity"];
@@ -5296,7 +8006,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         { id:"capabilities", label:"Superpowers", icon:"⚡" },
         { id:"pressure",     label:"Under Pressure", icon:"🔥" },
         { id:"lovedones",    label:"Loved Ones", icon:"🤝" },
-        { id:"myidentity",   label:"My Identity", icon:"🌟" },
       ];
       return (
         <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:22 }}>
@@ -5312,21 +8021,19 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                   </div>
                   <span style={{ fontSize:9, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", textTransform:"uppercase", whiteSpace:"nowrap", maxWidth:52, textAlign:"center", lineHeight:1.3 }}>{s.label}</span>
                 </div>
-                {i < 4 && <div style={{ flex:1, height:1, background: order.indexOf(steps[i+1].id) <= currentIdx ? "#34d399" : "var(--border2)", margin:"0 4px", marginBottom:22 }} />}
+                {i < 3 && <div style={{ flex:1, height:1, background: order.indexOf(steps[i+1].id) <= currentIdx ? "#34d399" : "var(--border2)", margin:"0 4px", marginBottom:22 }} />}
               </React.Fragment>
             );
           })}
         </div>
       );
     };
-
     // ── STEP 1: QUALITIES & ANIMALS ──────────────────────────────────────────
     if (m2sub === "qualities") {
       const chips = map.identity_chips || [];
       const hasEnoughQualities = chips.length >= 5;
       const hasThreeAnimals = validAnimals.length >= 3;
       const aiUnlocked = hasEnoughQualities && hasThreeAnimals;
-
       const addQualityChip = (label) => {
         const t = label.trim();
         if (!t || chips.find(c => c.label.toLowerCase() === t.toLowerCase())) return;
@@ -5387,7 +8094,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         set("identity_chips", newChips);
         set("animals", base);
       };
-
       return wrapContent(<>
         <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 1</div>
         {M2Progress()}
@@ -5402,7 +8108,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             "You are the authority on your own identity. Write your qualities first. Then sort them to your animals. The AI can suggest -- you decide."
           </div>
         </div>
-
         {/* Chip input */}
         <div style={{ marginBottom:22 }}>
           <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>Step 1 -- Brain dump your qualities (aim for 15–30)</div>
@@ -5440,7 +8145,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
           )}
           <div style={{ fontSize:11, color:"var(--text4)", marginTop:5 }}>{chips.length} {chips.length === 1 ? "quality" : "qualities"} · {chips.filter(c => c.assignedTo !== null && c.assignedTo !== undefined).length} assigned</div>
         </div>
-
         {/* 3 animal drop zones */}
         <div style={{ marginBottom:22 }}>
           <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:4 }}>Step 2 -- Choose exactly 3 animals</div>
@@ -5499,7 +8203,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             );
           })}
         </div>
-
         {/* AI sort suggestion */}
         <div style={{ padding:"14px 16px", background: aiUnlocked ? "var(--bg2)" : "var(--bg3)", border:"1px solid var(--border2)", borderRadius:9, marginBottom:22, opacity: aiUnlocked ? 1 : 0.6 }}>
           <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color: aiUnlocked ? "var(--warm)" : "var(--text4)", marginBottom:6 }}>
@@ -5544,14 +8247,12 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             </div>
           )}
         </div>
-
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => goto("direction_3yr")}>← Direction · 3-Year</button>
           <button className="btn" onClick={() => set("mirror2_sub", "capabilities")}>Superpowers →</button>
         </div>
       </>);
     }
-
     // ── STEP 2: CAPABILITIES ─────────────────────────────────────────────────
     if (m2sub === "capabilities") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 2</div>
@@ -5576,11 +8277,28 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <button className="btn" onClick={() => set("mirror2_sub", "pressure")}>Under Pressure →</button>
       </div>
     </>);
-
   // — STEP 3: UNDER PRESSURE ————————————————————————————————
   if (m2sub === "pressure") return wrapContent(<>
     <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 3</div>
     {M2Progress()}
+    {map?.return_to_a2 === "iv_align" && (
+      <div style={{ padding:"10px 14px", marginBottom:14, background:"rgba(96,165,250,.08)", border:"1px solid rgba(96,165,250,.3)", borderLeft:"3px solid #60a5fa", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+        <div style={{ fontSize:12, color:"var(--text2)", lineHeight:1.5 }}>
+          <strong style={{ color:"#60a5fa", fontWeight:700 }}>From A2 Alignment</strong> — have a look, then jump back.
+        </div>
+        <button onClick={async () => {
+          // Write the next-A2 target directly to localStorage so A2's mount effect picks it up.
+          const current = await loadData(KEYS.map);
+          const next = { ...(current || {}), return_to_a2: null, a2_pending_step: "iv_align" };
+          await saveData(KEYS.map, next);
+          await saveData(KEYS.phase, "a2");
+          setPhase("a2");
+        }}
+          style={{ padding:"6px 12px", borderRadius:12, background:"transparent", color:"#60a5fa", border:"1px solid #60a5fa", cursor:"pointer", fontSize:11, fontWeight:700, flexShrink:0 }}>
+          ← Back to A2 Alignment
+        </button>
+      </div>
+    )}
     <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Under Pressure</h2>
     <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
       Character is not revealed when things are easy. For each animal — how do you actually show up when things go wrong?
@@ -5685,21 +8403,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                   <button onClick={() => { if (detInput.trim()) { set(detChipsKey, [...detChips, detInput.trim()]); set(detInputKey, ""); }}}
                     style={{ fontSize:11, padding:"4px 10px", borderRadius:6, border:"1px solid rgba(201,168,76,.3)", background:"rgba(201,168,76,.1)", color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)" }}>Add</button>
                 </div>
-                {/* Alignment scale */}
-                <div style={{ padding:"12px 14px", background:"rgba(201,168,76,.04)", border:"1px solid rgba(201,168,76,.15)", borderRadius:8 }}>
-                  <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:10 }}>Alignment Scale</div>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                    <span style={{ fontSize:12, fontWeight:600, color:"var(--text)" }}>{cap.name}</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:alignCol }}>{alignScore}/10</span>
-                  </div>
-                  <input type="range" min={1} max={10} step={1} value={alignScore}
-                    onChange={e => set(alignKey, Number(e.target.value))}
-                    style={{ width:"100%", accentColor:alignCol }} />
-                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text4)", marginTop:2 }}>
-                    <span style={{ color:"#ef4444" }}>1 = living far from this</span>
-                    <span style={{ color:"#34d399" }}>10 = fully embodying this</span>
-                  </div>
-                </div>
                 </div>
                 )}
               </div>
@@ -5713,7 +8416,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
       <button className="btn" onClick={() => set("mirror2_sub", "lovedones")}>Loved Ones →</button>
     </div>
   </>);
-
     // ── STEP 5: MY IDENTITY ──────────────────────────────────────────────────
     if (m2sub === "myidentity") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 5</div>
@@ -5778,7 +8480,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <button className="btn" onClick={() => { markDone("mirror2"); goto("mirror3"); }}>Values · Behaviors →</button>
       </div>
     </>);
-
     // ── STEP 4: LOVED ONES ───────────────────────────────────────────────────
     return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 4</div>
@@ -5814,7 +8515,7 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => set("mirror2_sub", "pressure")}>← Under Pressure</button>
-        <button className="btn" onClick={() => set("mirror2_sub", "myidentity")}>My Identity →</button>
+        <button className="btn" onClick={() => { markDone("mirror2"); goto("mirror3"); }}>Values · Behaviors →</button>
       </div>
     </>);
   }
@@ -5822,7 +8523,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
     const m3sub = map.mirror3_sub || "values";
     const values = map.values || [{ name:"", irk:"", behaviors:"" }];
     const setVal = (i, field, val) => { const n = [...values]; n[i] = { ...n[i], [field]:val }; set("values", n); };
-
     const M3Progress = () => {
       const order = ["values","behaviors","hierarchy","alignment"];
       const currentIdx = order.indexOf(m3sub);
@@ -5830,7 +8530,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         { id:"values",     label:"Values",     icon:"⚖️" },
         { id:"behaviors",  label:"Behaviors",  icon:"🎯" },
         { id:"hierarchy",  label:"Hierarchy",  icon:"📊" },
-        { id:"alignment",  label:"Alignment",  icon:"🪞" },
       ];
       return (
         <div style={{ display:"flex", alignItems:"center", gap:0, marginBottom:22 }}>
@@ -5846,14 +8545,13 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                   </div>
                   <span style={{ fontSize:9, fontWeight: isActive ? 700 : 400, color: isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)", textTransform:"uppercase", whiteSpace:"nowrap", maxWidth:60, textAlign:"center", lineHeight:1.3 }}>{s.label}</span>
                 </div>
-                {i < 3 && <div style={{ flex:1, height:1, background: order.indexOf(steps[i+1].id) <= currentIdx ? "#34d399" : "var(--border2)", margin:"0 4px", marginBottom:22 }} />}
+                {i < 2 && <div style={{ flex:1, height:1, background: order.indexOf(steps[i+1].id) <= currentIdx ? "#34d399" : "var(--border2)", margin:"0 4px", marginBottom:22 }} />}
               </React.Fragment>
             );
           })}
         </div>
       );
     };
-
     // ── STEP 1: VALUES ───────────────────────────────────────────────────────
     if (m3sub === "values") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 1</div>
@@ -5898,7 +8596,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
               const givesDone = !!map?.[`val_${i}_gives_done`];
               const fName     = map?.[`val_${i}_name`]   || "";
               const fSummary  = map?.[`val_${i}_summary`]|| "";
-
               const visibleStomps = stompDone
                 ? stomps
                 : (() => {
@@ -5925,13 +8622,11 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                 next[idx] = v;
                 set(`val_${i}_gives`, next);
               };
-
               const firstStompFilled = stomps.some(s => (s || "").trim());
               const firstGiveFilled  = gives.some(g => (g || "").trim());
               const showGives = stompDone;
               const showName  = stompDone && givesDone;
               const showSummary = showName && fName.trim();
-
               const QLabel = ({ num, label }: any) => (
                 <label style={{ display:"block", fontSize:12, fontWeight:600, color:"var(--text)", marginBottom:3 }}>
                   <span style={{ color:"var(--warm)", fontWeight:700, marginRight:6 }}>Q{num}.</span>{label}
@@ -5940,7 +8635,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
               const Helper = ({ children }: any) => (
                 <div style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic", marginBottom:5, lineHeight:1.5 }}>{children}</div>
               );
-
               let qNum = 1;
               return (
                 <div style={{ padding:"14px 16px" }}>
@@ -5949,7 +8643,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                     <QLabel num={qNum++} label="What behaviors in others — and maybe yourself — genuinely irk you?" />
                     <TextArea value={fIrk} onChange={(v: string) => set(`val_${i}_irk`, v)} rows={2} placeholder="People who don't follow through. When someone takes credit..." style={{ fontSize:13 }} />
                   </div>
-
                   {/* Dynamic stomp chain */}
                   {fIrk.trim() && visibleStomps.map((s, sIdx) => {
                     const label = sIdx === 0 ? "What are they stomping on?" : "What is THAT stomping on?";
@@ -5980,7 +8673,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                       ↺ Keep peeling
                     </button>
                   )}
-
                   {/* Dynamic gives chain */}
                   {showGives && visibleGives.map((g, gIdx) => {
                     const label = gIdx === 0 ? "What does this give you?" : "And what does THAT give you?";
@@ -6008,7 +8700,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                       ↺ Keep going higher
                     </button>
                   )}
-
                   {/* Name the value */}
                   {showName && (
                     <div style={{ marginBottom:14 }}>
@@ -6017,7 +8708,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                       <TextInput value={fName} onChange={(v: string) => { set(`val_${i}_name`, v); setVal(i, "name", v); }} placeholder="e.g. Integrity" style={{ fontSize:14, fontWeight:600, padding:"8px 10px" }} />
                     </div>
                   )}
-
                   {/* Summary with AI */}
                   {showSummary && (
                     <div style={{ marginBottom:14 }}>
@@ -6072,11 +8762,27 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <button className="btn" onClick={() => set("mirror3_sub", "behaviors")}>Behaviors →</button>
       </div>
     </>);
-
     // ── STEP 2: BEHAVIORS (placeholder) ──────────────────────────────────────
     if (m3sub === "behaviors") return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 2</div>
       {M3Progress()}
+      {map?.return_to_a2 === "iv_align" && (
+        <div style={{ padding:"10px 14px", marginBottom:14, background:"rgba(96,165,250,.08)", border:"1px solid rgba(96,165,250,.3)", borderLeft:"3px solid #60a5fa", borderRadius:8, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+          <div style={{ fontSize:12, color:"var(--text2)", lineHeight:1.5 }}>
+            <strong style={{ color:"#60a5fa", fontWeight:700 }}>From A2 Alignment</strong> — have a look, then jump back.
+          </div>
+          <button onClick={async () => {
+            const current = await loadData(KEYS.map);
+            const next = { ...(current || {}), return_to_a2: null, a2_pending_step: "iv_align" };
+            await saveData(KEYS.map, next);
+            await saveData(KEYS.phase, "a2");
+            setPhase("a2");
+          }}
+            style={{ padding:"6px 12px", borderRadius:12, background:"transparent", color:"#60a5fa", border:"1px solid #60a5fa", cursor:"pointer", fontSize:11, fontWeight:700, flexShrink:0 }}>
+            ← Back to A2 Alignment
+          </button>
+        </div>
+      )}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Behaviors</h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>For each value, name the specific behaviors that bring it to life. A value without behaviors is just a word.</p>
       {values.map((val, i) => {
@@ -6090,7 +8796,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
               <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:500, color:"var(--warm)", lineHeight:1.25, letterSpacing:"-.2px" }}>{vName}</div>
               {vSummary && <div style={{ fontSize:12, fontStyle:"italic", color:"var(--text3)", lineHeight:1.6, marginTop:4 }}>{vSummary}</div>}
             </div>
-
             {/* Behavior cards */}
             {Array.from({ length: behCount }).map((_, j) => {
               const bName    = map?.[`beh_${i}_${j}_name`]    || "";
@@ -6100,7 +8805,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
               const bOpen    = map?.[`beh_${i}_${j}_open`]    !== false;
               const busyKey  = `behAI_${i}_${j}`;
               const setBullets = (arr: string[]) => set(`beh_${i}_${j}_bullets`, arr);
-
               return (
                 <div key={j} style={{ marginBottom:10, background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:10, overflow:"hidden" }}>
                   {/* Header */}
@@ -6124,7 +8828,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                       <span style={{ fontSize:14, color:"var(--text3)", transform: bOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
                     </div>
                   </div>
-
                   {/* Body */}
                   {bOpen && (
                     <div style={{ padding:"14px 16px" }}>
@@ -6133,7 +8836,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                         <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Name this behavior</label>
                         <TextInput value={bName} onChange={(v: string) => set(`beh_${i}_${j}_name`, v)} placeholder="e.g. Keep promises to myself first" style={{ fontSize:13 }} />
                       </div>
-
                       {/* Bullets */}
                       <div style={{ marginBottom:12 }}>
                         <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>What this looks like in practice</label>
@@ -6161,13 +8863,11 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                           placeholder="Type a bullet and press Enter..."
                           style={{ width:"100%", fontSize:13, padding:"7px 10px", borderRadius:6, border:"1px solid var(--border2)", background:"var(--bg4)", color:"var(--text)", fontFamily:"var(--sans)", boxSizing:"border-box" }} />
                       </div>
-
                       {/* Optional detail */}
                       <div style={{ marginBottom:12 }}>
                         <label style={{ display:"block", fontSize:11, color:"var(--text3)", marginBottom:4, fontWeight:500 }}>Detail (optional)</label>
                         <TextArea value={bDetail} onChange={(v: string) => set(`beh_${i}_${j}_detail`, v)} rows={2} placeholder="Why this behavior matters, when it's hard, what it unlocks..." style={{ fontSize:13 }} />
                       </div>
-
                       {/* Ask Katherine */}
                       <button onClick={async () => {
                         setBusy(b => ({ ...b, [busyKey]:true }));
@@ -6184,7 +8884,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                 </div>
               );
             })}
-
             {/* Add behavior */}
             <button onClick={() => set(`beh_${i}_count`, behCount + 1)}
               style={{ width:"100%", padding:"10px", background:"transparent", border:"1.5px dashed var(--border2)", borderRadius:8, color:"var(--warm)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, fontWeight:500 }}>
@@ -6193,7 +8892,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
           </div>
         );
       })}
-
       <div style={{ marginBottom:22, marginTop:14 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="behaviors" placeholder="Ask Katherine about your behaviors -- she can see everything you've written..." />
       </div>
@@ -6202,7 +8900,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <button className="btn" onClick={() => set("mirror3_sub", "hierarchy")}>Hierarchy →</button>
       </div>
     </>);
-
     // ── STEP 3: HIERARCHY (placeholder) ──────────────────────────────────────
     if (m3sub === "hierarchy") {
       const valCount = values.length;
@@ -6228,7 +8925,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <div style={{ marginBottom:22, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
           <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are never all equal. This is where you find out which ones you won't trade."</div>
         </div>
-
         {(() => { const hp = map?.hier_phase || "rank"; return (<>
         {hp === "rank" && (<>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6 }}>Phase 1 · Rank</div>
@@ -6241,10 +8937,8 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <div style={{ fontSize:12, color:"var(--text3)", marginBottom:14, lineHeight:1.6 }}>Answer each trade-off question honestly — this reveals which values are truly non-negotiable.</div>
         <button onClick={() => set("hier_phase", "rank")} style={{ background:"none", border:"none", color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:0, marginBottom:14, textDecoration:"underline" }}>↺ Back to ranking</button>
         </>)}
-
         {valCount === 0 && <div style={{ padding:30, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic", border:"1.5px dashed var(--border2)", borderRadius:10 }}>Add values in Step 1 first.</div>}
         </>); })()}
-
         {order.map((vIdx, pos) => {
           const vName = (map?.[`val_${vIdx}_name`] || values[vIdx]?.name || `Value ${vIdx + 1}`);
           const vSummary = map?.[`val_${vIdx}_summary`] || "";
@@ -6282,26 +8976,22 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             </div>
           );
         })}
-
         {(map?.hier_phase || "rank") === "rank" && valCount > 0 && (
           <button onClick={() => set("hier_phase", "test")}
             style={{ width:"100%", marginTop:14, padding:"11px 14px", background:"var(--warm)", border:"none", borderRadius:8, color:"#000", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:600, letterSpacing:".2px" }}>
             Test My Ranking →
           </button>
         )}
-
         {(map?.hier_phase === "test") && valCount >= 2 && (() => {
           const totalQs = order.length - 1;
           const testIdx = Math.max(0, Math.min(totalQs, parseInt(map?.hier_test_idx) || 0));
           const stage = map?.hier_test_stage === "followup" ? "followup" : "primary";
           const topIdx = order[0];
           const topName = map?.[`val_${topIdx}_name`] || values[topIdx]?.name || `Value ${topIdx + 1}`;
-
           if (testIdx < totalQs) {
             const bPos = testIdx + 1;
             const bIdx = order[bPos];
             const bName = map?.[`val_${bIdx}_name`] || values[bIdx]?.name || `Value ${bIdx + 1}`;
-
             const primaryAnswer = (v: "yes" | "no") => {
               set(`hier_test_${bIdx}`, v);
               if (v === "yes") {
@@ -6321,7 +9011,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
               set("hier_test_idx", testIdx + 1);
               set("hier_test_stage", "primary");
             };
-
             return (
               <div style={{ marginTop:20, padding:"22px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
                 <div style={{ fontSize:11, color:"var(--text4)", letterSpacing:1.2, textTransform:"uppercase", marginBottom:10 }}>Question {testIdx + 1} of {totalQs}</div>
@@ -6357,7 +9046,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
               </div>
             );
           }
-
           return (
             <div style={{ marginTop:20, padding:"24px 22px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:12 }}>
               <div style={{ fontFamily:"var(--serif)", fontSize:26, fontWeight:400, color:"var(--warm)", lineHeight:1.3, marginBottom:16, letterSpacing:"-0.2px" }}>Your hierarchy is set.</div>
@@ -6383,17 +9071,15 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             </div>
           );
         })()}
-
         <div style={{ marginBottom:22, marginTop:18 }}>
           <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map} sectionLabel="hierarchy" placeholder="Ask Katherine about your ranking -- which ones are truly non-negotiable?" />
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror3_sub", "behaviors")}>← Behaviors</button>
-          <button className="btn" onClick={() => set("mirror3_sub", "alignment")}>Alignment →</button>
+          <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-Year →</button>
         </div>
       </>);
     }
-
     // ── STEP 4: ALIGNMENT (placeholder) ──────────────────────────────────────
     {
       const valCount = parseInt(map?.val_count) || values.filter(v => v.name).length || 0;
@@ -6404,11 +9090,9 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
           This is your synthesis. For each value, rate how fully you're living each behavior right now.
         </p>
-
         {valCount === 0 && (
           <div style={{ padding:20, textAlign:"center", color:"var(--text4)", fontSize:13, fontStyle:"italic" }}>Go back to Step 1 to name your values first.</div>
         )}
-
         {Array.from({ length: valCount }).map((_, i) => {
           const vName = map?.[`val_${i}_name`] || values[i]?.name || "";
           if (!vName) return null;
@@ -6465,7 +9149,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             </div>
           );
         })}
-
         {(() => {
           const entries: { vName:string; beh: { name:string; score:number }[] }[] = [];
           for (let i = 0; i < valCount; i++) {
@@ -6520,12 +9203,10 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             {ai.mirror3_align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {ai.mirror3_align.bridge_to_a2}</div>}
           </div>
         )}
-
         <div style={{ marginBottom:22 }}>
           <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
             sectionLabel="alignment" placeholder="Ask Katherine about the gap between what you value and how you're living..." />
         </div>
-
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror3_sub", "hierarchy")}>← Hierarchy</button>
           <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-Year →</button>
@@ -6533,7 +9214,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
       </>);
     }
   }
-
   if (step === "direction_3yr") {
     return wrapContent(<>
       <DirectionTimeline_v2 activeHorizon="threeyr" map={map} />
@@ -6557,7 +9237,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
       </div>
     </>);
   }
-
   if (step === "align") {
     // Helper: slider with score display
     const AlignSlider = ({ storeKey, label, desc, color="#c9a84c", indent=false }) => {
@@ -6581,8 +9260,27 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         </div>
       );
     };
-
     // Helper: section avg badge
+    const ScoreRow = ({ storeKey, label, desc, indent=false, defaultVal=5 }) => {
+      const val = map[storeKey] !== undefined ? map[storeKey] : defaultVal;
+      const col = val >= 7 ? "#34d399" : val >= 4 ? "#f59e0b" : "#ef4444";
+      const isScored = map[storeKey] !== undefined;
+      return (
+        <div style={{ marginBottom:8, paddingLeft: indent ? 14 : 0, borderLeft: indent ? "2px solid var(--border2)" : "none" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+            <div style={{ minWidth:0, flex:1 }}>
+              <div style={{ fontSize: indent ? 12 : 13, fontWeight: indent ? 400 : 600, color: indent ? "var(--text2)" : "var(--text)" }}>{label}</div>
+              {desc && <div style={{ fontSize:11, color:"var(--text4)", marginTop:1 }}>{desc}</div>}
+            </div>
+            {isScored ? (
+              <div style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:300, color:col, flexShrink:0 }}>{val}<span style={{ fontSize:10 }}>/10</span></div>
+            ) : (
+              <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic", flexShrink:0 }}>not scored</div>
+            )}
+          </div>
+        </div>
+      );
+    };
     const AvgBadge = ({ scores }) => {
       const valid = scores.filter(s => s !== undefined && s !== null);
       if (valid.length === 0) return null;
@@ -6594,7 +9292,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         </div>
       );
     };
-
     // Compute all sub-scores for the final Katherine prompt
     // W.1b-A: Pull time/wealth items from new state shape. Legacy fallback for Time only.
     const timePicked = (map.time_picked || []) as string[];
@@ -6614,7 +9311,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
           label: a.label || a.id || "",
           icon:  a.icon  || "",
         }));
-
     const wealthPicked = (map.wealth_picked || []) as string[];
     const wealthItemsMap = (map.wealth_items || {}) as Record<string, any>;
     const wealthItems = wealthPicked.map(id => {
@@ -6626,23 +9322,19 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         icon:  preset?.icon  || stored.icon  || "",
       };
     });
-
     const growthSentence = map.growth_sentence || map.growth_summary || "";
     const animals = (map.animals || []).filter(a => a.name);
     const values = (map.values || []).filter(v => v.name);
-
     const dirScores = [
       ...timeItems.map(a => map[`align1_time_${a.id}`]),
       ...wealthItems.map(w => map[`align1_wealth_${w.id}`]),
       growthSentence ? map[`align1_growth`] : undefined,
     ].filter(s => s !== undefined);
-
     const spScores = animals.flatMap((a,i) => {
       const caps = (a.capabilities || []).filter(c => c.name);
       if (!caps.length) return [];
       return caps.map((_,ci) => map[`align_cap_${i}_${ci}`]).filter(s => s !== undefined);
     });
-
     // Behaviors: read directly from map keys (val_${i}_name, beh_${i}_count, beh_${i}_${j}_name)
     const valCountAlign = parseInt(map?.val_count) || values.length || 0;
     const valueRows = Array.from({ length: valCountAlign }).map((_, i) => {
@@ -6655,18 +9347,14 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
       }
       return { i, name: vName, behs, summary: map?.[`val_${i}_summary`] || "" };
     }).filter(r => r.name);
-
     const bhvScores = valueRows.flatMap(r =>
       r.behs.map(({ j }) => map[`align_val_${r.i}_beh_${j}`]).filter(s => s !== undefined)
     );
-
     const avg = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10 : null;
-
     return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Alignment Check</div>
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Your <em>Alignment Snapshot</em></h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>This isn't about doing everything — it's about finding the one shift that will most change who you are, how you show up, and the direction of your life.</p>
-
       {/* ── PURPOSE · DIRECTION ── */}
       {(() => { const isOpen = map?.align_check_dir_open !== false; return (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:14, overflow:"hidden" }}>
@@ -6678,7 +9366,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
           <span style={{ marginLeft:"auto", fontSize:14, color:"var(--text3)", transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
         </div>
         {isOpen && (<div style={{ padding:"14px 18px" }}>
-
           {/* Time priorities */}
           <div style={{ marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
@@ -6696,7 +9383,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                 indent={true} />
             ))}
           </div>
-
           {/* Wealth */}
           <div style={{ marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
@@ -6714,7 +9400,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                 indent={true} />
             ))}
           </div>
-
           {/* Growth -- single slider (prototype parity) */}
           <div>
             <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:10, padding:"8px 12px", background:"var(--bg3)", borderRadius:8 }}>
@@ -6730,11 +9415,9 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
                 indent={true} />
             )}
           </div>
-
         </div>)}
       </div>
       ); })()}
-
       {/* ── IDENTITY · SUPERPOWERS ── */}
       {(() => { const isOpen = map?.align_check_sup_open !== false; return (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:14, overflow:"hidden" }}>
@@ -6787,7 +9470,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         </div>)}
       </div>
       ); })()}
-
       {/* ── VALUES · BEHAVIORS ── */}
       {(() => { const isOpen = map?.align_check_beh_open !== false; return (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:22, overflow:"hidden" }}>
@@ -6834,7 +9516,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
         </div>)}
       </div>
       ); })()}
-
       {/* Katherine's key misalignment read */}
       {(() => {
         const runMisalignment = (excludeAreas: string[] = []) => {
@@ -6842,7 +9523,6 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
             || ((map.purpose_layers || []).filter((l: string) => (l||"").trim()).join(" ").trim())
             || (map.purpose_draft || "").trim()
             || "(no purpose statement set)";
-
           const lines: string[] = [];
           timeItems.forEach((a: any) => {
             const v = map[`align1_time_${a.id}`];
@@ -6870,26 +9550,19 @@ Respond ONLY with a JSON object: {"thread":"...","alignment":"...","tension":"..
               lines.push(`Values · ${row.name} · ${bn}: ${v ?? "not rated"}/10`);
             });
           });
-
           const scoresBlock = lines.length ? lines.join("\n") : "(no scores recorded)";
           const exclusion = excludeAreas.length
             ? `\n\nIMPORTANT: Previous suggestions covered these areas: ${excludeAreas.map(a => `"${a}"`).join(", ")}. Identify a DIFFERENT area of misalignment -- not any of these. Pick the next biggest gap.`
             : "";
-
           runAI("align",
             `You are Katherine Breuss, a direct but compassionate coach. ${name}'s purpose: "${purpose}".
-
 Their full alignment scores (1 = living far from this, 10 = fully embodying it):
 ${scoresBlock}
-
 Identify the single biggest gap between how they're living and their purpose. Give a specific 3-4 sentence insight: name the exact area, explain why this gap matters for their purpose, and give one concrete action they can take this week. No generic coaching language -- be specific to what they wrote.${exclusion}
-
 Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters":"<why this gap matters for their purpose>","focus_first":"<one concrete action this week>","bridge_to_a2":"<one short sentence on how shifting this carries forward>"}`
           );
         };
-
         const prevAreas: string[] = (map.align_prev_areas as string[]) || [];
-
         return (<>
           {!ai.align && (
             <button className="btn" style={{display:"none", marginBottom:22 }}
@@ -6953,103 +9626,50 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
       </div>
     </>);
   }
-
   if (step === "map") {
-    const year = new Date().getFullYear();
     const validA = (map.animals || []).filter(a => a.name);
-
+    const validV = (map.values || []).filter(v => v.name);
+    const validAreas = (map.life_areas || []);
+    const hierOrder = (map?.hier_order as number[]) || [];
+    const orderedAreas = hierOrder.length
+      ? [
+          ...hierOrder.map((i: number) => validAreas[i]).filter(Boolean),
+          ...validAreas.filter((_a: any, i: number) => !hierOrder.includes(i)),
+        ]
+      : validAreas;
+    const wealthExpanded = [
+      { key:"bag_retirement", label:"Retirement",         icon:"🏡" },
+      { key:"bag_assets",     label:"Assets",             icon:"🏛️" },
+      { key:"bag_cashflow",   label:"Cash flow & Salary", icon:"📈" },
+      { key:"bag_other",      label: map.bag_other_label || "Other", icon:"✦" },
+    ];
+    const growthExpanded = [
+      { key:"bag_growth_1", label: map.bag_growth_label1 || "Skills & Learning",      icon:"🧠" },
+      { key:"bag_growth_2", label: map.bag_growth_label2 || "Relationships",          icon:"🤝" },
+      { key:"bag_growth_3", label: map.bag_growth_label3 || "Purpose & Contribution", icon:"✨" },
+      { key:"bag_growth_4", label: map.bag_growth_label4 || "Other",                  icon:"✦" },
+    ];
     const purposeText = (map.purpose_final && map.purpose_final.trim())
       || ((map.purpose_layers || []).filter((l: string) => (l||"").trim()).join(" ").trim())
       || (map.purpose_draft || "").trim()
       || "";
-
-    // W.4: New state horizon data for Direction section
-    const timePicked   = (map.time_picked   || []) as string[];
-    const wealthPicked = (map.wealth_picked || []) as string[];
-
-    // Tier ranking lookups per horizon
-    // W.4 fix: resolve real labels for seed/custom growth IDs; filter orphan tiers
-    // (tier entries whose ID is no longer in the current item pool for that horizon).
-    const oneyrSeedsLive = (typeof computeIdentityValuesSeeds === "function"
-      ? computeIdentityValuesSeeds(map) : []) as any[];
-    const oneyrEditedLabels = (map.oneyr_growth_edited_labels || {}) as Record<string, string>;
-    const oneyrCustomGrowth = (map.oneyr_growth_custom || []) as any[];
-
-    const tierLabel = (id: string) => {
-      if (id.startsWith("t_")) {
-        const p = TIME_AREA_PRESETS.find(pp => pp.id === id.slice(2));
-        return p?.label || ((map.time_items || {})[id.slice(2)]?.label) || id.slice(2);
-      }
-      if (id.startsWith("w_")) {
-        const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id.slice(2));
-        return p?.label || ((map.wealth_items || {})[id.slice(2)]?.label) || id.slice(2);
-      }
-      if (id === "g_main") return "Growth vision";
-      if (id.startsWith("g_custom_")) {
-        const cid = id.slice("g_custom_".length);
-        const match = oneyrCustomGrowth.find((c: any) => String(c.id) === cid);
-        return match?.label || "Custom growth";
-      }
-      if (id.startsWith("g_iv_")) {
-        // Seeds are keyed as g_{seedId} where seedId itself starts with "iv_" — rebuild seedId
-        const seedId = id.slice("g_".length); // e.g. "iv_0_1"
-        // Prefer user's edited label
-        if (oneyrEditedLabels[seedId]) return oneyrEditedLabels[seedId];
-        // Fall back to the live computed label
-        const seedMatch = oneyrSeedsLive.find((s: any) => s.id === seedId);
-        return seedMatch?.label || "Growth focus";
-      }
-      return id;
-    };
-
-    // Valid ID set for each horizon — used to strip orphan tier entries that reference
-    // items the user has since un-picked.
-    const validBagIds = new Set<string>([
-      ...(map.time_picked   || []).map((id: string) => `t_${id}`),
-      ...(map.wealth_picked || []).map((id: string) => `w_${id}`),
-      ...(map.growth_confirmed ? ["g_main"] : []),
-    ]);
-    const validThreeyrIds = new Set<string>([
-      ...(map.time_picked   || []).map((id: string) => `t_${id}`),
-      ...(map.wealth_picked || []).map((id: string) => `w_${id}`),
-      ...(map.threeyr_growth_confirmed ? ["g_main"] : []),
-    ]);
-    const oneyrAccepted = (map.oneyr_growth_accepted || {}) as Record<string, boolean>;
-    const oneyrRemoved  = (map.oneyr_growth_removed  || {}) as Record<string, boolean>;
-    const validOneyrIds = new Set<string>([
-      ...(map.time_picked   || []).map((id: string) => `t_${id}`),
-      ...(map.wealth_picked || []).map((id: string) => `w_${id}`),
-      ...(map.oneyr_growth_confirmed ? ["g_main"] : []),
-      ...oneyrSeedsLive
-        .filter((s: any) => oneyrAccepted[s.id] && !oneyrRemoved[s.id])
-        .map((s: any) => `g_${s.id}`),
-      ...oneyrCustomGrowth.map((c: any) => `g_custom_${c.id}`),
-    ]);
-
-    const bucketTiers = (tiers: Record<string, string> = {}, validIds: Set<string>) => {
-      const g: Record<string, string[]> = { "non-neg": [], imp: [], nth: [] };
-      Object.entries(tiers || {}).forEach(([id, tier]) => {
-        if (!validIds.has(id)) return; // skip orphans
-        if (g[tier]) g[tier].push(tierLabel(id));
-      });
-      return g;
-    };
-    const bagTiers     = bucketTiers(map.bag_tiers,     validBagIds);
-    const threeyrTiers = bucketTiers(map.threeyr_tiers, validThreeyrIds);
-    const oneyrTiers   = bucketTiers(map.oneyr_tiers,   validOneyrIds);
-
-    // Collapsible open flags
-    const bagOpen     = map?.map_bag_open === undefined ? true : !!map.map_bag_open;
-    const threeyrOpen = !!map?.map_threeyr_open;
-    const oneyrOpen   = !!map?.map_oneyr_open;
-
+    const wealthChips = ["Retirement", "Assets", "Cash flow", map.bag_other_label || "Other"];
+    const growthChips = [
+      map.bag_growth_label1 || "Skills & Learning",
+      map.bag_growth_label2 || "Relationships",
+      map.bag_growth_label3 || "Purpose & Contribution",
+      map.bag_growth_label4 || "Other",
+    ];
+    const timeOpen   = !!map?.map_time_open;
+    const wealthOpen = !!map?.map_wealth_open;
+    const growthOpen = !!map?.map_growth_open;
     const focusConfirmed = !!map?.map_focus_confirmed_flag;
     const focusEditOpen  = !!map?.map_focus_edit_open;
-    const focusText      = (map?.map_focus_text != null && map.map_focus_text !== "") ? map.map_focus_text : "";
-
+    const focusDefault   = ai.align?.focus_first || "";
+    const focusText      = (map?.map_focus_text != null && map.map_focus_text !== "") ? map.map_focus_text : focusDefault;
+    const chipStyle: React.CSSProperties = { padding:"4px 10px", background:"var(--bg3)", border:"1px solid var(--border2)", borderRadius:14, fontSize:11, color:"var(--text2)" };
     const cardBase: React.CSSProperties = { background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"14px 16px" };
     const sectionLbl: React.CSSProperties = { fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 };
-
     const MiniCard = ({ label, icon, open, toggle, children }: any) => (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:10, overflow:"hidden" }}>
         <div onClick={toggle} style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 13px", cursor:"pointer", userSelect:"none", borderBottom: open ? "1px solid var(--border)" : "none" }}>
@@ -7060,227 +9680,99 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
         {open && <div style={{ padding:"11px 13px", display:"flex", flexWrap:"wrap", gap:5 }}>{children}</div>}
       </div>
     );
-
     return wrapContent(<>
       <div style={{ textAlign:"center", marginBottom:28 }}>
         <div className="lbl" style={{ marginBottom:9, display:"block" }}>Complete · A1</div>
         <h2 style={{ fontFamily:"var(--serif)", fontSize:44, fontWeight:400, lineHeight:1.1, letterSpacing:"-0.5px", marginBottom:9 }}>{name}'s<br /><em>Map of Me.</em></h2>
         <p style={{ fontSize:14, color:"var(--text3)", maxWidth:400, margin:"0 auto", lineHeight:1.7 }}>Your living reference. Come back when making decisions, feeling stuck, or checking alignment.</p>
       </div>
-
       {/* SECTION 1 — PURPOSE */}
       <div style={{ background:"linear-gradient(135deg, rgba(201,168,76,.14), rgba(201,168,76,.04))", border:"1px solid rgba(201,168,76,.35)", borderRadius:12, padding:"20px 24px", marginBottom:18 }}>
         <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:10 }}>Purpose — the north star</div>
         <div style={{ fontFamily:"var(--serif)", fontStyle:"italic", fontSize:22, lineHeight:1.5, color:"var(--text)", fontWeight:300 }}>"{purposeText || "Not yet completed"}"</div>
       </div>
-
       {/* SECTION 2 — DIRECTION */}
       <div style={{ ...cardBase, marginBottom:18 }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
           <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", color:"var(--text)" }}>Direction — The Journey</div>
-          <div style={{ padding:"4px 11px", background:"rgba(201,168,76,.14)", border:"1px solid rgba(201,168,76,.35)", borderRadius:14, fontSize:12, fontWeight:600, color:"var(--warm)" }}>BAG · {year + 12}</div>
+          {map.bag_year && (
+            <div style={{ padding:"4px 11px", background:"rgba(201,168,76,.14)", border:"1px solid rgba(201,168,76,.35)", borderRadius:14, fontSize:12, fontWeight:600, color:"var(--warm)" }}>BAG · {map.bag_year}</div>
+          )}
         </div>
-
-        <DirectionTimeline_v2 activeHorizon={null as any} map={map} />
-
-        {/* ── HORIZON: BAG (default open, richest content) ── */}
-        {(() => {
-          // Render a collapsible horizon block with 3 columns (Time / Wealth / Growth)
-          // for BAG. For 3Y/1Y we render the same structure but default collapsed.
-          const RowItem = ({ icon, label, body, color }: { icon?: string; label: string; body: string; color: string }) => (
-            <div style={{ padding:"8px 10px", marginBottom:6, background:"rgba(0,0,0,.18)", borderLeft:`3px solid ${color}`, borderRadius:4 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom: body ? 4 : 0 }}>
-                {icon && <span style={{ fontSize:12 }}>{icon}</span>}
-                <span style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:600, color, letterSpacing:0.5, textTransform:"uppercase" }}>{label}</span>
-              </div>
-              {body && (
-                <div style={{ fontFamily:"var(--serif)", fontSize:12, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>{body}</div>
-              )}
-              {!body && (
-                <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic" }}>Not yet captured.</div>
-              )}
+        {/* Timeline */}
+        <div style={{ position:"relative", margin:"6px 4px 22px", height:38 }}>
+          <div style={{ position:"absolute", left:8, right:8, top:18, height:2, background:"var(--border2)", borderRadius:2 }} />
+          {[
+            { left:"0%",   label:"Now",        active:true,  color:"var(--warm)" },
+            { left:"33%",  label:"1 yr · A2",  active:false, color:"var(--text4)" },
+            { left:"66%",  label:"3 yr · A3",  active:false, color:"var(--text4)" },
+            { left:"100%", label: map.bag_year ? `BAG · ${map.bag_year}` : "BAG", active:true, color:"var(--warm)" },
+          ].map((d, i) => (
+            <div key={i} style={{ position:"absolute", left:d.left, top:0, transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+              <div style={{ width:10, height:10, borderRadius:"50%", marginTop:13, background: d.active ? "var(--warm)" : "var(--bg3)", border: d.active ? "none" : "1px dashed var(--border2)" }} />
+              <div style={{ fontSize:9.5, color:d.color, whiteSpace:"nowrap", marginTop:2 }}>{d.label}</div>
             </div>
-          );
-
-          const colHeader: React.CSSProperties = { display:"flex", alignItems:"center", gap:7, padding:"6px 2px 9px", fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" };
-
-          const TierPills = ({ tiers }: { tiers: Record<string, string[]> }) => {
-            const any = (tiers["non-neg"].length + tiers.imp.length + tiers.nth.length) > 0;
-            if (!any) return null;
+          ))}
+        </div>
+        {/* 3 columns, each row individually collapsible */}
+        {(() => {
+          const Row = ({ icon, label, openKey, body }: { icon?: string; label: string; openKey: string; body: any }) => {
+            const open = !!map?.[openKey];
+            const bodyStr = typeof body === "string" ? body : (body == null ? "" : String(body));
+            const hasBody = !!bodyStr.trim();
             return (
-              <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.2)", borderRadius:6 }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:8 }}>Tier ranking</div>
-                {tiers["non-neg"].length > 0 && (
-                  <div style={{ marginBottom:6 }}>
-                    <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color:"#ef4444", marginRight:8 }}>NON-NEGOTIABLE · {tiers["non-neg"].length}/3</span>
-                    {tiers["non-neg"].map((lbl, i) => (
-                      <span key={i} style={{ display:"inline-block", padding:"2px 8px", marginRight:5, marginBottom:4, borderRadius:10, background:"rgba(239,68,68,.12)", border:"1px solid rgba(239,68,68,.3)", fontSize:11, color:"var(--text)" }}>{lbl}</span>
-                    ))}
-                  </div>
-                )}
-                {tiers.imp.length > 0 && (
-                  <div style={{ marginBottom:6 }}>
-                    <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color:"#f59e0b", marginRight:8 }}>IMPORTANT</span>
-                    {tiers.imp.map((lbl, i) => (
-                      <span key={i} style={{ display:"inline-block", padding:"2px 8px", marginRight:5, marginBottom:4, borderRadius:10, background:"rgba(245,158,11,.1)", border:"1px solid rgba(245,158,11,.3)", fontSize:11, color:"var(--text2)" }}>{lbl}</span>
-                    ))}
-                  </div>
-                )}
-                {tiers.nth.length > 0 && (
-                  <div>
-                    <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, color:"#6b7a99", marginRight:8 }}>NICE TO HAVE</span>
-                    {tiers.nth.map((lbl, i) => (
-                      <span key={i} style={{ display:"inline-block", padding:"2px 8px", marginRight:5, marginBottom:4, borderRadius:10, background:"rgba(107,122,153,.1)", border:"1px solid rgba(107,122,153,.35)", fontSize:11, color:"var(--text3)" }}>{lbl}</span>
-                    ))}
+              <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, marginBottom:6, overflow:"hidden" }}>
+                <div onClick={() => set(openKey, !open)} style={{ display:"flex", alignItems:"center", gap:7, padding:"8px 10px", cursor:"pointer", userSelect:"none" }}>
+                  {icon && <span style={{ fontSize:13 }}>{icon}</span>}
+                  <span style={{ fontSize:12, color:"var(--text)", fontWeight:600, flex:1 }}>{label}</span>
+                  <span style={{ fontSize:10, color:"var(--text4)" }}>{open ? "▾" : "▸"}</span>
+                </div>
+                {open && (
+                  <div style={{ padding:"6px 10px 10px 28px", borderTop:"1px solid var(--border)", fontSize:11, color:"var(--text3)", fontStyle: hasBody ? "italic" : "normal", lineHeight:1.6, whiteSpace:"pre-line" }}>
+                    {hasBody ? bodyStr : <span style={{ color:"var(--text4)" }}>Not yet captured.</span>}
                   </div>
                 )}
               </div>
             );
           };
-
-          // ── BAG HORIZON ──────────────────────────────────────────────
-          const bagHeader = (
-            <div onClick={() => set("map_bag_open", !bagOpen)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", cursor:"pointer", userSelect:"none", background:"rgba(201,168,76,.08)", borderRadius:8, marginBottom: bagOpen ? 12 : 0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:14 }}>⛰️</span>
-                <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--warm)", letterSpacing:1.5, textTransform:"uppercase" }}>BAG · {year + 12}</span>
-                <span style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic" }}>the 10–15 year vision</span>
-              </div>
-              <span style={{ fontSize:11, color:"var(--text3)" }}>{bagOpen ? "▾ hide" : "▸ show"}</span>
-            </div>
-          );
-
-          const bagBody = bagOpen && (
-            <>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
-                <div>
-                  <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
-                  {timePicked.length === 0 && (
-                    <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:8 }}>No picks yet.</div>
-                  )}
-                  {timePicked.map(id => {
-                    const p = TIME_AREA_PRESETS.find(pp => pp.id === id);
-                    const stored = (map.time_items || {})[id] || {};
-                    const body = stored.goal || stored.text || "";
-                    return <RowItem key={id} icon={p?.icon || "•"} label={p?.label || stored.label || id} body={body} color="var(--warm)" />;
-                  })}
-                  {map.time_overall_confirmed && map.time_overall_sentence && (
-                    <div style={{ marginTop:8, padding:"8px 10px", background:"rgba(201,168,76,.1)", borderRadius:4, fontFamily:"var(--serif)", fontSize:12, fontStyle:"italic", color:"var(--warm)", lineHeight:1.5 }}>
-                      "{map.time_overall_sentence}"
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <div style={colHeader}><span style={{ fontSize:14 }}>💰</span>Wealth</div>
-                  {wealthPicked.length === 0 && (
-                    <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:8 }}>No picks yet.</div>
-                  )}
-                  {wealthPicked.map(id => {
-                    const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id);
-                    const stored = (map.wealth_items || {})[id] || {};
-                    const body = stored.goal || stored.text || "";
-                    return <RowItem key={id} icon={p?.icon || "•"} label={p?.label || stored.label || id} body={body} color="#34d399" />;
-                  })}
-                  {map.wealth_overall_confirmed && map.wealth_overall_sentence && (
-                    <div style={{ marginTop:8, padding:"8px 10px", background:"rgba(52,211,153,.1)", borderRadius:4, fontFamily:"var(--serif)", fontSize:12, fontStyle:"italic", color:"#34d399", lineHeight:1.5 }}>
-                      "{map.wealth_overall_sentence}"
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <div style={colHeader}><span style={{ fontSize:14 }}>🌱</span>Growth</div>
-                  {map.growth_confirmed && map.growth_sentence ? (
-                    <div style={{ padding:"10px 12px", background:"rgba(167,139,250,.08)", borderLeft:"3px solid #a78bfa", borderRadius:4, fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text)", lineHeight:1.6 }}>
-                      "{map.growth_sentence}"
-                    </div>
-                  ) : (
-                    <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:8 }}>Growth vision not yet confirmed.</div>
-                  )}
-                </div>
-              </div>
-              <TierPills tiers={bagTiers} />
-            </>
-          );
-
-          // ── 3-YEAR HORIZON (collapsed summary) ────────────────────
-          const threeyrSummaries = [
-            { label:"Time",   color:"var(--warm)", text: map.threeyr_time_confirmed   ? map.threeyr_time_sentence   : "" },
-            { label:"Wealth", color:"#34d399",     text: map.threeyr_wealth_confirmed ? map.threeyr_wealth_sentence : "" },
-            { label:"Growth", color:"#a78bfa",     text: map.threeyr_growth_confirmed ? map.threeyr_growth_sentence : "" },
+          const timeKey = (a: any, i: number) => `mi_time_${(a.id || a.label || `area${i}`).toString().toLowerCase().replace(/\s+/g, "_")}_open`;
+          const wealthRows = [
+            { icon:"🏡",  label:"Retirement",         openKey:"mi_wealth_ret_open",   body: map.bag_retirement || "" },
+            { icon:"🏛️", label:"Assets",             openKey:"mi_wealth_ass_open",   body: map.bag_assets || "" },
+            { icon:"📈",  label:"Cash flow & Salary", openKey:"mi_wealth_cash_open",  body: map.bag_cashflow || "" },
+            { icon:"✦",   label: map.bag_other_label || "Other", openKey:"mi_wealth_other_open", body: map.bag_other || "" },
           ];
-          const threeyrHasAny = threeyrSummaries.some(s => (s.text || "").trim());
-          const threeyrHeader = (
-            <div onClick={() => set("map_threeyr_open", !threeyrOpen)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", cursor:"pointer", userSelect:"none", background:"rgba(201,168,76,.04)", borderRadius:8, marginTop:14, marginBottom: threeyrOpen ? 12 : 0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:14 }}>◉</span>
-                <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text2)", letterSpacing:1.5, textTransform:"uppercase" }}>3-Year · {year + 3}</span>
-                <span style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic" }}>{threeyrHasAny ? "refinement of BAG" : "not yet completed"}</span>
-              </div>
-              <span style={{ fontSize:11, color:"var(--text3)" }}>{threeyrOpen ? "▾ hide" : "▸ show"}</span>
-            </div>
-          );
-          const threeyrBody = threeyrOpen && (
-            <>
-              {threeyrSummaries.filter(s => (s.text||"").trim()).length === 0 ? (
-                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 12px" }}>3-Year refinements not yet confirmed.</div>
-              ) : (
-                threeyrSummaries.map(s => (s.text||"").trim() && (
-                  <div key={s.label} style={{ marginBottom:8, padding:"8px 12px", background:"rgba(0,0,0,.15)", borderLeft:`3px solid ${s.color}`, borderRadius:4 }}>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", color: s.color, marginBottom:3 }}>{s.label}</div>
-                    <div style={{ fontFamily:"var(--serif)", fontSize:12.5, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>"{s.text}"</div>
-                  </div>
-                ))
-              )}
-              <TierPills tiers={threeyrTiers} />
-            </>
-          );
-
-          // ── 1-YEAR HORIZON (collapsed summary) ────────────────────
-          const oneyrSummaries = [
-            { label:"Time",   color:"var(--warm)", text: map.oneyr_time_confirmed   ? map.oneyr_time_sentence   : "" },
-            { label:"Wealth", color:"#34d399",     text: map.oneyr_wealth_confirmed ? map.oneyr_wealth_sentence : "" },
-            { label:"Growth", color:"#a78bfa",     text: map.oneyr_growth_confirmed ? map.oneyr_growth_sentence : "" },
+          const growthRows = [
+            { icon:"🧠", label: map.bag_growth_label1 || "Skills & Learning",      openKey:"mi_growth_1_open", body: map.bag_growth_1 || "" },
+            { icon:"🤝", label: map.bag_growth_label2 || "Relationships",          openKey:"mi_growth_2_open", body: map.bag_growth_2 || "" },
+            { icon:"✨", label: map.bag_growth_label3 || "Purpose & Contribution", openKey:"mi_growth_3_open", body: map.bag_growth_3 || "" },
+            { icon:"✦",  label: map.bag_growth_label4 || "Other",                  openKey:"mi_growth_4_open", body: map.bag_growth_4 || "" },
           ];
-          const oneyrHasAny = oneyrSummaries.some(s => (s.text || "").trim());
-          const oneyrHeader = (
-            <div onClick={() => set("map_oneyr_open", !oneyrOpen)} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", cursor:"pointer", userSelect:"none", background:"rgba(201,168,76,.04)", borderRadius:8, marginTop:10, marginBottom: oneyrOpen ? 12 : 0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:14 }}>●</span>
-                <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text2)", letterSpacing:1.5, textTransform:"uppercase" }}>1-Year · {year + 1}</span>
-                <span style={{ fontSize:11, color:"var(--text3)", fontStyle:"italic" }}>{oneyrHasAny ? "closest commitment" : "not yet completed"}</span>
-              </div>
-              <span style={{ fontSize:11, color:"var(--text3)" }}>{oneyrOpen ? "▾ hide" : "▸ show"}</span>
-            </div>
-          );
-          const oneyrBody = oneyrOpen && (
-            <>
-              {oneyrSummaries.filter(s => (s.text||"").trim()).length === 0 ? (
-                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 12px" }}>1-Year commitments not yet confirmed.</div>
-              ) : (
-                oneyrSummaries.map(s => (s.text||"").trim() && (
-                  <div key={s.label} style={{ marginBottom:8, padding:"8px 12px", background:"rgba(0,0,0,.15)", borderLeft:`3px solid ${s.color}`, borderRadius:4 }}>
-                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", color: s.color, marginBottom:3 }}>{s.label}</div>
-                    <div style={{ fontFamily:"var(--serif)", fontSize:12.5, fontStyle:"italic", color:"var(--text2)", lineHeight:1.5 }}>"{s.text}"</div>
-                  </div>
-                ))
-              )}
-              <TierPills tiers={oneyrTiers} />
-            </>
-          );
-
+          const colHeader: React.CSSProperties = { display:"flex", alignItems:"center", gap:7, padding:"6px 2px 9px", fontSize:11, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)" };
           return (
-            <>
-              {bagHeader}
-              {bagBody}
-              {threeyrHeader}
-              {threeyrBody}
-              {oneyrHeader}
-              {oneyrBody}
-            </>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+              <div>
+                <div style={colHeader}><span style={{ fontSize:14 }}>⏳</span>Time</div>
+                {orderedAreas.map((a: any, i: number) => {
+                  const parts = [a?.see, a?.hear, a?.feel].filter((s: any) => typeof s === "string" && s.trim());
+                  const body = parts.join("\n");
+                  return (
+                    <Row key={a.id || i} icon={a.icon} label={a.label || `Area ${i+1}`} openKey={timeKey(a, i)} body={body} />
+                  );
+                })}
+              </div>
+              <div>
+                <div style={colHeader}><span style={{ fontSize:14 }}>💰</span>Wealth</div>
+                {wealthRows.map(r => <Row key={r.openKey} {...r} />)}
+              </div>
+              <div>
+                <div style={colHeader}><span style={{ fontSize:14 }}>🌱</span>Growth</div>
+                {growthRows.map(r => <Row key={r.openKey} {...r} />)}
+              </div>
+            </div>
           );
         })()}
       </div>
-
       {/* SECTION 3 — IDENTITY + SUPERPOWERS */}
       <div style={{ marginBottom:18 }}>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:10 }}>
@@ -7328,7 +9820,6 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           );
         })}
       </div>
-
       {/* SECTION 4 — VALUES + BEHAVIOURS */}
       <div style={{ marginBottom:18 }}>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:10 }}>
@@ -7389,84 +9880,9 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
           });
         })()}
       </div>
-
-      {/* SECTION 5 — THE ONE THING (quick-win framing) */}
-      <div style={{ background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.18)", borderLeft:"4px solid var(--warm)", borderRadius:11, padding:"16px 20px", marginBottom:18 }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6, gap:10 }}>
-          <div style={{ fontSize:11, fontWeight:600, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)" }}>Your One Thing</div>
-          <div style={{ display:"flex", gap:6 }}>
-            <button onClick={() => set("map_focus_confirmed_flag", !focusConfirmed)}
-              style={{ padding:"5px 11px", borderRadius:14, fontSize:11, fontWeight:600, cursor:"pointer", border: focusConfirmed ? "1px solid var(--warm)" : "1px solid var(--border2)", background: focusConfirmed ? "var(--warm)" : "transparent", color: focusConfirmed ? "#0d1b2e" : "var(--text3)" }}>
-              {focusConfirmed ? "✓ Confirmed" : "✓ Confirm"}
-            </button>
-            <button onClick={() => set("map_focus_edit_open", !focusEditOpen)}
-              style={{ padding:"5px 11px", borderRadius:14, fontSize:11, fontWeight:600, cursor:"pointer", border:"1px solid var(--border2)", background:"transparent", color:"var(--text3)" }}>
-              ✏ Edit
-            </button>
-          </div>
-        </div>
-        <div style={{ fontSize:12, color:"var(--text3)", lineHeight:1.6, marginBottom:10, fontStyle:"italic" }}>
-          Something small you can start tomorrow to move toward your direction. A quick win -- not a big commitment. Just one thing.
-        </div>
-        {focusEditOpen ? (
-          <div>
-            <textarea
-              value={map?.map_focus_text || ""}
-              onChange={e => { set("map_focus_text", e.target.value); if (focusConfirmed) set("map_focus_confirmed_flag", false); }}
-              rows={3}
-              style={{ width:"100%", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:8, color:"var(--text)", fontFamily:"var(--serif)", fontSize:15, padding:"10px 12px", lineHeight:1.6, resize:"vertical" }}
-              placeholder="Tomorrow I will..."
-            />
-            <div style={{ display:"flex", justifyContent:"flex-end", marginTop:7 }}>
-              <button onClick={() => set("map_focus_edit_open", false)} style={{ padding:"5px 12px", borderRadius:6, fontSize:11, cursor:"pointer", border:"1px solid var(--border2)", background:"var(--bg2)", color:"var(--text2)" }}>Done</button>
-            </div>
-          </div>
-        ) : (
-          <div style={{ fontFamily:"var(--serif)", fontStyle:"italic", fontSize:17, lineHeight:1.6, color:"var(--text)", fontWeight:300 }}>
-            {focusText || <span style={{ color:"var(--text4)", fontStyle:"normal", fontSize:13 }}>Click Edit to write your one thing for tomorrow.</span>}
-          </div>
-        )}
-      </div>
-
       {!ai.close && (
         <div style={{ textAlign:"center", marginBottom:22 }}>
-          <button className="btn" onClick={() => {
-              // W.4: Build Katherine's closing note prompt from NEW state, not legacy
-              const purposeFinal = map.purpose_final || map.purpose_draft || "";
-              const animalSummary = validA.map(a => [a.adj1, a.adj2, a.name].filter(Boolean).join(" ")).join(", ");
-              // Values list from new state
-              const valCount = parseInt(map?.val_count) || ((map?.values || []).length) || 0;
-              const valNames: string[] = [];
-              for (let i = 0; i < valCount; i++) {
-                const vn = map?.[`val_${i}_name`] || (map?.values || [])[i]?.name;
-                if (vn) valNames.push(vn);
-              }
-              // BAG Non-negotiable tier as the commitment signal
-              const bagNN = bagTiers["non-neg"] || [];
-              // 1-Year commitments (prefer sentences; fall back to picks)
-              const oneyrBits: string[] = [];
-              if (map.oneyr_time_confirmed && map.oneyr_time_sentence)   oneyrBits.push(`Time: "${map.oneyr_time_sentence}"`);
-              if (map.oneyr_wealth_confirmed && map.oneyr_wealth_sentence) oneyrBits.push(`Wealth: "${map.oneyr_wealth_sentence}"`);
-              if (map.oneyr_growth_confirmed && map.oneyr_growth_sentence) oneyrBits.push(`Growth: "${map.oneyr_growth_sentence}"`);
-              // BAG growth sentence for identity line reference
-              const bagGrowth = map.growth_sentence || map.growth_summary || map.bag_growth || "";
-              const oneThing = map.map_focus_text || "";
-
-              const prompt = `You are Katherine Breuss. ${name} has just completed A1 -- All In It. Write them a closing note.
-Purpose: "${purposeFinal}".
-Identity animals: ${animalSummary || "(none set)"}.
-Values: ${valNames.join(", ") || "(none set)"}.
-BAG Non-negotiable priorities: ${bagNN.join(", ") || "(not ranked yet)"}.
-1-Year commitments: ${oneyrBits.join(" · ") || "(not yet completed)"}.
-BAG Growth vision: "${bagGrowth}".
-Their one thing to start tomorrow: "${oneThing || "(not yet written)"}".
-They originally came for: "${intake?.q1 || ""}".
-
-Write a 3-4 sentence closing note that references something SPECIFIC they wrote -- not generic coaching language. Warm, direct, no-BS. Then one identity line: a single sentence describing who they are and what they're building, referencing their animal(s) or top value.
-
-Respond ONLY with JSON: {"note":"...","identity_line":"..."}`;
-              runAI("close", prompt);
-            }}>
+          <button className="btn" onClick={() => runAI("close", `You are Katherine Breuss. Completed Map of Me with ${name}. Purpose: "${map.purpose_final || map.purpose_draft}". Animals: ${validA.map(a => [a.adj1, a.adj2, a.name].filter(Boolean).join(" ")).join(", ")}. Values: ${validV.map(v => v.name).join(", ")}. Life priorities: ${validAreas.map((a,i) => `${i+1}. ${a.label}`).join(", ")}. BAG Growth: "${map.bag_growth}". Brought here: "${intake.q1}". Write 3-4 sentence closing note referencing something SPECIFIC. One identity line -- who they are and what they're building. JSON: {"note":"...","identity_line":"..."}`)}>
             {busy.close ? <span className="dot-l"><span /><span /><span /></span> : "✦ Get Katherine's Closing Note"}
           </button>
         </div>
@@ -7491,17 +9907,15 @@ Respond ONLY with JSON: {"note":"...","identity_line":"..."}`;
           </div>
         ))}
       </div>
-      <MapDownloadSection name={name} map={map} />
+      {/* Hidden until end of program: <MapDownloadSection name={name} map={map} /> */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-        <button className="btn-g" onClick={() => goto("align")}>← Alignment Check</button>
+        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-Year</button>
         <button className="btn" onClick={() => { markDone("map"); onDone(map); }}>Continue to A2 -- Align With It →</button>
       </div>
     </>);
   }
-
   return null;
 }
-
 let _jspdfPromise: Promise<any> | null = null;
 function loadJsPDF(): Promise<any> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
@@ -7521,7 +9935,6 @@ function loadJsPDF(): Promise<any> {
   });
   return _jspdfPromise;
 }
-
 let _logoPromise: Promise<string> | null = null;
 function loadLogoBase64(): Promise<string> {
   if (_logoPromise) return _logoPromise;
@@ -7538,10 +9951,8 @@ function loadLogoBase64(): Promise<string> {
   })();
   return _logoPromise;
 }
-
 function MapDownloadSection({ name, map }: { name: any; map: any }) {
   const [busy, setBusy] = useState<null | "snapshot" | "full">(null);
-
   const generate = async (mode: "snapshot" | "full") => {
     setBusy(mode);
     try {
@@ -7555,15 +9966,12 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       const marginX = 40;
       const maxW = pw - marginX * 2;
       const safeName = (name || "User").toString();
-
       const NAVY: [number, number, number] = [27, 42, 75];
       const GOLD: [number, number, number] = [201, 168, 76];
       const TEXT: [number, number, number] = [50, 50, 50];
       const MUTED: [number, number, number] = [100, 100, 100];
-
       const HEADER_H = 70;
       const LOGO_PT = 56.7;
-
       const drawHeader = () => {
         doc.setFillColor(...NAVY);
         doc.rect(0, 0, pw, HEADER_H, "F");
@@ -7583,7 +9991,6 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         doc.setTextColor(...GOLD);
         doc.text(`True Ownership  ·  ${safeName}'s Map of Me`, textX, HEADER_H / 2 + 12);
       };
-
       const drawFooter = (pageNum: number, total: number) => {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
@@ -7591,11 +9998,9 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         doc.text(new Date().toLocaleDateString(), marginX, ph - 20);
         doc.text(`Page ${pageNum} of ${total}`, pw - marginX, ph - 20, { align: "right" });
       };
-
       let y = HEADER_H + 24;
       const newPage = () => { doc.addPage(); drawHeader(); y = HEADER_H + 24; };
       const ensure = (need: number) => { if (y + need > ph - 40) newPage(); };
-
       const sectionHeading = (label: string) => {
         ensure(36);
         y += 8;
@@ -7609,7 +10014,6 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         doc.line(marginX, y, marginX + 60, y);
         y += 16;
       };
-
       const writeText = (text: string, opts: { font?: string; style?: string; size?: number; color?: [number,number,number]; indent?: number; lineH?: number; gap?: number } = {}) => {
         if (!text) return;
         const { font = "helvetica", style = "normal", size = 10, color = TEXT, indent = 0, lineH = 14, gap = 4 } = opts;
@@ -7624,124 +10028,15 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         }
         y += gap;
       };
-
-      const year = new Date().getFullYear();
       const purpose = map?.purpose_final || map?.purpose_draft || "";
-      const bagYear = String(year + 12);
-
-      // W.4: BAG Time items (new state, with legacy life_areas fallback)
-      const timePicked = (map?.time_picked || []) as string[];
-      const timeAreas = timePicked.length
-        ? timePicked.map(id => {
-            const p = TIME_AREA_PRESETS.find(pp => pp.id === id);
-            const stored = (map?.time_items || {})[id] || {};
-            return {
-              label: p?.label || stored.label || id,
-              icon:  p?.icon  || stored.icon  || "",
-              goal:  (stored.goal || stored.text || "").trim(),
-            };
-          })
-        : ((map?.life_areas || []) as any[])
-            .filter(a => a && (a.label || a.id))
-            .map(a => ({ label: a.label || a.id, icon: a.icon || "", goal: (a.goal || "").trim() }));
-      const timeSummary = map?.time_overall_sentence || map?.time_summary || "";
-
-      // W.4: BAG Wealth items (new state, with legacy fallback)
-      const wealthPicked = (map?.wealth_picked || []) as string[];
-      const wealthAreas = wealthPicked.length
-        ? wealthPicked.map(id => {
-            const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id);
-            const stored = (map?.wealth_items || {})[id] || {};
-            return {
-              label: p?.label || stored.label || id,
-              icon:  p?.icon  || stored.icon  || "",
-              goal:  (stored.goal || stored.text || "").trim(),
-            };
-          })
-        : ([
-            { label: "Retirement", goal: map?.bag_retirement || "", icon: "" },
-            { label: "Assets",     goal: map?.bag_assets     || "", icon: "" },
-            { label: "Cashflow",   goal: map?.bag_cashflow   || "", icon: "" },
-          ] as any[]).filter(w => w.goal);
-      const wealthSummary = map?.wealth_overall_sentence || map?.wealth_summary || "";
-
-      // W.4: Growth sentence (new state, with legacy fallback)
-      const growthSummary = map?.growth_sentence || map?.growth_summary || map?.bag_growth || "";
-
-      // W.4: 3-Year / 1-Year summary sentences
-      const threeyrTime   = map?.threeyr_time_confirmed   ? (map?.threeyr_time_sentence || "")   : "";
-      const threeyrWealth = map?.threeyr_wealth_confirmed ? (map?.threeyr_wealth_sentence || "") : "";
-      const threeyrGrowth = map?.threeyr_growth_confirmed ? (map?.threeyr_growth_sentence || "") : "";
-      const oneyrTime     = map?.oneyr_time_confirmed     ? (map?.oneyr_time_sentence || "")     : "";
-      const oneyrWealth   = map?.oneyr_wealth_confirmed   ? (map?.oneyr_wealth_sentence || "")   : "";
-      const oneyrGrowth   = map?.oneyr_growth_confirmed   ? (map?.oneyr_growth_sentence || "")   : "";
-
-      // W.4: Tier ranking per horizon (labels only, bucketed). Resolves real labels
-      // for seed/custom growth IDs; filters orphan tiers that reference un-picked items.
-      const oneyrSeedsLivePDF = (typeof computeIdentityValuesSeeds === "function"
-        ? computeIdentityValuesSeeds(map) : []) as any[];
-      const oneyrEditedLabelsPDF = (map?.oneyr_growth_edited_labels || {}) as Record<string, string>;
-      const oneyrCustomGrowthPDF = (map?.oneyr_growth_custom || []) as any[];
-
-      const tierLabelPDF = (id: string) => {
-        if (id.startsWith("t_")) {
-          const p = TIME_AREA_PRESETS.find(pp => pp.id === id.slice(2));
-          return p?.label || ((map?.time_items || {})[id.slice(2)]?.label) || id.slice(2);
-        }
-        if (id.startsWith("w_")) {
-          const p = WEALTH_AREA_PRESETS.find(pp => pp.id === id.slice(2));
-          return p?.label || ((map?.wealth_items || {})[id.slice(2)]?.label) || id.slice(2);
-        }
-        if (id === "g_main") return "Growth vision";
-        if (id.startsWith("g_custom_")) {
-          const cid = id.slice("g_custom_".length);
-          const match = oneyrCustomGrowthPDF.find((c: any) => String(c.id) === cid);
-          return match?.label || "Custom growth";
-        }
-        if (id.startsWith("g_iv_")) {
-          const seedId = id.slice("g_".length);
-          if (oneyrEditedLabelsPDF[seedId]) return oneyrEditedLabelsPDF[seedId];
-          const seedMatch = oneyrSeedsLivePDF.find((s: any) => s.id === seedId);
-          return seedMatch?.label || "Growth focus";
-        }
-        return id;
-      };
-
-      // Valid ID sets per horizon — strip orphan tier entries
-      const validBagIdsPDF = new Set<string>([
-        ...(map?.time_picked   || []).map((id: string) => `t_${id}`),
-        ...(map?.wealth_picked || []).map((id: string) => `w_${id}`),
-        ...(map?.growth_confirmed ? ["g_main"] : []),
-      ]);
-      const validThreeyrIdsPDF = new Set<string>([
-        ...(map?.time_picked   || []).map((id: string) => `t_${id}`),
-        ...(map?.wealth_picked || []).map((id: string) => `w_${id}`),
-        ...(map?.threeyr_growth_confirmed ? ["g_main"] : []),
-      ]);
-      const oneyrAcceptedPDF = (map?.oneyr_growth_accepted || {}) as Record<string, boolean>;
-      const oneyrRemovedPDF  = (map?.oneyr_growth_removed  || {}) as Record<string, boolean>;
-      const validOneyrIdsPDF = new Set<string>([
-        ...(map?.time_picked   || []).map((id: string) => `t_${id}`),
-        ...(map?.wealth_picked || []).map((id: string) => `w_${id}`),
-        ...(map?.oneyr_growth_confirmed ? ["g_main"] : []),
-        ...oneyrSeedsLivePDF
-          .filter((s: any) => oneyrAcceptedPDF[s.id] && !oneyrRemovedPDF[s.id])
-          .map((s: any) => `g_${s.id}`),
-        ...oneyrCustomGrowthPDF.map((c: any) => `g_custom_${c.id}`),
-      ]);
-
-      const bucketTiersPDF = (tiers: Record<string, string> = {}, validIds: Set<string>) => {
-        const g: Record<string, string[]> = { "non-neg": [], imp: [], nth: [] };
-        Object.entries(tiers || {}).forEach(([id, tier]) => {
-          if (!validIds.has(id)) return; // skip orphans
-          if (g[tier]) g[tier].push(tierLabelPDF(id));
-        });
-        return g;
-      };
-      const bagTiersPDF     = bucketTiersPDF(map?.bag_tiers,     validBagIdsPDF);
-      const threeyrTiersPDF = bucketTiersPDF(map?.threeyr_tiers, validThreeyrIdsPDF);
-      const oneyrTiersPDF   = bucketTiersPDF(map?.oneyr_tiers,   validOneyrIdsPDF);
-
+      const bagYear = map?.bag_year || "";
+      const lifeAreas = ((map?.life_areas || []) as any[]).filter(a => a && (a.label || a.id));
+      const wealthItems = [
+        { label: "Retirement", body: map?.bag_retirement },
+        { label: "Assets",     body: map?.bag_assets },
+        { label: "Cashflow",   body: map?.bag_cashflow },
+      ].filter(w => w.body);
+      const growth = map?.bag_growth || "";
       const animals = ((map?.animals || []) as any[]).filter(a => a && (a.name || a.adj1 || a.adj2));
       const valCount = parseInt(map?.val_count) || ((map?.values || []).length) || 0;
       const values: { name: string; summary: string; behs: { name: string; description?: string }[] }[] = [];
@@ -7757,32 +10052,22 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         }
         values.push({ name: vName, summary: vSummary, behs });
       }
-      const focusOne = map?.map_focus_text || "";
-
+      const focusOne = (map?.map_focus_text != null ? map.map_focus_text : (map?.map_focus_default || "")) || "";
       drawHeader();
-
       doc.setFont("helvetica", "bold");
       doc.setFontSize(mode === "snapshot" ? 17 : 20);
       doc.setTextColor(...NAVY);
       doc.text(`${safeName}'s Map of Me`, marginX, y);
       y += mode === "snapshot" ? 22 : 28;
-
       if (mode === "snapshot") {
         if (purpose) {
           sectionHeading("Purpose");
           writeText(purpose, { font: "times", style: "italic", size: 11, color: TEXT, lineH: 14, gap: 6 });
         }
-        if (timeAreas.length) {
-          sectionHeading(`Time Priorities${bagYear ? ` · BAG ${bagYear}` : ""}`);
-          timeAreas.forEach(a => {
-            writeText(`• ${a.label}`, { style: "bold", size: 10, color: NAVY, gap: 1 });
-          });
-          y += 2;
-        }
-        if (wealthAreas.length) {
-          sectionHeading(`Wealth Priorities${bagYear ? ` · BAG ${bagYear}` : ""}`);
-          wealthAreas.forEach(w => {
-            writeText(`• ${w.label}`, { style: "bold", size: 10, color: NAVY, gap: 1 });
+        if (lifeAreas.length) {
+          sectionHeading(`Time Priorities${bagYear ? ` · BAG Year ${bagYear}` : ""}`);
+          lifeAreas.forEach(a => {
+            writeText(`• ${a.label || a.id}`, { style: "bold", size: 10, color: NAVY, gap: 1 });
           });
           y += 2;
         }
@@ -7803,7 +10088,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
           y += 2;
         }
         if (focusOne) {
-          sectionHeading("Your One Thing");
+          sectionHeading("The One Thing");
           writeText(focusOne, { font: "times", style: "italic", size: 11, color: TEXT, lineH: 14, gap: 4 });
         }
       } else {
@@ -7811,74 +10096,28 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
           sectionHeading("Purpose");
           writeText(purpose, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 8 });
         }
-
-        // ── BAG Horizon ──────────────────────────────
-        if (timeAreas.length || wealthAreas.length || growthSummary) {
-          sectionHeading(`BAG · ${bagYear}`);
-        }
-        if (timeAreas.length) {
-          writeText("Time", { style: "bold", size: 11, color: GOLD, gap: 3 });
-          timeAreas.forEach(a => {
-            writeText(`• ${a.label}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
-            if (a.goal) writeText(a.goal, { font: "times", style: "italic", indent: 14, color: MUTED, gap: 3 });
+        if (lifeAreas.length) {
+          sectionHeading(`Time Priorities${bagYear ? ` · BAG Year ${bagYear}` : ""}`);
+          lifeAreas.forEach(a => {
+            writeText(`• ${a.label || a.id}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
+            if (a.see)  writeText(`See: ${a.see}`,   { indent: 14, color: MUTED, gap: 1 });
+            if (a.hear) writeText(`Hear: ${a.hear}`, { indent: 14, color: MUTED, gap: 1 });
+            if (a.feel) writeText(`Feel: ${a.feel}`, { indent: 14, color: MUTED, gap: 1 });
+            if (a.goal) writeText(`Goal: ${a.goal}`, { indent: 14, color: MUTED, gap: 1 });
+            y += 4;
           });
-          if (timeSummary) writeText(`In one sentence: "${timeSummary}"`, { font: "times", style: "italic", color: TEXT, gap: 6 });
-          y += 2;
         }
-        if (wealthAreas.length) {
-          writeText("Wealth", { style: "bold", size: 11, color: GOLD, gap: 3 });
-          wealthAreas.forEach(w => {
-            writeText(`• ${w.label}`, { style: "bold", size: 11, color: NAVY, gap: 2 });
-            if (w.goal) writeText(w.goal, { font: "times", style: "italic", indent: 14, color: MUTED, gap: 3 });
+        if (wealthItems.length) {
+          sectionHeading("Wealth");
+          wealthItems.forEach(w => {
+            writeText(w.label, { style: "bold", size: 11, color: NAVY, gap: 2 });
+            writeText(w.body, { indent: 14, color: TEXT, gap: 6 });
           });
-          if (wealthSummary) writeText(`In one sentence: "${wealthSummary}"`, { font: "times", style: "italic", color: TEXT, gap: 6 });
-          y += 2;
         }
-        if (growthSummary) {
-          writeText("Growth", { style: "bold", size: 11, color: GOLD, gap: 3 });
-          writeText(growthSummary, { font: "times", style: "italic", color: TEXT, gap: 6 });
+        if (growth) {
+          sectionHeading("Growth");
+          writeText(growth, { color: TEXT, gap: 6 });
         }
-        // BAG tier ranking
-        if (bagTiersPDF["non-neg"].length || bagTiersPDF.imp.length || bagTiersPDF.nth.length) {
-          writeText("Tier ranking", { style: "bold", size: 10, color: GOLD, gap: 2 });
-          if (bagTiersPDF["non-neg"].length) writeText(`Non-negotiable: ${bagTiersPDF["non-neg"].join(", ")}`, { indent: 14, color: TEXT, gap: 2 });
-          if (bagTiersPDF.imp.length)         writeText(`Important: ${bagTiersPDF.imp.join(", ")}`,           { indent: 14, color: TEXT, gap: 2 });
-          if (bagTiersPDF.nth.length)         writeText(`Nice to have: ${bagTiersPDF.nth.join(", ")}`,        { indent: 14, color: MUTED, gap: 2 });
-          y += 4;
-        }
-
-        // ── 3-Year Horizon ──────────────────────────
-        if (threeyrTime || threeyrWealth || threeyrGrowth) {
-          sectionHeading(`3-Year · ${year + 3}`);
-          if (threeyrTime)   writeText(`Time: "${threeyrTime}"`,     { font: "times", style: "italic", color: TEXT, gap: 4 });
-          if (threeyrWealth) writeText(`Wealth: "${threeyrWealth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
-          if (threeyrGrowth) writeText(`Growth: "${threeyrGrowth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
-          if (threeyrTiersPDF["non-neg"].length || threeyrTiersPDF.imp.length || threeyrTiersPDF.nth.length) {
-            y += 2;
-            writeText("Tier ranking", { style: "bold", size: 10, color: GOLD, gap: 2 });
-            if (threeyrTiersPDF["non-neg"].length) writeText(`Non-negotiable: ${threeyrTiersPDF["non-neg"].join(", ")}`, { indent: 14, color: TEXT, gap: 2 });
-            if (threeyrTiersPDF.imp.length)         writeText(`Important: ${threeyrTiersPDF.imp.join(", ")}`,           { indent: 14, color: TEXT, gap: 2 });
-            if (threeyrTiersPDF.nth.length)         writeText(`Nice to have: ${threeyrTiersPDF.nth.join(", ")}`,        { indent: 14, color: MUTED, gap: 2 });
-          }
-          y += 4;
-        }
-
-        // ── 1-Year Horizon ──────────────────────────
-        if (oneyrTime || oneyrWealth || oneyrGrowth) {
-          sectionHeading(`1-Year · ${year + 1}`);
-          if (oneyrTime)   writeText(`Time: "${oneyrTime}"`,     { font: "times", style: "italic", color: TEXT, gap: 4 });
-          if (oneyrWealth) writeText(`Wealth: "${oneyrWealth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
-          if (oneyrGrowth) writeText(`Growth: "${oneyrGrowth}"`, { font: "times", style: "italic", color: TEXT, gap: 4 });
-          if (oneyrTiersPDF["non-neg"].length || oneyrTiersPDF.imp.length || oneyrTiersPDF.nth.length) {
-            y += 2;
-            writeText("Tier ranking", { style: "bold", size: 10, color: GOLD, gap: 2 });
-            if (oneyrTiersPDF["non-neg"].length) writeText(`Non-negotiable: ${oneyrTiersPDF["non-neg"].join(", ")}`, { indent: 14, color: TEXT, gap: 2 });
-            if (oneyrTiersPDF.imp.length)         writeText(`Important: ${oneyrTiersPDF.imp.join(", ")}`,           { indent: 14, color: TEXT, gap: 2 });
-            if (oneyrTiersPDF.nth.length)         writeText(`Nice to have: ${oneyrTiersPDF.nth.join(", ")}`,        { indent: 14, color: MUTED, gap: 2 });
-          }
-          y += 4;
-        }
-
         if (animals.length) {
           sectionHeading("Identity & Superpowers");
           animals.forEach(a => {
@@ -7905,17 +10144,15 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
           });
         }
         if (focusOne) {
-          sectionHeading("Your One Thing");
+          sectionHeading("The One Thing");
           writeText(focusOne, { font: "times", style: "italic", size: 13, color: TEXT, lineH: 16, gap: 6 });
         }
       }
-
       const total = doc.internal.getNumberOfPages();
       for (let p = 1; p <= total; p++) {
         doc.setPage(p);
         drawFooter(p, total);
       }
-
       const fileSafe = safeName.replace(/[^A-Za-z0-9_-]+/g, "_");
       doc.save(`${fileSafe}-map-of-me${mode === "snapshot" ? "-snapshot" : ""}.pdf`);
     } catch (e) {
@@ -7924,7 +10161,6 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
     }
     setBusy(null);
   };
-
   return (
     <div style={{ padding:"17px 20px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:22 }}>
       <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>Download your Map of Me</div>
@@ -7962,7 +10198,6 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
     </div>
   );
 }
-
 export default function App() {
   const [phase, setPhase] = useState("loading");
   const [intake, setIntake] = useState(null);
@@ -7974,12 +10209,14 @@ export default function App() {
   }, []);
   const doneIntake = async (data) => { setIntake(data); await saveData(KEYS.intake, data); await saveData(KEYS.phase, "a1"); setPhase("a1"); };
   const doneA1 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
+  const doneA2 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
-      {phase === "intake" && <NameModal onDone={doneIntake} />}
-      {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} />}
+      {phase === "intake" && <Intake onDone={doneIntake} />}
+      {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} phase={phase} setPhase={setPhase} />}
+      {phase === "a2" && intake && <A2 intake={intake} onDone={doneA2} phase={phase} setPhase={setPhase} />}
       {phase === "done" && (
         <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:36 }}>
           <div className="fade-up" style={{ maxWidth:480, textAlign:"center" }}>
@@ -7987,7 +10224,7 @@ export default function App() {
             <div className="lbl" style={{ marginBottom:11, display:"block" }}>A1 Complete</div>
             <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:300, lineHeight:1.2, marginBottom:13, letterSpacing:"-0.5px" }}>Your Map of Me is built.<br /><em>Now we align it with your life.</em></h2>
             <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"#7a766e", lineHeight:1.8, marginBottom:26 }}>A2 -- Align With It -- asks: does how you actually live match who you now know yourself to be?</p>
-            <button className="btn" style={{ opacity:.5, cursor:"not-allowed", marginBottom:11 }}>A2 Align With It -- Coming Soon</button>
+            <button className="btn" style={{ marginBottom:11 }} onClick={() => setPhase("a2")}>A2 -- Align With It -&gt;</button>
             <div><button className="btn-g" onClick={() => setPhase("a1")}>← Return to Map of Me</button></div>
           </div>
         </div>
