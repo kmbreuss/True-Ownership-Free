@@ -1,0 +1,90 @@
+I'm adding the A3 Advocate phase skeleton to App.tsx. This is placeholder scaffolding — no real A3 content yet, just stubs that let the user click through the A3 sidebar. Mirror the A2 pattern exactly.
+What to do:
+1. Create 6 stub components. Place them together as a group, near where the A2 page components live (or just before the main App component's render returns, wherever makes sense given file structure). Each is a tiny placeholder.
+jsxfunction A3IntroStub({ setA3Step }) {
+  return (
+    <A3StubShell title="Introduction" tagline="Your environment is either advocating for you — or anchoring you." next="people" setA3Step={setA3Step}>
+      Placeholder page. The full A3 Introduction will be built next.
+    </A3StubShell>
+  );
+}
+function A3PeopleStub({ setA3Step }) {
+  return (
+    <A3StubShell title="Energy Audit · People" tagline="Who surrounds you?" next="environment" setA3Step={setA3Step}>
+      Placeholder page. Brain-dump + rating flow coming next.
+    </A3StubShell>
+  );
+}
+function A3EnvironmentStub({ setA3Step }) {
+  return (
+    <A3StubShell title="Energy Audit · Environment" tagline="Your habits and your places." next="thoughts" setA3Step={setA3Step}>
+      Placeholder page. Combined Habits + Places audit coming next.
+    </A3StubShell>
+  );
+}
+function A3ThoughtsStub({ setA3Step }) {
+  return (
+    <A3StubShell title="Energy Audit · Thoughts" tagline="Your inner landscape." next="energymap" setA3Step={setA3Step}>
+      Placeholder page. Inner Landscape visualization coming next.
+    </A3StubShell>
+  );
+}
+function A3EnergyMapStub({ setA3Step }) {
+  return (
+    <A3StubShell title="Energy Map" tagline="What and who are you carrying?" next="board" setA3Step={setA3Step}>
+      Placeholder page. Bullseye visualization coming next.
+    </A3StubShell>
+  );
+}
+function A3BoardStub({ setA3Step }) {
+  return (
+    <A3StubShell title="The Board" tagline="Your Board of twelve." next={null} setA3Step={setA3Step}>
+      Placeholder page. 12-seat table and strengths flow coming next.
+    </A3StubShell>
+  );
+}
+2. Create the shared shell component A3StubShell used by all 6 stubs. Style it to match the existing A2 page layout (same breadcrumb, heading, container styles the A2 pages use). It should:
+
+Show "A3 · {title}" as a breadcrumb / small caps label
+Show the tagline as a large serif heading
+Show the children content inside an amber dashed placeholder card
+If next is truthy, show a teal "Continue →" button that calls setA3Step(next)
+If next is null, show nothing (or a muted "End of A3 scaffold" note)
+
+Use whatever CSS classes / inline styles are consistent with how the A2 pages in this file are built. Match them so A3 doesn't look jarringly different.
+3. Add an A3 sidebar. Find where the A2 sidebar is rendered (conditional on phase === "a2" or similar). Add an equivalent sidebar for phase === "a3". It should have 6 items in this order:
+
+Introduction (sets a3Step to "intro")
+Energy Audit · People (sets a3Step to "people")
+Energy Audit · Environment (sets a3Step to "environment")
+Energy Audit · Thoughts (sets a3Step to "thoughts")
+Energy Map (sets a3Step to "energymap")
+The Board (sets a3Step to "board")
+
+Use the exact same styling pattern A2's sidebar uses. The sidebar label/heading should read "Advocate For It · A3".
+4. Add A3 page router. Find where A2 pages are rendered based on a2Step (probably a conditional block). Add an equivalent block for A3 that renders the right stub based on a3Step:
+
+a3Step === "intro" → <A3IntroStub setA3Step={setA3Step} />
+a3Step === "people" → <A3PeopleStub ... />
+a3Step === "environment" → <A3EnvironmentStub ... />
+a3Step === "thoughts" → <A3ThoughtsStub ... />
+a3Step === "energymap" → <A3EnergyMapStub ... />
+a3Step === "board" → <A3BoardStub ... />
+
+CRITICAL RULES:
+
+Do NOT modify any existing A1 or A2 code in any way
+Do NOT add anything to the KEYS object
+Do NOT add any new useState or useEffect hooks beyond what's already there
+Do NOT touch A2 Mirror's Continue button — we'll wire A2→A3 in a separate batch
+Mirror A2's visual patterns exactly — same CSS classes, same layout structure, same spacing
+Report the final line count when done
+
+Before applying, show me:
+
+The line numbers where you'll insert the stub components
+The line numbers where you'll add the A3 sidebar
+The line numbers where you'll add the A3 page router
+A short plan describing each change
+
+Wait for my approval before executing.
