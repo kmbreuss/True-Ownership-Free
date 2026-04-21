@@ -6514,7 +6514,57 @@ function A3StubShell({ title, tagline, next, setA3Step, children }: any) {
   );
 }
 
-function A3IntroStub({ setA3Step }: any)       { return <A3StubShell title="Introduction"               tagline="Your environment is either advocating for you — or anchoring you." next="people"      setA3Step={setA3Step}>Placeholder page. The full A3 Introduction will be built next.</A3StubShell>; }
+function A3IntroStub({ setA3Step }: any) {
+  return (
+    <div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A3 · Advocate For It</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.15, marginBottom:16, letterSpacing:"-0.5px" }}>
+        Your environment is either advocating for you — or anchoring you.
+      </h2>
+
+      <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:14, maxWidth:620 }}>
+        A1 named who you are. A2 showed you where your life today is pulling the other way. A3 asks the next honest question: who and what around you is actually helping you get there — and who and what is keeping you stuck?
+      </p>
+      <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:14, maxWidth:620 }}>
+        Over the next few pages you'll audit three things: the people around you, your environment (habits and places), and your own thoughts. For each one, you'll sort it into Advocate, Neutral, or Anchor. No judgment — just clarity.
+      </p>
+      <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:620 }}>
+        It starts with you. Not with blaming anyone, not with uprooting your life. With seeing clearly what you've been carrying, what's been keeping you close to who you are, and what's quietly been pulling the other way.
+      </p>
+
+      {/* What we'll cover — three cards */}
+      <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:26, overflow:"hidden" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 22px" }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontFamily:"var(--sans)" }}>What we'll cover</div>
+        </div>
+        <div style={{ padding:"4px 22px 18px", borderTop:"1px solid var(--border)" }}>
+          {[
+            { icon:"👥", label:"People — Who surrounds you?",                   desc:"Brain-dump everyone who shapes a week of your life. Rate each one Advocate, Neutral, or Anchor." },
+            { icon:"🏠", label:"Environment — Your habits and your places.",    desc:"The routines you keep. The rooms you sit in. The apps on your home screen. What's lifting you — and what's draining you." },
+            { icon:"🧠", label:"Thoughts — Your inner landscape.",              desc:"The voice in your head. Is it a coach or a critic? Is it still yours, or borrowed from someone else?" },
+          ].map((item, i) => (
+            <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:11, marginTop:14 }}>
+              <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>{item.icon}</span>
+              <div>
+                <span style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)" }}>{item.label}</span>
+                <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, marginTop:2 }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Closing line */}
+      <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text2)", lineHeight:1.85, padding:"14px 18px", borderLeft:"2px solid var(--warm)", marginBottom:28 }}>
+        By the end of A3, you'll have a Board of twelve — the humans you want in your corner. But first, see clearly what's already there.
+      </div>
+
+      <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"flex-end", gap:8 }}>
+        <button className="btn" onClick={() => setA3Step("people")}>Continue to People →</button>
+      </div>
+    </div>
+  );
+}
 function A3PeopleStub({ setA3Step }: any)      { return <A3StubShell title="Energy Audit · People"      tagline="Who surrounds you?"                                                next="environment" setA3Step={setA3Step}>Placeholder page. Brain-dump + rating flow coming next.</A3StubShell>; }
 function A3EnvironmentStub({ setA3Step }: any) { return <A3StubShell title="Energy Audit · Environment" tagline="Your habits and your places."                                      next="thoughts"    setA3Step={setA3Step}>Placeholder page. Combined Habits + Places audit coming next.</A3StubShell>; }
 function A3ThoughtsStub({ setA3Step }: any)    { return <A3StubShell title="Energy Audit · Thoughts"    tagline="Your inner landscape."                                             next="energymap"   setA3Step={setA3Step}>Placeholder page. Inner Landscape visualization coming next.</A3StubShell>; }
