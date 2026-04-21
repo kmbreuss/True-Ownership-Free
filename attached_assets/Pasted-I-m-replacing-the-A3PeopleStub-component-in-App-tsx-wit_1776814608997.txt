@@ -1,0 +1,64 @@
+I'm replacing the A3PeopleStub component in App.tsx with the full real A3 People audit page. This is one focused change — only the people stub, nothing else.
+Investigate and report back first (do NOT edit yet):
+
+The exact line range where A3PeopleStub is currently defined
+How the A3IntroStub (just built) is structured — I want the People page to match its visual language
+Whether A2 has any existing "list with add/remove" UI patterns I should reuse (look for any list/grid input components in A2 code)
+Confirm the A3 component's a3Goto or equivalent router helper exists, and what its name is
+
+The A3 People page (content spec):
+Eyebrow: "A3 · ENERGY AUDIT · PEOPLE" (teal, small caps)
+Heading: "Who surrounds you?"
+Subheading: "The people shaping a week of your actual life."
+Intro paragraph: "Brain-dump everyone who shows up in a typical week — family, work, friends, neighbors, the barista you actually talk to. Not who you think should matter. Who actually does."
+Phase 1 — Brain-dump:
+
+Input field with placeholder: "Name, and how they show up in your week"
+Add button (teal pill, small)
+List of added people appears below as simple chips/cards, each with a delete "×" button
+Store in map.a3_people as array of {id, name, role} objects
+Use the existing set("a3_people", newArray) helper pattern (or whatever helper A2 uses to update map state)
+
+Phase 2 — Rate them:
+
+Only visible after user has added at least 3 people
+Each person card shows their name + role
+Three-way rating buttons: Advocate (teal), Neutral (grey), Anchor (red)
+When clicked, the rating is stored on that person's record ({id, name, role, rating})
+Rated cards visually dim their un-selected rating options
+
+Phase 3 — Adaptive reflection:
+
+Only visible after all people have a rating
+One short paragraph (2-3 sentences), adaptive based on distribution:
+
+Mostly Advocates: "You're surrounded by people who see where you're going. That's rare, and it's not accidental. The question now isn't who to add — it's how to show up for them the way they show up for you."
+Balanced: "Some people in your week are lifting you. Some are quietly asking you to be smaller. That's normal — but it doesn't have to stay that way."
+Mostly Anchors: "Most of the people in your week are pulling against who you're becoming. That's heavy. Not every Anchor has to leave — but you get to decide what proximity they have."
+
+
+
+Continue button (teal): "Continue to Environment →" → sets a3Step to "environment".
+Styling rules:
+
+Match A3 Introduction's outer wrapper exactly (the one you just built)
+For the rating buttons, use a three-state pill pattern. If A2 has a similar rating UI, reuse its classes. If not, inline minimal styles using the existing teal/grey/red color values the stubs already use.
+Phase 1 → Phase 2 → Phase 3 progressive disclosure — user sees Phase 2 only after 3+ people added, Phase 3 only after all rated.
+
+CRITICAL RULES:
+
+Do NOT modify A3Intro (just built), or any other A3 stubs (Environment, Thoughts, Energy Map, Board)
+Do NOT modify any A1 or A2 code
+Do NOT add anything to the KEYS object — a3_people lives as a property on the existing map object
+Do NOT add App-level useState — use the existing set/map pattern A2 uses
+If you need local UI state inside the People component (like the input field value, or the "which phase is visible" flag), that's fine — useState inside the A3PeopleStub component is allowed
+
+Before applying, show me:
+
+Line numbers for each change
+The proposed component structure (what sub-components, what helpers)
+How you'll handle Phase 1/2/3 progressive disclosure
+Which A2 patterns (if any) you're reusing
+Estimated line count delta
+
+Wait for my approval before executing.
