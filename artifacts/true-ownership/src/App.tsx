@@ -6565,7 +6565,156 @@ function A3IntroStub({ setA3Step }: any) {
     </div>
   );
 }
-function A3PeopleStub({ setA3Step }: any)      { return <A3StubShell title="Energy Audit · People"      tagline="Who surrounds you?"                                                next="environment" setA3Step={setA3Step}>Placeholder page. Brain-dump + rating flow coming next.</A3StubShell>; }
+function A3PeopleStub({ setA3Step, map, set }: any) {
+  const people = map.a3_people || [];
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
+
+  const addPerson = () => {
+    if (!name.trim()) return;
+    set("a3_people", [...people, { id: (crypto as any).randomUUID ? (crypto as any).randomUUID() : String(Date.now()) + Math.random(), name: name.trim(), role: role.trim() }]);
+    setName(""); setRole("");
+  };
+  const removePerson = (id: string) => set("a3_people", people.filter((p: any) => p.id !== id));
+  const ratePerson = (id: string, rating: string) => set("a3_people", people.map((p: any) => p.id === id ? { ...p, rating } : p));
+
+  const phase2Visible = people.length >= 3;
+  const allRated = phase2Visible && people.every((p: any) => p.rating);
+  const phase3Visible = allRated;
+
+  // Distribution → adaptive reflection
+  const counts: any = people.reduce((acc: any, p: any) => { if (p.rating) acc[p.rating] = (acc[p.rating]||0)+1; return acc; }, {});
+  const total = people.length || 1;
+  const advPct = (counts.advocate || 0) / total;
+  const ancPct = (counts.anchor || 0) / total;
+  let reflection = "";
+  if (advPct >= 0.6) {
+    reflection = "You're surrounded by people who see where you're going. That's rare, and it's not accidental. The question now isn't who to add — it's how to show up for them the way they show up for you.";
+  } else if (ancPct >= 0.5) {
+    reflection = "Most of the people in your week are pulling against who you're becoming. That's heavy. Not every Anchor has to leave — but you get to decide what proximity they have.";
+  } else {
+    reflection = "Some people in your week are lifting you. Some are quietly asking you to be smaller. That's normal — but it doesn't have to stay that way.";
+  }
+
+  // Rating button styles
+  const TEAL = "#5DCAA5", RED = "#C97676", GREY = "#9A9590";
+  const ratingBtn = (active: boolean, dimmed: boolean, fill: string, textColor: string) => ({
+    padding: "6px 14px",
+    fontSize: 12,
+    fontFamily: "var(--sans)",
+    fontWeight: 600 as const,
+    letterSpacing: 0.4,
+    border: `1px solid ${active ? fill : "var(--border)"}`,
+    background: active ? fill : "transparent",
+    color: active ? textColor : "var(--text2)",
+    borderRadius: 999,
+    cursor: "pointer",
+    opacity: dimmed ? 0.35 : 1,
+    transition: "opacity .15s, background .15s, border-color .15s",
+  });
+
+  return (
+    <div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A3 · Energy Audit · People</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.15, marginBottom:8, letterSpacing:"-0.5px" }}>
+        Who surrounds you?
+      </h2>
+      <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", color:"var(--text3)", lineHeight:1.4, marginBottom:18 }}>
+        The people shaping a week of your actual life.
+      </div>
+      <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:620 }}>
+        Brain-dump everyone who shows up in a typical week — family, work, friends, neighbors, the barista you actually talk to. Not who you think should matter. Who actually does.
+      </p>
+
+      {/* PHASE 1 — Brain-dump */}
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"#5DCAA5", marginBottom:12, fontFamily:"var(--sans)" }}>Phase 1 · Brain-dump</div>
+      <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap" }}>
+        <input value={name} onChange={e => setName(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") addPerson(); }}
+          placeholder="Name"
+          style={{ flex:"0 1 180px", padding:"9px 12px", fontSize:13, fontFamily:"var(--sans)", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text)", outline:"none" }} />
+        <input value={role} onChange={e => setRole(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") addPerson(); }}
+          placeholder="How they show up in your week"
+          style={{ flex:"1 1 280px", padding:"9px 12px", fontSize:13, fontFamily:"var(--sans)", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text)", outline:"none" }} />
+        <button onClick={addPerson}
+          style={{ padding:"9px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"#5DCAA5", color:"#0d1b2e", border:"none", borderRadius:999, cursor:"pointer" }}>
+          + Add
+        </button>
+      </div>
+      {people.length > 0 && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:30 }}>
+          {people.map((p: any) => (
+            <div key={p.id} style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 6px 6px 12px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:999 }}>
+              <span style={{ fontSize:12, color:"var(--text)", fontFamily:"var(--sans)" }}>
+                <strong style={{ fontWeight:600 }}>{p.name}</strong>
+                {p.role && <span style={{ color:"var(--text3)" }}> · {p.role}</span>}
+              </span>
+              <button onClick={() => removePerson(p.id)}
+                title="Remove"
+                style={{ width:20, height:20, borderRadius:"50%", background:"transparent", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:14, lineHeight:1, padding:0 }}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+      {!phase2Visible && (
+        <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", marginBottom:30 }}>
+          Add at least 3 people to continue.
+        </div>
+      )}
+
+      {/* PHASE 2 — Rate them */}
+      {phase2Visible && (
+        <>
+          <div style={{ marginTop:14, paddingTop:24, borderTop:"1px solid var(--border)" }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"#5DCAA5", marginBottom:8, fontFamily:"var(--sans)" }}>Phase 2 · Rate them</div>
+            <p style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, marginBottom:18, maxWidth:620 }}>
+              For each person, pick how they show up: <strong style={{ color:"#5DCAA5", fontWeight:600 }}>Advocate</strong>, <strong style={{ color:"var(--text3)", fontWeight:600 }}>Neutral</strong>, or <strong style={{ color:"#C97676", fontWeight:600 }}>Anchor</strong>.
+            </p>
+            <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:30 }}>
+              {people.map((p: any) => {
+                const r = p.rating;
+                return (
+                  <div key={p.id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:14, padding:"12px 16px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:10 }}>
+                    <div style={{ minWidth:0, flex:1 }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:"var(--text)", fontFamily:"var(--sans)" }}>{p.name}</div>
+                      {p.role && <div style={{ fontSize:12, color:"var(--text3)", marginTop:2 }}>{p.role}</div>}
+                    </div>
+                    <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                      <button onClick={() => ratePerson(p.id, "advocate")} style={ratingBtn(r === "advocate", !!r && r !== "advocate", TEAL, "#0d1b2e")}>Advocate</button>
+                      <button onClick={() => ratePerson(p.id, "neutral")}  style={ratingBtn(r === "neutral",  !!r && r !== "neutral",  GREY, "#0d1b2e")}>Neutral</button>
+                      <button onClick={() => ratePerson(p.id, "anchor")}   style={ratingBtn(r === "anchor",   !!r && r !== "anchor",   RED,  "#ffffff")}>Anchor</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {!allRated && (
+            <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", marginBottom:30 }}>
+              Rate everyone to see your reflection.
+            </div>
+          )}
+        </>
+      )}
+
+      {/* PHASE 3 — Adaptive reflection */}
+      {phase3Visible && (
+        <div style={{ marginTop:14, paddingTop:24, borderTop:"1px solid var(--border)" }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"#5DCAA5", marginBottom:12, fontFamily:"var(--sans)" }}>Phase 3 · Reflection</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text2)", lineHeight:1.85, padding:"18px 22px", borderLeft:"2px solid #5DCAA5", marginBottom:30 }}>
+            {reflection}
+          </div>
+        </div>
+      )}
+
+      {/* Continue */}
+      <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"flex-end", gap:8 }}>
+        <button className="btn" onClick={() => setA3Step("environment")}>Continue to Environment →</button>
+      </div>
+    </div>
+  );
+}
 function A3EnvironmentStub({ setA3Step }: any) { return <A3StubShell title="Energy Audit · Environment" tagline="Your habits and your places."                                      next="thoughts"    setA3Step={setA3Step}>Placeholder page. Combined Habits + Places audit coming next.</A3StubShell>; }
 function A3ThoughtsStub({ setA3Step }: any)    { return <A3StubShell title="Energy Audit · Thoughts"    tagline="Your inner landscape."                                             next="energymap"   setA3Step={setA3Step}>Placeholder page. Inner Landscape visualization coming next.</A3StubShell>; }
 function A3EnergyMapStub({ setA3Step }: any)   { return <A3StubShell title="Energy Map"                 tagline="What and who are you carrying?"                                    next="board"       setA3Step={setA3Step}>Placeholder page. Bullseye visualization coming next.</A3StubShell>; }
@@ -6574,6 +6723,17 @@ function A3BoardStub({ setA3Step }: any)       { return <A3StubShell title="The 
 function A3({ intake, onDone, phase, setPhase }: any) {
   const [a3Step, setA3Step] = useState("intro");
   const a3Goto = (s: string) => { setA3Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+
+  const [map, setMap] = useState<any>({});
+  useEffect(() => { loadData(KEYS.map).then((m: any) => { if (m) setMap(m); }); }, []);
+  const saveTimer = useRef<any>(null);
+  const saveMap = useCallback((next: any) => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => { saveData(KEYS.map, next); }, 800);
+  }, []);
+  const set = useCallback((key: string, val: any) => {
+    setMap((prev: any) => { const next = { ...prev, [key]: val }; saveMap(next); return next; });
+  }, [saveMap]);
 
   const phaseTabs = (
     <div style={{ display:"flex", gap:5 }}>
@@ -6627,7 +6787,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
   );
 
   if (a3Step === "intro")       return wrapA3(<A3IntroStub       setA3Step={a3Goto} />);
-  if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} />);
+  if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} />);
   if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} />);
   if (a3Step === "energymap")   return wrapA3(<A3EnergyMapStub   setA3Step={a3Goto} />);
