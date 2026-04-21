@@ -3329,6 +3329,7 @@ const A2_STEPS = [
 const A2_MAP_STEP = { id: "map", label: "My Map of Me" };
 function A2({ intake, onDone, phase, setPhase }) {
   const [a2Step, setA2Step] = useState("intro");
+  const [a3Step, setA3Step] = useState("intro");
   const [a2Done, setA2Done] = useState([]);
   const a2Goto = (s) => { setA2Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const currentLabel = [...A2_STEPS, A2_MAP_STEP].find(s => s.id === a2Step)?.label || "Align With It";
