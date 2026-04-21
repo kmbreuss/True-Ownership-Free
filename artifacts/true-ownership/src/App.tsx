@@ -5998,7 +5998,7 @@ function A2({ intake, onDone, phase, setPhase }) {
 
         <div style={{ marginTop:26, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", justifyContent:"space-between", gap:8 }}>
           <button className="btn-g" onClick={() => a2Goto(prevStep.id)}>← {prevStep.label}</button>
-          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "mirror"])]); a2Goto(nextStep.id); }}>{nextStep.label} →</button>
+          <button className="btn" onClick={() => { setA2Done(d => [...new Set([...d, "mirror"])]); setPhase("a3"); }}>Continue to A3 →</button>
         </div>
       </div>
     );
