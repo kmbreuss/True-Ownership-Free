@@ -1,0 +1,49 @@
+I'm replacing the A3IntroStub component in App.tsx with the full real A3 Introduction page. This is one focused change — only the intro stub, nothing else.
+Before editing anything, investigate and report back:
+
+The exact line range where A3IntroStub is currently defined
+The exact line range where A2's "intro" page renders (a2Step === "intro" block) — I want to see what styling, wrappers, helpers, and layout patterns A2 uses so A3's intro matches visually
+The exact line range of the A3StubShell helper (it's likely near the stubs and I may want to keep using parts of it)
+How A2 handles its "Continue" button on intro — what classname, what styling
+
+Then propose the plan.
+Here's what the real A3 Introduction page needs to contain (content spec):
+Eyebrow label: "A3 · ADVOCATE FOR IT" (small caps, teal)
+Hero heading (large serif): "Your environment is either advocating for you — or anchoring you."
+Intro body (3 short paragraphs, same prose styling as A2 intro):
+Paragraph 1: "A1 named who you are. A2 showed you where your life today is pulling the other way. A3 asks the next honest question: who and what around you is actually helping you get there — and who and what is keeping you stuck?"
+Paragraph 2: "Over the next few pages you'll audit three things: the people around you, your environment (habits and places), and your own thoughts. For each one, you'll sort it into Advocate, Neutral, or Anchor. No judgment — just clarity."
+Paragraph 3: "It starts with you. Not with blaming anyone, not with uprooting your life. With seeing clearly what you've been carrying, what's been keeping you close to who you are, and what's quietly been pulling the other way."
+Three-card "what we'll cover" preview section (mirror the visual style of A2's "THE TEN PAGES AHEAD" section if it exists, or use a clean 3-card layout):
+
+People — "Who surrounds you?" — "Brain-dump everyone who shapes a week of your life. Rate each one Advocate, Neutral, or Anchor."
+Environment — "Your habits and your places." — "The routines you keep. The rooms you sit in. The apps on your home screen. What's lifting you — and what's draining you."
+Thoughts — "Your inner landscape." — "The voice in your head. Is it a coach or a critic? Is it still yours, or borrowed from someone else?"
+
+Closing line (italic, serif, muted): "By the end of A3, you'll have a Board of twelve — the humans you want in your corner. But first, see clearly what's already there."
+Continue button (teal, bottom-right): "Continue to People →" → clicking should set a3Step to "people".
+Styling rules:
+
+Match A2's intro page structure exactly — same outer wrapper classes, same typography scale, same spacing
+Use <A3StubShell> if it makes sense, OR replace with a custom layout if the intro needs more than the stub shell provides. Your call — pick whichever results in cleaner code.
+Do NOT introduce new CSS classes that aren't already in App.tsx — reuse existing ones
+The amber dashed "placeholder" card from the stub goes away — this is the real page now
+
+CRITICAL RULES:
+
+Do NOT modify any other A3 stub (People, Environment, Thoughts, Energy Map, Board)
+Do NOT modify any A1 code
+Do NOT modify any A2 code
+Do NOT add anything to the KEYS object
+Do NOT add App-level useState or useEffect
+The only thing that changes: A3IntroStub is replaced with a real A3Intro component (or stays named A3IntroStub if simpler — whichever is cleaner)
+The router line {a3Step === "intro" && <A3IntroStub ... />} may need its component name updated if you rename
+
+Before applying, show me:
+
+Line numbers for each change
+A short plan describing the new component's structure
+Confirm whether A3StubShell is being reused or replaced
+Estimated line count delta
+
+Wait for my approval before executing.
