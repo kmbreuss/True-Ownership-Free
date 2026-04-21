@@ -1,0 +1,75 @@
+I'm adding A3 Advocate phase state to App.tsx. Before you make any changes, I need you to do the following in order:
+STEP 0 — Verify location (critical):
+Find the ACTUAL const KEYS = { ... } object that maps localStorage key names in App.tsx. It is likely around where existing a2_one_thing, a2_km_pinned_id, a2_ta_acts keys are defined. Show me:
+
+The exact line number where the KEYS object opens (const KEYS = {)
+The exact line number where it closes (})
+A copy of 5-10 of the existing entries so I can see the pattern
+
+Do NOT start editing yet. I need to approve the location first.
+Once I approve, you will apply these 4 changes in order:
+CHANGE 1 — Add 9 new keys to the KEYS object (after the last a2_* entry, matching the existing indentation and value-prefix pattern):
+  a3_people:              "to.a3_people",
+  a3_env_items:           "to.a3_env_items",
+  a3_env_takeaway_change: "to.a3_env_takeaway_change",
+  a3_env_takeaway_protect:"to.a3_env_takeaway_protect",
+  a3_triggers:            "to.a3_triggers",
+  a3_thoughts:            "to.a3_thoughts",
+  a3_best_friend:         "to.a3_best_friend",
+  a3_board_candidates:    "to.a3_board_candidates",
+  a3_board_missing:       "to.a3_board_missing",
+CHANGE 2 — Add 9 new useState hooks immediately after the last a2_* useState hook in the main App component:
+javascriptconst [a3People, setA3People] = useState(() => {
+  try { return JSON.parse(localStorage.getItem(KEYS.a3_people) || "[]"); }
+  catch { return []; }
+});
+const [a3EnvItems, setA3EnvItems] = useState(() => {
+  try { return JSON.parse(localStorage.getItem(KEYS.a3_env_items) || "[]"); }
+  catch { return []; }
+});
+const [a3EnvChange, setA3EnvChange] = useState(
+  () => localStorage.getItem(KEYS.a3_env_takeaway_change) || ""
+);
+const [a3EnvProtect, setA3EnvProtect] = useState(
+  () => localStorage.getItem(KEYS.a3_env_takeaway_protect) || ""
+);
+const [a3Triggers, setA3Triggers] = useState(() => {
+  try { return JSON.parse(localStorage.getItem(KEYS.a3_triggers) || "[]"); }
+  catch { return []; }
+});
+const [a3Thoughts, setA3Thoughts] = useState(() => {
+  try { return JSON.parse(localStorage.getItem(KEYS.a3_thoughts) || "[]"); }
+  catch { return []; }
+});
+const [a3BestFriend, setA3BestFriend] = useState(
+  () => localStorage.getItem(KEYS.a3_best_friend) || ""
+);
+const [a3BoardCandidates, setA3BoardCandidates] = useState(() => {
+  try { return JSON.parse(localStorage.getItem(KEYS.a3_board_candidates) || "[]"); }
+  catch { return []; }
+});
+const [a3BoardMissing, setA3BoardMissing] = useState(() => {
+  try { return JSON.parse(localStorage.getItem(KEYS.a3_board_missing) || "[]"); }
+  catch { return []; }
+});
+CHANGE 3 — Add A3 step state immediately after the existing a2Step useState hook:
+javascriptconst [a3Step, setA3Step] = useState("intro");
+CHANGE 4 — Add persistence useEffects (place them in the same area where existing localStorage.setItem(KEYS.a2_* useEffects are):
+javascriptuseEffect(() => { try { localStorage.setItem(KEYS.a3_people, JSON.stringify(a3People)); } catch {} }, [a3People]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_env_items, JSON.stringify(a3EnvItems)); } catch {} }, [a3EnvItems]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_env_takeaway_change, a3EnvChange); } catch {} }, [a3EnvChange]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_env_takeaway_protect, a3EnvProtect); } catch {} }, [a3EnvProtect]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_triggers, JSON.stringify(a3Triggers)); } catch {} }, [a3Triggers]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_thoughts, JSON.stringify(a3Thoughts)); } catch {} }, [a3Thoughts]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_best_friend, a3BestFriend); } catch {} }, [a3BestFriend]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_board_candidates, JSON.stringify(a3BoardCandidates)); } catch {} }, [a3BoardCandidates]);
+useEffect(() => { try { localStorage.setItem(KEYS.a3_board_missing, JSON.stringify(a3BoardMissing)); } catch {} }, [a3BoardMissing]);
+Rules:
+
+Do NOT modify any existing code
+Do NOT change any existing A1 or A2 logic
+Match the indentation and style pattern of surrounding code
+After all 4 changes, report the final file's line count
+
+But AGAIN — first show me the KEYS object location and a few existing entries. Do not start editing until I confirm.
+
