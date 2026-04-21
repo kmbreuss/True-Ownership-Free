@@ -1,0 +1,162 @@
+I'm replacing the A3PeopleStub component in App.tsx with the full real A3 People audit page. I've studied the prototype carefully and this is the complete spec. Read it all before proposing a plan.
+Source of truth: /mnt/project/a3_people_prototype.html — please open it if you can, or I'll re-describe. Below is the authoritative spec either way.
+Investigate first (do NOT edit yet):
+
+Exact line range of current A3PeopleStub
+Whether the existing A3 component passes map and set props down to its stubs. If not, you'll need to add that plumbing (same as the prior build — approved)
+How A3Intro (just built) uses the serif Cormorant font, teal eyebrow color, and outer layout — the People page should match this chrome exactly
+
+=== PEOPLE PAGE FULL SPEC ===
+Top section:
+
+Breadcrumb (teal small caps): "A3 · ENERGY AUDIT · PEOPLE"
+H1 (serif): "Who's in your inner circle?"
+Lead paragraph: "The people who shape your energy — on purpose or by default. Name them first. Rate them second. Don't censor."
+
+Phase tracker (below lead, before phases):
+
+Two-step horizontal tracker
+Step 1: "Name them"
+Step 2: "Rate them"
+Each step shows a number in a circle; current phase = teal; done = green with green circle; upcoming = muted grey
+
+Data model: Each person is { id, name, role, rating, onBoard, action, how }. Stored as map.a3_people (array).
+Phase 1 — Name them (shown when local a3PeoplePhase === 1):
+Card with:
+
+Label (teal small caps): "PHASE 1 · BRAIN-DUMP"
+Question (serif, 22px): "Who are the people in your life right now?"
+Hint (grey): "List everyone who takes up real space in your head or your calendar. One per line. Don't rank, don't judge, don't filter. We'll sort it all next."
+Textarea (min 200px tall) with italic placeholder: "Type one name per line…\ne.g.\nMom\nSarah (best friend)\nMike\nJess on my team"
+Footer: live count "N names · most lists land between 10 and 25"
+
+Below the card, a prompts callout (amber left-bar):
+
+Label (amber caps): "IF YOU'RE STUCK, ASK YOURSELF"
+Serif italic chips in a row: "Who did I talk to this week?" / "Who's in my group chats?" / "Who do I text when something big happens?" / "Who do I avoid calling back?" / "Whose opinion runs in my head?"
+
+Step footer:
+
+Left: outline pill button "← Back to Introduction" (calls setA3Step("intro"))
+Right: grey hint "Add at least one name to continue." (or "Ready when you are." when there's ≥1 name) + teal filled pill "Next · Rate them →" (disabled until ≥1 non-empty line)
+
+Transition from Phase 1 to Phase 2: when user clicks Next, parse the textarea into lines, reconcile with any existing map.a3_people (preserve ratings/actions for names that still appear), and set("a3_people", newArray).
+Phase 2 — Rate them (shown when local a3PeoplePhase === 2):
+Intro paragraph: "One at a time. Pick a role, then ask yourself: are they an advocate, neutral, or an anchor? The row will expand for the next step — decide if they belong on your Board (advocates) or how you'll interact going forward (neutrals and anchors)."
+Person cards (one per person in map.a3_people):
+Each card is a container with rounded corners, dark bg, border-left: 3px solid <rating-color> (grey when unrated).
+Head row (grid layout: name | role dropdown | rating toggle | delete):
+
+Name (serif 17px)
+Role dropdown: options ['Partner','Family','Friend','Mentor','Work colleague','Client','Other…']. Unset state shows italic placeholder "Choose a role…" in muted text
+Rating toggle (3-button pill group): "ADVOCATE" / "NEUTRAL" / "ANCHOR"
+
+Default state: grey text, transparent bg
+Selected Advocate: teal text, teal-tinted bg (rgba(93,202,165,.2))
+Selected Neutral: light grey text, grey-tinted bg (rgba(156,163,175,.2))
+Selected Anchor: red text, red-tinted bg (rgba(239,68,68,.18))
+
+
+Delete button (×) in muted grey, turns red on hover
+
+Expand section (appears ONLY after rating is set, inside same card, with top border separator):
+If rating === "advocate":
+
+Row label (teal small caps): "BOARD?"
+Two-button toggle: "YES" / "NO"
+Hint (serif italic) based on onBoard value: when yes = "saving them for The Board"; when no = "great advocate, not a board seat"; unset = "want them on your Board of 12?"
+
+If rating === "neutral":
+
+Row label (grey small caps): "ACTION"
+Action dropdown: options ['Accept','Observe','Deepen','Distance','Other…'] with placeholder "Choose an action…"
+Hint text next to dropdown (serif italic) = ACTION_HINTS[action] (see below)
+If action is set: a "How" textarea below (small — 2 rows). Label: "How · what does this look like? optional". Placeholder = HOW_PLACEHOLDERS[action]
+
+If rating === "anchor":
+
+Row label (red small caps): "ACTION"
+Action dropdown: options ['Accept','Observe','Set boundaries','Repair','Release','Other…'] with placeholder "Choose an action…"
+Same hint + optional How textarea pattern as neutral
+
+Action hints (constant):
+{ Accept: "right where you want it, no change",
+  Observe: "watch, don't act yet",
+  Deepen: "invest more, go closer",
+  Distance: "less contact, less weight",
+  "Set boundaries": "keep the relationship, change the terms",
+  Repair: "work on it, give it a chance",
+  Release: "let it fade or end",
+  "Other…": "your own words" }
+How placeholders (constant):
+{ Accept: "e.g. I've made peace with this one, no change planned…",
+  Observe: "e.g. notice how you feel after spending time with them…",
+  Deepen: "e.g. schedule a monthly call, be more vulnerable…",
+  Distance: "e.g. drop the weekly lunches, less check-ins…",
+  "Set boundaries": "e.g. no talk about work at family dinners…",
+  Repair: "e.g. have the conversation I've been avoiding…",
+  Release: "e.g. stop initiating, let the friendship fade…",
+  "Other…": "what does this look like in practice?" }
+Below the person cards — "Add someone else" input (dashed-border container, flex row):
+
+Input placeholder (italic): "Thought of someone else? Add them here…"
+Teal outline button "+ ADD"
+Enter key also adds
+
+Summary block (appears whenever there are people, after the add input):
+
+Label (grey caps): "YOUR INNER CIRCLE SO FAR"
+3-cell grid: Advocates / Neutral / Anchors with live counts (serif 36px numbers)
+Each cell has a colored border matching its category (teal / grey / red)
+"Dominant" state: if ≥60% advocate AND ≤20% anchor → Advocate cell highlighted with teal glow. If ≥40% anchor → Anchor cell highlighted with red glow.
+Below the grid: "Board count line" — appears only when ≥1 advocate has onBoard="yes". Teal-tinted bg with text: "N person/people heading to your Board" (handle singular/plural)
+
+Reflection block (appears whenever summary appears):
+
+Default amber left-bar styling with amber label "ONE THING TO NOTICE"
+Serif italic body text (18px)
+Adaptive tone based on distribution of rated people (only count people with ratings):
+
+If rated < 3: balanced default text: "What do you notice? Be curious, not critical. Every name on this list is telling you something about the life you've built and the one you're growing into. No judgment — just see."
+If advPct ≥ 0.6 && ancPct ≤ 0.2: ADVOCATE TONE — teal left-bar, teal label. Text: "Celebrate this. The people around you are supporting who you are and who you're evolving into — that's rare, and it didn't happen by accident. Sit with it for a moment. What does it mean to have this much support already in place?"
+If ancPct ≥ 0.4: ANCHOR TONE — red left-bar, red label. Text: "If your list has more anchors than you'd like, that's okay. It doesn't mean you've done something wrong — it means you're seeing clearly, probably for the first time in a while. We'll get strategic later. For now, just be curious. Which names were a surprise? Which did you already know?"
+Else: balanced default (same as <3 rated case)
+
+
+
+Closing block (appears whenever reflection appears):
+
+Serif 22px title: "You saw it."
+Body: "That's what this page was for. Don't try to fix anything. Don't rewrite relationships in your head. Don't decide who to call or who to cut."
+Body: "The people you marked as advocates — and chose for your Board — move to The Board next, where you'll give each one their seat at the table. For now, just notice. Reflect without judging. Stay curious." ("The Board" in teal bold)
+
+Step footer:
+
+Left: "← Back to naming" (returns to Phase 1)
+Right: grey hint "Next up · Environment" + teal filled pill "Continue →" → sets a3Step to "environment"
+
+=== IMPLEMENTATION NOTES ===
+
+Local state (inside A3PeopleStub): a3PeoplePhase (1 or 2), brainDumpText (string), newPersonInput (string for the "add someone else" box)
+All person data lives on map.a3_people via set("a3_people", ...) — the existing pattern from prior work
+Role/rating/onBoard/action/how updates modify the person record and call set("a3_people", updatedArray)
+Use crypto.randomUUID() for new person IDs (or an existing A2 pattern if present)
+When Phase 2 renders with 0 people, show an empty state: "No names yet." + body + button "← Back to naming"
+
+CRITICAL RULES:
+
+Do NOT touch A3Intro, any other A3 stub, A1, A2, KEYS, or App-level state
+Reuse existing teal/grey/amber/red colors from A2/A3Intro — don't invent hex values, use the same CSS vars or inline rgb values as A3Intro
+Match A3Intro's outer wrapper exactly (same main container, same padding, same max-width)
+Progressive disclosure is strict: Phase 2 only renders when user clicks Next from Phase 1; expand rows only render after rating is set; summary/reflection/closing only render when there's ≥1 person in the list
+
+Before applying, show me:
+
+Line numbers for the stub to be replaced
+Component structure with sub-components or helper functions
+Estimated line count delta (expect 350–450+ lines — this is a rich page)
+Confirm the constants (ROLES, NEUTRAL_ACTIONS, ANCHOR_ACTIONS, ACTION_HINTS, HOW_PLACEHOLDERS) will be defined at module level above the component
+Confirm map/set plumbing is in place or will be added
+List anything in the spec you'd recommend simplifying or flagging
+
+Wait for my approval before executing.
