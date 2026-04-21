@@ -3329,7 +3329,6 @@ const A2_STEPS = [
 const A2_MAP_STEP = { id: "map", label: "My Map of Me" };
 function A2({ intake, onDone, phase, setPhase }) {
   const [a2Step, setA2Step] = useState("intro");
-  const [a3Step, setA3Step] = useState("intro");
   const [a2Done, setA2Done] = useState([]);
   const a2Goto = (s) => { setA2Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const currentLabel = [...A2_STEPS, A2_MAP_STEP].find(s => s.id === a2Step)?.label || "Align With It";
@@ -3389,7 +3388,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       {["A1","A2","A3","A4","A5"].map((a) => {
         const key = a.toLowerCase();
         const isActive = phase === key;
-        const isAvailable = key === "a1" || key === "a2" || phase === "done";
+        const isAvailable = key === "a1" || key === "a2" || key === "a3" || phase === "done";
         return (
           <div key={a}
             onClick={() => { if (isAvailable) setPhase(key); }}
@@ -6486,6 +6485,106 @@ function A2({ intake, onDone, phase, setPhase }) {
   }
   return wrapA2(<div>Unknown step: {a2Step}</div>);
 }
+
+// ─── A3 · Advocate For It ─────────────────────────────────────────────
+const A3_STEPS = [
+  { id:"intro",       label:"Introduction" },
+  { id:"people",      label:"Energy Audit · People" },
+  { id:"environment", label:"Energy Audit · Environment" },
+  { id:"thoughts",    label:"Energy Audit · Thoughts" },
+  { id:"energymap",   label:"Energy Map" },
+  { id:"board",       label:"The Board" },
+];
+
+function A3StubShell({ title, tagline, next, setA3Step, children }: any) {
+  return (
+    <div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A3 · {title}</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:300, lineHeight:1.2, marginBottom:13, letterSpacing:"-0.5px" }}>{tagline}</h2>
+      <div style={{ padding:"20px 24px", background:"rgba(201,168,76,.06)", border:"1px dashed rgba(201,168,76,.3)", borderRadius:10, marginBottom:26 }}>
+        <div style={{ fontSize:11, color:"var(--warm)", fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:6 }}>Coming next</div>
+        <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, fontStyle:"italic" }}>{children}</div>
+      </div>
+      <div style={{ display:"flex", gap:8 }}>
+        {next
+          ? <button className="btn" onClick={() => setA3Step(next)}>Continue →</button>
+          : <span style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", alignSelf:"center" }}>End of A3 scaffold</span>}
+      </div>
+    </div>
+  );
+}
+
+function A3IntroStub({ setA3Step }: any)       { return <A3StubShell title="Introduction"               tagline="Your environment is either advocating for you — or anchoring you." next="people"      setA3Step={setA3Step}>Placeholder page. The full A3 Introduction will be built next.</A3StubShell>; }
+function A3PeopleStub({ setA3Step }: any)      { return <A3StubShell title="Energy Audit · People"      tagline="Who surrounds you?"                                                next="environment" setA3Step={setA3Step}>Placeholder page. Brain-dump + rating flow coming next.</A3StubShell>; }
+function A3EnvironmentStub({ setA3Step }: any) { return <A3StubShell title="Energy Audit · Environment" tagline="Your habits and your places."                                      next="thoughts"    setA3Step={setA3Step}>Placeholder page. Combined Habits + Places audit coming next.</A3StubShell>; }
+function A3ThoughtsStub({ setA3Step }: any)    { return <A3StubShell title="Energy Audit · Thoughts"    tagline="Your inner landscape."                                             next="energymap"   setA3Step={setA3Step}>Placeholder page. Inner Landscape visualization coming next.</A3StubShell>; }
+function A3EnergyMapStub({ setA3Step }: any)   { return <A3StubShell title="Energy Map"                 tagline="What and who are you carrying?"                                    next="board"       setA3Step={setA3Step}>Placeholder page. Bullseye visualization coming next.</A3StubShell>; }
+function A3BoardStub({ setA3Step }: any)       { return <A3StubShell title="The Board"                  tagline="Your Board of twelve."                                             next={null}        setA3Step={setA3Step}>Placeholder page. 12-seat table and strengths flow coming next.</A3StubShell>; }
+
+function A3({ intake, onDone, phase, setPhase }: any) {
+  const [a3Step, setA3Step] = useState("intro");
+  const a3Goto = (s: string) => { setA3Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+
+  const phaseTabs = (
+    <div style={{ display:"flex", gap:5 }}>
+      {["A1","A2","A3","A4","A5"].map((a) => {
+        const key = a.toLowerCase();
+        const isActive = phase === key;
+        const isAvailable = key === "a1" || key === "a2" || key === "a3" || phase === "done";
+        return (
+          <div key={a}
+            onClick={() => { if (isAvailable) setPhase(key); }}
+            title={isAvailable ? (isActive ? `You are in ${a}` : `Jump to ${a}`) : `${a} coming soon`}
+            style={{ width:25, height:25, borderRadius:"50%", background: isActive ? "rgba(201,168,76,.18)" : "transparent", border:`1px solid ${isActive ? "rgba(232,149,109,.55)" : "var(--border)"}`, display:"flex", alignItems:"center", justifyContent:"center", cursor: isAvailable ? "pointer" : "not-allowed", opacity: isAvailable ? 1 : 0.4 }}>
+            <span style={{ fontFamily:"var(--sans)", fontSize:10, color: isActive ? "var(--warm)" : "var(--text4)", fontWeight: isActive ? 700 : 500 }}>{a}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+  const hdr = (
+    <div style={{ borderBottom:"1px solid #1a1a16", padding:"11px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", position:"sticky", top:0, background:"rgba(13,27,46,.96)", backdropFilter:"blur(12px)", zIndex:50 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:11 }}>
+        <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--warm)", animation:"pulse 3s ease-in-out infinite" }} />
+        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>· {intake?.name || ""}</div>
+      </div>
+      {phaseTabs}
+    </div>
+  );
+  const sidebar = (
+    <div style={{ width:206, flexShrink:0, paddingRight:22, borderRight:"1px solid var(--border)" }}>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text2)", marginBottom:15, fontFamily:"var(--sans)" }}>Advocate For It · A3</div>
+      {A3_STEPS.map(s => {
+        const active = a3Step === s.id;
+        return (
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a3Goto(s.id)}>
+            <div style={{ width:7, height:7, borderRadius:"50%", background: active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
+            <span style={{ fontSize:12, color: active ? "var(--warm)" : "var(--text2)", fontWeight: active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+  const wrapA3 = (children: any) => (
+    <>
+      {hdr}
+      <div style={{ display:"flex", gap:32, padding:"32px 28px 80px", maxWidth:980, margin:"0 auto" }}>
+        {sidebar}
+        <div style={{ flex:1, minWidth:0 }} className="fade-up">{children}</div>
+      </div>
+    </>
+  );
+
+  if (a3Step === "intro")       return wrapA3(<A3IntroStub       setA3Step={a3Goto} />);
+  if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} />);
+  if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} />);
+  if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} />);
+  if (a3Step === "energymap")   return wrapA3(<A3EnergyMapStub   setA3Step={a3Goto} />);
+  if (a3Step === "board")       return wrapA3(<A3BoardStub       setA3Step={a3Goto} />);
+  return wrapA3(<div>Unknown A3 step: {a3Step}</div>);
+}
+
 function Intake({ onDone }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -7215,7 +7314,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           {["A1","A2","A3","A4","A5"].map((a, i) => {
             const key = a.toLowerCase();
             const isActive = phase === key;
-            const isAvailable = key === "a1" || key === "a2" || phase === "done";
+            const isAvailable = key === "a1" || key === "a2" || key === "a3" || phase === "done";
             return (
               <div key={a}
                 onClick={() => { if (isAvailable) setPhase(key); }}
@@ -10211,6 +10310,7 @@ export default function App() {
   const doneIntake = async (data) => { setIntake(data); await saveData(KEYS.intake, data); await saveData(KEYS.phase, "a1"); setPhase("a1"); };
   const doneA1 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA2 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
+  const doneA3 = doneA2;
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
@@ -10218,6 +10318,7 @@ export default function App() {
       {phase === "intake" && <Intake onDone={doneIntake} />}
       {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} phase={phase} setPhase={setPhase} />}
       {phase === "a2" && intake && <A2 intake={intake} onDone={doneA2} phase={phase} setPhase={setPhase} />}
+      {phase === "a3" && intake && <A3 intake={intake} onDone={doneA3} phase={phase} setPhase={setPhase} />}
       {phase === "done" && (
         <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:36 }}>
           <div className="fade-up" style={{ maxWidth:480, textAlign:"center" }}>
