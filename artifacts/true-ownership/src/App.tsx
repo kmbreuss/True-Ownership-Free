@@ -7279,7 +7279,440 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
     </div>
   );
 }
-function A3ThoughtsStub({ setA3Step }: any)    { return <A3StubShell title="Energy Audit · Thoughts"    tagline="Your inner landscape."                                             next="energymap"   setA3Step={setA3Step}>Placeholder page. Inner Landscape visualization coming next.</A3StubShell>; }
+function A3ThoughtsStub({ setA3Step, map, set }: any) {
+  const DEFAULT_TRIGGERS = [
+    { id: "t1", q: "When you fail or mess up, what do you tell yourself?",     placeholder: 'e.g. "You should have known better…"' },
+    { id: "t2", q: "When life is hard, what do you say to yourself?",          placeholder: 'e.g. "Just push through — no one else will save you."' },
+    { id: "t3", q: "When you think about money, what's the story?",            placeholder: 'e.g. "There\'s never enough."' },
+    { id: "t4", q: "When you think about success, what runs in your head?",    placeholder: 'e.g. "Other people just get lucky."' },
+    { id: "t5", q: "When you look in the mirror, what's the voice?",           placeholder: 'e.g. "You\'re getting old." / "You look tired."' },
+  ];
+
+  const triggers: any[] = (map.a3_triggers && map.a3_triggers.length)
+    ? map.a3_triggers
+    : DEFAULT_TRIGGERS.map(t => ({ ...t, thoughts: "", isCustom: false, customQ: "" }));
+  const thoughts: any[] = map.a3_thoughts || [];
+  const bestFriend: string = map.a3_best_friend || "";
+
+  const [a3ThoughtsPhase, setA3ThoughtsPhase] = useState<1|2>(thoughts.length > 0 ? 2 : 1);
+  const [reframingId, setReframingId] = useState<number|null>(null);
+  const [reframeInputValue, setReframeInputValue] = useState("");
+  const [focusedTriggerIdx, setFocusedTriggerIdx] = useState<number|null>(null);
+
+  const updateTrigger = (idx: number, patch: any) => {
+    const next = triggers.map((t, i) => i === idx ? { ...t, ...patch } : t);
+    set("a3_triggers", next);
+  };
+  const addCustomTrigger = () => {
+    set("a3_triggers", [...triggers, { id: `c${Date.now()}`, q: "", placeholder: "Write what shows up…", thoughts: "", isCustom: true, customQ: "" }]);
+  };
+  const removeTrigger = (idx: number) => {
+    set("a3_triggers", triggers.filter((_, i) => i !== idx));
+  };
+
+  const anyThoughtWritten = triggers.some((t: any) => (t.thoughts || "").split("\n").map((s: string) => s.trim()).filter(Boolean).length > 0);
+
+  const compileThoughts = () => {
+    const existingByText = new Map<string, any>();
+    thoughts.forEach((th: any) => {
+      if (th.text) existingByText.set(th.text.toLowerCase().trim(), th);
+      if (th.originalText) existingByText.set(th.originalText.toLowerCase().trim(), th);
+    });
+    let nextId = thoughts.reduce((m: number, th: any) => Math.max(m, th.id || 0), 0) + 1;
+    const compiled: any[] = [];
+    const seen = new Set<number>();
+    triggers.forEach((t: any, idx: number) => {
+      const lines = (t.thoughts || "").split("\n").map((s: string) => s.trim()).filter(Boolean);
+      lines.forEach((line: string) => {
+        const existing = existingByText.get(line.toLowerCase());
+        if (existing && !seen.has(existing.id)) {
+          seen.add(existing.id);
+          compiled.push(existing);
+        } else {
+          const newTh = { id: nextId++, text: line, originalText: null, triggerIdx: idx, rating: null, emphasized: false };
+          compiled.push(newTh);
+        }
+      });
+    });
+    set("a3_thoughts", compiled);
+    setA3ThoughtsPhase(2);
+  };
+
+  const rate = (id: number, val: string) => {
+    set("a3_thoughts", thoughts.map((th: any) => {
+      if (th.id !== id) return th;
+      const newRating = th.rating === val ? null : val;
+      const newEmphasized = newRating === "advocate" ? th.emphasized : false;
+      return { ...th, rating: newRating, emphasized: newEmphasized };
+    }));
+  };
+  const toggleEmphasized = (id: number) => {
+    set("a3_thoughts", thoughts.map((th: any) => th.id === id ? { ...th, emphasized: !th.emphasized } : th));
+  };
+  const openReframe = (id: number) => { setReframingId(id); setReframeInputValue(""); };
+  const closeReframe = () => { setReframingId(null); setReframeInputValue(""); };
+  const saveReframe = () => {
+    const trimmed = reframeInputValue.trim();
+    if (!trimmed || reframingId === null) { closeReframe(); return; }
+    set("a3_thoughts", thoughts.map((th: any) => th.id === reframingId
+      ? { ...th, originalText: th.text, text: trimmed, rating: "advocate", emphasized: false }
+      : th));
+    closeReframe();
+  };
+
+  // Group thoughts by zone (unrated → neutral)
+  const advThoughts = thoughts.filter((th: any) => th.rating === "advocate");
+  const neuThoughts = thoughts.filter((th: any) => !th.rating || th.rating === "neutral");
+  const ancThoughts = thoughts.filter((th: any) => th.rating === "anchor");
+
+  const renderBubble = (th: any) => {
+    const r = th.rating;
+    const offset = ((th.id * 17) % 12) - 6;
+    const borderColor = r === "advocate" ? A3_TEAL : r === "neutral" ? A3_GREY : r === "anchor" ? A3_RED : "var(--border)";
+    const tint = r === "advocate" ? "rgba(93,202,165,.06)" : r === "anchor" ? "rgba(239,68,68,.05)" : "var(--bg2)";
+    const dashed = !r;
+    const emph = th.emphasized && r === "advocate";
+    const ratingPill = (val: string, label: string, color: string, tintBg: string) => {
+      const sel = r === val;
+      return (
+        <button onClick={() => rate(th.id, val)}
+          style={{ padding:"3px 9px", fontSize:10, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)",
+            background: sel ? tintBg : "transparent",
+            color: sel ? color : "var(--text4)",
+            border: `1px solid ${sel ? color : "var(--border)"}`,
+            borderRadius:5, cursor:"pointer", transition:"all .15s" }}>
+          {label}
+        </button>
+      );
+    };
+    return (
+      <div key={th.id} style={{
+        background: tint,
+        border: `${emph ? 2 : 1}px ${dashed ? "dashed" : "solid"} ${borderColor}`,
+        borderRadius: 10,
+        padding: emph ? "13px 17px" : "11px 15px",
+        maxWidth: 520,
+        marginTop: offset,
+        marginBottom: 4,
+        opacity: dashed ? 0.78 : 1,
+        transition: "all .2s",
+      }}>
+        {th.originalText && (
+          <div style={{ fontFamily:"var(--serif)", fontSize:13, color:"var(--text4)", textDecoration:"line-through", marginBottom:5, fontStyle:"italic" }}>
+            {th.originalText}
+          </div>
+        )}
+        <div style={{ fontFamily:"var(--serif)", fontSize: emph ? 18 : 16, fontWeight: emph ? 500 : 400, color:"var(--text)", lineHeight:1.5 }}>
+          {th.text}
+        </div>
+        <div style={{ marginTop:10, paddingTop:8, borderTop:`1px solid ${dashed ? "var(--border)" : borderColor}33`, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+          <div style={{ display:"flex", gap:4 }}>
+            {ratingPill("advocate", "Adv", A3_TEAL, "rgba(93,202,165,.2)")}
+            {ratingPill("neutral",  "Neu", A3_GREY, "rgba(156,163,175,.2)")}
+            {ratingPill("anchor",   "Anc", A3_RED,  "rgba(239,68,68,.18)")}
+          </div>
+          {r === "advocate" && (
+            <button onClick={() => toggleEmphasized(th.id)}
+              style={{ padding:"3px 10px", fontSize:10, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)",
+                background: th.emphasized ? "rgba(93,202,165,.2)" : "transparent",
+                color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:5, cursor:"pointer" }}>
+              {th.emphasized ? "↓ Un-grow" : "↑ Grow"}
+            </button>
+          )}
+          {r === "anchor" && !th.originalText && (
+            <button onClick={() => openReframe(th.id)}
+              style={{ padding:"3px 10px", fontSize:10, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)",
+                background:"transparent", color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:5, cursor:"pointer" }}>
+              ↗ Reframe
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {/* BREADCRUMB + H1 + LEAD */}
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:11 }}>A3 · Energy Audit · Thoughts</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:40, fontWeight:300, lineHeight:1.15, marginBottom:14, letterSpacing:"-0.5px" }}>
+        Your Inner Landscape.
+      </h2>
+      <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:20, maxWidth:640 }}>
+        People and Environment are what surrounds you. This is what runs inside — the voice that speaks even when no one else is in the room.
+      </p>
+
+      {/* FRAMING CARD */}
+      <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderLeft:`3px solid ${A3_TEAL}`, borderRadius:11, padding:"18px 22px", marginBottom:26 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:10, fontFamily:"var(--sans)" }}>Why this page is different</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.75 }}>
+          You can't brain-dump thoughts the way you can name people and places. The ones that matter don't come up on demand — they show up in context. So instead of asking "what are your thoughts?", this page asks <em style={{ color: A3_TEAL, fontStyle:"italic", fontWeight:600 }}>what do you tell yourself when…</em> — a few honest scenarios that usually surface the real voice. Then we'll shape what you find.
+        </div>
+      </div>
+
+      {/* PHASE TRACKER */}
+      <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:30 }}>
+        {[1,2].map((step, idx) => {
+          const isCurrent = a3ThoughtsPhase === step;
+          const isDone = a3ThoughtsPhase > step;
+          const label = step === 1 ? "Listen" : "The Landscape";
+          const circleStyle: any = {
+            width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:12, fontWeight:700, fontFamily:"var(--sans)",
+            ...(isDone
+              ? { background: A3_TEAL, color:"#0d1b2e", border:`1px solid ${A3_TEAL}` }
+              : isCurrent
+                ? { background:"transparent", color: A3_TEAL, border:`1.5px solid ${A3_TEAL}` }
+                : { background:"transparent", color:"var(--text4)", border:"1px solid var(--border)" }),
+          };
+          const textColor = isCurrent || isDone ? A3_TEAL : "var(--text4)";
+          return (
+            <React.Fragment key={step}>
+              <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+                <div style={circleStyle}>{isDone ? "✓" : step}</div>
+                <span style={{ fontSize:12, fontFamily:"var(--sans)", fontWeight:600, color: textColor, letterSpacing:0.4 }}>{label}</span>
+              </div>
+              {idx === 0 && <div style={{ flex:"0 0 40px", height:1, background:"var(--border)" }} />}
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {/* PHASE 1 */}
+      {a3ThoughtsPhase === 1 && (
+        <>
+          <div style={{ display:"flex", flexDirection:"column", gap:14, marginBottom:18 }}>
+            {triggers.map((t: any, idx: number) => {
+              const focused = focusedTriggerIdx === idx;
+              return (
+                <div key={t.id}
+                  onFocus={() => setFocusedTriggerIdx(idx)}
+                  onBlur={() => setFocusedTriggerIdx(null)}
+                  style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderLeft:`3px solid ${focused ? A3_TEAL : "var(--border)"}`, borderRadius:11, padding:"18px 22px", transition:"border-color .15s" }}>
+                  {t.isCustom ? (
+                    <>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                        <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, fontFamily:"var(--sans)" }}>Your own trigger</span>
+                        <button onClick={() => removeTrigger(idx)} title="Remove trigger"
+                          onMouseEnter={(e: any) => e.currentTarget.style.color = A3_RED}
+                          onMouseLeave={(e: any) => e.currentTarget.style.color = "var(--text4)"}
+                          style={{ width:22, height:22, borderRadius:"50%", background:"transparent", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:14, lineHeight:1, padding:0, transition:"color .15s" }}>×</button>
+                      </div>
+                      <input value={t.customQ || ""} onChange={e => updateTrigger(idx, { customQ: e.target.value })}
+                        placeholder="Write your own trigger question…"
+                        style={{ width:"100%", padding:"8px 10px", fontSize:16, fontFamily:"var(--serif)",
+                          background:"var(--bg)", border:"1px solid var(--border)", borderRadius:7, color:"var(--text)",
+                          outline:"none", marginBottom:10, fontStyle: t.customQ ? "normal" : "italic" }} />
+                    </>
+                  ) : (
+                    <div style={{ fontFamily:"var(--serif)", fontSize:19, fontWeight:400, color:"var(--text)", marginBottom:12, lineHeight:1.4 }}>{t.q}</div>
+                  )}
+                  <textarea value={t.thoughts || ""} onChange={e => updateTrigger(idx, { thoughts: e.target.value })}
+                    placeholder={t.placeholder} rows={2}
+                    style={{ width:"100%", padding:"10px 12px", fontSize:14, fontFamily:"var(--sans)",
+                      background:"var(--bg)", border:"1px solid var(--border)", borderRadius:7, color:"var(--text)",
+                      outline:"none", resize:"vertical", lineHeight:1.6 }} />
+                  <div style={{ marginTop:6, fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)", fontStyle:"italic" }}>
+                    One or two is enough. Separate them with a new line if more than one.
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ marginBottom:30 }}>
+            <button onClick={addCustomTrigger}
+              style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:999, cursor:"pointer" }}>
+              + Add your own trigger
+            </button>
+          </div>
+
+          {/* Step footer */}
+          <div style={{ marginTop:8, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
+            <button onClick={() => setA3Step("environment")}
+              style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+              ← Back to Environment
+            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>
+                {anyThoughtWritten ? "Ready when you are." : "Write at least one thought to continue."}
+              </span>
+              <button onClick={compileThoughts} disabled={!anyThoughtWritten}
+                style={{ padding:"9px 18px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)",
+                  background: !anyThoughtWritten ? "var(--border)" : A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999,
+                  cursor: !anyThoughtWritten ? "not-allowed" : "pointer", opacity: !anyThoughtWritten ? 0.55 : 1 }}>
+                Next · The Landscape →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* PHASE 2 */}
+      {a3ThoughtsPhase === 2 && (
+        <>
+          {thoughts.length === 0 && (
+            <div style={{ padding:"40px 30px", textAlign:"center", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:30 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:22, color:"var(--text2)", marginBottom:10 }}>No thoughts yet.</div>
+              <div style={{ fontSize:14, color:"var(--text3)", lineHeight:1.6, marginBottom:20, maxWidth:380, marginLeft:"auto", marginRight:"auto" }}>
+                Head back to Phase 1 and answer at least one trigger.
+              </div>
+              <button onClick={() => setA3ThoughtsPhase(1)}
+                style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:999, cursor:"pointer" }}>
+                ← Back to Listen
+              </button>
+            </div>
+          )}
+
+          {thoughts.length > 0 && (
+            <>
+              {/* Phase 2 intro card */}
+              <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"20px 24px", marginBottom:18 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:8, fontFamily:"var(--sans)" }}>Phase 2 · The Landscape</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:10 }}>Shape your inner landscape.</div>
+                <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.7 }}>
+                  Each thought you wrote is a card. Rate it and it moves to where it lives — advocates rise, anchors sink. Tap <strong style={{ color: A3_TEAL, fontWeight:700 }}>Grow</strong> on an advocate to emphasize it. Tap <strong style={{ color: A3_TEAL, fontWeight:700 }}>Reframe</strong> on an anchor to rewrite it — the original stays as a strike-through above the new words.
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:14 }}>
+                <div style={{ display:"flex", gap:16, fontSize:11, fontFamily:"var(--sans)", fontWeight:600, letterSpacing:0.4 }}>
+                  <span style={{ color: A3_TEAL }}>● Advocate rises</span>
+                  <span style={{ color: A3_GREY }}>● Neutral drifts</span>
+                  <span style={{ color: A3_RED }}>● Anchor sinks</span>
+                </div>
+                <span style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)", fontStyle:"italic" }}>Pick the rating on each card first</span>
+              </div>
+
+              {/* LANDSCAPE */}
+              <div style={{ border:"1px solid var(--border)", borderRadius:12, overflow:"hidden", marginBottom:24 }}>
+                {/* Advocate zone */}
+                <div style={{ background:"rgba(93,202,165,.04)", padding:"22px 22px 26px" }}>
+                  <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10 }}>
+                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, opacity:0.8, fontFamily:"var(--sans)" }}>Advocate ↑</span>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:8, alignItems:"flex-start" }}>
+                    {advThoughts.length === 0
+                      ? <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", fontFamily:"var(--sans)" }}>Nothing risen yet.</div>
+                      : advThoughts.map(renderBubble)}
+                  </div>
+                </div>
+                {/* Divider */}
+                <div style={{ height:1, background:"var(--border)" }} />
+                {/* Neutral zone */}
+                <div style={{ padding:"20px 22px" }}>
+                  <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10 }}>
+                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_GREY, opacity:0.8, fontFamily:"var(--sans)" }}>Neutral</span>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:8, alignItems:"center" }}>
+                    {neuThoughts.length === 0
+                      ? <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", fontFamily:"var(--sans)" }}>Nothing drifting.</div>
+                      : neuThoughts.map(renderBubble)}
+                  </div>
+                </div>
+                {/* Divider */}
+                <div style={{ height:1, background:"var(--border)" }} />
+                {/* Anchor zone */}
+                <div style={{ background:"rgba(239,68,68,.04)", padding:"22px 22px 32px" }}>
+                  <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10 }}>
+                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_RED, opacity:0.8, fontFamily:"var(--sans)" }}>Anchor ↓</span>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:8, alignItems:"flex-end" }}>
+                    {ancThoughts.length === 0
+                      ? <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", fontFamily:"var(--sans)" }}>Nothing sunk.</div>
+                      : ancThoughts.map(renderBubble)}
+                  </div>
+                </div>
+              </div>
+
+              {/* BEST FRIEND CARD */}
+              <div style={{ padding:"18px 22px", background:"rgba(201,168,76,.07)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:8, marginBottom:24 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_AMBER, marginBottom:10, fontFamily:"var(--sans)" }}>The question behind all of this</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:20, fontWeight:400, color:"var(--text)", marginBottom:10, lineHeight:1.45 }}>
+                  Are you speaking to yourself like a best friend — or like your worst enemy?
+                </div>
+                <div style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text3)", lineHeight:1.7, marginBottom:12 }}>
+                  Look at your landscape. Look at what rose, and what sank. Look at what you had to reframe just to feel okay. Write honestly — no one else reads this.
+                </div>
+                <textarea value={bestFriend} onChange={e => set("a3_best_friend", e.target.value)}
+                  placeholder="Honestly… when I look at this I see…"
+                  rows={4}
+                  style={{ width:"100%", padding:"10px 12px", fontSize:14, fontFamily:"var(--sans)",
+                    background:"var(--bg)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text)",
+                    outline:"none", resize:"vertical", lineHeight:1.6 }} />
+              </div>
+
+              {/* CLOSING */}
+              <div style={{ marginBottom:30 }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:12 }}>This is the page you come back to.</div>
+                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
+                  Your inner landscape isn't fixed. Thoughts rise and fall. The voice that speaks <strong style={{ color: A3_TEAL, fontWeight:700 }}>to</strong> you today can be replaced by one that speaks <strong style={{ color: A3_TEAL, fontWeight:700 }}>with</strong> you — but only if you keep listening honestly, and keep reframing when the old voice takes over.
+                </p>
+                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
+                  Your landscape and your Best Friend response come forward to your <strong style={{ color: A3_TEAL, fontWeight:700 }}>Map of Me</strong>, where they live alongside everything you built in A3.
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* STEP FOOTER */}
+          <div style={{ marginTop:8, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
+            <button onClick={() => setA3ThoughtsPhase(1)}
+              style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+              ← Back to listening
+            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>Next up · The Board</span>
+              <button onClick={() => setA3Step("energymap")}
+                style={{ padding:"9px 18px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)", background: A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999, cursor:"pointer" }}>
+                Continue →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* REFRAME OVERLAY */}
+      {reframingId !== null && (() => {
+        const th = thoughts.find((t: any) => t.id === reframingId);
+        if (!th) return null;
+        return (
+          <div onClick={closeReframe}
+            style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.65)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ background:"var(--bg)", border:"1px solid var(--border)", borderRadius:14, padding:"26px 28px", maxWidth:560, width:"100%", boxShadow:"0 20px 60px rgba(0,0,0,.5)" }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:14, fontFamily:"var(--sans)" }}>Reframe this thought</div>
+              <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6, fontFamily:"var(--sans)" }}>The original</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:14, color:"var(--text3)", marginBottom:18, fontStyle:"italic", padding:"8px 12px", background:"var(--bg2)", borderRadius:7, borderLeft:`2px solid ${A3_RED}` }}>
+                {th.text}
+              </div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color:"var(--text2)", marginBottom:12, lineHeight:1.5 }}>
+                If a best friend were listening — what would you want to say to yourself instead?
+              </div>
+              <textarea value={reframeInputValue} onChange={e => setReframeInputValue(e.target.value)}
+                placeholder="Write the new version in your own words…"
+                autoFocus rows={4}
+                style={{ width:"100%", padding:"12px 14px", fontSize:15, fontFamily:"var(--sans)",
+                  background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text)",
+                  outline:"none", resize:"vertical", lineHeight:1.6, marginBottom:18 }} />
+              <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>
+                <button onClick={closeReframe}
+                  style={{ padding:"8px 18px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+                  Cancel
+                </button>
+                <button onClick={saveReframe}
+                  style={{ padding:"9px 20px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)", background: A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999, cursor:"pointer" }}>
+                  Save reframe
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
 function A3EnergyMapStub({ setA3Step }: any)   { return <A3StubShell title="Energy Map"                 tagline="What and who are you carrying?"                                    next="board"       setA3Step={setA3Step}>Placeholder page. Bullseye visualization coming next.</A3StubShell>; }
 function A3BoardStub({ setA3Step }: any)       { return <A3StubShell title="The Board"                  tagline="Your Board of twelve."                                             next={null}        setA3Step={setA3Step}>Placeholder page. 12-seat table and strengths flow coming next.</A3StubShell>; }
 
@@ -7352,7 +7785,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
   if (a3Step === "intro")       return wrapA3(<A3IntroStub       setA3Step={a3Goto} />);
   if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} map={map} set={set} />);
-  if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} />);
+  if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "energymap")   return wrapA3(<A3EnergyMapStub   setA3Step={a3Goto} />);
   if (a3Step === "board")       return wrapA3(<A3BoardStub       setA3Step={a3Goto} />);
   return wrapA3(<div>Unknown A3 step: {a3Step}</div>);
