@@ -1,0 +1,187 @@
+I'm building the last A3 page — A3BoardStub → full real Board page. Source: /mnt/project/a3_board_prototype.html (1223 lines). Read it in full before proposing a plan.
+This page is structurally different from the audit pages. It's: (1) a read/write page that pulls candidates from map.a3_people (filtered to advocates + onBoard=yes) and lets the user assign strengths/seat names, (2) a parallel "missing seats" list the user can freely add to, (3) an SVG visualization of an oval table with 12 chairs showing who's seated.
+Investigate first (do NOT edit yet):
+
+Exact line range of current A3BoardStub
+Whether A3 wrapper passes map={map} set={set} to the Board call site — likely YES from prior builds, but confirm
+Confirm map.a3_people structure matches what the People page writes (should be {id, name, role, rating, onBoard, action, how} — we've seen this). Candidates for the Board are people where rating === "advocate" && onBoard === "yes"
+Find the user's own name on map (for the SVG center label "[Name]'s Board"). Check map.name, map.user_name, map.first_name, or similar. Report what you find. If nothing exists, default to "Your Board" (no possessive).
+
+=== BOARD PAGE FULL SPEC ===
+Data model — NEW fields on map:
+
+map.a3_board_candidates — array of {id, personId, strengths: [], primary: "", seatName: "", why: ""} keyed by personId (the People record id). One record per advocate/onBoard=yes person. The Board page maintains this array in sync with map.a3_people: new advocates get fresh Board records, removed advocates get their Board records dropped.
+map.a3_board_missing — array of {id, title, note} for missing seats (user-named)
+
+These are NEW keys; add them with sensible defaults (empty arrays) on first access.
+Sync logic (on Board page mount + whenever map.a3_people changes):
+
+Take every person where rating === "advocate" && onBoard === "yes"
+Merge with existing map.a3_board_candidates by personId:
+
+If a candidate record exists, keep it (preserves strengths / primary / seatName / why)
+If new advocate with no record, add fresh: {id: newUuid, personId: person.id, strengths: [], primary: "", seatName: "", why: ""}
+Drop candidate records whose personId is no longer advocate/onBoard=yes
+
+
+Persist the synced array via set("a3_board_candidates", ...) if it changed
+
+Top section:
+
+Teal eyebrow: "A3 · THE BOARD"
+H1 (serif, 40px, light): "Build your table."
+Lead: "You named the people who advocate for you. Now you decide their seats — and see what's missing."
+
+Framing card (same pattern as Environment/Thoughts framing cards, teal left-bar dark bg):
+
+Label: "WHAT IS YOUR BOARD?"
+Title (serif 22px): "A tight-knit group whose job is to advocate for you as you move forward."
+Body 1: "They're not your friends list. They're not everyone who loves you. They're the specific people you trust enough to seek counsel from when it matters."
+Body 2: "A great Board has variety. Someone who listens. Someone who challenges. Someone who tells you the truth when you don't want to hear it. Each seat serves a different purpose."
+Body 3: "Up to 12 seats. You don't have to fill them all — empty seats are information too."
+Bold emphases in teal
+
+Table visual (oval SVG + title):
+Container card (dark bg, rounded). Header row: title "Your Board · 12 seats" on left, stats "[N] of 12 seats filled" on right (big serif number + small caps label).
+SVG viewBox="0 0 640 420", cx=320, cy=210.
+SVG layers:
+
+Defs: radialGradient tableGrad (dark navy #1a2f4a center → #0d1b2e edge)
+Table oval: ellipse at center, rx=180, ry=95, fill=url(#tableGrad), stroke #254060, stroke-width 1.5
+Inner dashed ring: ellipse rx=tableRx-14, ry=tableRy-14, fill=none, stroke #1e3554, stroke-width 1, stroke-dasharray "3 5", opacity 0.6
+Center label: "{userName}'s Board" (Cormorant Garamond italic 20px, amber #c9a84c) at (cx, cy-2), text-anchor middle. If no userName, just "Your Board" (no possessive).
+Below center: "[N] / 12 SEATS" small caps grey (DM Sans 10px, letter-spacing 2px, #9a9590) at (cx, cy+22)
+
+12 chair circles around the oval:
+
+Positioned on an elliptical ring: ringRx = tableRx + 42, ringRy = tableRy + 48
+Loop i = 0..11, angle = -π/2 + i * (2π/12) (starts top, goes clockwise)
+Each chair: circle r=26 at (cx + ringRx·cos(a), cy + ringRy·sin(a))
+
+Occupants array — fills chairs in order:
+Build an occupants array:
+
+First: all candidates where primary && seatName (has been fully configured) → {kind: "person", name, title: seatName}
+Then: all missing seats where title.trim() → {kind: "missing", name: "", title}
+Slice to 12
+
+Chair visual:
+
+Empty chair: fill #0d1b2e, stroke #254060. Center text = seat number (1-12) in serif italic muted grey
+Person occupant: fill #0f4f41 (deep teal), stroke #5DCAA5. Center = initials (first letter of first word + first letter of last word, uppercase, max 2 chars), DM Sans 13px weight 600 teal
+Missing occupant: fill #2a1f16 (deep amber), stroke #c9a84c. Center = "◇" diamond glyph at 16px amber
+
+Labels outside each chair:
+
+labelRx = ringRx + 48, labelRy = ringRy + 46
+labelX = cx + labelRx·cos(a), labelY = cy + labelRy·sin(a)
+text-anchor: "middle" if |cos(a)| < 0.3, else "start" for right half, "end" for left half
+For person: seat title (Cormorant Garamond italic 12px teal), then person name below it (DM Sans 10px muted grey)
+For missing seat: title (Cormorant Garamond italic 12px amber), "gap" label below (DM Sans 10px faint amber)
+Empty chair: no label
+
+Candidates section (collapsible):
+Header: "Your Advocates" + count chip "· N of M seated" + chevron. Click header to toggle.
+Subhead (inside): "Everyone you marked as an Advocate + Yes to the Board on the previous page. Click to give them their seat."
+Empty state (no candidates): "No one on your Board yet." title + "Head back to the People page and mark at least one Advocate 'Yes' for the Board." body. No action button needed (they navigate via sidebar).
+Candidate card (one per candidate record):
+Head row (always visible, clickable to toggle):
+
+Name (serif 17px) + role below (muted small caps)
+On the right: either the seatName (serif italic teal) if set, or "No seat yet" in muted italic
+Chevron ▾ rotates when open
+Card gets teal left-bar when primary && seatName is set (seated state)
+
+Body (only when open):
+STRENGTHS SECTION:
+Label: "THEIR STRENGTHS · PICK ALL THAT APPLY"
+Chip grid with these 12 locked strengths in order:
+['Listener', 'Challenger', 'Strategist', 'Honest Mirror', 'Cheerleader', 'Healer', 'Visionary', 'Connector', 'Wise Elder', 'Peer Equal', 'Teacher', 'Guide']
+
+one "Other…" chip at the end
+
+Chip states & behavior:
+
+Unselected: transparent, grey border, grey text
+Selected: teal-tinted bg, teal text
+Primary (★): teal filled, darker teal text, gets a ★ prefix
+
+Click logic:
+
+If not in strengths → add to strengths; if no primary yet → set this as primary
+If in strengths but not primary → make it primary (changes seat title)
+If IS primary → remove entirely; if other strengths exist, promote first one to primary; if none, clear primary and seatName
+
+Setting a new primary also updates seatName to "The " + primaryStrength UNLESS the user has already customized seatName manually (then preserve it).
+Other… chip:
+
+If nothing custom selected yet: label reads "Other…", click prompts for a strength name via a simple input field (use browser prompt() OR a small inline input — the Agent's choice. prompt() is uglier but matches the prototype exactly). Whatever they type gets added to strengths (and becomes primary if no primary yet).
+If a custom strength exists: the chip shows that custom text, clicking lets them rename it
+
+Hint text below chips, adaptive:
+
+0 strengths: "Pick at least one strength. The first becomes their seat — click another to change it."
+1 strength: "Click another strength to add it. Click the ★ strength again to remove it."
+2+ strengths: "Click a selected strength to make it their primary (★). That becomes their seat."
+
+SEAT NAME SECTION (only when primary is set):
+
+Label: "THEIR SEAT AT THE TABLE"
+Text input, placeholder = "The " + primary, value = current seatName. On change → update seatName, persist, and update the Board SVG live
+
+WHY SECTION (only when primary is set):
+
+Label: Why this seat? *optional*
+Textarea, 2 rows, placeholder "What does this person bring that no one else does?"
+Persists to candidate's why
+
+Missing seats section (collapsible, same header pattern):
+Header: "What's missing from your table?" + count chip "· N named" + chevron.
+Subhead: "The seats you know you need but haven't filled yet. A workout partner. A peer in your industry. Someone who challenges you spiritually. Name the gap — we'll help you find the person later."
+Missing card (one per missing seat):
+
+Row layout: seat title input (placeholder "e.g. The Workout Partner") | note input (placeholder "What would they do? (optional)") | × delete button
+On change: update the missing seat's title / note, persist, update Board SVG
+
+"+ Add a missing seat" button below the list, outline teal pill. Adds a new empty missing seat.
+Reflection card (same amber left-bar styling as other pages):
+
+Label: "ONE THING TO NOTICE"
+Body (static, not adaptive — spec doesn't branch this one): "Look at your table. Who's there, and who isn't. An empty seat isn't a failure — it's the clearest signal of what you need next."
+
+Closing card (same panel style):
+
+Title (serif): "This is a living table."
+Body 1: "People earn seats. People leave them. Seats stay empty until the right person arrives. Your Board today is not your Board forever — and that's how it should be."
+Body 2: "The named advocates and the missing seats both come with you into A4 and A5, where you'll build the rhythm of how you actually consult this Board — not just hold it in your head."
+"A4 and A5" in teal bold
+
+Step footer:
+
+Left: "← Back to Energy Map" → setA3Step("energymap")
+Right: hint "Next up · My Map of Me" + teal "Continue →" → setA3Step("map") (use whatever the My Map of Me stub's key is — likely "map" or "mapofme"; look at the existing router to confirm)
+
+=== IMPLEMENTATION NOTES ===
+
+Local state: advSectionOpen (bool, default true), missSectionOpen (bool, default true), openCandidateId (string|null, default null — only one candidate expanded at a time; simpler UX than per-candidate _open booleans the prototype uses)
+All candidate / missing seat data is on map.* via set(...)
+JSX SVG for the board table (same approach as Thoughts landscape / horizontal Energy Map)
+For the "Other…" custom strength, you can use window.prompt() for simplicity (matches prototype). If you have a cleaner inline-input pattern, that's fine too — Agent's call.
+Use crypto.randomUUID() for new candidate/missing ids with a Date.now() fallback
+
+CRITICAL RULES:
+
+Do NOT touch A1, A2, A3Intro, A3People, A3Environment, A3Thoughts, A3EnergyMapBullseye, A3EnergyMapHorizontal, or App-level state
+New map keys ONLY: a3_board_candidates, a3_board_missing
+Use exact hex values: teal #5DCAA5, deep teal #0f4f41, amber #c9a84c, deep amber #2a1f16, muted grey #9a9590, bg #0d1b2e, border #254060
+DO NOT try to reuse strengths list from anywhere else — it's Board-specific; define as a local constant at module level
+
+Before applying, show me:
+
+Line number for the stub to replace
+What you found for the user's name field on map
+Your sync logic approach (how you reconcile a3_people advocates with a3_board_candidates on mount)
+Estimated line count delta (expect 500–650 lines — Board is rich)
+Any flags or simplifications
+
+Wait for my approval before executing.
