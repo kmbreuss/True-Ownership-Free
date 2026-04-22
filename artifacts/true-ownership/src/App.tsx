@@ -6517,7 +6517,7 @@ function A3StubShell({ title, tagline, next, setA3Step, children }: any) {
 function A3IntroStub({ setA3Step }: any) {
   return (
     <div>
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A3 · Advocate For It</div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"#5DCAA5", marginBottom:11 }}>A3 · Advocate For It</div>
       <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.15, marginBottom:16, letterSpacing:"-0.5px" }}>
         Your environment is either advocating for you — or anchoring you.
       </h2>
@@ -6565,7 +6565,386 @@ function A3IntroStub({ setA3Step }: any) {
     </div>
   );
 }
-function A3PeopleStub({ setA3Step }: any)      { return <A3StubShell title="Energy Audit · People"      tagline="Who surrounds you?"                                                next="environment" setA3Step={setA3Step}>Placeholder page. Brain-dump + rating flow coming next.</A3StubShell>; }
+const A3_ROLES = ['Partner','Family','Friend','Mentor','Work colleague','Client','Other…'];
+const A3_NEUTRAL_ACTIONS = ['Accept','Observe','Deepen','Distance','Other…'];
+const A3_ANCHOR_ACTIONS = ['Accept','Observe','Set boundaries','Repair','Release','Other…'];
+const A3_ACTION_HINTS: Record<string,string> = {
+  Accept: "right where you want it, no change",
+  Observe: "watch, don't act yet",
+  Deepen: "invest more, go closer",
+  Distance: "less contact, less weight",
+  "Set boundaries": "keep the relationship, change the terms",
+  Repair: "work on it, give it a chance",
+  Release: "let it fade or end",
+  "Other…": "your own words",
+};
+const A3_HOW_PLACEHOLDERS: Record<string,string> = {
+  Accept: "e.g. I've made peace with this one, no change planned…",
+  Observe: "e.g. notice how you feel after spending time with them…",
+  Deepen: "e.g. schedule a monthly call, be more vulnerable…",
+  Distance: "e.g. drop the weekly lunches, less check-ins…",
+  "Set boundaries": "e.g. no talk about work at family dinners…",
+  Repair: "e.g. have the conversation I've been avoiding…",
+  Release: "e.g. stop initiating, let the friendship fade…",
+  "Other…": "what does this look like in practice?",
+};
+const A3_TEAL = "#5DCAA5";
+const A3_GREY = "#9A9590";
+const A3_RED = "#ef4444";
+const A3_AMBER = "#c9a84c";
+
+function A3PeopleStub({ setA3Step, map, set }: any) {
+  const people = map.a3_people || [];
+  const [a3PeoplePhase, setA3PeoplePhase] = useState<1|2>(people.length > 0 ? 2 : 1);
+  const [brainDumpText, setBrainDumpText] = useState<string>(() =>
+    people.map((p: any) => p.role && p.role !== "Other…" ? `${p.name} (${p.role})` : p.name).join("\n")
+  );
+  const [newPersonInput, setNewPersonInput] = useState("");
+
+  const uuid = () => (typeof crypto !== "undefined" && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : String(Date.now()) + Math.random();
+
+  const updatePerson = (id: string, patch: any) => set("a3_people", people.map((p: any) => p.id === id ? { ...p, ...patch } : p));
+  const removePerson = (id: string) => set("a3_people", people.filter((p: any) => p.id !== id));
+  const addPerson = (rawName: string) => {
+    const name = rawName.trim();
+    if (!name) return;
+    set("a3_people", [...people, { id: uuid(), name }]);
+  };
+
+  const lineCount = brainDumpText.split("\n").map(s => s.trim()).filter(Boolean).length;
+
+  const commitBrainDump = () => {
+    const lines = brainDumpText.split("\n").map(s => s.trim()).filter(Boolean);
+    const byName = new Map<string, any>(people.map((p: any) => [p.name.toLowerCase(), p]));
+    const next = lines.map(line => {
+      const m = line.match(/^(.+?)\s*\((.+)\)\s*$/);
+      const baseName = m ? m[1].trim() : line;
+      const inferredRole = m ? m[2].trim() : undefined;
+      const existing = byName.get(baseName.toLowerCase());
+      if (existing) return inferredRole && !existing.role ? { ...existing, role: inferredRole } : existing;
+      return inferredRole ? { id: uuid(), name: baseName, role: inferredRole } : { id: uuid(), name: baseName };
+    });
+    set("a3_people", next);
+    setA3PeoplePhase(2);
+  };
+
+  const rated = people.filter((p: any) => p.rating);
+  const counts = {
+    advocate: rated.filter((p: any) => p.rating === "advocate").length,
+    neutral:  rated.filter((p: any) => p.rating === "neutral").length,
+    anchor:   rated.filter((p: any) => p.rating === "anchor").length,
+  };
+  const advPct = rated.length ? counts.advocate / rated.length : 0;
+  const ancPct = rated.length ? counts.anchor / rated.length : 0;
+  const boardCount = people.filter((p: any) => p.rating === "advocate" && p.onBoard === "yes").length;
+  const advocateCellHighlight = (advPct >= 0.6 && ancPct <= 0.2);
+  const anchorCellHighlight = (ancPct >= 0.4);
+  const reflectionTone = rated.length < 3 ? "balanced" : (advPct >= 0.6 && ancPct <= 0.2) ? "advocate" : ancPct >= 0.4 ? "anchor" : "balanced";
+
+  return (
+    <div>
+      {/* BREADCRUMB + H1 + LEAD */}
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:11 }}>A3 · Energy Audit · People</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.15, marginBottom:14, letterSpacing:"-0.5px" }}>
+        Who's in your inner circle?
+      </h2>
+      <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:620 }}>
+        The people who shape your energy — on purpose or by default. Name them first. Rate them second. Don't censor.
+      </p>
+
+      {/* PHASE TRACKER */}
+      <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:30 }}>
+        {[1,2].map((step, idx) => {
+          const isCurrent = a3PeoplePhase === step;
+          const isDone = a3PeoplePhase > step;
+          const label = step === 1 ? "Name them" : "Rate them";
+          const circleStyle: any = {
+            width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:12, fontWeight:700, fontFamily:"var(--sans)",
+            ...(isDone
+              ? { background: A3_TEAL, color:"#0d1b2e", border:`1px solid ${A3_TEAL}` }
+              : isCurrent
+                ? { background:"transparent", color: A3_TEAL, border:`1.5px solid ${A3_TEAL}` }
+                : { background:"transparent", color:"var(--text4)", border:"1px solid var(--border)" }),
+          };
+          const textColor = isCurrent || isDone ? A3_TEAL : "var(--text4)";
+          return (
+            <React.Fragment key={step}>
+              <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+                <div style={circleStyle}>{isDone ? "✓" : step}</div>
+                <span style={{ fontSize:12, fontFamily:"var(--sans)", fontWeight:600, color: textColor, letterSpacing:0.4 }}>{label}</span>
+              </div>
+              {idx === 0 && <div style={{ flex:"0 0 40px", height:1, background:"var(--border)" }} />}
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {/* PHASE 1 */}
+      {a3PeoplePhase === 1 && (
+        <>
+          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"22px 24px", marginBottom:18 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:10, fontFamily:"var(--sans)" }}>Phase 1 · Brain-dump</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:8 }}>Who are the people in your life right now?</div>
+            <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, marginBottom:16 }}>
+              List everyone who takes up real space in your head or your calendar. One per line. Don't rank, don't judge, don't filter. We'll sort it all next.
+            </div>
+            <textarea value={brainDumpText} onChange={e => setBrainDumpText(e.target.value)}
+              placeholder={"Type one name per line…\ne.g.\nMom\nSarah (best friend)\nMike\nJess on my team"}
+              style={{ width:"100%", minHeight:200, padding:"14px 16px", fontSize:14, fontFamily:"var(--sans)",
+                background:"var(--bg)", border:"1px solid var(--border)", borderRadius:9, color:"var(--text)",
+                outline:"none", resize:"vertical", lineHeight:1.6 }} />
+            <div style={{ marginTop:10, fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>
+              {lineCount} {lineCount === 1 ? "name" : "names"} · most lists land between 10 and 25
+            </div>
+          </div>
+
+          {/* Prompts callout */}
+          <div style={{ padding:"16px 20px", background:"rgba(201,168,76,.07)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:8, marginBottom:30 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_AMBER, marginBottom:10, fontFamily:"var(--sans)" }}>If you're stuck, ask yourself</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
+              {[
+                "Who did I talk to this week?",
+                "Who's in my group chats?",
+                "Who do I text when something big happens?",
+                "Who do I avoid calling back?",
+                "Whose opinion runs in my head?",
+              ].map((q, i) => (
+                <span key={i} style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", padding:"6px 12px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.18)", borderRadius:999 }}>{q}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Step footer */}
+          <div style={{ marginTop:8, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
+            <button onClick={() => setA3Step("intro")}
+              style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+              ← Back to Introduction
+            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>
+                {lineCount === 0 ? "Add at least one name to continue." : "Ready when you are."}
+              </span>
+              <button onClick={commitBrainDump} disabled={lineCount === 0}
+                style={{ padding:"9px 18px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)",
+                  background: lineCount === 0 ? "var(--border)" : A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999,
+                  cursor: lineCount === 0 ? "not-allowed" : "pointer", opacity: lineCount === 0 ? 0.55 : 1 }}>
+                Next · Rate them →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* PHASE 2 */}
+      {a3PeoplePhase === 2 && (
+        <>
+          {people.length === 0 && (
+            <div style={{ padding:"40px 30px", textAlign:"center", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:30 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:22, color:"var(--text2)", marginBottom:10 }}>No names yet.</div>
+              <div style={{ fontSize:14, color:"var(--text3)", lineHeight:1.6, marginBottom:20, maxWidth:380, marginLeft:"auto", marginRight:"auto" }}>
+                Head back to Phase 1 and brain-dump the people who shape your week.
+              </div>
+              <button onClick={() => setA3PeoplePhase(1)}
+                style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:999, cursor:"pointer" }}>
+                ← Back to naming
+              </button>
+            </div>
+          )}
+
+          {people.length > 0 && (
+            <>
+              <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:680 }}>
+                One at a time. Pick a role, then ask yourself: are they an advocate, neutral, or an anchor? The row will expand for the next step — decide if they belong on your Board (advocates) or how you'll interact going forward (neutrals and anchors).
+              </p>
+
+              {/* PERSON CARDS */}
+              <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
+                {people.map((p: any) => {
+                  const r = p.rating;
+                  const borderColor = r === "advocate" ? A3_TEAL : r === "neutral" ? A3_GREY : r === "anchor" ? A3_RED : "var(--border)";
+                  const ratingPill = (val: string, label: string, color: string, tintBg: string) => {
+                    const selected = r === val;
+                    return (
+                      <button onClick={() => updatePerson(p.id, { rating: val })}
+                        style={{ padding:"5px 11px", fontSize:11, fontWeight:700, letterSpacing:0.6, fontFamily:"var(--sans)",
+                          background: selected ? tintBg : "transparent",
+                          color: selected ? color : "var(--text4)",
+                          border: `1px solid ${selected ? color : "var(--border)"}`,
+                          borderRadius:6, cursor:"pointer", transition:"all .15s" }}>
+                        {label}
+                      </button>
+                    );
+                  };
+                  return (
+                    <div key={p.id} style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderLeft:`3px solid ${borderColor}`, borderRadius:9, padding:"14px 16px" }}>
+                      {/* HEAD ROW */}
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 160px auto 24px", gap:12, alignItems:"center" }}>
+                        <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", fontWeight:400, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.name}</div>
+                        <select value={p.role || ""} onChange={e => updatePerson(p.id, { role: e.target.value })}
+                          style={{ padding:"6px 8px", fontSize:12, fontFamily:"var(--sans)",
+                            background:"var(--bg)", border:"1px solid var(--border)", borderRadius:6,
+                            color: p.role ? "var(--text2)" : "var(--text4)",
+                            fontStyle: p.role ? "normal" : "italic", cursor:"pointer", outline:"none" }}>
+                          <option value="" disabled>Choose a role…</option>
+                          {A3_ROLES.map(r2 => <option key={r2} value={r2}>{r2}</option>)}
+                        </select>
+                        <div style={{ display:"flex", gap:5 }}>
+                          {ratingPill("advocate", "ADVOCATE", A3_TEAL, "rgba(93,202,165,.2)")}
+                          {ratingPill("neutral",  "NEUTRAL",  A3_GREY, "rgba(156,163,175,.2)")}
+                          {ratingPill("anchor",   "ANCHOR",   A3_RED,  "rgba(239,68,68,.18)")}
+                        </div>
+                        <button onClick={() => removePerson(p.id)} title="Remove"
+                          onMouseEnter={(e: any) => e.currentTarget.style.color = A3_RED}
+                          onMouseLeave={(e: any) => e.currentTarget.style.color = "var(--text4)"}
+                          style={{ width:24, height:24, borderRadius:"50%", background:"transparent", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, lineHeight:1, padding:0, transition:"color .15s" }}>×</button>
+                      </div>
+
+                      {/* EXPAND ROW */}
+                      {r === "advocate" && (
+                        <div style={{ marginTop:14, paddingTop:14, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", gap:14, flexWrap:"wrap" }}>
+                          <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, fontFamily:"var(--sans)" }}>Board?</span>
+                          <div style={{ display:"flex", gap:5 }}>
+                            {["yes","no"].map(v => {
+                              const sel = p.onBoard === v;
+                              return (
+                                <button key={v} onClick={() => updatePerson(p.id, { onBoard: v })}
+                                  style={{ padding:"4px 12px", fontSize:11, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)",
+                                    background: sel ? "rgba(93,202,165,.2)" : "transparent",
+                                    color: sel ? A3_TEAL : "var(--text4)",
+                                    border:`1px solid ${sel ? A3_TEAL : "var(--border)"}`,
+                                    borderRadius:6, cursor:"pointer", textTransform:"uppercase" }}>{v}</button>
+                              );
+                            })}
+                          </div>
+                          <span style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)" }}>
+                            {p.onBoard === "yes" ? "saving them for The Board" : p.onBoard === "no" ? "great advocate, not a board seat" : "want them on your Board of 12?"}
+                          </span>
+                        </div>
+                      )}
+
+                      {(r === "neutral" || r === "anchor") && (
+                        <div style={{ marginTop:14, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                            <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: r === "anchor" ? A3_RED : A3_GREY, fontFamily:"var(--sans)" }}>Action</span>
+                            <select value={p.action || ""} onChange={e => updatePerson(p.id, { action: e.target.value })}
+                              style={{ padding:"6px 8px", fontSize:12, fontFamily:"var(--sans)",
+                                background:"var(--bg)", border:"1px solid var(--border)", borderRadius:6,
+                                color: p.action ? "var(--text2)" : "var(--text4)",
+                                fontStyle: p.action ? "normal" : "italic", cursor:"pointer", outline:"none", minWidth:160 }}>
+                              <option value="" disabled>Choose an action…</option>
+                              {(r === "anchor" ? A3_ANCHOR_ACTIONS : A3_NEUTRAL_ACTIONS).map(a => <option key={a} value={a}>{a}</option>)}
+                            </select>
+                            {p.action && (
+                              <span style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)" }}>
+                                {A3_ACTION_HINTS[p.action]}
+                              </span>
+                            )}
+                          </div>
+                          {p.action && (
+                            <div style={{ marginTop:12 }}>
+                              <div style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)", marginBottom:5 }}>
+                                How · what does this look like? <span style={{ fontStyle:"italic" }}>optional</span>
+                              </div>
+                              <textarea value={p.how || ""} onChange={e => updatePerson(p.id, { how: e.target.value })}
+                                placeholder={A3_HOW_PLACEHOLDERS[p.action]} rows={2}
+                                style={{ width:"100%", padding:"8px 10px", fontSize:13, fontFamily:"var(--sans)",
+                                  background:"var(--bg)", border:"1px solid var(--border)", borderRadius:6,
+                                  color:"var(--text)", outline:"none", resize:"vertical", lineHeight:1.5 }} />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ADD SOMEONE ELSE */}
+              <div style={{ display:"flex", gap:10, padding:"12px 14px", background:"transparent", border:"1px dashed var(--border)", borderRadius:9, marginBottom:30, alignItems:"center" }}>
+                <input value={newPersonInput} onChange={e => setNewPersonInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { addPerson(newPersonInput); setNewPersonInput(""); } }}
+                  placeholder="Thought of someone else? Add them here…"
+                  style={{ flex:1, padding:"7px 10px", fontSize:13, fontFamily:"var(--sans)",
+                    background:"transparent", border:"none", color:"var(--text)", outline:"none" }} />
+                <button onClick={() => { addPerson(newPersonInput); setNewPersonInput(""); }}
+                  style={{ padding:"6px 14px", fontSize:11, fontWeight:700, letterSpacing:0.6, fontFamily:"var(--sans)",
+                    background:"transparent", color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:999, cursor:"pointer" }}>
+                  + ADD
+                </button>
+              </div>
+
+              {/* SUMMARY */}
+              <div style={{ marginBottom:24 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", marginBottom:12, fontFamily:"var(--sans)" }}>Your inner circle so far</div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+                  {[
+                    { key:"advocate", label:"Advocates", count: counts.advocate, color: A3_TEAL, glow: advocateCellHighlight },
+                    { key:"neutral",  label:"Neutral",   count: counts.neutral,  color: A3_GREY, glow: false },
+                    { key:"anchor",   label:"Anchors",   count: counts.anchor,   color: A3_RED,  glow: anchorCellHighlight },
+                  ].map(cell => (
+                    <div key={cell.key} style={{ padding:"16px 18px", background:"var(--bg2)",
+                      border:`1px solid ${cell.color}`, borderRadius:9,
+                      boxShadow: cell.glow ? `0 0 14px ${cell.color}66` : "none" }}>
+                      <div style={{ fontFamily:"var(--serif)", fontSize:36, fontWeight:300, color: cell.color, lineHeight:1, marginBottom:6 }}>{cell.count}</div>
+                      <div style={{ fontSize:11, color:"var(--text3)", letterSpacing:1, textTransform:"uppercase", fontFamily:"var(--sans)", fontWeight:600 }}>{cell.label}</div>
+                    </div>
+                  ))}
+                </div>
+                {boardCount >= 1 && (
+                  <div style={{ marginTop:12, padding:"10px 14px", background:"rgba(93,202,165,.1)", border:`1px solid ${A3_TEAL}`, borderRadius:8, fontSize:13, fontFamily:"var(--sans)", color: A3_TEAL, fontWeight:600 }}>
+                    {boardCount} {boardCount === 1 ? "person" : "people"} heading to your Board
+                  </div>
+                )}
+              </div>
+
+              {/* REFLECTION */}
+              {(() => {
+                const cfg = reflectionTone === "advocate"
+                  ? { color: A3_TEAL, label: "Celebrate this", text: "Celebrate this. The people around you are supporting who you are and who you're evolving into — that's rare, and it didn't happen by accident. Sit with it for a moment. What does it mean to have this much support already in place?" }
+                  : reflectionTone === "anchor"
+                    ? { color: A3_RED, label: "Be curious, not critical", text: "If your list has more anchors than you'd like, that's okay. It doesn't mean you've done something wrong — it means you're seeing clearly, probably for the first time in a while. We'll get strategic later. For now, just be curious. Which names were a surprise? Which did you already know?" }
+                    : { color: A3_AMBER, label: "One thing to notice", text: "What do you notice? Be curious, not critical. Every name on this list is telling you something about the life you've built and the one you're growing into. No judgment — just see." };
+                return (
+                  <div style={{ padding:"18px 22px", background:`${cfg.color}11`, borderLeft:`3px solid ${cfg.color}`, borderRadius:8, marginBottom:24 }}>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: cfg.color, marginBottom:10, fontFamily:"var(--sans)" }}>{cfg.label}</div>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", color:"var(--text2)", lineHeight:1.75 }}>{cfg.text}</div>
+                  </div>
+                );
+              })()}
+
+              {/* CLOSING */}
+              <div style={{ marginBottom:30 }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:12 }}>You saw it.</div>
+                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
+                  That's what this page was for. Don't try to fix anything. Don't rewrite relationships in your head. Don't decide who to call or who to cut.
+                </p>
+                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
+                  The people you marked as advocates — and chose for your Board — move to <strong style={{ color: A3_TEAL, fontWeight:700 }}>The Board</strong> next, where you'll give each one their seat at the table. For now, just notice. Reflect without judging. Stay curious.
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* STEP FOOTER */}
+          <div style={{ marginTop:8, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
+            <button onClick={() => setA3PeoplePhase(1)}
+              style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+              ← Back to naming
+            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>Next up · Environment</span>
+              <button onClick={() => setA3Step("environment")}
+                style={{ padding:"9px 18px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)", background: A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999, cursor:"pointer" }}>
+                Continue →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 function A3EnvironmentStub({ setA3Step }: any) { return <A3StubShell title="Energy Audit · Environment" tagline="Your habits and your places."                                      next="thoughts"    setA3Step={setA3Step}>Placeholder page. Combined Habits + Places audit coming next.</A3StubShell>; }
 function A3ThoughtsStub({ setA3Step }: any)    { return <A3StubShell title="Energy Audit · Thoughts"    tagline="Your inner landscape."                                             next="energymap"   setA3Step={setA3Step}>Placeholder page. Inner Landscape visualization coming next.</A3StubShell>; }
 function A3EnergyMapStub({ setA3Step }: any)   { return <A3StubShell title="Energy Map"                 tagline="What and who are you carrying?"                                    next="board"       setA3Step={setA3Step}>Placeholder page. Bullseye visualization coming next.</A3StubShell>; }
@@ -6574,6 +6953,17 @@ function A3BoardStub({ setA3Step }: any)       { return <A3StubShell title="The 
 function A3({ intake, onDone, phase, setPhase }: any) {
   const [a3Step, setA3Step] = useState("intro");
   const a3Goto = (s: string) => { setA3Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+
+  const [map, setMap] = useState<any>({});
+  useEffect(() => { loadData(KEYS.map).then((m: any) => { if (m) setMap(m); }); }, []);
+  const saveTimer = useRef<any>(null);
+  const saveMap = useCallback((next: any) => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => { saveData(KEYS.map, next); }, 800);
+  }, []);
+  const set = useCallback((key: string, val: any) => {
+    setMap((prev: any) => { const next = { ...prev, [key]: val }; saveMap(next); return next; });
+  }, [saveMap]);
 
   const phaseTabs = (
     <div style={{ display:"flex", gap:5 }}>
@@ -6627,7 +7017,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
   );
 
   if (a3Step === "intro")       return wrapA3(<A3IntroStub       setA3Step={a3Goto} />);
-  if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} />);
+  if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} />);
   if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} />);
   if (a3Step === "energymap")   return wrapA3(<A3EnergyMapStub   setA3Step={a3Goto} />);

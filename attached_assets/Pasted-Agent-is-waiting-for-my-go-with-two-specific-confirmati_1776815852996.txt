@@ -1,0 +1,29 @@
+Agent is waiting for my "go" with two specific confirmation questions. Also note: "Net: +300 lines → file goes from 10,545 → ~10,845" — wait, that says current is 10,545 but we rolled back to 10,386. Hmm, let me look more carefully... Actually the estimated delta says "file goes from 10,545 → ~10,845" which is wrong — we're at 10,386. The Agent is confused about current line count. Not a blocker, just an estimation error.
+The two questions the Agent is asking:
+
+(a) Breadcrumb color: var(--warm) gold (matches A3Intro) or true teal #5DCAA5?
+(b) Phase tracker "done" state: teal (palette-consistent) or green (per literal spec)?
+
+Let me answer these carefully — checking the prototype and A3Intro:
+Question (a) — Breadcrumb color:
+
+The prototype (line 131): breadcrumb uses color: var(--teal) — teal
+A3Intro in the preview currently shows the breadcrumb in teal ("A3 · ADVOCATE FOR IT" text in teal)
+So if A3Intro is already teal, the Agent saying var(--warm) "matches A3Intro" is wrong — A3Intro is teal. The Agent has misread A3Intro's color.
+Answer: TEAL (#5DCAA5 or whatever var A3Intro uses for its eyebrow — they should be identical)
+
+Question (b) — Phase tracker "done" state:
+
+Prototype: done = green (uses var(--green) which is #5DCAA5 — same hex as teal actually!)
+Looking at CSS vars at top: --green: #5DCAA5; --teal: #5DCAA5; — they're literally the same value in the prototype. So "green" and "teal" resolve to the same color.
+Agent suggests teal-solid for done and teal-outline for current — this works and keeps a visual difference between "done" and "current" using fill vs outline rather than two different colors
+Answer: Teal-solid for done, teal-outline for current — Agent's call is fine. Since green and teal are the same hex, there's literally no visible difference.
+
+Paste this into the Agent:
+
+
+Answers:
+(a) Breadcrumb color: TEAL. Use the exact same color/CSS variable that A3IntroStub uses for its "A3 · ADVOCATE FOR IT" eyebrow — they should match identically. If A3Intro is actually using amber, please switch BOTH to teal so they're consistent. The prototype is clear: teal.
+(b) Phase tracker done state: Your call is fine — teal-solid for done, teal-outline for current. Note: in the prototype's CSS, --green and --teal both resolve to #5DCAA5 (same hex), so "teal-solid-for-done" is visually identical to the prototype's "green-for-done." Proceed with teal-solid + teal-outline.
+One small correction on your estimate: Current file is 10,386 lines, not 10,545. We rolled back to bak_intro_done before you started. So net delta goes 10,386 → ~10,686. Not a blocker, just FYI for your final verification.
+Go. Execute the plan. Report final line count when done.
