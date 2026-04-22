@@ -1,0 +1,149 @@
+Balance check clean: parens 7998/7998, braces 9744/9744, lines 11837 (Agent said 11,541 + ~300 bullseye = ~11,841 — we're at 11,837, perfect). Bullseye preserved in bak_bullseye_done. Option A confirmed.
+Here's the instruction. Paste this into the Replit Agent:
+
+
+I'm adding a horizontal Energy Map variant alongside the existing bullseye — keeping the bullseye code preserved but dormant. The router will point to horizontal.
+Scope — three changes, in order:
+
+Rename existing A3EnergyMapStub → A3EnergyMapBullseye. Just the function declaration name. Leave the body 100% untouched. This preserves the working bullseye code as dormant reference — NOT dead code to delete.
+Build a new A3EnergyMapHorizontal component (full spec below — source: /mnt/project/a3_energy_map_horizontal_prototype.html)
+Update the A3 router call site to render A3EnergyMapHorizontal instead of A3EnergyMapBullseye. Single-line change.
+
+After this, the bullseye component exists in the file but nothing renders it. If we want to swap back, change one line in the router.
+Investigate first (do NOT edit yet):
+
+Line range of current A3EnergyMapStub (to rename)
+Line of the A3 router call site that references it (to update)
+A1 Direction data location on map — search A1 code for how the user's direction statement is stored. Likely candidates: map.direction, map.a1_direction, map.one_year_direction, map.purpose, or nested. Report what you find; if multiple candidate fields exist, list them with short context from the A1 code. If no direction exists or is empty, the horizontal map falls back gracefully (keeps beacon visual, skips text rendering).
+
+=== HORIZONTAL ENERGY MAP FULL SPEC ===
+Reads from (filter out items with rating == null):
+
+map.a3_people → {id: "p_"+id, kind: "person", name, rating, role, note: join(action, how, " · ")}
+map.a3_env_items → {id: "e_"+id, kind: env.kind, name, rating, note: ""}
+Thoughts NOT included
+
+Top section:
+
+Teal eyebrow: "A3 · ENERGY MAP"
+H1 (serif, 40px, light): "Your external ecosystem, end to end."
+Lead: "You're in the middle, heading forward. What's behind you pulls back. What's ahead pulls you toward where you said you were going."
+NO "It starts with you" reminder (that was bullseye-only)
+
+Stats strip — same 3-cell layout as bullseye: Close to you / Drifting / Still carrying, with % sublabels. Hide all when 0 items.
+Legend toolbar — 4 items: ● People · advocate / ● People · anchor / ◆ Environment · advocate / ◆ Environment · anchor. Matches bullseye's legend.
+Journey SVG container (dark bg, rounded):
+
+Title: "The Horizon"
+Subtitle: "Anchors behind. Neutrals drifting. Advocates ahead. Your direction at the edge."
+SVG viewBox="0 0 960 420", cx=480, cy=210
+Build as JSX (same pattern you used for Thoughts landscape and the bullseye SVG)
+
+SVG Layers:
+1. Linear background gradient (left→right):
+
+<linearGradient id="journeyBg" x1="0%" x2="100%" y1="0%" y2="0%">
+stops: 0% rgba(239,68,68,.04) → 30% rgba(30,53,84,.3) → 60% rgba(93,202,165,.04) → 100% rgba(201,168,76,.1)
+Also define selfGlow (radial amber 35%→0%) and beaconGlow (radial amber 45%→15%→0%)
+Background rect 960×420, rx=10, fill="url(#journeyBg)"
+
+2. Horizon line: dashed horizontal from (30, 210) to (930, 210), stroke-dasharray="3 5", muted stroke
+3. Zone labels at y=40:
+
+Left (x=65): "← Pulling you back" — rgba(239,68,68,.55)
+Center (x=480, text-anchor="middle"): "You are here" — rgba(244,241,235,.35)
+Right (x=875, text-anchor="end"): "Pulling you forward →" — rgba(93,202,165,.6)
+
+4. Faint bottom labels at y=404, font-size: 9px:
+
+x≈205: "weight behind" — rgba(239,68,68,.35)
+x≈740: "wind ahead" — rgba(93,202,165,.4)
+
+5. Beacon (A1 Direction) at far right — cx=932, cy=210:
+
+Outer glow circle r=60 fill="url(#beaconGlow)"
+Middle circle r=10 fill="rgba(201,168,76,.55)"
+Inner core r=4 fill solid amber (#c9a84c or var(--warm) if defined)
+Small label "A1 Direction" at (cx-10, cy-26), text-anchor="end"
+Direction text: if map has a non-empty direction string, split into words, wrap into 2 lines (first half → line 1, second half → line 2). Render at (cx-10, cy+8) and (cx-10, cy+26), text-anchor="end", serif italic, amber tint. If empty or missing, skip the text lines only (keep beacon visual).
+
+6. "You" marker at center (cx=480, cy=210):
+
+Outer glow circle r=44 fill="url(#selfGlow)"
+Ring circle r=24 with amber-tint stroke, transparent fill
+Label "you" at (cx, cy+5), small muted serif italic
+
+7. Item placement via placeItemsInBand:
+Three horizontal bands:
+
+Anchors: x from 60 to 350
+Neutrals: x from 400 to 560
+Advocates: x from 600 to 880
+
+Vertical: BAND_TOP=110, BAND_BOTTOM=320
+function placeItemsInBand(list, xMin, xMax) {
+  const n = list.length;
+  if (n === 0) return;
+  const bandHeight = 320 - 110;
+  const xRange = xMax - xMin;
+  const rows = n <= 4 ? 1 : n <= 8 ? 2 : 3;
+  const cols = Math.ceil(n / rows);
+  const colW = xRange / Math.max(cols, 1);
+  const rowH = bandHeight / (rows + 1);
+  list.forEach((it, i) => {
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const baseX = xMin + colW * (col + 0.5);
+    const baseY = 110 + rowH * (row + 1);
+    const idHash = hashStr(it.id);
+    const jitterX = ((idHash % 18) - 9);
+    const jitterY = (((idHash * 11) % 24) - 12);
+    it._x = baseX + jitterX;
+    it._y = baseY + jitterY;
+  });
+}
+hashStr helper — if the bullseye component defined one, extract it to module level so both components can use it. Otherwise define locally.
+8. Draw items:
+
+People = circle with initials
+Environment = diamond (rotated square polygon) with "H" or "P" glyph
+size = isSelected ? 16 : 13 (uniform — horizontal does NOT boost advocate size)
+Fill: advocate rgba(93,202,165,.18), neutral rgba(156,163,175,.15), anchor rgba(239,68,68,.1)
+Stroke: #5DCAA5 / #9ca3af / #ef4444
+Stroke width: 1.5 uniform (no advocate boost)
+Glow: advocate drop-shadow(0 0 6px rgba(93,202,165,.4)), anchor drop-shadow(0 0 4px rgba(239,68,68,.25)), neutral none
+Text: font-size 9 (10 selected), weight 600, fill matches stroke
+onClick each <g> → setSelectedId(it.id)
+
+Detail card — same structure as bullseye (rating-based left-bar, name + close ×, meta tags including role if person, note body). If the bullseye's detail card is a named subcomponent, try to reuse it; otherwise replicate inline. Agent's call.
+Empty state: If 0 items after filtering: hide SVG, legend, stats. Show: "Nothing to plot yet — rate some items on the People or Environment pages first."
+Reflection (below map, amber left-bar, adaptive):
+
+Label: "ONE THING TO NOTICE"
+total < 4: "Look at the whole picture. Even with a few things named, the shape starts to show."
+advPct ≥ 0.55 AND ancPct ≤ 0.2: "What's close to you is supporting the life you're building. Protect it on purpose."
+ancPct ≥ 0.4: "That's a lot sitting on the edge. What's one thing you'd set down this week if you could?"
+else: "Look left, then right. Where's the weight?"
+
+Step footer:
+
+Left: "← Back to Thoughts" → setA3Step("thoughts")
+Right: hint "Next up · The Board" + teal "Continue →" → setA3Step("board")
+
+CRITICAL RULES:
+
+Do NOT modify the bullseye component body — ONLY rename its function
+Do NOT touch A3Intro, A3People, A3Environment, A3Thoughts, A3Board, A1, A2, KEYS, or App-level state
+READ-ONLY — no writes to map
+Use exact hex values: #5DCAA5 / #9ca3af / #ef4444 / #c9a84c
+Thoughts data NOT on this map
+
+Before applying, show me:
+
+Bullseye rename line number
+Router update line number
+What you found for A1 Direction on map (field name + any nesting + short code context)
+Estimated line count delta (expect +400–500 from horizontal build; bullseye rename = 0 body lines, just the function name)
+Any flags
+
+Wait for my approval before executing.
