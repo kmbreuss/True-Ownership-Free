@@ -1,0 +1,189 @@
+I'm replacing the A3ThoughtsStub component with the full real A3 Thoughts page. I've read /mnt/project/a3_thoughts_prototype.html in full. Unlike People and Environment, Thoughts does NOT have a brain-dump textarea or a flat item list — it uses trigger questions in Phase 1 and a 3-zone visual landscape in Phase 2.
+Reuse from People/Environment: outer page wrapper, teal eyebrow, serif H1, lead paragraph, framing card pattern, phase tracker, step-footer, closing card. Do NOT try to reuse brain-dump/item-row patterns — this page is structured differently.
+Investigate first (do NOT edit yet):
+
+Exact line range of current A3ThoughtsStub
+Whether A3's wrapper already passes map={map} set={set} to A3ThoughtsStub (it probably does NOT — we added it for People and Environment individually. Check and add if needed.)
+
+=== THOUGHTS PAGE FULL SPEC ===
+Top section:
+
+Teal eyebrow: "A3 · ENERGY AUDIT · THOUGHTS"
+H1 (serif, 40px, light): "Your Inner Landscape."
+Lead: "People and Environment are what surrounds you. This is what runs inside — the voice that speaks even when no one else is in the room."
+
+Framing card (same pattern as Environment's "What belongs here", teal left-bar, dark bg):
+
+Label: "WHY THIS PAGE IS DIFFERENT"
+Body: "You can't brain-dump thoughts the way you can name people and places. The ones that matter don't come up on demand — they show up in context. So instead of asking 'what are your thoughts?', this page asks what do you tell yourself when… — a few honest scenarios that usually surface the real voice. Then we'll shape what you find."
+
+Phase tracker (2 steps — NAMES ARE DIFFERENT):
+
+Step 1: "Listen" (not "Name them")
+Step 2: "The Landscape" (not "Rate them")
+Same visual styling as People/Environment phase tracker
+
+Data model:
+
+map.a3_triggers = array of {id, q, placeholder, thoughts, isCustom, customQ}
+map.a3_thoughts = array of {id, text, originalText, triggerIdx, rating, emphasized}
+map.a3_best_friend = string
+
+Default triggers (5 locked — seed into map.a3_triggers if empty):
+t1: "When you fail or mess up, what do you tell yourself?"
+    placeholder: 'e.g. "You should have known better…"'
+t2: "When life is hard, what do you say to yourself?"
+    placeholder: 'e.g. "Just push through — no one else will save you."'
+t3: "When you think about money, what's the story?"
+    placeholder: 'e.g. "There\'s never enough."'
+t4: "When you think about success, what runs in your head?"
+    placeholder: 'e.g. "Other people just get lucky."'
+t5: "When you look in the mirror, what's the voice?"
+    placeholder: 'e.g. "You\'re getting old." / "You look tired."'
+Each trigger starts with thoughts: "", isCustom: false, customQ: "".
+Phase 1 — Listen:
+Render each trigger as a card (stacked vertically, some vertical spacing). Two visual variants:
+Default trigger card (not custom):
+
+Dark bg, teal left-bar appears on focus (:focus-within)
+Question (serif, 18-20px): the trigger's q
+Textarea (2 rows initially, resizable) with the trigger's italic placeholder
+Hint below textarea (small, muted): "One or two is enough. Separate them with a new line if more than one."
+
+Custom trigger card (isCustom: true):
+
+Same card chrome but with a small header row: label "YOUR OWN TRIGGER" + a × delete button (removes this custom trigger from the array)
+Text input (not textarea) where user types their own question — writes to t.customQ
+Then textarea for thoughts with placeholder "Write what shows up…"
+Same hint
+
+Below the trigger list:
+
+"+ Add your own trigger" button (outline teal pill). Clicking adds a new custom trigger to map.a3_triggers.
+
+All input changes persist via set("a3_triggers", updatedArray).
+Step footer:
+
+Left: "← Back to Environment" → setA3Step("environment")
+Right: hint "Write at least one thought to continue." (or "Ready when you are." when any trigger has non-empty thoughts) + teal filled pill "Next · The Landscape →" (disabled until at least one trigger has non-empty thoughts)
+
+Transition to Phase 2 — compileThoughts logic:
+When user clicks Next, walk all triggers, split each one's thoughts field by newlines (trim + filter empties), and build the map.a3_thoughts array:
+
+Preserve existing thoughts by matching on text OR on originalText (so reframed thoughts don't get duplicated)
+New lines become new thought objects: {id: nextId, text: line, originalText: null, triggerIdx: idx, rating: null, emphasized: false}
+Removed lines drop from the array
+Persist via set("a3_thoughts", newArray)
+
+Phase 2 — The Landscape:
+Phase 2 intro card (dark bg, teal label):
+
+Label: "PHASE 2 · THE LANDSCAPE"
+Title (serif, 22px): "Shape your inner landscape."
+Body: "Each thought you wrote is a card. Rate it and it moves to where it lives — advocates rise, anchors sink. Tap Grow on an advocate to emphasize it. Tap Reframe on an anchor to rewrite it — the original stays as a strike-through above the new words."
+
+Legend row (before the zones):
+
+Three small dots + labels: "● Advocate rises" (teal) / "● Neutral drifts" (grey) / "● Anchor sinks" (red)
+Hint on the right: "Pick the rating on each card first"
+
+The landscape — three vertically stacked zones with a subtle divider between them:
+
+Advocate zone (top): soft teal tint bg (rgba(93,202,165,.04)), taller top/bottom padding; zone header "Advocate ↑" in muted teal, aligned right
+Neutral zone (middle): no special bg tint; zone header "Neutral" in muted grey
+Anchor zone (bottom): soft red tint bg (rgba(239,68,68,.04)), tallest bottom padding; zone header "Anchor ↓" in muted red
+
+Thought bubbles — each thought renders as a "bubble" card, placed in the zone matching its rating. Unrated thoughts go in the Neutral zone (drift in the middle).
+Bubble structure:
+
+Rounded card, subtle bg, max-width: 520px
+Apply a small deterministic vertical offset for organic feel: marginTop = ((id * 17) % 12) - 6 pixels
+State classes: state-unrated (dashed border, low opacity), state-advocate (teal border + subtle teal tint), state-neutral (grey border), state-anchor (red border + subtle red tint)
+.emphasized on advocate-rated bubbles: bolder border, slightly larger
+.reframed class when originalText is set
+
+Bubble content:
+
+If originalText: render a strikethrough span above the new text
+The current text (serif, 16-18px)
+
+Bubble controls row (below text, separated by a thin top border whose color matches the state):
+
+Three rating pills: "Adv" / "Neu" / "Anc" — small, compact. Selected pill gets sel-advocate / sel-neutral / sel-anchor styling (same color scheme as People's rating toggles).
+THEN ONE action button, conditional:
+
+If rating is "advocate": "↑ Grow" (or "↓ Un-grow" if already emphasized) — clicking toggles emphasized
+If rating is "anchor" AND originalText is null: "↗ Reframe" — clicking opens the reframe overlay
+Otherwise: no action button
+
+
+
+Rating logic (rate(id, val)):
+
+If same rating clicked twice → unset (rating = null)
+Non-advocate ratings clear emphasized
+Persist via set("a3_thoughts", ...)
+
+Empty state (if Phase 2 reached with 0 thoughts — shouldn't normally happen since Next is disabled): "No thoughts yet. Head back to Phase 1 and answer at least one trigger." with button "← Back to Listen".
+Reframe overlay (modal):
+Fixed positioning, semi-transparent dark backdrop, centered panel. Opens when user clicks "↗ Reframe" on an anchor bubble.
+Contents:
+
+Label (teal small caps): "REFRAME THIS THOUGHT"
+Small muted label "The original"
+The original text (muted, slightly smaller)
+Prompt (serif italic, 16-17px): "If a best friend were listening — what would you want to say to yourself instead?"
+Large textarea with placeholder: "Write the new version in your own words…"
+Actions row (bottom-right): "Cancel" (outline grey) and "Save reframe" (teal filled)
+
+Save logic:
+
+If textarea is empty → close without saving
+Otherwise: th.originalText = th.text; th.text = newText; th.rating = 'advocate'; th.emphasized = false;
+Persist via set("a3_thoughts", ...) and close overlay
+
+The overlay state (reframingId, reframeInputValue) is local component state, not persisted.
+Best Friend synthesis card (appears below landscape when there's ≥1 thought):
+
+Warm (amber) left-bar card, same styling approach as Environment's takeaway
+Label (amber small caps): "THE QUESTION BEHIND ALL OF THIS"
+Question (serif, 20px): "Are you speaking to yourself like a best friend — or like your worst enemy?"
+Prompt body (muted, smaller): "Look at your landscape. Look at what rose, and what sank. Look at what you had to reframe just to feel okay. Write honestly — no one else reads this."
+Textarea with placeholder: "Honestly… when I look at this I see…"
+Persist to map.a3_best_friend via set("a3_best_friend", e.target.value) on change
+
+Closing card (appears when Best Friend card appears):
+
+Same panel styling as People/Environment closing
+Title (serif): "This is the page you come back to."
+Body: "Your inner landscape isn't fixed. Thoughts rise and fall. The voice that speaks to you today can be replaced by one that speaks with you — but only if you keep listening honestly, and keep reframing when the old voice takes over."
+Body: "Your landscape and your Best Friend response come forward to your Map of Me, where they live alongside everything you built in A3."
+Bold emphases in teal
+
+Step footer:
+
+Left: "← Back to listening" (returns to Phase 1, keeps all data)
+Right: hint "Next up · The Board" + teal filled pill "Continue →" → setA3Step("energymap") (NOT "board" — the flow is Thoughts → Energy Map → Board, per the A3 sidebar order)
+
+=== IMPLEMENTATION NOTES ===
+
+Local component state: a3ThoughtsPhase (1 | 2), reframingId (number | null), reframeInputValue (string)
+All trigger/thought/best-friend data lives on map.* via set(...)
+On first mount, if map.a3_triggers is empty, seed it with the 5 default triggers (don't persist until user actually writes something — but safe to initialize local state from defaults + existing data either way)
+compileThoughts runs exactly once on Next click from Phase 1 to Phase 2
+
+CRITICAL RULES:
+
+Do NOT touch A3Intro, A3People, A3Environment, any other A3 stub, A1, A2, KEYS, or App-level state
+Reuse teal/grey/red colors exactly as used in People/Environment (same hex values: #5DCAA5, #9A9590, #C97676 or #ef4444)
+Do NOT try to reuse People's brain-dump or item-card components — Thoughts is structurally different
+Reframe overlay must be position: fixed, cover viewport, render at component root (not nested deep in landscape) so the backdrop works
+
+Before applying, show me:
+
+Line number for the stub to replace
+Whether A3 wrapper needs map/set plumbing update for the Thoughts call site
+Estimated line count delta (expect 400–500 lines — this is the richest A3 page visually)
+Any flags or simplifications you'd recommend
+
+Wait for my approval before executing.
