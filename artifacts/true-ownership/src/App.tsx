@@ -7713,7 +7713,302 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
     </div>
   );
 }
-function A3EnergyMapStub({ setA3Step }: any)   { return <A3StubShell title="Energy Map"                 tagline="What and who are you carrying?"                                    next="board"       setA3Step={setA3Step}>Placeholder page. Bullseye visualization coming next.</A3StubShell>; }
+function A3EnergyMapStub({ setA3Step, map }: any) {
+  const [selectedId, setSelectedId] = useState<string|null>(null);
+
+  const getInitials = (name: string) => {
+    const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+  const hashStr = (s: string) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  };
+
+  const buildPersonNote = (p: any) => {
+    const parts = [p.action, p.how].filter((x: string) => x && x.trim());
+    if (parts.length === 0) return "";
+    const joined = parts.join(" · ");
+    return /[.!?]$/.test(joined) ? joined : joined + ".";
+  };
+
+  const people = (map.a3_people || []).filter((p: any) => p.rating).map((p: any) => ({
+    id: "p_" + p.id,
+    name: p.name || "(unnamed)",
+    kind: "person" as const,
+    rating: p.rating,
+    role: p.role || "",
+    note: buildPersonNote(p),
+    _x: 0, _y: 0,
+  }));
+  const envs = (map.a3_env_items || []).filter((e: any) => e.rating).map((e: any) => ({
+    id: "e_" + e.id,
+    name: e.name || "(unnamed)",
+    kind: (e.kind === "place" ? "place" : "habit") as "habit" | "place",
+    rating: e.rating,
+    role: "",
+    note: "",
+    _x: 0, _y: 0,
+  }));
+  const items = [...people, ...envs];
+
+  const advocates = items.filter(i => i.rating === "advocate");
+  const neutrals  = items.filter(i => i.rating === "neutral");
+  const anchors   = items.filter(i => i.rating === "anchor");
+
+  const RING_ADVOCATE = 110, RING_NEUTRAL = 175, RING_ANCHOR = 235;
+  const placeItemsOnRing = (list: any[], radius: number) => {
+    const n = list.length;
+    if (n === 0) return;
+    const startAngle = -Math.PI / 2 + (Math.PI / n * 0.5);
+    list.forEach((it, i) => {
+      const baseAngle = startAngle + (i * (2 * Math.PI / n));
+      const idHash = hashStr(it.id);
+      const radiusJitter = ((idHash % 22) - 11);
+      const angleJitter = (((idHash * 7) % 60) - 30) * (Math.PI / 180) * 0.15;
+      const r = radius + radiusJitter;
+      const a = baseAngle + angleJitter;
+      it._x = 360 + r * Math.cos(a);
+      it._y = 260 + r * Math.sin(a);
+    });
+  };
+  placeItemsOnRing(advocates, RING_ADVOCATE);
+  placeItemsOnRing(neutrals,  RING_NEUTRAL);
+  placeItemsOnRing(anchors,   RING_ANCHOR);
+
+  const total = items.length;
+  const advCount = advocates.length;
+  const neuCount = neutrals.length;
+  const ancCount = anchors.length;
+  const advPct = total ? advCount / total : 0;
+  const neuPct = total ? neuCount / total : 0;
+  const ancPct = total ? ancCount / total : 0;
+
+  const selected = items.find(i => i.id === selectedId) || null;
+
+  const A3_NEU_HEX = "#9ca3af";
+
+  let reflectionText = "";
+  if (total < 4) {
+    reflectionText = "Look at the whole picture. Even with a few things named, the shape starts to show.";
+  } else if (advPct >= 0.55 && ancPct <= 0.2) {
+    reflectionText = "What's close to you is supporting the life you're building. Protect it on purpose.";
+  } else if (ancPct >= 0.4) {
+    reflectionText = "That's a lot sitting on the edge. What's one thing you'd set down this week if you could?";
+  } else {
+    reflectionText = "What are you keeping close — and what are you still carrying that doesn't serve you?";
+  }
+
+  const renderItem = (it: any) => {
+    const isSelected = it.id === selectedId;
+    const baseSize = it.rating === "advocate" ? 15 : 13;
+    const size = isSelected ? baseSize + 3 : baseSize;
+    const fill = it.rating === "advocate" ? "rgba(93,202,165,.32)"
+               : it.rating === "neutral"  ? "rgba(156,163,175,.15)"
+               : "rgba(239,68,68,.1)";
+    const stroke = it.rating === "advocate" ? A3_TEAL
+                 : it.rating === "neutral"  ? A3_NEU_HEX
+                 : A3_RED;
+    const strokeWidth = it.rating === "advocate" ? 2 : 1.5;
+    const filterStyle = it.rating === "advocate" ? "drop-shadow(0 0 10px rgba(93,202,165,.55))" : undefined;
+    const fontSize = it.rating === "advocate" ? (isSelected ? 11 : 10) : (isSelected ? 10 : 9);
+
+    if (it.kind === "person") {
+      return (
+        <g key={it.id} onClick={() => setSelectedId(it.id)} style={{ cursor:"pointer", filter: filterStyle }}>
+          <circle cx={it._x} cy={it._y} r={size} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+          <text x={it._x} y={it._y + 3} textAnchor="middle" fontSize={fontSize} fontWeight={600} fill={stroke} fontFamily="var(--sans)" style={{ pointerEvents:"none", userSelect:"none" }}>
+            {getInitials(it.name)}
+          </text>
+        </g>
+      );
+    }
+    const cx = it._x, cy = it._y, s = size;
+    const points = `${cx},${cy - s} ${cx + s},${cy} ${cx},${cy + s} ${cx - s},${cy}`;
+    const glyph = it.kind === "habit" ? "H" : "P";
+    return (
+      <g key={it.id} onClick={() => setSelectedId(it.id)} style={{ cursor:"pointer", filter: filterStyle }}>
+        <polygon points={points} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
+        <text x={cx} y={cy + 3} textAnchor="middle" fontSize={fontSize} fontWeight={600} fill={stroke} fontFamily="var(--sans)" style={{ pointerEvents:"none", userSelect:"none" }}>
+          {glyph}
+        </text>
+      </g>
+    );
+  };
+
+  const detailRatingColor = selected
+    ? (selected.rating === "advocate" ? A3_TEAL : selected.rating === "neutral" ? A3_NEU_HEX : A3_RED)
+    : "var(--border)";
+
+  return (
+    <div>
+      {/* BREADCRUMB + H1 + LEAD */}
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:11 }}>A3 · Energy Map</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:40, fontWeight:300, lineHeight:1.15, marginBottom:14, letterSpacing:"-0.5px" }}>
+        What and who are you carrying?
+      </h2>
+      <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:18, maxWidth:660 }}>
+        Every person, habit, and place you named, arranged by how close you've kept each one. Advocates near the center — part of you. Anchors on the edge — weight you're still choosing to carry.
+      </p>
+
+      {/* "It starts with you" strip */}
+      <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"11px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.2)", borderRadius:8, marginBottom:24 }}>
+        <span style={{ color: A3_AMBER, fontSize:14, lineHeight:"21px", marginTop:1 }}>◆</span>
+        <span style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.7 }}>
+          It starts with you. Nothing here is acting <em style={{ fontStyle:"italic", color: A3_AMBER }}>on</em> you — every item on this map is something you chose to keep close, or haven't yet set down.
+        </span>
+      </div>
+
+      {/* STATS, LEGEND, MAP — all hidden when items.length === 0 */}
+      {items.length > 0 && (
+        <>
+          {/* STATS GRID */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:22 }}>
+            <div style={{ padding:"14px 16px", background:"var(--bg2)", border:`1px solid ${A3_TEAL}`, borderRadius:9 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:32, fontWeight:300, color: A3_TEAL, lineHeight:1, marginBottom:6 }}>{advCount}</div>
+              <div style={{ fontSize:12, fontWeight:600, color:"var(--text)", fontFamily:"var(--sans)", marginBottom:2 }}>Close to you</div>
+              <div style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)" }}>{Math.round(advPct * 100)}% supporting you</div>
+            </div>
+            <div style={{ padding:"14px 16px", background:"var(--bg2)", border:`1px solid ${A3_NEU_HEX}`, borderRadius:9 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:32, fontWeight:300, color: A3_NEU_HEX, lineHeight:1, marginBottom:6 }}>{neuCount}</div>
+              <div style={{ fontSize:12, fontWeight:600, color:"var(--text)", fontFamily:"var(--sans)", marginBottom:2 }}>Drifting</div>
+              <div style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)" }}>{Math.round(neuPct * 100)}% neither way</div>
+            </div>
+            <div style={{ padding:"14px 16px", background:"var(--bg2)", border:`1px solid ${A3_RED}`, borderRadius:9 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:32, fontWeight:300, color: A3_RED, lineHeight:1, marginBottom:6 }}>{ancCount}</div>
+              <div style={{ fontSize:12, fontWeight:600, color:"var(--text)", fontFamily:"var(--sans)", marginBottom:2 }}>Still carrying</div>
+              <div style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)" }}>{Math.round(ancPct * 100)}% sitting on the edge</div>
+            </div>
+          </div>
+
+          {/* LEGEND */}
+          <div style={{ display:"flex", gap:18, flexWrap:"wrap", marginBottom:14, fontSize:11, fontFamily:"var(--sans)", color:"var(--text3)" }}>
+            <span><span style={{ color: A3_TEAL, fontSize:13 }}>●</span> People · advocate</span>
+            <span><span style={{ color: A3_RED, fontSize:13 }}>●</span> People · anchor</span>
+            <span><span style={{ color: A3_TEAL, fontSize:13 }}>◆</span> Environment · advocate</span>
+            <span><span style={{ color: A3_RED, fontSize:13 }}>◆</span> Environment · anchor</span>
+          </div>
+
+          {/* MAP CONTAINER */}
+          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:12, padding:"22px 24px", marginBottom:24 }}>
+            <div style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:400, color:"var(--text)", marginBottom:4 }}>The View</div>
+            <div style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)", marginBottom:14, lineHeight:1.6 }}>
+              You at the center. What supports you, what you're carrying, and what sits on the edge.
+            </div>
+
+            <svg viewBox="0 0 720 520" style={{ display:"block", width:"100%", maxWidth:720, margin:"0 auto", height:"auto" }}>
+              <defs>
+                <radialGradient id="mapGrad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%"  stopColor="rgba(93,202,165,.08)" />
+                  <stop offset="40%" stopColor="rgba(201,168,76,.03)" />
+                  <stop offset="100%" stopColor="rgba(239,68,68,.02)" />
+                </radialGradient>
+                <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%"  stopColor="rgba(201,168,76,.35)" />
+                  <stop offset="100%" stopColor="rgba(201,168,76,0)" />
+                </radialGradient>
+              </defs>
+
+              <rect x={0} y={0} width={720} height={520} rx={10} fill="url(#mapGrad)" />
+
+              {/* Rings */}
+              <circle cx={360} cy={260} r={RING_ANCHOR}   fill="none" stroke="rgba(239,68,68,.28)"   strokeWidth={1} />
+              <circle cx={360} cy={260} r={RING_NEUTRAL}  fill="none" stroke="rgba(244,241,235,.2)"  strokeWidth={1} />
+              <circle cx={360} cy={260} r={RING_ADVOCATE} fill="none" stroke="rgba(93,202,165,.38)"  strokeWidth={1.5} />
+
+              {/* Ring labels */}
+              <text x={360} y={260 - RING_ANCHOR - 8}   textAnchor="middle" fontSize={9} fontWeight={700} letterSpacing={2} fill="rgba(239,68,68,.5)"   fontFamily="var(--sans)">ANCHOR</text>
+              <text x={360} y={260 - RING_NEUTRAL - 8}  textAnchor="middle" fontSize={9} fontWeight={700} letterSpacing={2} fill="rgba(244,241,235,.45)" fontFamily="var(--sans)">NEUTRAL</text>
+              <text x={360} y={260 - RING_ADVOCATE - 8} textAnchor="middle" fontSize={9} fontWeight={700} letterSpacing={2} fill="rgba(93,202,165,.55)"  fontFamily="var(--sans)">ADVOCATE</text>
+
+              {/* Center "you" */}
+              <circle cx={360} cy={260} r={36} fill="url(#centerGlow)" />
+              <circle cx={360} cy={260} r={22} fill="var(--bg)" stroke={A3_AMBER} strokeWidth={1.5} />
+              <text x={360} y={264} textAnchor="middle" fontSize={11} fill="var(--text2)" fontFamily="var(--serif)" fontStyle="italic">you</text>
+
+              {/* Items */}
+              {items.map(renderItem)}
+            </svg>
+
+            {/* DETAIL CARD */}
+            {selected && (() => {
+              const sourceLabel = selected.kind === "person" ? "People"
+                                : selected.kind === "habit"  ? "Habit"
+                                : "Place";
+              const sourceColor = selected.kind === "person" ? A3_TEAL : A3_AMBER;
+              const sourceBg    = selected.kind === "person" ? "rgba(93,202,165,.12)" : "rgba(201,168,76,.12)";
+              const ratingColor = selected.rating === "advocate" ? A3_TEAL : selected.rating === "neutral" ? A3_NEU_HEX : A3_RED;
+              const ratingBg    = selected.rating === "advocate" ? "rgba(93,202,165,.15)" : selected.rating === "neutral" ? "rgba(156,163,175,.15)" : "rgba(239,68,68,.12)";
+              return (
+                <div style={{
+                  marginTop:18,
+                  background:"var(--bg)",
+                  border:"1px solid var(--border)",
+                  borderLeft:`3px solid ${detailRatingColor}`,
+                  borderRadius:9,
+                  padding:"14px 18px",
+                }}>
+                  <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:12, marginBottom:10 }}>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:400, color:"var(--text)" }}>{selected.name}</div>
+                    <button onClick={() => setSelectedId(null)} title="Close"
+                      style={{ width:24, height:24, borderRadius:"50%", background:"transparent", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, lineHeight:1, padding:0 }}>×</button>
+                  </div>
+                  <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom: selected.note ? 10 : 0 }}>
+                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", padding:"3px 8px", borderRadius:5, color: sourceColor, background: sourceBg, fontFamily:"var(--sans)" }}>{sourceLabel}</span>
+                    {selected.kind === "person" && selected.role && (
+                      <span style={{ fontSize:10, fontWeight:600, letterSpacing:0.6, padding:"3px 8px", borderRadius:5, color:"var(--text3)", background:"var(--bg2)", border:"1px solid var(--border)", fontFamily:"var(--sans)" }}>{selected.role}</span>
+                    )}
+                    <span style={{ fontSize:10, fontWeight:700, letterSpacing:1, textTransform:"uppercase", padding:"3px 8px", borderRadius:5, color: ratingColor, background: ratingBg, fontFamily:"var(--sans)" }}>{selected.rating}</span>
+                  </div>
+                  {selected.note
+                    ? <div style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.7 }}>{selected.note}</div>
+                    : selected.kind === "person" && <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)", fontStyle:"italic" }}>(no note)</div>
+                  }
+                </div>
+              );
+            })()}
+          </div>
+        </>
+      )}
+
+      {/* EMPTY STATE */}
+      {items.length === 0 && (
+        <div style={{ padding:"40px 30px", textAlign:"center", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:12, marginBottom:24 }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:20, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
+            Nothing to plot yet.
+          </div>
+          <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.7, maxWidth:420, marginLeft:"auto", marginRight:"auto", fontFamily:"var(--sans)" }}>
+            Rate some items on the People or Environment pages first — they'll show up here arranged by how close you've kept them.
+          </div>
+        </div>
+      )}
+
+      {/* REFLECTION */}
+      <div style={{ padding:"16px 20px", background:"rgba(201,168,76,.07)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:8, marginBottom:30 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_AMBER, marginBottom:8, fontFamily:"var(--sans)" }}>One thing to notice</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.75 }}>{reflectionText}</div>
+      </div>
+
+      {/* STEP FOOTER */}
+      <div style={{ marginTop:8, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
+        <button onClick={() => setA3Step("thoughts")}
+          style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+          ← Back to Thoughts
+        </button>
+        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+          <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>Next up · The Board</span>
+          <button onClick={() => setA3Step("board")}
+            style={{ padding:"9px 18px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)", background: A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999, cursor:"pointer" }}>
+            Continue →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 function A3BoardStub({ setA3Step }: any)       { return <A3StubShell title="The Board"                  tagline="Your Board of twelve."                                             next={null}        setA3Step={setA3Step}>Placeholder page. 12-seat table and strengths flow coming next.</A3StubShell>; }
 
 function A3({ intake, onDone, phase, setPhase }: any) {
@@ -7786,7 +8081,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
   if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} map={map} set={set} />);
-  if (a3Step === "energymap")   return wrapA3(<A3EnergyMapStub   setA3Step={a3Goto} />);
+  if (a3Step === "energymap")   return wrapA3(<A3EnergyMapStub   setA3Step={a3Goto} map={map} />);
   if (a3Step === "board")       return wrapA3(<A3BoardStub       setA3Step={a3Goto} />);
   return wrapA3(<div>Unknown A3 step: {a3Step}</div>);
 }
