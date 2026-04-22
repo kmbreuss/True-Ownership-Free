@@ -1,0 +1,133 @@
+I'm replacing the A3EnvironmentStub component in App.tsx with the full real A3 Environment audit page. I've read the prototype (/mnt/project/a3_environment_prototype.html) in full. This is the complete spec. It's structurally similar to A3People but simpler per-item (flat rows, no expand section) and has a Habit|Place kind toggle + a takeaway textarea.
+Reuse existing work: The A3People component has all the chrome we need — phase tracker, brain-dump card, rating-toggle styling, summary grid, reflection card, closing card, step-footer. Please REUSE these exact patterns in Environment. Don't re-invent them. If you want to extract a shared helper component for any of them, that's fine — but only pull out things actually shared by People AND Environment AND the future Thoughts page.
+Investigate first (do NOT edit yet):
+
+Exact line range of current A3EnvironmentStub
+Which helpers/components/styles from A3PeopleStub can be reused directly vs. what needs Environment-specific styling
+Confirm A3EnvironmentStub already receives map and set props, OR that you'll need to update the A3 wrapper to pass them (likely already done when People was built — check)
+
+=== ENVIRONMENT PAGE FULL SPEC ===
+Top section:
+
+Teal eyebrow (same style as A3Intro/A3People): "A3 · ENERGY AUDIT · ENVIRONMENT"
+H1 (serif, 40px, light): "Your habits and your places."
+Lead paragraph: "What you do on repeat, and where you spend your time. Your environment speaks before you do — some of it supports who you're evolving into, some of it quietly pulls you back."
+
+Framing card (NEW — this is unique to Environment. Sits between lead and phase tracker):
+
+Dark-ish panel (same bg as brain-dump card) with teal small caps label "WHAT BELONGS HERE"
+Body text: "Habits are behaviors you repeat — morning routines, how you wind down, what you reach for when stressed. Places are the physical environments that shape you — where you work, where you rest, where you come undone. The goal is to name the good, the bad, and the ugly — the main ones, not all of them. When something is both a habit and a place (morning coffee at the kitchen counter), pick whichever feels more true."
+"Habits", "Places", and "good, the bad, and the ugly" should be in teal bold
+
+Phase tracker: Same component as A3People — 2 steps: "Name them" / "Rate them". Reuse exactly.
+Data model: Each item is {id, name, kind, rating}. Stored at map.a3_env_items. kind is "habit" | "place" | "". rating is "advocate" | "neutral" | "anchor" | null.
+Phase 1 — Name them:
+Brain-dump card (same styling as People):
+
+Teal small caps label: "PHASE 1 · BRAIN-DUMP"
+Serif question (22px): "What are your main habits and places right now — the good, the bad, and the ugly?"
+Hint: "Focus on the ones where you actually spend most of your time. One per line. Don't list everything — list what's real. Short phrases are enough."
+Textarea with italic placeholder: "Type one habit or place per line…\ne.g.\nMorning coffee at the kitchen counter\nDoom-scrolling before bed\nMy office\nSunday hike\nThe car"
+Footer: "N items · aim for honest, not complete"
+
+Prompts card (DIFFERENT from People — this one is collapsible and has TWO groups):
+
+Amber left-bar container (same amber style as People's prompts)
+Head row (clickable to toggle): Label "IF YOU'RE STUCK · MEMORY PROMPTS" (amber caps) + chevron "▾" icon that rotates
+Starts collapsed — user opens by clicking the head
+Body (when open): TWO groups
+
+Group 1 label (muted caps): "FOR HABITS" + chip row: "How I start the day" / "What I do when I'm stressed" / "How I unwind" / "What I reach for on autopilot" / "Weekend rhythms"
+Group 2 label: "FOR PLACES" + chip row: "Where I work" / "Where I sleep" / "Where I eat" / "Where I think best" / "Where I avoid being"
+
+
+Chips are the same serif italic styling as People's chips
+
+Step footer:
+
+Left: "← Back to People" (calls setA3Step("people"))
+Right: grey hint "Add at least one item to continue." (or "Ready when you are." with ≥1 line) + teal filled pill "Next · Rate them →" (disabled until ≥1 non-empty line)
+
+Transition to Phase 2: Same pattern as People — parse textarea into lines, reconcile with existing map.a3_env_items by name (preserve kind+rating for matching names, fresh for new), set("a3_env_items", ...).
+Phase 2 — Rate them:
+Intro paragraph: "For each one, tag it as a habit or a place, then ask yourself: is it an advocate, neutral, or an anchor? Use your gut. No overthinking."
+Empty state (if 0 items): Same pattern as People — "Nothing to rate yet." + body "Head back to Phase 1 and list a few habits or places." + outline pill "← Back to naming".
+Item rows (FLAT — no expand section, this is simpler than People):
+Each row is a horizontal card, rounded, dark bg, border-left: 3px solid <rating-color> (grey when unrated). Grid layout: name | kind-toggle | rating-toggle | delete.
+
+Name (serif 17px) — just the text, no editing
+Kind toggle (2-button pill group): "HABIT" / "PLACE"
+
+Unselected: grey text, transparent
+Selected habit: teal-tinted bg + teal text (same color as an unrated-but-selected kind — you can use a softer teal like the board-btn.sel-yes styling from People or just a neutral "selected" state)
+Selected place: same teal-tinted style (habit and place use the same selected color — they're just category tags, not value judgments)
+Actually: to differentiate, use slightly different styles — habit = teal-tinted (rgba(93,202,165,.18)), place = amber-tinted (rgba(201,168,76,.18)) with respective text colors. That way user can see at a glance which is which.
+
+
+Rating toggle (3-button pill group): "ADVOCATE" / "NEUTRAL" / "ANCHOR" — reuse the exact same styling as People's rate-toggle
+Delete button (×) — same as People
+
+NO expand section. NO Board toggle. NO action dropdown. NO How textarea. The row is flat.
+Add item input (below the list, dashed border, flex row): same pattern as People's "Add someone else" but with placeholder "Thought of something else? Add it here…" and teal "+ ADD" button.
+Summary block (whenever ≥1 item):
+
+Label: "YOUR ENVIRONMENT SO FAR"
+3-cell grid: Advocate / Neutral / Anchor with live counts (reuse the exact same component from People)
+Dominant highlight: same ≥60% advocate / ≥40% anchor rules
+Kind breakdown line (NEW — only shown when ≥1 item has a kind set): small text below the 3-cell grid: "N habits · M places"
+
+Take-away card (NEW — this is unique to Environment. Appears whenever summary appears):
+
+Sits AFTER summary, BEFORE reflection
+Gold/warm border-left bar (like prompts card) with teal small caps label "YOUR TAKEAWAY"
+Serif question (18px): "Of everything you named — what's the one habit or place you most want to change, and what's one you most want to protect?"
+Single textarea, placeholder "e.g. Change: the late-night scroll. Protect: my Sunday hike."
+Stored at map.a3_env_takeaway (string)
+
+Reflection block (whenever summary appears):
+
+Same component as People's reflection (amber left-bar default, tone-advocate teal, tone-anchor red)
+Adaptive text (different from People, specific to environment):
+
+<3 rated or balanced: "What do you notice? Be curious, not critical. Every item on this list is telling you something about the environment you've built — what's supporting you and what's quietly in the way."
+≥60% advocate AND ≤20% anchor (ADVOCATE TONE): "Your environment is mostly working for you. That's rare — and it's a quiet kind of wealth. What would it mean to protect it more deliberately instead of taking it for granted?"
+≥40% anchor (ANCHOR TONE): "If more of your environment is anchoring than supporting, that's information — not a failure. Environments accumulate by default. You only get to shape them on purpose once you see them clearly. Which anchor would cost you the least to change first?"
+
+
+
+Closing block:
+
+Same panel style as People's closing
+Serif title: "You don't have to do it all."
+Body: "A3 isn't asking you to overhaul your whole life. One or two changes are usually enough — the smallest shift in habit or environment can unlock everything downstream. The rest will follow when it's ready."
+Body: "Next up is Thoughts, where you turn the same lens inward. It's where this whole phase lands."
+"One or two changes" and "Thoughts" in teal bold
+
+Step footer:
+
+Left: "← Back to naming" (returns to Phase 1)
+Right: grey hint "Next up · Thoughts" + teal filled pill "Continue →" → sets a3Step to "thoughts"
+
+=== IMPLEMENTATION NOTES ===
+
+Local state: a3EnvPhase (1 | 2), brainDumpText (string), newItemInput (string), promptsOpen (bool, default false)
+All item data lives on map.a3_env_items via set("a3_env_items", ...)
+Takeaway lives on map.a3_env_takeaway via set("a3_env_takeaway", ...)
+Kind toggle updates the item's kind; rating toggle updates its rating; both persist via set
+Reuse ID generation approach from People (crypto.randomUUID with fallback)
+
+CRITICAL RULES:
+
+Do NOT touch A3Intro, A3People (just built), any other A3 stub, A1, A2, KEYS, or App-level state
+REUSE styling + color constants from A3People where possible — do not duplicate large CSS blocks if they're already inline in People. If People has inline styles, copy the same inline patterns rather than re-defining.
+Phase tracker, brain-dump card styling, rating-toggle styling, summary grid, reflection card, closing card, step footer — all should look visually identical to People
+Progressive disclosure is strict: Phase 2 only after user clicks Next; summary/takeaway/reflection/closing only when ≥1 item exists
+
+Before applying, show me:
+
+Line numbers for the stub to be replaced
+What's shared with People (helpers? inline styles copied over?)
+Estimated line count delta (expect 300-400 lines — smaller than People because no expand section)
+Flag anything you'd simplify or ask about
+
+Wait for my approval before executing.
