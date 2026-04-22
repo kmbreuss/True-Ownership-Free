@@ -1,0 +1,25 @@
+This is the critical discovery. The Agent found the exact A1 timeline fallback chain:
+BAG sentence field names — FOUND. A1's DirectionTimeline_v2 (line 1163-1168) uses this exact fallback chain for BAG horizon (the 10-15 year target):
+time:   map.time_overall_sentence   || map.time_summary   || map.bag_time_sentence   || map.growth_time_sentence
+wealth: map.wealth_overall_sentence || map.wealth_summary || map.bag_wealth_sentence || map.growth_wealth_sentence  
+growth: map.growth_sentence          || map.growth_summary
+
+"I'll use this identical chain in the popup so what users see in the Energy Map exactly matches what they see when they click 'BAG' on the A1 timeline. (Bonus: line 1167 — Growth uses growth_sentence / growth_summary, NOT bag_growth_sentence. The BAG growth answer is stored without the bag_ prefix because it's the canonical/long-horizon growth statem..."
+
+This is exactly the kind of careful investigation we needed. The Agent literally looked at the A1 DirectionTimeline_v2 component, copied the field fallback chains verbatim, and noted the subtle Growth-field naming quirk. That guarantees the popup shows the SAME text you see when clicking BAG in A1's timeline.
+And the pillar colors (amber/green/purple) match A1's existing timeline visual language.
+The plan is solid. All I need to do is approve.
+Paste this into the Agent:
+
+
+Go. All plan details approved as-proposed:
+
+BAG field fallback chains: Approved — identical to A1's DirectionTimeline_v2 (line 1163-1168). Growth field naming quirk (growth_sentence not bag_growth_sentence) preserved.
+Pillar colors (Time=amber, Wealth=green, Growth=purple): Approved — matches A1's established visual language. Consistency with the BAG popup pattern wins over A3 palette purity.
+Beacon click behavior: Toggles popup; e.stopPropagation() on beacon click; outside mousedown listener to close; Esc closes — approved.
+Popup positioning (position:absolute; right:70px; top:150px relative to wrap): Approved. If on a very large screen the popup visually drifts from the beacon, we'll flag it later — not a launch blocker.
+CSS triangle arrow (no SVG): Approved.
+Horizon line bump to stroke-dasharray="5 7", rgba(244,241,235,.22), stroke-width="1.5": Approved. If it still feels faint after the first render, I'll ask for the .28 alpha bump.
+All-empty popup state ("Set your direction in A1 to see your BAG here."): Approved.
+
+Execute. Report final line count + confirm TypeScript clean when done.

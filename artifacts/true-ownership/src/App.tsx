@@ -8091,15 +8091,33 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
   const selected = items.find(i => i.id === selectedId) || null;
   const A3_NEU_HEX = "#9ca3af";
 
-  // Direction text fallback chain
-  const directionText = ((map.purpose_final || map.purpose_draft || "") as string).trim();
-  let dirLine1 = "", dirLine2 = "";
-  if (directionText) {
-    const words = directionText.split(/\s+/);
-    const half = Math.ceil(words.length / 2);
-    dirLine1 = words.slice(0, half).join(" ");
-    dirLine2 = words.slice(half).join(" ");
-  }
+  // BAG popup state — matches A1 DirectionTimeline_v2 pattern
+  const [directionPopupOpen, setDirectionPopupOpen] = useState(false);
+  const directionPopupRef = useRef<HTMLDivElement>(null);
+  const beaconRef = useRef<SVGGElement>(null);
+
+  // BAG sentences — identical fallback chain to A1 DirectionTimeline_v2 (line 1163-1168)
+  const bagTime   = map.time_overall_sentence   || map.time_summary   || map.bag_time_sentence   || map.growth_time_sentence   || "";
+  const bagWealth = map.wealth_overall_sentence || map.wealth_summary || map.bag_wealth_sentence || map.growth_wealth_sentence || "";
+  const bagGrowth = map.growth_sentence || map.growth_summary || "";
+  const bagAllEmpty = !bagTime.trim() && !bagWealth.trim() && !bagGrowth.trim();
+
+  useEffect(() => {
+    if (!directionPopupOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setDirectionPopupOpen(false); };
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (directionPopupRef.current?.contains(t)) return;
+      if (beaconRef.current?.contains(t)) return;
+      setDirectionPopupOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [directionPopupOpen]);
 
   let reflectionText = "";
   if (total < 4) {
@@ -8194,7 +8212,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
           </div>
 
           {/* JOURNEY CONTAINER */}
-          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:12, padding:"22px 24px", marginBottom:24 }}>
+          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:12, padding:"22px 24px", marginBottom:24, position:"relative" }}>
             <div style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:400, color:"var(--text)", marginBottom:4 }}>The Horizon</div>
             <div style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)", marginBottom:14, lineHeight:1.6 }}>
               Anchors behind. Neutrals drifting. Advocates ahead. Your direction at the edge.
@@ -8222,7 +8240,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
               <rect x={0} y={0} width={960} height={420} rx={10} fill="url(#journeyBg)" />
 
               {/* Horizon line */}
-              <line x1={30} y1={210} x2={930} y2={210} stroke="rgba(244,241,235,.12)" strokeWidth={1} strokeDasharray="3 5" />
+              <line x1={30} y1={210} x2={930} y2={210} stroke="rgba(244,241,235,.22)" strokeWidth={1.5} strokeDasharray="5 7" />
 
               {/* Top zone labels */}
               <text x={65}  y={40} fontSize={10} fontWeight={700} letterSpacing={2} fill="rgba(239,68,68,.55)"  fontFamily="var(--sans)">← PULLING YOU BACK</text>
@@ -8233,17 +8251,15 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
               <text x={205} y={404} fontSize={9} fontStyle="italic" fill="rgba(239,68,68,.35)"  fontFamily="var(--sans)" textAnchor="middle">weight behind</text>
               <text x={740} y={404} fontSize={9} fontStyle="italic" fill="rgba(93,202,165,.4)"  fontFamily="var(--sans)" textAnchor="middle">wind ahead</text>
 
-              {/* Beacon */}
-              <circle cx={932} cy={210} r={60} fill="url(#beaconGlow)" />
-              <circle cx={932} cy={210} r={10} fill="rgba(201,168,76,.55)" />
-              <circle cx={932} cy={210} r={4}  fill={A3_AMBER} />
-              <text x={922} y={184} fontSize={9} fontWeight={700} letterSpacing={1.5} fill="rgba(201,168,76,.7)" fontFamily="var(--sans)" textAnchor="end">A1 DIRECTION</text>
-              {dirLine1 && (
-                <text x={922} y={218} fontSize={11} fontStyle="italic" fill="rgba(201,168,76,.85)" fontFamily="var(--serif)" textAnchor="end">{dirLine1}</text>
-              )}
-              {dirLine2 && (
-                <text x={922} y={236} fontSize={11} fontStyle="italic" fill="rgba(201,168,76,.85)" fontFamily="var(--serif)" textAnchor="end">{dirLine2}</text>
-              )}
+              {/* Beacon — clickable, opens BAG popup */}
+              <g ref={beaconRef}
+                 onClick={(e) => { e.stopPropagation(); setDirectionPopupOpen(o => !o); }}
+                 style={{ cursor:"pointer" }}>
+                <circle cx={932} cy={210} r={60} fill="url(#beaconGlow)" />
+                <circle cx={932} cy={210} r={10} fill="rgba(201,168,76,.55)" />
+                <circle cx={932} cy={210} r={4}  fill={A3_AMBER} />
+                <text x={922} y={184} fontSize={9} fontWeight={700} letterSpacing={1.5} fill="rgba(201,168,76,.7)" fontFamily="var(--sans)" textAnchor="end">DIRECTION</text>
+              </g>
 
               {/* "you" marker at center */}
               <circle cx={480} cy={210} r={44} fill="url(#selfGlow)" />
@@ -8253,6 +8269,71 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
               {/* Items */}
               {items.map(renderItem)}
             </svg>
+
+            {/* BAG DIRECTION POPUP — anchored to wrap card via position:absolute */}
+            {directionPopupOpen && (
+              <div ref={directionPopupRef}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position:"absolute", right:70, top:150, maxWidth:340, zIndex:20,
+                  background:"rgba(13,27,46,.97)",
+                  border:"1px solid rgba(201,168,76,.4)",
+                  borderRadius:8,
+                  padding:"14px 16px",
+                  boxShadow:"0 12px 36px rgba(0,0,0,.5)",
+                }}>
+                <div style={{
+                  position:"absolute", right:-9, top:48, width:0, height:0,
+                  borderTop:"8px solid transparent",
+                  borderBottom:"8px solid transparent",
+                  borderLeft:"9px solid rgba(201,168,76,.4)",
+                }} />
+                <div style={{
+                  position:"absolute", right:-7, top:49, width:0, height:0,
+                  borderTop:"7px solid transparent",
+                  borderBottom:"7px solid transparent",
+                  borderLeft:"8px solid rgba(13,27,46,.97)",
+                }} />
+
+                <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom: bagAllEmpty ? 6 : 12 }}>
+                  <span style={{ fontFamily:"var(--sans)", fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--warm)" }}>Direction · BAG</span>
+                  <span style={{ fontSize:10, color:"var(--text4)", marginLeft:"auto", cursor:"pointer", padding:"2px 4px" }}
+                        onClick={() => setDirectionPopupOpen(false)}>✕ close</span>
+                </div>
+
+                {bagAllEmpty ? (
+                  <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)", lineHeight:1.6, padding:"4px 0" }}>
+                    Set your direction in A1 to see your BAG here.
+                  </div>
+                ) : (
+                  <>
+                    {[
+                      { label: "Time",   text: bagTime,   color: "var(--warm)" },
+                      { label: "Wealth", text: bagWealth, color: "#34d399" },
+                      { label: "Growth", text: bagGrowth, color: "#a78bfa" },
+                    ].map(row => (
+                      <div key={row.label} style={{ display:"grid", gridTemplateColumns:"56px 1fr", gap:10, alignItems:"start", marginBottom:8 }}>
+                        <span style={{ fontSize:9, color:"var(--text3)", letterSpacing:1.2, textTransform:"uppercase", fontWeight:600, paddingTop:6 }}>{row.label}</span>
+                        <div style={{ minWidth:0 }}>
+                          {row.text && row.text.trim() ? (
+                            <div style={{
+                              fontFamily:"var(--serif)", fontSize:13, lineHeight:1.6, fontStyle:"italic",
+                              padding:"6px 11px", borderRadius:4,
+                              background:"rgba(0,0,0,.25)", borderLeft:`2px solid ${row.color}`,
+                              color:"var(--text)",
+                            }}>"{row.text}"</div>
+                          ) : (
+                            <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", padding:"6px 11px" }}>
+                              — not set yet —
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
 
             {/* DETAIL CARD */}
             {selected && (() => {
