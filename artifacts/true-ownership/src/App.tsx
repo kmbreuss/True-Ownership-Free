@@ -6945,7 +6945,340 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
     </div>
   );
 }
-function A3EnvironmentStub({ setA3Step }: any) { return <A3StubShell title="Energy Audit · Environment" tagline="Your habits and your places."                                      next="thoughts"    setA3Step={setA3Step}>Placeholder page. Combined Habits + Places audit coming next.</A3StubShell>; }
+function A3EnvironmentStub({ setA3Step, map, set }: any) {
+  const items = map.a3_env_items || [];
+  const takeaway = map.a3_env_takeaway || "";
+  const [a3EnvPhase, setA3EnvPhase] = useState<1|2>(items.length > 0 ? 2 : 1);
+  const [brainDumpText, setBrainDumpText] = useState<string>(() => items.map((i: any) => i.name).join("\n"));
+  const [newItemInput, setNewItemInput] = useState("");
+  const [promptsOpen, setPromptsOpen] = useState(false);
+
+  const uuid = () => (typeof crypto !== "undefined" && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : String(Date.now()) + Math.random();
+
+  const updateItem = (id: string, patch: any) => set("a3_env_items", items.map((i: any) => i.id === id ? { ...i, ...patch } : i));
+  const removeItem = (id: string) => set("a3_env_items", items.filter((i: any) => i.id !== id));
+  const addItem = (rawName: string) => {
+    const name = rawName.trim();
+    if (!name) return;
+    set("a3_env_items", [...items, { id: uuid(), name }]);
+  };
+
+  const lineCount = brainDumpText.split("\n").map(s => s.trim()).filter(Boolean).length;
+
+  const commitBrainDump = () => {
+    const lines = brainDumpText.split("\n").map(s => s.trim()).filter(Boolean);
+    const byName = new Map<string, any>(items.map((i: any) => [i.name.toLowerCase(), i]));
+    const next = lines.map(line => {
+      const existing = byName.get(line.toLowerCase());
+      return existing ? existing : { id: uuid(), name: line };
+    });
+    set("a3_env_items", next);
+    setA3EnvPhase(2);
+  };
+
+  const rated = items.filter((i: any) => i.rating);
+  const counts = {
+    advocate: rated.filter((i: any) => i.rating === "advocate").length,
+    neutral:  rated.filter((i: any) => i.rating === "neutral").length,
+    anchor:   rated.filter((i: any) => i.rating === "anchor").length,
+  };
+  const advPct = rated.length ? counts.advocate / rated.length : 0;
+  const ancPct = rated.length ? counts.anchor / rated.length : 0;
+  const advocateCellHighlight = (advPct >= 0.6 && ancPct <= 0.2);
+  const anchorCellHighlight = (ancPct >= 0.4);
+  const reflectionTone = rated.length < 3 ? "balanced" : (advPct >= 0.6 && ancPct <= 0.2) ? "advocate" : ancPct >= 0.4 ? "anchor" : "balanced";
+  const habitCount = items.filter((i: any) => i.kind === "habit").length;
+  const placeCount = items.filter((i: any) => i.kind === "place").length;
+  const anyKind = (habitCount + placeCount) > 0;
+
+  return (
+    <div>
+      {/* BREADCRUMB + H1 + LEAD */}
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:11 }}>A3 · Energy Audit · Environment</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:40, fontWeight:300, lineHeight:1.15, marginBottom:14, letterSpacing:"-0.5px" }}>
+        Your habits and your places.
+      </h2>
+      <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:20, maxWidth:640 }}>
+        What you do on repeat, and where you spend your time. Your environment speaks before you do — some of it supports who you're evolving into, some of it quietly pulls you back.
+      </p>
+
+      {/* FRAMING CARD */}
+      <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"18px 22px", marginBottom:26 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:10, fontFamily:"var(--sans)" }}>What belongs here</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.75 }}>
+          <strong style={{ color: A3_TEAL, fontWeight:700 }}>Habits</strong> are behaviors you repeat — morning routines, how you wind down, what you reach for when stressed. <strong style={{ color: A3_TEAL, fontWeight:700 }}>Places</strong> are the physical environments that shape you — where you work, where you rest, where you come undone. The goal is to name the <strong style={{ color: A3_TEAL, fontWeight:700 }}>good, the bad, and the ugly</strong> — the main ones, not all of them. When something is both a habit and a place (morning coffee at the kitchen counter), pick whichever feels more true.
+        </div>
+      </div>
+
+      {/* PHASE TRACKER */}
+      <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:30 }}>
+        {[1,2].map((step, idx) => {
+          const isCurrent = a3EnvPhase === step;
+          const isDone = a3EnvPhase > step;
+          const label = step === 1 ? "Name them" : "Rate them";
+          const circleStyle: any = {
+            width:26, height:26, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:12, fontWeight:700, fontFamily:"var(--sans)",
+            ...(isDone
+              ? { background: A3_TEAL, color:"#0d1b2e", border:`1px solid ${A3_TEAL}` }
+              : isCurrent
+                ? { background:"transparent", color: A3_TEAL, border:`1.5px solid ${A3_TEAL}` }
+                : { background:"transparent", color:"var(--text4)", border:"1px solid var(--border)" }),
+          };
+          const textColor = isCurrent || isDone ? A3_TEAL : "var(--text4)";
+          return (
+            <React.Fragment key={step}>
+              <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+                <div style={circleStyle}>{isDone ? "✓" : step}</div>
+                <span style={{ fontSize:12, fontFamily:"var(--sans)", fontWeight:600, color: textColor, letterSpacing:0.4 }}>{label}</span>
+              </div>
+              {idx === 0 && <div style={{ flex:"0 0 40px", height:1, background:"var(--border)" }} />}
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {/* PHASE 1 */}
+      {a3EnvPhase === 1 && (
+        <>
+          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"22px 24px", marginBottom:18 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:10, fontFamily:"var(--sans)" }}>Phase 1 · Brain-dump</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:8 }}>What are your main habits and places right now — the good, the bad, and the ugly?</div>
+            <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, marginBottom:16 }}>
+              Focus on the ones where you actually spend most of your time. One per line. Don't list everything — list what's real. Short phrases are enough.
+            </div>
+            <textarea value={brainDumpText} onChange={e => setBrainDumpText(e.target.value)}
+              placeholder={"Type one habit or place per line…\ne.g.\nMorning coffee at the kitchen counter\nDoom-scrolling before bed\nMy office\nSunday hike\nThe car"}
+              style={{ width:"100%", minHeight:200, padding:"14px 16px", fontSize:14, fontFamily:"var(--sans)",
+                background:"var(--bg)", border:"1px solid var(--border)", borderRadius:9, color:"var(--text)",
+                outline:"none", resize:"vertical", lineHeight:1.6 }} />
+            <div style={{ marginTop:10, fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>
+              {lineCount} {lineCount === 1 ? "item" : "items"} · aim for honest, not complete
+            </div>
+          </div>
+
+          {/* Collapsible prompts */}
+          <div style={{ padding:"14px 20px", background:"rgba(201,168,76,.07)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:8, marginBottom:30 }}>
+            <button onClick={() => setPromptsOpen(!promptsOpen)}
+              style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", background:"transparent", border:"none", padding:0, cursor:"pointer" }}>
+              <span style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_AMBER, fontFamily:"var(--sans)" }}>If you're stuck · Memory prompts</span>
+              <span style={{ fontSize:14, color: A3_AMBER, transform: promptsOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform .2s" }}>▾</span>
+            </button>
+            {promptsOpen && (
+              <div style={{ marginTop:14 }}>
+                {[
+                  { label: "For habits", chips: ["How I start the day", "What I do when I'm stressed", "How I unwind", "What I reach for on autopilot", "Weekend rhythms"] },
+                  { label: "For places", chips: ["Where I work", "Where I sleep", "Where I eat", "Where I think best", "Where I avoid being"] },
+                ].map(group => (
+                  <div key={group.label} style={{ marginBottom:14 }}>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text4)", marginBottom:8, fontFamily:"var(--sans)" }}>{group.label}</div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                      {group.chips.map((q, i) => (
+                        <span key={i} style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", padding:"6px 12px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.18)", borderRadius:999 }}>{q}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Step footer */}
+          <div style={{ marginTop:8, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
+            <button onClick={() => setA3Step("people")}
+              style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+              ← Back to People
+            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>
+                {lineCount === 0 ? "Add at least one item to continue." : "Ready when you are."}
+              </span>
+              <button onClick={commitBrainDump} disabled={lineCount === 0}
+                style={{ padding:"9px 18px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)",
+                  background: lineCount === 0 ? "var(--border)" : A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999,
+                  cursor: lineCount === 0 ? "not-allowed" : "pointer", opacity: lineCount === 0 ? 0.55 : 1 }}>
+                Next · Rate them →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* PHASE 2 */}
+      {a3EnvPhase === 2 && (
+        <>
+          {items.length === 0 && (
+            <div style={{ padding:"40px 30px", textAlign:"center", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:30 }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:22, color:"var(--text2)", marginBottom:10 }}>Nothing to rate yet.</div>
+              <div style={{ fontSize:14, color:"var(--text3)", lineHeight:1.6, marginBottom:20, maxWidth:380, marginLeft:"auto", marginRight:"auto" }}>
+                Head back to Phase 1 and list a few habits or places.
+              </div>
+              <button onClick={() => setA3EnvPhase(1)}
+                style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:999, cursor:"pointer" }}>
+                ← Back to naming
+              </button>
+            </div>
+          )}
+
+          {items.length > 0 && (
+            <>
+              <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:680 }}>
+                For each one, tag it as a habit or a place, then ask yourself: is it an advocate, neutral, or an anchor? Use your gut. No overthinking.
+              </p>
+
+              {/* ITEM ROWS */}
+              <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
+                {items.map((it: any) => {
+                  const r = it.rating;
+                  const borderColor = r === "advocate" ? A3_TEAL : r === "neutral" ? A3_GREY : r === "anchor" ? A3_RED : "var(--border)";
+                  const kindBtn = (val: string, label: string, color: string, tintBg: string) => {
+                    const sel = it.kind === val;
+                    return (
+                      <button onClick={() => updateItem(it.id, { kind: val })}
+                        style={{ padding:"5px 11px", fontSize:11, fontWeight:700, letterSpacing:0.6, fontFamily:"var(--sans)",
+                          background: sel ? tintBg : "transparent",
+                          color: sel ? color : "var(--text4)",
+                          border: `1px solid ${sel ? color : "var(--border)"}`,
+                          borderRadius:6, cursor:"pointer", transition:"all .15s" }}>
+                        {label}
+                      </button>
+                    );
+                  };
+                  const ratingPill = (val: string, label: string, color: string, tintBg: string) => {
+                    const selected = r === val;
+                    return (
+                      <button onClick={() => updateItem(it.id, { rating: val })}
+                        style={{ padding:"5px 11px", fontSize:11, fontWeight:700, letterSpacing:0.6, fontFamily:"var(--sans)",
+                          background: selected ? tintBg : "transparent",
+                          color: selected ? color : "var(--text4)",
+                          border: `1px solid ${selected ? color : "var(--border)"}`,
+                          borderRadius:6, cursor:"pointer", transition:"all .15s" }}>
+                        {label}
+                      </button>
+                    );
+                  };
+                  return (
+                    <div key={it.id} style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderLeft:`3px solid ${borderColor}`, borderRadius:9, padding:"14px 16px" }}>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr auto auto 24px", gap:12, alignItems:"center" }}>
+                        <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", fontWeight:400, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{it.name}</div>
+                        <div style={{ display:"flex", gap:5 }}>
+                          {kindBtn("habit", "HABIT", A3_TEAL,  "rgba(93,202,165,.18)")}
+                          {kindBtn("place", "PLACE", A3_AMBER, "rgba(201,168,76,.18)")}
+                        </div>
+                        <div style={{ display:"flex", gap:5 }}>
+                          {ratingPill("advocate", "ADVOCATE", A3_TEAL, "rgba(93,202,165,.2)")}
+                          {ratingPill("neutral",  "NEUTRAL",  A3_GREY, "rgba(156,163,175,.2)")}
+                          {ratingPill("anchor",   "ANCHOR",   A3_RED,  "rgba(239,68,68,.18)")}
+                        </div>
+                        <button onClick={() => removeItem(it.id)} title="Remove"
+                          onMouseEnter={(e: any) => e.currentTarget.style.color = A3_RED}
+                          onMouseLeave={(e: any) => e.currentTarget.style.color = "var(--text4)"}
+                          style={{ width:24, height:24, borderRadius:"50%", background:"transparent", border:"none", color:"var(--text4)", cursor:"pointer", fontSize:16, lineHeight:1, padding:0, transition:"color .15s" }}>×</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ADD ITEM */}
+              <div style={{ display:"flex", gap:10, padding:"12px 14px", background:"transparent", border:"1px dashed var(--border)", borderRadius:9, marginBottom:30, alignItems:"center" }}>
+                <input value={newItemInput} onChange={e => setNewItemInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { addItem(newItemInput); setNewItemInput(""); } }}
+                  placeholder="Thought of something else? Add it here…"
+                  style={{ flex:1, padding:"7px 10px", fontSize:13, fontFamily:"var(--sans)",
+                    background:"transparent", border:"none", color:"var(--text)", outline:"none" }} />
+                <button onClick={() => { addItem(newItemInput); setNewItemInput(""); }}
+                  style={{ padding:"6px 14px", fontSize:11, fontWeight:700, letterSpacing:0.6, fontFamily:"var(--sans)",
+                    background:"transparent", color: A3_TEAL, border:`1px solid ${A3_TEAL}`, borderRadius:999, cursor:"pointer" }}>
+                  + ADD
+                </button>
+              </div>
+
+              {/* SUMMARY */}
+              <div style={{ marginBottom:24 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", marginBottom:12, fontFamily:"var(--sans)" }}>Your environment so far</div>
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+                  {[
+                    { key:"advocate", label:"Advocate", count: counts.advocate, color: A3_TEAL, glow: advocateCellHighlight },
+                    { key:"neutral",  label:"Neutral",  count: counts.neutral,  color: A3_GREY, glow: false },
+                    { key:"anchor",   label:"Anchor",   count: counts.anchor,   color: A3_RED,  glow: anchorCellHighlight },
+                  ].map(cell => (
+                    <div key={cell.key} style={{ padding:"16px 18px", background:"var(--bg2)",
+                      border:`1px solid ${cell.color}`, borderRadius:9,
+                      boxShadow: cell.glow ? `0 0 14px ${cell.color}66` : "none" }}>
+                      <div style={{ fontFamily:"var(--serif)", fontSize:36, fontWeight:300, color: cell.color, lineHeight:1, marginBottom:6 }}>{cell.count}</div>
+                      <div style={{ fontSize:11, color:"var(--text3)", letterSpacing:1, textTransform:"uppercase", fontFamily:"var(--sans)", fontWeight:600 }}>{cell.label}</div>
+                    </div>
+                  ))}
+                </div>
+                {anyKind && (
+                  <div style={{ marginTop:10, fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>
+                    {habitCount} {habitCount === 1 ? "habit" : "habits"} · {placeCount} {placeCount === 1 ? "place" : "places"}
+                  </div>
+                )}
+              </div>
+
+              {/* TAKEAWAY CARD */}
+              <div style={{ padding:"18px 22px", background:"rgba(201,168,76,.07)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:8, marginBottom:24 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:10, fontFamily:"var(--sans)" }}>Your takeaway</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:400, color:"var(--text)", marginBottom:12, lineHeight:1.5 }}>
+                  Of everything you named — what's the one habit or place you most want to change, and what's one you most want to protect?
+                </div>
+                <textarea value={takeaway} onChange={e => set("a3_env_takeaway", e.target.value)}
+                  placeholder="e.g. Change: the late-night scroll. Protect: my Sunday hike."
+                  rows={3}
+                  style={{ width:"100%", padding:"10px 12px", fontSize:14, fontFamily:"var(--sans)",
+                    background:"var(--bg)", border:"1px solid var(--border)", borderRadius:8, color:"var(--text)",
+                    outline:"none", resize:"vertical", lineHeight:1.6 }} />
+              </div>
+
+              {/* REFLECTION */}
+              {(() => {
+                const cfg = reflectionTone === "advocate"
+                  ? { color: A3_TEAL, label: "Protect what's working", text: "Your environment is mostly working for you. That's rare — and it's a quiet kind of wealth. What would it mean to protect it more deliberately instead of taking it for granted?" }
+                  : reflectionTone === "anchor"
+                    ? { color: A3_RED, label: "Information, not failure", text: "If more of your environment is anchoring than supporting, that's information — not a failure. Environments accumulate by default. You only get to shape them on purpose once you see them clearly. Which anchor would cost you the least to change first?" }
+                    : { color: A3_AMBER, label: "One thing to notice", text: "What do you notice? Be curious, not critical. Every item on this list is telling you something about the environment you've built — what's supporting you and what's quietly in the way." };
+                return (
+                  <div style={{ padding:"18px 22px", background:`${cfg.color}11`, borderLeft:`3px solid ${cfg.color}`, borderRadius:8, marginBottom:24 }}>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: cfg.color, marginBottom:10, fontFamily:"var(--sans)" }}>{cfg.label}</div>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", color:"var(--text2)", lineHeight:1.75 }}>{cfg.text}</div>
+                  </div>
+                );
+              })()}
+
+              {/* CLOSING */}
+              <div style={{ marginBottom:30 }}>
+                <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:12 }}>You don't have to do it all.</div>
+                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
+                  A3 isn't asking you to overhaul your whole life. <strong style={{ color: A3_TEAL, fontWeight:700 }}>One or two changes</strong> are usually enough — the smallest shift in habit or environment can unlock everything downstream. The rest will follow when it's ready.
+                </p>
+                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
+                  Next up is <strong style={{ color: A3_TEAL, fontWeight:700 }}>Thoughts</strong>, where you turn the same lens inward. It's where this whole phase lands.
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* STEP FOOTER */}
+          <div style={{ marginTop:8, paddingTop:18, borderTop:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:14 }}>
+            <button onClick={() => setA3EnvPhase(1)}
+              style={{ padding:"8px 16px", fontSize:12, fontWeight:600, letterSpacing:0.5, fontFamily:"var(--sans)", background:"transparent", color:"var(--text2)", border:"1px solid var(--border)", borderRadius:999, cursor:"pointer" }}>
+              ← Back to naming
+            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--sans)" }}>Next up · Thoughts</span>
+              <button onClick={() => setA3Step("thoughts")}
+                style={{ padding:"9px 18px", fontSize:12, fontWeight:700, letterSpacing:0.5, fontFamily:"var(--sans)", background: A3_TEAL, color:"#0d1b2e", border:"none", borderRadius:999, cursor:"pointer" }}>
+                Continue →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 function A3ThoughtsStub({ setA3Step }: any)    { return <A3StubShell title="Energy Audit · Thoughts"    tagline="Your inner landscape."                                             next="energymap"   setA3Step={setA3Step}>Placeholder page. Inner Landscape visualization coming next.</A3StubShell>; }
 function A3EnergyMapStub({ setA3Step }: any)   { return <A3StubShell title="Energy Map"                 tagline="What and who are you carrying?"                                    next="board"       setA3Step={setA3Step}>Placeholder page. Bullseye visualization coming next.</A3StubShell>; }
 function A3BoardStub({ setA3Step }: any)       { return <A3StubShell title="The Board"                  tagline="Your Board of twelve."                                             next={null}        setA3Step={setA3Step}>Placeholder page. 12-seat table and strengths flow coming next.</A3StubShell>; }
@@ -7018,7 +7351,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
 
   if (a3Step === "intro")       return wrapA3(<A3IntroStub       setA3Step={a3Goto} />);
   if (a3Step === "people")      return wrapA3(<A3PeopleStub      setA3Step={a3Goto} map={map} set={set} />);
-  if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} />);
+  if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} />);
   if (a3Step === "energymap")   return wrapA3(<A3EnergyMapStub   setA3Step={a3Goto} />);
   if (a3Step === "board")       return wrapA3(<A3BoardStub       setA3Step={a3Goto} />);
