@@ -1,0 +1,165 @@
+I'm replacing the A3EnergyMapStub component with the full real A3 Energy Map page. I've read /mnt/project/a3_energy_map_prototype.html in full. This page is structurally DIFFERENT from People/Environment/Thoughts — it's a read-only aggregation view with an SVG bullseye visualization. No phases, no inputs, no writes to map state (except selectedId which is local UI state).
+Investigate first (do NOT edit yet):
+
+Exact line range of current A3EnergyMapStub
+Confirm A3 wrapper passes map (it does — added for People/Environment/Thoughts). EnergyMap needs map, does NOT need set (but pass it anyway for consistency — it's only a prop, costs nothing)
+Shape of map.a3_people (from People page) and map.a3_env_items (from Environment page) as they currently exist, so the aggregation code matches actual data
+
+=== ENERGY MAP PAGE FULL SPEC ===
+This page reads from:
+
+map.a3_people — array of {id, name, role, rating, onBoard, action, how} (People page output)
+map.a3_env_items — array of {id, name, kind: "habit"|"place", rating} (Environment page output)
+
+It does NOT read from Thoughts — Thoughts has its own inner landscape; the Energy Map is for external things.
+Derived unified array: Build a local items array by mapping both sources into a common shape {id, name, kind: "person"|"habit"|"place", rating, role?, note?}:
+
+From map.a3_people: id = "p_" + person.id, kind = "person", keep name, rating, role; derive note from person's action + how (e.g., if action="Set boundaries" and how="no business at Sunday dinners", note = "Set boundaries · no business at Sunday dinners." — join with " · "). Empty note if no action.
+From map.a3_env_items: id = "e_" + env.id, kind = env.kind (habit or place), keep name, rating. No role, no note (or empty).
+Filter out items without a rating set — unrated items shouldn't appear on the map.
+
+Top section:
+
+Teal eyebrow: "A3 · ENERGY MAP"
+H1 (serif, 40px, light): "What and who are you carrying?"
+Lead: "Every person, habit, and place you named, arranged by how close you've kept each one. Advocates near the center — part of you. Anchors on the edge — weight you're still choosing to carry."
+
+"It starts with you" reminder (small strip between lead and stats — dark subtle bg, amber diamond ◆ icon):
+
+Mark: "◆" (amber)
+Text: "It starts with you. Nothing here is acting on you — every item on this map is something you chose to keep close, or haven't yet set down." (the word "on" in italic)
+
+Stats strip (3-cell grid, appears above the map):
+Three cells, same visual approach as People/Environment summary grid:
+
+Cell 1 — teal border: big number = advocate count, label "Close to you", sublabel "X% supporting you"
+Cell 2 — grey border: big number = neutral count, label "Drifting", sublabel "X% neither way"
+Cell 3 — red border: big number = anchor count, label "Still carrying", sublabel "X% sitting on the edge"
+
+If total is 0, percentages are 0.
+Map toolbar / legend (above the SVG):
+
+4 small legend items: "● People · advocate" (teal circle), "● People · anchor" (red circle), "◆ Environment · advocate" (teal diamond), "◆ Environment · anchor" (red diamond)
+
+The SVG bullseye map:
+Container with dark bg, rounded corners, "The View" title + subtitle "You at the center. What supports you, what you're carrying, and what sits on the edge."
+SVG viewBox="0 0 720 520", cx=360, cy=260. Center-aligned via CSS.
+Build SVG as an HTML string and render via dangerouslySetInnerHTML — OR build it with proper JSX elements (your choice — dangerouslySetInnerHTML is simpler for 1:1 prototype match, JSX is React-idiomatic). Either is fine.
+Layer 1 — Background gradient (<defs> with radialGradient):
+
+"mapGrad": teal 8% at center → amber 3% at 40% → red 2% at edges
+"centerGlow": amber 35% at center → transparent
+Apply mapGrad to a full-size rect with rx=10
+
+Layer 2 — Three concentric rings:
+
+RING_ADVOCATE = 110 (innermost, teal tint): stroke: rgba(93,202,165,.38); stroke-width: 1.5; fill: none
+RING_NEUTRAL = 175 (middle, white 20% tint): stroke: rgba(244,241,235,.2); fill: none
+RING_ANCHOR = 235 (outermost, red tint): stroke: rgba(239,68,68,.28); fill: none
+
+Layer 3 — Ring labels (small caps text above each ring's top):
+
+"Advocate" above inner ring (teal 55%)
+"Neutral" above middle ring (muted)
+"Anchor" above outer ring (red 50%)
+
+Layer 4 — Center "you" marker:
+
+Outer glow circle r=36 filled with centerGlow gradient
+Inner solid circle r=22 with a center-self class (amber outline, dark fill)
+Text "you" centered at the middle (small, muted serif italic)
+
+Layer 5 — Items positioned on their rings:
+Bucket items by rating. For each bucket (advocate / neutral / anchor), call placeItemsOnRing(list, radius):
+jsfunction placeItemsOnRing(list, radius) {
+  const n = list.length;
+  if (n === 0) return;
+  const startAngle = -Math.PI / 2 + (Math.PI / n * 0.5);
+  list.forEach((it, i) => {
+    const baseAngle = startAngle + (i * (2 * Math.PI / n));
+    const idHash = hashStr(it.id);
+    const radiusJitter = ((idHash % 22) - 11);
+    const angleJitter = (((idHash * 7) % 60) - 30) * (Math.PI / 180) * 0.15;
+    const r = radius + radiusJitter;
+    const a = baseAngle + angleJitter;
+    it._x = 360 + r * Math.cos(a);
+    it._y = 260 + r * Math.sin(a);
+  });
+}
+
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+Layer 6 — Drawing each item:
+
+People (kind === "person"): render as a circle with the person's initials (first letter of first word + first letter of last word, uppercase, e.g. "Mike Smith" → "MS"). Helper: getInitials(name).
+Environment (kind === "habit" or "place"): render as a diamond (rotated square / polygon) with glyph "H" or "P".
+
+For both:
+
+baseSize = rating === "advocate" ? 15 : 13
+size = isSelected ? baseSize + 3 : baseSize
+Fill color by rating: advocate = rgba(93,202,165,.32), neutral = rgba(156,163,175,.15), anchor = rgba(239,68,68,.1)
+Stroke color by rating: advocate = #5DCAA5, neutral = #9ca3af, anchor = #ef4444
+Stroke width: advocate = 2, others = 1.5
+Drop-shadow glow ONLY on advocates: drop-shadow(0 0 10px rgba(93,202,165,.55))
+Text (initials or glyph) inside the shape, font-size 9-11 depending on rating+selected, font-weight 600, fill matches stroke color
+
+Click handling: Each item's group has an onClick that sets local state selectedId = it.id. Re-renders the map (for selected styling) and opens the detail card below.
+Detail card (positioned below the SVG, inside the same map container):
+Hidden by default (display: none or conditional render). When an item is selected:
+
+Class based on rating: rating-advocate (teal left-bar), rating-neutral (grey), rating-anchor (red)
+Head row: item name (serif 18px) + close × button (sets selectedId = null)
+Meta row: small tags
+
+Source tag: "People" (teal-ish) or "Habit" (amber-ish) or "Place" (amber-ish)
+Role tag (people only, if role is set): muted tag with the role text
+Rating tag: colored by rating, text is literal "advocate"/"neutral"/"anchor"
+
+
+Note text below meta: the item's note (or "(no note)" in muted if empty)
+
+Empty state: If 0 items after filtering, hide the SVG and show: "Nothing to plot yet — rate some items on the People or Environment pages first."
+Reflection block (below the map, amber left-bar default, adaptive copy):
+
+Label: "ONE THING TO NOTICE"
+Adaptive body:
+
+total < 4: "Look at the whole picture. Even with a few things named, the shape starts to show."
+advPct ≥ 0.55 AND ancPct ≤ 0.2: "What's close to you is supporting the life you're building. Protect it on purpose."
+ancPct ≥ 0.4: "That's a lot sitting on the edge. What's one thing you'd set down this week if you could?"
+else: "What are you keeping close — and what are you still carrying that doesn't serve you?"
+
+
+
+Step footer:
+
+Left: "← Back to Thoughts" → setA3Step("thoughts")
+Right: hint "Next up · The Board" + teal "Continue →" → setA3Step("board")
+
+=== IMPLEMENTATION NOTES ===
+
+Local state only: selectedId (string | null). Nothing else. No persistence needed.
+All item computation derived fresh on every render from map.a3_people + map.a3_env_items
+For the SVG: dangerouslySetInnerHTML is fine for the static layers + items string; OR build as JSX — your call
+Click handler for items: use event delegation on the SVG container if using dangerouslySetInnerHTML (capture data-id on the clicked <g>), or wire onClick directly on JSX groups
+escapeXml / escapeHtml helper needed for names to avoid breaking the SVG when a name contains <, >, &, etc.
+
+CRITICAL RULES:
+
+Do NOT touch A3Intro, A3People, A3Environment, A3Thoughts, other A3 stubs, A1, A2, KEYS, or App-level state
+This page does NOT write to map — it's read-only
+Don't invent new colors — use the exact hex values already established (#5DCAA5 teal, #9ca3af neutral, #ef4444 anchor — matching Thoughts/People's inline styles)
+The Thoughts page does NOT contribute to this map
+
+Before applying, show me:
+
+Line number for the stub to replace
+Your choice: dangerouslySetInnerHTML vs JSX for the SVG (flag tradeoffs briefly)
+Estimated line count delta (expect 400-550 lines)
+Any flags or simplifications
+
+Wait for my approval before executing.
