@@ -1,0 +1,72 @@
+I can see the horizontal Energy Map clearly. And yes — the dashed horizon line is barely visible (I can make it out faintly around y=540 in the preview area). Your instinct is right.
+I can also see the current A1 Direction text wrapping at the beacon — "To build bridges between leaders, personal and purposeful across as a leader who helps shine clarity and alignment with each meaningful person..." — that's what we're replacing with the tap-to-reveal BAG popup.
+I want to see the A1 timeline popup pattern you referenced so our Energy Map popup matches it. Let me click on the A1 pill in the preview and navigate to the Direction · 3-Year page (where the BAG timeline should be).
+Actually — this will take several navigations and I don't want to burn context. Let me just trust your description and write the instruction based on: "click the amber beacon dot → reveal a popup styled like the A1 Direction timeline's BAG reveal." The Agent can study the A1 Direction page itself to match the pattern.
+Paste this into the Agent:
+
+
+Two targeted updates to A3EnergyMapHorizontal (the component we just shipped). No changes to A1, A2, or any other A3 component. No changes to the preserved bullseye.
+Change 1 — Make the dashed horizon line more distinct.
+Currently it's too faint to see. The horizon line is the dashed horizontal line from (30, 210) to (930, 210) in the SVG. Make it clearly visible but still subtle — it's a reference line, not the hero.
+Proposed:
+
+stroke-dasharray="5 7" (longer dashes, clearer rhythm)
+stroke="rgba(244,241,235,.22)" (warm off-white at ~22% alpha — bumped from whatever it currently is)
+stroke-width="1.5" (up from 1)
+
+Goal: visible at a glance without competing with the item dots. If your first pass still feels faint, bump alpha to .28. If it feels too prominent, drop to .18.
+Change 2 — Replace the always-visible A1 Direction text at the beacon with a click-to-reveal BAG popup.
+What changes on the beacon itself:
+
+REMOVE the 2-line wrapped direction text currently rendered below the beacon ("A1 Direction" label + 2 text lines)
+KEEP the amber beacon (outer glow, middle ring, inner core)
+CHANGE the visible label below the beacon from "A1 Direction" to just "Direction" (same styling, same position, smaller text)
+Make the beacon group (all three circles + the "Direction" label) clickable. On click → toggles the BAG popup open/closed. Add cursor:pointer on hover.
+
+The BAG popup:
+Pattern reference: The A1 Direction page already has a "BAG" timeline pop-up pattern — when user clicks BAG on the timeline at the top of A1, it reveals the three BAG sentences for Time / Wealth / Growth. Study that existing component's styling/layout and match it as closely as you can so the Energy Map popup feels like the same UI language. Investigate the A1 code and report what you find before building.
+Popup contents (3 lines, one per segment):
+
+Time · map.bag_time_sentence (find the right field name — could be bag_time_sentence, bagtime_sentence, bag.time_sentence, etc.)
+Wealth · map.bag_wealth_sentence
+Growth · map.bag_growth_sentence
+
+Investigate first to confirm exact field names. The A1 Direction page is what populates these. Likely alongside the oneyr_*_sentence and threeyr_*_sentence fields we know exist. If BAG sentences are stored under different names, report what you find.
+If a segment sentence is empty: render the label (e.g., "Time") in muted grey with italic placeholder text like "— not set yet —".
+If ALL three segments are empty: render the popup with a single line: "Set your direction in A1 to see your BAG here." (serif italic muted)
+Popup visual:
+
+Small card, anchors to the LEFT of the beacon (so it doesn't spill off the right edge of the SVG/viewport)
+Small triangle/arrow on the right edge of the card pointing at the beacon
+Semi-opaque dark bg (match the detail card's bg), rounded corners, subtle amber left-bar (match the beacon's color)
+Header: "Direction · BAG" (small caps teal, same style as other panel labels)
+Three segment rows: each row has the segment name (Time/Wealth/Growth) as a small caps amber label + the sentence text in serif italic (16-17px, warm off-white)
+Rows separated by thin muted dividers
+Close × button in top-right of the popup (optional — clicking outside or the beacon again also closes it)
+
+Popup behavior:
+
+Local state: directionPopupOpen (bool, default false)
+Clicking the beacon group toggles it
+Clicking the beacon again closes it
+Clicking the × closes it
+Pressing Esc closes it (keyboard handler)
+Clicking outside the popup (e.g., any other area of the page) closes it — you can use a simple useEffect with a document click listener that checks if the click is outside the popup element
+Clicking inside the popup does NOT close it
+NOT persisted — purely local UI state
+
+Positioning note: The beacon lives inside the SVG at cx=932, cy=210. The popup is an HTML element, not SVG, so it renders in a layer above the SVG container. Position it absolutely within the .journey-wrap container so it anchors near the beacon visually. Suggest: position: absolute; right: 70px; top: 150px; (right-aligned so it pops to the left of the beacon) — tweak as needed for your actual layout.
+CRITICAL RULES:
+
+Do NOT touch A1, A2, A3EnergyMapBullseye (preserved), or any other component
+Do NOT add or remove anything from map — READ-ONLY
+Match the A1 Direction timeline's BAG popup pattern as closely as possible for visual consistency
+
+Before applying, show me:
+
+The exact field names you found for bag_time_sentence / bag_wealth_sentence / bag_growth_sentence (or their equivalents)
+A note on the A1 Direction BAG popup pattern you're matching (screenshot-describe it in words: colors, borders, layout)
+Estimated line count delta
+Any flags
+
+Wait for my approval before executing.
