@@ -6496,6 +6496,12 @@ const A3_STEPS = [
   { id:"board",       label:"The Board" },
 ];
 
+const A3_BOARD_STRENGTHS = [
+  "Listener", "Challenger", "Strategist", "Honest Mirror",
+  "Cheerleader", "Healer", "Visionary", "Connector",
+  "Wise Elder", "Peer Equal", "Teacher", "Guide",
+];
+
 function A3StubShell({ title, tagline, next, setA3Step, children }: any) {
   return (
     <div>
@@ -8411,7 +8417,493 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
     </div>
   );
 }
-function A3BoardStub({ setA3Step }: any)       { return <A3StubShell title="The Board"                  tagline="Your Board of twelve."                                             next={null}        setA3Step={setA3Step}>Placeholder page. 12-seat table and strengths flow coming next.</A3StubShell>; }
+function A3BoardStub({ setA3Step, map, set }: any) {
+  const uuid = () => (typeof crypto !== "undefined" && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : String(Date.now()) + Math.random();
+
+  const A3_TEAL = "#5DCAA5";
+  const A3_TEAL_DEEP = "#0f4f41";
+  const A3_AMBER = "#c9a84c";
+  const A3_AMBER_DEEP = "#2a1f16";
+  const A3_GREY_MUTED = "#9a9590";
+  const A3_BG = "#0d1b2e";
+  const A3_BORDER = "#254060";
+
+  const userName: string = ((map?.name || "") as string).trim();
+  const boardTitle = userName ? `${userName}'s Board` : "Your Board";
+
+  const people: any[] = map?.a3_people || [];
+  const advocates = people.filter((p: any) => p.rating === "advocate" && p.onBoard === "yes");
+  const existingCands: any[] = map?.a3_board_candidates || [];
+  const missing: any[] = map?.a3_board_missing || [];
+
+  // Sync candidates with advocates by personId
+  const byPersonId = new Map(existingCands.map((c: any) => [c.personId, c]));
+  const synced = advocates.map((p: any) => byPersonId.get(p.id) || {
+    id: uuid(), personId: p.id, strengths: [], primary: "", seatName: "", why: "",
+  });
+  const syncSig = synced.map((c: any) => c.personId).join("|");
+  const existingSig = existingCands.map((c: any) => c.personId).join("|");
+  useEffect(() => {
+    if (syncSig !== existingSig) set("a3_board_candidates", synced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncSig, existingSig]);
+
+  const candidates: any[] = syncSig === existingSig ? existingCands : synced;
+
+  // Local UI state
+  const [advSectionOpen, setAdvSectionOpen] = useState(true);
+  const [missSectionOpen, setMissSectionOpen] = useState(true);
+  const [openCandidateId, setOpenCandidateId] = useState<string | null>(null);
+  const [otherEditingId, setOtherEditingId] = useState<string | null>(null);
+  const [otherDraft, setOtherDraft] = useState("");
+
+  const personById = new Map(people.map((p: any) => [p.id, p]));
+
+  const updateCandidate = (id: string, patch: any) => {
+    set("a3_board_candidates", candidates.map((c: any) => c.id === id ? { ...c, ...patch } : c));
+  };
+  const isLocked = (s: string) => A3_BOARD_STRENGTHS.includes(s);
+
+  const toggleStrength = (cand: any, s: string) => {
+    const has = cand.strengths.includes(s);
+    if (!has) {
+      const newStrengths = [...cand.strengths, s];
+      const patch: any = { strengths: newStrengths };
+      if (!cand.primary) {
+        patch.primary = s;
+        if (!cand.seatName) patch.seatName = "The " + s;
+      }
+      updateCandidate(cand.id, patch);
+    } else if (cand.primary !== s) {
+      const patch: any = { primary: s };
+      if (!cand.seatName || cand.seatName === ("The " + cand.primary)) {
+        patch.seatName = "The " + s;
+      }
+      updateCandidate(cand.id, patch);
+    } else {
+      const newStrengths = cand.strengths.filter((x: string) => x !== s);
+      const patch: any = { strengths: newStrengths };
+      if (newStrengths.length > 0) {
+        patch.primary = newStrengths[0];
+        if (!cand.seatName || cand.seatName === ("The " + cand.primary)) {
+          patch.seatName = "The " + newStrengths[0];
+        }
+      } else {
+        patch.primary = "";
+        patch.seatName = "";
+      }
+      updateCandidate(cand.id, patch);
+    }
+  };
+
+  const customStrengthOf = (cand: any): string =>
+    cand.strengths.find((s: string) => !isLocked(s)) || "";
+
+  const commitOther = (cand: any) => {
+    const val = otherDraft.trim();
+    setOtherEditingId(null);
+    setOtherDraft("");
+    if (!val) return;
+    const existingCustom = customStrengthOf(cand);
+    let newStrengths = cand.strengths.filter((s: string) => s !== existingCustom);
+    newStrengths = [...newStrengths, val];
+    const patch: any = { strengths: newStrengths };
+    if (cand.primary === existingCustom || !cand.primary) {
+      patch.primary = val;
+      if (!cand.seatName || cand.seatName === ("The " + (cand.primary || existingCustom))) {
+        patch.seatName = "The " + val;
+      }
+    }
+    updateCandidate(cand.id, patch);
+  };
+
+  // Missing seats
+  const updateMissing = (id: string, patch: any) => {
+    set("a3_board_missing", missing.map((m: any) => m.id === id ? { ...m, ...patch } : m));
+  };
+  const removeMissing = (id: string) => set("a3_board_missing", missing.filter((m: any) => m.id !== id));
+  const addMissing = () => set("a3_board_missing", [...missing, { id: uuid(), title: "", note: "" }]);
+
+  // Build occupants for SVG
+  const seatedCands = candidates.filter((c: any) => c.primary && c.seatName);
+  const namedMissing = missing.filter((m: any) => (m.title || "").trim());
+  const occupants: any[] = [
+    ...seatedCands.map((c: any) => {
+      const p = personById.get(c.personId);
+      return { kind: "person", name: p?.name || "(unnamed)", title: c.seatName };
+    }),
+    ...namedMissing.map((m: any) => ({ kind: "missing", name: "", title: m.title })),
+  ].slice(0, 12);
+
+  const filledCount = occupants.length;
+
+  // SVG geometry
+  const cx = 320, cy = 210, tableRx = 180, tableRy = 95;
+  const ringRx = tableRx + 42, ringRy = tableRy + 48;
+  const labelRx = ringRx + 48, labelRy = ringRy + 46;
+
+  const initialsOf = (name: string) => {
+    const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const sectionHeader = (label: string, count: string, open: boolean, toggle: () => void) => (
+    <button onClick={toggle} style={{
+      width: "100%", display: "flex", alignItems: "center", gap: 10,
+      background: "transparent", border: "none", padding: "14px 0",
+      borderTop: "1px solid var(--border)", cursor: "pointer",
+      textAlign: "left", color: "var(--text)",
+    }}>
+      <span style={{ fontFamily: "var(--serif)", fontSize: 22, fontWeight: 400 }}>{label}</span>
+      <span style={{ fontFamily: "var(--sans)", fontSize: 11, color: "var(--text4)", letterSpacing: 0.5 }}>· {count}</span>
+      <span style={{ marginLeft: "auto", color: "var(--text4)", fontSize: 14, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}>▾</span>
+    </button>
+  );
+
+  return (
+    <div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:11 }}>A3 · The Board</div>
+      <h2 style={{ fontFamily:"var(--serif)", fontSize:40, fontWeight:300, lineHeight:1.2, marginBottom:13, letterSpacing:"-0.5px" }}>Build your table.</h2>
+      <p style={{ fontFamily:"var(--sans)", fontSize:15, color:"var(--text2)", lineHeight:1.85, marginBottom:24, maxWidth:620 }}>
+        You named the people who advocate for you. Now you decide their seats — and see what's missing.
+      </p>
+
+      {/* Framing card */}
+      <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderLeft:`3px solid ${A3_TEAL}`, borderRadius:10, padding:"18px 22px", marginBottom:26 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:8, fontFamily:"var(--sans)" }}>What is your Board?</div>
+        <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:12 }}>
+          A tight-knit group whose job is to <span style={{ color: A3_TEAL, fontWeight:600 }}>advocate for you</span> as you move forward.
+        </div>
+        <p style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.75, marginBottom:10 }}>
+          They're not your friends list. They're not everyone who loves you. They're the <span style={{ color: A3_TEAL, fontWeight:600 }}>specific people you trust enough to seek counsel from</span> when it matters.
+        </p>
+        <p style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.75, marginBottom:10 }}>
+          A great Board has variety. Someone who listens. Someone who challenges. Someone who tells you the truth when you don't want to hear it. <span style={{ color: A3_TEAL, fontWeight:600 }}>Each seat serves a different purpose.</span>
+        </p>
+        <p style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.75 }}>
+          Up to 12 seats. You don't have to fill them all — <span style={{ color: A3_TEAL, fontWeight:600 }}>empty seats are information too.</span>
+        </p>
+      </div>
+
+      {/* Table visual */}
+      <div style={{ background: A3_BG, border: `1px solid ${A3_BORDER}`, borderRadius: 12, padding: "20px 22px", marginBottom: 26 }}>
+        <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom: 12 }}>
+          <div style={{ fontFamily:"var(--serif)", fontSize:18, fontWeight:400, color:"var(--text)" }}>Your Board · 12 seats</div>
+          <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+            <span style={{ fontFamily:"var(--serif)", fontSize:28, fontWeight:300, color: A3_TEAL }}>{filledCount}</span>
+            <span style={{ fontFamily:"var(--sans)", fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)" }}>of 12 seats filled</span>
+          </div>
+        </div>
+
+        <svg viewBox="0 0 640 420" style={{ display:"block", width:"100%", maxWidth:640, margin:"0 auto", height:"auto" }}>
+          <defs>
+            <radialGradient id="tableGrad" cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stopColor="#1a2f4a" />
+              <stop offset="100%" stopColor="#0d1b2e" />
+            </radialGradient>
+          </defs>
+
+          {/* Table */}
+          <ellipse cx={cx} cy={cy} rx={tableRx} ry={tableRy} fill="url(#tableGrad)" stroke={A3_BORDER} strokeWidth={1.5} />
+          <ellipse cx={cx} cy={cy} rx={tableRx - 14} ry={tableRy - 14} fill="none" stroke="#1e3554" strokeWidth={1} strokeDasharray="3 5" opacity={0.6} />
+
+          <text x={cx} y={cy - 2} textAnchor="middle" fontFamily="var(--serif)" fontSize={20} fontStyle="italic" fill={A3_AMBER}>{boardTitle}</text>
+          <text x={cx} y={cy + 22} textAnchor="middle" fontFamily="var(--sans)" fontSize={10} letterSpacing={2} fill={A3_GREY_MUTED}>{filledCount} / 12 SEATS</text>
+
+          {/* 12 chairs */}
+          {Array.from({ length: 12 }).map((_, i) => {
+            const a = -Math.PI / 2 + i * (2 * Math.PI / 12);
+            const ca = Math.cos(a), sa = Math.sin(a);
+            const x = cx + ringRx * ca;
+            const y = cy + ringRy * sa;
+            const occ = occupants[i];
+            const lx = cx + labelRx * ca;
+            const ly = cy + labelRy * sa;
+            const anchor = Math.abs(ca) < 0.3 ? "middle" : (ca > 0 ? "start" : "end");
+
+            let fill = A3_BG, stroke = A3_BORDER;
+            if (occ?.kind === "person") { fill = A3_TEAL_DEEP; stroke = A3_TEAL; }
+            else if (occ?.kind === "missing") { fill = A3_AMBER_DEEP; stroke = A3_AMBER; }
+
+            return (
+              <g key={i}>
+                <circle cx={x} cy={y} r={26} fill={fill} stroke={stroke} strokeWidth={1.5} />
+                {!occ && (
+                  <text x={x} y={y + 4} textAnchor="middle" fontFamily="var(--serif)" fontSize={12} fontStyle="italic" fill={A3_GREY_MUTED}>{i + 1}</text>
+                )}
+                {occ?.kind === "person" && (
+                  <text x={x} y={y + 5} textAnchor="middle" fontFamily="var(--sans)" fontSize={13} fontWeight={600} fill={A3_TEAL}>{initialsOf(occ.name)}</text>
+                )}
+                {occ?.kind === "missing" && (
+                  <text x={x} y={y + 6} textAnchor="middle" fontFamily="var(--serif)" fontSize={16} fill={A3_AMBER}>◇</text>
+                )}
+                {occ?.kind === "person" && (
+                  <>
+                    <text x={lx} y={ly - 4} textAnchor={anchor} fontFamily="var(--serif)" fontSize={12} fontStyle="italic" fill={A3_TEAL}>{occ.title}</text>
+                    <text x={lx} y={ly + 10} textAnchor={anchor} fontFamily="var(--sans)" fontSize={10} fill={A3_GREY_MUTED}>{occ.name}</text>
+                  </>
+                )}
+                {occ?.kind === "missing" && (
+                  <>
+                    <text x={lx} y={ly - 4} textAnchor={anchor} fontFamily="var(--serif)" fontSize={12} fontStyle="italic" fill={A3_AMBER}>{occ.title}</text>
+                    <text x={lx} y={ly + 10} textAnchor={anchor} fontFamily="var(--sans)" fontSize={10} fill="rgba(201,168,76,.55)">gap</text>
+                  </>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Advocates section */}
+      {sectionHeader("Your Advocates", `${seatedCands.length} of ${candidates.length} seated`, advSectionOpen, () => setAdvSectionOpen(o => !o))}
+      {advSectionOpen && (
+        <div style={{ marginBottom: 28 }}>
+          <p style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text3)", lineHeight:1.7, marginBottom: 14, marginTop: 4 }}>
+            Everyone you marked as an Advocate + Yes to the Board on the previous page. Click to give them their seat.
+          </p>
+          {candidates.length === 0 ? (
+            <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:10, padding:"22px 24px" }}>
+              <div style={{ fontFamily:"var(--serif)", fontSize:18, color:"var(--text2)", marginBottom:8 }}>No one on your Board yet.</div>
+              <div style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text3)", lineHeight:1.7 }}>
+                Head back to the People page and mark at least one Advocate "Yes" for the Board.
+              </div>
+            </div>
+          ) : candidates.map((cand: any) => {
+            const p = personById.get(cand.personId);
+            const isOpen = openCandidateId === cand.id;
+            const seated = !!(cand.primary && cand.seatName);
+            const customStr = customStrengthOf(cand);
+            const editingOther = otherEditingId === cand.id;
+
+            return (
+              <div key={cand.id} style={{
+                background:"var(--bg2)",
+                border:"1px solid var(--border)",
+                borderLeft: seated ? `3px solid ${A3_TEAL}` : "1px solid var(--border)",
+                borderRadius:10, padding:"14px 18px", marginBottom: 10,
+              }}>
+                <button onClick={() => setOpenCandidateId(isOpen ? null : cand.id)} style={{
+                  width:"100%", display:"flex", alignItems:"center", gap:14,
+                  background:"transparent", border:"none", padding:0, cursor:"pointer", textAlign:"left", color:"var(--text)",
+                }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)" }}>{p?.name || "(unnamed)"}</div>
+                    {p?.role && (
+                      <div style={{ fontSize:10, fontWeight:600, letterSpacing:1.2, textTransform:"uppercase", color:"var(--text4)", marginTop:3, fontFamily:"var(--sans)" }}>{p.role}</div>
+                    )}
+                  </div>
+                  <div style={{ textAlign:"right" }}>
+                    {seated
+                      ? <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color: A3_TEAL }}>{cand.seatName}</div>
+                      : <div style={{ fontSize:12, fontStyle:"italic", color:"var(--text4)", fontFamily:"var(--sans)" }}>No seat yet</div>}
+                  </div>
+                  <span style={{ color:"var(--text4)", fontSize:14, transform: isOpen ? "rotate(180deg)" : "none", transition:"transform .2s" }}>▾</span>
+                </button>
+
+                {isOpen && (
+                  <div style={{ marginTop:14, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+                    <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", marginBottom:10, fontFamily:"var(--sans)" }}>
+                      Their strengths · pick all that apply
+                    </div>
+                    <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
+                      {A3_BOARD_STRENGTHS.map(s => {
+                        const isSelected = cand.strengths.includes(s);
+                        const isPrimary = cand.primary === s;
+                        let bg = "transparent", color = "var(--text3)", border = "1px solid var(--border)";
+                        if (isPrimary) { bg = A3_TEAL; color = "#0a1f1a"; border = `1px solid ${A3_TEAL}`; }
+                        else if (isSelected) { bg = "rgba(93,202,165,.15)"; color = A3_TEAL; border = `1px solid rgba(93,202,165,.4)`; }
+                        return (
+                          <button key={s} onClick={() => toggleStrength(cand, s)} style={{
+                            background: bg, color, border, borderRadius: 999, padding:"5px 11px",
+                            fontSize:11, fontWeight: isPrimary ? 700 : 500, cursor:"pointer", fontFamily:"var(--sans)",
+                          }}>
+                            {isPrimary ? "★ " : ""}{s}
+                          </button>
+                        );
+                      })}
+                      {/* Other chip */}
+                      {editingOther ? (
+                        <input
+                          autoFocus
+                          value={otherDraft}
+                          onChange={(e) => setOtherDraft(e.target.value)}
+                          onBlur={() => commitOther(cand)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") { e.preventDefault(); commitOther(cand); }
+                            if (e.key === "Escape") { setOtherEditingId(null); setOtherDraft(""); }
+                          }}
+                          placeholder="Type a strength…"
+                          style={{
+                            background:"var(--bg)", color:"var(--text)", border:`1px solid ${A3_TEAL}`,
+                            borderRadius:999, padding:"5px 11px", fontSize:11, fontFamily:"var(--sans)", outline:"none", minWidth:140,
+                          }}
+                        />
+                      ) : (() => {
+                        const isSelected = !!customStr;
+                        const isPrimary = isSelected && cand.primary === customStr;
+                        let bg = "transparent", color = "var(--text3)", border = "1px solid var(--border)";
+                        if (isPrimary) { bg = A3_TEAL; color = "#0a1f1a"; border = `1px solid ${A3_TEAL}`; }
+                        else if (isSelected) { bg = "rgba(93,202,165,.15)"; color = A3_TEAL; border = `1px solid rgba(93,202,165,.4)`; }
+                        return (
+                          <button onClick={() => {
+                            if (isSelected && !isPrimary) {
+                              // promote to primary
+                              const patch: any = { primary: customStr };
+                              if (!cand.seatName || cand.seatName === ("The " + cand.primary)) patch.seatName = "The " + customStr;
+                              updateCandidate(cand.id, patch);
+                            } else {
+                              setOtherEditingId(cand.id);
+                              setOtherDraft(customStr || "");
+                            }
+                          }} style={{
+                            background: bg, color, border, borderRadius: 999, padding:"5px 11px",
+                            fontSize:11, fontWeight: isPrimary ? 700 : 500, cursor:"pointer", fontFamily:"var(--sans)", fontStyle: customStr ? "normal" : "italic",
+                          }}>
+                            {isPrimary ? "★ " : ""}{customStr || "Other…"}
+                          </button>
+                        );
+                      })()}
+                    </div>
+
+                    <div style={{ fontSize:11, color:"var(--text4)", fontStyle:"italic", marginBottom: cand.primary ? 16 : 0, fontFamily:"var(--sans)" }}>
+                      {cand.strengths.length === 0 && "Pick at least one strength. The first becomes their seat — click another to change it."}
+                      {cand.strengths.length === 1 && "Click another strength to add it. Click the ★ strength again to remove it."}
+                      {cand.strengths.length >= 2 && "Click a selected strength to make it their primary (★). That becomes their seat."}
+                    </div>
+
+                    {cand.primary && (
+                      <>
+                        <div style={{ marginTop:6 }}>
+                          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", marginBottom:6, fontFamily:"var(--sans)" }}>
+                            Their seat at the table
+                          </div>
+                          <input
+                            value={cand.seatName}
+                            placeholder={"The " + cand.primary}
+                            onChange={(e) => updateCandidate(cand.id, { seatName: e.target.value })}
+                            style={{
+                              width:"100%", background:"var(--bg)", color:"var(--text)",
+                              border:"1px solid var(--border)", borderRadius:8, padding:"9px 12px",
+                              fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", outline:"none",
+                            }}
+                          />
+                        </div>
+                        <div style={{ marginTop:14 }}>
+                          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text3)", marginBottom:6, fontFamily:"var(--sans)" }}>
+                            Why this seat? <span style={{ color:"var(--text4)", fontWeight:400, fontStyle:"italic", textTransform:"none", letterSpacing:0 }}>optional</span>
+                          </div>
+                          <textarea
+                            value={cand.why || ""}
+                            placeholder="What does this person bring that no one else does?"
+                            onChange={(e) => updateCandidate(cand.id, { why: e.target.value })}
+                            rows={2}
+                            style={{
+                              width:"100%", background:"var(--bg)", color:"var(--text)",
+                              border:"1px solid var(--border)", borderRadius:8, padding:"9px 12px",
+                              fontFamily:"var(--sans)", fontSize:13, lineHeight:1.6, outline:"none", resize:"vertical",
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Missing seats section */}
+      {sectionHeader("What's missing from your table?", `${missing.length} named`, missSectionOpen, () => setMissSectionOpen(o => !o))}
+      {missSectionOpen && (
+        <div style={{ marginBottom: 28 }}>
+          <p style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text3)", lineHeight:1.7, marginBottom: 14, marginTop: 4 }}>
+            The seats you know you need but haven't filled yet. A workout partner. A peer in your industry. Someone who challenges you spiritually. Name the gap — we'll help you find the person later.
+          </p>
+
+          {missing.map((m: any) => (
+            <div key={m.id} style={{
+              background:"var(--bg2)", border:"1px solid var(--border)",
+              borderLeft: (m.title || "").trim() ? `3px solid ${A3_AMBER}` : "1px solid var(--border)",
+              borderRadius:10, padding:"12px 14px", marginBottom:8,
+              display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:10, alignItems:"center",
+            }}>
+              <input
+                value={m.title || ""}
+                placeholder="e.g. The Workout Partner"
+                onChange={(e) => updateMissing(m.id, { title: e.target.value })}
+                style={{
+                  background:"var(--bg)", color:"var(--text)", border:"1px solid var(--border)",
+                  borderRadius:8, padding:"8px 11px", fontFamily:"var(--serif)", fontStyle:"italic",
+                  fontSize:13, outline:"none", minWidth:0,
+                }}
+              />
+              <input
+                value={m.note || ""}
+                placeholder="What would they do? (optional)"
+                onChange={(e) => updateMissing(m.id, { note: e.target.value })}
+                style={{
+                  background:"var(--bg)", color:"var(--text)", border:"1px solid var(--border)",
+                  borderRadius:8, padding:"8px 11px", fontFamily:"var(--sans)", fontSize:13,
+                  outline:"none", minWidth:0,
+                }}
+              />
+              <button onClick={() => removeMissing(m.id)} title="Remove" style={{
+                width:28, height:28, borderRadius:"50%", background:"transparent",
+                border:"1px solid var(--border)", color:"var(--text4)", cursor:"pointer",
+                fontSize:14, lineHeight:1, padding:0,
+              }}>×</button>
+            </div>
+          ))}
+
+          <button onClick={addMissing} style={{
+            background:"transparent", border:`1px solid ${A3_TEAL}`, color: A3_TEAL,
+            borderRadius: 999, padding:"7px 16px", fontSize:12, fontWeight:600, cursor:"pointer",
+            fontFamily:"var(--sans)", marginTop:6,
+          }}>+ Add a missing seat</button>
+        </div>
+      )}
+
+      {/* Reflection card */}
+      <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:10, padding:"16px 22px", marginBottom: 22 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_AMBER, marginBottom:8, fontFamily:"var(--sans)" }}>One thing to notice</div>
+        <p style={{ fontFamily:"var(--serif)", fontSize:15, color:"var(--text2)", lineHeight:1.7, fontStyle:"italic", margin:0 }}>
+          Look at your table. Who's there, and who isn't. An empty seat isn't a failure — it's the clearest signal of what you need next.
+        </p>
+      </div>
+
+      {/* Closing card */}
+      <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"20px 24px", marginBottom: 26 }}>
+        <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:10 }}>This is a living table.</div>
+        <p style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.75, marginBottom:10 }}>
+          People earn seats. People leave them. Seats stay empty until the right person arrives. Your Board today is not your Board forever — and that's how it should be.
+        </p>
+        <p style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.75, margin:0 }}>
+          The named advocates and the missing seats both come with you into <span style={{ color: A3_TEAL, fontWeight:700 }}>A4 and A5</span>, where you'll build the rhythm of how you actually consult this Board — not just hold it in your head.
+        </p>
+      </div>
+
+      {/* Step footer */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:14, borderTop:"1px solid var(--border)" }}>
+        <button onClick={() => setA3Step("energymap")} style={{
+          background:"transparent", border:"1px solid var(--border)", color:"var(--text3)",
+          borderRadius:8, padding:"8px 14px", fontSize:12, cursor:"pointer", fontFamily:"var(--sans)",
+        }}>← Back to Energy Map</button>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <span style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)", fontStyle:"italic" }}>Next up · A4 coming soon</span>
+          <button disabled style={{
+            background:"transparent", border:"1px solid var(--border)", color:"var(--text4)",
+            borderRadius:8, padding:"8px 14px", fontSize:12, cursor:"not-allowed", fontFamily:"var(--sans)", opacity:0.5,
+          }}>Continue →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function A3({ intake, onDone, phase, setPhase }: any) {
   const [a3Step, setA3Step] = useState("intro");
@@ -8484,7 +8976,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
   if (a3Step === "environment") return wrapA3(<A3EnvironmentStub setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "thoughts")    return wrapA3(<A3ThoughtsStub    setA3Step={a3Goto} map={map} set={set} />);
   if (a3Step === "energymap")   return wrapA3(<A3EnergyMapHorizontal setA3Step={a3Goto} map={map} />);
-  if (a3Step === "board")       return wrapA3(<A3BoardStub       setA3Step={a3Goto} />);
+  if (a3Step === "board")       return wrapA3(<A3BoardStub       setA3Step={a3Goto} map={map} set={set} />);
   return wrapA3(<div>Unknown A3 step: {a3Step}</div>);
 }
 
