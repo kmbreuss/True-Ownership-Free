@@ -1,0 +1,54 @@
+READ-ONLY AUDIT TASK. Do NOT modify any files. Do NOT run any commands that change state. Just read and report.
+
+Target file: artifacts/true-ownership/src/App.tsx
+
+I need a complete inventory of two things, with exact line numbers and surrounding context (3 lines before, the line itself, 3 lines after):
+
+═══════════════════════════════════════════════
+PART 1 — TIMELINE LABEL INVENTORY
+═══════════════════════════════════════════════
+
+Find every place in App.tsx where a USER-VISIBLE timeline label appears. I'm looking to standardize all of them to "1-YEAR", "3-YEAR", and "BAG" (all caps, hyphens for the year ones).
+
+Search for these patterns and report each match:
+- "3-Year", "3-YEAR", "3 Year", "3-year", "ThreeYear", "Three Year", "3yr", "three-year", "threeyr" (only when used as a display label, not a code identifier)
+- "1-Year", "1-YEAR", "1 Year", "1-year", "OneYear", "One Year", "1yr", "one-year", "oneyr" (only as display label)
+- "BAG", "Big Ass Goal", "Big-Ass Goal", "Big ASS Goal" (any variant)
+- "Long-term", "Long Term", "Mid-term", "Mid Term", "Near-term", "Near Term" (in case any old timeline language survives)
+
+For EACH match, report in this exact format:
+
+  MATCH #N
+  Line: [number]
+  Current text: [the actual line]
+  Context: [3 lines before, this line, 3 lines after]
+  Type: [DISPLAY-LABEL | CODE-IDENTIFIER | COMMENT | JSX-TEXT | CONFIG-OBJECT-LABEL]
+  Phase: [A1 | A2 | A3 | SHARED | UNCLEAR]
+  Recommended action: [CHANGE TO "1-YEAR" | CHANGE TO "3-YEAR" | CHANGE TO "BAG" | LEAVE ALONE — code identifier | LEAVE ALONE — comment]
+
+CRITICAL RULES for classification:
+- Variable names, object keys, state field names (e.g. `threeyr_purpose`, `oneyr: {...}`, `threeyr: { label: ... }`) → LEAVE ALONE
+- Code comments (lines starting with // or inside /* */) → LEAVE ALONE
+- Only the `label: "..."` values inside config objects, JSX text content (between tags), and string literals used in `<h1>`, `<h2>`, `<button>`, badges, pills, headers → CHANGE
+
+═══════════════════════════════════════════════
+PART 2 — VOICE PICKER LOCATION
+═══════════════════════════════════════════════
+
+Find where the Voice picker (the sidebar pill at the bottom that lets the user choose voice tone) is implemented in A1.
+
+Report:
+1. The component name (e.g. `VoicePicker`, `VoiceSelector`)
+2. The line range where it's defined
+3. The line(s) in A1's sidebar where it's rendered (the JSX usage)
+4. What state field it reads/writes (e.g. `map.voice`, `voiceMode`)
+5. Whether A2's sidebar currently has it, and if not, what A2's sidebar contains instead — give me the line range of A2's sidebar JSX
+6. Same for A3's sidebar — does it have Voice picker? Line range of A3's sidebar JSX
+
+═══════════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════════
+
+Output everything as a markdown report. Do NOT make any edits. Do NOT propose code changes yet. Just give me the inventory so I can review what to change before authorizing the edits.
+
+When done, end the report with: "AUDIT COMPLETE. NO FILES MODIFIED. Awaiting human review before proceeding."
