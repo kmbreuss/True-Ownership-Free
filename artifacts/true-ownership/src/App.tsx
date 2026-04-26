@@ -1318,19 +1318,19 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
       alignItems:"start", marginBottom:8,
     }}>
       <span style={{
-        fontSize:9, color:"var(--text3)", letterSpacing:1.2,
+        fontSize:11, color:"var(--text3)", letterSpacing:1.2,
         textTransform:"uppercase", fontWeight:600, paddingTop:4,
       }}>{label}</span>
       <div style={{ minWidth:0 }}>
         {text && text.trim() ? (
           <div style={{
-            fontFamily:"var(--serif)", fontSize:13, lineHeight:1.6,
-            fontStyle:"italic", padding:"6px 11px", borderRadius:4,
+            fontFamily:"var(--serif)", fontSize:15, lineHeight:1.6,
+            fontStyle:"italic", padding:"7px 12px", borderRadius:4,
             background:"rgba(0,0,0,.2)", borderLeft:`2px solid ${color}`,
             color:"var(--text)",
           }}>"{text}"</div>
         ) : (
-          <div style={{ fontSize:10, color:"var(--text4)", fontStyle:"italic", padding:"6px 11px" }}>
+          <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"7px 12px" }}>
             Not yet captured in A1.
           </div>
         )}
@@ -1348,7 +1348,7 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
       padding:"14px 20px 16px", marginBottom:20,
     }}>
       <div style={{
-        fontSize:9, letterSpacing:2, textTransform:"uppercase",
+        fontSize:11, letterSpacing:2, textTransform:"uppercase",
         color:"var(--text3)", fontWeight:600, textAlign:"center",
         marginBottom:14,
       }}>Your Direction · Near to Far · <span style={{ color:"var(--warm)" }}>click a dot to see that horizon</span></div>
@@ -1390,12 +1390,12 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
                 }}>{p.completed && !isOpen && !isActive && "✓"}</div>
                 <div style={{ marginTop:6, textAlign:"center" }}>
                   <div style={{
-                    fontSize:9, letterSpacing:1.5, textTransform:"uppercase",
+                    fontSize:11, letterSpacing:1.5, textTransform:"uppercase",
                     color: isOpen || isActive ? "var(--warm)" : p.completed ? "var(--text2)" : "var(--text4)",
                     fontWeight:600,
                   }}>{p.label}</div>
                   <div style={{
-                    fontFamily:"var(--serif)", fontSize:11,
+                    fontFamily:"var(--serif)", fontSize:13,
                     color: isOpen || isActive ? "var(--warm)" : p.completed ? "var(--text)" : "var(--text4)",
                   }}>{p.year}</div>
                 </div>
@@ -1415,13 +1415,13 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
         }}>
           <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:12 }}>
             <span style={{
-              fontFamily:"var(--sans)", fontSize:10, letterSpacing:2,
+              fontFamily:"var(--sans)", fontSize:12, letterSpacing:2,
               textTransform:"uppercase", fontWeight:700, color:"var(--warm)",
             }}>{openPoint.label}</span>
-            <span style={{ fontSize:9, color:"var(--text4)", fontFamily:"var(--serif)", fontStyle:"italic" }}>
+            <span style={{ fontSize:12, color:"var(--text4)", fontFamily:"var(--serif)", fontStyle:"italic" }}>
               {openPoint.year}
             </span>
-            <span style={{ fontSize:10, color:"var(--text4)", marginLeft:"auto", cursor:"pointer" }}
+            <span style={{ fontSize:12, color:"var(--text4)", marginLeft:"auto", cursor:"pointer" }}
               onClick={() => setOpenKey(null)}>
               ✕ close
             </span>
@@ -1434,7 +1434,7 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
 
       {!openPoint && (
         <div style={{
-          marginTop:14, fontSize:10, color:"var(--text4)",
+          marginTop:14, fontSize:12, color:"var(--text4)",
           fontStyle:"italic", textAlign:"center",
         }}>
           Tap a dot above to see Time, Wealth, and Growth for that horizon.
