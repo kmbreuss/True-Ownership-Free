@@ -12655,15 +12655,161 @@ function LoadingScreen() {
   return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
 }
 
-function SignInScreen({ onSignIn }: { onSignIn: () => void }) {
+function SignInScreen() {
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const e_ = email.trim();
+    if (!e_ || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    const err = await login(e_, password);
+    setBusy(false);
+    if (err) setError(err);
+  }
+
   return (
     <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center", padding:36 }}>
       <style>{CSS}</style>
-      <div className="fade-up" style={{ maxWidth:480, textAlign:"center" }}>
-        <h1 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:300, color:"#e8e3d8", marginBottom:16, letterSpacing:"-0.5px", lineHeight:1.15 }}>True Ownership</h1>
-        <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"#7a766e", lineHeight:1.8, marginBottom:32 }}>Sign in to start — or pick up where you left off.</p>
-        <button className="btn" onClick={onSignIn}>Sign in with Replit</button>
-      </div>
+      <form onSubmit={handleSubmit} className="fade-up" style={{ width:"100%", maxWidth:420 }}>
+        <div style={{ textAlign:"center", marginBottom:18 }}>
+          <div className="lbl" style={{ marginBottom:18 }}>True Ownership</div>
+          <h1 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:300, color:"#e8e3d8", marginBottom:14, letterSpacing:"-0.5px", lineHeight:1.15 }}>Welcome back</h1>
+          <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"#7a766e", lineHeight:1.8 }}>Sign in to start — or pick up where you left off.</p>
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:11, marginTop:30 }}>
+          <label style={{ display:"block" }}>
+            <div className="lbl" style={{ marginBottom:6, fontSize:11, color:"var(--text3)" }}>Email</div>
+            <input
+              type="email"
+              autoComplete="email"
+              autoFocus
+              className="to-field"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={busy}
+            />
+          </label>
+          <label style={{ display:"block" }}>
+            <div className="lbl" style={{ marginBottom:6, fontSize:11, color:"var(--text3)" }}>Password</div>
+            <input
+              type="password"
+              autoComplete="current-password"
+              className="to-field"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={busy}
+            />
+          </label>
+          {error && (
+            <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#ef4444", background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:6, padding:"9px 12px" }}>
+              {error}
+            </div>
+          )}
+          <button type="submit" className="btn" disabled={busy} style={{ marginTop:8, justifyContent:"center" }}>
+            {busy ? "Signing in…" : "Sign in"}
+          </button>
+        </div>
+        <div style={{ textAlign:"center", marginTop:22, fontFamily:"var(--sans)", fontSize:11, color:"#5c5953", letterSpacing:1 }}>
+          Access by invite. Contact Katherine if you need an account.
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function ChangePasswordModal({ onClose }: { onClose: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!currentPassword || !newPassword) {
+      setError("Please fill in every field.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirm) {
+      setError("New password and confirmation don't match.");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/auth/me/password", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({} as { error?: string }));
+        setError(data.error ?? `Couldn't change password (HTTP ${res.status}).`);
+        setBusy(false);
+        return;
+      }
+      // Success — server killed the session. Force a hard reload so we
+      // land back on the sign-in screen with the new password.
+      setDone(true);
+      setTimeout(() => { window.location.reload(); }, 1400);
+    } catch {
+      setError("Network error — please try again.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999, padding:24 }}>
+      <form onSubmit={handleSubmit} className="fade-up" style={{ width:"100%", maxWidth:440, background:"#1a2940", border:"1px solid rgba(201,168,76,0.3)", borderRadius:8, padding:32, fontFamily:"var(--sans)" }}>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:26, fontWeight:300, color:"#e8e3d8", marginBottom:8, letterSpacing:"-0.3px", lineHeight:1.25 }}>Change password</h2>
+        <p style={{ fontSize:13, color:"var(--text3)", lineHeight:1.7, marginBottom:22 }}>You'll be signed out and asked to sign in again with your new password.</p>
+        {done ? (
+          <div style={{ fontSize:13, color:"#34d399", padding:"12px 14px", background:"rgba(52,211,153,0.08)", border:"1px solid rgba(52,211,153,0.25)", borderRadius:6 }}>
+            Password updated. Reloading…
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:11 }}>
+            <label>
+              <div className="lbl" style={{ marginBottom:6, fontSize:11, color:"var(--text3)" }}>Current password</div>
+              <input type="password" autoComplete="current-password" className="to-field" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} disabled={busy} autoFocus />
+            </label>
+            <label>
+              <div className="lbl" style={{ marginBottom:6, fontSize:11, color:"var(--text3)" }}>New password</div>
+              <input type="password" autoComplete="new-password" className="to-field" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={busy} placeholder="At least 8 characters" />
+            </label>
+            <label>
+              <div className="lbl" style={{ marginBottom:6, fontSize:11, color:"var(--text3)" }}>Confirm new password</div>
+              <input type="password" autoComplete="new-password" className="to-field" value={confirm} onChange={(e) => setConfirm(e.target.value)} disabled={busy} />
+            </label>
+            {error && (
+              <div style={{ fontSize:12, color:"#ef4444", background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:6, padding:"9px 12px" }}>
+                {error}
+              </div>
+            )}
+            <div style={{ display:"flex", gap:10, marginTop:10 }}>
+              <button type="submit" className="btn" disabled={busy} style={{ flex:1, justifyContent:"center" }}>{busy ? "Saving…" : "Save"}</button>
+              <button type="button" className="btn-g" disabled={busy} onClick={onClose}>Cancel</button>
+            </div>
+          </div>
+        )}
+      </form>
     </div>
   );
 }
@@ -12728,10 +12874,59 @@ function MigrationModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function SignOutButton() {
-  const { logout } = useAuth();
+function AccountMenu() {
+  const { logout, user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  const label = (user?.email || "Account").split("@")[0];
+
   return (
-    <button onClick={logout} style={{ position:"fixed", top:14, right:14, fontFamily:"var(--sans)", fontSize:11, color:"#7a766e", background:"transparent", border:"1px solid rgba(122,118,110,0.3)", borderRadius:4, padding:"6px 12px", cursor:"pointer", letterSpacing:1, zIndex:1000 }}>Sign out</button>
+    <>
+      <div ref={ref} style={{ position:"fixed", top:14, right:14, zIndex:1000, fontFamily:"var(--sans)" }}>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          style={{ fontSize:11, color:"#7a766e", background:"transparent", border:"1px solid rgba(122,118,110,0.3)", borderRadius:4, padding:"6px 12px", cursor:"pointer", letterSpacing:1, display:"inline-flex", alignItems:"center", gap:6 }}
+        >
+          <span>{label}</span>
+          {user?.role === "owner" && (
+            <span style={{ background:"rgba(201,168,76,0.18)", color:"var(--warm)", borderRadius:3, padding:"1px 6px", fontSize:9, letterSpacing:1 }}>OWNER</span>
+          )}
+          <span style={{ opacity:0.6 }}>{open ? "▴" : "▾"}</span>
+        </button>
+        {open && (
+          <div style={{ position:"absolute", top:34, right:0, minWidth:180, background:"#1a2940", border:"1px solid rgba(122,118,110,0.3)", borderRadius:6, padding:6, boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
+            <button
+              onClick={() => { setShowPwd(true); setOpen(false); }}
+              style={{ display:"block", width:"100%", textAlign:"left", padding:"8px 10px", background:"transparent", border:"none", color:"var(--text2)", fontSize:12, fontFamily:"var(--sans)", cursor:"pointer", borderRadius:4 }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              Change password
+            </button>
+            <button
+              onClick={() => { setOpen(false); logout(); }}
+              style={{ display:"block", width:"100%", textAlign:"left", padding:"8px 10px", background:"transparent", border:"none", color:"var(--text2)", fontSize:12, fontFamily:"var(--sans)", cursor:"pointer", borderRadius:4 }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
+      </div>
+      {showPwd && <ChangePasswordModal onClose={() => setShowPwd(false)} />}
+    </>
   );
 }
 
@@ -12767,14 +12962,14 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
     <>
       {children}
       {showMigration && <MigrationModal onClose={() => setShowMigration(false)} />}
-      <SignOutButton />
+      <AccountMenu />
     </>
   );
 }
 
 export default function App() {
-  const { isLoading, isAuthenticated, login } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
   if (isLoading) return <LoadingScreen />;
-  if (!isAuthenticated) return <SignInScreen onSignIn={login} />;
+  if (!isAuthenticated) return <SignInScreen />;
   return <ServerDataLoader><AuthedApp /></ServerDataLoader>;
 }
