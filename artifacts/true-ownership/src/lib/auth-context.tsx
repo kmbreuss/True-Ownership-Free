@@ -8,9 +8,9 @@ import {
 } from "react";
 import type { AuthUser as BaseAuthUser } from "@workspace/api-client-react";
 
-// Stage 3: extend the generated AuthUser with the server-side `role`
-// field. Optional because legacy /api/auth/user responses don't include
-// it; new /api/auth/me responses always do.
+// Extend the generated AuthUser with the server-side `role` field.
+// Optional because legacy responses don't include it; new /api/auth/me
+// responses always do.
 export type AuthUser = BaseAuthUser & { role?: string };
 
 export interface AuthState {
@@ -114,7 +114,7 @@ export function useAuth(): AuthState {
   if (!ctx) {
     throw new Error(
       "useAuth() called outside of <AuthProvider>. Wrap your app root in " +
-        "<AuthProvider> from @workspace/replit-auth-web.",
+        "<AuthProvider> from src/lib/auth-context.tsx.",
     );
   }
   return ctx;

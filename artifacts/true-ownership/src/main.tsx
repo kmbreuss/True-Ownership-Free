@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { AuthProvider } from "@workspace/replit-auth-web";
+import { AuthProvider } from "./lib/auth-context";
 import App from "./App";
 import "./index.css";
 

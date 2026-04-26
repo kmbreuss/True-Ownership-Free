@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useAuth } from "@workspace/replit-auth-web";
+import { useAuth } from "./lib/auth-context";
 const KEYS = {
   map:    "to_map",
   done:   "to_done",
