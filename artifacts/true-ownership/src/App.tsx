@@ -12711,11 +12711,12 @@ function MapOfMePage({ onBack }: any) {
   useEffect(() => { (async () => { const m = await loadData(KEYS.map); if (m) setMap(m); })(); }, []);
   const [voice, setVoice] = useState("coach");
   useEffect(() => { (async () => { const v = await loadData(KEYS.voice); if (v) setVoice(v); })(); }, []);
+  const [debugDump, setDebugDump] = useState<string>("");
   // [MAP_OF_ME_DEBUG] TEMPORARY — remove after diagnosis
   useEffect(() => {
     try {
       const raw = localStorage.getItem("to_map");
-      if (!raw) { console.warn("[MAP_OF_ME_DEBUG] no to_map key in localStorage"); return; }
+      if (!raw) { console.warn("[MAP_OF_ME_DEBUG] no to_map key in localStorage"); setDebugDump("(no to_map key in localStorage)"); return; }
       const parsed = JSON.parse(raw);
       const keys = Object.keys(parsed).sort();
       console.log("[MAP_OF_ME_DEBUG] === ALL KEYS ===", keys);
@@ -12728,8 +12729,21 @@ function MapOfMePage({ onBack }: any) {
         catch { preview = "[unstringifiable]"; }
         console.log(`[MAP_OF_ME_DEBUG] ${k} · ${type}${len !== null ? ` · len=${len}` : ""} · ${preview}`);
       });
+      const lines: string[] = [];
+      lines.push("ALL KEYS: " + keys.join(", "));
+      keys.forEach((k) => {
+        const v = (parsed as any)[k];
+        const type = v === null ? "null" : Array.isArray(v) ? "array" : typeof v;
+        const len = Array.isArray(v) ? v.length : (v && typeof v === "object") ? Object.keys(v).length : (typeof v === "string" ? v.length : 0);
+        let preview: string;
+        try { preview = (typeof v === "string" ? v : JSON.stringify(v) ?? String(v)).slice(0, 120); }
+        catch { preview = "[unstringifiable]"; }
+        lines.push(`${k} · ${type} · LEN=${len} · ${preview}`);
+      });
+      setDebugDump(lines.join("\n"));
     } catch (e) {
       console.error("[MAP_OF_ME_DEBUG] read failed", e);
+      setDebugDump("read failed: " + String(e));
     }
   }, []);
   const setVoicePersist = (v: string) => { setVoice(v); saveData(KEYS.voice, v); };
@@ -13331,6 +13345,16 @@ function MapOfMePage({ onBack }: any) {
               Your Map of Me builds throughout True Ownership. You'll be able to download the complete version once you've worked through all five phases.
             </div>
           </div>
+
+          {/* [MAP_OF_ME_DEBUG] TEMPORARY — remove before publish */}
+          <details open style={{ marginTop:24, padding:12, border:"1px dashed #ef4444", borderRadius:6, background:"rgba(239,68,68,.04)" }}>
+            <summary style={{ cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, fontWeight:700, letterSpacing:1.2, color:"#ef4444", textTransform:"uppercase" }}>
+              [DEBUG] to_map dump (temporary — remove before publish)
+            </summary>
+            <pre style={{ marginTop:10, fontFamily:"ui-monospace, SFMono-Regular, Menlo, monospace", fontSize:11, lineHeight:1.5, color:"var(--text2)", background:"rgba(0,0,0,.25)", padding:10, borderRadius:4, overflow:"auto", maxHeight:420, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
+              {debugDump || "(no to_map in localStorage — or still loading)"}
+            </pre>
+          </details>
         </div>
       </div>
     </div>
