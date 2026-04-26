@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useAuth } from "@workspace/replit-auth-web";
 const KEYS = {
   map:    "to_map",
   done:   "to_done",
@@ -6,9 +7,45 @@ const KEYS = {
   voice:  "to_voice",
   intake: "to_intake",
   phase:  "to_phase",
+  mapofme_origin: "to_mapofme_origin",
 };
-function saveData(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
-function loadData(k) { try { const r = localStorage.getItem(k); return Promise.resolve(r ? JSON.parse(r) : null); } catch { return Promise.resolve(null); } }
+const ALLOWED_SERVER_KEYS = new Set([
+  "map", "voice", "mapofme_origin", "intake", "phase", "step", "done",
+]);
+let serverDataCache: Record<string, any> | null = null;
+let isAuthed = false;
+function localKeyToServerKey(k: string): string | null {
+  if (!k.startsWith("to_")) return null;
+  const s = k.slice(3);
+  return ALLOWED_SERVER_KEYS.has(s) ? s : null;
+}
+function saveData(k: string, v: any) {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+  const sk = localKeyToServerKey(k);
+  if (sk && serverDataCache) serverDataCache[sk] = v;
+  if (sk && isAuthed) {
+    fetch(`/api/userdata/${sk}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value: v }),
+    }).catch(() => {});
+  }
+}
+function loadDataSync(k: string): any {
+  const sk = localKeyToServerKey(k);
+  if (sk && serverDataCache && sk in serverDataCache) return serverDataCache[sk];
+  try {
+    const r = localStorage.getItem(k);
+    if (!r) return null;
+    try { return JSON.parse(r); } catch { return r; }
+  } catch { return null; }
+}
+function loadData(k: string): Promise<any> { return Promise.resolve(loadDataSync(k)); }
+function _setServerAuthState(authed: boolean, cache: Record<string, any> | null) {
+  isAuthed = authed;
+  serverDataCache = cache;
+}
 const VOICES = {
   own:         { id:"own",         label:"Your Voice",             short:"Your Voice",  icon:"◎", color:"#a78bfa", muted:"rgba(167,139,250,0.1)",  border:"rgba(167,139,250,0.3)" },
   coach:       { id:"coach",       label:"Katherine · Coach",      short:"Coach",       icon:"◈", color:"#c9a84c", muted:"rgba(79,203,242,0.1)",   border:"rgba(79,203,242,0.3)"  },
@@ -3334,7 +3371,7 @@ function A2({ intake, onDone, phase, setPhase }) {
   useEffect(() => {
     if (a2Step === "map") {
       setA2Step("intro");
-      localStorage.setItem("to_mapofme_origin", "a2");
+      saveData("to_mapofme_origin", "a2");
       setPhase("_mapofme");
     }
   }, [a2Step]);
@@ -3425,7 +3462,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         const isDone = a2Done.includes(s.id);
         return (
           <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => {
-            if (s.id === "map") { localStorage.setItem("to_mapofme_origin", "a2"); setPhase("_mapofme"); return; }
+            if (s.id === "map") { saveData("to_mapofme_origin", "a2"); setPhase("_mapofme"); return; }
             a2Goto(s.id);
           }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
@@ -8491,7 +8528,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
         const active = a3Step === s.id;
         return (
           <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => {
-            if (s.id === "map") { localStorage.setItem("to_mapofme_origin", "a3"); setPhase("_mapofme"); return; }
+            if (s.id === "map") { saveData("to_mapofme_origin", "a3"); setPhase("_mapofme"); return; }
             a3Goto(s.id);
           }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background: active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
@@ -9203,7 +9240,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       if (m) setMap({ ...EMPTY_MAP, ...m });
       if (d) setDone(d);
       if (s === "map") {
-        localStorage.setItem("to_mapofme_origin", "a1");
+        saveData("to_mapofme_origin", "a1");
         saveData(KEYS.step, "to_intro");
         setPhase("_mapofme");
       } else if (s) setStep(s);
@@ -9280,7 +9317,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         const active = step === s.id, isDone = done.includes(s.id) || !!autoDone;
         return (
           <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => {
-            if (s.id === "map") { localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); return; }
+            if (s.id === "map") { saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); return; }
             if (s.id === "mirror1") set("mirror1_sub", "purpose"); goto(s.id);
           }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
@@ -9328,7 +9365,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
-        <button className="btn" onClick={() => { markDone("direction_1yr"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("direction_1yr"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
       </div>
     </>);
   }
@@ -9351,7 +9388,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-YEAR</button>
-        <button className="btn" onClick={() => { markDone("direction_align"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("direction_align"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
       </div>
     </>);
   }
@@ -11638,7 +11675,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                     {confirmed ? "✓ Confirmed — this carries into your Map of Me" : "Edit the wording, then confirm to carry into your Map of Me."}
                   </div>
                   <button
-                    onClick={() => { set("map_focus_text", focusDraft); set("map_focus_confirmed_flag", true); markDone("align"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}
+                    onClick={() => { set("map_focus_text", focusDraft); set("map_focus_confirmed_flag", true); markDone("align"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}
                     disabled={confirmed || !focusDraft.trim()}
                     style={{ padding:"6px 13px", borderRadius:14, fontSize:11, fontWeight:600, cursor: confirmed || !focusDraft.trim() ? "default" : "pointer", border: confirmed ? "1px solid var(--warm)" : "1px solid var(--border2)", background: confirmed ? "var(--warm)" : "transparent", color: confirmed ? "#0d1b2e" : "var(--text2)", opacity: !focusDraft.trim() ? 0.5 : 1, whiteSpace:"nowrap" }}>
                     {confirmed ? "✓ Confirmed" : "✓ Confirm this as my focus"}
@@ -11668,7 +11705,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
-        <button className="btn" onClick={() => { markDone("align"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>Build My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("align"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>Build My Map of Me →</button>
       </div>
     </>);
   }
@@ -11964,7 +12001,7 @@ function MapOfMePage({ onBack }: any) {
   const [voice, setVoice] = useState("coach");
   useEffect(() => { (async () => { const v = await loadData(KEYS.voice); if (v) setVoice(v); })(); }, []);
   const [origin, setOrigin] = useState<string>("a1");
-  useEffect(() => { const o = localStorage.getItem("to_mapofme_origin"); if (o === "a1" || o === "a2" || o === "a3") setOrigin(o); }, []);
+  useEffect(() => { const o = loadDataSync("to_mapofme_origin"); if (o === "a1" || o === "a2" || o === "a3") setOrigin(o); }, []);
   const setVoicePersist = (v: string) => { setVoice(v); saveData(KEYS.voice, v); };
   const [openSections, setOpenSections] = useState<any>({ a1: true, a2: true, a3: true, a4: false, a5: false });
 
@@ -12577,7 +12614,7 @@ function MapOfMePage({ onBack }: any) {
   );
 }
 
-export default function App() {
+function AuthedApp() {
   const [phase, setPhase] = useState("loading");
   const [intake, setIntake] = useState(null);
   useEffect(() => {
@@ -12591,7 +12628,7 @@ export default function App() {
   const doneA2 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA3 = doneA2;
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
-  if (phase === "_mapofme") return <MapOfMePage onBack={(origin?: string) => setPhase((origin || localStorage.getItem("to_mapofme_origin") || "a1") as any)} />;
+  if (phase === "_mapofme") return <MapOfMePage onBack={(origin?: string) => setPhase((origin || loadDataSync("to_mapofme_origin") || "a1") as any)} />;
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
@@ -12613,4 +12650,131 @@ export default function App() {
       )}
     </div>
   );
+}
+function LoadingScreen() {
+  return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
+}
+
+function SignInScreen({ onSignIn }: { onSignIn: () => void }) {
+  return (
+    <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center", padding:36 }}>
+      <style>{CSS}</style>
+      <div className="fade-up" style={{ maxWidth:480, textAlign:"center" }}>
+        <h1 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:300, color:"#e8e3d8", marginBottom:16, letterSpacing:"-0.5px", lineHeight:1.15 }}>True Ownership</h1>
+        <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"#7a766e", lineHeight:1.8, marginBottom:32 }}>Sign in to start — or pick up where you left off.</p>
+        <button className="btn" onClick={onSignIn}>Sign in with Replit</button>
+      </div>
+    </div>
+  );
+}
+
+function detectMigrationCandidates(serverCache: Record<string, any>): string[] {
+  const out: string[] = [];
+  const map: Array<[string, string]> = [
+    ["map", "to_map"], ["voice", "to_voice"], ["mapofme_origin", "to_mapofme_origin"],
+    ["intake", "to_intake"], ["phase", "to_phase"], ["step", "to_step"], ["done", "to_done"],
+  ];
+  for (const [serverKey, localKey] of map) {
+    const local = localStorage.getItem(localKey);
+    if (!local) continue;
+    const serverVal = serverCache[serverKey];
+    const serverHasReal = serverKey in serverCache && serverVal != null;
+    if (!serverHasReal) out.push(serverKey);
+  }
+  return out;
+}
+
+function MigrationModal({ onClose }: { onClose: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [candidates] = useState<string[]>(() => detectMigrationCandidates(serverDataCache || {}));
+
+  async function importAll() {
+    setBusy(true);
+    await Promise.all(candidates.map(async (sk) => {
+      const localKey = "to_" + sk;
+      const raw = localStorage.getItem(localKey);
+      if (raw === null) return;
+      let value: any = raw;
+      try { value = JSON.parse(raw); } catch {}
+      try {
+        const r = await fetch(`/api/userdata/${sk}`, {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ value }),
+        });
+        if (r.ok && serverDataCache) serverDataCache[sk] = value;
+      } catch { /* swallow */ }
+    }));
+    localStorage.setItem("to_migrated", "true");
+    setBusy(false);
+    onClose();
+  }
+
+  function skip() {
+    localStorage.setItem("to_migrated", "true");
+    onClose();
+  }
+
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:9999, padding:24 }}>
+      <div className="fade-up" style={{ background:"#1a2940", border:"1px solid rgba(201,168,76,0.3)", borderRadius:8, padding:36, maxWidth:480, fontFamily:"var(--sans)" }}>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:26, fontWeight:300, color:"#e8e3d8", marginBottom:16, letterSpacing:"-0.3px", lineHeight:1.25 }}>Import your existing work?</h2>
+        <p style={{ fontSize:14, color:"#a8a497", lineHeight:1.7, marginBottom:28 }}>We found work you've already done in this app on this device. Import it to your account so you can pick up where you left off — even from a different device.</p>
+        <button className="btn" disabled={busy} onClick={importAll} style={{ marginRight:10, marginBottom:10 }}>{busy ? "Importing…" : "Import to my account"}</button>
+        <button className="btn-g" disabled={busy} onClick={skip}>Skip — start fresh</button>
+      </div>
+    </div>
+  );
+}
+
+function SignOutButton() {
+  const { logout } = useAuth();
+  return (
+    <button onClick={logout} style={{ position:"fixed", top:14, right:14, fontFamily:"var(--sans)", fontSize:11, color:"#7a766e", background:"transparent", border:"1px solid rgba(122,118,110,0.3)", borderRadius:4, padding:"6px 12px", cursor:"pointer", letterSpacing:1, zIndex:1000 }}>Sign out</button>
+  );
+}
+
+function ServerDataLoader({ children }: { children: React.ReactNode }) {
+  const [ready, setReady] = useState(false);
+  const [showMigration, setShowMigration] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/userdata", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : {})
+      .then((cache: Record<string, any>) => {
+        // Strip verification-test-* placeholder values from cache (they'll be overwritten on next save)
+        for (const k of Object.keys(cache)) {
+          const v = cache[k];
+          if (typeof v === "string" && v.startsWith("verification-test-")) {
+            delete cache[k];
+          }
+        }
+        _setServerAuthState(true, cache);
+        const migrated = localStorage.getItem("to_migrated") === "true";
+        const candidates = detectMigrationCandidates(cache);
+        if (!migrated && candidates.length > 0) setShowMigration(true);
+        setReady(true);
+      })
+      .catch(() => {
+        _setServerAuthState(true, {});
+        setReady(true);
+      });
+  }, []);
+
+  if (!ready) return <LoadingScreen />;
+  return (
+    <>
+      {children}
+      {showMigration && <MigrationModal onClose={() => setShowMigration(false)} />}
+      <SignOutButton />
+    </>
+  );
+}
+
+export default function App() {
+  const { isLoading, isAuthenticated, login } = useAuth();
+  if (isLoading) return <LoadingScreen />;
+  if (!isAuthenticated) return <SignInScreen onSignIn={login} />;
+  return <ServerDataLoader><AuthedApp /></ServerDataLoader>;
 }
