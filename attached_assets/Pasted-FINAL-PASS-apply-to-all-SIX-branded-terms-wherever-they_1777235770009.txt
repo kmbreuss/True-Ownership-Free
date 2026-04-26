@@ -1,0 +1,70 @@
+FINAL ™ PASS — apply ™ to all SIX branded terms wherever they appear as visible UI labels.
+
+Master list (apply ™ to ALL of these):
+1. True Ownership™
+2. Map of Me™
+3. AG45™
+4. 5As™
+5. Soul Aligned Strategy™ (NO HYPHEN — see standardization note below)
+6. Own It™
+
+CONVENTION (consistent across all six):
+- First mention on each screen / view as a LABEL gets ™
+- Subsequent body-text mentions on the SAME screen do NOT need ™
+- Branded headings, eyebrows, nav items, modal titles, page titles ALWAYS get ™
+- Browser tab titles get ™
+- Code comments, console logs, internal variable names, route paths, file names NEVER get ™
+
+CRITICAL — "Own It" handling:
+"Own It" is BOTH a branded methodology name AND a common English verb phrase. Be careful:
+- Add ™ ONLY when "Own It" appears as a brand/program/methodology label (capitalized as proper noun)
+- DO NOT add ™ to "own it" used as verb in body copy ("you need to own it", "she owns it", etc.)
+- The capitalization usually signals which is which — capitalized = brand, lowercase = verb
+- When in doubt, flag it for me to review rather than guessing
+
+STANDARDIZATION REQUIRED before adding ™:
+
+For "Soul Aligned Strategy":
+The codebase likely has mixed forms — "Soul-Aligned Strategy" (hyphenated) and "Soul Aligned Strategy" (no hyphen). My official preferred form is NO HYPHEN. Action:
+   a. Find ALL instances of "Soul-Aligned Strategy" or "Soul-Aligned" → standardize to "Soul Aligned Strategy" or "Soul Aligned" (no hyphen)
+   b. Then add ™ to label/heading mentions of the standardized form
+
+For "5As":
+Codebase may have mixed forms — "5 As", "5As", "Five As". My preferred form is "5As" (no space). Action:
+   a. Find ALL instances and standardize to "5As" (no space)
+   b. Then add ™ to label/heading mentions
+   c. If "5 As" is overwhelmingly dominant, tell me before standardizing
+
+LOCATIONS TO SCAN:
+- Sign-in screen (eyebrow, copy, footer)
+- Top header bar across all pages
+- Admin pane (eyebrow, page title, modal headers)
+- Intake screen
+- Home/dashboard screens (especially the "OWN IT METHODOLOGY" eyebrow and "OWN IT + Leader-Run Business = True Ownership" equation)
+- A1/A2/A3/A4/A5 voice copy and methodology references
+- Section headings on all work pages
+- Modal headers (change-password, new-user, delete-confirm, migration, etc.)
+- Browser tab title in index.html
+- Navigation items / sidebars
+- Any other UI surface
+
+LOCATIONS TO KEEP AS-IS (no ™):
+- Body paragraph text where the term is referenced naturally in coaching prose
+- Anywhere ™ would feel heavy or break emotional flow
+- Code/internal references
+- "own it" used as everyday verb (lowercase = phrase, not brand)
+
+VERIFICATION OUTPUT REQUIRED:
+For each of the 6 branded terms, paste a structured list:
+- File path : line number : before → after
+
+Group the list by branded term. Special section at the bottom: any "Own It" instances you flagged as ambiguous (verb vs brand) for my review before final commit.
+
+Bonus check: scan for these other AG45 brand assets and TELL ME IF YOU FIND THEM (do not add ™ yet, I'll decide separately):
+- Stuck-to-Sellable
+- Business Value Gap Audit
+- A Game Framework (separate from 5As?)
+- Profits with Purpose
+- Any other branded terms that seem like proper-noun product names
+
+Fold this into the same Polish Pass if not yet committed; otherwise treat as a follow-up patch before my final smoke test.
