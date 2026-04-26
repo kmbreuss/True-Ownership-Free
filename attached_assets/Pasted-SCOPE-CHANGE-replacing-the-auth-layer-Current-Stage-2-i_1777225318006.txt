@@ -1,0 +1,78 @@
+SCOPE CHANGE — replacing the auth layer.
+
+Current Stage 2 implementation uses Replit Auth which exposes "Sign in
+with Replit" branding to users. This is wrong for True Ownership's
+brand and target audience. Replace with standard email + password auth
+that matches Owner's Circle's visual pattern exactly.
+
+GOAL: Build auth that supports both:
+- Phase 1 (next 2 months): Admin-provisioned accounts only. Katherine
+  creates accounts from an admin page and sends each user their
+  credentials. No self-serve signup. No social login. No Replit
+  branding anywhere.
+- Phase 2 (in ~2 months): Self-serve signup, email verification,
+  self-serve password reset.
+
+Build Phase 1 now. Architect so Phase 2 features can be added later
+without rewriting the auth layer.
+
+INVESTIGATION FIRST — Plan mode ON, no code changes yet. Report back:
+
+1. Read the Owner's Circle Replit project (@katherine62/Owners-Circle).
+   - What library/pattern does it use for email+password auth?
+     (bcrypt? argon2?)
+   - File path + JSX/HTML of its sign-in page
+   - File path + JSX/HTML of its admin page
+   - How does it manage sessions (cookies + signed session ID? JWT?
+     express-session?)
+   - Where does it store password hashes (which Postgres table/column)?
+
+2. Migration plan for True Ownership:
+   a. REMOVE Replit Auth code added in Stage 1 + Stage 2:
+      - lib/replit-auth-web/* (delete entire package)
+      - artifacts/api-server/src/lib/auth.ts (Replit Auth specific)
+      - artifacts/api-server/src/middlewares/authMiddleware.ts
+        (rewrite for cookie+session-id pattern)
+      - artifacts/api-server/src/routes/auth.ts (rewrite endpoints)
+      - openid-client npm dep (remove)
+      - Replit Auth references in App.tsx (replace useAuth import)
+   b. KEEP intact:
+      - lib/db/src/schema/auth.ts (users + sessions tables — these
+        are auth-pattern-agnostic)
+      - lib/db/src/schema/userdata.ts (user_data table — unchanged)
+      - artifacts/api-server/src/routes/userdata.ts (data endpoints —
+        unchanged)
+      - All saveData/loadData/migration modal logic in App.tsx
+      - App.tsx.bak_pre_stage2 backup
+   c. ADD:
+      - Password hash column on users table (bcrypt)
+      - POST /api/auth/signup (admin-only, gated by isAdmin flag for
+        Phase 1; will become public in Phase 2)
+      - POST /api/auth/login (email + password → session cookie)
+      - POST /api/auth/logout (clear session)
+      - GET /api/auth/me (replaces /api/auth/user)
+      - Admin-only routes: POST /api/admin/users (create user),
+        POST /api/admin/users/:id/reset-password (reset)
+      - Sign-in page at /login (AG45 branded, matches Owner's Circle
+        screenshot pattern)
+      - Admin page at /admin (only katherine@ag45.com sees it)
+      - Feature flag SIGNUP_MODE in env: "admin_only" (Phase 1) or
+        "public" (Phase 2)
+   d. DATA: My current verification user_data row (user_id 46260892
+      with verification-test-* voice value) needs to be cleaned up
+      since the user_id format changes in this swap. Set up a fresh
+      user record for katherine@ag45.com with admin=true.
+
+3. Phase 2 readiness check — confirm in the plan that the following
+   can be added LATER without touching items in 2c:
+   - /signup public route
+   - Email verification flow
+   - Self-serve password reset via email link
+
+4. Estimate scope:
+   - Files to delete / files to add / files to modify
+   - Rough line count
+   - Time estimate
+
+REPORT ONLY. No code changes yet. I'll review and decide whether to
+execute, in stages.
