@@ -1,0 +1,53 @@
+PAUSE the ™ pass right here. I'll come back to your 5 pending decisions
+(Five As A/B, OWN IT a/b, sidebar nav, PDF titles, Leader-Run Business)
+in a follow-up session.
+
+NEW PRIORITY before republish — summarize quality:
+
+The Summarize buttons throughout the app are NOT actually synthesizing
+— they're regurgitating the user's input back in slightly different
+words. Specifically broken in A1 Direction:
+
+- BAG (year 2038), 3-Year (2029), and 1-Year (2027) each have a
+  Summarize button. The button should distill what the user wrote
+  into a single sharp sentence — a real coaching summary that finds
+  the through-line, not an echo.
+- The final Summarize at the end of A1 Direction should pull from
+  ALL prior input (Purpose, Life Areas, BAG, 3-Year, 1-Year) and
+  synthesize into one coherent goal sentence — not just summarize
+  the most recent field.
+- This pattern (Summarize buttons) repeats across A2, A3, etc., and
+  needs the same fix everywhere it appears.
+
+INVESTIGATION TASK — Plan mode ON, NO code changes yet. Report back
+with:
+
+1. Map every "Summarize" button in the app — file path + line number
+   for each. Which screen, which fields it's summarizing, what the
+   current Claude API prompt looks like.
+
+2. For each Summarize button, identify:
+   a. What context is currently being passed to Claude (just current
+      field? or prior fields too?)
+   b. The current prompt structure
+   c. What the prompt SHOULD do for true synthesis (not echo) — your
+      proposed rewrite
+
+3. For the A1 Direction final Summarize specifically — investigate
+   what fields exist in localStorage / user_data that should be
+   pulled into the synthesis context. (Purpose, Life Areas, BAG,
+   3-Year, 1-Year, anything else relevant.)
+
+4. Propose a unified pattern: a single shared "synthesize" helper
+   that takes (fullContext, focusField, instructionToCoach) so we
+   don't end up with 12 different prompts that drift over time. OR
+   tell me why per-field prompts are better.
+
+5. Estimate scope: how many files need to change, rough time
+   estimate, suggested staging (one Summary Quality Pass, or split
+   per-A?).
+
+REPORT ONLY. No code changes. I'll review the investigation report
+and decide how to proceed.
+
+After this is done, we resume the ™ pass + Polish Pass cleanly.
