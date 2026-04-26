@@ -483,7 +483,7 @@ function CollapsibleSegment_v2({ icon, title, color, confirmed, confirmedSummary
 }
 function SubLabel_v2({ children }) {
   return (
-    <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:10, marginTop:14 }}>
+    <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", marginBottom:10, marginTop:14 }}>
       {children}
     </div>
   );
@@ -693,7 +693,7 @@ function SeeHearFeelBlock_v2({ title, subtitle, color, values, onChange }) {
         color, fontWeight:700, marginBottom:4,
       }}>{title}</div>
       <div style={{
-        fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:14,
+        fontSize:14, color:"var(--text3)", fontStyle:"italic", marginBottom:14,
       }}>{subtitle}</div>
       <SHFField_v2 label="👁 I will see..."
         placeholder="The scenes, people, spaces..."
@@ -811,7 +811,7 @@ function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConf
         }}>✨ Summarise into one sentence</button>
       )}
       {state === "generating" && (
-        <div style={{ padding:"8px 14px", fontSize:13, color:"var(--text3)", fontStyle:"italic" }}>
+        <div style={{ padding:"8px 14px", fontSize:14, color:"var(--text3)", fontStyle:"italic" }}>
           ✨ Reading your writing and stitching...
         </div>
       )}
@@ -1277,7 +1277,7 @@ function PrefillNote_v2({ children }) {
       marginTop:20, marginBottom:14, padding:"10px 14px",
       background:"rgba(52,211,153,.08)",
       borderLeft:"3px solid #34d399", borderRadius:4,
-      fontSize:12, color:"var(--text2)", fontStyle:"italic", lineHeight:1.5,
+      fontSize:14, color:"var(--text2)", fontStyle:"italic", lineHeight:1.5,
     }}>{children}</div>
   );
 }
@@ -1546,7 +1546,7 @@ function GrowthSuggestions_v2({ seeds, accepted, setAccepted, editedLabels, setE
           fontSize:10, letterSpacing:2, textTransform:"uppercase",
           color:"var(--warm)", fontWeight:600, marginBottom:6,
         }}>Growth suggestions from your inner work</div>
-        <div style={{ fontSize:13, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, marginBottom:10 }}>
+        <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", lineHeight:1.5, marginBottom:10 }}>
           Complete the Identity · Superpowers and Values · Behaviors pages -- your lowest-scoring items will surface here as Growth suggestions for the year ahead.
         </div>
         <div style={{
@@ -3747,7 +3747,7 @@ function A2({ intake, onDone, phase, setPhase }) {
     <div>
       <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · {title}</div>
       <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:300, lineHeight:1.2, marginBottom:13, letterSpacing:"-0.5px" }}>{title}</h2>
-      <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:620 }}>{description}</p>
+      <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:620 }}>{description}</p>
       <div style={{ padding:"20px 24px", background:"rgba(201,168,76,.06)", border:"1px dashed rgba(201,168,76,.3)", borderRadius:10, marginBottom:26 }}>
         <div style={{ fontSize:11, color:"var(--warm)", fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginBottom:6 }}>Coming next</div>
         <div style={{ fontSize:13, color:"var(--text3)", lineHeight:1.6, fontStyle:"italic" }}>This page is a scaffolding stub. The real content is being built next.</div>
@@ -3913,7 +3913,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         <DirectionTimeline_v2 map={map} />
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Direction Alignment</div>
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>1-YEAR Alignment · {year + 1}</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:10, maxWidth:600 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:10, maxWidth:600 }}>
           Your daily actions reveal 1-year alignment most honestly. Today's hours either ladder up to this year — or they don't.
         </p>
         <p style={{ fontSize:13, color:"var(--text3)", lineHeight:1.7, marginBottom:22, maxWidth:600, fontStyle:"italic" }}>
@@ -3954,7 +3954,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   items={oneyrItemsDA}
                   map={map} set={set} />
               ) : (
-                <div style={{ padding:"14px 18px", background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:8, fontSize:13, color:"var(--text3)", fontStyle:"italic" }}>
+                <div style={{ padding:"14px 18px", background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:8, fontSize:14, color:"var(--text3)", fontStyle:"italic" }}>
                   Build your 1-Year priorities in A1 before scoring.
                 </div>
               )}
@@ -3995,7 +3995,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Identity & Values Alignment</div>
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Identity &amp; Values Alignment</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:560 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:560 }}>
           You named who you are and what you stand for in A1. Now score how fully you're living each one today. The gaps are the data — not the judgment.
         </p>
 
@@ -4265,7 +4265,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Alignment Snapshot</div>
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Your <em>Alignment Snapshot</em></h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>This isn't about doing everything — it's about finding the one shift that will most change who you are, how you show up, and the direction of your life.</p>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>This isn't about doing everything — it's about finding the one shift that will most change who you are, how you show up, and the direction of your life.</p>
 
         {/* ── PURPOSE · DIRECTION ── */}
         {(() => { const isOpen = map?.a2_snap_dir_open !== false; return (
@@ -4409,7 +4409,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     <AvgBadge scores={valScores} />
                   </div>
                   {row.summary && (
-                    <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", paddingLeft:14, marginBottom:8, borderLeft:"2px solid rgba(52,211,153,.3)" }}>{row.summary}</div>
+                    <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", paddingLeft:14, marginBottom:8, borderLeft:"2px solid rgba(52,211,153,.3)" }}>{row.summary}</div>
                   )}
                   {row.behs.length === 0 ? (
                     <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", paddingLeft:14, borderLeft:"2px solid var(--border2)" }}>
@@ -4497,7 +4497,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           <div style={{ padding:"40px 32px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.3)", borderRadius:12, textAlign:"center" }}>
             <div style={{ fontSize:28, marginBottom:14 }}>⏳</div>
             <div style={{ fontFamily:"var(--serif)", fontSize:22, color:"var(--text)", marginBottom:10 }}>Direction Alignment isn't complete yet.</div>
-            <div style={{ fontSize:14, color:"var(--text2)", lineHeight:1.6, maxWidth:460, margin:"0 auto 20px" }}>
+            <div style={{ fontSize:15, color:"var(--text2)", lineHeight:1.6, maxWidth:460, margin:"0 auto 20px" }}>
               Head back to A2 · Direction Alignment and score TODAY's reality against each of your horizons. Once you've done that, your Key Misalignment will surface here.
             </div>
             <button className="btn" onClick={() => a2Goto("dir_align")}>← Back to Direction Alignment</button>
@@ -4582,7 +4582,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
               <div>
                 <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:4 }}>Choose your focus</div>
-                <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic" }}>
+                <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic" }}>
                   Katherine's ranking is a suggestion — you choose what matters most. {misalignments.length} scored item{misalignments.length === 1 ? "" : "s"}.
                 </div>
               </div>
@@ -4779,7 +4779,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Time Audit</div>
         <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:400, lineHeight:1.2, marginBottom:10, letterSpacing:"-0.3px" }}>Where your time is really going</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:28, maxWidth:620 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:28, maxWidth:620 }}>
           You told A1 where you're going. You just saw the biggest gap between that direction and today. Now — the hours you said you didn't have. They're here, somewhere. Let's look honestly.
         </p>
 
@@ -5181,7 +5181,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               {readyP3 && (
                 <div style={{ marginTop:26, paddingTop:24, borderTop:"1px solid var(--border)" }}>
                   <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", fontWeight:700, color:"var(--warm)", marginBottom:6 }}>Imagine the trade</div>
-                  <p style={{ fontSize:14, color:"var(--text)", lineHeight:1.7, margin:"0 0 12px", fontFamily:"var(--serif)", fontStyle:"italic" }}>
+                  <p style={{ fontSize:16, color:"var(--text)", lineHeight:1.75, margin:"0 0 12px", fontFamily:"var(--serif)", fontStyle:"italic" }}>
                     Nothing has to change today. But — imagine the trade. What would you hand off, reshape, or stop, to make room for what's missing?
                   </p>
                   <div style={{ padding:"10px 14px", marginBottom:18, background:"rgba(0,0,0,.25)", borderRadius:6, fontSize:12, color:"var(--text2)", lineHeight:1.6 }}>
@@ -5502,7 +5502,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     );
                   })}
                 </div>
-                <div style={{ marginTop:8, marginLeft:12, fontSize:13, color:"var(--text2)", fontStyle:"italic", lineHeight:1.6, fontFamily:"var(--serif)" }}>
+                <div style={{ marginTop:8, marginLeft:12, fontSize:14, color:"var(--text2)", fontStyle:"italic", lineHeight:1.6, fontFamily:"var(--serif)" }}>
                   {subtitle}
                 </div>
               </div>
@@ -5533,7 +5533,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     </div>
                   ) : (
                     <>
-                      <div style={{ fontSize:14, color:"var(--text)", lineHeight:1.7, marginBottom:16 }}>
+                      <div style={{ fontSize:16, color:"var(--text)", lineHeight:1.75, marginBottom:16 }}>
                         You have <strong>{fTotalHrs} hours/week</strong> tagged to {primary.label}. Here's what that time actually is:
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:14 }}>
@@ -5568,7 +5568,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                           )}
                         </div>
                       </div>
-                      <div style={{ padding:"12px 16px", background:"rgba(0,0,0,.25)", borderLeft:"3px solid var(--warm)", borderRadius:4, fontFamily:"var(--serif)", fontStyle:"italic", fontSize:14, color:"var(--text)", lineHeight:1.7 }}>
+                      <div style={{ padding:"12px 16px", background:"rgba(0,0,0,.25)", borderLeft:"3px solid var(--warm)", borderRadius:4, fontFamily:"var(--serif)", fontStyle:"italic", fontSize:16, color:"var(--text)", lineHeight:1.75 }}>
                         {fReshape.length > 0
                           ? <>Of your {fTotalHrs} hours tagged to {primary.label}, <strong>{fReshapeHrs} feel draining</strong>. Those hours aren't lost — they're <strong>redirect candidates</strong>. Could this become shared? Outsourced? Reshaped? The time stays with {primary.label}, but how you spend it shifts.</>
                           : <>Everything you've tagged to {primary.label} feels good. The gap isn't in <em>how</em> you spend the time — it's that you need <strong>more of it</strong>. The swap flow above is where those hours come from.</>
@@ -5722,7 +5722,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Future Self Letter</div>
         <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:400, lineHeight:1.2, marginBottom:10, letterSpacing:"-0.3px" }}>A letter from your future self</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:620 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:620 }}>
           Four sections. Each one pulls from what you've already built. You write in your own words — as if the version of you who's already lived this is speaking back to you now.
         </p>
 
@@ -6040,7 +6040,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · A2 Mirror</div>
         <h1 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:400, lineHeight:1.2, margin:"0 0 10px", color:"var(--text)", letterSpacing:"-0.3px" }}>Look honestly at what you've seen. Then name what you're carrying.</h1>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, margin:"0 0 28px", maxWidth:640 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, margin:"0 0 28px", maxWidth:640 }}>
           You just did real work. You saw your time honestly. You wrote a letter from the life you're building toward. Everything you did in A2 is here — pulled back together. Read it. Sit with it. Then, in your own words, name the one thing you're carrying forward.
         </p>
 
@@ -6254,7 +6254,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         })() : fslSectionsMir > 0 && (
           <div style={{ padding:"16px 20px", marginBottom:14, background:"rgba(255,255,255,.02)", border:"1px dashed var(--border2)", borderRadius:10 }}>
             <div style={{ fontSize:11, letterSpacing:2, textTransform:"uppercase", color:"var(--text3)", fontWeight:700, marginBottom:8 }}>From your Future Self Letter</div>
-            <div style={{ fontSize:13, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>
+            <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>
               You wrote {fslSectionsMir} of 4 letter sections. Go back to <button onClick={() => a2Goto("letter")} style={{ background:"none", border:"none", color:"var(--warm)", cursor:"pointer", textDecoration:"underline", padding:0, font:"inherit" }}>Future Self Letter</button> and leave a reflection line at the bottom.
             </div>
           </div>
@@ -6749,10 +6749,10 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
               {/* CLOSING */}
               <div style={{ marginBottom:30 }}>
                 <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:12 }}>You saw it.</div>
-                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
+                <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
                   That's what this page was for. Don't try to fix anything. Don't rewrite relationships in your head. Don't decide who to call or who to cut.
                 </p>
-                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
+                <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
                   The people you marked as advocates — and chose for your Board — move to <strong style={{ color: A3_TEAL, fontWeight:700 }}>The Board</strong> next, where you'll give each one their seat at the table. For now, just notice. Reflect without judging. Stay curious.
                 </p>
               </div>
@@ -6838,7 +6838,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
       {/* FRAMING CARD */}
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"18px 22px", marginBottom:26 }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:10, fontFamily:"var(--sans)" }}>What belongs here</div>
-        <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.75 }}>
+        <div style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.75 }}>
           <strong style={{ color: A3_TEAL, fontWeight:700 }}>Habits</strong> are behaviors you repeat — morning routines, how you wind down, what you reach for when stressed. <strong style={{ color: A3_TEAL, fontWeight:700 }}>Places</strong> are the physical environments that shape you — where you work, where you rest, where you come undone. The goal is to name the <strong style={{ color: A3_TEAL, fontWeight:700 }}>good, the bad, and the ugly</strong> — the main ones, not all of them. When something is both a habit and a place (morning coffee at the kitchen counter), pick whichever feels more true.
         </div>
       </div>
@@ -7083,10 +7083,10 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
               {/* CLOSING */}
               <div style={{ marginBottom:30 }}>
                 <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:12 }}>You don't have to do it all.</div>
-                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
+                <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
                   A3 isn't asking you to overhaul your whole life. <strong style={{ color: A3_TEAL, fontWeight:700 }}>One or two changes</strong> are usually enough — the smallest shift in habit or environment can unlock everything downstream. The rest will follow when it's ready.
                 </p>
-                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
+                <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
                   Next up is <strong style={{ color: A3_TEAL, fontWeight:700 }}>Thoughts</strong>, where you turn the same lens inward. It's where this whole phase lands.
                 </p>
               </div>
@@ -7278,7 +7278,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
       {/* FRAMING CARD */}
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderLeft:`3px solid ${A3_TEAL}`, borderRadius:11, padding:"18px 22px", marginBottom:26 }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:10, fontFamily:"var(--sans)" }}>Why this page is different</div>
-        <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.75 }}>
+        <div style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.75 }}>
           You can't brain-dump thoughts the way you can name people and places. The ones that matter don't come up on demand — they show up in context. So instead of asking "what are your thoughts?", this page asks <em style={{ color: A3_TEAL, fontStyle:"italic", fontWeight:600 }}>what do you tell yourself when…</em> — a few honest scenarios that usually surface the real voice. Then we'll shape what you find.
         </div>
       </div>
@@ -7403,7 +7403,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, padding:"20px 24px", marginBottom:18 }}>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_TEAL, marginBottom:8, fontFamily:"var(--sans)" }}>Phase 2 · The Landscape</div>
                 <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:10 }}>Shape your inner landscape.</div>
-                <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.7 }}>
+                <div style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.75 }}>
                   Each thought you wrote is a card. Rate it and it moves to where it lives — advocates rise, anchors sink. Tap <strong style={{ color: A3_TEAL, fontWeight:700 }}>Grow</strong> on an advocate to emphasize it. Tap <strong style={{ color: A3_TEAL, fontWeight:700 }}>Reframe</strong> on an anchor to rewrite it — the original stays as a strike-through above the new words.
                 </div>
               </div>
@@ -7479,10 +7479,10 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               {/* CLOSING */}
               <div style={{ marginBottom:30 }}>
                 <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", marginBottom:12 }}>This is the page you come back to.</div>
-                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
+                <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, marginBottom:10, maxWidth:640 }}>
                   Your inner landscape isn't fixed. Thoughts rise and fall. The voice that speaks <strong style={{ color: A3_TEAL, fontWeight:700 }}>to</strong> you today can be replaced by one that speaks <strong style={{ color: A3_TEAL, fontWeight:700 }}>with</strong> you — but only if you keep listening honestly, and keep reframing when the old voice takes over.
                 </p>
-                <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
+                <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
                   Your landscape and your Best Friend response come forward to your <strong style={{ color: A3_TEAL, fontWeight:700 }}>Map of Me</strong>, where they live alongside everything you built in A3.
                 </p>
               </div>
@@ -7833,7 +7833,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
       {/* REFLECTION */}
       <div style={{ padding:"16px 20px", background:"rgba(201,168,76,.07)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:8, marginBottom:30 }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_AMBER, marginBottom:8, fontFamily:"var(--sans)" }}>One thing to notice</div>
-        <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.75 }}>{reflectionText}</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.75 }}>{reflectionText}</div>
       </div>
 
       {/* STEP FOOTER */}
@@ -8224,7 +8224,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
       {/* REFLECTION */}
       <div style={{ padding:"16px 20px", background:"rgba(201,168,76,.07)", borderLeft:`3px solid ${A3_AMBER}`, borderRadius:8, marginBottom:30 }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color: A3_AMBER, marginBottom:8, fontFamily:"var(--sans)" }}>One thing to notice</div>
-        <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text2)", lineHeight:1.75 }}>{reflectionText}</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.75 }}>{reflectionText}</div>
       </div>
 
       {/* STEP FOOTER */}
@@ -8916,7 +8916,7 @@ function Intake({ onDone }) {
               <div style={{ fontFamily:"var(--serif)", fontSize:21, color:av.color, fontWeight:400 }}>{av.label}</div>
             </div>
             <div style={{ fontFamily:"var(--sans)", fontSize:13, color:"var(--text2)", lineHeight:1.7, marginBottom:7 }}>{VOICE_DESC[assigned]}</div>
-            <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", fontStyle:"italic" }}>Why: {VOICE_REASON[assigned]}</div>
+            <div style={{ fontFamily:"var(--sans)", fontSize:14, color:"var(--text3)", fontStyle:"italic" }}>Why: {VOICE_REASON[assigned]}</div>
           </div>
           <div style={{ padding:"9px 13px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:8, marginBottom:12 }}>
             <span style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text2)", fontWeight:500 }}>Not right for today? </span>
@@ -9609,7 +9609,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
         1-YEAR · {new Date().getFullYear() + 1}
       </h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:560 }}>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:560 }}>
         Closest horizon. This is what you can commit to. Your 1-year Growth draws
         from your Identity &amp; Values alignment -- the lowest-scoring items surface below as suggestions.
       </p>
@@ -9632,7 +9632,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
         Direction Alignment
       </h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:560 }}>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:560 }}>
         You've built your ladder. Now score TODAY's reality against each horizon.
         The further the horizon, the bigger the gap should be -- unless something's misaligned.
       </p>
@@ -9869,7 +9869,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · Step 1</div>
       {M1Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Purpose</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>Your internal why -- independent of any role, business, or outcome. We find it by peeling.</p>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:540 }}>Your internal why -- independent of any role, business, or outcome. We find it by peeling.</p>
       <VideoBlock title="Purpose -- Your Internal Why" duration="~6 min"
         points={["Purpose is 100% internal -- not a role, not a business","The peeling process: asking 'so what's' until something true surfaces","Short enough to say in the car. True enough to get you out of bed on a hard day."]} />
       <div style={{ marginBottom:20, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:10 }}>
@@ -9901,7 +9901,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · Step 2</div>
       {M1Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Direction</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>Your BAG -- Big Ass Goal. The 10–15 year summit that your purpose points toward.</p>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:540 }}>Your BAG -- Big Ass Goal. The 10–15 year summit that your purpose points toward.</p>
       <DirectionSection map={map} set={set} voiceId={voice} name={name} intake={intake} />
       <div style={{ marginBottom:22, marginTop:8 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
@@ -9918,7 +9918,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · The Mirror</div>
       {M1Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Purpose <em style={{ color:"var(--text3)", fontSize:26 }}>reflects</em> Direction</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:24, maxWidth:540 }}>Your internal why, mirrored against your external summit. This is where alignment begins.</p>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:24, maxWidth:540 }}>Your internal why, mirrored against your external summit. This is where alignment begins.</p>
       {/* THE MIRROR -- side by side output */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 40px 1fr", gap:0, marginBottom:28 }}>
         {/* PURPOSE side */}
@@ -10141,7 +10141,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         <div className="lbl" style={{ marginBottom:12 }}>Mirror 1 of 3 · Step 4</div>
         {M1Progress()}
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Alignment</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:18, maxWidth:540 }}>
           This is your synthesis. For each area of your direction, rate how fully you're living toward it right now.
         </p>
         {sections.map(sec => {
@@ -10317,7 +10317,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
               <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{map.align1_dir_misalignment.focus_first}</div>
             </div>
-            {map.align1_dir_misalignment.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {map.align1_dir_misalignment.bridge_to_a2}</div>}
+            {map.align1_dir_misalignment.bridge_to_a2 && <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {map.align1_dir_misalignment.bridge_to_a2}</div>}
           </div>
         )}
         <div style={{ marginBottom:22 }}>
@@ -10437,7 +10437,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 1</div>
         {M2Progress()}
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Identity</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:18, maxWidth:540 }}>
           Start with yourself. Write the qualities that describe you at your best -- unfiltered. Then drag them to your animals.
         </p>
         <VideoBlock title="Identity -- Who You Are at Your Best" duration="~6 min"
@@ -10597,7 +10597,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 2</div>
       {M2Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Superpowers</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:18, maxWidth:540 }}>
         For each animal, name 3–5 superpowers -- what your qualities actually enable in practice. Describe each one in your own words and give two real examples of when you lived it.
       </p>
       <div style={{ padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.14)", borderRadius:9, marginBottom:22 }}>
@@ -10639,7 +10639,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       </div>
     )}
     <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Under Pressure</h2>
-    <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+    <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:18, maxWidth:540 }}>
       Character is not revealed when things are easy. For each animal — how do you actually show up when things go wrong?
     </p>
     <div style={{ padding:"13px 16px", background:"rgba(239,68,68,.05)", border:"1px solid rgba(239,68,68,.15)", borderRadius:8, marginBottom:20 }}>
@@ -10760,7 +10760,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 5</div>
       {M2Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>My Identity</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:18, maxWidth:540 }}>
         This is your synthesis. For each animal, rate how fully you're living each capability right now — and be honest about how you show up under pressure.
       </p>
       {validAnimals.length === 0 && (
@@ -10824,7 +10824,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 2 of 3 · Step 4</div>
       {M2Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>The Loved Ones Check</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:18, maxWidth:540 }}>
         Share your animals, your capabilities and your under-pressure answers with someone who knows you well. Ask them what they see. Then record it here.
       </p>
       <div style={{ padding:"13px 16px", background:"rgba(167,139,250,.06)", border:"1px solid rgba(167,139,250,.18)", borderRadius:9, marginBottom:22 }}>
@@ -10896,7 +10896,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 1</div>
       {M3Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Values</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>What you stand for internally. The fastest way to find your values is to find what makes your blood boil — then peel back one layer.</p>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:540 }}>What you stand for internally. The fastest way to find your values is to find what makes your blood boil — then peel back one layer.</p>
       <VideoBlock title="Values — What You Actually Stand For" duration="~7 min" points={["Why irritation is your fastest path to values","The peeling method: from reaction to root","Values as decision filters, not motivational posters"]} />
       <div style={{ marginBottom:18, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
         <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are discovered, not invented. We find them through what makes your blood boil."</div>
@@ -11123,7 +11123,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         </div>
       )}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Behaviors</h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>For each value, name the specific behaviors that bring it to life. A value without behaviors is just a word.</p>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:540 }}>For each value, name the specific behaviors that bring it to life. A value without behaviors is just a word.</p>
       {values.map((val, i) => {
         const vName = (map?.[`val_${i}_name`] || val.name || `Value ${i + 1}`);
         const vSummary = map?.[`val_${i}_summary`] || "";
@@ -11260,7 +11260,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 3</div>
         {M3Progress()}
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Hierarchy</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:16, maxWidth:540 }}>Rank your values. When they compete, not all are equal — this is where you find out which ones you won't trade.</p>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:16, maxWidth:540 }}>Rank your values. When they compete, not all are equal — this is where you find out which ones you won't trade.</p>
         <div style={{ marginBottom:22, padding:"13px 16px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
           <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.7 }}>"Your values are never all equal. This is where you find out which ones you won't trade."</div>
         </div>
@@ -11365,7 +11365,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   </div>
                 </>)}
                 {stage === "followup" && (<>
-                  <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:10 }}>You said no — <span style={{ color:"var(--warm)" }}>{topName}</span> depends on <span style={{ color:"var(--warm)" }}>{bName}</span>.</div>
+                  <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", marginBottom:10 }}>You said no — <span style={{ color:"var(--warm)" }}>{topName}</span> depends on <span style={{ color:"var(--warm)" }}>{bName}</span>.</div>
                   <div style={{ fontFamily:"var(--serif)", fontSize:22, fontWeight:400, color:"var(--text)", lineHeight:1.4, marginBottom:20 }}>
                     Does <span style={{ color:"var(--warm)" }}>{bName}</span> need to move above <span style={{ color:"var(--warm)" }}>{topName}</span>?
                   </div>
@@ -11426,7 +11426,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         <div className="lbl" style={{ marginBottom:12 }}>Mirror 3 of 3 · Step 4</div>
         {M3Progress()}
         <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Alignment</h2>
-        <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:18, maxWidth:540 }}>
+        <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:18, maxWidth:540 }}>
           This is your synthesis. For each value, rate how fully you're living each behavior right now.
         </p>
         {valCount === 0 && (
@@ -11539,7 +11539,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--accent)", marginBottom:3 }}>Focus first on</div>
               <div style={{ fontSize:13, color:"var(--text)", lineHeight:1.6 }}>{ai.mirror3_align.focus_first}</div>
             </div>
-            {ai.mirror3_align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {ai.mirror3_align.bridge_to_a2}</div>}
+            {ai.mirror3_align.bridge_to_a2 && <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6 }}>Carries forward: {ai.mirror3_align.bridge_to_a2}</div>}
           </div>
         )}
         <div style={{ marginBottom:22 }}>
@@ -11560,7 +11560,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
         3-YEAR · {new Date().getFullYear() + 3}
       </h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.75, marginBottom:20, maxWidth:540 }}>
         Pull the horizon closer. Same priorities, refined for {new Date().getFullYear() + 3}.
         No sensory work here -- just get specific about what each area looks like.
       </p>
@@ -11693,7 +11693,7 @@ function A1({ intake, onDone, phase, setPhase }) {
     return wrapContent(<>
       <div className="lbl" style={{ marginBottom:12 }}>Alignment Check</div>
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Your <em>Alignment Snapshot</em></h2>
-      <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>This isn't about doing everything — it's about finding the one shift that will most change who you are, how you show up, and the direction of your life.</p>
+      <p style={{ fontSize:16, color:"var(--text2)", lineHeight:1.8, marginBottom:26, maxWidth:520 }}>This isn't about doing everything — it's about finding the one shift that will most change who you are, how you show up, and the direction of your life.</p>
       {/* ── PURPOSE · DIRECTION ── */}
       {(() => { const isOpen = map?.align_check_dir_open !== false; return (
       <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:14, overflow:"hidden" }}>
@@ -11832,7 +11832,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   <AvgBadge scores={valScores} />
                 </div>
                 {row.summary && (
-                  <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", paddingLeft:14, marginBottom:8, borderLeft:"2px solid rgba(52,211,153,.3)" }}>{row.summary}</div>
+                  <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", paddingLeft:14, marginBottom:8, borderLeft:"2px solid rgba(52,211,153,.3)" }}>{row.summary}</div>
                 )}
                 {row.behs.length === 0 ? (
                   <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", paddingLeft:14, borderLeft:"2px solid var(--border2)" }}>
@@ -11938,7 +11938,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                   </button>
                 </div>
               </div>
-              {ai.align.bridge_to_a2 && <div style={{ fontSize:12, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6, marginBottom:4 }}>Carries into A2: {ai.align.bridge_to_a2}</div>}
+              {ai.align.bridge_to_a2 && <div style={{ fontSize:14, color:"var(--text3)", fontStyle:"italic", lineHeight:1.6, marginBottom:4 }}>Carries into A2: {ai.align.bridge_to_a2}</div>}
             </div>
             );
           })()}
