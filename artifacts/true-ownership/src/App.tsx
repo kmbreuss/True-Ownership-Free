@@ -12617,21 +12617,30 @@ function MapOfMePage({ onBack }: any) {
 function AuthedApp() {
   const [phase, setPhase] = useState("loading");
   const [intake, setIntake] = useState(null);
+  const prevPhaseRef = useRef("a1");
   useEffect(() => {
     Promise.all([loadData(KEYS.intake), loadData(KEYS.phase)]).then(([i, p]) => {
       if (i) setIntake(i);
-      setPhase(p || (i ? "a1" : "intake"));
+      // Defensive: never restore the user into "_admin" on next sign-in.
+      const safe = p === "_admin" ? null : p;
+      setPhase(safe || (i ? "a1" : "intake"));
     });
   }, []);
+  // Track the last "real" phase so we can return to it from the admin pane.
+  useEffect(() => {
+    if (phase !== "_admin" && phase !== "loading") prevPhaseRef.current = phase;
+  }, [phase]);
   const doneIntake = async (data) => { setIntake(data); await saveData(KEYS.intake, data); await saveData(KEYS.phase, "a1"); setPhase("a1"); };
   const doneA1 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA2 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA3 = doneA2;
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
+  if (phase === "_admin") return <AdminScreenGuarded onExit={() => setPhase(prevPhaseRef.current)} />;
   if (phase === "_mapofme") return <MapOfMePage onBack={(origin?: string) => setPhase((origin || loadDataSync("to_mapofme_origin") || "a1") as any)} />;
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
+      <AdminBar phase={phase} onAdminClick={() => setPhase("_admin")} />
       {phase === "intake" && <Intake onDone={doneIntake} />}
       {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} phase={phase} setPhase={setPhase} />}
       {phase === "a2" && intake && <A2 intake={intake} onDone={doneA2} phase={phase} setPhase={setPhase} />}
@@ -12870,6 +12879,467 @@ function MigrationModal({ onClose }: { onClose: () => void }) {
         <button className="btn" disabled={busy} onClick={importAll} style={{ marginRight:10, marginBottom:10 }}>{busy ? "Importing…" : "Import to my account"}</button>
         <button className="btn-g" disabled={busy} onClick={skip}>Skip — start fresh</button>
       </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// ADMIN PANE  (owner-only)  ── Stage 3 sub-step D
+// ────────────────────────────────────────────────────────────────────────────
+
+type AdminUser = {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  role: "owner" | "client";
+  hasPassword: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+function AdminBar({ phase, onAdminClick }: { phase: string; onAdminClick: () => void }) {
+  const { user } = useAuth();
+  if (user?.role !== "owner") return null;
+  if (phase === "_admin" || phase === "loading") return null;
+  return (
+    <button
+      onClick={onAdminClick}
+      style={{
+        position: "fixed", top: 14, right: 170, zIndex: 1000,
+        fontSize: 11, color: "var(--warm)", background: "transparent",
+        border: "1px solid rgba(201,168,76,0.45)", borderRadius: 4,
+        padding: "6px 12px", cursor: "pointer", letterSpacing: 1.5,
+        fontFamily: "var(--sans)", textTransform: "uppercase" as const,
+      }}
+      title="Open admin pane"
+    >
+      Admin
+    </button>
+  );
+}
+
+function fmtDate(iso: string | null): string {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  } catch {
+    return "—";
+  }
+}
+
+function fmtName(u: AdminUser): string {
+  const parts = [u.firstName, u.lastName].filter(Boolean);
+  return parts.length ? parts.join(" ") : "—";
+}
+
+function NewUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"client" | "owner">("client");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [createdEmail, setCreatedEmail] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !email.includes("@")) {
+      setError("A valid email is required.");
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          firstName: firstName.trim() || null,
+          lastName: lastName.trim() || null,
+          role,
+        }),
+      });
+      const data = await res.json().catch(() => ({} as { error?: string; tempPassword?: string }));
+      if (!res.ok) {
+        setError(data.error ?? `Couldn't create user (HTTP ${res.status}).`);
+        setBusy(false);
+        return;
+      }
+      setTempPassword(data.tempPassword ?? null);
+      setCreatedEmail(email.trim());
+      setBusy(false);
+      onCreated();
+    } catch {
+      setError("Network error — please try again.");
+      setBusy(false);
+    }
+  }
+
+  async function copyPw() {
+    if (!tempPassword) return;
+    try { await navigator.clipboard.writeText(tempPassword); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 24 }}>
+      <div style={{ background: "#1a2940", borderRadius: 12, padding: 28, maxWidth: 480, width: "100%", color: "var(--text)", fontFamily: "var(--sans)", border: "1px solid var(--border2)" }}>
+        {tempPassword ? (
+          <div>
+            <div className="lbl" style={{ marginBottom: 11, color: "#34d399" }}>USER CREATED</div>
+            <h2 style={{ fontFamily: "var(--serif)", fontSize: 24, fontWeight: 400, marginBottom: 14, color: "var(--text)" }}>Share this password with {createdEmail}</h2>
+            <p style={{ fontSize: 13, color: "var(--text3)", lineHeight: 1.6, marginBottom: 18 }}>
+              The temp password is shown <em>once</em>. They'll use it to sign in, then change it themselves under <strong>Account → Change password</strong>.
+            </p>
+            <div style={{ background: "#0d1b2e", border: "1px solid var(--warm)", borderRadius: 8, padding: 14, fontFamily: "monospace", fontSize: 16, letterSpacing: 1, color: "var(--warm)", marginBottom: 14, wordBreak: "break-all" }}>
+              {tempPassword}
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button className="btn-g" onClick={copyPw}>{copied ? "Copied ✓" : "Copy password"}</button>
+              <button className="btn" onClick={onClose}>Done</button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={submit}>
+            <div className="lbl" style={{ marginBottom: 11 }}>NEW USER</div>
+            <h2 style={{ fontFamily: "var(--serif)", fontSize: 24, fontWeight: 400, marginBottom: 18, color: "var(--text)" }}>Create an account</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 11, color: "var(--text3)", marginBottom: 6, letterSpacing: 1 }}>FIRST NAME</label>
+                <input className="to-field" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={busy} style={{ fontSize: 14 }} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 11, color: "var(--text3)", marginBottom: 6, letterSpacing: 1 }}>LAST NAME</label>
+                <input className="to-field" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={busy} style={{ fontSize: 14 }} />
+              </div>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ display: "block", fontSize: 11, color: "var(--text3)", marginBottom: 6, letterSpacing: 1 }}>EMAIL *</label>
+              <input className="to-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={busy} style={{ fontSize: 14 }} required autoFocus />
+            </div>
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ display: "block", fontSize: 11, color: "var(--text3)", marginBottom: 6, letterSpacing: 1 }}>ROLE</label>
+              <select className="to-field" value={role} onChange={(e) => setRole(e.target.value as "client" | "owner")} disabled={busy} style={{ fontSize: 14, appearance: "auto" }}>
+                <option value="client">Client</option>
+                <option value="owner">Owner (full admin access)</option>
+              </select>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text3)", lineHeight: 1.5, marginBottom: 16 }}>
+              A temp password will be generated automatically and shown once. Share it with the new user — they'll change it on first sign-in.
+            </p>
+            {error && (
+              <div style={{ color: "#fca5a5", background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", padding: 10, borderRadius: 6, fontSize: 13, marginBottom: 14 }}>{error}</div>
+            )}
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button type="button" className="btn-g" onClick={onClose} disabled={busy}>Cancel</button>
+              <button type="submit" className="btn" disabled={busy}>{busy ? "Creating…" : "Create user"}</button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AdminResetPwModal({ user, onClose }: { user: AdminUser; onClose: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function reset() {
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(user.id)}/change-password`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => ({} as { error?: string; tempPassword?: string }));
+      if (!res.ok) {
+        setError(data.error ?? `Couldn't reset password (HTTP ${res.status}).`);
+        setBusy(false);
+        return;
+      }
+      setTempPassword(data.tempPassword ?? null);
+      setBusy(false);
+    } catch {
+      setError("Network error — please try again.");
+      setBusy(false);
+    }
+  }
+
+  async function copyPw() {
+    if (!tempPassword) return;
+    try { await navigator.clipboard.writeText(tempPassword); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999, padding: 24 }}>
+      <div style={{ background: "#1a2940", borderRadius: 12, padding: 28, maxWidth: 480, width: "100%", color: "var(--text)", fontFamily: "var(--sans)", border: "1px solid var(--border2)" }}>
+        {tempPassword ? (
+          <div>
+            <div className="lbl" style={{ marginBottom: 11, color: "#34d399" }}>PASSWORD RESET</div>
+            <h2 style={{ fontFamily: "var(--serif)", fontSize: 22, fontWeight: 400, marginBottom: 14 }}>New temp password for {user.email}</h2>
+            <p style={{ fontSize: 13, color: "var(--text3)", lineHeight: 1.6, marginBottom: 18 }}>
+              Their existing sessions have been wiped. Share this once — they'll change it after sign-in.
+            </p>
+            <div style={{ background: "#0d1b2e", border: "1px solid var(--warm)", borderRadius: 8, padding: 14, fontFamily: "monospace", fontSize: 16, letterSpacing: 1, color: "var(--warm)", marginBottom: 14, wordBreak: "break-all" }}>
+              {tempPassword}
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button className="btn-g" onClick={copyPw}>{copied ? "Copied ✓" : "Copy password"}</button>
+              <button className="btn" onClick={onClose}>Done</button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div className="lbl" style={{ marginBottom: 11 }}>RESET PASSWORD</div>
+            <h2 style={{ fontFamily: "var(--serif)", fontSize: 22, fontWeight: 400, marginBottom: 14 }}>Reset password for {user.email}?</h2>
+            <p style={{ fontSize: 13, color: "var(--text3)", lineHeight: 1.6, marginBottom: 18 }}>
+              A new temp password will be generated and shown once. Their current password and any active sessions will be invalidated.
+            </p>
+            {error && (
+              <div style={{ color: "#fca5a5", background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", padding: 10, borderRadius: 6, fontSize: 13, marginBottom: 14 }}>{error}</div>
+            )}
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button className="btn-g" onClick={onClose} disabled={busy}>Cancel</button>
+              <button className="btn" onClick={reset} disabled={busy}>{busy ? "Resetting…" : "Generate new password"}</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Wrapper enforces "owner-only" at the React layer. If the signed-in user
+// isn't an owner (e.g. session expired and was re-bound to a client account,
+// or the URL state was tampered), bounce out of the admin pane immediately.
+function AdminScreenGuarded({ onExit }: { onExit: () => void }) {
+  const { user, isLoading } = useAuth();
+  useEffect(() => {
+    if (!isLoading && user?.role !== "owner") onExit();
+  }, [isLoading, user, onExit]);
+  if (isLoading || user?.role !== "owner") {
+    return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2 }}>…</div></div>;
+  }
+  return <AdminScreen onExit={onExit} />;
+}
+
+function AdminScreen({ onExit }: { onExit: () => void }) {
+  const { user: me, refresh: refreshAuth } = useAuth();
+  const [users, setUsers] = useState<AdminUser[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [showNewUser, setShowNewUser] = useState(false);
+  const [resetTarget, setResetTarget] = useState<AdminUser | null>(null);
+  // Single global lock — prevents overlapping mutations (e.g. rapid
+  // multi-row clicks) which would otherwise produce confusing error races.
+  const [busy, setBusy] = useState(false);
+
+  // If any admin call comes back as 401/403, the session has expired or the
+  // current user is no longer an owner. Re-fetching /api/auth/me clears the
+  // local user, which trips the auth guard and bounces back to sign-in.
+  const handleAuthFailure = useCallback(async () => {
+    await refreshAuth();
+    onExit();
+  }, [refreshAuth, onExit]);
+
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/users", { credentials: "include" });
+      if (res.status === 401 || res.status === 403) { await handleAuthFailure(); return; }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { users: AdminUser[] };
+      setUsers(data.users);
+      setLoadError(null);
+    } catch (e: unknown) {
+      setLoadError(e instanceof Error ? e.message : "Failed to load users");
+    }
+  }, [handleAuthFailure]);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  async function changeRole(target: AdminUser, nextRole: "owner" | "client") {
+    if (busy) return;
+    const verb = nextRole === "owner" ? "promote" : "demote";
+    if (!window.confirm(`${verb === "promote" ? "Promote" : "Demote"} ${target.email} to ${nextRole}?`)) return;
+    setActionError(null);
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(target.id)}/role`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: nextRole }),
+      });
+      if (res.status === 401 || res.status === 403) { await handleAuthFailure(); return; }
+      const data = await res.json().catch(() => ({} as { error?: string }));
+      if (!res.ok) {
+        setActionError(data.error ?? `Couldn't ${verb} (HTTP ${res.status}).`);
+      } else {
+        await refresh();
+      }
+    } catch {
+      setActionError("Network error — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteUser(target: AdminUser) {
+    if (busy) return;
+    if (!window.confirm(
+      `Delete ${target.email}?\n\n` +
+      `This permanently removes their account and ALL of their workshop data ` +
+      `(map, intake, phase, etc). This cannot be undone.`
+    )) return;
+    setActionError(null);
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/users/${encodeURIComponent(target.id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.status === 401 || res.status === 403) { await handleAuthFailure(); return; }
+      const data = await res.json().catch(() => ({} as { error?: string }));
+      if (!res.ok) {
+        setActionError(data.error ?? `Couldn't delete (HTTP ${res.status}).`);
+      } else {
+        await refresh();
+      }
+    } catch {
+      setActionError("Network error — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--sans)" }}>
+      <style>{CSS}</style>
+
+      {/* Header */}
+      <div style={{ borderBottom: "1px solid var(--border2)", padding: "22px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <div className="lbl" style={{ marginBottom: 6 }}>TRUE OWNERSHIP · ADMIN</div>
+          <h1 style={{ fontFamily: "var(--serif)", fontSize: 32, fontWeight: 400, margin: 0, letterSpacing: "-0.5px" }}>All users</h1>
+        </div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <button className="btn-g" onClick={onExit}>← Back to app</button>
+          <button className="btn" onClick={() => setShowNewUser(true)}>+ New user</button>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div style={{ padding: "28px 32px", maxWidth: 1100, margin: "0 auto" }}>
+        {actionError && (
+          <div style={{ color: "#fca5a5", background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", padding: 12, borderRadius: 6, fontSize: 13, marginBottom: 18 }}>
+            {actionError}{" "}
+            <button onClick={() => setActionError(null)} style={{ background: "transparent", border: "none", color: "#fca5a5", cursor: "pointer", marginLeft: 8, textDecoration: "underline", fontSize: 12 }}>dismiss</button>
+          </div>
+        )}
+        {loadError && (
+          <div style={{ color: "#fca5a5", background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.4)", padding: 12, borderRadius: 6, fontSize: 13, marginBottom: 18 }}>
+            Couldn't load users: {loadError}{" "}
+            <button onClick={refresh} style={{ background: "transparent", border: "none", color: "#fca5a5", cursor: "pointer", marginLeft: 8, textDecoration: "underline", fontSize: 12 }}>retry</button>
+          </div>
+        )}
+
+        {users === null && !loadError && (
+          <div style={{ color: "var(--text3)", fontSize: 13, padding: 24, textAlign: "center" }}>Loading users…</div>
+        )}
+
+        {users && users.length === 0 && (
+          <div style={{ color: "var(--text3)", fontSize: 13, padding: 24, textAlign: "center" }}>No users yet.</div>
+        )}
+
+        {users && users.length > 0 && (
+          <div style={{ background: "var(--bg2)", border: "1px solid var(--border2)", borderRadius: 10, overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: "var(--bg3)", color: "var(--text3)", textAlign: "left" }}>
+                  <th style={{ padding: "12px 14px", fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>Name</th>
+                  <th style={{ padding: "12px 14px", fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>Email</th>
+                  <th style={{ padding: "12px 14px", fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>Role</th>
+                  <th style={{ padding: "12px 14px", fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>Created</th>
+                  <th style={{ padding: "12px 14px", fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => {
+                  const isMe = me?.id === u.id;
+                  const ownerCount = users.filter((x) => x.role === "owner").length;
+                  const isLastOwner = u.role === "owner" && ownerCount <= 1;
+                  return (
+                    <tr key={u.id} style={{ borderTop: "1px solid var(--border2)" }}>
+                      <td style={{ padding: "13px 14px", color: "var(--text)" }}>
+                        {fmtName(u)}{isMe && <span style={{ marginLeft: 8, fontSize: 10, color: "var(--text3)", letterSpacing: 1 }}>(you)</span>}
+                      </td>
+                      <td style={{ padding: "13px 14px", color: "var(--text2)", fontFamily: "monospace", fontSize: 12 }}>{u.email}</td>
+                      <td style={{ padding: "13px 14px" }}>
+                        <span style={{
+                          background: u.role === "owner" ? "rgba(201,168,76,0.18)" : "rgba(122,118,110,0.18)",
+                          color: u.role === "owner" ? "var(--warm)" : "var(--text3)",
+                          borderRadius: 3, padding: "2px 8px", fontSize: 10, letterSpacing: 1, textTransform: "uppercase",
+                        }}>{u.role}</span>
+                      </td>
+                      <td style={{ padding: "13px 14px", color: "var(--text3)", fontSize: 12 }}>{fmtDate(u.createdAt)}</td>
+                      <td style={{ padding: "13px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
+                        <button
+                          onClick={() => setResetTarget(u)}
+                          disabled={busy}
+                          style={{ background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", borderRadius: 4, padding: "5px 10px", fontSize: 11, cursor: busy ? "not-allowed" : "pointer", marginLeft: 6, fontFamily: "var(--sans)" }}
+                          title="Generate a new temp password"
+                        >Reset password</button>
+                        {u.role === "client" ? (
+                          <button
+                            onClick={() => changeRole(u, "owner")}
+                            disabled={busy}
+                            style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.45)", color: "var(--warm)", borderRadius: 4, padding: "5px 10px", fontSize: 11, cursor: busy ? "not-allowed" : "pointer", marginLeft: 6, fontFamily: "var(--sans)" }}
+                          >Promote</button>
+                        ) : (
+                          <button
+                            onClick={() => changeRole(u, "client")}
+                            disabled={busy || isMe || isLastOwner}
+                            style={{ background: "transparent", border: "1px solid var(--border2)", color: (isMe || isLastOwner) ? "var(--text4)" : "var(--text2)", borderRadius: 4, padding: "5px 10px", fontSize: 11, cursor: (busy || isMe || isLastOwner) ? "not-allowed" : "pointer", marginLeft: 6, fontFamily: "var(--sans)" }}
+                            title={isMe ? "Can't demote yourself" : isLastOwner ? "Can't demote the last owner" : "Demote to client"}
+                          >Demote</button>
+                        )}
+                        <button
+                          onClick={() => deleteUser(u)}
+                          disabled={busy || isMe || isLastOwner}
+                          style={{ background: "transparent", border: "1px solid rgba(220,38,38,0.4)", color: (isMe || isLastOwner) ? "var(--text4)" : "#fca5a5", borderRadius: 4, padding: "5px 10px", fontSize: 11, cursor: (busy || isMe || isLastOwner) ? "not-allowed" : "pointer", marginLeft: 6, fontFamily: "var(--sans)" }}
+                          title={isMe ? "Can't delete yourself" : isLastOwner ? "Can't delete the last owner" : "Delete user and all their data"}
+                        >Delete</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div style={{ marginTop: 24, fontSize: 11, color: "var(--text4)", lineHeight: 1.6 }}>
+          {users && <>Total: {users.length} user{users.length === 1 ? "" : "s"} · {users.filter((u) => u.role === "owner").length} owner{users.filter((u) => u.role === "owner").length === 1 ? "" : "s"}</>}
+        </div>
+      </div>
+
+      {showNewUser && (
+        <NewUserModal onClose={() => setShowNewUser(false)} onCreated={() => { refresh(); }} />
+      )}
+      {resetTarget && (
+        <AdminResetPwModal user={resetTarget} onClose={() => { setResetTarget(null); refresh(); }} />
+      )}
     </div>
   );
 }
