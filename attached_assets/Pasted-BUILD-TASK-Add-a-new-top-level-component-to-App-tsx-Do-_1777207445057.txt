@@ -1,0 +1,276 @@
+BUILD TASK. Add a new top-level component to App.tsx. Do NOT modify A1, A2, or A3 components. Do NOT delete the existing inline Map of Me pages. Do NOT add this to any sidebar or routing. Do NOT republish.
+
+Target file: artifacts/true-ownership/src/App.tsx
+
+═══════════════════════════════════════════════
+GOAL
+═══════════════════════════════════════════════
+
+Add a single new component named MapOfMePage. It is a read-only viewing surface that renders A1 + A2 + A3 data progressively, with greyed pending placeholders for A4 + A5. To test it, also add a TEMPORARY dev-only entry point (described below). After human verification, the temporary entry will be removed and replaced with proper sidebar nav in a separate task.
+
+═══════════════════════════════════════════════
+COMPONENT REQUIREMENTS — MapOfMePage
+═══════════════════════════════════════════════
+
+Add the component definition immediately AFTER the existing A1 component definition and BEFORE the App() component. Do not place it inside A1.
+
+Signature:
+  function MapOfMePage({ onBack }) { ... }
+
+State (own its own copy):
+  const [map, setMap] = useState({});
+  useEffect(() => { (async () => { const m = await loadData(KEYS.map); if (m) setMap(m); })(); }, []);
+  const [voice, setVoice] = useState("coach");
+  useEffect(() => { (async () => { const v = await loadData(KEYS.voice); if (v) setVoice(v); })(); }, []);
+  const setVoicePersist = (v) => { setVoice(v); saveData(KEYS.voice, v); };
+  const [collapsedAll, setCollapsedAll] = useState(false);
+  const [openSections, setOpenSections] = useState({ a1: true, a2: true, a3: true, a4: false, a5: false });
+
+═══════════════════════════════════════════════
+COMPLETION DETECTION (FIELD-PRESENCE)
+═══════════════════════════════════════════════
+
+Compute these once at the top of MapOfMePage's render:
+
+  const a1Done = !!(map.purpose_final || (map.purpose_layers && map.purpose_layers.length > 0) || map.purpose_draft);
+  const a2Done = !!map.a2_one_thing;
+  const a3Done = !!(map.a3_board_candidates && map.a3_board_candidates.length > 0);
+  const a4Done = false; // not built yet
+  const a5Done = false; // not built yet
+
+═══════════════════════════════════════════════
+LAYOUT — TOP-LEVEL CHROME
+═══════════════════════════════════════════════
+
+Use these inline styles (match existing app conventions — borrow from A1 sidebar styling for consistency):
+
+OUTER WRAPPER:
+  <div style={{ minHeight:"100vh", background:"var(--bg)", color:"var(--text)" }}>
+
+TOP BAR (full width):
+  - Left: dot + "True Ownership" + "·" + "Katherine" (read name from intake or hardcode "Katherine" for now — flag if intake unavailable)
+  - Right: phase pills A1, A2, A3, A4, A5 — pills for done phases use teal background (var(--g) or similar), pending phases use grey (var(--text4) text on var(--bg2) background)
+
+  IMPORTANT: The MapOfMePage's amber-accent chrome should be visually DISTINCT from any phase. Use --warm or a similar amber/gold token for accents; do NOT reuse phase colors.
+
+Below top bar, two-column layout:
+  - LEFT SIDEBAR (width: 206px, same as A1/A2/A3 sidebars)
+  - MAIN CONTENT
+
+═══════════════════════════════════════════════
+LEFT SIDEBAR
+═══════════════════════════════════════════════
+
+Sidebar contents in order, top to bottom:
+
+1. Section label (small caps): "MY MAP OF ME"
+
+2. Five phase items (same sidebar-btn style A1/A2/A3 use):
+   - "All In It · A1" — dot teal if a1Done, grey if not
+   - "Align With It · A2" — dot teal if a2Done
+   - "Advocate For It · A3" — dot teal if a3Done
+   - "Act On It · A4" — dot grey
+   - "Accountability To It · A5" — dot grey
+   These items should NOT be clickable yet (pure visual indicators).
+
+3. Divider + small caps "PROGRESS"
+   - Active item indicator: highlighted "My Map of Me" entry (amber accent)
+
+4. Divider + small caps "VOICE"
+   - <VoiceDropdown voiceId={voice} onSelect={setVoicePersist} />
+
+═══════════════════════════════════════════════
+MAIN CONTENT — HEADER BLOCK
+═══════════════════════════════════════════════
+
+Order top to bottom:
+
+1. Eyebrow lbl (small caps): "MY MAP OF ME"
+
+2. H1 (var(--serif), fontSize:34, fontWeight:400):
+   "A living reflection of who you are — and what you're building."
+
+3. Subtitle (fontSize:15, color:var(--text2), italic):
+   "Not finished. Not meant to be. This grows as you do."
+
+4. Last-updated meta line (fontSize:11, color:var(--text4), uppercase, letterSpacing:1.5):
+   "LAST UPDATED · " + a human-readable date based on Date.now() (e.g. "April 27, 2026"). For now hardcode as new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }).
+
+5. PROGRESS STRIP — 5 cells in a horizontal flex row:
+   Each cell shows phase code (A1/A2/A3/A4/A5), phase name, and "Done" or "Pending" status.
+   Done cells: teal accent + checkmark.
+   Pending cells: greyed.
+
+6. CONTROLS ROW (right-aligned):
+   Single button: "Collapse all" / "Expand all" toggle. Toggles all phase sections at once via setOpenSections.
+
+═══════════════════════════════════════════════
+MAIN CONTENT — PHASE SECTIONS (stacked)
+═══════════════════════════════════════════════
+
+Render five phase sections vertically. Each phase section structure:
+
+PHASE HEAD (clickable to toggle):
+  - Phase badge (A1, A2, A3, etc.) — circular pill
+  - Phase name + tagline
+  - Right side: chevron ▾ when open, ▸ when collapsed
+  - Hover: subtle highlight
+
+PHASE BODY (only rendered if open):
+  - If phase NOT done: grey placeholder card with message:
+    A1 not done: "This grows as you complete A1."
+    A2 not done: "This grows when you reach A2 — your alignment, time audit, and One Thing."
+    A3 not done: "This grows when you reach A3 — your people, environment, board, and inner landscape."
+    A4 placeholder: "This grows when you reach A4 — your rhythms, commitments, and accountability structure."
+    A5 placeholder: "This grows when you reach A5 — final integration."
+  - If phase DONE: render the sub-cards described below.
+
+═══════════════════════════════════════════════
+A1 SUB-CARDS (when a1Done is true)
+═══════════════════════════════════════════════
+
+Render these sub-cards in order. Each sub-card has a small "Back to A1" link in its top-right that calls onBack("a1") (do NOT implement onBack action yet — just pass the callback prop). Each sub-card uses fallback chains:
+
+SUB-CARD 1: PURPOSE
+  Display: map.purpose_final || (map.purpose_layers && map.purpose_layers.join(" · ")) || map.purpose_draft || "(not yet captured)"
+  Format: large serif italic quote.
+
+SUB-CARD 2: DIRECTION (1-Year + 3-Year)
+  Three column grid. Each column has a horizon header (1-YEAR / 3-YEAR / BAG) and three sub-sections (TIME, WEALTH, GROWTH).
+  Read fields with fallbacks:
+    BAG Time: map.time_summary || map.time_overall_sentence || (read map.life_areas[] in map.hier_order[] order if present)
+    BAG Wealth: map.bag_retirement, map.bag_assets, map.bag_cashflow, map.bag_other (with map.bag_other_label as label)
+    BAG Growth: map.bag_growth_1..4 (with optional labels map.bag_growth_label1..4)
+    BAG sentence: map.growth_sentence || map.growth_summary
+    1-Year growth: map.oneyr_growth_sentence
+  If a field is empty, show "—" or skip the sub-section.
+  Order columns: 1-YEAR · 3-YEAR · BAG (left to right, near to far).
+
+SUB-CARD 3: IDENTITY · SUPERPOWERS
+  Loop map.animals[] (each has .adj1, .adj2, .name, .capabilities[], .identity_chips[]).
+  Render each animal as a card: "[adj1] [adj2] [name]" headline + chips for capabilities and identity_chips.
+  If map.animals is empty, render "(not yet captured)".
+
+SUB-CARD 4: VALUES IN ORDER
+  Loop indices 1..N reading map[`val_${i}_name`] and map[`val_${i}_summary`].
+  Stop at the first missing val_${i}_name.
+  Render numbered list with each value's name (bold) + summary (regular).
+  If hier_order is present and looks like values ranking, use it; otherwise display in 1..N order.
+
+SUB-CARD 5: BIG ASS GOAL (the integrated three-strand summary)
+  Three short blocks: TIME · WEALTH · GROWTH.
+  TIME: map.time_summary || map.time_overall_sentence
+  WEALTH: map.wealth_summary || map.wealth_overall_sentence
+  GROWTH: map.growth_sentence || map.growth_summary
+  Each block: small caps label + body text.
+
+═══════════════════════════════════════════════
+A2 SUB-CARDS (when a2Done is true)
+═══════════════════════════════════════════════
+
+SUB-CARD 1: KEY MISALIGNMENT
+  Show map.a2_km_pinned_id resolved to its display name. (For now, just display the raw id with a note "Pinned: {id}" — full resolution against computeMisalignments can be added later.)
+
+SUB-CARD 2: TIME AUDIT
+  Counts only:
+    Supports: count of items in map.a2_ta_acts where the item's category is "support" (if a2_ta_acts items have a category field — if not, just show length).
+    Reshape: count where category is "reshape"
+    Leaks: count where category is "leak"
+  If structure is unclear, render "Total acts logged: {map.a2_ta_acts.length}".
+  Below counts: "Pinned Priority: {a2_km_pinned_id or '—'}"
+
+SUB-CARD 3: FUTURE SELF LETTER
+  Quote block (large serif italic, indented) showing concatenation:
+  [map.a2_fsl_s1] + " " + [map.a2_fsl_s2] + " " + [map.a2_fsl_s3] + " " + [map.a2_fsl_s4]
+  Skip empty sections gracefully.
+
+SUB-CARD 4: YOUR ONE THING
+  Big serif callout: map.a2_one_thing
+  Below in small text: "Confirmed" badge if map.a2_one_thing_confirmed is true.
+
+═══════════════════════════════════════════════
+A3 SUB-CARDS (when a3Done is true) — 2-column grid
+═══════════════════════════════════════════════
+
+Use a 2-column CSS grid (gap: 22px) to lay out A3 sub-cards. Order:
+
+SUB-CARD 1: PEOPLE · YOUR INNER CIRCLE
+  Counts:
+    Advocates: map.a3_people.filter(p => p.rating === 'advocate').length
+    Neutrals: count where rating === 'neutral'
+    Anchors: count where rating === 'anchor'
+  Below counts: small list of advocate names (top 3 max).
+
+SUB-CARD 2: BOARD
+  Render an inline mini SVG of an oval board table. For each item in map.a3_board_candidates, place a label around the table (use a simple polar layout — 8 evenly-spaced positions max, position by index modulo positions).
+  Below the SVG: count of empty seats from map.a3_board_missing.length (if exists).
+  If too complex for first pass, fall back to a simple text list of board seat names with a small SVG oval as decoration.
+
+SUB-CARD 3: ENVIRONMENT
+  Takeaway: map.a3_env_takeaway (large display)
+  Counts: items in map.a3_env_items grouped by rating (count "change" vs "protect" vs other ratings).
+
+SUB-CARD 4: THOUGHTS LANDSCAPE SNAPSHOT
+  Mini horizontal three-row layout:
+    Top row (advocates): thoughts where rating === 'advocate' or similar positive
+    Middle row (neutrals)
+    Bottom row (anchors)
+  For now, simple horizontal flex of small chips, one per thought, color-coded by rating.
+
+SUB-CARD 5: BEST FRIEND RESPONSE
+  Quote block: map.a3_best_friend (large serif italic, indented).
+
+SUB-CARD 6: ENERGY MAP SNAPSHOT
+  Counts derived from a3_people + a3_env_items combined.
+  If too complex, simple two-row mini-map with people on one axis, env on another.
+
+═══════════════════════════════════════════════
+FOOTER NOTE
+═══════════════════════════════════════════════
+
+Below all phase sections, italic small text:
+  "Your Map of Me builds throughout True Ownership. You'll be able to download the complete version once you've worked through all five phases."
+
+═══════════════════════════════════════════════
+TEMPORARY DEV ENTRY POINT
+═══════════════════════════════════════════════
+
+So we can verify the page renders without wiring it into the real router yet:
+
+In the App() component (around L12707), find the phase router. Add a dev-only branch BEFORE the existing phase checks:
+
+  if (phase === "_dev_mapofme") {
+    return <MapOfMePage onBack={() => setPhase("a1")} />;
+  }
+
+Then add a temporary button in the loading/intake screen (or wherever the user first lands) labeled "[DEV] Open Map of Me" that calls setPhase("_dev_mapofme"). Make it visually obvious it's temporary (e.g., red border, "[DEV]" prefix). This will be removed in a later task.
+
+If you can't find a clean place for the dev button, instead expose a global function:
+  window._openMapOfMe = () => setPhase("_dev_mapofme");
+And mention this in your report so the human can call it from the browser console.
+
+═══════════════════════════════════════════════
+RULES — DO NOT
+═══════════════════════════════════════════════
+
+- Do NOT modify A1's existing inline Map of Me (step === "map" branch around L12135-12530).
+- Do NOT modify A2's existing inline Map of Me (a2Step === "map" branch around L6010-6489).
+- Do NOT add MapOfMePage to A1, A2, or A3 sidebars.
+- Do NOT delete or rename any existing fields.
+- Do NOT republish.
+- If any helper function (loadData, saveData, KEYS, VoiceDropdown) is not in scope at the point where you place MapOfMePage, STOP and report which symbol is missing — do NOT guess.
+
+═══════════════════════════════════════════════
+VERIFICATION OUTPUT
+═══════════════════════════════════════════════
+
+After the build:
+1. Confirm dev server hot-reloaded without errors.
+2. Confirm zero new TypeScript errors introduced (compare to pre-existing error count).
+3. Confirm zero new browser console errors on initial page load.
+4. List the line range where MapOfMePage was added (start line, end line).
+5. List the line where the dev entry point was added.
+6. Report any field where the fallback chain produced no value (so we know what's missing in the test user's data).
+
+End the report with:
+"MAP OF ME PAGE BUILT. NO PUBLISH. NO INLINE MAPS DELETED. NO SIDEBAR NAV ADDED. To test: in the running app, open browser console and run window._openMapOfMe() — OR click the [DEV] button if one was added. Awaiting human verification."
