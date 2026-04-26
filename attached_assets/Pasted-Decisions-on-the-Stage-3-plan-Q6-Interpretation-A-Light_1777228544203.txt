@@ -1,0 +1,31 @@
+Decisions on the Stage 3 plan:
+
+Q6: Interpretation A — Lightweight admin. Add role (owner | client) to users table. Owner can create/reset/delete users but CANNOT view their True Ownership content. Clients keep full privacy on their purpose work. Coaching-access (Interpretation B) is deferred to a later Stage 4 once I've actually coached someone through the app and know what I need from inside it.
+
+Q2: (b) phase = "_admin" — match the existing _mapofme pattern. No wouter introduction. Smallest diff. (Justified because Q6 = A doesn't need real URL routes.)
+
+Q3: bcryptjs cost factor 10 — match Owner's Circle exactly for consistency, not the 12 we'd originally floated.
+
+Q4: (c) SQL migration with auto-generated temp password. Match Owner's Circle's ensureSeedOwner() pattern. Generate the temp password yourself, show it once in chat. I'll log in immediately and use the admin "change password" modal to set my real password — temp password becomes useless within 60 seconds.
+
+Q5: Single Stage 3, sequential sub-steps with verification gates between each. Same discipline as Stage 1 + Stage 2.
+
+VISUAL — palette and fonts confirmed exactly as you extracted them:
+- Cream #FDFCF7, card #FFFFFF, input fill #F8F5EC
+- Navy ink #12163A, navy primary #1B1F4B
+- Gold #B07312, green #0F6E56, error #9F1239
+- Lines #E8E4D6, mute #7A7B8A
+- Playfair Display (brand mark, headings), Inter (body/buttons), JetBrains Mono (technical data like emails)
+
+BRAND WORDING for True Ownership login:
+- Eyebrow: "TRUE OWNERSHIP" alone (not "AG45 · TRUE OWNERSHIP" — the AG45 logo carries the brand below)
+- Subtitle: "Sign in to start — or pick up where you left off." (matches the placeholder we used in Stage 2)
+
+EXISTING DATA — preserve user_id 46260892
+My current users row (id 46260892, email katherine@ag45.com) and her 6 user_data rows (map, intake, phase, step, done, mapofme_origin) MUST be preserved through the migration. The schema migration should ALTER the users table to add password_hash + role columns and UPDATE my row to set role='owner' + the seeded temp password — NOT drop+recreate. Confirm in the plan that no data loss for user 46260892.
+
+Now produce the executable Stage 3 plan: file list, exact migration SQL, exact endpoints, exact UI components, build order with sub-steps and verification gates.
+
+Also create App.tsx.bak_pre_stage3 backup BEFORE any edits when I switch to Build mode — same discipline as Stage 1 + Stage 2.
+
+NO PUBLISH. Dev preview only.
