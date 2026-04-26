@@ -1,0 +1,269 @@
+EDIT TASK. Make ONLY the changes listed below. Do not improvise, do not refactor, do not "improve" anything. Each change is an exact string-match-and-replace. If any old-string does not match exactly, STOP that specific edit and report the mismatch — do not guess.
+
+Target file: artifacts/true-ownership/src/App.tsx
+
+═══════════════════════════════════════════════
+PART A — TIMELINE LABEL EDITS (22 changes)
+═══════════════════════════════════════════════
+
+Standard: all USER-VISIBLE timeline labels become "1-YEAR", "3-YEAR", or "BAG" (all caps, hyphens for the year ones).
+
+──────────────────────────────────────────────
+EDIT A1 — Line 1664 (A2_HORIZON_META oneyr label)
+──────────────────────────────────────────────
+FIND:    oneyr:   { label: "1-Year", yearOffset: 1,  weight: 1.3 },
+REPLACE: oneyr:   { label: "1-YEAR", yearOffset: 1,  weight: 1.3 },
+
+──────────────────────────────────────────────
+EDIT A2 — Line 1665 (A2_HORIZON_META threeyr label)
+──────────────────────────────────────────────
+FIND:    threeyr: { label: "3-Year", yearOffset: 3,  weight: 1.0 },
+REPLACE: threeyr: { label: "3-YEAR", yearOffset: 3,  weight: 1.0 },
+
+──────────────────────────────────────────────
+EDIT A3 — Line 2861 (OneYearPage hint label "From 3-Year")
+──────────────────────────────────────────────
+FIND:              ? `From 3-Year · ${new Date().getFullYear() + 3}`
+REPLACE:           ? `From 3-YEAR · ${new Date().getFullYear() + 3}`
+
+──────────────────────────────────────────────
+EDIT A4 — Line 2991 (DirectionAlignment empty-state in A1)
+──────────────────────────────────────────────
+FIND:           Build out your BAG, 3-Year, and 1-Year priorities before scoring. Once you've picked priorities and ranked them, you'll score TODAY's reality against each one here.
+REPLACE:        Build out your BAG, 3-YEAR, and 1-YEAR priorities before scoring. Once you've picked priorities and ranked them, you'll score TODAY's reality against each one here.
+
+──────────────────────────────────────────────
+EDIT A5 — Line 3012 (HorizonAlignmentColumn 1-Year header)
+──────────────────────────────────────────────
+FIND:            horizonLabel={`1-Year · ${year + 1}`}
+REPLACE:         horizonLabel={`1-YEAR · ${year + 1}`}
+
+──────────────────────────────────────────────
+EDIT A6 — Line 3016 (HorizonAlignmentColumn 3-Year header)
+──────────────────────────────────────────────
+FIND:            horizonLabel={`3-Year · ${year + 3}`}
+REPLACE:         horizonLabel={`3-YEAR · ${year + 3}`}
+
+──────────────────────────────────────────────
+EDIT A7 — Line 3609 (A2 DirectionAlignment H2)
+──────────────────────────────────────────────
+FIND:        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>1-Year Alignment · {year + 1}</h2>
+REPLACE:     <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>1-YEAR Alignment · {year + 1}</h2>
+
+──────────────────────────────────────────────
+EDIT A8 — Line 3626 (A2 DirectionAlignment empty state)
+──────────────────────────────────────────────
+FIND:             Build out your BAG, 3-Year, and 1-Year priorities in A1 before scoring.
+REPLACE:          Build out your BAG, 3-YEAR, and 1-YEAR priorities in A1 before scoring.
+
+──────────────────────────────────────────────
+EDIT A9 — Line 3636 (A2 ContextPane label for 3-Year)
+──────────────────────────────────────────────
+FIND:               <ContextPane label={`3-Year · ${year + 3}`}  items={threeyrItemsDA} openKey="a2_dir_ctx_threeyr_open" open={ctxThreeyrOpen} />
+REPLACE:            <ContextPane label={`3-YEAR · ${year + 3}`}  items={threeyrItemsDA} openKey="a2_dir_ctx_threeyr_open" open={ctxThreeyrOpen} />
+
+──────────────────────────────────────────────
+EDIT A10 — Line 4017 (A2 empty-state "No 1-Year growth items.")
+──────────────────────────────────────────────
+FIND:                 <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-Year growth items.</div>
+REPLACE:              <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-YEAR growth items.</div>
+
+──────────────────────────────────────────────
+EDIT A11 — Line 9110 (STEPS sidebar label "Direction · 3-Year")
+──────────────────────────────────────────────
+FIND:    { id:"direction_3yr",   label:"Direction · 3-Year" },
+REPLACE: { id:"direction_3yr",   label:"Direction · 3-YEAR" },
+
+──────────────────────────────────────────────
+EDIT A12 — Line 9113 (STEPS sidebar label "Direction · 1-Year")
+──────────────────────────────────────────────
+FIND:    { id:"direction_1yr",   label:"Direction · 1-Year" },
+REPLACE: { id:"direction_1yr",   label:"Direction · 1-YEAR" },
+
+──────────────────────────────────────────────
+EDIT A13 — Line 9764 (A1 Direction · 1-Year page eyebrow)
+──────────────────────────────────────────────
+FIND:        <div className="lbl" style={{ marginBottom:12 }}>Direction · 1-Year</div>
+REPLACE:     <div className="lbl" style={{ marginBottom:12 }}>Direction · 1-YEAR</div>
+
+──────────────────────────────────────────────
+EDIT A14 — Line 9766 (A1 Direction · 1-Year page H2)
+──────────────────────────────────────────────
+FIND:          1-Year · {new Date().getFullYear() + 1}
+REPLACE:       1-YEAR · {new Date().getFullYear() + 1}
+
+──────────────────────────────────────────────
+EDIT A15 — Line 9802 (A1 back button "← Direction · 1-Year")
+──────────────────────────────────────────────
+FIND:        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-Year</button>
+REPLACE:     <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-YEAR</button>
+
+──────────────────────────────────────────────
+EDIT A16 — Line 10486 (A1 forward button "Direction · 3-Year →")
+──────────────────────────────────────────────
+FIND:           <button className="btn" onClick={() => { markDone("mirror1"); goto("direction_3yr"); }}>Direction · 3-Year →</button>
+REPLACE:        <button className="btn" onClick={() => { markDone("mirror1"); goto("direction_3yr"); }}>Direction · 3-YEAR →</button>
+
+──────────────────────────────────────────────
+EDIT A17 — Line 10746 (A1 back button "← Direction · 3-Year")
+──────────────────────────────────────────────
+FIND:           <button className="btn-g" onClick={() => goto("direction_3yr")}>← Direction · 3-Year</button>
+REPLACE:        <button className="btn-g" onClick={() => goto("direction_3yr")}>← Direction · 3-YEAR</button>
+
+──────────────────────────────────────────────
+EDIT A18 — Line 11574 (A1 forward button "Direction · 1-Year →")
+──────────────────────────────────────────────
+FIND:           <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-Year →</button>
+REPLACE:        <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-YEAR →</button>
+
+──────────────────────────────────────────────
+EDIT A19 — Line 11707 (duplicate forward button — search context to disambiguate)
+──────────────────────────────────────────────
+The line 11574 pattern may also appear at line 11707 (per audit MATCH #34). After applying EDIT A18, search the file again for any remaining occurrence of:
+    Direction · 1-Year →
+If exactly ONE occurrence remains, replace it identically:
+FIND:    Direction · 1-Year →
+REPLACE: Direction · 1-YEAR →
+If zero or more than one remains, STOP and report.
+
+──────────────────────────────────────────────
+EDIT A20 — Line 11715 (A1 Direction · 3-Year page eyebrow)
+──────────────────────────────────────────────
+FIND:        <div className="lbl" style={{ marginBottom:12 }}>Direction · 3-Year</div>
+REPLACE:     <div className="lbl" style={{ marginBottom:12 }}>Direction · 3-YEAR</div>
+
+──────────────────────────────────────────────
+EDIT A21 — Line 11717 (A1 Direction · 3-Year page H2)
+──────────────────────────────────────────────
+FIND:          3-Year · {new Date().getFullYear() + 3}
+REPLACE:       3-YEAR · {new Date().getFullYear() + 3}
+
+──────────────────────────────────────────────
+EDIT A22 — Line 12407 (A1 Map of Me back button)
+──────────────────────────────────────────────
+FIND:        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-Year</button>
+REPLACE:     <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-YEAR</button>
+
+
+═══════════════════════════════════════════════
+PART B — VOICE PICKER ADDITIONS
+═══════════════════════════════════════════════
+
+Goal: A2 and A3 sidebars should each have the same Voice picker that A1 has at the bottom of its sidebar (line 9740-9743 in A1).
+
+A1's existing picker block (the template — DO NOT EDIT A1):
+       <div style={{ marginTop:18, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+         <div style={{ fontSize:10, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--text4)", marginBottom:7, fontFamily:"var(--sans)" }}>Voice</div>
+         <VoiceDropdown voiceId={voice} onSelect={setVoicePersist} />
+       </div>
+
+──────────────────────────────────────────────
+EDIT B1 — Add Voice picker to A2 sidebar
+──────────────────────────────────────────────
+A2's sidebar JSX is at lines 3413-3427. The picker must be added INSIDE the outer <div> wrapper (the one at line 3414 with width:206), AFTER the closing of the A2_STEPS.map(...) block on line 3425, and BEFORE the closing </div> on line 3426.
+
+A2 already has `voice` state and `setVoicePersist` defined at lines 3339 + 3377, so the picker can use them directly with no additional plumbing.
+
+FIND:
+        return (
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a2Goto(s.id)}>
+            <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
+            <span style={{ fontSize:12, color:active ? "var(--warm)" : isDone ? "var(--text)" : "var(--text2)", fontWeight:active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+REPLACE:
+        return (
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a2Goto(s.id)}>
+            <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
+            <span style={{ fontSize:12, color:active ? "var(--warm)" : isDone ? "var(--text)" : "var(--text2)", fontWeight:active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
+          </button>
+        );
+      })}
+      <div style={{ marginTop:18, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+        <div style={{ fontSize:10, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--text4)", marginBottom:7, fontFamily:"var(--sans)" }}>Voice</div>
+        <VoiceDropdown voiceId={voice} onSelect={setVoicePersist} />
+      </div>
+    </div>
+  );
+
+NOTE: This FIND block is unique because the closing pattern `})} \n </div> \n );` after a sidebar-btn render appears in only A2 (around lines 3424-3427). Verify uniqueness before replacing — if it matches in more than one place, STOP and report.
+
+──────────────────────────────────────────────
+EDIT B2 — Add Voice picker to A3 sidebar (REQUIRES STATE PLUMBING FIRST)
+──────────────────────────────────────────────
+A3 currently has NO voice state at all. Two-part edit:
+
+PART B2a — Add voice state to A3 component
+
+A3's component declares its other state hooks somewhere before line 8950 (the sidebar). Find the block where A3 declares its primary state hooks. Look for a pattern like:
+    const [a3Step, setA3Step] = useState(...)
+or similar React state declarations near the top of the A3 component function.
+
+Right after that block, ADD these three lines (matching the indentation of surrounding code):
+    const [voice, setVoice] = useState(intake?.defaultVoice || "coach");
+    useEffect(() => { const v = loadData(KEYS.voice); if (v) setVoice(v); }, []);
+    const setVoicePersist = (v) => { setVoice(v); saveData(KEYS.voice, v); };
+
+If `intake`, `loadData`, `saveData`, or `KEYS` are not in A3's scope, STOP and report which symbols are missing. Do not guess at imports.
+
+PART B2b — Add picker to A3 sidebar JSX
+
+A3's sidebar JSX is at lines 8950-8963.
+
+FIND:
+        return (
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a3Goto(s.id)}>
+            <div style={{ width:7, height:7, borderRadius:"50%", background: active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
+            <span style={{ fontSize:12, color: active ? "var(--warm)" : "var(--text2)", fontWeight: active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+REPLACE:
+        return (
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a3Goto(s.id)}>
+            <div style={{ width:7, height:7, borderRadius:"50%", background: active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
+            <span style={{ fontSize:12, color: active ? "var(--warm)" : "var(--text2)", fontWeight: active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
+          </button>
+        );
+      })}
+      <div style={{ marginTop:18, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+        <div style={{ fontSize:10, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--text4)", marginBottom:7, fontFamily:"var(--sans)" }}>Voice</div>
+        <VoiceDropdown voiceId={voice} onSelect={setVoicePersist} />
+      </div>
+    </div>
+  );
+
+
+═══════════════════════════════════════════════
+VERIFICATION & OUTPUT
+═══════════════════════════════════════════════
+
+After making all edits:
+
+1. Run a grep on the file for any remaining "1-Year", "3-Year" (with that exact title-case + hyphen pattern). Expected remaining matches: only the 5 lines flagged as PROSE/CSS-uppercased that the human chose to leave alone:
+   - Line 2538 (3-Year page noun phrase)
+   - Line 2793 (1-Year page noun phrase)
+   - Line 3002 ("1-Year Non-negotiable" — currently leaving alone unless human says otherwise)
+   - Line 3611 ("1-year alignment" prose)
+   - Line 3614 ("3-year are aspirational" prose)
+   - Line 5462, 5469, 6413 (CSS-uppercased — already display uppercase)
+
+2. Confirm A2 sidebar now ends with the Voice picker block.
+3. Confirm A3 component has voice state declared.
+4. Confirm A3 sidebar now ends with the Voice picker block.
+5. Trigger a hot-reload (or restart dev server if needed) and confirm no console/build errors.
+
+Report back:
+- A list of every edit applied (A1, A2, ... B1, B2a, B2b) with "✓ applied" or "✗ failed" status.
+- Any FIND patterns that did not match.
+- Any new errors in the dev console after the build.
+- Do NOT publish, do NOT republish — leave it in dev preview only.
+
+End your report with: "EDITS COMPLETE. NO PUBLISH. Awaiting human verification in preview."

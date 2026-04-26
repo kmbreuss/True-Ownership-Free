@@ -1661,8 +1661,8 @@ const A2_TIER_META = {
   "nth":     { id: "nth",     label: "Nice to have",   color: "#6b7a99", weight: 0.6 },
 };
 const A2_HORIZON_META = {
-  oneyr:   { label: "1-Year", yearOffset: 1,  weight: 1.3 },
-  threeyr: { label: "3-Year", yearOffset: 3,  weight: 1.0 },
+  oneyr:   { label: "1-YEAR", yearOffset: 1,  weight: 1.3 },
+  threeyr: { label: "3-YEAR", yearOffset: 3,  weight: 1.0 },
   bag:     { label: "BAG",    yearOffset: 12, weight: 0.7 },
 };
 
@@ -2813,7 +2813,7 @@ function OneYearPage({ map, set }) {
             const hintFromBag = (bagStored.goal || bagStored.text || "").trim();
             const hintText = hintFromThreeYr || hintFromBag || null;
             const hintLabel = hintFromThreeYr
-              ? `From 3-Year · ${new Date().getFullYear() + 3}`
+              ? `From 3-YEAR · ${new Date().getFullYear() + 3}`
               : `From BAG · ${new Date().getFullYear() + 12}`;
             return (
               <SimpleItemCard_v2
@@ -2858,7 +2858,7 @@ function OneYearPage({ map, set }) {
             const hintFromBag = (bagStored.goal || bagStored.text || "").trim();
             const hintText = hintFromThreeYr || hintFromBag || null;
             const hintLabel = hintFromThreeYr
-              ? `From 3-Year · ${new Date().getFullYear() + 3}`
+              ? `From 3-YEAR · ${new Date().getFullYear() + 3}`
               : `From BAG · ${new Date().getFullYear() + 12}`;
             return (
               <SimpleItemCard_v2
@@ -2988,7 +2988,7 @@ function DirectionAlignmentPage({ map, set }) {
           <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", marginBottom:8 }}>
             Complete your horizons first.
           </div>
-          Build out your BAG, 3-Year, and 1-Year priorities before scoring. Once you've picked priorities and ranked them, you'll score TODAY's reality against each one here.
+          Build out your BAG, 3-YEAR, and 1-YEAR priorities before scoring. Once you've picked priorities and ranked them, you'll score TODAY's reality against each one here.
         </div>
       )}
       {totalItems > 0 && (<>
@@ -3009,11 +3009,11 @@ function DirectionAlignmentPage({ map, set }) {
         }}>
           <HorizonAlignmentColumn_v2
             horizonKey="oneyr"
-            horizonLabel={`1-Year · ${year + 1}`}
+            horizonLabel={`1-YEAR · ${year + 1}`}
             items={oneyrItems} map={map} set={set} />
           <HorizonAlignmentColumn_v2
             horizonKey="threeyr"
-            horizonLabel={`3-Year · ${year + 3}`}
+            horizonLabel={`3-YEAR · ${year + 3}`}
             items={threeyrItems} map={map} set={set} />
           <HorizonAlignmentColumn_v2
             horizonKey="bag"
@@ -3423,6 +3423,10 @@ function A2({ intake, onDone, phase, setPhase }) {
           </button>
         );
       })}
+      <div style={{ marginTop:18, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+        <div style={{ fontSize:10, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--text4)", marginBottom:7, fontFamily:"var(--sans)" }}>Voice</div>
+        <VoiceDropdown voiceId={voice} onSelect={setVoicePersist} />
+      </div>
     </div>
   );
 
@@ -3606,7 +3610,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <DirectionTimeline_v2 map={map} />
         <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>A2 · Direction Alignment</div>
-        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>1-Year Alignment · {year + 1}</h2>
+        <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>1-YEAR Alignment · {year + 1}</h2>
         <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:10, maxWidth:600 }}>
           Your daily actions reveal 1-year alignment most honestly. Today's hours either ladder up to this year — or they don't.
         </p>
@@ -3623,7 +3627,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <div style={{ fontFamily:"var(--serif)", fontSize:17, color:"var(--text)", marginBottom:8 }}>
               Complete your horizons first.
             </div>
-            Build out your BAG, 3-Year, and 1-Year priorities in A1 before scoring.
+            Build out your BAG, 3-YEAR, and 1-YEAR priorities in A1 before scoring.
           </div>
         ) : (
           <>
@@ -3633,7 +3637,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                 Your distance markers · from A1
               </div>
               <ContextPane label={`BAG · ${year + 12}`}    items={bagItemsDA}    openKey="a2_dir_ctx_bag_open"    open={ctxBagOpen} />
-              <ContextPane label={`3-Year · ${year + 3}`}  items={threeyrItemsDA} openKey="a2_dir_ctx_threeyr_open" open={ctxThreeyrOpen} />
+              <ContextPane label={`3-YEAR · ${year + 3}`}  items={threeyrItemsDA} openKey="a2_dir_ctx_threeyr_open" open={ctxThreeyrOpen} />
             </div>
 
             {/* Active: 1-Year scoring */}
@@ -3644,7 +3648,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               {oneyrItemsDA.length > 0 ? (
                 <HorizonAlignmentColumn_v2
                   horizonKey="oneyr"
-                  horizonLabel={`1-Year · ${year + 1}`}
+                  horizonLabel={`1-YEAR · ${year + 1}`}
                   items={oneyrItemsDA}
                   map={map} set={set} />
               ) : (
@@ -3982,7 +3986,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                 {oneyrTimeItems.length > 0 && <AvgBadge scores={oneyrTimeItems.map(it => map[`dir_align_oneyr_${it.id}`]).filter(s => s !== undefined)} />}
               </div>
               {oneyrTimeItems.length === 0 && (
-                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-Year time priorities — go to A1 Direction · 1-Year to add them.</div>
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-YEAR time priorities — go to A1 Direction · 1-YEAR to add them.</div>
               )}
               {oneyrTimeItems.map((it) => (
                 <ScoreRow key={it.id}
@@ -3998,7 +4002,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                 {oneyrWealthItems.length > 0 && <AvgBadge scores={oneyrWealthItems.map(it => map[`dir_align_oneyr_${it.id}`]).filter(s => s !== undefined)} />}
               </div>
               {oneyrWealthItems.length === 0 && (
-                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-Year wealth items.</div>
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-YEAR wealth items.</div>
               )}
               {oneyrWealthItems.map(it => (
                 <ScoreRow key={it.id}
@@ -4014,7 +4018,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                 {oneyrGrowthItems.length > 0 && <AvgBadge scores={oneyrGrowthItems.map(it => map[`dir_align_oneyr_${it.id}`]).filter(s => s !== undefined)} />}
               </div>
               {oneyrGrowthItems.length === 0 ? (
-                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-Year growth items.</div>
+                <div style={{ fontSize:12, color:"var(--text4)", fontStyle:"italic", padding:"8px 0" }}>No 1-YEAR growth items.</div>
               ) : (
                 oneyrGrowthItems.map(it => (
                   <ScoreRow key={it.id}
@@ -8908,6 +8912,9 @@ function A3BoardStub({ setA3Step, map, set }: any) {
 function A3({ intake, onDone, phase, setPhase }: any) {
   const [a3Step, setA3Step] = useState("intro");
   const a3Goto = (s: string) => { setA3Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const [voice, setVoice] = useState(intake?.defaultVoice || "coach");
+  useEffect(() => { loadData(KEYS.voice).then((v: any) => { if (v) setVoice(v); }); }, []);
+  const setVoicePersist = (v: any) => { setVoice(v); saveData(KEYS.voice, v); };
 
   const [map, setMap] = useState<any>({});
   useEffect(() => { loadData(KEYS.map).then((m: any) => { if (m) setMap(m); }); }, []);
@@ -8959,6 +8966,10 @@ function A3({ intake, onDone, phase, setPhase }: any) {
           </button>
         );
       })}
+      <div style={{ marginTop:18, paddingTop:14, borderTop:"1px solid var(--border)" }}>
+        <div style={{ fontSize:10, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--text4)", marginBottom:7, fontFamily:"var(--sans)" }}>Voice</div>
+        <VoiceDropdown voiceId={voice} onSelect={setVoicePersist} />
+      </div>
     </div>
   );
   const wrapA3 = (children: any) => (
@@ -9107,10 +9118,10 @@ const STEPS = [
   { id:"to_intro", label:"True Ownership" },
   { id:"intro",   label:"Introduction" },
   { id:"mirror1", label:"Purpose · Direction" },
-  { id:"direction_3yr",   label:"Direction · 3-Year" },
+  { id:"direction_3yr",   label:"Direction · 3-YEAR" },
   { id:"mirror2", label:"Identity · Superpowers" },
   { id:"mirror3", label:"Values · Behaviors" },
-  { id:"direction_1yr",   label:"Direction · 1-Year" },
+  { id:"direction_1yr",   label:"Direction · 1-YEAR" },
   { id:"direction_align", label:"Direction Alignment" },
   { id:"align",   label:"Alignment Check" },
   { id:"map",     label:"My Map of Me" },
@@ -9761,9 +9772,9 @@ function A1({ intake, onDone, phase, setPhase }) {
   if (step === "direction_1yr") {
     return wrapContent(<>
       <DirectionTimeline_v2 activeHorizon="oneyr" map={map} />
-      <div className="lbl" style={{ marginBottom:12 }}>Direction · 1-Year</div>
+      <div className="lbl" style={{ marginBottom:12 }}>Direction · 1-YEAR</div>
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
-        1-Year · {new Date().getFullYear() + 1}
+        1-YEAR · {new Date().getFullYear() + 1}
       </h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:560 }}>
         Closest horizon. This is what you can commit to. Your 1-year Growth draws
@@ -9799,7 +9810,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           placeholder="Ask Katherine about the gaps between today and your direction..." />
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-Year</button>
+        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-YEAR</button>
         <button className="btn" onClick={() => { markDone("direction_align"); goto("map"); }}>My Map of Me →</button>
       </div>
     </>);
@@ -10483,7 +10494,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror1_sub", "output")}>← The Mirror</button>
-          <button className="btn" onClick={() => { markDone("mirror1"); goto("direction_3yr"); }}>Direction · 3-Year →</button>
+          <button className="btn" onClick={() => { markDone("mirror1"); goto("direction_3yr"); }}>Direction · 3-YEAR →</button>
         </div>
       </>);
     }
@@ -10743,7 +10754,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           )}
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-          <button className="btn-g" onClick={() => goto("direction_3yr")}>← Direction · 3-Year</button>
+          <button className="btn-g" onClick={() => goto("direction_3yr")}>← Direction · 3-YEAR</button>
           <button className="btn" onClick={() => set("mirror2_sub", "capabilities")}>Superpowers →</button>
         </div>
       </>);
@@ -11571,7 +11582,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror3_sub", "behaviors")}>← Behaviors</button>
-          <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-Year →</button>
+          <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-YEAR →</button>
         </div>
       </>);
     }
@@ -11704,7 +11715,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         </div>
         <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
           <button className="btn-g" onClick={() => set("mirror3_sub", "hierarchy")}>← Hierarchy</button>
-          <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-Year →</button>
+          <button className="btn" onClick={() => { markDone("mirror3"); goto("direction_1yr"); }}>Direction · 1-YEAR →</button>
         </div>
       </>);
     }
@@ -11712,9 +11723,9 @@ function A1({ intake, onDone, phase, setPhase }) {
   if (step === "direction_3yr") {
     return wrapContent(<>
       <DirectionTimeline_v2 activeHorizon="threeyr" map={map} />
-      <div className="lbl" style={{ marginBottom:12 }}>Direction · 3-Year</div>
+      <div className="lbl" style={{ marginBottom:12 }}>Direction · 3-YEAR</div>
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>
-        3-Year · {new Date().getFullYear() + 3}
+        3-YEAR · {new Date().getFullYear() + 3}
       </h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>
         Pull the horizon closer. Same priorities, refined for {new Date().getFullYear() + 3}.
@@ -12404,7 +12415,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
       </div>
       {/* Hidden until end of program: <MapDownloadSection name={name} map={map} /> */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:18, borderTop:"1px solid var(--border)" }}>
-        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-Year</button>
+        <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-YEAR</button>
         <button className="btn" onClick={() => { markDone("map"); onDone(map); }}>Continue to A2 -- Align With It →</button>
       </div>
     </>);
