@@ -3361,7 +3361,7 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
   if (!open) return (
     <button onClick={() => setOpen(true)}
       style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"1px solid rgba(201,168,76,.22)", borderRadius:20, padding:"6px 14px", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, color:"var(--warm)", marginTop:12 }}>
-      <span style={{ fontSize:10 }}>◎</span> {saved ? "✓ Purpose confirmed" : "Own It Check"}
+      <span style={{ fontSize:10 }}>◎</span> {saved ? "✓ Purpose confirmed" : "Own It™ Check"}
     </button>
   );
   return (
@@ -3369,7 +3369,7 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
       <div style={{ padding:"12px 18px", borderBottom:"1px solid rgba(201,168,76,.12)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--warm)", animation:"pulse 2s infinite" }} />
-          <div style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)" }}>Own It Check</div>
+          <div style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:500, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)" }}>Own It™ Check</div>
           {avg > 0 && (
             <div style={{ fontSize:10, color: avg >= 7 ? "#34d399" : avg >= 5 ? "#f59e0b" : "#ef4444", fontWeight:600 }}>avg {avg}/10</div>
           )}
@@ -3617,9 +3617,9 @@ const A2_STEPS = [
   { id: "time_audit",   label: "Time Audit" },
   { id: "letter",       label: "Future Self Letter" },
   { id: "mirror",       label: "A2 Mirror" },
-  { id: "map",          label: "My Map of Me" },
+  { id: "map",          label: "My Map of Me™" },
 ];
-const A2_MAP_STEP = { id: "map", label: "My Map of Me" };
+const A2_MAP_STEP = { id: "map", label: "My Map of Me™" };
 function A2({ intake, onDone, phase, setPhase }) {
   const [a2Step, setA2Step] = useState("intro");
   const [a2Done, setA2Done] = useState([]);
@@ -3704,7 +3704,7 @@ function A2({ intake, onDone, phase, setPhase }) {
     <div style={{ borderBottom:"1px solid #1a1a16", padding:"11px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", position:"sticky", top:0, background:"rgba(13,27,46,.96)", backdropFilter:"blur(12px)", zIndex:50 }}>
       <div style={{ display:"flex", alignItems:"center", gap:11 }}>
         <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--warm)", animation:"pulse 3s ease-in-out infinite" }} />
-        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership™</div>
         <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>· {intake?.name || ""}</div>
       </div>
       {phaseTabs}
@@ -3762,7 +3762,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           if (idx >= 0 && idx < A2_STEPS.length - 1) a2Goto(A2_STEPS[idx + 1].id);
           else a2Goto("map");
         }}>Next →</button>}
-        <button className="btn-g" onClick={onDone}>← Back to Map of Me</button>
+        <button className="btn-g" onClick={onDone}>← Back to Map of Me™</button>
       </div>
     </div>
   );
@@ -3817,7 +3817,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     { icon:"⏳", label:"Time Audit", desc:"Where your week actually goes. Sort it. See what's missing. Map the trades you'd need to make." },
                     { icon:"✍️", label:"Future Self Letter", desc:"A letter from ten years ahead — not generated, written by you. Four short sections. Leave a reflection at the end." },
                     { icon:"🪞", label:"A2 Mirror", desc:"Everything you've seen, gathered in one place. Confirm the direction. Decide if it's still the pull." },
-                    { icon:"🗺️", label:"My Map of Me", desc:"Your living document. One Thing at the top — one sentence, your words — and the trades you committed to carry forward." },
+                    { icon:"🗺️", label:"My Map of Me™", desc:"Your living document. One Thing at the top — one sentence, your words — and the trades you committed to carry forward." },
                   ].map((item, i, arr) => (
                     <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:11, marginTop:14, marginBottom: i < arr.length - 1 ? 0 : 0 }}>
                       <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>{item.icon}</span>
@@ -5747,7 +5747,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             border:"1px solid var(--border2)", borderLeft:"3px solid var(--warm)",
             borderRadius:8,
           }}>
-            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:10 }}>From your A1 Map of Me</div>
+            <div style={{ fontSize:10, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", fontWeight:700, marginBottom:10 }}>From your A1 Map of Me™</div>
 
             {purpose && (
               <div style={{ marginBottom:16 }}>
@@ -6320,7 +6320,7 @@ const A3_STEPS = [
   { id:"thoughts",    label:"Energy Audit · Thoughts" },
   { id:"energymap",   label:"Energy Map" },
   { id:"board",       label:"The Board" },
-  { id:"map",         label:"My Map of Me" },
+  { id:"map",         label:"My Map of Me™" },
 ];
 
 const A3_BOARD_STRENGTHS = [
@@ -7483,7 +7483,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   Your inner landscape isn't fixed. Thoughts rise and fall. The voice that speaks <strong style={{ color: A3_TEAL, fontWeight:700 }}>to</strong> you today can be replaced by one that speaks <strong style={{ color: A3_TEAL, fontWeight:700 }}>with</strong> you — but only if you keep listening honestly, and keep reframing when the old voice takes over.
                 </p>
                 <p style={{ fontFamily:"var(--sans)", fontSize:16, color:"var(--text2)", lineHeight:1.8, maxWidth:640 }}>
-                  Your landscape and your Best Friend response come forward to your <strong style={{ color: A3_TEAL, fontWeight:700 }}>Map of Me</strong>, where they live alongside everything you built in A3.
+                  Your landscape and your Best Friend response come forward to your <strong style={{ color: A3_TEAL, fontWeight:700 }}>Map of Me™</strong>, where they live alongside everything you built in A3.
                 </p>
               </div>
             </>
@@ -8771,7 +8771,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
     <div style={{ borderBottom:"1px solid #1a1a16", padding:"11px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", position:"sticky", top:0, background:"rgba(13,27,46,.96)", backdropFilter:"blur(12px)", zIndex:50 }}>
       <div style={{ display:"flex", alignItems:"center", gap:11 }}>
         <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--warm)", animation:"pulse 3s ease-in-out infinite" }} />
-        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership™</div>
         <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>· {intake?.name || ""}</div>
       </div>
       {phaseTabs}
@@ -8834,7 +8834,7 @@ function Intake({ onDone }) {
   );
   const screens = [
     <div key="n" className="fade-up" style={{ maxWidth:540 }}>
-      <div style={{ fontSize:11, fontWeight:700, letterSpacing:4, textTransform:"uppercase", color:"#c9a84c", marginBottom:14, fontFamily:"var(--sans)" }}>AG45 · True Ownership</div>
+      <div style={{ fontSize:11, fontWeight:700, letterSpacing:4, textTransform:"uppercase", color:"#c9a84c", marginBottom:14, fontFamily:"var(--sans)" }}>AG45™ · True Ownership™</div>
       <h1 style={{ fontFamily:"var(--serif)", fontSize:52, fontWeight:400, lineHeight:1.0, letterSpacing:"-0.5px", marginBottom:18 }}>
         To own your life,<br /><em>you must first<br />belong to yourself.</em>
       </h1>
@@ -8846,7 +8846,7 @@ function Intake({ onDone }) {
       </p>
       {/* The 5 As */}
       <div style={{ marginBottom:28, padding:"18px 20px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:11 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:14, fontFamily:"var(--sans)" }}>The Five As -- Your Journey</div>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:"var(--warm)", marginBottom:14, fontFamily:"var(--sans)" }}>The Five As™ -- Your Journey</div>
         {[
           { a:"A1", label:"All In It",     color:"var(--warm)", desc:"Know yourself. Purpose, identity, values and direction. The foundation everything is built on." },
           { a:"A2", label:"Align With It", color:"#c9a84c",     desc:"Does how you spend your time, energy and money match who you are and where you are going?" },
@@ -8941,7 +8941,7 @@ function Intake({ onDone }) {
   );
 }
 const STEPS = [
-  { id:"to_intro", label:"True Ownership" },
+  { id:"to_intro", label:"True Ownership™" },
   { id:"intro",   label:"Introduction" },
   { id:"mirror1", label:"Purpose · Direction" },
   { id:"direction_3yr",   label:"Direction · 3-YEAR" },
@@ -8950,7 +8950,7 @@ const STEPS = [
   { id:"direction_1yr",   label:"Direction · 1-YEAR" },
   { id:"direction_align", label:"Direction Alignment" },
   { id:"align",   label:"Alignment Check" },
-  { id:"map",     label:"My Map of Me" },
+  { id:"map",     label:"My Map of Me™" },
 ];
 const EMPTY_MAP = {
   purpose_layers: [""],
@@ -9538,7 +9538,7 @@ function A1({ intake, onDone, phase, setPhase }) {
     <div style={{ borderBottom:"1px solid #1a1a16", padding:"11px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", position:"sticky", top:0, background:"rgba(13,27,46,.96)", backdropFilter:"blur(12px)", zIndex:50 }}>
       <div style={{ display:"flex", alignItems:"center", gap:11 }}>
         <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--warm)", animation:"pulse 3s ease-in-out infinite" }} />
-        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership</div>
+        <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership™</div>
         <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>· {name}</div>
       </div>
       <div style={{ display:"flex", alignItems:"center", gap:12 }}>
@@ -9621,7 +9621,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
-        <button className="btn" onClick={() => { markDone("direction_1yr"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("direction_1yr"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me™ →</button>
       </div>
     </>);
   }
@@ -9644,28 +9644,28 @@ function A1({ intake, onDone, phase, setPhase }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-YEAR</button>
-        <button className="btn" onClick={() => { markDone("direction_align"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("direction_align"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me™ →</button>
       </div>
     </>);
   }
   if (step === "to_intro") return wrapContent(<>
-    <div className="lbl" style={{ marginBottom:11, color:"#B07312" }}>AG45 · The OWN IT Methodology</div>
+    <div className="lbl" style={{ marginBottom:11, color:"#B07312" }}>AG45™ · The OWN IT™ Methodology</div>
     <h2 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:400, lineHeight:1.05, marginBottom:16, letterSpacing:"-0.5px" }}>
       You are the spine.<br /><em style={{ color:"#1D9E75" }}>How aligned are you?</em>
     </h2>
     <p style={{ fontSize:15, color:"var(--text2)", lineHeight:1.7, marginBottom:14, maxWidth:620 }}>
-      The 5 A&rsquo;s are the spine of True Ownership. Move through each one &mdash; first as the owner you are becoming, then as the business you are building.
+      The 5As™ are the spine of True Ownership. Move through each one &mdash; first as the owner you are becoming, then as the business you are building.
     </p>
     {/* True Ownership destination banner */}
     <div style={{ background:"linear-gradient(135deg,#12163A 0%,#0A2E22 100%)", borderRadius:16, padding:"22px 26px", textAlign:"center", color:"#fff", border:"1px solid rgba(186,117,23,0.35)", position:"relative", overflow:"hidden", margin:"18px 0 16px" }}>
       <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:"linear-gradient(90deg,#1B1F4B,#B07312,#0F6E56)" }} />
       <div style={{ fontSize:9, letterSpacing:"0.24em", textTransform:"uppercase", color:"#FAC775", marginBottom:6, fontWeight:700 }}>The destination &middot; When both sides align</div>
-      <div style={{ fontFamily:"var(--serif)", fontSize:"1.6rem", fontWeight:700, color:"#fff", marginBottom:8, lineHeight:1.1 }}>True Ownership</div>
+      <div style={{ fontFamily:"var(--serif)", fontSize:"1.6rem", fontWeight:700, color:"#fff", marginBottom:8, lineHeight:1.1 }}>True Ownership™</div>
       <div style={{ fontSize:13, opacity:0.82, lineHeight:1.65, maxWidth:540, margin:"0 auto 12px" }}>
-        Not the owner alone. Not the business alone. When you as the owner <em>and</em> your business are fully aligned &mdash; that is True Ownership. Soul Aligned Strategy, fully lived.
+        Not the owner alone. Not the business alone. When you as the owner <em>and</em> your business are fully aligned &mdash; that is True Ownership. Soul Aligned Strategy™, fully lived.
       </div>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, flexWrap:"wrap" }}>
-        <div style={{ background:"rgba(255,255,255,0.1)", border:"0.5px solid rgba(255,255,255,0.25)", borderRadius:6, padding:"4px 12px", fontSize:11, fontWeight:500 }}>OWN IT</div>
+        <div style={{ background:"rgba(255,255,255,0.1)", border:"0.5px solid rgba(255,255,255,0.25)", borderRadius:6, padding:"4px 12px", fontSize:11, fontWeight:500 }}>OWN IT™</div>
         <span style={{ fontSize:13, opacity:0.5 }}>+</span>
         <div style={{ background:"rgba(255,255,255,0.1)", border:"0.5px solid rgba(255,255,255,0.25)", borderRadius:6, padding:"4px 12px", fontSize:11, fontWeight:500 }}>Leader-Run Business</div>
         <span style={{ fontSize:13, color:"#FAC775", fontWeight:500 }}>=</span>
@@ -9686,7 +9686,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         <div style={{ fontSize:12, fontWeight:700 }}>The Owner</div>
         <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How you personally move through each A</div>
       </div>
-      <div style={{ textAlign:"center", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:"var(--text3)", lineHeight:1.4, fontWeight:600 }}>THE SPINE<br />THE 5 A&rsquo;s</div>
+      <div style={{ textAlign:"center", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:"var(--text3)", lineHeight:1.4, fontWeight:600 }}>THE SPINE<br />THE 5As™</div>
       <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(93,202,165,0.08)", color:"#5DCAA5", border:"0.5px solid rgba(93,202,165,0.25)", position:"relative" }}>
         <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#0F6E56", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(15,110,86,0.3)" }}>STEP 2 &darr;</div>
         <div style={{ fontSize:12, fontWeight:700 }}>The Business</div>
@@ -9807,7 +9807,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       points={[
         "Why belonging to yourself comes before building anything else",
         "The mirror principle -- internal reflects external",
-        "How the Map of Me works as a living document",
+        "How the Map of Me™ works as a living document",
         "Why the order of the three mirror pairs is deliberate"
       ]} />
     <MirrorIntroCards goto={goto} />
@@ -11961,7 +11961,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
-        <button className="btn" onClick={() => { markDone("align"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>Build My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("align"); saveData("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>Build My Map of Me™ →</button>
       </div>
     </>);
   }
@@ -12040,7 +12040,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.setTextColor(...GOLD);
-        doc.text(`True Ownership  ·  ${safeName}'s Map of Me`, textX, HEADER_H / 2 + 12);
+        doc.text(`True Ownership™  ·  ${safeName}'s Map of Me™`, textX, HEADER_H / 2 + 12);
       };
       const drawFooter = (pageNum: number, total: number) => {
         doc.setFont("helvetica", "normal");
@@ -12108,7 +12108,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(mode === "snapshot" ? 17 : 20);
       doc.setTextColor(...NAVY);
-      doc.text(`${safeName}'s Map of Me`, marginX, y);
+      doc.text(`${safeName}'s Map of Me™`, marginX, y);
       y += mode === "snapshot" ? 22 : 28;
       if (mode === "snapshot") {
         if (purpose) {
@@ -12214,7 +12214,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
   };
   return (
     <div style={{ padding:"17px 20px", background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:11, marginBottom:22 }}>
-      <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>Download your Map of Me</div>
+      <div style={{ fontSize:11, fontWeight:500, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:11 }}>Download your Map of Me™</div>
       <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
         <button className="btn-g" disabled={!!busy} onClick={() => generate("snapshot")}>
           {busy === "snapshot" ? "Generating..." : "⬇ Snapshot (1 page)"}
@@ -12769,7 +12769,7 @@ function MapOfMePage({ onBack }: any) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 28px", borderBottom: "1px solid var(--border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warm)" }} />
-          <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--text)", fontWeight: 600 }}>True Ownership</span>
+          <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--text)", fontWeight: 600 }}>True Ownership™</span>
           <span style={{ color: "var(--text4)" }}>·</span>
           <span style={{ fontFamily: "var(--serif)", fontSize: 14, fontStyle: "italic", color: "var(--text3)" }}>Katherine</span>
         </div>
@@ -12781,7 +12781,7 @@ function MapOfMePage({ onBack }: any) {
       <div style={{ display: "flex", alignItems: "flex-start" }}>
         {/* SIDEBAR */}
         <div style={{ width: 206, flexShrink: 0, padding: "24px 16px", borderRight: "1px solid var(--border)", minHeight: "calc(100vh - 47px)" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--text4)", marginBottom: 11 }}>My Map of Me</div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--text4)", marginBottom: 11 }}>My Map of Me™</div>
           <SidebarPhaseItem label="All In It · A1" done={a1Done} />
           <SidebarPhaseItem label="Align With It · A2" done={a2Done} />
           <SidebarPhaseItem label="Advocate For It · A3" done={a3Done} />
@@ -12791,7 +12791,7 @@ function MapOfMePage({ onBack }: any) {
           <div style={{ height: 1, background: "var(--border)", margin: "18px 0 13px" }} />
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--text4)", marginBottom: 9 }}>Progress</div>
           <div className="sidebar-btn active" style={{ cursor: "default" }}>
-            <span style={{ fontSize: 12, color: "var(--warm)", fontWeight: 600 }}>My Map of Me</span>
+            <span style={{ fontSize: 12, color: "var(--warm)", fontWeight: 600 }}>My Map of Me™</span>
           </div>
 
           <div style={{ height: 1, background: "var(--border)", margin: "18px 0 13px" }} />
@@ -12807,7 +12807,7 @@ function MapOfMePage({ onBack }: any) {
             color:"var(--text2)", padding:"5px 12px", borderRadius:14,
             fontFamily:"var(--sans)", fontSize:11, letterSpacing:0.5, cursor:"pointer",
           }}>← Back to {origin.toUpperCase()}</button>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--warm)", marginBottom: 11 }}>My Map of Me</div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--warm)", marginBottom: 11 }}>My Map of Me™</div>
           <h1 style={{ fontFamily: "var(--serif)", fontSize: 34, fontWeight: 400, lineHeight: 1.2, letterSpacing: "-0.5px", margin: "0 0 10px" }}>
             A living reflection of who you are — and what you're building.
           </h1>
@@ -12906,10 +12906,10 @@ function AuthedApp() {
           <div className="fade-up" style={{ maxWidth:480, textAlign:"center" }}>
             <div style={{ fontSize:38, marginBottom:14 }}>⛰️</div>
             <div className="lbl" style={{ marginBottom:11, display:"block" }}>A1 Complete</div>
-            <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:300, lineHeight:1.2, marginBottom:13, letterSpacing:"-0.5px" }}>Your Map of Me is built.<br /><em>Now we align it with your life.</em></h2>
+            <h2 style={{ fontFamily:"var(--serif)", fontSize:38, fontWeight:300, lineHeight:1.2, marginBottom:13, letterSpacing:"-0.5px" }}>Your Map of Me™ is built.<br /><em>Now we align it with your life.</em></h2>
             <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"#7a766e", lineHeight:1.8, marginBottom:26 }}>A2 -- Align With It -- asks: does how you actually live match who you now know yourself to be?</p>
             <button className="btn" style={{ marginBottom:11 }} onClick={() => setPhase("a2")}>A2 -- Align With It -&gt;</button>
-            <div><button className="btn-g" onClick={() => setPhase("a1")}>← Return to Map of Me</button></div>
+            <div><button className="btn-g" onClick={() => setPhase("a1")}>← Return to Map of Me™</button></div>
           </div>
         </div>
       )}
@@ -12953,7 +12953,7 @@ function SignInScreen() {
             width={220}
             style={{ height:"auto", display:"block", margin:"0 auto 28px" }}
           />
-          <div className="lbl" style={{ marginBottom:18 }}>True Ownership</div>
+          <div className="lbl" style={{ marginBottom:18 }}>True Ownership™</div>
           <h1 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:300, color:"#e8e3d8", marginBottom:14, letterSpacing:"-0.5px", lineHeight:1.15 }}>Welcome back</h1>
           <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"#7a766e", lineHeight:1.8 }}>Sign in to start — or pick up where you left off.</p>
         </div>
