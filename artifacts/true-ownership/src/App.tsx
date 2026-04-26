@@ -1156,9 +1156,9 @@ function PrefillNote_v2({ children }) {
 function DirectionTimeline_v2({ activeHorizon, map }) {
   const year = new Date().getFullYear();
   const points = [
-    { key: "bag",     label: "BAG",    year: String(year + 12), completed: !!map.growth_confirmed },
-    { key: "threeyr", label: "3-YEAR", year: String(year + 3),  completed: !!map.threeyr_growth_confirmed },
     { key: "oneyr",   label: "1-YEAR", year: String(year + 1),  completed: !!map.oneyr_growth_confirmed },
+    { key: "threeyr", label: "3-YEAR", year: String(year + 3),  completed: !!map.threeyr_growth_confirmed },
+    { key: "bag",     label: "BAG",    year: String(year + 12), completed: !!map.growth_confirmed },
   ];
   const horizonData = {
     bag: {
