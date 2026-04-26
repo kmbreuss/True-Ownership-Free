@@ -1,0 +1,1439 @@
+===== package.json =====
+{
+  "name": "ag45-strategy",
+  "version": "1.0.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "connect-pg-simple": "^10.0.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "pg": "^8.13.1"
+  }
+}
+
+===== server/db.js =====
+const { Pool } = require('pg');
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+async function init() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT,
+      role TEXT NOT NULL CHECK (role IN ('owner','client')),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  // For deployments where the column was originally NOT NULL: a freshly invited
+  // client has no password until they accept the invite, so allow NULL here.
+  await pool.query(`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS clients (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      owner_user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      logo_data_url TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  // For deployments that already had the table without the logo column.
+  await pool.query(`ALTER TABLE clients ADD COLUMN IF NOT EXISTS logo_data_url TEXT;`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS strategies (
+      client_id INTEGER PRIMARY KEY REFERENCES clients(id) ON DELETE CASCADE,
+      data JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+  // One-time invite tokens: a client receives one of these by email and uses
+  // it to set their password on first sign-in (or after the owner re-sends).
+  // status: 'pending' until consumed (used_at) or invalidated (expires_at).
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS invites (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token TEXT UNIQUE NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS invites_user_id_idx ON invites(user_id);`);
+}
+
+module.exports = { pool, init };
+
+===== public/login.html =====
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sign in · AG45 Owner's Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#FDFCF7; --bg2:#F8F5EC; --card:#FFFFFF;
+    --ink:#12163A; --ink-soft:#3A3F5C; --mute:#7A7B8A; --mute-soft:#B7B6C0;
+    --line:#E8E4D6; --line-soft:#F0EDE2;
+    --gold:#B07312; --gold-soft:#C99940; --navy:#1B1F4B; --green:#0F6E56;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg);
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:100%;max-width:420px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:36px 32px;
+    box-shadow:0 8px 32px rgba(18,22,58,0.08);
+  }
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+  .brand-mark{
+    font-family:'Playfair Display',serif;
+    font-size:26px;font-weight:600;
+    color:var(--navy);letter-spacing:0.02em;
+  }
+  .brand-mark .gold{color:var(--gold);font-style:italic}
+  .brand-eyebrow{
+    font-size:9px;letter-spacing:0.22em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;
+  }
+  .brand-name{
+    font-family:'Playfair Display',serif;
+    font-size:15px;color:var(--ink);font-weight:600;
+  }
+  h1{
+    font-family:'Playfair Display',serif;
+    font-size:22px;font-weight:600;
+    margin:0 0 6px;color:var(--ink);
+  }
+  .sub{
+    font-size:13px;color:var(--mute);
+    margin-bottom:24px;line-height:1.5;
+  }
+  label{
+    display:block;
+    font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;
+    margin-bottom:6px;
+  }
+  input{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--bg2);
+    font-family:inherit;font-size:14px;color:var(--ink);
+    margin-bottom:16px;
+  }
+  input:focus{outline:none;border-color:var(--gold);background:var(--card)}
+  button.primary{
+    width:100%;
+    padding:11px 16px;
+    background:var(--navy);
+    color:#FDF8E8;
+    border:none;border-radius:6px;
+    font-family:inherit;font-size:14px;font-weight:600;
+    letter-spacing:0.04em;
+    cursor:pointer;
+    transition:background 0.15s;
+  }
+  button.primary:hover{background:#252a5e}
+  button.primary:disabled{opacity:0.5;cursor:not-allowed}
+  .err{
+    font-size:13px;color:#9F1239;
+    background:rgba(159,18,57,0.06);
+    border:1px solid rgba(159,18,57,0.18);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:16px;
+    display:none;
+  }
+  .err.show{display:block}
+  .ok{
+    font-size:13px;color:var(--green);
+    background:rgba(15,110,86,0.06);
+    border:1px solid rgba(15,110,86,0.20);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:16px;
+    display:none;
+  }
+  .ok.show{display:block}
+  .foot{
+    margin-top:18px;
+    font-size:11px;color:var(--mute-soft);
+    text-align:center;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div>
+        <div class="brand-eyebrow">Owner's Circle</div>
+        <div class="brand-mark">AG<span class="gold">45</span></div>
+      </div>
+    </div>
+    <h1>Sign in</h1>
+    <div class="sub">Access your Soul-Aligned Strategy workspace.</div>
+    <div class="err" id="err"></div>
+    <form id="form">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="username" required/>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required/>
+      <button class="primary" id="submit" type="submit">Sign in</button>
+    </form>
+    <div class="foot">
+      Forgot your password? Ask your owner to set a new one for you.
+    </div>
+  </div>
+<script>
+(async function(){
+  // If already signed in, bounce away
+  try {
+    const r = await fetch('/api/me');
+    if (r.ok) {
+      const me = await r.json();
+      window.location.replace(me.role === 'owner' ? '/admin' : '/workspace');
+      return;
+    }
+  } catch(_){}
+
+  const form = document.getElementById('form');
+  const errEl = document.getElementById('err');
+  const submit = document.getElementById('submit');
+
+  function showErr(msg){ errEl.textContent = msg; errEl.classList.add('show'); }
+  function clearErr(){ errEl.classList.remove('show'); errEl.textContent = ''; }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErr();
+    submit.disabled = true;
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    try {
+      const r = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await r.json().catch(()=>({}));
+      if (!r.ok) {
+        showErr(body.error || 'Sign-in failed.');
+        submit.disabled = false;
+        return;
+      }
+      window.location.replace(body.role === 'owner' ? '/admin' : '/workspace');
+    } catch(err) {
+      showErr('Network error. Try again.');
+      submit.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
+
+===== public/admin.html =====
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Admin · AG45 Owner's Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#FDFCF7; --bg2:#F8F5EC; --card:#FFFFFF;
+    --ink:#12163A; --ink-soft:#3A3F5C; --mute:#7A7B8A; --mute-soft:#B7B6C0;
+    --line:#E8E4D6; --line-soft:#F0EDE2;
+    --gold:#B07312; --gold-soft:#C99940; --navy:#1B1F4B; --green:#0F6E56;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+  }
+  header{
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+  }
+  .header-inner{
+    max-width:1200px;margin:0 auto;
+    padding:18px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{
+    font-family:'Playfair Display',serif;
+    font-size:24px;font-weight:600;color:var(--navy);
+  }
+  .brand-mark .gold{color:var(--gold);font-style:italic}
+  .brand-eyebrow{
+    font-size:9px;letter-spacing:0.22em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;
+  }
+  .brand-name{
+    font-family:'Playfair Display',serif;
+    font-size:15px;color:var(--ink);font-weight:600;
+  }
+  .user-menu{display:flex;align-items:center;gap:14px}
+  .user-email{
+    font-size:12px;color:var(--mute);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .btn{
+    background:none;border:1px solid var(--line);
+    padding:7px 12px;border-radius:6px;
+    font-family:inherit;font-size:12px;color:var(--ink-soft);
+    cursor:pointer;font-weight:500;
+    letter-spacing:0.02em;
+    transition:background 0.15s;
+  }
+  .btn:hover{background:var(--bg2)}
+  .btn.primary{
+    background:var(--navy);color:#FDF8E8;border-color:var(--navy);
+    font-weight:600;
+  }
+  .btn.primary:hover{background:#252a5e}
+  .btn.danger{color:#9F1239;border-color:rgba(159,18,57,0.25)}
+  .btn.danger:hover{background:rgba(159,18,57,0.06)}
+
+  main{max-width:1200px;margin:0 auto;padding:32px 24px}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+  .eyebrow{
+    font-size:10px;letter-spacing:0.22em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;margin-bottom:4px;
+  }
+  h1{
+    font-family:'Playfair Display',serif;
+    font-size:30px;font-weight:600;margin:0;color:var(--ink);
+  }
+  .desc{font-size:13px;color:var(--mute);margin-top:4px;max-width:560px;line-height:1.5}
+
+  .clients-table{
+    width:100%;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .clients-row{
+    display:grid;
+    grid-template-columns: 56px 1fr 1.2fr 0.8fr auto;
+    gap:16px;
+    padding:14px 18px;
+    align-items:center;
+    border-bottom:1px solid var(--line-soft);
+    cursor:pointer;
+    transition:background 0.1s;
+  }
+  .logo-thumb{
+    width:40px;height:40px;border-radius:6px;
+    background:var(--bg2);border:1px solid var(--line-soft);
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .logo-thumb img{width:100%;height:100%;object-fit:contain}
+  .logo-thumb-fallback{
+    font-family:'Playfair Display',serif;
+    font-size:14px;font-weight:600;color:var(--mute);
+  }
+  .role-pill{
+    display:inline-block;
+    font-size:9px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--gold);font-weight:700;
+    background:rgba(176,115,18,0.08);
+    border:1px solid rgba(176,115,18,0.18);
+    padding:2px 7px;border-radius:10px;
+    margin-left:8px;vertical-align:middle;
+  }
+
+  .section-head{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
+    margin:36px 0 12px;
+  }
+  .section-eyebrow{
+    font-size:10px;letter-spacing:0.22em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;
+  }
+  .section-title{
+    font-family:'Playfair Display',serif;
+    font-size:22px;font-weight:600;margin:2px 0 0;color:var(--ink);
+  }
+  .owners-table{
+    width:100%;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .owners-row{
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap:16px;padding:12px 18px;
+    align-items:center;
+    border-bottom:1px solid var(--line-soft);
+    font-size:13px;
+  }
+  .owners-row:last-child{border-bottom:none}
+  .owners-row.head{
+    background:var(--bg2);
+    font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;
+  }
+  .clients-row:last-child{border-bottom:none}
+  .clients-row:hover{background:var(--bg2)}
+  .clients-row.head{
+    background:var(--bg2);
+    cursor:default;
+    font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;
+  }
+  .clients-row.head:hover{background:var(--bg2)}
+  .client-name{
+    font-family:'Playfair Display',serif;
+    font-size:17px;font-weight:600;color:var(--ink);
+  }
+  .client-email{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--ink-soft);
+  }
+  .client-meta{
+    font-size:11px;color:var(--mute);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .row-actions{display:flex;gap:6px;justify-content:flex-end}
+  .empty{
+    padding:48px 24px;text-align:center;
+  }
+  .empty-title{
+    font-family:'Playfair Display',serif;
+    font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px;
+  }
+  .empty-body{
+    font-size:13px;color:var(--mute);max-width:460px;margin:0 auto;line-height:1.55;
+  }
+
+  /* Modal */
+  .modal-bg{
+    position:fixed;inset:0;
+    background:rgba(18,22,58,0.45);
+    display:none;align-items:center;justify-content:center;
+    padding:24px;z-index:50;
+  }
+  .modal-bg.show{display:flex}
+  .modal{
+    background:var(--card);
+    border-radius:10px;
+    width:100%;max-width:460px;
+    padding:28px 28px 24px;
+    box-shadow:0 16px 48px rgba(18,22,58,0.2);
+  }
+  .modal h2{
+    font-family:'Playfair Display',serif;
+    font-size:20px;font-weight:600;margin:0 0 16px;
+  }
+  .modal label{
+    display:block;
+    font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
+    color:var(--mute);font-weight:600;
+    margin-bottom:6px;
+  }
+  .modal input{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:var(--bg2);
+    font-family:inherit;font-size:14px;color:var(--ink);
+    margin-bottom:14px;
+  }
+  .modal input:focus{outline:none;border-color:var(--gold);background:var(--card)}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+  .modal-err{
+    font-size:13px;color:#9F1239;
+    background:rgba(159,18,57,0.06);
+    border:1px solid rgba(159,18,57,0.18);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    display:none;
+  }
+  .modal-err.show{display:block}
+  .modal-help{
+    font-size:13px;color:var(--ink-soft);
+    margin:-2px 0 14px;line-height:1.5;
+  }
+  .modal-help strong{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div>
+        <div class="brand-eyebrow">Owner's Circle · Admin</div>
+        <div class="brand-mark">AG<span class="gold">45</span> <span style="font-family:'Playfair Display',serif;font-size:14px;color:var(--ink-soft);font-weight:500;font-style:italic">· Soul-Aligned Strategy</span></div>
+      </div>
+    </div>
+    <div class="user-menu">
+      <span class="user-email" id="user-email"></span>
+      <button class="btn" id="change-pwd-btn">Change password</button>
+      <button class="btn" id="logout-btn">Sign out</button>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Clients</div>
+      <h1>All workspaces</h1>
+      <div class="desc">Each client has one sign-in and one strategy workspace. Click any row to view or edit their workspace as the owner.</div>
+    </div>
+    <button class="btn primary" id="new-client-btn">+ New client</button>
+  </div>
+
+  <div class="clients-table" id="table">
+    <div class="clients-row head">
+      <div>Logo</div>
+      <div>Name</div>
+      <div>Sign-in email</div>
+      <div>Last updated</div>
+      <div></div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="section-head">
+    <div>
+      <div class="section-eyebrow">Owners</div>
+      <h2 class="section-title">Admin sign-ins</h2>
+    </div>
+  </div>
+  <div class="owners-table" id="owners-table">
+    <div class="owners-row head">
+      <div>Sign-in email</div>
+      <div>Linked client workspace</div>
+      <div></div>
+    </div>
+    <div id="owners-rows"></div>
+  </div>
+</main>
+
+<!-- New client modal -->
+<div class="modal-bg" id="new-modal">
+  <div class="modal">
+    <h2>New client</h2>
+    <div class="modal-err" id="new-err"></div>
+    <form id="new-form">
+      <div class="modal-help">
+        Set up a sign-in for your client. Share the email and password with them directly — they can change the password later from their workspace.
+      </div>
+      <label>Client name</label>
+      <input id="nc-name" required maxlength="120" placeholder="Acme Holdings"/>
+      <label>Sign-in email</label>
+      <input id="nc-email" type="email" required placeholder="owner@acme.com"/>
+      <label>Password</label>
+      <input id="nc-password" type="password" required minlength="8" placeholder="At least 8 characters"/>
+      <label>Confirm password</label>
+      <input id="nc-password2" type="password" required minlength="8"/>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close-modal="new-modal">Cancel</button>
+        <button type="submit" class="btn primary" id="nc-submit">Create client</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Owner-driven change password modal (any user) -->
+<div class="modal-bg" id="chpw-modal">
+  <div class="modal">
+    <h2>Set a new password</h2>
+    <div class="modal-err" id="chpw-err"></div>
+    <form id="chpw-form">
+      <div class="modal-help">
+        Setting a new password for <strong id="chpw-target"></strong>. Their existing sign-in sessions will be ended — share the new password with them.
+      </div>
+      <label>New password</label>
+      <input id="chpw-new" type="password" required minlength="8" placeholder="At least 8 characters"/>
+      <label>Confirm password</label>
+      <input id="chpw-new2" type="password" required minlength="8"/>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close-modal="chpw-modal">Cancel</button>
+        <button type="submit" class="btn primary" id="chpw-submit">Update password</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Change my own password modal -->
+<div class="modal-bg" id="cp-modal">
+  <div class="modal">
+    <h2>Change your password</h2>
+    <div class="modal-err" id="cp-err"></div>
+    <form id="cp-form">
+      <label>Current password</label>
+      <input id="cp-current" type="password" required/>
+      <label>New password</label>
+      <input id="cp-new" type="password" required minlength="8"/>
+      <label>Confirm password</label>
+      <input id="cp-new2" type="password" required minlength="8"/>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close-modal="cp-modal">Cancel</button>
+        <button type="submit" class="btn primary">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let me = null;
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(s){
+  if (!s) return '—';
+  try {
+    const d = new Date(s);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch(_) { return '—'; }
+}
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){
+  const m = document.getElementById(id);
+  m.classList.remove('show');
+  m.querySelectorAll('.modal-err').forEach(e => { e.classList.remove('show'); e.textContent=''; });
+  m.querySelectorAll('form').forEach(f => f.reset());
+  m.querySelectorAll('button[type="submit"], .btn.primary').forEach(b => { b.disabled = false; });
+}
+document.querySelectorAll('[data-close-modal]').forEach(b => {
+  b.addEventListener('click', () => closeModal(b.dataset.closeModal));
+});
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', (e) => { if (e.target === bg) closeModal(bg.id); });
+});
+
+async function loadMe(){
+  const r = await fetch('/api/me');
+  if (!r.ok) { window.location.replace('/login'); return null; }
+  const j = await r.json();
+  if (j.role !== 'owner') { window.location.replace('/workspace'); return null; }
+  return j;
+}
+
+async function loadClients(){
+  const r = await fetch('/api/clients');
+  if (!r.ok) { document.getElementById('rows').innerHTML = '<div class="empty"><div class="empty-body">Could not load clients.</div></div>'; return; }
+  const list = await r.json();
+  const rows = document.getElementById('rows');
+  if (list.length === 0) {
+    rows.innerHTML = `
+      <div class="empty">
+        <div class="empty-title">No clients yet</div>
+        <div class="empty-body">Click "New client" to create the first workspace. Each client gets a sign-in and their own private strategy workspace.</div>
+      </div>`;
+    return;
+  }
+  rows.innerHTML = list.map(c => {
+    const initial = (c.name || '?').trim().charAt(0).toUpperCase() || '?';
+    const thumb = c.logo_data_url
+      ? `<img src="${esc(c.logo_data_url)}" alt=""/>`
+      : `<span class="logo-thumb-fallback">${esc(initial)}</span>`;
+    const rolePill = c.role === 'owner' ? `<span class="role-pill" title="This client login is also an owner">Owner</span>` : '';
+    const promoteBtn = c.role === 'owner'
+      ? `<button class="btn" data-act="demote" data-uid="${c.user_id}" data-name="${esc(c.email)}">Demote to client</button>`
+      : `<button class="btn" data-act="promote" data-uid="${c.user_id}" data-name="${esc(c.email)}">Promote to owner</button>`;
+    return `
+    <div class="clients-row" data-client-id="${c.id}" data-client-name="${esc(c.name)}">
+      <div class="logo-thumb">${thumb}</div>
+      <div class="client-name">${esc(c.name)}${rolePill}</div>
+      <div class="client-email">${esc(c.email)}</div>
+      <div class="client-meta">${fmtDate(c.updated_at)}</div>
+      <div class="row-actions">
+        <button class="btn primary" data-act="open" data-id="${c.id}">Open workspace</button>
+        ${promoteBtn}
+        <button class="btn" data-act="chpw" data-uid="${c.user_id}" data-name="${esc(c.email)}">Change password</button>
+        <button class="btn danger" data-act="delete" data-id="${c.id}" data-name="${esc(c.name)}">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  rows.querySelectorAll('.clients-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
+      window.location.href = '/workspace?client=' + encodeURIComponent(row.dataset.clientId);
+    });
+  });
+  rows.querySelectorAll('button[data-act="open"]').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = '/workspace?client=' + encodeURIComponent(b.dataset.id);
+    });
+  });
+  rows.querySelectorAll('button[data-act="delete"]').forEach(b => {
+    b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = b.dataset.id;
+      const name = b.dataset.name;
+      if (!confirm(`Delete client "${name}" and all of their strategy data? This cannot be undone.`)) return;
+      const r = await fetch('/api/clients/' + id, { method: 'DELETE' });
+      if (!r.ok) { alert('Delete failed.'); return; }
+      reloadAll();
+    });
+  });
+  rows.querySelectorAll('button[data-act="chpw"]').forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openChangePasswordModal(b.dataset.uid, b.dataset.name);
+    });
+  });
+  rows.querySelectorAll('button[data-act="promote"]').forEach(b => {
+    b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!confirm(`Promote ${b.dataset.name} to owner? They'll be able to see and edit every client workspace.`)) return;
+      await setRole(b.dataset.uid, 'owner');
+    });
+  });
+  rows.querySelectorAll('button[data-act="demote"]').forEach(b => {
+    b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!confirm(`Demote ${b.dataset.name} from owner back to client? They'll only see their own workspace.`)) return;
+      await setRole(b.dataset.uid, 'client');
+    });
+  });
+}
+
+async function loadOwners(){
+  const r = await fetch('/api/owners');
+  const rowsEl = document.getElementById('owners-rows');
+  if (!r.ok) { rowsEl.innerHTML = ''; return; }
+  const list = await r.json();
+  if (list.length === 0) { rowsEl.innerHTML = '<div class="owners-row"><div style="color:var(--mute)">No owners.</div><div></div><div></div></div>'; return; }
+  rowsEl.innerHTML = list.map(o => {
+    const isMe = me && o.id === me.id;
+    const linked = o.client_name
+      ? `<span class="client-email">${esc(o.client_name)}</span>`
+      : `<span style="color:var(--mute);font-size:12px">— no workspace —</span>`;
+    // Every owner row gets Change password — including the current owner
+    // (so they can reset their own password from the Owners table without
+    // having to dig out the workspace header). Only the demote action is
+    // suppressed for "you" so the last owner can't lock themselves out.
+    const actions = isMe
+      ? `
+        <button class="btn" data-act="chpw-owner" data-uid="${o.id}" data-name="${esc(o.email)}">Change password</button>
+        <span style="color:var(--mute);font-size:11px;font-style:italic">that's you</span>
+      `
+      : `
+        <button class="btn" data-act="chpw-owner" data-uid="${o.id}" data-name="${esc(o.email)}">Change password</button>
+        <button class="btn" data-act="demote-owner" data-uid="${o.id}" data-name="${esc(o.email)}">Demote to client</button>
+      `;
+    return `
+    <div class="owners-row">
+      <div class="client-email">${esc(o.email)}</div>
+      <div>${linked}</div>
+      <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${actions}</div>
+    </div>`;
+  }).join('');
+  rowsEl.querySelectorAll('button[data-act="demote-owner"]').forEach(b => {
+    b.addEventListener('click', async () => {
+      if (!confirm(`Demote ${b.dataset.name} from owner back to client?`)) return;
+      await setRole(b.dataset.uid, 'client');
+    });
+  });
+  rowsEl.querySelectorAll('button[data-act="chpw-owner"]').forEach(b => {
+    b.addEventListener('click', () => {
+      openChangePasswordModal(b.dataset.uid, b.dataset.name);
+    });
+  });
+}
+
+async function setRole(userId, role){
+  const r = await fetch('/api/users/' + encodeURIComponent(userId) + '/role', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role }),
+  });
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok) { alert(j.error || 'Could not change role.'); return; }
+  reloadAll();
+}
+
+function reloadAll(){ loadClients(); loadOwners(); }
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.replace('/login');
+});
+document.getElementById('change-pwd-btn').addEventListener('click', () => openModal('cp-modal'));
+document.getElementById('new-client-btn').addEventListener('click', () => {
+  document.getElementById('new-form').reset();
+  openModal('new-modal');
+});
+
+function openChangePasswordModal(userId, label){
+  document.getElementById('chpw-form').reset();
+  const errEl = document.getElementById('chpw-err');
+  errEl.classList.remove('show'); errEl.textContent = '';
+  document.getElementById('chpw-target').textContent = label || '';
+  document.getElementById('chpw-submit').dataset.uid = userId;
+  document.getElementById('chpw-submit').disabled = false;
+  openModal('chpw-modal');
+}
+
+document.getElementById('new-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('new-err');
+  errEl.classList.remove('show');
+  const submit = document.getElementById('nc-submit');
+  const pwd = document.getElementById('nc-password').value;
+  const pwd2 = document.getElementById('nc-password2').value;
+  if (pwd !== pwd2) {
+    errEl.textContent = "Passwords don't match.";
+    errEl.classList.add('show');
+    return;
+  }
+  if (pwd.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.classList.add('show');
+    return;
+  }
+  submit.disabled = true;
+  const body = {
+    name: document.getElementById('nc-name').value.trim(),
+    email: document.getElementById('nc-email').value.trim(),
+    password: pwd,
+  };
+  try {
+    const r = await fetch('/api/clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok) {
+      errEl.textContent = j.error || 'Could not create client.';
+      errEl.classList.add('show');
+      submit.disabled = false;
+      return;
+    }
+    closeModal('new-modal');
+    loadClients();
+  } catch(err) {
+    errEl.textContent = 'Network error.';
+    errEl.classList.add('show');
+    submit.disabled = false;
+  }
+});
+
+document.getElementById('chpw-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('chpw-err');
+  errEl.classList.remove('show');
+  const submit = document.getElementById('chpw-submit');
+  const uid = submit.dataset.uid;
+  const pwd = document.getElementById('chpw-new').value;
+  const pwd2 = document.getElementById('chpw-new2').value;
+  if (pwd !== pwd2) {
+    errEl.textContent = "Passwords don't match.";
+    errEl.classList.add('show');
+    return;
+  }
+  if (pwd.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.classList.add('show');
+    return;
+  }
+  submit.disabled = true;
+  try {
+    const r = await fetch('/api/users/' + encodeURIComponent(uid) + '/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword: pwd }),
+    });
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok) {
+      errEl.textContent = j.error || 'Could not update password.';
+      errEl.classList.add('show');
+      submit.disabled = false;
+      return;
+    }
+    closeModal('chpw-modal');
+    alert('Password updated. The user will need to sign in again with the new password.');
+  } catch(_e) {
+    errEl.textContent = 'Network error.';
+    errEl.classList.add('show');
+    submit.disabled = false;
+  }
+});
+
+document.getElementById('cp-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('cp-err');
+  errEl.classList.remove('show');
+  const pwd = document.getElementById('cp-new').value;
+  const pwd2 = document.getElementById('cp-new2').value;
+  if (pwd !== pwd2) {
+    errEl.textContent = "New passwords don't match.";
+    errEl.classList.add('show');
+    return;
+  }
+  const r = await fetch('/api/me/password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      currentPassword: document.getElementById('cp-current').value,
+      newPassword: pwd,
+    }),
+  });
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok) {
+    errEl.textContent = j.error || 'Could not update password.';
+    errEl.classList.add('show');
+    return;
+  }
+  closeModal('cp-modal');
+  alert('Password updated.');
+});
+
+(async function(){
+  me = await loadMe();
+  if (!me) return;
+  document.getElementById('user-email').textContent = me.email;
+  reloadAll();
+})();
+</script>
+</body>
+</html>
+
+===== server.js =====
+const path = require('path');
+const crypto = require('crypto');
+const express = require('express');
+const session = require('express-session');
+const PgSession = require('connect-pg-simple')(session);
+const bcrypt = require('bcryptjs');
+
+const { pool, init } = require('./server/db');
+const { INITIAL } = require('./server/initialState');
+const { getSessionSecret, ensureSeedOwner, bootstrapOwnerFromEnv } = require('./server/seed');
+const { sendInviteEmail, describeEmailConfig } = require('./server/mailer');
+
+// Invites are valid for 7 days. After that the owner has to re-send.
+// (The invite/accept-invite flow is kept dormant — the active flow is
+// owner-typed passwords plus owner-driven password resets.)
+const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function buildInviteUrl(req, token) {
+  // Trust proxy is on, so req.protocol/host reflect the real public URL
+  // (Replit preview, deployment, etc).
+  return `${req.protocol}://${req.get('host')}/accept-invite/${token}`;
+}
+
+async function issueInviteForUser(userId) {
+  // Invalidate any pending invites for this user so the previous link can't
+  // also be used after the owner re-sends.
+  await pool.query(
+    "UPDATE invites SET expires_at = NOW() WHERE user_id=$1 AND used_at IS NULL AND expires_at > NOW()",
+    [userId]
+  );
+  const token = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + INVITE_TTL_MS);
+  await pool.query(
+    'INSERT INTO invites (user_id, token, expires_at) VALUES ($1, $2, $3)',
+    [userId, token, expires]
+  );
+  return { token, expiresAt: expires.toISOString() };
+}
+
+const PORT = parseInt(process.env.PORT || '5000', 10);
+
+async function main() {
+  await init();
+  const seeded = await ensureSeedOwner();
+  if (seeded) {
+    console.log('\n========================================');
+    console.log('  SEED OWNER ACCOUNT CREATED');
+    console.log('  Email:    ' + seeded.email);
+    console.log('  Password: ' + seeded.password);
+    console.log('  (Change this after first sign-in.)');
+    console.log('========================================\n');
+  }
+  try {
+    const bootstrapped = await bootstrapOwnerFromEnv();
+    if (bootstrapped && bootstrapped.action !== 'noop') {
+      console.log('\n========================================');
+      console.log('  OWNER BOOTSTRAP (' + bootstrapped.action + ')');
+      console.log('  Email: ' + bootstrapped.email);
+      console.log('========================================\n');
+    }
+  } catch (err) {
+    console.error('Owner bootstrap failed:', err && err.message ? err.message : err);
+  }
+  const sessionSecret = await getSessionSecret();
+
+  const app = express();
+  app.set('trust proxy', 1);
+  app.use(express.json({ limit: '5mb' }));
+  app.use(session({
+    store: new PgSession({ pool, tableName: 'user_sessions', createTableIfMissing: true }),
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      // Secure-by-default in production. Dev/Replit preview is over the
+      // workspace proxy where secure cookies aren't set, so we relax there.
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    },
+  }));
+
+  // ---------- helpers ----------
+  // Resolve the user from the DB on every protected request so role changes
+  // (promote/demote) and user deletions take effect immediately, even for
+  // sessions that are already open. Sets req.user = { id, email, role }.
+  async function requireAuth(req, res, next) {
+    if (!req.session || !req.session.userId) return res.status(401).json({ error: 'unauthenticated' });
+    try {
+      const r = await pool.query('SELECT id, email, role FROM users WHERE id=$1', [req.session.userId]);
+      if (r.rowCount === 0) {
+        req.session.destroy(() => {});
+        return res.status(401).json({ error: 'unauthenticated' });
+      }
+      req.user = r.rows[0];
+      next();
+    } catch (e) { next(e); }
+  }
+  function requireOwner(req, res, next) {
+    if (!req.user || req.user.role !== 'owner') return res.status(403).json({ error: 'forbidden' });
+    next();
+  }
+  // Wipe a user's active sessions from the connect-pg-simple store so a
+  // demoted (or promoted, or deleted) user is forced to sign in again.
+  async function destroyUserSessions(userId) {
+    try {
+      await pool.query(
+        "DELETE FROM user_sessions WHERE (sess::jsonb)->>'userId' = $1",
+        [String(userId)]
+      );
+    } catch (e) { console.error('destroyUserSessions failed', e); }
+  }
+
+  // ---------- AUTH ----------
+  app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
+    const r = await pool.query('SELECT id, email, password_hash, role FROM users WHERE email=$1', [String(email).toLowerCase().trim()]);
+    if (r.rowCount === 0) return res.status(401).json({ error: 'Invalid email or password.' });
+    const u = r.rows[0];
+    // A freshly invited user has no password_hash yet — they need to accept
+    // their invite before they can sign in.
+    if (!u.password_hash) {
+      return res.status(401).json({ error: 'This account was set up via invite. Use your invite link to set a password first.' });
+    }
+    const ok = await bcrypt.compare(password, u.password_hash);
+    if (!ok) return res.status(401).json({ error: 'Invalid email or password.' });
+    req.session.userId = u.id;
+    req.session.role = u.role;
+    res.json({ id: u.id, email: u.email, role: u.role });
+  });
+
+  app.post('/api/logout', (req, res) => {
+    req.session.destroy(() => res.json({ ok: true }));
+  });
+
+  app.get('/api/me', requireAuth, async (req, res) => {
+    let clientId = null;
+    if (req.user.role === 'client') {
+      const c = await pool.query('SELECT id FROM clients WHERE owner_user_id=$1', [req.user.id]);
+      clientId = c.rowCount ? c.rows[0].id : null;
+    }
+    res.json({ id: req.user.id, email: req.user.email, role: req.user.role, clientId });
+  });
+
+  app.post('/api/me/password', requireAuth, async (req, res) => {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Both passwords required.' });
+    if (String(newPassword).length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    const r = await pool.query('SELECT password_hash FROM users WHERE id=$1', [req.user.id]);
+    const ok = await bcrypt.compare(currentPassword, r.rows[0].password_hash);
+    if (!ok) return res.status(401).json({ error: 'Current password is incorrect.' });
+    const hash = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, req.user.id]);
+    res.json({ ok: true });
+  });
+
+  // ---------- CLIENTS (owners only for create/list/delete) ----------
+  app.get('/api/clients', requireAuth, requireOwner, async (req, res) => {
+    // invite_pending = true when the user has never set a password (the only
+    // way to sign in is via an active invite link).
+    const r = await pool.query(`
+      SELECT c.id, c.name, c.logo_data_url, c.created_at, c.updated_at,
+             u.email, u.id AS user_id, u.role,
+             (u.password_hash IS NULL) AS invite_pending
+      FROM clients c JOIN users u ON u.id = c.owner_user_id
+      ORDER BY LOWER(c.name)
+    `);
+    res.json(r.rows);
+  });
+
+  // List all owners (so admins can see + demote them).
+  app.get('/api/owners', requireAuth, requireOwner, async (req, res) => {
+    const r = await pool.query(`
+      SELECT u.id, u.email, u.created_at,
+             c.id AS client_id, c.name AS client_name
+      FROM users u
+      LEFT JOIN clients c ON c.owner_user_id = u.id
+      WHERE u.role = 'owner'
+      ORDER BY LOWER(u.email)
+    `);
+    res.json(r.rows);
+  });
+
+  // Promote/demote a user. Body: { role: 'owner' | 'client' }.
+  // Refuses to demote yourself, and refuses to remove the last owner.
+  app.post('/api/users/:id/role', requireAuth, requireOwner, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Bad id.' });
+    const { role } = req.body || {};
+    if (role !== 'owner' && role !== 'client') {
+      return res.status(400).json({ error: "role must be 'owner' or 'client'." });
+    }
+    const u = await pool.query('SELECT id, role FROM users WHERE id=$1', [id]);
+    if (u.rowCount === 0) return res.status(404).json({ error: 'User not found.' });
+    const current = u.rows[0];
+    if (current.role === role) return res.json({ ok: true, unchanged: true });
+    if (id === req.user.id && role === 'client') {
+      return res.status(400).json({ error: "You can't demote yourself." });
+    }
+    if (current.role === 'owner' && role === 'client') {
+      const owners = await pool.query("SELECT COUNT(*)::int AS n FROM users WHERE role='owner'");
+      if (owners.rows[0].n <= 1) {
+        return res.status(400).json({ error: 'At least one owner must exist.' });
+      }
+    }
+    await pool.query('UPDATE users SET role=$1 WHERE id=$2', [role, id]);
+    // Force the affected user out of all open sessions so the new role is
+    // enforced immediately on their next request (no waiting for cookie expiry).
+    await destroyUserSessions(id);
+    res.json({ ok: true });
+  });
+
+  app.post('/api/clients', requireAuth, requireOwner, async (req, res) => {
+    const { name, email, password } = req.body || {};
+    const cleanName = String(name || '').trim();
+    const cleanEmail = String(email || '').toLowerCase().trim();
+    const cleanPassword = String(password || '');
+    if (!cleanName) return res.status(400).json({ error: 'Client name is required.' });
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return res.status(400).json({ error: 'A valid sign-in email is required.' });
+    if (cleanPassword.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+
+    const exists = await pool.query('SELECT id FROM users WHERE email=$1', [cleanEmail]);
+    if (exists.rowCount > 0) return res.status(409).json({ error: 'A user with that email already exists.' });
+
+    // Owner-typed password is stored immediately so the client can sign in
+    // straight away with the credentials the owner shares with them.
+    const hash = await bcrypt.hash(cleanPassword, 10);
+    const c = await pool.connect();
+    let client;
+    try {
+      await c.query('BEGIN');
+      const u = await c.query("INSERT INTO users (email, password_hash, role) VALUES ($1, $2, 'client') RETURNING id", [cleanEmail, hash]);
+      const userId = u.rows[0].id;
+      const cl = await c.query('INSERT INTO clients (name, owner_user_id) VALUES ($1, $2) RETURNING id, name, created_at, updated_at', [cleanName, userId]);
+      client = cl.rows[0];
+      await c.query('INSERT INTO strategies (client_id, data) VALUES ($1, $2)', [client.id, JSON.stringify(INITIAL)]);
+      await c.query('COMMIT');
+    } catch (e) {
+      await c.query('ROLLBACK');
+      console.error(e);
+      return res.status(500).json({ error: 'Failed to create client.' });
+    } finally {
+      c.release();
+    }
+
+    res.status(201).json({ ...client, email: cleanEmail });
+  });
+
+  app.delete('/api/clients/:id', requireAuth, requireOwner, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Bad id.' });
+    const r = await pool.query('SELECT owner_user_id FROM clients WHERE id=$1', [id]);
+    if (r.rowCount === 0) return res.status(404).json({ error: 'Not found.' });
+    const userId = r.rows[0].owner_user_id;
+    await pool.query('DELETE FROM users WHERE id=$1', [userId]); // cascades clients + strategies
+    await destroyUserSessions(userId);
+    res.json({ ok: true });
+  });
+
+  // Owner-driven password change for any user (clients or other owners).
+  // No current-password challenge — the owner is trusted to reset on behalf
+  // of the user. The affected user's open sessions are wiped so they have
+  // to sign in again with the new password.
+  app.post('/api/users/:id/change-password', requireAuth, requireOwner, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Bad id.' });
+    const { newPassword } = req.body || {};
+    if (!newPassword || String(newPassword).length < 8) {
+      return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    }
+    const u = await pool.query('SELECT id FROM users WHERE id=$1', [id]);
+    if (u.rowCount === 0) return res.status(404).json({ error: 'User not found.' });
+    const hash = await bcrypt.hash(String(newPassword), 10);
+    await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, id]);
+    await destroyUserSessions(id);
+    res.json({ ok: true });
+  });
+
+  // ---------- INVITE ACCEPTANCE (public) ----------
+  // The client visits /accept-invite/:token, the page calls these to fetch
+  // metadata and submit a new password.
+  async function loadInvite(token) {
+    if (!token || typeof token !== 'string') return null;
+    const r = await pool.query(`
+      SELECT i.id, i.user_id, i.expires_at, i.used_at,
+             u.email, c.name AS client_name, c.id AS client_id
+      FROM invites i
+      JOIN users u ON u.id = i.user_id
+      LEFT JOIN clients c ON c.owner_user_id = u.id
+      WHERE i.token = $1
+    `, [token]);
+    return r.rowCount === 0 ? null : r.rows[0];
+  }
+
+  app.get('/api/invite/:token', async (req, res) => {
+    const inv = await loadInvite(req.params.token);
+    if (!inv) return res.status(404).json({ error: 'Invite not found.' });
+    if (inv.used_at) return res.status(410).json({ error: 'This invite has already been used.' });
+    if (new Date(inv.expires_at).getTime() < Date.now()) {
+      return res.status(410).json({ error: 'This invite has expired. Ask your owner to send a new one.' });
+    }
+    res.json({ email: inv.email, clientName: inv.client_name });
+  });
+
+  app.post('/api/invite/:token', async (req, res) => {
+    const { password } = req.body || {};
+    if (!password || String(password).length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+    }
+    const inv = await loadInvite(req.params.token);
+    if (!inv) return res.status(404).json({ error: 'Invite not found.' });
+    if (inv.used_at) return res.status(410).json({ error: 'This invite has already been used.' });
+    if (new Date(inv.expires_at).getTime() < Date.now()) {
+      return res.status(410).json({ error: 'This invite has expired. Ask your owner to send a new one.' });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    const c = await pool.connect();
+    try {
+      await c.query('BEGIN');
+      // Atomically claim the invite: only the first concurrent submission
+      // can flip used_at from NULL to NOW(). If the row is gone, already
+      // used, or expired, RETURNING yields nothing and we bail.
+      const claim = await c.query(
+        `UPDATE invites
+            SET used_at = NOW()
+          WHERE token = $1 AND used_at IS NULL AND expires_at > NOW()
+          RETURNING id, user_id`,
+        [req.params.token]
+      );
+      if (claim.rowCount === 0) {
+        await c.query('ROLLBACK');
+        return res.status(410).json({ error: 'This invite is no longer valid. Ask your owner to send a new one.' });
+      }
+      const claimed = claim.rows[0];
+      await c.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, claimed.user_id]);
+      // Burn any other still-pending invites for this user as well, so a
+      // leaked old link can't be re-used after the password is set.
+      await c.query(
+        'UPDATE invites SET expires_at=NOW() WHERE user_id=$1 AND used_at IS NULL AND id <> $2',
+        [claimed.user_id, claimed.id]
+      );
+      await c.query('COMMIT');
+      inv.user_id = claimed.user_id;
+    } catch (e) {
+      await c.query('ROLLBACK');
+      console.error(e);
+      return res.status(500).json({ error: 'Could not set password.' });
+    } finally {
+      c.release();
+    }
+    // Kick any pre-existing sessions, then sign the new user in.
+    await destroyUserSessions(inv.user_id);
+    const u = await pool.query('SELECT id, email, role FROM users WHERE id=$1', [inv.user_id]);
+    if (u.rowCount === 0) return res.status(500).json({ error: 'Could not load user.' });
+    req.session.userId = u.rows[0].id;
+    req.session.role = u.rows[0].role;
+    res.json({ ok: true, role: u.rows[0].role });
+  });
+
+  // ---------- STRATEGY (clients can only read/write their own) ----------
+  async function authorizeClientAccess(req, res, next) {
+    const id = parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Bad id.' });
+    const cr = await pool.query('SELECT id, name, owner_user_id FROM clients WHERE id=$1', [id]);
+    if (cr.rowCount === 0) return res.status(404).json({ error: 'Not found.' });
+    const client = cr.rows[0];
+    // Authoritative role check: req.user is loaded from the DB by requireAuth.
+    if (req.user.role === 'owner') {
+      req.client = client;
+      return next();
+    }
+    if (req.user.role === 'client' && client.owner_user_id === req.user.id) {
+      req.client = client;
+      return next();
+    }
+    return res.status(403).json({ error: 'forbidden' });
+  }
+
+  app.get('/api/clients/:id', requireAuth, authorizeClientAccess, async (req, res) => {
+    res.json({ id: req.client.id, name: req.client.name });
+  });
+
+  app.get('/api/clients/:id/strategy', requireAuth, authorizeClientAccess, async (req, res) => {
+    const r = await pool.query('SELECT data, updated_at FROM strategies WHERE client_id=$1', [req.client.id]);
+    if (r.rowCount === 0) {
+      await pool.query('INSERT INTO strategies (client_id, data) VALUES ($1, $2) ON CONFLICT (client_id) DO NOTHING', [req.client.id, JSON.stringify(INITIAL)]);
+      return res.json({ data: INITIAL, updatedAt: new Date().toISOString() });
+    }
+    res.json({ data: r.rows[0].data, updatedAt: r.rows[0].updated_at });
+  });
+
+  app.put('/api/clients/:id/strategy', requireAuth, authorizeClientAccess, async (req, res) => {
+    const data = req.body && req.body.data;
+    if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Body must be { data: {...} }' });
+    const logo = (typeof data.clientLogo === 'string' && data.clientLogo.startsWith('data:'))
+      ? data.clientLogo : null;
+    await pool.query(
+      `INSERT INTO strategies (client_id, data, updated_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (client_id) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
+      [req.client.id, JSON.stringify(data)]
+    );
+    // Mirror the logo onto clients.logo_data_url so the admin list can show a thumbnail
+    // without loading the full strategy JSON for every row.
+    await pool.query('UPDATE clients SET logo_data_url=$1, updated_at = NOW() WHERE id = $2', [logo, req.client.id]);
+    res.json({ ok: true, updatedAt: new Date().toISOString() });
+  });
+
+  app.post('/api/clients/:id/strategy/reset', requireAuth, authorizeClientAccess, async (req, res) => {
+    await pool.query(
+      `INSERT INTO strategies (client_id, data, updated_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (client_id) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`,
+      [req.client.id, JSON.stringify(INITIAL)]
+    );
+    // Mirror logo clear so the admin thumbnail also resets.
+    await pool.query('UPDATE clients SET logo_data_url=NULL, updated_at=NOW() WHERE id=$1', [req.client.id]);
+    res.json({ ok: true });
+  });
+
+  // ---------- PAGES ----------
+  // Server-side guards so unauthenticated visitors never see admin/workspace HTML.
+  // Page guards also resolve role from the DB so promoted/demoted users land
+  // on the right page without needing to sign out and back in.
+  async function resolveSessionRole(req) {
+    if (!req.session || !req.session.userId) return null;
+    const r = await pool.query('SELECT role FROM users WHERE id=$1', [req.session.userId]);
+    if (r.rowCount === 0) {
+      req.session.destroy(() => {});
+      return null;
+    }
+    return r.rows[0].role;
+  }
+  async function pageRequireAuth(req, res, next) {
+    const role = await resolveSessionRole(req);
+    if (!role) return res.redirect('/login');
+    req.role = role;
+    next();
+  }
+  async function pageRequireOwner(req, res, next) {
+    const role = await resolveSessionRole(req);
+    if (!role) return res.redirect('/login');
+    if (role !== 'owner') return res.redirect('/workspace');
+    next();
+  }
+
+  app.get('/', async (req, res) => {
+    const role = await resolveSessionRole(req);
+    if (role === 'owner') return res.redirect('/admin');
+    if (role === 'client') return res.redirect('/workspace');
+    res.redirect('/login');
+  });
+
+  app.get('/login', async (req, res) => {
+    const role = await resolveSessionRole(req);
+    if (role === 'owner') return res.redirect('/admin');
+    if (role === 'client') return res.redirect('/workspace');
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  });
+  app.get('/admin', pageRequireOwner, (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+  app.get('/workspace', pageRequireAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'workspace.html')));
+
+  // Public invite-acceptance page. The page itself does the token lookup + form
+  // submission against /api/invite/:token, so we just serve the static HTML
+  // here (no server-side guard — the API enforces the validity checks).
+  app.get('/accept-invite/:token', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'accept-invite.html'));
+  });
+
+  // Tiny favicon stub so logged-out browsers don't spam 404s in the console.
+  app.get('/favicon.ico', (_req, res) => res.status(204).end());
+
+  // No express.static() here on purpose: we want every HTML response to go
+  // through the role-gated routes above. All CSS/JS is inlined per-page.
+
+  app.use((err, _req, res, _next) => {
+    console.error(err);
+    res.status(500).json({ error: 'server_error' });
+  });
+
+  app.listen(PORT, '0.0.0.0', async () => {
+    console.log(`AG45 Strategy server listening on http://0.0.0.0:${PORT}`);
+    try {
+      const desc = await describeEmailConfig();
+      console.log(`Invite email delivery: ${desc}`);
+    } catch (e) {
+      console.warn('Invite email delivery: could not determine status:', e.message);
+    }
+  });
+}
+
+main().catch(err => {
+  console.error('Fatal startup error:', err);
+  process.exit(1);
+});
+~/workspace$ 
