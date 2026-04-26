@@ -623,7 +623,7 @@ function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTex
         }}>{label}</div>
       </div>
       <div style={{
-        fontSize:12, color:"var(--text3)", fontStyle:"italic", marginBottom:8,
+        fontSize:14, color:"var(--text3)", fontStyle:"italic", marginBottom:8, lineHeight:1.5,
       }}>{promptText}</div>
       <textarea value={text || ""} onChange={e => onTextChange(e.target.value)}
         placeholder="Write freely here..." rows={3}
@@ -631,7 +631,7 @@ function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTex
           width:"100%", background:"rgba(0,0,0,.2)",
           border:"1px solid var(--border2)", borderRadius:4,
           padding:"10px 12px", color:"var(--text)",
-          fontFamily:"var(--serif)", fontSize:15, lineHeight:1.6,
+          fontFamily:"var(--serif)", fontSize:16, lineHeight:1.6,
           resize:"vertical", outline:"none",
         }} />
       <div style={{
@@ -1225,8 +1225,8 @@ function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextC
               marginTop:6, padding:"8px 10px",
               background:"rgba(201,168,76,.06)",
               borderLeft:"2px solid var(--warm)", borderRadius:4,
-              fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic",
-              color:"var(--text2)", lineHeight:1.5,
+              fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic",
+              color:"var(--text2)", lineHeight:1.55,
             }}>
               "{hintText}"
             </div>
@@ -2203,7 +2203,7 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
       {expanded && (
         <div className="fade-in" style={{ padding:"0 14px 14px", borderTop:"1px solid var(--border)" }}>
           <div style={{ padding:"9px 12px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.12)", borderRadius:7, marginBottom:12, marginTop:10 }}>
-            <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text3)", lineHeight:1.6 }}>{area.hint}</div>
+            <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text3)", lineHeight:1.6 }}>{area.hint}</div>
           </div>
           {[
             { key:"see",  label:"I will see...",  icon:"👁",  placeholder:"The scenes, moments, people around me..." },
@@ -2213,11 +2213,11 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
             <div key={f.key} style={{ marginBottom:10 }}>
               <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:5 }}>
                 <span style={{ fontSize:13 }}>{f.icon}</span>
-                <label style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, color:"var(--warm)", letterSpacing:0.5 }}>{f.label}</label>
+                <label style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--warm)", letterSpacing:0.5 }}>{f.label}</label>
               </div>
               <textarea rows={2} value={area[f.key] || ""} onChange={e => onChange(f.key, e.target.value)}
                 placeholder={f.placeholder} className="to-field"
-                style={{ fontSize:13, fontFamily:"var(--sans)", fontStyle:"normal", color:"var(--warm)", lineHeight:1.7 }} />
+                style={{ fontSize:16, fontFamily:"var(--sans)", fontStyle:"normal", color:"var(--warm)", lineHeight:1.7 }} />
             </div>
           ))}
           {/* Goal statement */}
@@ -2882,8 +2882,8 @@ function ThreeYearPage({ map, set, voiceId, name, intake }: any) {
                 width:"100%", background:"rgba(0,0,0,.2)",
                 border:"1px solid var(--border2)", borderRadius:4,
                 padding:"8px 10px", color:"var(--text)",
-                fontFamily:"var(--serif)", fontSize:14, outline:"none",
-                resize:"vertical", lineHeight:1.5,
+                fontFamily:"var(--serif)", fontSize:15, outline:"none",
+                resize:"vertical", lineHeight:1.55,
               }} />
           </div>
           <SummaryGenerator_v2
@@ -3214,8 +3214,8 @@ function OneYearPage({ map, set, voiceId, name, intake }: any) {
                 width:"100%", background:"rgba(0,0,0,.2)",
                 border:"1px solid var(--border2)", borderRadius:4,
                 padding:"8px 10px", color:"var(--text)",
-                fontFamily:"var(--serif)", fontSize:14, outline:"none",
-                resize:"vertical", lineHeight:1.5,
+                fontFamily:"var(--serif)", fontSize:15, outline:"none",
+                resize:"vertical", lineHeight:1.55,
               }} />
           </div>
           <SummaryGenerator_v2
