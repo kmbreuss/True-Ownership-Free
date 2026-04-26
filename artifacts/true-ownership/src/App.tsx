@@ -3417,7 +3417,10 @@ function A2({ intake, onDone, phase, setPhase }) {
         const active = a2Step === s.id;
         const isDone = a2Done.includes(s.id);
         return (
-          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a2Goto(s.id)}>
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => {
+            if (s.id === "map") { localStorage.setItem("to_mapofme_origin", "a2"); setPhase("_mapofme"); return; }
+            a2Goto(s.id);
+          }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
             <span style={{ fontSize:12, color:active ? "var(--warm)" : isDone ? "var(--text)" : "var(--text2)", fontWeight:active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
           </button>
@@ -6498,6 +6501,7 @@ const A3_STEPS = [
   { id:"thoughts",    label:"Energy Audit · Thoughts" },
   { id:"energymap",   label:"Energy Map" },
   { id:"board",       label:"The Board" },
+  { id:"map",         label:"My Map of Me" },
 ];
 
 const A3_BOARD_STRENGTHS = [
@@ -8960,7 +8964,10 @@ function A3({ intake, onDone, phase, setPhase }: any) {
       {A3_STEPS.map(s => {
         const active = a3Step === s.id;
         return (
-          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => a3Goto(s.id)}>
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => {
+            if (s.id === "map") { localStorage.setItem("to_mapofme_origin", "a3"); setPhase("_mapofme"); return; }
+            a3Goto(s.id);
+          }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background: active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
             <span style={{ fontSize:12, color: active ? "var(--warm)" : "var(--text2)", fontWeight: active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
           </button>
@@ -9742,7 +9749,10 @@ function A1({ intake, onDone, phase, setPhase }) {
                          (s.id === "mirror2" && (map.animals?.length >= 1 && map.animals[0]?.name));
         const active = step === s.id, isDone = done.includes(s.id) || !!autoDone;
         return (
-          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => { if (s.id === "mirror1") set("mirror1_sub", "purpose"); goto(s.id); }}>
+          <button key={s.id} className={`sidebar-btn${active ? " active" : ""}`} onClick={() => {
+            if (s.id === "map") { localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); return; }
+            if (s.id === "mirror1") set("mirror1_sub", "purpose"); goto(s.id);
+          }}>
             <div style={{ width:7, height:7, borderRadius:"50%", background:isDone ? "#34d399" : active ? "var(--warm)" : "var(--border2)", flexShrink:0, transition:"background .3s" }} />
             <span style={{ fontSize:12, color:active ? "var(--warm)" : isDone ? "var(--text)" : "var(--text2)", fontWeight:active ? 500 : 400, lineHeight:1.3 }}>{s.label}</span>
           </button>
@@ -12712,6 +12722,8 @@ function MapOfMePage({ onBack }: any) {
   const [voice, setVoice] = useState("coach");
   useEffect(() => { (async () => { const v = await loadData(KEYS.voice); if (v) setVoice(v); })(); }, []);
   const [debugDump, setDebugDump] = useState<string>("");
+  const [origin, setOrigin] = useState<string>("a1");
+  useEffect(() => { const o = localStorage.getItem("to_mapofme_origin"); if (o === "a1" || o === "a2" || o === "a3") setOrigin(o); }, []);
   // [MAP_OF_ME_DEBUG] TEMPORARY — remove after diagnosis
   useEffect(() => {
     try {
@@ -13289,6 +13301,12 @@ function MapOfMePage({ onBack }: any) {
 
         {/* MAIN */}
         <div style={{ flex: 1, padding: "32px 40px", maxWidth: 980 }}>
+          <button onClick={() => onBack && onBack(origin)} style={{
+            display:"inline-flex", alignItems:"center", gap:6, marginBottom:18,
+            background:"transparent", border:"1px solid var(--border2)",
+            color:"var(--text2)", padding:"5px 12px", borderRadius:14,
+            fontFamily:"var(--sans)", fontSize:11, letterSpacing:0.5, cursor:"pointer",
+          }}>← Back to {origin.toUpperCase()}</button>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--warm)", marginBottom: 11 }}>My Map of Me</div>
           <h1 style={{ fontFamily: "var(--serif)", fontSize: 34, fontWeight: 400, lineHeight: 1.2, letterSpacing: "-0.5px", margin: "0 0 10px" }}>
             A living reflection of who you are — and what you're building.
@@ -13377,6 +13395,7 @@ export default function App() {
   useEffect(() => { (window as any)._openMapOfMe = () => setPhase("_dev_mapofme"); }, []);
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
   if (phase === "_dev_mapofme") return <MapOfMePage onBack={() => setPhase("a1")} />;
+  if (phase === "_mapofme") return <MapOfMePage onBack={(origin?: string) => setPhase((origin || localStorage.getItem("to_mapofme_origin") || "a1") as any)} />;
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
