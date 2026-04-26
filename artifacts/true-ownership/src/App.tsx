@@ -9328,7 +9328,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
-        <button className="btn" onClick={() => { markDone("direction_1yr"); goto("map"); }}>My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("direction_1yr"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
       </div>
     </>);
   }
@@ -9351,7 +9351,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("direction_1yr")}>← Direction · 1-YEAR</button>
-        <button className="btn" onClick={() => { markDone("direction_align"); goto("map"); }}>My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("direction_align"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>My Map of Me →</button>
       </div>
     </>);
   }
