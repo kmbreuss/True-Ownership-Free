@@ -1,0 +1,57 @@
+POLISH PASS — AG45 brand presence + copyright footer
+
+Stage 3 fully complete and pushed to GitHub. Now adding final brand polish before republish.
+
+Plan mode ON — show me the plan first, no code changes yet.
+
+ASSETS:
+I have an AG45 logo PNG ready to upload. The full logo is the icon (stylized figure with gold sun head and teal-to-blue gradient arrow forming a "G" body) plus the wordmark ("AccelerateGrowth" in gold italic Playfair-style serif with "45" as small superscript).
+
+I'll upload the file (AG_logo_Gold.png) to the project. Tell me the exact target path you want it at — recommend artifacts/true-ownership/public/ag45-logo.png.
+
+LAYER 1 — Sign-in screen ONLY (the brand moment)
+- Display the FULL AG45 logo (icon + wordmark) prominently above the existing "TRUE OWNERSHIP" eyebrow text
+- Sizing: roughly 180-220px wide, maintaining aspect ratio (the logo has a wide horizontal feel — needs space, not vertical compression)
+- Centered horizontally above the eyebrow
+- ~24-32px clearance below the logo before "TRUE OWNERSHIP" eyebrow
+- Existing "Welcome back" + form layout below remains unchanged
+
+LAYER 2 — Copyright footer EVERYWHERE in the app
+Pages: sign-in, admin, all account screens, all A1/A2/A3/A4/A5 work pages, Map of Me, intake — every screen the user can land on.
+
+Exact text:
+"True Ownership™ · © 2026 AccelerateGrowth45 LLC · All rights reserved"
+
+Styling:
+- Font: Inter, ~11-12px
+- Color: mute (#7A7B8A on dark backgrounds; use 60% opacity ink #12163A on light backgrounds — pick whichever reads best on each surface)
+- Letterspacing: 0.02em
+- Centered horizontally
+- Sits at bottom of viewport with ~16-24px clearance from bottom edge
+- On long-scroll pages, footer sits at content bottom (NOT sticky)
+- Mobile-responsive: graceful text wrap; if too narrow, stack vertically with smaller separators
+
+Year handling:
+- Use JS `${new Date().getFullYear()}` so it auto-updates on Jan 1 each year
+
+Constraints:
+- LAYER 2 footer NEVER includes the AG45 logo (logo only on sign-in)
+- Footer NEVER appears inside modals (sign-in errors, change-password, new-user creation, delete confirmation, migration modal)
+- Footer should not overlap the existing "Auto-saving your answers as you type" status bar at the bottom of work pages — coordinate spacing
+- Don't touch any other styling
+- Mobile breakpoint: ensure footer doesn't overlap mobile keyboard or iOS home indicator
+
+BONUS — Favicon (optional 5-min addition):
+- Use the figure mark from the logo (the person + sun, no wordmark) as the favicon
+- 32x32 and 16x16 sizes
+- Browser tab icon for True Ownership
+
+Verification gate:
+- Screenshot of sign-in screen showing logo + footer
+- Screenshot of A1 work page showing footer (no logo)
+- Screenshot of admin page showing footer (no logo)
+- Screenshot of one modal confirming NO footer inside
+- Confirm logo renders crisp at 2x device pixel ratio
+- Confirm favicon appears in browser tab
+
+NO PUBLISH — dev preview only.
