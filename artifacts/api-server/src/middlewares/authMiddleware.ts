@@ -1,18 +1,19 @@
 import * as oidc from "openid-client";
 import { type Request, type Response, type NextFunction } from "express";
-import type { AuthUser } from "@workspace/api-zod";
 import {
   clearSession,
   getOidcConfig,
   getSessionId,
   getSession,
+  getUserById,
   updateSession,
+  type AuthedUser,
   type SessionData,
 } from "../lib/auth";
 
 declare global {
   namespace Express {
-    interface User extends AuthUser {}
+    interface User extends AuthedUser {}
 
     interface Request {
       isAuthenticated(): this is AuthedRequest;
@@ -26,14 +27,17 @@ declare global {
   }
 }
 
+// Refresh OIDC tokens if expired. Only relevant for legacy OIDC-created
+// sessions (sessions that carry a refresh_token). Email+password sessions
+// have no tokens and skip this entirely.
 async function refreshIfExpired(
   sid: string,
   session: SessionData,
 ): Promise<SessionData | null> {
+  if (!session.refresh_token) return session;
+
   const now = Math.floor(Date.now() / 1000);
   if (!session.expires_at || now <= session.expires_at) return session;
-
-  if (!session.refresh_token) return null;
 
   try {
     const config = await getOidcConfig();
@@ -75,6 +79,7 @@ export async function authMiddleware(
     return;
   }
 
+  // Refresh OIDC tokens if applicable. No-op for email+password sessions.
   const refreshed = await refreshIfExpired(sid, session);
   if (!refreshed) {
     await clearSession(res, sid);
@@ -82,6 +87,17 @@ export async function authMiddleware(
     return;
   }
 
-  req.user = refreshed.user;
+  // Re-resolve the user from the database every request. This is the
+  // Owner's-Circle pattern: role/password/email changes take effect on
+  // the next request without needing to re-login. If the user was
+  // deleted, the session is killed.
+  const fresh = await getUserById(refreshed.user.id);
+  if (!fresh) {
+    await clearSession(res, sid);
+    next();
+    return;
+  }
+
+  req.user = fresh;
   next();
 }
