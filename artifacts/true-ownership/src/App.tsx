@@ -12704,6 +12704,618 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
     </div>
   );
 }
+
+// ─── My Map of Me · standalone viewing surface ─────────────────────
+function MapOfMePage({ onBack }: any) {
+  const [map, setMap] = useState<any>({});
+  useEffect(() => { (async () => { const m = await loadData(KEYS.map); if (m) setMap(m); })(); }, []);
+  const [voice, setVoice] = useState("coach");
+  useEffect(() => { (async () => { const v = await loadData(KEYS.voice); if (v) setVoice(v); })(); }, []);
+  const setVoicePersist = (v: string) => { setVoice(v); saveData(KEYS.voice, v); };
+  const [openSections, setOpenSections] = useState<any>({ a1: true, a2: true, a3: true, a4: false, a5: false });
+
+  const a1Done = !!(map.purpose_final || (map.purpose_layers && map.purpose_layers.length > 0) || map.purpose_draft);
+  const a2Done = !!map.a2_one_thing;
+  const a3Done = !!(map.a3_board_candidates && map.a3_board_candidates.length > 0);
+  const a4Done = false;
+  const a5Done = false;
+  const allDoneFlags: any = { a1: a1Done, a2: a2Done, a3: a3Done, a4: a4Done, a5: a5Done };
+
+  const allOpen = Object.values(openSections).every(Boolean);
+  const toggleAll = () => {
+    const next = !allOpen;
+    setOpenSections({ a1: next, a2: next, a3: next, a4: next, a5: next });
+  };
+  const toggleSection = (k: string) => setOpenSections((p: any) => ({ ...p, [k]: !p[k] }));
+
+  const lastUpdated = new Date()
+    .toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    .toUpperCase();
+
+  const phases = [
+    { key: "a1", code: "A1", name: "All In It",            tag: "Map of who you are" },
+    { key: "a2", code: "A2", name: "Align With It",        tag: "Time, focus, and the One Thing" },
+    { key: "a3", code: "A3", name: "Advocate For It",      tag: "People, environment, board" },
+    { key: "a4", code: "A4", name: "Act On It",            tag: "Rhythms and commitments" },
+    { key: "a5", code: "A5", name: "Accountability To It", tag: "Final integration" },
+  ];
+
+  const PhasePill = ({ code, done }: any) => (
+    <div style={{
+      padding: "3px 10px", borderRadius: 14, fontSize: 11, fontWeight: 700, letterSpacing: 1.2,
+      background: done ? "rgba(52,211,153,.15)" : "var(--bg2)",
+      color: done ? "#34d399" : "var(--text4)",
+      border: `1px solid ${done ? "rgba(52,211,153,.35)" : "var(--border2)"}`,
+    }}>{code}</div>
+  );
+
+  const SidebarPhaseItem = ({ label, done }: any) => (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 9, padding: "7px 10px",
+      borderRadius: 8, fontFamily: "var(--sans)", fontSize: 12, color: "var(--text2)",
+      cursor: "default", marginBottom: 2,
+    }}>
+      <span style={{
+        width: 8, height: 8, borderRadius: "50%",
+        background: done ? "#34d399" : "var(--text4)",
+        flexShrink: 0,
+      }} />
+      <span>{label}</span>
+    </div>
+  );
+
+  const StripCell = ({ code, name, done }: any) => (
+    <div style={{
+      flex: 1, padding: "11px 13px",
+      border: `1px solid ${done ? "rgba(52,211,153,.35)" : "var(--border2)"}`,
+      borderRadius: 8, background: done ? "rgba(52,211,153,.06)" : "var(--bg2)",
+      display: "flex", flexDirection: "column", gap: 3,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: done ? "#34d399" : "var(--text4)" }}>{code}</div>
+        <div style={{ fontSize: 10, color: done ? "#34d399" : "var(--text4)" }}>{done ? "✓ Done" : "Pending"}</div>
+      </div>
+      <div style={{ fontSize: 11, color: "var(--text3)", fontFamily: "var(--sans)" }}>{name}</div>
+    </div>
+  );
+
+  const PhaseHead = ({ code, name, tag, done, open, onClick }: any) => (
+    <div onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: 14, padding: "15px 18px",
+      background: "var(--bg2)",
+      border: `1px solid ${done ? "rgba(201,168,76,.25)" : "var(--border)"}`,
+      borderRadius: open ? "10px 10px 0 0" : 10,
+      cursor: "pointer", userSelect: "none",
+    }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: "50%",
+        background: done ? "rgba(201,168,76,.15)" : "var(--bg3)",
+        border: `1px solid ${done ? "rgba(201,168,76,.35)" : "var(--border2)"}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 12, fontWeight: 700, color: done ? "var(--warm)" : "var(--text4)",
+        flexShrink: 0,
+      }}>{code}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: "var(--serif)", fontSize: 18, color: "var(--text)", fontStyle: "italic" }}>{name}</div>
+        <div style={{ fontSize: 11, color: "var(--text4)", marginTop: 2 }}>{tag}</div>
+      </div>
+      <div style={{ fontSize: 13, color: "var(--text3)" }}>{open ? "▾" : "▸"}</div>
+    </div>
+  );
+
+  const PhaseBodyShell = ({ children }: any) => (
+    <div style={{
+      background: "var(--bg2)", border: "1px solid var(--border)", borderTop: "none",
+      borderRadius: "0 0 10px 10px", padding: "22px 24px", marginBottom: 14,
+    }}>{children}</div>
+  );
+
+  const PendingBody = ({ msg }: any) => (
+    <div style={{
+      padding: "22px 26px", background: "rgba(255,255,255,.02)",
+      border: "1px dashed var(--border2)", borderRadius: 8,
+      color: "var(--text4)", fontSize: 13, fontStyle: "italic", lineHeight: 1.7,
+    }}>{msg}</div>
+  );
+
+  const SubCard = ({ title, phaseCode, children }: any) => (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--warm)" }}>{title}</div>
+        {phaseCode && (
+          <button onClick={() => onBack && onBack(phaseCode.toLowerCase())}
+            style={{ background: "transparent", border: "none", color: "var(--text4)", fontSize: 11, cursor: "pointer", padding: 0 }}>
+            Back to {phaseCode} →
+          </button>
+        )}
+      </div>
+      <div style={{ background: "rgba(0,0,0,.18)", border: "1px solid var(--border)", borderRadius: 9, padding: "16px 18px" }}>
+        {children}
+      </div>
+    </div>
+  );
+
+  // ===== A1 =====
+  const renderA1 = () => {
+    const purposeText = (map.purpose_final && map.purpose_final.trim())
+      || (map.purpose_layers && map.purpose_layers.length > 0
+            ? map.purpose_layers.filter((l: string) => (l || "").trim()).join(" · ")
+            : "")
+      || (map.purpose_draft || "")
+      || "";
+
+    const validAreas: any[] = map.life_areas || [];
+    const hierOrder: number[] = (map.hier_order || []) as number[];
+    const orderedAreas: any[] = hierOrder.length
+      ? [
+          ...hierOrder.map((i: number) => validAreas[i]).filter(Boolean),
+          ...validAreas.filter((_a: any, i: number) => !hierOrder.includes(i)),
+        ]
+      : validAreas;
+
+    const bagWealth = [
+      { label: "Retirement",          body: map.bag_retirement },
+      { label: "Assets",              body: map.bag_assets },
+      { label: "Cash flow & Salary",  body: map.bag_cashflow },
+      { label: map.bag_other_label || "Other", body: map.bag_other },
+    ];
+    const bagGrowth = [
+      { label: map.bag_growth_label1 || "Skills & Learning",      body: map.bag_growth_1 },
+      { label: map.bag_growth_label2 || "Relationships",          body: map.bag_growth_2 },
+      { label: map.bag_growth_label3 || "Purpose & Contribution", body: map.bag_growth_3 },
+      { label: map.bag_growth_label4 || "Other",                  body: map.bag_growth_4 },
+    ];
+    const bagGrowthSentence  = map.growth_sentence  || map.growth_summary  || "";
+    const oneyrGrowth        = map.oneyr_growth_sentence || "";
+    const bagTimeSentence    = map.time_summary    || map.time_overall_sentence    || "";
+    const bagWealthSentence  = map.wealth_summary  || map.wealth_overall_sentence  || "";
+
+    const animals: any[] = (map.animals || []).filter((a: any) => a && a.name);
+
+    const valuesRows: { i: number; name: string; summary: string }[] = [];
+    for (let i = 0; i < 30; i++) {
+      const n = map[`val_${i}_name`];
+      if (!n) break;
+      valuesRows.push({ i, name: n, summary: map[`val_${i}_summary`] || "" });
+    }
+
+    const colHeader: React.CSSProperties = { fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--warm)", marginBottom: 8, textAlign: "center" };
+    const subHeader: React.CSSProperties = { fontSize: 9.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--text4)", marginBottom: 5, marginTop: 10 };
+    const cellBody: React.CSSProperties  = { fontSize: 12, color: "var(--text2)", lineHeight: 1.55, fontStyle: "italic" };
+
+    const dirCol = (header: string, time: any, wealth: any[], growth: any[], growthSentence: string, timeSentence: string, wealthSentence: string) => (
+      <div style={{ background: "rgba(0,0,0,.22)", border: "1px solid var(--border)", borderRadius: 8, padding: "13px 14px" }}>
+        <div style={colHeader}>{header}</div>
+        <div style={subHeader}>⏳ Time</div>
+        {timeSentence
+          ? <div style={cellBody}>{timeSentence}</div>
+          : (Array.isArray(time) && time.length > 0
+              ? time.slice(0, 4).map((a: any, i: number) => (
+                  <div key={i} style={{ ...cellBody, fontStyle: "normal", marginBottom: 3 }}>· {a?.label || `Area ${i + 1}`}</div>
+                ))
+              : <div style={{ ...cellBody, color: "var(--text4)" }}>—</div>)}
+        <div style={subHeader}>💰 Wealth</div>
+        {wealthSentence ? <div style={cellBody}>{wealthSentence}</div> : null}
+        {wealth.some(w => w.body) ? wealth.filter(w => w.body).map((w, i) => (
+          <div key={i} style={{ ...cellBody, fontStyle: "normal", marginBottom: 3 }}>
+            <span style={{ color: "var(--text4)" }}>{w.label}:</span> {w.body}
+          </div>
+        )) : (!wealthSentence && <div style={{ ...cellBody, color: "var(--text4)" }}>—</div>)}
+        <div style={subHeader}>🌱 Growth</div>
+        {growthSentence ? <div style={cellBody}>{growthSentence}</div> : null}
+        {growth.some(g => g.body) ? growth.filter(g => g.body).map((g, i) => (
+          <div key={i} style={{ ...cellBody, fontStyle: "normal", marginBottom: 3 }}>
+            <span style={{ color: "var(--text4)" }}>{g.label}:</span> {g.body}
+          </div>
+        )) : (!growthSentence && <div style={{ ...cellBody, color: "var(--text4)" }}>—</div>)}
+      </div>
+    );
+
+    return (
+      <>
+        <SubCard title="Purpose · the north star" phaseCode="A1">
+          <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 22, lineHeight: 1.55, color: purposeText ? "var(--text)" : "var(--text4)" }}>
+            "{purposeText || "(not yet captured)"}"
+          </div>
+        </SubCard>
+
+        <SubCard title="Direction · 1-Year · 3-Year · BAG" phaseCode="A1">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            {dirCol("1-YEAR", null, [], [], oneyrGrowth, "", "")}
+            {dirCol("3-YEAR", null, [], [], "", "", "")}
+            {dirCol(map.bag_year ? `BAG · ${map.bag_year}` : "BAG", orderedAreas, bagWealth, bagGrowth, bagGrowthSentence, bagTimeSentence, bagWealthSentence)}
+          </div>
+        </SubCard>
+
+        <SubCard title="Identity · Superpowers" phaseCode="A1">
+          {animals.length === 0
+            ? <div style={{ color: "var(--text4)", fontSize: 13, fontStyle: "italic" }}>(not yet captured)</div>
+            : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {animals.map((a: any, i: number) => {
+                  const animalLabel = [a.adj1, a.adj2, a.name].filter(Boolean).join(" ");
+                  const caps = (a.capabilities || []).filter((c: any) => c && c.name);
+                  const chips = (a.identity_chips || []) as any[];
+                  return (
+                    <div key={i} style={{ padding: "12px 14px", background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 8 }}>
+                      <div style={{ fontFamily: "var(--serif)", fontSize: 17, fontStyle: "italic", color: "var(--warm)", marginBottom: 8 }}>{animalLabel}</div>
+                      {caps.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: chips.length ? 8 : 0 }}>
+                          {caps.map((c: any, ci: number) => (
+                            <div key={ci} style={{ padding: "3px 9px", background: "rgba(201,168,76,.08)", border: "1px solid rgba(201,168,76,.25)", borderRadius: 12, fontSize: 11, color: "var(--text2)" }}>{c.name}</div>
+                          ))}
+                        </div>
+                      )}
+                      {chips.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                          {chips.map((c: any, ci: number) => (
+                            <div key={ci} style={{ padding: "3px 9px", background: "rgba(167,139,250,.08)", border: "1px solid rgba(167,139,250,.25)", borderRadius: 12, fontSize: 11, color: "var(--text2)" }}>
+                              {c.label || c.name || c.text || ""}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+        </SubCard>
+
+        <SubCard title="Values in order" phaseCode="A1">
+          {valuesRows.length === 0
+            ? <div style={{ color: "var(--text4)", fontSize: 13, fontStyle: "italic" }}>(no values yet)</div>
+            : (
+              <ol style={{ margin: 0, padding: "0 0 0 22px" }}>
+                {valuesRows.map(v => (
+                  <li key={v.i} style={{ marginBottom: 9, color: "var(--text2)", fontSize: 13, lineHeight: 1.6 }}>
+                    <span style={{ fontWeight: 700, color: "var(--text)" }}>{v.name}</span>
+                    {v.summary && <> — <span style={{ color: "var(--text3)" }}>{v.summary}</span></>}
+                  </li>
+                ))}
+              </ol>
+            )}
+        </SubCard>
+
+        <SubCard title="Big Ass Goal · the integrated three" phaseCode="A1">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+            {[
+              { lbl: "Time",   body: bagTimeSentence },
+              { lbl: "Wealth", body: bagWealthSentence },
+              { lbl: "Growth", body: bagGrowthSentence },
+            ].map((b, i) => (
+              <div key={i} style={{ padding: "12px 14px", background: "var(--bg2)", border: "1px solid var(--border)", borderRadius: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "var(--warm)", marginBottom: 6 }}>{b.lbl}</div>
+                <div style={{ fontSize: 13, color: b.body ? "var(--text2)" : "var(--text4)", lineHeight: 1.6, fontStyle: b.body ? "italic" : "normal" }}>
+                  {b.body || "—"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SubCard>
+      </>
+    );
+  };
+
+  // ===== A2 =====
+  const renderA2 = () => {
+    const acts: any[] = map.a2_ta_acts || [];
+    const supports = acts.filter((a: any) => a && a.category === "support").length;
+    const reshape  = acts.filter((a: any) => a && a.category === "reshape").length;
+    const leaks    = acts.filter((a: any) => a && a.category === "leak").length;
+    const hasCategories = supports + reshape + leaks > 0;
+
+    const fslParts = [map.a2_fsl_s1, map.a2_fsl_s2, map.a2_fsl_s3, map.a2_fsl_s4]
+      .filter((s: any) => s && s.trim());
+
+    return (
+      <>
+        <SubCard title="Key Misalignment" phaseCode="A2">
+          <div style={{ fontSize: 13, color: map.a2_km_pinned_id ? "var(--text2)" : "var(--text4)" }}>
+            Pinned: {map.a2_km_pinned_id || "—"}
+          </div>
+        </SubCard>
+
+        <SubCard title="Time Audit" phaseCode="A2">
+          {hasCategories ? (
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 10 }}>
+              <div style={{ fontSize: 13, color: "var(--text2)" }}><strong style={{ color: "#34d399" }}>Supports:</strong> {supports}</div>
+              <div style={{ fontSize: 13, color: "var(--text2)" }}><strong style={{ color: "var(--warm)" }}>Reshape:</strong> {reshape}</div>
+              <div style={{ fontSize: 13, color: "var(--text2)" }}><strong style={{ color: "#ef4444" }}>Leaks:</strong> {leaks}</div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: "var(--text2)", marginBottom: 10 }}>Total acts logged: {acts.length}</div>
+          )}
+          <div style={{ fontSize: 12, color: "var(--text3)", paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+            Pinned Priority: {map.a2_km_pinned_id || "—"}
+          </div>
+        </SubCard>
+
+        <SubCard title="Future Self Letter" phaseCode="A2">
+          {fslParts.length === 0 ? (
+            <div style={{ color: "var(--text4)", fontSize: 13, fontStyle: "italic" }}>(letter not yet written)</div>
+          ) : (
+            <div style={{ paddingLeft: 14, borderLeft: "2px solid var(--warm)", fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 17, lineHeight: 1.7, color: "var(--text)" }}>
+              "{fslParts.join(" ")}"
+            </div>
+          )}
+        </SubCard>
+
+        <SubCard title="Your One Thing" phaseCode="A2">
+          <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 22, color: "var(--text)", lineHeight: 1.55, marginBottom: 8 }}>
+            "{map.a2_one_thing || "—"}"
+          </div>
+          {map.a2_one_thing_confirmed && (
+            <div style={{ display: "inline-block", padding: "3px 10px", background: "rgba(52,211,153,.12)", border: "1px solid rgba(52,211,153,.35)", borderRadius: 12, fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: "#34d399" }}>
+              ✓ CONFIRMED
+            </div>
+          )}
+        </SubCard>
+      </>
+    );
+  };
+
+  // ===== A3 =====
+  const renderA3 = () => {
+    const people: any[] = map.a3_people || [];
+    const advocates = people.filter((p: any) => p.rating === "advocate");
+    const neutrals  = people.filter((p: any) => p.rating === "neutral");
+    const anchors   = people.filter((p: any) => p.rating === "anchor");
+    const topAdvocates = advocates.slice(0, 3).map((p: any) => p.name);
+
+    const candidates: any[]   = map.a3_board_candidates || [];
+    const missingSeats: any[] = map.a3_board_missing || [];
+    const seatedCands = candidates.filter((c: any) => c.primary && c.seatName);
+
+    const envItems: any[] = map.a3_env_items || [];
+    const envChange  = envItems.filter((e: any) => e.rating === "change").length;
+    const envProtect = envItems.filter((e: any) => e.rating === "protect").length;
+    const envOther   = envItems.filter((e: any) => e.rating && e.rating !== "change" && e.rating !== "protect").length;
+    const ratedPeople = advocates.length + neutrals.length + anchors.length;
+    const ratedEnv    = envItems.filter((e: any) => e.rating).length;
+
+    const thoughts: any[] = map.a3_thoughts || [];
+    const advThoughts = thoughts.filter((t: any) => t.rating === "advocate");
+    const neuThoughts = thoughts.filter((t: any) => !t.rating || t.rating === "neutral");
+    const ancThoughts = thoughts.filter((t: any) => t.rating === "anchor");
+
+    const cardWrap: React.CSSProperties  = { background: "rgba(0,0,0,.18)", border: "1px solid var(--border)", borderRadius: 9, padding: "16px 18px" };
+    const cardTitle: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--warm)", marginBottom: 10 };
+    const backLink = (
+      <button onClick={() => onBack && onBack("a3")} style={{ background: "transparent", border: "none", color: "var(--text4)", fontSize: 11, cursor: "pointer", padding: 0 }}>
+        Back to A3 →
+      </button>
+    );
+
+    const cx = 130, cy = 70, rx = 110, ry = 50;
+    const boardSeats = seatedCands.slice(0, 8).map((c: any, i: number) => {
+      const angle = (i / Math.max(seatedCands.length, 1)) * Math.PI * 2 - Math.PI / 2;
+      return {
+        id: c.id,
+        x: cx + Math.cos(angle) * (rx + 10),
+        y: cy + Math.sin(angle) * (ry + 10),
+        label: c.seatName,
+      };
+    });
+
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
+        <div style={cardWrap}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={cardTitle}>People · Your inner circle</div>{backLink}
+          </div>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: "var(--text2)" }}><strong style={{ color: "#34d399" }}>Advocates:</strong> {advocates.length}</div>
+            <div style={{ fontSize: 13, color: "var(--text2)" }}><strong style={{ color: "var(--text3)" }}>Neutrals:</strong> {neutrals.length}</div>
+            <div style={{ fontSize: 13, color: "var(--text2)" }}><strong style={{ color: "#ef4444" }}>Anchors:</strong> {anchors.length}</div>
+          </div>
+          {topAdvocates.length > 0 && (
+            <div style={{ fontSize: 12, color: "var(--text3)", lineHeight: 1.6 }}>
+              Top advocates: {topAdvocates.join(", ")}
+            </div>
+          )}
+          {ratedPeople === 0 && <div style={{ fontSize: 12, color: "var(--text4)", fontStyle: "italic" }}>(none rated yet)</div>}
+        </div>
+
+        <div style={cardWrap}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={cardTitle}>Board</div>{backLink}
+          </div>
+          <svg viewBox="0 0 260 140" width="100%" height="140" style={{ display: "block", marginBottom: 10 }}>
+            <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="rgba(201,168,76,.06)" stroke="rgba(201,168,76,.35)" strokeWidth="1.5" />
+            <text x={cx} y={cy + 4} textAnchor="middle" fontSize="11" fill="#c9a84c" fontStyle="italic">Your Board</text>
+            {boardSeats.map((s: any, i: number) => (
+              <g key={s.id || i}>
+                <circle cx={s.x} cy={s.y} r="3.5" fill="#34d399" />
+                <text x={s.x} y={s.y - 6} textAnchor="middle" fontSize="9" fill="#d4cfc5">{s.label}</text>
+              </g>
+            ))}
+          </svg>
+          <div style={{ fontSize: 12, color: "var(--text3)" }}>
+            Seated: <strong style={{ color: "var(--text2)" }}>{seatedCands.length}</strong>
+            {missingSeats.length > 0 && <> · Missing: <strong style={{ color: "var(--text2)" }}>{missingSeats.length}</strong></>}
+          </div>
+        </div>
+
+        <div style={cardWrap}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={cardTitle}>Environment</div>{backLink}
+          </div>
+          {map.a3_env_takeaway ? (
+            <div style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 16, color: "var(--text)", lineHeight: 1.6, marginBottom: 12 }}>
+              "{map.a3_env_takeaway}"
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: "var(--text4)", fontStyle: "italic", marginBottom: 10 }}>(no takeaway yet)</div>
+          )}
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+            <div style={{ fontSize: 12, color: "var(--text2)" }}><strong style={{ color: "var(--warm)" }}>Change:</strong> {envChange}</div>
+            <div style={{ fontSize: 12, color: "var(--text2)" }}><strong style={{ color: "#34d399" }}>Protect:</strong> {envProtect}</div>
+            {envOther > 0 && <div style={{ fontSize: 12, color: "var(--text2)" }}><strong style={{ color: "var(--text3)" }}>Other:</strong> {envOther}</div>}
+            {ratedEnv === 0 && <div style={{ fontSize: 12, color: "var(--text4)" }}>(none rated)</div>}
+          </div>
+        </div>
+
+        <div style={cardWrap}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={cardTitle}>Thoughts landscape</div>{backLink}
+          </div>
+          {[
+            { rows: advThoughts, color: "#34d399",       bg: "rgba(52,211,153,.08)",  brd: "rgba(52,211,153,.3)",  lbl: "Advocate" },
+            { rows: neuThoughts, color: "var(--text3)",  bg: "rgba(155,150,144,.08)", brd: "rgba(155,150,144,.3)", lbl: "Neutral" },
+            { rows: ancThoughts, color: "#ef4444",       bg: "rgba(239,68,68,.08)",   brd: "rgba(239,68,68,.3)",   lbl: "Anchor" },
+          ].map((row, i) => (
+            <div key={i} style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: row.color, marginBottom: 4 }}>{row.lbl} · {row.rows.length}</div>
+              {row.rows.length === 0 ? (
+                <div style={{ fontSize: 11, color: "var(--text4)", fontStyle: "italic" }}>—</div>
+              ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                  {row.rows.slice(0, 12).map((th: any) => (
+                    <div key={th.id} style={{ padding: "3px 8px", background: row.bg, border: `1px solid ${row.brd}`, borderRadius: 10, fontSize: 10.5, color: "var(--text2)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {th.text}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={cardWrap}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={cardTitle}>Best friend response</div>{backLink}
+          </div>
+          {map.a3_best_friend ? (
+            <div style={{ paddingLeft: 14, borderLeft: "2px solid var(--warm)", fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 16, color: "var(--text)", lineHeight: 1.7 }}>
+              "{map.a3_best_friend}"
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: "var(--text4)", fontStyle: "italic" }}>(not yet captured)</div>
+          )}
+        </div>
+
+        <div style={cardWrap}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={cardTitle}>Energy map snapshot</div>{backLink}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--text3)", marginBottom: 5 }}>People</div>
+              <div style={{ fontSize: 12, color: "var(--text2)" }}>+{advocates.length} advocate · -{anchors.length} anchor</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "var(--text3)", marginBottom: 5 }}>Environment</div>
+              <div style={{ fontSize: 12, color: "var(--text2)" }}>+{envProtect} protect · {envChange} change</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)" }}>
+      <style>{CSS}</style>
+
+      {/* TOP BAR */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 28px", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warm)" }} />
+          <span style={{ fontFamily: "var(--sans)", fontSize: 13, color: "var(--text)", fontWeight: 600 }}>True Ownership</span>
+          <span style={{ color: "var(--text4)" }}>·</span>
+          <span style={{ fontFamily: "var(--serif)", fontSize: 14, fontStyle: "italic", color: "var(--text3)" }}>Katherine</span>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {phases.map(p => <PhasePill key={p.key} code={p.code} done={allDoneFlags[p.key]} />)}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "flex-start" }}>
+        {/* SIDEBAR */}
+        <div style={{ width: 206, flexShrink: 0, padding: "24px 16px", borderRight: "1px solid var(--border)", minHeight: "calc(100vh - 47px)" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--text4)", marginBottom: 11 }}>My Map of Me</div>
+          <SidebarPhaseItem label="All In It · A1" done={a1Done} />
+          <SidebarPhaseItem label="Align With It · A2" done={a2Done} />
+          <SidebarPhaseItem label="Advocate For It · A3" done={a3Done} />
+          <SidebarPhaseItem label="Act On It · A4" done={false} />
+          <SidebarPhaseItem label="Accountability To It · A5" done={false} />
+
+          <div style={{ height: 1, background: "var(--border)", margin: "18px 0 13px" }} />
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--text4)", marginBottom: 9 }}>Progress</div>
+          <div className="sidebar-btn active" style={{ cursor: "default" }}>
+            <span style={{ fontSize: 12, color: "var(--warm)", fontWeight: 600 }}>My Map of Me</span>
+          </div>
+
+          <div style={{ height: 1, background: "var(--border)", margin: "18px 0 13px" }} />
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--text4)", marginBottom: 9 }}>Voice</div>
+          <VoiceDropdown voiceId={voice} onSelect={setVoicePersist} />
+        </div>
+
+        {/* MAIN */}
+        <div style={{ flex: 1, padding: "32px 40px", maxWidth: 980 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "var(--warm)", marginBottom: 11 }}>My Map of Me</div>
+          <h1 style={{ fontFamily: "var(--serif)", fontSize: 34, fontWeight: 400, lineHeight: 1.2, letterSpacing: "-0.5px", margin: "0 0 10px" }}>
+            A living reflection of who you are — and what you're building.
+          </h1>
+          <div style={{ fontSize: 15, color: "var(--text2)", fontStyle: "italic", lineHeight: 1.6, marginBottom: 14 }}>
+            Not finished. Not meant to be. This grows as you do.
+          </div>
+          <div style={{ fontSize: 11, color: "var(--text4)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 22 }}>
+            LAST UPDATED · {lastUpdated}
+          </div>
+
+          {/* PROGRESS STRIP */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            {phases.map(p => <StripCell key={p.key} code={p.code} name={p.name} done={allDoneFlags[p.key]} />)}
+          </div>
+
+          {/* CONTROLS */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 18 }}>
+            <button onClick={toggleAll} style={{ background: "transparent", border: "1px solid var(--border2)", color: "var(--text2)", padding: "6px 14px", borderRadius: 14, fontSize: 12, cursor: "pointer" }}>
+              {allOpen ? "Collapse all" : "Expand all"}
+            </button>
+          </div>
+
+          {/* PHASE SECTIONS */}
+          {phases.map(p => {
+            const done = allDoneFlags[p.key];
+            const open = !!openSections[p.key];
+            const pendingMsg = ({
+              a1: "This grows as you complete A1.",
+              a2: "This grows when you reach A2 — your alignment, time audit, and One Thing.",
+              a3: "This grows when you reach A3 — your people, environment, board, and inner landscape.",
+              a4: "This grows when you reach A4 — your rhythms, commitments, and accountability structure.",
+              a5: "This grows when you reach A5 — final integration.",
+            } as any)[p.key];
+            return (
+              <div key={p.key}>
+                <PhaseHead code={p.code} name={p.name} tag={p.tag} done={done} open={open} onClick={() => toggleSection(p.key)} />
+                {open && (
+                  <PhaseBodyShell>
+                    {!done ? <PendingBody msg={pendingMsg} />
+                      : p.key === "a1" ? renderA1()
+                      : p.key === "a2" ? renderA2()
+                      : p.key === "a3" ? renderA3()
+                      : <PendingBody msg={pendingMsg} />}
+                  </PhaseBodyShell>
+                )}
+              </div>
+            );
+          })}
+
+          {/* FOOTER */}
+          <div style={{ marginTop: 32, paddingTop: 18, borderTop: "1px solid var(--border)", textAlign: "center" }}>
+            <div style={{ fontSize: 12, color: "var(--text4)", fontStyle: "italic", lineHeight: 1.7 }}>
+              Your Map of Me builds throughout True Ownership. You'll be able to download the complete version once you've worked through all five phases.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [phase, setPhase] = useState("loading");
   const [intake, setIntake] = useState(null);
@@ -12717,10 +13329,24 @@ export default function App() {
   const doneA1 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA2 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA3 = doneA2;
+  useEffect(() => { (window as any)._openMapOfMe = () => setPhase("_dev_mapofme"); }, []);
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
+  if (phase === "_dev_mapofme") return <MapOfMePage onBack={() => setPhase("a1")} />;
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
+      <button
+        onClick={() => setPhase("_dev_mapofme")}
+        title="Temporary dev entry — opens the Map of Me viewing surface"
+        style={{
+          position:"fixed", bottom:14, right:14, zIndex:9999,
+          padding:"7px 12px", background:"rgba(239,68,68,.15)",
+          border:"1px solid #ef4444", color:"#ef4444",
+          borderRadius:6, fontFamily:"var(--sans)", fontSize:11,
+          fontWeight:700, letterSpacing:1, cursor:"pointer",
+        }}>
+        [DEV] Open Map of Me
+      </button>
       {phase === "intake" && <Intake onDone={doneIntake} />}
       {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} phase={phase} setPhase={setPhase} />}
       {phase === "a2" && intake && <A2 intake={intake} onDone={doneA2} phase={phase} setPhase={setPhase} />}
