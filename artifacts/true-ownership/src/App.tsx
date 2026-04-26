@@ -12711,6 +12711,27 @@ function MapOfMePage({ onBack }: any) {
   useEffect(() => { (async () => { const m = await loadData(KEYS.map); if (m) setMap(m); })(); }, []);
   const [voice, setVoice] = useState("coach");
   useEffect(() => { (async () => { const v = await loadData(KEYS.voice); if (v) setVoice(v); })(); }, []);
+  // [MAP_OF_ME_DEBUG] TEMPORARY — remove after diagnosis
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("to_map");
+      if (!raw) { console.warn("[MAP_OF_ME_DEBUG] no to_map key in localStorage"); return; }
+      const parsed = JSON.parse(raw);
+      const keys = Object.keys(parsed).sort();
+      console.log("[MAP_OF_ME_DEBUG] === ALL KEYS ===", keys);
+      keys.forEach((k) => {
+        const v = (parsed as any)[k];
+        const type = v === null ? "null" : Array.isArray(v) ? "array" : typeof v;
+        const len = Array.isArray(v) ? v.length : (v && typeof v === "object") ? Object.keys(v).length : (typeof v === "string" ? v.length : null);
+        let preview: string;
+        try { preview = (typeof v === "string" ? v : JSON.stringify(v) ?? String(v)).slice(0, 100); }
+        catch { preview = "[unstringifiable]"; }
+        console.log(`[MAP_OF_ME_DEBUG] ${k} · ${type}${len !== null ? ` · len=${len}` : ""} · ${preview}`);
+      });
+    } catch (e) {
+      console.error("[MAP_OF_ME_DEBUG] read failed", e);
+    }
+  }, []);
   const setVoicePersist = (v: string) => { setVoice(v); saveData(KEYS.voice, v); };
   const [openSections, setOpenSections] = useState<any>({ a1: true, a2: true, a3: true, a4: false, a5: false });
 
