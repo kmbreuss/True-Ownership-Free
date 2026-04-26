@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuth } from "./lib/auth-context";
 import { Footer } from "./components/Footer";
+import {
+  synthesize,
+  type SynthesizeIntent,
+  type Pillar as SynthPillar,
+  type Horizon as SynthHorizon,
+  type PriorContext as SynthPriorContext,
+  type PriorContextItem as SynthPriorContextItem,
+} from "./lib/synthesize";
 const KEYS = {
   map:    "to_map",
   done:   "to_done",
@@ -543,16 +551,61 @@ function CardPicker_v2({ cards, picked, onToggle, onAddCustom, color }) {
     </div>
   );
 }
-function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange }) {
+// Stage 4: shared error display + retry button used by all Summarise components.
+// Uniform visual treatment across PriorityItemCard_v2, SimpleItemCard_v2, SummaryGenerator_v2
+// so users get a consistent failure experience regardless of which button they hit.
+function SynthesizeError({ message, onRetry, color = "#ef4444" }) {
+  return (
+    <div role="alert" style={{
+      marginTop:8, padding:"8px 12px",
+      background:"rgba(239,68,68,.08)",
+      border:"1px solid rgba(239,68,68,.3)",
+      borderLeft:`3px solid ${color}`,
+      borderRadius:6,
+      display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
+    }}>
+      <span style={{ fontSize:13 }}>⚠️</span>
+      <div style={{ flex:1, minWidth:140, fontSize:11, color:"var(--text2)", lineHeight:1.5, fontFamily:"var(--sans)" }}>
+        <div style={{ fontSize:9, fontWeight:700, letterSpacing:1.2, textTransform:"uppercase", color:"#ef4444", marginBottom:2 }}>Synthesis failed</div>
+        <div>{message || "Something went wrong reaching the AI."}</div>
+      </div>
+      <button onClick={onRetry} style={{
+        padding:"4px 10px", borderRadius:12,
+        background:"transparent", color:"var(--warm)",
+        border:"1px solid var(--warm)",
+        cursor:"pointer", fontSize:11, fontWeight:600,
+        fontFamily:"var(--sans)",
+      }}>↻ Try again</button>
+    </div>
+  );
+}
+function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange,
+                                voiceId, name, pillar, horizon, horizonYearLabel }) {
   const [summarising, setSummarising] = useState(false);
-  const summarise = () => {
+  const [errorMsg, setErrorMsg] = useState("");
+  const runSynth = async () => {
+    if (!(text || "").trim()) return;
     setSummarising(true);
-    // Simulated AI: extract first sentence from free writing, with 600ms delay
-    setTimeout(() => {
-      const first = (text || "").split(/[.!?]/)[0].trim();
-      onGoalChange(first ? `${first}.` : "Goal will be generated from your writing above.");
-      setSummarising(false);
-    }, 600);
+    setErrorMsg("");
+    try {
+      // Item-goal intent: minimal priorContext per Q2 clarification (just voice/name/focus).
+      const synthesized = await synthesize({
+        intent: "item-goal",
+        voiceId: voiceId || "coach",
+        name: name || "you",
+        focus: {
+          label,
+          sourceText: text || "",
+          pillar: (pillar as SynthPillar) || undefined,
+          horizon: (horizon as SynthHorizon) || undefined,
+          horizonYearLabel,
+        },
+      });
+      onGoalChange(synthesized);
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Synthesis failed.");
+    }
+    setSummarising(false);
   };
   return (
     <div style={{
@@ -584,15 +637,15 @@ function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTex
       <div style={{
         display:"flex", gap:10, marginTop:10, flexWrap:"wrap", alignItems:"center",
       }}>
-        <button onClick={summarise} disabled={!(text || "").trim() || summarising} style={{
+        <button onClick={runSynth} disabled={!(text || "").trim() || summarising} style={{
           padding:"6px 14px", borderRadius:14,
           background:"transparent",
           color: (text || "").trim() ? "var(--warm)" : "var(--text4)",
           border:`1px solid ${(text || "").trim() ? "var(--warm)" : "var(--border2)"}`,
           cursor: (text || "").trim() ? "pointer" : "default",
           fontSize:12, fontWeight:600,
-        }}>{summarising ? "..." : "✨ Summarise into a goal"}</button>
-        {goal && (
+        }}>{summarising ? "✨ Synthesizing..." : (goal ? "↺ Regenerate goal" : "✨ Summarise into a goal")}</button>
+        {goal && !errorMsg && (
           <div style={{
             flex:1, minWidth:200,
             padding:"6px 10px", borderRadius:6,
@@ -607,6 +660,7 @@ function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTex
           </div>
         )}
       </div>
+      {errorMsg && <SynthesizeError message={errorMsg} onRetry={runSynth} color={color} />}
     </div>
   );
 }
@@ -656,19 +710,36 @@ function SeeHearFeelBlock_v2({ title, subtitle, color, values, onChange }) {
     </div>
   );
 }
-function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConfirmed, bottomTitle }) {
-  // State machine: idle | generating | editing
+function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConfirmed, bottomTitle,
+                                intent, voiceId, name, priorContext, pillar, horizon, horizonYearLabel }: any) {
+  // State machine: idle | generating | editing | error
   const [state, setState] = useState("idle");
   const [draft, setDraft] = useState("");
-  const generate = () => {
+  const [errorMsg, setErrorMsg] = useState("");
+  const generate = async () => {
     if (!sourceText.trim()) return;
     setState("generating");
-    setTimeout(() => {
-      const sentences = sourceText.split(/[.!?]/).map(s => s.trim()).filter(s => s.length > 10);
-      const compressed = sentences[0] || sourceText.slice(0, 180);
-      setDraft(compressed);
+    setErrorMsg("");
+    try {
+      const synthesized = await synthesize({
+        intent: (intent as SynthesizeIntent) || "pillar-overall",
+        voiceId: voiceId || "coach",
+        name: name || "you",
+        focus: {
+          label,
+          sourceText,
+          pillar: (pillar as SynthPillar) || undefined,
+          horizon: (horizon as SynthHorizon) || undefined,
+          horizonYearLabel,
+        },
+        priorContext: (priorContext as SynthPriorContext) || {},
+      });
+      setDraft(synthesized);
       setState("editing");
-    }, 700);
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Synthesis failed.");
+      setState("error");
+    }
   };
   const confirm = () => {
     if (!draft.trim()) return;
@@ -678,6 +749,7 @@ function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConf
   const startOver = () => {
     setState("idle");
     setDraft("");
+    setErrorMsg("");
   };
   // Confirmed state with regenerate option
   if (existingConfirmed && state === "idle") {
@@ -780,6 +852,9 @@ function SummaryGenerator_v2({ color, label, sourceText, onConfirm, existingConf
             }}>Cancel</button>
           </div>
         </div>
+      )}
+      {state === "error" && (
+        <SynthesizeError message={errorMsg} onRetry={generate} color={color} />
       )}
     </div>
   );
@@ -1096,17 +1171,34 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
   );
 }
 // W.2: SimpleItemCard_v2 — used on 3-Year + 1-Year pages (simpler than PriorityItemCard_v2, no prompt sub-label needed)
-function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange, hintText, hintLabel }) {
+function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextChange, onGoalChange, hintText, hintLabel,
+                              voiceId, name, pillar, horizon, horizonYearLabel }: any) {
   const [summarising, setSummarising] = useState(false);
   const [hintOpen, setHintOpen] = useState(false);
-  const summarise = () => {
+  const [errorMsg, setErrorMsg] = useState("");
+  const summarise = async () => {
     if (!(text || "").trim()) return;
     setSummarising(true);
-    setTimeout(() => {
-      const first = (text || "").split(/[.!?]/)[0].trim();
-      onGoalChange(first ? `${first}.` : "");
-      setSummarising(false);
-    }, 600);
+    setErrorMsg("");
+    try {
+      // Item-goal intent: minimal priorContext per Q2 clarification (just voice/name/focus).
+      const synthesized = await synthesize({
+        intent: "item-goal",
+        voiceId: voiceId || "coach",
+        name: name || "you",
+        focus: {
+          label,
+          sourceText: text || "",
+          pillar: (pillar as SynthPillar) || undefined,
+          horizon: (horizon as SynthHorizon) || undefined,
+          horizonYearLabel,
+        },
+      });
+      onGoalChange(synthesized);
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Synthesis failed.");
+    }
+    setSummarising(false);
   };
   return (
     <div style={{
@@ -1158,8 +1250,8 @@ function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextC
           border: `1px solid ${(text || "").trim() ? color : "var(--border2)"}`,
           cursor: (text || "").trim() ? "pointer" : "default",
           fontSize:11, fontWeight:600,
-        }}>{summarising ? "..." : "✨ Summarise into a goal"}</button>
-        {goal && (
+        }}>{summarising ? "✨ Synthesizing..." : (goal ? "↺ Regenerate goal" : "✨ Summarise into a goal")}</button>
+        {goal && !errorMsg && (
           <div style={{
             flex:1, minWidth:180,
             padding:"4px 10px", borderRadius:6,
@@ -1174,6 +1266,7 @@ function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextC
           </div>
         )}
       </div>
+      {errorMsg && <SynthesizeError message={errorMsg} onRetry={summarise} color={color} />}
     </div>
   );
 }
@@ -2056,23 +2149,30 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
     </div>
   );
 }
-function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onChange }) {
+function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onChange, voiceId, name }: any) {
   const [expanded, setExpanded] = useState(true);
   const [summarising, setSummarising] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const summarise = async () => {
     if (!area.see && !area.hear && !area.feel) return;
     setSummarising(true);
+    setErrorMsg("");
     try {
-      const res = await fetch("/api/claude", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:120,
-          messages:[{ role:"user", content:`Write a single vivid goal statement for someone's ${area.label} life in 10-15 years. Start with "My ${area.label.toLowerCase()} " then complete the sentence. Use their exact words where possible. Keep it to 1-2 sentences maximum -- punchy and personal, not generic.\n\nThey wrote:\nI will see: "${area.see || ""}"\nI will hear: "${area.hear || ""}"\nI will feel: "${area.feel || ""}"\n\nRespond with ONLY the goal statement, no quotes, no preamble.` }]
-        })
+      const sourceText = [
+        area.see  ? `I will see: ${area.see}`   : "",
+        area.hear ? `I will hear: ${area.hear}` : "",
+        area.feel ? `I will feel: ${area.feel}` : "",
+      ].filter(Boolean).join(". ");
+      const synthesized = await synthesize({
+        intent: "item-goal",
+        voiceId: voiceId || "coach",
+        name: name || "you",
+        focus: { label: area.label, sourceText, pillar: "time", horizon: "bag" },
       });
-      const data = await res.json();
-      const goal = data.content?.map(b => b.text || "").join("").trim() || "";
-      if (goal) onChange("goal", goal);
-    } catch {}
+      onChange("goal", synthesized);
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Synthesis failed.");
+    }
     setSummarising(false);
   };
   const hasContent = area.see || area.hear || area.feel;
@@ -2144,8 +2244,23 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
     </div>
   );
 }
-function DirectionSection({ map, set }) {
+function DirectionSection({ map, set, voiceId, name, intake }: any) {
   const areas = map.life_areas || [];
+  // Stage 4: synthesis context — pillar items + life areas + purpose
+  const bagYearLabel = String(new Date().getFullYear() + 12);
+  const bagTimeItemsCtx: SynthPriorContextItem[] = (map.time_picked || []).map((id: string) => {
+    const stored = (map.time_items || {})[id] || {};
+    const preset = TIME_AREA_PRESETS.find((p: any) => p.id === id);
+    return { label: preset?.label || stored.label || id, goal: stored.goal || stored.text || "" };
+  }).filter((i: any) => i.goal);
+  const bagWealthItemsCtx: SynthPriorContextItem[] = (map.wealth_picked || []).map((id: string) => {
+    const stored = (map.wealth_items || {})[id] || {};
+    const preset = WEALTH_AREA_PRESETS.find((p: any) => p.id === id);
+    return { label: preset?.label || stored.label || id, goal: stored.goal || stored.text || "" };
+  }).filter((i: any) => i.goal);
+  const lifeAreasCtx: SynthPriorContextItem[] = (areas || []).filter((a: any) => a && (a.label || a.id))
+    .map((a: any) => ({ label: a.label || a.id, goal: a.goal || "" }));
+  const purposeText = (map.purpose_final || map.purpose_draft || "").trim();
   const toggleArea = (area) => {
     const ids = areas.map(a => a.id);
     if (ids.includes(area.id)) {
@@ -2279,6 +2394,11 @@ function DirectionSection({ map, set }) {
               text={stored.text}
               goal={stored.goal}
               promptText={meta.hint || "How does your time shape this? What are you doing regularly? What have you let go of?"}
+              voiceId={voiceId}
+              name={name}
+              pillar="time"
+              horizon="bag"
+              horizonYearLabel={bagYearLabel}
               onTextChange={v => {
                 const items = { ...(map.time_items || {}) };
                 items[id] = { ...(items[id] || {}), text: v };
@@ -2341,6 +2461,13 @@ function DirectionSection({ map, set }) {
             return [shf.see, shf.hear, shf.feel, ...itemBits].filter(Boolean).join(". ");
           })()}
           existingConfirmed={map.time_overall_confirmed ? map.time_overall_sentence : null}
+          intent="pillar-overall"
+          voiceId={voiceId}
+          name={name}
+          pillar="time"
+          horizon="bag"
+          horizonYearLabel={bagYearLabel}
+          priorContext={{ bagTimeItems: bagTimeItemsCtx, purpose: purposeText, lifeAreas: lifeAreasCtx }}
           onConfirm={text => {
             set("time_overall_sentence", text);
             set("time_overall_confirmed", true);
@@ -2401,6 +2528,11 @@ function DirectionSection({ map, set }) {
               text={stored.text}
               goal={stored.goal}
               promptText={meta.hint || `What does this look like in ${String(new Date().getFullYear() + 12)}? Be specific.`}
+              voiceId={voiceId}
+              name={name}
+              pillar="wealth"
+              horizon="bag"
+              horizonYearLabel={bagYearLabel}
               onTextChange={v => {
                 const items = { ...(map.wealth_items || {}) };
                 items[id] = { ...(items[id] || {}), text: v };
@@ -2435,6 +2567,13 @@ function DirectionSection({ map, set }) {
             return [shf.see, shf.hear, shf.feel, ...itemBits].filter(Boolean).join(". ");
           })()}
           existingConfirmed={map.wealth_overall_confirmed ? map.wealth_overall_sentence : null}
+          intent="pillar-overall"
+          voiceId={voiceId}
+          name={name}
+          pillar="wealth"
+          horizon="bag"
+          horizonYearLabel={bagYearLabel}
+          priorContext={{ bagWealthItems: bagWealthItemsCtx, purpose: purposeText, lifeAreas: lifeAreasCtx }}
           onConfirm={text => {
             set("wealth_overall_sentence", text);
             set("wealth_overall_confirmed", true);
@@ -2475,6 +2614,18 @@ function DirectionSection({ map, set }) {
             return [shf.see, shf.hear, shf.feel].filter(Boolean).join(". ");
           })()}
           existingConfirmed={map.growth_confirmed ? map.growth_sentence : null}
+          intent="horizon-growth"
+          voiceId={voiceId}
+          name={name}
+          pillar="growth"
+          horizon="bag"
+          horizonYearLabel={bagYearLabel}
+          priorContext={{
+            purpose: purposeText,
+            lifeAreas: lifeAreasCtx,
+            bagTime: map.time_overall_sentence || "",
+            bagWealth: map.wealth_overall_sentence || "",
+          }}
           onConfirm={text => {
             set("growth_sentence", text);
             set("growth_confirmed", true);
@@ -2498,8 +2649,24 @@ function DirectionSection({ map, set }) {
 // W.2: ThreeYearPage -- Direction · 3-Year (v3.1 Page 3)
 // Pre-fills Time and Wealth from BAG. No S/H/F. Growth is free-writing + Summary Generator.
 // Includes tier ranking at bottom. User re-ranks fresh for this horizon.
-function ThreeYearPage({ map, set }) {
+function ThreeYearPage({ map, set, voiceId, name, intake }: any) {
   const year = new Date().getFullYear() + 3;
+  // Stage 4: synthesis context for 3-year horizon
+  const yearLabel = String(year);
+  const threeyrTimeItemsCtx: SynthPriorContextItem[] = Object.entries(map.threeyr_time_items || {}).map(([id, v]: any) => {
+    const preset = TIME_AREA_PRESETS.find((p: any) => p.id === id);
+    const bagStored = (map.time_items || {})[id] || {};
+    return { label: preset?.label || bagStored.label || id, goal: v?.goal || v?.text || "" };
+  }).filter((i: any) => i.goal);
+  const threeyrWealthItemsCtx: SynthPriorContextItem[] = Object.entries(map.threeyr_wealth_items || {}).map(([id, v]: any) => {
+    const preset = WEALTH_AREA_PRESETS.find((p: any) => p.id === id);
+    const bagStored = (map.wealth_items || {})[id] || {};
+    return { label: preset?.label || bagStored.label || id, goal: v?.goal || v?.text || "" };
+  }).filter((i: any) => i.goal);
+  const lifeAreasCtx: SynthPriorContextItem[] = ((map.life_areas || []) as any[])
+    .filter((a: any) => a && (a.label || a.id))
+    .map((a: any) => ({ label: a.label || a.id, goal: a.goal || "" }));
+  const purposeText = (map.purpose_final || map.purpose_draft || "").trim();
   // Pre-fill Time and Wealth items from BAG on first visit
   useEffect(() => {
     const hasTimeItems = Object.keys(map.threeyr_time_items || {}).length > 0;
@@ -2602,6 +2769,11 @@ function ThreeYearPage({ map, set }) {
                 promptText={`What does this look like in ${year}?`}
                 hintText={bagHint || null}
                 hintLabel={`From BAG · ${new Date().getFullYear() + 12}`}
+                voiceId={voiceId}
+                name={name}
+                pillar="time"
+                horizon="threeyr"
+                horizonYearLabel={yearLabel}
                 onTextChange={v => updateTimeItem(id, "text", v)}
                 onGoalChange={v => updateTimeItem(id, "goal", v)}
               />
@@ -2613,6 +2785,13 @@ function ThreeYearPage({ map, set }) {
             bottomTitle={`In one sentence, my time in ${year} is...`}
             sourceText={Object.values(map.threeyr_time_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
             existingConfirmed={map.threeyr_time_confirmed ? map.threeyr_time_sentence : null}
+            intent="pillar-overall"
+            voiceId={voiceId}
+            name={name}
+            pillar="time"
+            horizon="threeyr"
+            horizonYearLabel={yearLabel}
+            priorContext={{ threeyrTimeItems: threeyrTimeItemsCtx, purpose: purposeText, lifeAreas: lifeAreasCtx }}
             onConfirm={text => {
               set("threeyr_time_sentence", text);
               set("threeyr_time_confirmed", true);
@@ -2641,6 +2820,11 @@ function ThreeYearPage({ map, set }) {
                 promptText={`What does this look like in ${year}?`}
                 hintText={bagHint || null}
                 hintLabel={`From BAG · ${new Date().getFullYear() + 12}`}
+                voiceId={voiceId}
+                name={name}
+                pillar="wealth"
+                horizon="threeyr"
+                horizonYearLabel={yearLabel}
                 onTextChange={v => updateWealthItem(id, "text", v)}
                 onGoalChange={v => updateWealthItem(id, "goal", v)}
               />
@@ -2652,6 +2836,13 @@ function ThreeYearPage({ map, set }) {
             bottomTitle={`In one sentence, my wealth in ${year} is...`}
             sourceText={Object.values(map.threeyr_wealth_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
             existingConfirmed={map.threeyr_wealth_confirmed ? map.threeyr_wealth_sentence : null}
+            intent="pillar-overall"
+            voiceId={voiceId}
+            name={name}
+            pillar="wealth"
+            horizon="threeyr"
+            horizonYearLabel={yearLabel}
+            priorContext={{ threeyrWealthItems: threeyrWealthItemsCtx, purpose: purposeText, lifeAreas: lifeAreasCtx }}
             onConfirm={text => {
               set("threeyr_wealth_sentence", text);
               set("threeyr_wealth_confirmed", true);
@@ -2701,6 +2892,18 @@ function ThreeYearPage({ map, set }) {
             bottomTitle={`In one sentence, who I am in ${year}...`}
             sourceText={map.threeyr_growth_text || ""}
             existingConfirmed={map.threeyr_growth_confirmed ? map.threeyr_growth_sentence : null}
+            intent="horizon-growth"
+            voiceId={voiceId}
+            name={name}
+            pillar="growth"
+            horizon="threeyr"
+            horizonYearLabel={yearLabel}
+            priorContext={{
+              purpose: purposeText,
+              lifeAreas: lifeAreasCtx,
+              threeyrTime: map.threeyr_time_sentence || "",
+              threeyrWealth: map.threeyr_wealth_sentence || "",
+            }}
             onConfirm={text => {
               set("threeyr_growth_sentence", text);
               set("threeyr_growth_confirmed", true);
@@ -2723,8 +2926,24 @@ function ThreeYearPage({ map, set }) {
 // W.2: OneYearPage -- Direction · 1-Year (v3.1 Page 7)
 // Pre-fills Time and Wealth categories from BAG. Growth pulls from Identity/Values lowest scores.
 // Tier ranking includes Time + Wealth + accepted Identity/Values seeds + custom growth items.
-function OneYearPage({ map, set }) {
+function OneYearPage({ map, set, voiceId, name, intake }: any) {
   const year = new Date().getFullYear() + 1;
+  // Stage 4: synthesis context for 1-year horizon (incl. final-1yr-growth bundle)
+  const yearLabel = String(year);
+  const oneyrTimeItemsCtx: SynthPriorContextItem[] = Object.entries(map.oneyr_time_items || {}).map(([id, v]: any) => {
+    const preset = TIME_AREA_PRESETS.find((p: any) => p.id === id);
+    const bagStored = (map.time_items || {})[id] || {};
+    return { label: preset?.label || bagStored.label || id, goal: v?.goal || v?.text || "" };
+  }).filter((i: any) => i.goal);
+  const oneyrWealthItemsCtx: SynthPriorContextItem[] = Object.entries(map.oneyr_wealth_items || {}).map(([id, v]: any) => {
+    const preset = WEALTH_AREA_PRESETS.find((p: any) => p.id === id);
+    const bagStored = (map.wealth_items || {})[id] || {};
+    return { label: preset?.label || bagStored.label || id, goal: v?.goal || v?.text || "" };
+  }).filter((i: any) => i.goal);
+  const lifeAreasCtx: SynthPriorContextItem[] = ((map.life_areas || []) as any[])
+    .filter((a: any) => a && (a.label || a.id))
+    .map((a: any) => ({ label: a.label || a.id, goal: a.goal || "" }));
+  const purposeText = (map.purpose_final || map.purpose_draft || "").trim();
   // Pre-fill on first visit (same pattern as 3-Year)
   useEffect(() => {
     const hasTimeItems = Object.keys(map.oneyr_time_items || {}).length > 0;
@@ -2864,6 +3083,11 @@ function OneYearPage({ map, set }) {
                 promptText={`What does this look like in ${year}?`}
                 hintText={hintText}
                 hintLabel={hintLabel}
+                voiceId={voiceId}
+                name={name}
+                pillar="time"
+                horizon="oneyr"
+                horizonYearLabel={yearLabel}
                 onTextChange={v => updateTimeItem(id, "text", v)}
                 onGoalChange={v => updateTimeItem(id, "goal", v)}
               />
@@ -2875,6 +3099,13 @@ function OneYearPage({ map, set }) {
             bottomTitle={`In one sentence, my time in ${year} is...`}
             sourceText={Object.values(map.oneyr_time_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
             existingConfirmed={map.oneyr_time_confirmed ? map.oneyr_time_sentence : null}
+            intent="pillar-overall"
+            voiceId={voiceId}
+            name={name}
+            pillar="time"
+            horizon="oneyr"
+            horizonYearLabel={yearLabel}
+            priorContext={{ oneyrTimeItems: oneyrTimeItemsCtx, purpose: purposeText, lifeAreas: lifeAreasCtx }}
             onConfirm={text => {
               set("oneyr_time_sentence", text);
               set("oneyr_time_confirmed", true);
@@ -2909,6 +3140,11 @@ function OneYearPage({ map, set }) {
                 promptText={`What does this look like in ${year}?`}
                 hintText={hintText}
                 hintLabel={hintLabel}
+                voiceId={voiceId}
+                name={name}
+                pillar="wealth"
+                horizon="oneyr"
+                horizonYearLabel={yearLabel}
                 onTextChange={v => updateWealthItem(id, "text", v)}
                 onGoalChange={v => updateWealthItem(id, "goal", v)}
               />
@@ -2920,6 +3156,13 @@ function OneYearPage({ map, set }) {
             bottomTitle={`In one sentence, my wealth in ${year} is...`}
             sourceText={Object.values(map.oneyr_wealth_items || {}).map((i: any) => i.goal || i.text).filter(Boolean).join(". ")}
             existingConfirmed={map.oneyr_wealth_confirmed ? map.oneyr_wealth_sentence : null}
+            intent="pillar-overall"
+            voiceId={voiceId}
+            name={name}
+            pillar="wealth"
+            horizon="oneyr"
+            horizonYearLabel={yearLabel}
+            priorContext={{ oneyrWealthItems: oneyrWealthItemsCtx, purpose: purposeText, lifeAreas: lifeAreasCtx }}
             onConfirm={text => {
               set("oneyr_wealth_sentence", text);
               set("oneyr_wealth_confirmed", true);
@@ -2981,6 +3224,18 @@ function OneYearPage({ map, set }) {
             bottomTitle={`In one sentence, who I am in ${year}...`}
             sourceText={map.oneyr_growth_text || ""}
             existingConfirmed={map.oneyr_growth_confirmed ? map.oneyr_growth_sentence : null}
+            intent="final-1yr-growth"
+            voiceId={voiceId}
+            name={name}
+            pillar="growth"
+            horizon="oneyr"
+            horizonYearLabel={yearLabel}
+            priorContext={{
+              purpose: purposeText,
+              lifeAreas: lifeAreasCtx,
+              bagGrowth: map.growth_sentence || "",
+              threeyrGrowth: map.threeyr_growth_sentence || "",
+            }}
             onConfirm={text => {
               set("oneyr_growth_sentence", text);
               set("oneyr_growth_confirmed", true);
@@ -9358,7 +9613,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         Closest horizon. This is what you can commit to. Your 1-year Growth draws
         from your Identity &amp; Values alignment -- the lowest-scoring items surface below as suggestions.
       </p>
-      <OneYearPage map={map} set={set} />
+      <OneYearPage map={map} set={set} voiceId={voice} name={name} intake={intake} />
       <div style={{ marginBottom:22, marginTop:18 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
           sectionLabel="1-year direction"
@@ -9647,7 +9902,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       {M1Progress()}
       <h2 style={{ fontFamily:"var(--serif)", fontSize:34, fontWeight:400, lineHeight:1.2, marginBottom:7, letterSpacing:"-0.3px" }}>Direction</h2>
       <p style={{ fontSize:14, color:"var(--text2)", lineHeight:1.7, marginBottom:20, maxWidth:540 }}>Your BAG -- Big Ass Goal. The 10–15 year summit that your purpose points toward.</p>
-      <DirectionSection map={map} set={set} />
+      <DirectionSection map={map} set={set} voiceId={voice} name={name} intake={intake} />
       <div style={{ marginBottom:22, marginTop:8 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
           sectionLabel="direction and BAG"
@@ -11309,7 +11564,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         Pull the horizon closer. Same priorities, refined for {new Date().getFullYear() + 3}.
         No sensory work here -- just get specific about what each area looks like.
       </p>
-      <ThreeYearPage map={map} set={set} />
+      <ThreeYearPage map={map} set={set} voiceId={voice} name={name} intake={intake} />
       <div style={{ marginBottom:22, marginTop:18 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
           sectionLabel="3-year direction"
