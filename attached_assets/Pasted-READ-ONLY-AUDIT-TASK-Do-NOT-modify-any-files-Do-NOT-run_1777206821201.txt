@@ -1,0 +1,94 @@
+READ-ONLY AUDIT TASK. Do NOT modify any files. Do NOT run any commands that change state. Just read App.tsx and report.
+
+Target file: artifacts/true-ownership/src/App.tsx
+
+I'm preparing to build a new top-level MapOfMePage component that aggregates data from across A1, A2, and A3. I need a complete inventory of every data field the existing code already writes to the `map` object, organized by phase. This way I can wire the new MapOfMePage to fields that actually exist instead of fields I'm guessing at.
+
+═══════════════════════════════════════════════
+PART 1 — A1 DATA FIELDS
+═══════════════════════════════════════════════
+
+Find all `set(...)` calls and direct `map[...]` assignments inside A1 code (everything from where A1's component starts through where A2 begins — likely lines ~9100 to ~12500 based on prior audit, but verify).
+
+For each unique field key written to, report:
+  FIELD: [exact key name, e.g. "purpose_final"]
+  WRITTEN AT: [line number(s) where it's set]
+  CONTEXT: [one-line description of what user action triggers writing this — e.g. "Purpose page final commit", "3-Year Time priority text"]
+  TYPE: [string | number | array | boolean | object]
+
+Group fields by Map of Me sub-card per the design spec:
+  - PURPOSE sub-card: anything for purpose (draft, final, refined)
+  - DIRECTION sub-card (3yr + 1yr): horizon priorities for time/wealth/growth at 3-year and 1-year
+  - IDENTITY/SUPERPOWERS sub-card: animals, archetypes, capabilities
+  - VALUES IN ORDER sub-card: values list with rank
+  - BIG ASS GOAL sub-card: BAG time/wealth/growth fields
+
+Also list any A1 fields that don't fit those categories under "OTHER A1 FIELDS".
+
+═══════════════════════════════════════════════
+PART 2 — A2 DATA FIELDS
+═══════════════════════════════════════════════
+
+Same format. A2 is roughly lines 3100-7000 based on prior audit; verify boundaries.
+
+Group by Map of Me sub-card:
+  - KEY MISALIGNMENT sub-card
+  - TIME AUDIT sub-card (Supports/Reshape/Leaks counts + Pinned Priority)
+  - FUTURE SELF LETTER sub-card (the quoted letter)
+  - YOUR ONE THING sub-card
+
+Also: confirm whether A2 has its own inline "Map of Me" page (look for `a2Step === "map"` or similar). Report the line range of that inline page if it exists.
+
+═══════════════════════════════════════════════
+PART 3 — A3 DATA FIELDS
+═══════════════════════════════════════════════
+
+Same format. A3 is roughly lines 7000-9000.
+
+Group by Map of Me sub-card:
+  - PEOPLE / INNER CIRCLE sub-card (advocate/neutral/anchor counts)
+  - BOARD sub-card (board candidates + missing seats)
+  - ENVIRONMENT sub-card (env items + Change/Protect takeaway)
+  - THOUGHTS LANDSCAPE sub-card
+  - BEST FRIEND RESPONSE sub-card (quote)
+  - ENERGY MAP sub-card
+
+═══════════════════════════════════════════════
+PART 4 — A1's INLINE MAP OF ME
+═══════════════════════════════════════════════
+
+A1 currently has an inline Map of Me page rendered when `step === "map"`. Find the line range of that block. Report:
+- Start line where `step === "map"` branch begins
+- End line where it returns / closes
+- A summary list of what sub-cards/sections it currently renders (just the section titles, not full code)
+
+═══════════════════════════════════════════════
+PART 5 — PHASE COMPLETION FLAGS
+═══════════════════════════════════════════════
+
+Find how each phase signals "done":
+- A1 done flag: what field name? (e.g. `map.a1_done`, or check if `done` array contains all A1 step ids?)
+- A2 done flag
+- A3 done flag
+- A4 done flag (if A4 exists yet)
+- A5 done flag (if A5 exists yet)
+
+═══════════════════════════════════════════════
+PART 6 — GLOBAL HELPERS
+═══════════════════════════════════════════════
+
+Confirm presence and line numbers of:
+- `loadData` and `saveData` functions
+- `KEYS` constant (and what keys are in it)
+- `VOICES` and `VOICE_DESC` constants (referenced by VoiceDropdown)
+- The top-level App() component — line where it's defined
+- Where the current `map` state is declared (line + initial value shape)
+- The routing logic that decides which phase component to render (look for something like `if (currentPhase === "a1") return <A1 ... />`)
+
+═══════════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════════
+
+Output as a markdown report. Do NOT make any edits. Do NOT propose code changes. Do NOT write the new component yet.
+
+End the report with: "MAP OF ME AUDIT COMPLETE. NO FILES MODIFIED. Awaiting human review before build instructions."
