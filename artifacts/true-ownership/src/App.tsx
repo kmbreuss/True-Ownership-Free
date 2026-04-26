@@ -650,7 +650,7 @@ function PriorityItemCard_v2({ icon, label, color, text, goal, promptText, onTex
             flex:1, minWidth:200,
             padding:"6px 10px", borderRadius:6,
             background:`${color}15`, color:"var(--text)",
-            fontSize:13, fontStyle:"italic",
+            fontSize:14, fontStyle:"italic",
           }}>
             <span style={{
               fontSize:9, letterSpacing:1.2, textTransform:"uppercase",
@@ -1256,7 +1256,7 @@ function SimpleItemCard_v2({ icon, label, color, text, goal, promptText, onTextC
             flex:1, minWidth:180,
             padding:"4px 10px", borderRadius:6,
             background:`${color}15`, color:"var(--text)",
-            fontSize:12, fontStyle:"italic",
+            fontSize:14, fontStyle:"italic",
           }}>
             <span style={{
               fontSize:9, letterSpacing:1.2, textTransform:"uppercase",
@@ -2186,7 +2186,7 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)" }}>{area.label}</div>
           {area.goal
-            ? <div style={{ fontFamily:"var(--serif)", fontSize:12, fontStyle:"italic", color:"rgba(201,168,76,.7)", lineHeight:1.4, marginTop:2 }}>{area.goal.slice(0, 80)}{area.goal.length > 80 ? "..." : ""}</div>
+            ? <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"rgba(201,168,76,.7)", lineHeight:1.4, marginTop:2 }}>{area.goal.slice(0, 80)}{area.goal.length > 80 ? "..." : ""}</div>
             : <div style={{ fontSize:11, color:"var(--text4)" }}>Priority {rank} of {total} · add your vision below</div>
           }
         </div>
@@ -2224,9 +2224,9 @@ function LifeAreaCard({ area, rank, total, onMoveUp, onMoveDown, onRemove, onCha
           {area.goal && (
             <div style={{ padding:"11px 14px", background:"rgba(201,168,76,.08)", border:"1px solid rgba(201,168,76,.25)", borderRadius:9, marginBottom:10 }}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:6 }}>Your {area.label} goal</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.7, marginBottom:8 }}>{area.goal}</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", color:"var(--text)", lineHeight:1.75, marginBottom:8 }}>{area.goal}</div>
               <textarea rows={2} value={area.goal} onChange={e => onChange("goal", e.target.value)}
-                className="to-field" style={{ fontSize:14, fontFamily:"var(--serif)", fontStyle:"italic", color:"var(--warm)", marginBottom:0 }} />
+                className="to-field" style={{ fontSize:16, fontFamily:"var(--serif)", fontStyle:"italic", color:"var(--warm)", marginBottom:0 }} />
             </div>
           )}
           {/* Summarise button */}
@@ -2324,7 +2324,7 @@ function DirectionSection({ map, set, voiceId, name, intake }: any) {
       <div style={{ flex:1 }}>
         <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color }}>{label}</div>
         {!isOpen && summary && (
-          <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color: summaryColor || "var(--text3)", lineHeight:1.5, marginTop:4 }}>{summary}</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", color: summaryColor || "var(--text3)", lineHeight:1.7, marginTop:4 }}>{summary}</div>
         )}
       </div>
       <div style={{
@@ -9164,7 +9164,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
       {done && !peelingExpanded && (
         <div className="fade-in" style={{ marginBottom:14, padding:"12px 14px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.18)", borderRadius:9 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:6 }}>Your purpose statement</div>
-          <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6, marginBottom:10 }}>"{purposeFinal || "Not yet written"}"</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6, marginBottom:10 }}>"{purposeFinal || "Not yet written"}"</div>
           <button onClick={() => setPeelingExpanded(true)} style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text3)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"5px 14px" }}>▾ Show peeling layers</button>
         </div>
       )}
@@ -9962,7 +9962,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           {map.time_summary && (
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Time</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6 }}>"{map.time_summary}"</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--warm)", lineHeight:1.6 }}>"{map.time_summary}"</div>
             </div>
           )}
           {/* Life goals list -- show goals if any, else chips */}
@@ -9994,14 +9994,14 @@ function A1({ intake, onDone, phase, setPhase }) {
           {map.wealth_summary && (
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Wealth</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#34d399", lineHeight:1.6 }}>"{map.wealth_summary}"</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"#34d399", lineHeight:1.6 }}>"{map.wealth_summary}"</div>
             </div>
           )}
           {/* Growth summary */}
           {(map.growth_summary || map.bag_growth) && (
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:5 }}>Growth</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"#a78bfa", lineHeight:1.6 }}>"{map.growth_summary || map.bag_growth.slice(0, 120)}{!map.growth_summary && map.bag_growth.length > 120 ? "..." : ""}"</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"#a78bfa", lineHeight:1.6 }}>"{map.growth_summary || map.bag_growth.slice(0, 120)}{!map.growth_summary && map.bag_growth.length > 120 ? "..." : ""}"</div>
             </div>
           )}
           <button onClick={() => set("mirror1_sub", "direction")}
