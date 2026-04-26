@@ -3331,6 +3331,13 @@ function A2({ intake, onDone, phase, setPhase }) {
   const [a2Step, setA2Step] = useState("intro");
   const [a2Done, setA2Done] = useState([]);
   const a2Goto = (s) => { setA2Step(s); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  useEffect(() => {
+    if (a2Step === "map") {
+      setA2Step("intro");
+      localStorage.setItem("to_mapofme_origin", "a2");
+      setPhase("_mapofme");
+    }
+  }, [a2Step]);
   const currentLabel = [...A2_STEPS, A2_MAP_STEP].find(s => s.id === a2Step)?.label || "Align With It";
 
   // ─── 4a: A2 data plumbing ──────────────────────────────────────────────
@@ -3456,7 +3463,6 @@ function A2({ intake, onDone, phase, setPhase }) {
         {a2Step !== "intro" && <button className="btn-g" onClick={() => {
           const idx = A2_STEPS.findIndex(s => s.id === a2Step);
           if (idx > 0) a2Goto(A2_STEPS[idx - 1].id);
-          else if (a2Step === "map") a2Goto(A2_STEPS[A2_STEPS.length - 1].id);
         }}>← Back</button>}
         {a2Step !== "map" && <button className="btn" onClick={() => {
           const idx = A2_STEPS.findIndex(s => s.id === a2Step);
@@ -9196,7 +9202,11 @@ function A1({ intake, onDone, phase, setPhase }) {
     Promise.all([loadData(KEYS.map), loadData(KEYS.done), loadData(KEYS.step), loadData(KEYS.voice)]).then(([m, d, s, v]) => {
       if (m) setMap({ ...EMPTY_MAP, ...m });
       if (d) setDone(d);
-      if (s) setStep(s);
+      if (s === "map") {
+        localStorage.setItem("to_mapofme_origin", "a1");
+        saveData(KEYS.step, "to_intro");
+        setPhase("_mapofme");
+      } else if (s) setStep(s);
       if (v) setVoice(v);
     });
   }, []);
@@ -11628,7 +11638,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                     {confirmed ? "✓ Confirmed — this carries into your Map of Me" : "Edit the wording, then confirm to carry into your Map of Me."}
                   </div>
                   <button
-                    onClick={() => { set("map_focus_text", focusDraft); set("map_focus_confirmed_flag", true); markDone("align"); goto("map"); }}
+                    onClick={() => { set("map_focus_text", focusDraft); set("map_focus_confirmed_flag", true); markDone("align"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}
                     disabled={confirmed || !focusDraft.trim()}
                     style={{ padding:"6px 13px", borderRadius:14, fontSize:11, fontWeight:600, cursor: confirmed || !focusDraft.trim() ? "default" : "pointer", border: confirmed ? "1px solid var(--warm)" : "1px solid var(--border2)", background: confirmed ? "var(--warm)" : "transparent", color: confirmed ? "#0d1b2e" : "var(--text2)", opacity: !focusDraft.trim() ? 0.5 : 1, whiteSpace:"nowrap" }}>
                     {confirmed ? "✓ Confirmed" : "✓ Confirm this as my focus"}
@@ -11658,7 +11668,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", paddingTop:18, borderTop:"1px solid var(--border)" }}>
         <button className="btn-g" onClick={() => goto("mirror3")}>← Values · Behaviors</button>
-        <button className="btn" onClick={() => { markDone("align"); goto("map"); }}>Build My Map of Me →</button>
+        <button className="btn" onClick={() => { markDone("align"); localStorage.setItem("to_mapofme_origin", "a1"); setPhase("_mapofme"); }}>Build My Map of Me →</button>
       </div>
     </>);
   }
@@ -11953,43 +11963,8 @@ function MapOfMePage({ onBack }: any) {
   useEffect(() => { (async () => { const m = await loadData(KEYS.map); if (m) setMap(m); })(); }, []);
   const [voice, setVoice] = useState("coach");
   useEffect(() => { (async () => { const v = await loadData(KEYS.voice); if (v) setVoice(v); })(); }, []);
-  const [debugDump, setDebugDump] = useState<string>("");
   const [origin, setOrigin] = useState<string>("a1");
   useEffect(() => { const o = localStorage.getItem("to_mapofme_origin"); if (o === "a1" || o === "a2" || o === "a3") setOrigin(o); }, []);
-  // [MAP_OF_ME_DEBUG] TEMPORARY — remove after diagnosis
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("to_map");
-      if (!raw) { console.warn("[MAP_OF_ME_DEBUG] no to_map key in localStorage"); setDebugDump("(no to_map key in localStorage)"); return; }
-      const parsed = JSON.parse(raw);
-      const keys = Object.keys(parsed).sort();
-      console.log("[MAP_OF_ME_DEBUG] === ALL KEYS ===", keys);
-      keys.forEach((k) => {
-        const v = (parsed as any)[k];
-        const type = v === null ? "null" : Array.isArray(v) ? "array" : typeof v;
-        const len = Array.isArray(v) ? v.length : (v && typeof v === "object") ? Object.keys(v).length : (typeof v === "string" ? v.length : null);
-        let preview: string;
-        try { preview = (typeof v === "string" ? v : JSON.stringify(v) ?? String(v)).slice(0, 100); }
-        catch { preview = "[unstringifiable]"; }
-        console.log(`[MAP_OF_ME_DEBUG] ${k} · ${type}${len !== null ? ` · len=${len}` : ""} · ${preview}`);
-      });
-      const lines: string[] = [];
-      lines.push("ALL KEYS: " + keys.join(", "));
-      keys.forEach((k) => {
-        const v = (parsed as any)[k];
-        const type = v === null ? "null" : Array.isArray(v) ? "array" : typeof v;
-        const len = Array.isArray(v) ? v.length : (v && typeof v === "object") ? Object.keys(v).length : (typeof v === "string" ? v.length : 0);
-        let preview: string;
-        try { preview = (typeof v === "string" ? v : JSON.stringify(v) ?? String(v)).slice(0, 120); }
-        catch { preview = "[unstringifiable]"; }
-        lines.push(`${k} · ${type} · LEN=${len} · ${preview}`);
-      });
-      setDebugDump(lines.join("\n"));
-    } catch (e) {
-      console.error("[MAP_OF_ME_DEBUG] read failed", e);
-      setDebugDump("read failed: " + String(e));
-    }
-  }, []);
   const setVoicePersist = (v: string) => { setVoice(v); saveData(KEYS.voice, v); };
   const [openSections, setOpenSections] = useState<any>({ a1: true, a2: true, a3: true, a4: false, a5: false });
 
@@ -12596,15 +12571,6 @@ function MapOfMePage({ onBack }: any) {
             </div>
           </div>
 
-          {/* [MAP_OF_ME_DEBUG] TEMPORARY — remove before publish */}
-          <details open style={{ marginTop:24, padding:12, border:"1px dashed #ef4444", borderRadius:6, background:"rgba(239,68,68,.04)" }}>
-            <summary style={{ cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, fontWeight:700, letterSpacing:1.2, color:"#ef4444", textTransform:"uppercase" }}>
-              [DEBUG] to_map dump (temporary — remove before publish)
-            </summary>
-            <pre style={{ marginTop:10, fontFamily:"ui-monospace, SFMono-Regular, Menlo, monospace", fontSize:11, lineHeight:1.5, color:"var(--text2)", background:"rgba(0,0,0,.25)", padding:10, borderRadius:4, overflow:"auto", maxHeight:420, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
-              {debugDump || "(no to_map in localStorage — or still loading)"}
-            </pre>
-          </details>
         </div>
       </div>
     </div>
@@ -12624,25 +12590,11 @@ export default function App() {
   const doneA1 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA2 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA3 = doneA2;
-  useEffect(() => { (window as any)._openMapOfMe = () => setPhase("_dev_mapofme"); }, []);
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
-  if (phase === "_dev_mapofme") return <MapOfMePage onBack={() => setPhase("a1")} />;
   if (phase === "_mapofme") return <MapOfMePage onBack={(origin?: string) => setPhase((origin || localStorage.getItem("to_mapofme_origin") || "a1") as any)} />;
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
-      <button
-        onClick={() => setPhase("_dev_mapofme")}
-        title="Temporary dev entry — opens the Map of Me viewing surface"
-        style={{
-          position:"fixed", bottom:14, right:14, zIndex:9999,
-          padding:"7px 12px", background:"rgba(239,68,68,.15)",
-          border:"1px solid #ef4444", color:"#ef4444",
-          borderRadius:6, fontFamily:"var(--sans)", fontSize:11,
-          fontWeight:700, letterSpacing:1, cursor:"pointer",
-        }}>
-        [DEV] Open Map of Me
-      </button>
       {phase === "intake" && <Intake onDone={doneIntake} />}
       {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} phase={phase} setPhase={setPhase} />}
       {phase === "a2" && intake && <A2 intake={intake} onDone={doneA2} phase={phase} setPhase={setPhase} />}
