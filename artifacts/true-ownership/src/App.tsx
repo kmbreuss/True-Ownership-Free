@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useAuth } from "./lib/auth-context";
+import { Footer } from "./components/Footer";
 const KEYS = {
   map:    "to_map",
   done:   "to_done",
@@ -8677,7 +8678,7 @@ function Intake({ onDone }) {
   return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:"36px 22px 80px" }}>
       {screens[step]}
-      <div style={{ position:"fixed", bottom:0, left:0, right:0, background:"rgba(13,27,46,.95)", borderTop:"1px solid #254060", padding:"8px 28px", display:"flex", alignItems:"center", gap:8, zIndex:40 }}>
+      <div style={{ position:"fixed", bottom:42, left:0, right:0, background:"rgba(13,27,46,.95)", borderTop:"1px solid #254060", padding:"8px 28px", display:"flex", alignItems:"center", gap:8, zIndex:40 }}>
         <div style={{ width:6, height:6, borderRadius:"50%", background:"var(--warm)", animation:"pulse 2s infinite", flexShrink:0 }} />
         <span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Your answers are saved automatically -- you can come back to this any time</span>
       </div>
@@ -9338,7 +9339,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         {sidebar}
         <div style={{ flex:1, minWidth:0 }} className="fade-up">{children}</div>
       </div>
-      <div style={{ position:"fixed", bottom:0, left:0, right:0, background:"var(--bg2)", borderTop:"1px solid var(--border2)", padding:"8px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", zIndex:40 }}>
+      <div style={{ position:"fixed", bottom:42, left:0, right:0, background:"var(--bg2)", borderTop:"1px solid var(--border2)", padding:"8px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", zIndex:40 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           {savedAt ? (<><div style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", flexShrink:0 }} /><span style={{ fontFamily:"var(--sans)", fontSize:11, color:"#34d399" }}>Auto-saved · {savedAt.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}</span></>) : (<><div style={{ width:6, height:6, borderRadius:"50%", background:"var(--text4)", flexShrink:0 }} /><span style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)" }}>Auto-saving your answers as you type</span></>)}
         </div>
@@ -12686,10 +12687,17 @@ function SignInScreen() {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center", padding:36 }}>
+    <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", flexDirection:"column" }}>
       <style>{CSS}</style>
+      <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", padding:36 }}>
       <form onSubmit={handleSubmit} className="fade-up" style={{ width:"100%", maxWidth:420 }}>
         <div style={{ textAlign:"center", marginBottom:18 }}>
+          <img
+            src={`${import.meta.env.BASE_URL}ag45-logo.png`}
+            alt="AccelerateGrowth45"
+            width={220}
+            style={{ height:"auto", display:"block", margin:"0 auto 28px" }}
+          />
           <div className="lbl" style={{ marginBottom:18 }}>True Ownership</div>
           <h1 style={{ fontFamily:"var(--serif)", fontSize:42, fontWeight:300, color:"#e8e3d8", marginBottom:14, letterSpacing:"-0.5px", lineHeight:1.15 }}>Welcome back</h1>
           <p style={{ fontFamily:"var(--sans)", fontSize:14, color:"#7a766e", lineHeight:1.8 }}>Sign in to start — or pick up where you left off.</p>
@@ -12733,6 +12741,8 @@ function SignInScreen() {
           Access by invite. Contact Katherine if you need an account.
         </div>
       </form>
+      </div>
+      <Footer />
     </div>
   );
 }
@@ -13429,11 +13439,14 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
 
   if (!ready) return <LoadingScreen />;
   return (
-    <>
-      {children}
+    <div style={{ display:"flex", flexDirection:"column", minHeight:"100vh" }}>
+      <div style={{ flex:1, minHeight:0, display:"flex", flexDirection:"column" }}>
+        {children}
+      </div>
+      <Footer />
       {showMigration && <MigrationModal onClose={() => setShowMigration(false)} />}
       <AccountMenu />
-    </>
+    </div>
   );
 }
 
