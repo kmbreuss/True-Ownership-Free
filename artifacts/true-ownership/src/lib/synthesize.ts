@@ -13,6 +13,19 @@ export const OUTPUT_DISCIPLINE =
   "Return ONLY the synthesized sentence. No preamble. No quotes. No markdown. " +
   "No 'Here is...'. Just the sentence itself.";
 
+// CRITICAL: Goals are written as ALREADY LIVED, not wished for.
+// The user often writes their input in future tense ("I will see...", "I want...",
+// "I'm going to...", "One day I'll..."). Translate that into present-tense
+// lived-experience voice as if the future has arrived and this is now their life.
+export const LIVED_TENSE_DISCIPLINE =
+  "WRITE AS LIVED, NOT WISHED. The goal is stated as if it has already happened and is " +
+  "now their reality. Use present tense or present perfect: \"I lead...\", \"My mornings " +
+  "begin with...\", \"I have built...\", \"My family gathers...\". " +
+  "FORBIDDEN: \"I want\", \"I will\", \"I hope to\", \"I'm going to\", \"One day\", " +
+  "\"Someday\", \"My goal is\", \"I aim to\", \"I plan to\", \"I would like\". " +
+  "If the user wrote \"I will see X\", render it as the lived scene (\"X is around me\" / " +
+  "\"I see X every morning\"). If they wrote \"I want to be Y\", render it as \"I am Y\".";
+
 const VOICE_PERSONAS: Record<string, string> = {
   own:         "You are reflecting the user's own truth back to them. Use clean, plain language. No advice. Their truth made visible.",
   coach:       "You are Katherine Breuss in coaching mode -- crisp, lucid, the kind of clarity that comes from asking the right question. Tone: precise and warm.",
@@ -89,6 +102,7 @@ function buildSystemMessage(voiceId: string): string {
     "",
     "You are synthesizing the user's writing into a single coherent sentence.",
     ANTI_ECHO_DISCIPLINE,
+    LIVED_TENSE_DISCIPLINE,
     OUTPUT_DISCIPLINE,
   ].join("\n");
 }
@@ -118,6 +132,7 @@ function buildUserMessage(args: SynthesizeArgs): string {
         `Distill this into ONE vivid, specific ${focus.label} goal sentence.`,
         "≤ 20 words. In their voice but tighter than they wrote it.",
         "Find the through-line — do not list elements.",
+        "Write it AS ALREADY LIVED — present tense, as if this future is now their life. No 'I will', no 'I want', no 'someday'.",
       ].join("\n");
     }
 
@@ -139,6 +154,7 @@ function buildUserMessage(args: SynthesizeArgs): string {
         `Synthesize ONE ${pillar} vision sentence that integrates these goals into a coherent direction.`,
         "Do not list them. Find the unifying truth that makes the individual goals feel like one life.",
         "≤ 25 words.",
+        "Write it AS ALREADY LIVED — present tense, as if this is now their reality. No 'I will', no 'I want', no 'someday'.",
       ].join("\n");
     }
 
@@ -164,6 +180,7 @@ function buildUserMessage(args: SynthesizeArgs): string {
         "Synthesize ONE Growth sentence that bridges who they are becoming with what they're building.",
         "Speak to identity, not activity.",
         "≤ 25 words.",
+        "Write it AS ALREADY LIVED — \"I am...\", \"I move through the world as...\". Not \"I will become\", not \"I want to be\".",
       ].filter(Boolean).join("\n");
     }
 
@@ -188,6 +205,7 @@ function buildUserMessage(args: SynthesizeArgs): string {
         "1. Is the natural near-term step toward the BAG",
         "2. Expresses their purpose in their next 12 months",
         "3. Stays specific and falsifiable, not aspirational fog",
+        "4. Is written AS ALREADY LIVED — present tense, as if 12 months have passed and this is who they now are. \"I lead...\", \"I have...\", \"My days...\". No 'I will', no 'I want', no 'someday'.",
         "",
         "≤ 28 words.",
       ].filter(Boolean).join("\n");
