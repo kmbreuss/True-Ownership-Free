@@ -47,3 +47,8 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local-only iteration backups (do not push)
+*.bak*
+!*.bak_pre_stage1
+!*.bak_pre_stage2
