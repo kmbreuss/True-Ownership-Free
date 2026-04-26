@@ -1,0 +1,165 @@
+═══════════════════════════════════════════════
+TASK: Add Replit Auth + Replit DB persistence
+       with localStorage migration for beta testers
+═══════════════════════════════════════════════
+
+PROJECT: True Ownership (artifacts/true-ownership/src/App.tsx)
+GOAL: Move user data from browser localStorage to server-side Replit DB,
+      keyed to authenticated user accounts. Existing beta testers MUST
+      keep all their current content (no data loss).
+
+═══════════════════════════════════════════════
+LOCKED CONSTRAINTS — DO NOT VIOLATE
+═══════════════════════════════════════════════
+
+1. Plan mode is ON for planning. Return a plan with EXACT line numbers
+   before writing anything. I will toggle Plan OFF when I'm ready to execute.
+2. Before any destructive edit, create a backup:
+      cp artifacts/true-ownership/src/App.tsx \
+         artifacts/true-ownership/src/App.tsx.bak_pre_auth
+3. Zero new TS errors. Verify the baseline holds after every step.
+4. DO NOT republish. Leave this in dev preview only. I verify in preview
+   first, then republish manually.
+5. localStorage writes STAY IN PLACE for this pass. Do not remove them.
+   This pass is additive only — DB writes happen alongside localStorage
+   writes. Removing localStorage is a later, separate task.
+6. No data loss for current beta testers. The migration must be tested
+   on a real existing localStorage record before this ships.
+
+═══════════════════════════════════════════════
+SCOPE OF THIS PASS (additive only)
+═══════════════════════════════════════════════
+
+A. AUTH
+   - Add Replit Auth (Google + email magic link, whichever is simplest
+     to enable in this Replit project).
+   - Login screen appears BEFORE the app loads if user is not
+     authenticated.
+   - "Sign out" link in the existing top-right header (next to the
+     Katherine name slot, or wherever fits the existing layout).
+   - Authenticated user object exposes at minimum: userId, email, name.
+
+B. DATA MODEL (Replit DB)
+   - One DB record per user.
+   - Key shape: `user:{userId}:map`
+   - Value: the existing `map` object (the same shape currently
+     serialized to localStorage under KEYS.map / "to_map").
+   - Also store: `user:{userId}:voice` (KEYS.voice equivalent).
+   - Also store: `user:{userId}:mapofme_origin` (the
+     to_mapofme_origin equivalent).
+   - All writes happen on the existing 800ms debounced saveMap, plus
+     on every voice change and every mapofme_origin change.
+
+C. READ PATH
+   - On app load, after auth: read DB first.
+   - If DB has data for this user: hydrate React state from DB. Done.
+   - If DB has NO data for this user: check localStorage. If
+     localStorage has data, this is a returning beta tester — go to
+     migration flow (D).
+   - If neither exists: brand new user, start from empty state as today.
+
+D. MIGRATION FLOW (one-time, per user)
+   - Trigger: user logs in, DB has no record for them, localStorage
+     has data.
+   - Show a one-time modal:
+       Title:  "We found your existing answers on this device."
+       Body:   "Bring them with you so they're saved to your account
+                and accessible from any device?"
+       Buttons:  [Bring them with me]   [Start fresh]
+   - "Bring them with me":
+        1. Read map, voice, mapofme_origin from localStorage.
+        2. Write all three to DB under this userId.
+        3. Set a flag `user:{userId}:migrated = true` in DB.
+        4. Hydrate React state from the just-written DB values.
+        5. Close modal.
+   - "Start fresh":
+        1. Set `user:{userId}:migrated = true` in DB (so we don't ask
+           again).
+        2. Do NOT clear localStorage (keep it as a fallback).
+        3. Hydrate from empty state.
+   - The modal NEVER appears again for this user once `migrated` flag
+     is set.
+
+E. WRITE PATH
+   - Wherever the existing code calls localStorage.setItem(KEYS.map, ...)
+     also call dbSet(`user:${userId}:map`, ...).
+   - Same for KEYS.voice and to_mapofme_origin.
+   - Failures to write to DB should be logged to console but should
+     NOT block the localStorage write or break the UI.
+   - The 800ms debounce on saveMap stays as-is.
+
+F. ADMIN VIEW (out of scope for this pass)
+   - Do NOT build an admin view in this pass. We'll do that separately.
+
+═══════════════════════════════════════════════
+WHAT I NEED FROM YOU IN PLAN MODE
+═══════════════════════════════════════════════
+
+1. List every file you intend to create or modify, with EXACT line
+   numbers for each insertion / change in App.tsx.
+2. Show me the auth provider setup (which Replit Auth flavor, what
+   gets added to the project config, any new env vars).
+3. Show me the DB helper functions you'll add (dbGet, dbSet, dbList)
+   and where they'll live.
+4. Show me exactly where the migration modal renders in the existing
+   App.tsx component tree.
+5. Show me exactly which existing localStorage call sites get a DB
+   write added next to them (line numbers).
+6. Identify ANY existing functionality that could break and how
+   you'll guard against it.
+7. Confirm: zero changes to A1, A2, A3, or Map of Me logic itself.
+   This pass only changes load/save plumbing and adds a login layer.
+
+═══════════════════════════════════════════════
+TEST PLAN (run after execution, before reporting back)
+═══════════════════════════════════════════════
+
+Run all of these in dev preview only. Do NOT republish.
+
+TEST 1 — Existing beta tester path (this is the critical test):
+  a. In preview, with a session that already has localStorage data
+     from the current published app, hard-refresh.
+  b. Confirm login screen appears.
+  c. Sign in.
+  d. Confirm the migration modal appears.
+  e. Click "Bring them with me".
+  f. Confirm A1, A2, A3, and Map of Me all show the previously
+     entered content.
+  g. Hard-refresh again. Confirm content is still there (now coming
+     from DB, not localStorage).
+  h. Confirm the modal does NOT appear again.
+
+TEST 2 — Brand new user path:
+  a. Sign in with a never-before-used account.
+  b. Confirm NO migration modal (no localStorage data to migrate).
+  c. Confirm app loads in empty state.
+  d. Enter something in A1. Hard-refresh. Confirm it persists.
+
+TEST 3 — Cross-device path:
+  a. Sign in, enter data, sign out.
+  b. Open in a different browser / incognito.
+  c. Sign in with the same account.
+  d. Confirm data is there.
+
+TEST 4 — "Start fresh" path:
+  a. With localStorage data present, sign in as a different account
+     than the one used in Test 1.
+  b. Confirm migration modal appears.
+  c. Click "Start fresh".
+  d. Confirm app loads empty.
+  e. Hard-refresh. Confirm modal does NOT appear again.
+
+TEST 5 — TS baseline:
+  a. Run the TS check. Zero new errors.
+
+═══════════════════════════════════════════════
+REPORT BACK FORMAT
+═══════════════════════════════════════════════
+
+End your final report with:
+  - List of every edit applied with "✓ applied" or "✗ failed".
+  - Test 1 through Test 5 results, each marked PASS or FAIL with a
+    one-line note.
+  - Any new TS errors (target: zero).
+  - "EXECUTION COMPLETE. NO PUBLISH. Awaiting human verification in
+    preview."
