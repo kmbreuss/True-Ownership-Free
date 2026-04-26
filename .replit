@@ -85,3 +85,11 @@ externalPort = 9000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.production]
+INITIAL_OWNER_EMAIL = "katherine@ag45.com"
+INITIAL_OWNER_PASSWORD = "SgorNqRkBfvbYC2z"
+INITIAL_OWNER_FIRST_NAME = "Katherine"
+INITIAL_OWNER_LAST_NAME = "Breuss"
