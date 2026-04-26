@@ -1,0 +1,64 @@
+Investigation report received and reviewed. The bug is exactly what I 
+suspected, and worse than I expected — 9 of 10 buttons aren't calling 
+AI at all. This MUST be fixed before republish. No question.
+
+Decisions on your 4 open questions:
+
+Q1 — Voice integration: YES. Honor the user's selected coaching voice 
+in all synthesize calls. Sterile summaries break consistency with the 
+rest of the experience. callAI() already honors voice — extend the 
+same pattern.
+
+Q2 — Token budgets: AGREED. 200-250 for items, 300-400 for 
+horizon-final. Current 120 too tight for synthesis with context.
+
+Q3 — Editability flow: KEEP AS-IS. Existing idle → generating → 
+editing → confirm state machine is right. No change.
+
+Q4 — Failure mode: OPTION (b). Show error, let user retry. Silent 
+fallback to first-sentence echo is exactly how this bug shipped — 
+must NOT preserve that as a fallback path.
+
+Architecture decisions:
+- ONE shared synthesize() helper, NOT per-field prompts (matches 
+  your recommendation)
+- ONE Summary Quality Pass, not per-A staging (matches your 
+  recommendation)
+- New file lib/synthesize.ts with helper + 4 prompt templates 
+  (intent enum: item-goal | pillar-overall | horizon-growth | 
+  final-1yr-growth)
+
+ONE PUSH-BACK on prompts:
+
+Add an anti-echo discipline line to every template. Claude has a 
+strong polite-paraphrase tendency that needs explicit pushback. 
+Suggest including in every template:
+
+"If your draft contains any phrase or clause from the user's 
+original writing, rewrite it. Echoing is failure. Synthesis means 
+finding the deeper truth in fewer, better words."
+
+Make this a constant in synthesize.ts so it's the same in every 
+template.
+
+NEXT STEP — produce the executable Stage 4 plan:
+
+1. File list (delete / add / modify with exact paths) — should be 
+   tiny: 1 new file (lib/synthesize.ts), 1 modified file (App.tsx)
+2. The exact 4 prompt templates with anti-echo discipline included 
+3. Helper signature and parameter shapes (the priorContext bundle, 
+   the intent enum, voice integration)
+4. Build order with ONE verification gate at the end where I test 
+   all 9 buttons by hand with real input
+5. Test plan: I'll fill A1 Direction with realistic content (BAG, 
+   3-Year, 1-Year across Time/Wealth/Growth) and walk through every 
+   Summarize button, verify it actually synthesizes (no echo, finds 
+   through-line, single sentence)
+6. Confirm App.tsx.bak_pre_stage4 backup BEFORE any edits
+
+NO PUBLISH. Dev preview only.
+
+Plan mode ON. Show me the executable plan, no code yet.
+
+After Stage 4 ships and I verify, we resume the ™ pass + Polish Pass
++ smoke test + republish in that order.
