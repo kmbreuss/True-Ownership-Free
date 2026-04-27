@@ -9169,7 +9169,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
     const titleColor = isActive ? "var(--text)" : "var(--text3)";
     const opacity = isActive ? 1 : isDone ? 0.85 : 0.55;
     return (
-      <div ref={headerRef} style={{ display:"flex", alignItems:"center", gap:11, margin: n===1 ? "22px 0 12px" : "24px 0 12px", opacity, transition:"opacity .25s ease" }}>
+      <div ref={headerRef} style={{ display:"flex", alignItems:"center", gap:11, margin: n===1 ? "22px 0 12px" : "24px 0 12px", scrollMarginTop:90, opacity, transition:"opacity .25s ease" }}>
         <div style={{ width:30, height:30, borderRadius:"50%", background:badgeBg, color:badgeColor, border:badgeBorder, fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:badgeShadow, transition:"all .25s ease" }}>
           {isDone ? "✓" : n}
         </div>
