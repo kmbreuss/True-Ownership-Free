@@ -3333,6 +3333,8 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
       if (storageKey) await saveData(storageKey, { scores, missing, confirmed: true });
       if (onComplete) onComplete({ scores, missing, confirmed: true });
       setSaved(true);
+    } else {
+      if (onComplete) onComplete({ scores, missing, confirmed: false });
     }
   };
   const ScoreSlider = ({ id, label, emoji }) => {
@@ -3424,7 +3426,7 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
             </div>
             <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.7 }}>"{purposeFinal}"</div>
             <div style={{ fontSize:11, color:"var(--text4)", marginTop:8 }}>This is your final purpose statement. You can still edit it above and re-confirm.</div>
-            <button onClick={() => { setConfirmed(null); setSaved(false); }}
+            <button onClick={() => { setConfirmed(null); setSaved(false); if (onComplete) onComplete({ scores, missing, confirmed: false }); }}
               style={{ marginTop:10, background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"4px 12px" }}>
               ↺ Re-check
             </button>
@@ -9082,11 +9084,13 @@ function SoWhatLayer({ index, value, onChange, isLatest, onGoDeeper, onReachedBo
     </div>
   );
 }
-function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalChange, purposeResult, onResult, name, intake, allSessions, onSessionSave }) {
+function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalChange, purposeResult, onResult, name, intake, allSessions, onSessionSave, onContinueToNext }) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(!!purposeResult);
   const [sessionKey, setSessionKey] = useState(0);
   const [peelingExpanded, setPeelingExpanded] = useState(false);
+  const [confirmedNow, setConfirmedNow] = useState(false);
+  const [livingOpen, setLivingOpen] = useState(false);
   const sessions = allSessions || [];
   const updateLayer = useCallback((i, val) => {
     const next = [...layers]; next[i] = val; onLayersChange(next);
@@ -9147,6 +9151,8 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
     onFinalChange("");
     setDone(false);
     setPeelingExpanded(false);
+    setConfirmedNow(false);
+    setLivingOpen(false);
     setSessionKey(k => k + 1);
   }, [onLayersChange, onResult, onFinalChange]);
   return (
@@ -9201,7 +9207,8 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
               <div style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)" }}>Error: {purposeResult._error}</div>
             </div>
           )}
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14, padding:"9px 14px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.14)", borderRadius:7 }}>
+          {/* Meta: peeling stats + optional return-session note */}
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, padding:"9px 14px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.14)", borderRadius:7 }}>
             <div style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text3)" }}>
               You peeled <span style={{ color:"var(--warm)", fontWeight:700 }}>{layers.length} layer{layers.length !== 1 ? "s" : ""}</span> deep
               {layers.length >= 3 && <span style={{ color:"var(--warm)" }}> · Good work</span>}
@@ -9214,46 +9221,108 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
               <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6 }}>{purposeResult.deeper_note}</div>
             </div>
           )}
-          <ResultCard color="#34d399" label="What is working">{purposeResult.working}</ResultCard>
-          {purposeResult.verbs && (
-            <div style={{ padding:"11px 14px", background:"var(--bg3)", borderLeft:"2px solid var(--warm)", borderRadius:"0 7px 7px 0", marginBottom:7 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:7 }}>Your verbs</div>
-              <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
-                {purposeResult.verbs.map((v, i) => <div key={i} style={{ padding:"4px 13px", background:"rgba(201,168,76,.1)", border:"1px solid rgba(201,168,76,.25)", borderRadius:20, fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)" }}>{v}</div>)}
-              </div>
+
+          {/* === STEP 1 · READ ============================================== */}
+          <div style={{ display:"flex", alignItems:"center", gap:11, margin:"22px 0 12px" }}>
+            <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>1</div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:1 }}>Step 1 · Read</div>
+              <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>Here's what surfaced. Read it back to yourself.</div>
             </div>
-          )}
-          <div style={{ padding:"14px 16px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.22)", borderRadius:9, marginBottom:7 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:8 }}>A purpose statement to consider</div>
-            <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", fontWeight:400, color:"var(--text)", lineHeight:1.6, marginBottom:3 }}>"{purposeResult.draft || ""}"</div>
-            <div style={{ fontSize:11, color:"var(--text4)" }}>Starting point -- not a verdict. Edit until it is yours.</div>
           </div>
-          {purposeResult.refining_question && (
-            <div style={{ padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:7, marginBottom:14 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:4 }}>A question to sit with</div>
-              <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6 }}>{purposeResult.refining_question}</div>
+          <div style={{ paddingLeft:14, borderLeft:"2px solid rgba(201,168,76,0.25)", marginBottom:6 }}>
+            <ResultCard color="#34d399" label="What is working">{purposeResult.working}</ResultCard>
+            {purposeResult.verbs && (
+              <div style={{ padding:"11px 14px", background:"var(--bg3)", borderLeft:"2px solid var(--warm)", borderRadius:"0 7px 7px 0", marginBottom:7 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:7 }}>Your verbs</div>
+                <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
+                  {purposeResult.verbs.map((v, i) => <div key={i} style={{ padding:"4px 13px", background:"rgba(201,168,76,.1)", border:"1px solid rgba(201,168,76,.25)", borderRadius:20, fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--warm)" }}>{v}</div>)}
+                </div>
+              </div>
+            )}
+            <div style={{ padding:"14px 16px", background:"rgba(201,168,76,.05)", border:"1px solid rgba(201,168,76,.22)", borderRadius:9, marginBottom:7 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:8 }}>A purpose statement to consider</div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:18, fontStyle:"italic", fontWeight:400, color:"var(--text)", lineHeight:1.6, marginBottom:3 }}>"{purposeResult.draft || ""}"</div>
+              <div style={{ fontSize:11, color:"var(--text4)" }}>Starting point -- not a verdict. You'll edit it in Step 2.</div>
             </div>
-          )}
-          <OwnItCheck context="purpose feedback" storageKey="ownit_purpose" onComplete={r => {}} purposeFinal={purposeFinal} onFinalChange={onFinalChange} />
-          <div style={{ marginTop:14 }}>
-            <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700, color:"var(--text)", marginBottom:3 }}>Your final purpose statement</div>
-            <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", marginBottom:8, lineHeight:1.5 }}>In your own words. Short enough to say in the car. You should feel it.</div>
-            <textarea value={purposeFinal} onChange={e => onFinalChange(e.target.value)} rows={2}
+            {purposeResult.refining_question && (
+              <div style={{ padding:"11px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:7 }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:4 }}>A question to sit with</div>
+                <div style={{ fontFamily:"var(--serif)", fontSize:14, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6 }}>{purposeResult.refining_question}</div>
+              </div>
+            )}
+          </div>
+
+          {/* === STEP 2 · REFINE ============================================ */}
+          <div style={{ display:"flex", alignItems:"center", gap:11, margin:"24px 0 12px" }}>
+            <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>2</div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:1 }}>Step 2 · Refine</div>
+              <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>Make it yours. Edit until it sounds like you say it out loud.</div>
+            </div>
+          </div>
+          <div style={{ paddingLeft:14, borderLeft:"2px solid rgba(201,168,76,0.25)" }}>
+            <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", marginBottom:8, lineHeight:1.5 }}>Short enough to say in the car. True enough to feel it.</div>
+            <textarea value={purposeFinal} onChange={e => { onFinalChange(e.target.value); if (confirmedNow) setConfirmedNow(false); }} rows={2}
               placeholder="My purpose is to..."
               style={{ width:"100%", background:"var(--bg4)", border:"1px solid var(--border2)", borderRadius:10, color:"var(--warm)", fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", fontWeight:400, lineHeight:1.7, padding:"12px 14px", outline:"none", resize:"none" }}
               onFocus={e => { e.target.style.borderColor = "var(--warm)"; e.target.style.boxShadow = "0 0 0 3px rgba(201,168,76,0.12)"; }}
               onBlur={e => { e.target.style.borderColor = "var(--border2)"; e.target.style.boxShadow = "none"; }}
             />
           </div>
-          <div style={{ marginTop:16, padding:"14px 16px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:9 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--text4)", marginBottom:7 }}>This is a living exercise</div>
-            <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", lineHeight:1.7, marginBottom:10 }}>Purpose is not always found in a single sitting. Return when you have fresh eyes -- days, weeks, or even months later. Your previous sessions are saved and Katherine will read them alongside your new answers, tracking how you are going deeper each time.</div>
-            <button onClick={restartPeeling}
-              style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text2)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, fontWeight:500, padding:"7px 16px" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--warm)"; e.currentTarget.style.color = "var(--warm)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.color = "var(--text2)"; }}>
-              ↩ Go deeper -- peel again
+
+          {/* === STEP 3 · OWN IT ============================================ */}
+          <div style={{ display:"flex", alignItems:"center", gap:11, margin:"24px 0 12px" }}>
+            <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>3</div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:1 }}>Step 3 · Own it</div>
+              <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>Read your statement back to yourself. Does it actually land?</div>
+            </div>
+          </div>
+          <div style={{ paddingLeft:14, borderLeft:"2px solid rgba(201,168,76,0.25)" }}>
+            <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", marginBottom:4, lineHeight:1.5 }}>Score how it feels in your body, whether it lights you up, and whether it sounds like what you're meant to do. Then confirm.</div>
+            <OwnItCheck context="purpose feedback" storageKey="ownit_purpose"
+              onComplete={r => setConfirmedNow(!!(r && r.confirmed))}
+              purposeFinal={purposeFinal} onFinalChange={onFinalChange} />
+          </div>
+
+          {/* === Confirmed CTA -- prominent next step ======================= */}
+          {confirmedNow && (
+            <div className="fade-in" style={{ marginTop:18, padding:"16px 18px", background:"linear-gradient(135deg, rgba(52,211,153,.12), rgba(52,211,153,.04))", border:"1px solid rgba(52,211,153,.4)", borderRadius:12 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:6 }}>
+                <span style={{ fontSize:18, color:"#34d399" }}>✓</span>
+                <div style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"#34d399" }}>Purpose locked in</div>
+              </div>
+              <div style={{ fontFamily:"var(--serif)", fontSize:15, fontStyle:"italic", color:"var(--text2)", lineHeight:1.6, marginBottom:12 }}>"{purposeFinal}"</div>
+              {onContinueToNext && (
+                <button onClick={onContinueToNext}
+                  style={{ width:"100%", padding:"11px 18px", background:"#34d399", border:"1px solid #34d399", borderRadius:9, color:"#0a1f17", cursor:"pointer", fontFamily:"var(--sans)", fontSize:13, fontWeight:700, letterSpacing:0.3, transition:"all .2s", boxShadow:"0 3px 10px rgba(52,211,153,0.25)" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#2bc189"; e.currentTarget.style.borderColor = "#2bc189"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#34d399"; e.currentTarget.style.borderColor = "#34d399"; }}>
+                  Continue to Direction → Your BAG  →
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* === Living exercise (collapsed by default) ===================== */}
+          <div style={{ marginTop:18 }}>
+            <button onClick={() => setLivingOpen(o => !o)}
+              style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"9px 14px", background:"none", border:"1px solid var(--border)", borderRadius:8, cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)", textAlign:"left" }}>
+              <span><span style={{ marginRight:8 }}>↻</span>This is a living exercise -- you can peel again anytime</span>
+              <span style={{ fontSize:10, opacity:0.7 }}>{livingOpen ? "▴" : "▾"}</span>
             </button>
+            {livingOpen && (
+              <div className="fade-in" style={{ marginTop:8, padding:"12px 14px", background:"var(--bg2)", border:"1px solid var(--border2)", borderRadius:9 }}>
+                <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", lineHeight:1.7, marginBottom:10 }}>Purpose is not always found in a single sitting. Return when you have fresh eyes -- days, weeks, or even months later. Your previous sessions are saved and Katherine will read them alongside your new answers, tracking how you are going deeper each time.</div>
+                <button onClick={restartPeeling}
+                  style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text2)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:12, fontWeight:500, padding:"7px 16px" }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--warm)"; e.currentTarget.style.color = "var(--warm)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border2)"; e.currentTarget.style.color = "var(--text2)"; }}>
+                  ↩ Go deeper -- peel again
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -9948,6 +10017,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         name={name} intake={intake}
         allSessions={map.purpose_sessions || []}
         onSessionSave={s => set("purpose_sessions", [...(map.purpose_sessions || []), s])}
+        onContinueToNext={() => set("mirror1_sub", "direction")}
       />
       <div style={{ marginBottom:22, marginTop:8 }}>
         <AIChat voiceId={voice} onVoiceChange={setVoicePersist} name={name} intake={intake} mapData={map}
