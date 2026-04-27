@@ -9275,7 +9275,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             style={{ paddingLeft:14, borderLeft: activeStep === 2 ? "2px solid var(--warm)" : "2px solid rgba(201,168,76,0.25)", transition:"border-color .25s ease" }}>
             <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", marginBottom:8, lineHeight:1.5 }}>Short enough to say in the car. True enough to feel it.</div>
             <textarea value={purposeFinal}
-              onChange={e => { onFinalChange(e.target.value); if (confirmedNow) setConfirmedNow(false); if (activeStep === 4) setActiveStep(2); }}
+              onChange={e => { onFinalChange(e.target.value); if (confirmedNow) { setConfirmedNow(false); setActiveStep(2); } }}
               rows={2}
               placeholder="My purpose is to..."
               style={{ width:"100%", background:"var(--bg4)", border:"1px solid var(--border2)", borderRadius:10, color:"var(--warm)", fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", fontWeight:400, lineHeight:1.7, padding:"12px 14px", outline:"none", resize:"none" }}
