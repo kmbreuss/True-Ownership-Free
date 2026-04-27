@@ -3707,7 +3707,11 @@ function A2({ intake, onDone, phase, setPhase }) {
         <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership™</div>
         <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>· {intake?.name || ""}</div>
       </div>
-      {phaseTabs}
+      <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+        {phaseTabs}
+        <AdminBar phase={phase} onAdminClick={() => setPhase("_admin")} mode="inline" />
+        <AccountMenu mode="inline" />
+      </div>
     </div>
   );
   const sidebar = (
@@ -8774,7 +8778,11 @@ function A3({ intake, onDone, phase, setPhase }: any) {
         <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:700 }}>True Ownership™</div>
         <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text4)" }}>· {intake?.name || ""}</div>
       </div>
-      {phaseTabs}
+      <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+        {phaseTabs}
+        <AdminBar phase={phase} onAdminClick={() => setPhase("_admin")} mode="inline" />
+        <AccountMenu mode="inline" />
+      </div>
     </div>
   );
   const sidebar = (
@@ -9489,6 +9497,8 @@ function A1({ intake, onDone, phase, setPhase }) {
   const [savedAt, setSavedAt] = useState(null);
   const [chipInput, setChipInput] = useState("");
   const [dragOver, setDragOver] = useState(null);
+  // Spine intro: which 5As row the user is hovering, for paired-row highlight.
+  const [spineHoverRow, setSpineHoverRow] = useState(null);
   const saveTimer = useRef(null);
   const { name } = intake;
   useEffect(() => {
@@ -9561,6 +9571,8 @@ function A1({ intake, onDone, phase, setPhase }) {
             );
           })}
         </div>
+        <AdminBar phase={phase} onAdminClick={() => setPhase("_admin")} mode="inline" />
+        <AccountMenu mode="inline" />
       </div>
     </div>
   );
@@ -9675,20 +9687,41 @@ function A1({ intake, onDone, phase, setPhase }) {
     {/* Guidance strip */}
     <div style={{ margin:"14px 0 12px", display:"flex", alignItems:"center", justifyContent:"center", gap:14, padding:"10px 16px", background:"var(--bg2)", border:"1px dashed var(--border2)", borderRadius:12, fontSize:12, color:"var(--text2)", flexWrap:"wrap" }}>
       <span style={{ display:"flex", alignItems:"center", gap:6, fontWeight:500, color:"#B07312", letterSpacing:"0.04em" }}>
-        <span>START HERE</span><span>&darr;</span><span>THEN</span><span>&rarr; &darr;</span>
+        <span>CLICK A ROW</span><span>&rarr;</span><span>SEE BOTH SIDES</span>
       </span>
-      <span style={{ fontStyle:"italic", fontSize:12.5, color:"var(--text3)" }}>Open each card as you go. Take in the owner side first, then the business side.</span>
+      <span style={{ fontStyle:"italic", fontSize:12.5, color:"var(--text3)" }}>Each row pairs Owner (left) and Business (right). Click anywhere on a row to open both.</span>
     </div>
+    {/* Open all / Collapse all toggle */}
+    {(() => {
+      const allOpen = [1,2,3,4,5].every((n) => !!map?.[`to_intro_o${n}_open`] && !!map?.[`to_intro_b${n}_open`]);
+      const toggleAllRows = () => {
+        const next: any = { ...map };
+        for (const n of [1,2,3,4,5]) {
+          next[`to_intro_o${n}_open`] = !allOpen;
+          next[`to_intro_b${n}_open`] = !allOpen;
+        }
+        setMap(next);
+      };
+      return (
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
+          <button onClick={toggleAllRows}
+            style={{ background:"transparent", border:"1px solid var(--border2)", borderRadius:6, padding:"5px 11px", fontFamily:"var(--sans)", fontSize:11, color:"var(--text3)", cursor:"pointer", letterSpacing:"0.04em" }}
+            onMouseOver={(e) => { e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.borderColor = "var(--border)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = "var(--text3)"; e.currentTarget.style.borderColor = "var(--border2)"; }}
+          >{allOpen ? "Collapse all 5" : "Open all 5 →"}</button>
+        </div>
+      );
+    })()}
     {/* Column labels */}
     <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 1fr", gap:0, marginBottom:14, alignItems:"center" }}>
       <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(155,170,224,0.08)", color:"#9BAAE0", border:"0.5px solid rgba(155,170,224,0.25)", position:"relative" }}>
-        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#B07312", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(176,115,18,0.3)" }}>STEP 1 &darr;</div>
+        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#B07312", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(176,115,18,0.3)" }}>OWNER &rarr;</div>
         <div style={{ fontSize:12, fontWeight:700 }}>The Owner</div>
         <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How you personally move through each A</div>
       </div>
       <div style={{ textAlign:"center", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:"var(--text3)", lineHeight:1.4, fontWeight:600 }}>THE SPINE<br />THE 5As™</div>
       <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(93,202,165,0.08)", color:"#5DCAA5", border:"0.5px solid rgba(93,202,165,0.25)", position:"relative" }}>
-        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#0F6E56", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(15,110,86,0.3)" }}>STEP 2 &darr;</div>
+        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#0F6E56", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(15,110,86,0.3)" }}>&larr; BUSINESS</div>
         <div style={{ fontSize:12, fontWeight:700 }}>The Business</div>
         <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How this shows up in what you build</div>
       </div>
@@ -9716,14 +9749,26 @@ function A1({ intake, onDone, phase, setPhase }) {
         const bKey = `to_intro_b${row.n}_open`;
         const oOpen = !!map?.[oKey];
         const bOpen = !!map?.[bKey];
+        const rowOpen = oOpen || bOpen;
         const pathLeft = row.n;
         const pathRight = row.n + 5;
+        const isHover = spineHoverRow === row.n;
+        // Click anywhere on the row (Owner card, vertebra, or Business card)
+        // toggles BOTH halves together so the user understands the row as one unit.
+        const toggleRow = () => setMap({ ...map, [oKey]: !rowOpen, [bKey]: !rowOpen });
+        const onEnter = () => setSpineHoverRow(row.n);
+        const onLeave = () => setSpineHoverRow((prev) => prev === row.n ? null : prev);
+        const ownerBorder = isHover ? "0.5px solid rgba(155,170,224,0.55)" : "0.5px solid var(--border2)";
+        const businessBorder = isHover ? "0.5px solid rgba(93,202,165,0.55)" : "0.5px solid var(--border2)";
+        const ownerBg = isHover ? "rgba(155,170,224,0.05)" : "var(--bg2)";
+        const businessBg = isHover ? "rgba(93,202,165,0.05)" : "var(--bg2)";
+        const vertebraShadow = isHover ? `0 4px 14px ${row.bg}80` : "none";
         return (
           <React.Fragment key={row.n}>
             {/* Owner card */}
-            <div style={{ position:"relative", borderRadius:11, border:"0.5px solid var(--border2)", background:"var(--bg2)", borderLeft:"3px solid #9BAAE0", overflow:"visible" }}>
+            <div onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ position:"relative", borderRadius:11, border:ownerBorder, background:ownerBg, borderLeft:"3px solid #9BAAE0", overflow:"visible", transition:"background .18s, border-color .18s" }}>
               <div style={{ position:"absolute", top:10, left:-10, width:22, height:22, borderRadius:"50%", background:"#B07312", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, boxShadow:"0 4px 10px rgba(176,115,18,0.45)", border:"2px solid var(--bg2)", zIndex:3 }}>{pathLeft}</div>
-              <div onClick={() => setMap({...map, [oKey]: !oOpen})} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
+              <div onClick={toggleRow} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0, flex:1 }}>
                   <div style={{ fontFamily:"var(--serif)", fontSize:16, fontWeight:700, color:"#FAC775", minWidth:22, textAlign:"center" }}>A{row.n}</div>
                   <div style={{ minWidth:0, flex:1 }}>
@@ -9731,7 +9776,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                     <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text)", lineHeight:1.35 }}>{row.o.hook}</div>
                   </div>
                 </div>
-                <div style={{ fontSize:11, color:"var(--text3)", transform:oOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.25s", width:18, height:18, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center" }}>&#9662;</div>
+                <div style={{ fontSize:11, color:"var(--text3)", transform:rowOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.25s", width:18, height:18, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center" }}>&#9662;</div>
               </div>
               {oOpen && (
                 <div style={{ padding:"0 12px 12px" }}>
@@ -9743,17 +9788,17 @@ function A1({ intake, onDone, phase, setPhase }) {
               )}
             </div>
             {/* Vertebra center */}
-            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"6px 0" }}>
-              <div style={{ width:"100%", borderRadius:10, padding:"12px 8px", textAlign:"center", background:row.bg, color:"#fff" }}>
+            <div onMouseEnter={onEnter} onMouseLeave={onLeave} onClick={toggleRow} style={{ display:"flex", alignItems:"flex-start", justifyContent:"center", padding:"6px 0", cursor:"pointer", userSelect:"none" }}>
+              <div style={{ width:"100%", borderRadius:10, padding:"12px 8px", textAlign:"center", background:row.bg, color:"#fff", boxShadow:vertebraShadow, transition:"box-shadow .18s, transform .18s", transform:isHover ? "scale(1.04)" : "scale(1)" }}>
                 <div style={{ fontFamily:"var(--serif)", fontSize:"1.5rem", fontWeight:700, lineHeight:1, color:row.numCol }}>{row.n}</div>
                 <div style={{ fontSize:9, fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", marginTop:3, lineHeight:1.2 }}>{row.name}</div>
                 <div style={{ fontSize:8.5, opacity:0.7, marginTop:2, fontStyle:"italic", lineHeight:1.2 }}>{row.shift}</div>
               </div>
             </div>
             {/* Business card */}
-            <div style={{ position:"relative", borderRadius:11, border:"0.5px solid var(--border2)", background:"var(--bg2)", borderRight:"3px solid #5DCAA5", overflow:"visible" }}>
+            <div onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ position:"relative", borderRadius:11, border:businessBorder, background:businessBg, borderRight:"3px solid #5DCAA5", overflow:"visible", transition:"background .18s, border-color .18s" }}>
               <div style={{ position:"absolute", top:10, right:-10, width:22, height:22, borderRadius:"50%", background:"#0F6E56", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, boxShadow:"0 4px 10px rgba(15,110,86,0.4)", border:"2px solid var(--bg2)", zIndex:3 }}>{pathRight}</div>
-              <div onClick={() => setMap({...map, [bKey]: !bOpen})} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
+              <div onClick={toggleRow} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0, flex:1 }}>
                   <div style={{ fontFamily:"var(--serif)", fontSize:16, fontWeight:700, color:"#5DCAA5", minWidth:22, textAlign:"center" }}>A{row.n}</div>
                   <div style={{ minWidth:0, flex:1 }}>
@@ -9761,7 +9806,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                     <div style={{ fontFamily:"var(--serif)", fontSize:13, fontStyle:"italic", color:"var(--text)", lineHeight:1.35 }}>{row.b.hook}</div>
                   </div>
                 </div>
-                <div style={{ fontSize:11, color:"var(--text3)", transform:bOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.25s", width:18, height:18, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center" }}>&#9662;</div>
+                <div style={{ fontSize:11, color:"var(--text3)", transform:rowOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.25s", width:18, height:18, borderRadius:"50%", background:"rgba(255,255,255,0.08)", display:"flex", alignItems:"center", justifyContent:"center" }}>&#9662;</div>
               </div>
               {bOpen && (
                 <div style={{ padding:"0 12px 12px" }}>
@@ -9778,7 +9823,7 @@ function A1({ intake, onDone, phase, setPhase }) {
     </div>
     {/* Continue button */}
     <div style={{ marginTop:36, paddingTop:28, borderTop:"1px solid var(--border)", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
-      <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Open each card to take it in. When you&rsquo;re ready, continue.</div>
+      <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Click any row to open both sides together. When you&rsquo;re ready, continue.</div>
       <button className="btn" onClick={() => goto("intro")}>Everything Starts With You &rarr;</button>
     </div>
   </>);
@@ -12893,10 +12938,15 @@ function AuthedApp() {
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
   if (phase === "_admin") return <AdminScreenGuarded onExit={() => setPhase(prevPhaseRef.current)} />;
   if (phase === "_mapofme") return <MapOfMePage onBack={(origin?: string) => setPhase((origin || loadDataSync("to_mapofme_origin") || "a1") as any)} />;
+  // A1, A2, A3 host the AdminBar + AccountMenu inline inside their sticky header
+  // (see each phase function's `hdr`). On every other authenticated screen we
+  // keep the floating top-right widgets so sign-out + admin stay reachable.
+  const phaseOwnsTopBar = phase === "a1" || phase === "a2" || phase === "a3";
   return (
     <div style={{ background:"#0d1b2e", minHeight:"100vh" }}>
       <style>{CSS}</style>
-      <AdminBar phase={phase} onAdminClick={() => setPhase("_admin")} />
+      {!phaseOwnsTopBar && <AdminBar phase={phase} onAdminClick={() => setPhase("_admin")} />}
+      {!phaseOwnsTopBar && <AccountMenu />}
       {phase === "intake" && <Intake onDone={doneIntake} />}
       {phase === "a1" && intake && <A1 intake={intake} onDone={doneA1} phase={phase} setPhase={setPhase} />}
       {phase === "a2" && intake && <A2 intake={intake} onDone={doneA2} phase={phase} setPhase={setPhase} />}
@@ -13163,20 +13213,23 @@ type AdminUser = {
   updatedAt: string | null;
 };
 
-function AdminBar({ phase, onAdminClick }: { phase: string; onAdminClick: () => void }) {
+function AdminBar({ phase, onAdminClick, mode = "fixed" }: { phase: string; onAdminClick: () => void; mode?: "fixed" | "inline" }) {
   const { user } = useAuth();
   if (user?.role !== "owner") return null;
   if (phase === "_admin" || phase === "loading") return null;
+  const baseStyle: React.CSSProperties = {
+    fontSize: 11, color: "var(--warm)", background: "transparent",
+    border: "1px solid rgba(201,168,76,0.45)", borderRadius: 4,
+    padding: "6px 12px", cursor: "pointer", letterSpacing: 1.5,
+    fontFamily: "var(--sans)", textTransform: "uppercase" as const,
+  };
+  const positionStyle: React.CSSProperties = mode === "inline"
+    ? {}
+    : { position: "fixed", top: 14, right: 170, zIndex: 1000 };
   return (
     <button
       onClick={onAdminClick}
-      style={{
-        position: "fixed", top: 14, right: 170, zIndex: 1000,
-        fontSize: 11, color: "var(--warm)", background: "transparent",
-        border: "1px solid rgba(201,168,76,0.45)", borderRadius: 4,
-        padding: "6px 12px", cursor: "pointer", letterSpacing: 1.5,
-        fontFamily: "var(--sans)", textTransform: "uppercase" as const,
-      }}
+      style={{ ...positionStyle, ...baseStyle }}
       title="Open admin pane"
     >
       Admin
@@ -13609,7 +13662,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
   );
 }
 
-function AccountMenu() {
+function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
   const { logout, user } = useAuth();
   const [open, setOpen] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
@@ -13626,9 +13679,13 @@ function AccountMenu() {
 
   const label = (user?.email || "Account").split("@")[0];
 
+  const wrapperStyle: React.CSSProperties = mode === "inline"
+    ? { position:"relative", fontFamily:"var(--sans)" }
+    : { position:"fixed", top:14, right:14, zIndex:1000, fontFamily:"var(--sans)" };
+
   return (
     <>
-      <div ref={ref} style={{ position:"fixed", top:14, right:14, zIndex:1000, fontFamily:"var(--sans)" }}>
+      <div ref={ref} style={wrapperStyle}>
         <button
           onClick={() => setOpen((v) => !v)}
           style={{ fontSize:11, color:"#7a766e", background:"transparent", border:"1px solid rgba(122,118,110,0.3)", borderRadius:4, padding:"6px 12px", cursor:"pointer", letterSpacing:1, display:"inline-flex", alignItems:"center", gap:6 }}
@@ -13700,7 +13757,6 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
       </div>
       <Footer />
       {showMigration && <MigrationModal onClose={() => setShowMigration(false)} />}
-      <AccountMenu />
     </div>
   );
 }
