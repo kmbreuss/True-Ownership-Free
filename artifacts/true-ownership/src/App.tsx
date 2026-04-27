@@ -9089,6 +9089,8 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
   const [peelingExpanded, setPeelingExpanded] = useState(false);
   const [confirmedNow, setConfirmedNow] = useState(false);
   const [livingOpen, setLivingOpen] = useState(false);
+  const [activeStep, setActiveStep] = useState(1);
+  const step1Ref = useRef(null);
   const sessions = allSessions || [];
   const updateLayer = useCallback((i, val) => {
     const next = [...layers]; next[i] = val; onLayersChange(next);
@@ -9151,8 +9153,32 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
     setPeelingExpanded(false);
     setConfirmedNow(false);
     setLivingOpen(false);
+    setActiveStep(1);
     setSessionKey(k => k + 1);
   }, [onLayersChange, onResult, onFinalChange]);
+  const StepHeader = ({ n, label, title, headerRef }) => {
+    const state = n < activeStep ? "done" : n === activeStep ? "active" : "pending";
+    const isActive = state === "active";
+    const isDone = state === "done";
+    const badgeBg = isActive ? "var(--warm)" : isDone ? "rgba(52,211,153,0.14)" : "var(--bg3)";
+    const badgeColor = isActive ? "#fff" : isDone ? "#34d399" : "var(--text4)";
+    const badgeBorder = isActive ? "2px solid var(--warm)" : isDone ? "1.5px solid rgba(52,211,153,0.55)" : "1px solid var(--border2)";
+    const badgeShadow = isActive ? "0 0 0 4px rgba(201,168,76,0.18), 0 2px 8px rgba(201,168,76,0.4)" : "none";
+    const labelColor = isActive ? "var(--warm)" : isDone ? "#34d399" : "var(--text4)";
+    const titleColor = isActive ? "var(--text)" : "var(--text3)";
+    const opacity = isActive ? 1 : isDone ? 0.85 : 0.55;
+    return (
+      <div ref={headerRef} style={{ display:"flex", alignItems:"center", gap:11, margin: n===1 ? "22px 0 12px" : "24px 0 12px", opacity, transition:"opacity .25s ease" }}>
+        <div style={{ width:30, height:30, borderRadius:"50%", background:badgeBg, color:badgeColor, border:badgeBorder, fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:badgeShadow, transition:"all .25s ease" }}>
+          {isDone ? "✓" : n}
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:labelColor, marginBottom:1, transition:"color .25s ease" }}>Step {n} · {label}</div>
+          <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:titleColor, lineHeight:1.4, transition:"color .25s ease" }}>{title}</div>
+        </div>
+      </div>
+    );
+  };
   return (
     <div>
       {sessions.length > 0 && (
@@ -9219,14 +9245,9 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             </div>
           )}
 
-          <div style={{ display:"flex", alignItems:"center", gap:11, margin:"22px 0 12px" }}>
-            <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>1</div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:1 }}>Step 1 · Read</div>
-              <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>Here's what surfaced. Read it back to yourself.</div>
-            </div>
-          </div>
-          <div style={{ paddingLeft:14, borderLeft:"2px solid rgba(201,168,76,0.25)", marginBottom:6 }}>
+          <StepHeader n={1} label="Read" title="Here's what surfaced. Read it back to yourself." headerRef={step1Ref} />
+          <div onMouseDown={() => { if (activeStep < 1) setActiveStep(1); }}
+            style={{ paddingLeft:14, borderLeft: activeStep === 1 ? "2px solid var(--warm)" : "2px solid rgba(201,168,76,0.25)", marginBottom:6, transition:"border-color .25s ease" }}>
             <ResultCard color="#34d399" label="What is working">{purposeResult.working}</ResultCard>
             {purposeResult.verbs && (
               <div style={{ padding:"11px 14px", background:"var(--bg3)", borderLeft:"2px solid var(--warm)", borderRadius:"0 7px 7px 0", marginBottom:7 }}>
@@ -9249,34 +9270,35 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             )}
           </div>
 
-          <div style={{ display:"flex", alignItems:"center", gap:11, margin:"24px 0 12px" }}>
-            <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>2</div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:1 }}>Step 2 · Refine</div>
-              <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>Make it yours. Edit until it sounds like you say it out loud.</div>
-            </div>
-          </div>
-          <div style={{ paddingLeft:14, borderLeft:"2px solid rgba(201,168,76,0.25)" }}>
+          <StepHeader n={2} label="Refine" title="Make it yours. Edit until it sounds like you say it out loud." />
+          <div onMouseDown={() => setActiveStep(s => s < 2 ? 2 : s)}
+            style={{ paddingLeft:14, borderLeft: activeStep === 2 ? "2px solid var(--warm)" : "2px solid rgba(201,168,76,0.25)", transition:"border-color .25s ease" }}>
             <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", marginBottom:8, lineHeight:1.5 }}>Short enough to say in the car. True enough to feel it.</div>
-            <textarea value={purposeFinal} onChange={e => { onFinalChange(e.target.value); if (confirmedNow) setConfirmedNow(false); }} rows={2}
+            <textarea value={purposeFinal}
+              onChange={e => { onFinalChange(e.target.value); if (confirmedNow) setConfirmedNow(false); if (activeStep === 4) setActiveStep(2); }}
+              rows={2}
               placeholder="My purpose is to..."
               style={{ width:"100%", background:"var(--bg4)", border:"1px solid var(--border2)", borderRadius:10, color:"var(--warm)", fontFamily:"var(--serif)", fontSize:17, fontStyle:"italic", fontWeight:400, lineHeight:1.7, padding:"12px 14px", outline:"none", resize:"none" }}
-              onFocus={e => { e.target.style.borderColor = "var(--warm)"; e.target.style.boxShadow = "0 0 0 3px rgba(201,168,76,0.12)"; }}
+              onFocus={e => { setActiveStep(2); if (confirmedNow) setConfirmedNow(false); e.target.style.borderColor = "var(--warm)"; e.target.style.boxShadow = "0 0 0 3px rgba(201,168,76,0.12)"; }}
               onBlur={e => { e.target.style.borderColor = "var(--border2)"; e.target.style.boxShadow = "none"; }}
             />
           </div>
 
-          <div style={{ display:"flex", alignItems:"center", gap:11, margin:"24px 0 12px" }}>
-            <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>3</div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", color:"var(--warm)", marginBottom:1 }}>Step 3 · Own it</div>
-              <div style={{ fontFamily:"var(--sans)", fontSize:13, fontWeight:600, color:"var(--text)", lineHeight:1.4 }}>Read your statement back to yourself. Does it actually land?</div>
-            </div>
-          </div>
-          <div style={{ paddingLeft:14, borderLeft:"2px solid rgba(201,168,76,0.25)" }}>
+          <StepHeader n={3} label="Own it" title="Read your statement back to yourself. Does it actually land?" />
+          <div onMouseDown={() => setActiveStep(s => s < 3 ? 3 : s)} onFocus={() => setActiveStep(s => s < 3 ? 3 : s)}
+            style={{ paddingLeft:14, borderLeft: activeStep === 3 ? "2px solid var(--warm)" : "2px solid rgba(201,168,76,0.25)", transition:"border-color .25s ease" }}>
             <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", marginBottom:4, lineHeight:1.5 }}>Score how it feels in your body, whether it lights you up, and whether it sounds like what you're meant to do. Then confirm.</div>
             <OwnItCheck context="purpose feedback" storageKey="ownit_purpose"
-              onComplete={r => setConfirmedNow(!!(r && r.confirmed))}
+              onComplete={r => {
+                const yes = !!(r && r.confirmed);
+                setConfirmedNow(yes);
+                if (yes) {
+                  setActiveStep(4);
+                } else {
+                  setActiveStep(1);
+                  setTimeout(() => { try { step1Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) {} }, 60);
+                }
+              }}
               purposeFinal={purposeFinal} onFinalChange={onFinalChange} />
           </div>
 
