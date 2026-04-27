@@ -12936,8 +12936,8 @@ function AuthedApp() {
   const doneA2 = async () => { await saveData(KEYS.phase, "done"); setPhase("done"); };
   const doneA3 = doneA2;
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
-  if (phase === "_admin") return <AdminScreenGuarded onExit={() => setPhase(prevPhaseRef.current)} />;
-  if (phase === "_mapofme") return <MapOfMePage onBack={(origin?: string) => setPhase((origin || loadDataSync("to_mapofme_origin") || "a1") as any)} />;
+  if (phase === "_admin") return <><AdminScreenGuarded onExit={() => setPhase(prevPhaseRef.current)} /><AccountMenu /></>;
+  if (phase === "_mapofme") return <><MapOfMePage onBack={(origin?: string) => setPhase((origin || loadDataSync("to_mapofme_origin") || "a1") as any)} /><AccountMenu /></>;
   // A1, A2, A3 host the AdminBar + AccountMenu inline inside their sticky header
   // (see each phase function's `hdr`). On every other authenticated screen we
   // keep the floating top-right widgets so sign-out + admin stay reachable.
