@@ -9695,12 +9695,12 @@ function A1({ intake, onDone, phase, setPhase }) {
     {(() => {
       const allOpen = [1,2,3,4,5].every((n) => !!map?.[`to_intro_o${n}_open`] && !!map?.[`to_intro_b${n}_open`]);
       const toggleAllRows = () => {
-        const next: any = { ...map };
+        const updates: Record<string, boolean> = {};
         for (const n of [1,2,3,4,5]) {
-          next[`to_intro_o${n}_open`] = !allOpen;
-          next[`to_intro_b${n}_open`] = !allOpen;
+          updates[`to_intro_o${n}_open`] = !allOpen;
+          updates[`to_intro_b${n}_open`] = !allOpen;
         }
-        setMap(next);
+        setMap(prev => ({ ...prev, ...updates }));
       };
       return (
         <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
@@ -9715,13 +9715,13 @@ function A1({ intake, onDone, phase, setPhase }) {
     {/* Column labels */}
     <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 1fr", gap:0, marginBottom:14, alignItems:"center" }}>
       <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(155,170,224,0.08)", color:"#9BAAE0", border:"0.5px solid rgba(155,170,224,0.25)", position:"relative" }}>
-        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#B07312", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(176,115,18,0.3)" }}>OWNER &rarr;</div>
+        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#B07312", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(176,115,18,0.3)" }}>STEP 1 &darr;</div>
         <div style={{ fontSize:12, fontWeight:700 }}>The Owner</div>
         <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How you personally move through each A</div>
       </div>
       <div style={{ textAlign:"center", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:"var(--text3)", lineHeight:1.4, fontWeight:600 }}>THE SPINE<br />THE 5As™</div>
       <div style={{ textAlign:"center", padding:"10px 12px", borderRadius:11, background:"rgba(93,202,165,0.08)", color:"#5DCAA5", border:"0.5px solid rgba(93,202,165,0.25)", position:"relative" }}>
-        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#0F6E56", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(15,110,86,0.3)" }}>&larr; BUSINESS</div>
+        <div style={{ position:"absolute", top:-9, left:"50%", transform:"translateX(-50%)", background:"#0F6E56", color:"#fff", fontSize:9, fontWeight:700, letterSpacing:"0.1em", padding:"3px 9px", borderRadius:999, boxShadow:"0 4px 10px rgba(15,110,86,0.3)" }}>STEP 2 &darr;</div>
         <div style={{ fontSize:12, fontWeight:700 }}>The Business</div>
         <div style={{ fontSize:10, opacity:0.72, marginTop:2, fontStyle:"italic" }}>How this shows up in what you build</div>
       </div>
@@ -9823,7 +9823,7 @@ function A1({ intake, onDone, phase, setPhase }) {
     </div>
     {/* Continue button */}
     <div style={{ marginTop:36, paddingTop:28, borderTop:"1px solid var(--border)", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
-      <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Click any row to open both sides together. When you&rsquo;re ready, continue.</div>
+      <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Open each card to take it in. When you&rsquo;re ready, continue.</div>
       <button className="btn" onClick={() => goto("intro")}>Everything Starts With You &rarr;</button>
     </div>
   </>);
@@ -12937,7 +12937,7 @@ function AuthedApp() {
   const doneA3 = doneA2;
   if (phase === "loading") return <div style={{ minHeight:"100vh", background:"#0d1b2e", display:"flex", alignItems:"center", justifyContent:"center" }}><style>{CSS}</style><div style={{ fontFamily:"var(--sans)", fontSize:12, color:"#3d3d38", letterSpacing:2, animation:"pulse 1.5s infinite" }}>Loading…</div></div>;
   if (phase === "_admin") return <><AdminScreenGuarded onExit={() => setPhase(prevPhaseRef.current)} /><AccountMenu /></>;
-  if (phase === "_mapofme") return <><MapOfMePage onBack={(origin?: string) => setPhase((origin || loadDataSync("to_mapofme_origin") || "a1") as any)} /><AccountMenu /></>;
+  if (phase === "_mapofme") return <><MapOfMePage onBack={(origin?: string) => setPhase((origin || loadDataSync("to_mapofme_origin") || "a1") as any)} /><AdminBar phase={phase} onAdminClick={() => setPhase("_admin")} /><AccountMenu /></>;
   // A1, A2, A3 host the AdminBar + AccountMenu inline inside their sticky header
   // (see each phase function's `hdr`). On every other authenticated screen we
   // keep the floating top-right widgets so sign-out + admin stay reachable.
