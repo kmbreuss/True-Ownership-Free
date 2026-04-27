@@ -9091,6 +9091,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
   const [livingOpen, setLivingOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const step1Ref = useRef(null);
+  const step2Ref = useRef(null);
   const sessions = allSessions || [];
   const updateLayer = useCallback((i, val) => {
     const next = [...layers]; next[i] = val; onLayersChange(next);
@@ -9270,7 +9271,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             )}
           </div>
 
-          <StepHeader n={2} label="Refine" title="Make it yours. Edit until it sounds like you say it out loud." />
+          <StepHeader n={2} label="Refine" title="Make it yours. Edit until it sounds like you say it out loud." headerRef={step2Ref} />
           <div onMouseDown={() => setActiveStep(s => s < 2 ? 2 : s)}
             style={{ paddingLeft:14, borderLeft: activeStep === 2 ? "2px solid var(--warm)" : "2px solid rgba(201,168,76,0.25)", transition:"border-color .25s ease" }}>
             <div style={{ fontFamily:"var(--sans)", fontSize:12, color:"var(--text3)", marginBottom:8, lineHeight:1.5 }}>Short enough to say in the car. True enough to feel it.</div>
@@ -9295,8 +9296,8 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
                 if (yes) {
                   setActiveStep(4);
                 } else {
-                  setActiveStep(1);
-                  setTimeout(() => step1Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+                  setActiveStep(2);
+                  setTimeout(() => step2Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
                 }
               }}
               purposeFinal={purposeFinal} onFinalChange={onFinalChange} />
