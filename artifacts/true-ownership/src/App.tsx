@@ -3419,15 +3419,13 @@ function OwnItCheck({ context, onComplete, storageKey, purposeFinal, onFinalChan
         )}
         {/* Confirmed YES */}
         {confirmed === true && saved && (
-          <div className="fade-in" style={{ padding:"14px 16px", background:"rgba(52,211,153,.07)", border:"1px solid rgba(52,211,153,.25)", borderRadius:9 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-              <span style={{ fontSize:16 }}>✓</span>
-              <div style={{ fontFamily:"var(--sans)", fontSize:12, fontWeight:700, letterSpacing:1, textTransform:"uppercase", color:"#34d399" }}>Purpose confirmed</div>
+          <div className="fade-in" style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"9px 14px", background:"rgba(52,211,153,.06)", border:"1px solid rgba(52,211,153,.22)", borderRadius:8 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:13, color:"#34d399" }}>✓</span>
+              <div style={{ fontFamily:"var(--sans)", fontSize:11, fontWeight:600, letterSpacing:0.5, color:"#34d399" }}>Confirmed -- see next step below</div>
             </div>
-            <div style={{ fontFamily:"var(--serif)", fontSize:16, fontStyle:"italic", color:"var(--text)", lineHeight:1.7 }}>"{purposeFinal}"</div>
-            <div style={{ fontSize:11, color:"var(--text4)", marginTop:8 }}>This is your final purpose statement. You can still edit it above and re-confirm.</div>
             <button onClick={() => { setConfirmed(null); setSaved(false); if (onComplete) onComplete({ scores, missing, confirmed: false }); }}
-              style={{ marginTop:10, background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"4px 12px" }}>
+              style={{ background:"none", border:"1px solid var(--border2)", borderRadius:20, color:"var(--text4)", cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, padding:"3px 11px", flexShrink:0 }}>
               ↺ Re-check
             </button>
           </div>
