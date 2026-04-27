@@ -9758,15 +9758,18 @@ function A1({ intake, onDone, phase, setPhase }) {
         const toggleRow = () => setMap({ ...map, [oKey]: !rowOpen, [bKey]: !rowOpen });
         const onEnter = () => setSpineHoverRow(row.n);
         const onLeave = () => setSpineHoverRow((prev) => prev === row.n ? null : prev);
-        const ownerBorder = isHover ? "0.5px solid rgba(155,170,224,0.55)" : "0.5px solid var(--border2)";
-        const businessBorder = isHover ? "0.5px solid rgba(93,202,165,0.55)" : "0.5px solid var(--border2)";
+        // Use boxShadow (not border swap) for the hover highlight so we don't
+        // mix `border` shorthand with `borderLeft`/`borderRight` longhand on
+        // the same element — that pattern triggers React style warnings.
+        const ownerHoverShadow = isHover ? "0 0 0 1px rgba(155,170,224,0.55)" : "none";
+        const businessHoverShadow = isHover ? "0 0 0 1px rgba(93,202,165,0.55)" : "none";
         const ownerBg = isHover ? "rgba(155,170,224,0.05)" : "var(--bg2)";
         const businessBg = isHover ? "rgba(93,202,165,0.05)" : "var(--bg2)";
         const vertebraShadow = isHover ? `0 4px 14px ${row.bg}80` : "none";
         return (
           <React.Fragment key={row.n}>
             {/* Owner card */}
-            <div onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ position:"relative", borderRadius:11, border:ownerBorder, background:ownerBg, borderLeft:"3px solid #9BAAE0", overflow:"visible", transition:"background .18s, border-color .18s" }}>
+            <div onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ position:"relative", borderRadius:11, borderTop:"0.5px solid var(--border2)", borderRight:"0.5px solid var(--border2)", borderBottom:"0.5px solid var(--border2)", borderLeft:"3px solid #9BAAE0", background:ownerBg, boxShadow:ownerHoverShadow, overflow:"visible", transition:"background .18s, box-shadow .18s" }}>
               <div style={{ position:"absolute", top:10, left:-10, width:22, height:22, borderRadius:"50%", background:"#B07312", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, boxShadow:"0 4px 10px rgba(176,115,18,0.45)", border:"2px solid var(--bg2)", zIndex:3 }}>{pathLeft}</div>
               <div onClick={toggleRow} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0, flex:1 }}>
@@ -9796,7 +9799,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               </div>
             </div>
             {/* Business card */}
-            <div onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ position:"relative", borderRadius:11, border:businessBorder, background:businessBg, borderRight:"3px solid #5DCAA5", overflow:"visible", transition:"background .18s, border-color .18s" }}>
+            <div onMouseEnter={onEnter} onMouseLeave={onLeave} style={{ position:"relative", borderRadius:11, borderTop:"0.5px solid var(--border2)", borderLeft:"0.5px solid var(--border2)", borderBottom:"0.5px solid var(--border2)", borderRight:"3px solid #5DCAA5", background:businessBg, boxShadow:businessHoverShadow, overflow:"visible", transition:"background .18s, box-shadow .18s" }}>
               <div style={{ position:"absolute", top:10, right:-10, width:22, height:22, borderRadius:"50%", background:"#0F6E56", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, boxShadow:"0 4px 10px rgba(15,110,86,0.4)", border:"2px solid var(--bg2)", zIndex:3 }}>{pathRight}</div>
               <div onClick={toggleRow} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, padding:"11px 12px", cursor:"pointer", userSelect:"none" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, minWidth:0, flex:1 }}>
@@ -9821,10 +9824,35 @@ function A1({ intake, onDone, phase, setPhase }) {
         );
       })}
     </div>
-    {/* Continue button */}
+    {/* Outcomes row — what the spine produces when fully lived */}
+    <div style={{ marginTop:28, marginBottom:10, textAlign:"center", fontSize:10, letterSpacing:"0.22em", textTransform:"uppercase", color:"var(--text3)", fontWeight:600 }}>
+      &darr;&nbsp;&nbsp;The Outcomes&nbsp;&nbsp;&darr;
+    </div>
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 110px 1fr", gap:0, alignItems:"stretch" }}>
+      {/* Owner Outcome — purple, matches A5 vertebra family */}
+      <div style={{ borderRadius:11, padding:"18px 20px", background:"#2A3580", color:"#fff", textAlign:"center", display:"flex", flexDirection:"column", justifyContent:"center" }}>
+        <div style={{ fontSize:9, letterSpacing:"0.16em", textTransform:"uppercase", color:"#9FAAE0", marginBottom:6, fontWeight:600 }}>Owner Outcome</div>
+        <div style={{ fontFamily:"var(--serif)", fontSize:20, fontWeight:700, marginBottom:8, letterSpacing:"0.03em" }}>OWN IT</div>
+        <div style={{ fontSize:11.5, lineHeight:1.55, opacity:0.92 }}>You lead from identity, not fear. Aligned decisions. Abundant mindset. Showing up 100% as yourself &mdash; in life and in business.</div>
+      </div>
+      {/* Center HOW chip — True Ownership (replacing Soul Aligned Strategy per request) */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"0 6px" }}>
+        <div style={{ width:"100%", borderRadius:10, padding:"12px 6px", textAlign:"center", background:"#BA7517", color:"#fff" }}>
+          <div style={{ fontSize:9, fontWeight:600, letterSpacing:"0.14em", textTransform:"uppercase", marginBottom:4, opacity:0.85 }}>How</div>
+          <div style={{ fontFamily:"var(--serif)", fontSize:13, fontWeight:700, lineHeight:1.2 }}>True Ownership</div>
+        </div>
+      </div>
+      {/* Business Outcome — green, matches A2/A3 business card family */}
+      <div style={{ borderRadius:11, padding:"18px 20px", background:"#0F6E56", color:"#fff", textAlign:"center", display:"flex", flexDirection:"column", justifyContent:"center" }}>
+        <div style={{ fontSize:9, letterSpacing:"0.16em", textTransform:"uppercase", color:"#9FE5C4", marginBottom:6, fontWeight:600 }}>Business Outcome</div>
+        <div style={{ fontFamily:"var(--serif)", fontSize:20, fontWeight:700, marginBottom:8, letterSpacing:"0.03em" }}>Leader-Run Business</div>
+        <div style={{ fontSize:11.5, lineHeight:1.55, opacity:0.92 }}>Grows in value. Delivers measurable outcomes. Sustains success beyond the owner. Runs on alignment, not just effort.</div>
+      </div>
+    </div>
+    {/* Continue button — also marks "to_intro" done so the sidebar pill turns green */}
     <div style={{ marginTop:36, paddingTop:28, borderTop:"1px solid var(--border)", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
       <div style={{ fontSize:11.5, color:"var(--text3)", textAlign:"center", fontStyle:"italic", maxWidth:440 }}>Open each card to take it in. When you&rsquo;re ready, continue.</div>
-      <button className="btn" onClick={() => goto("intro")}>Everything Starts With You &rarr;</button>
+      <button className="btn" onClick={() => { markDone("to_intro"); goto("intro"); }}>Everything Starts With You &rarr;</button>
     </div>
   </>);
   if (step === "intro") return wrapContent(<>
