@@ -9207,7 +9207,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
               <div style={{ fontSize:11, color:"var(--text4)", fontFamily:"var(--sans)" }}>Error: {purposeResult._error}</div>
             </div>
           )}
-          {/* Meta: peeling stats + optional return-session note */}
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10, padding:"9px 14px", background:"rgba(201,168,76,.06)", border:"1px solid rgba(201,168,76,.14)", borderRadius:7 }}>
             <div style={{ fontFamily:"var(--sans)", fontSize:11, color:"var(--text3)" }}>
               You peeled <span style={{ color:"var(--warm)", fontWeight:700 }}>{layers.length} layer{layers.length !== 1 ? "s" : ""}</span> deep
@@ -9222,7 +9221,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             </div>
           )}
 
-          {/* === STEP 1 · READ ============================================== */}
           <div style={{ display:"flex", alignItems:"center", gap:11, margin:"22px 0 12px" }}>
             <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>1</div>
             <div style={{ flex:1, minWidth:0 }}>
@@ -9253,7 +9251,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             )}
           </div>
 
-          {/* === STEP 2 · REFINE ============================================ */}
           <div style={{ display:"flex", alignItems:"center", gap:11, margin:"24px 0 12px" }}>
             <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>2</div>
             <div style={{ flex:1, minWidth:0 }}>
@@ -9271,7 +9268,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             />
           </div>
 
-          {/* === STEP 3 · OWN IT ============================================ */}
           <div style={{ display:"flex", alignItems:"center", gap:11, margin:"24px 0 12px" }}>
             <div style={{ width:28, height:28, borderRadius:"50%", background:"var(--warm)", color:"#fff", fontSize:13, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, boxShadow:"0 2px 6px rgba(201,168,76,0.3)" }}>3</div>
             <div style={{ flex:1, minWidth:0 }}>
@@ -9286,7 +9282,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
               purposeFinal={purposeFinal} onFinalChange={onFinalChange} />
           </div>
 
-          {/* === Confirmed CTA -- prominent next step ======================= */}
           {confirmedNow && (
             <div className="fade-in" style={{ marginTop:18, padding:"16px 18px", background:"linear-gradient(135deg, rgba(52,211,153,.12), rgba(52,211,153,.04))", border:"1px solid rgba(52,211,153,.4)", borderRadius:12 }}>
               <div style={{ display:"flex", alignItems:"center", gap:9, marginBottom:6 }}>
