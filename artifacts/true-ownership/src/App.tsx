@@ -9296,7 +9296,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
                   setActiveStep(4);
                 } else {
                   setActiveStep(1);
-                  setTimeout(() => { try { step1Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) {} }, 60);
+                  setTimeout(() => step1Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
                 }
               }}
               purposeFinal={purposeFinal} onFinalChange={onFinalChange} />
@@ -9320,7 +9320,6 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
             </div>
           )}
 
-          {/* === Living exercise (collapsed by default) ===================== */}
           <div style={{ marginTop:18 }}>
             <button onClick={() => setLivingOpen(o => !o)}
               style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"9px 14px", background:"none", border:"1px solid var(--border)", borderRadius:8, cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)", textAlign:"left" }}>
