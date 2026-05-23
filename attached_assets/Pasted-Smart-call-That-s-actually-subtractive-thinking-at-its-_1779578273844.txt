@@ -1,0 +1,53 @@
+Smart call. That's actually subtractive thinking at its best — don't ship something just because we built it. Defer the decision until you've seen Rooms and have real context.
+Here's the combined message to send Agent. One message, three things:
+
+Step 5 verified. Three things in this round — bundle them as one Agent run, then pause.
+1. Hide the right-side status strip for now.
+Don't delete the code — keep it behind a flag so we can restore it later. Either:
+
+Wrap the strip in {false && (...)} and add a comment // status strip hidden — re-enable after Rooms ship, OR
+Add a constant const SHOW_STATUS_STRIP = false; near the top of the Explore page component and gate the strip on it.
+
+When hidden, the Explore page becomes a clean single-column layout: breadcrumb → title → subtitle → intro video → 4 exercise rows → Back button. The ≤900px mobile behavior is now the desktop behavior too.
+2. Enforce strict exercise sequence.
+The unlock rule per Program_Architecture_v2.md: an exercise unlocks when the previous one is complete. Right now Declare is showing "Complete" gold for me because purpose_final has data, but Ex1-3 are not done. For new users this would be wrong.
+Fix:
+
+Ex1 (Owned Symptoms) is always unlocked (it's first)
+Ex2 (True Ownership) unlocks ONLY when a1_ex1_done is true
+Ex3 (The Peel) unlocks ONLY when a1_ex2_done is true
+Ex4 (Declare) unlocks ONLY when a1_ex3_done is true
+"Complete" status on a row requires its OWN _done flag, regardless of what's in older data keys (purpose_final, purpose_layers)
+
+Existing data from purpose_layers and purpose_final is still preserved in the database — but it does NOT count toward "complete" until the user walks the new sequence. When they do walk Ex3 (Peel) and Ex4 (Declare), pre-populate their answers from the existing data so they're not starting from scratch.
+3. Proceed to step 6: real RoomVeil + RoomOverlay shell.
+Per the spec (Program_Architecture_v2.md Veil transition section):
+
+Stage 1 — Rise (600ms): radial gold-tinted veil sweeps up from bottom, cubic-bezier(0.22, 1, 0.36, 1)
+Stage 2 — Text fade in (starts 400ms into rise, 500ms duration): italic Georgia gold line rises and fades in
+Stage 3 — HOLD (1400ms): user reads the threshold line, screen swap happens invisibly under the veil
+Stage 4 — Text fade out (300ms)
+Stage 5 — Fall (700ms): veil peels back from top, cubic-bezier(0.65, 0, 0.35, 1)
+Total ~2.7s
+The HOLD is what makes it feel like a threshold, not a flash — implement as explicit state transitions, not CSS alone
+
+Per-exercise threshold text (italic Georgia gold serif):
+
+Owned Symptoms → "Stepping into the room with Katherine…"
+True Ownership → "Imagining the owner…"
+The Peel → "Going deeper with Katherine…"
+Declare → "The moment of claiming…"
+
+The Room shell (RoomOverlay) replaces the current placeholder:
+
+Centered card on dimmed/blurred Explore page (filter: blur(2px), opacity 0.32)
+1px gold border, 80px gold-glow shadow
+Padding: 80px top, 24px sides, 40px bottom
+Card max-width 720px
+Breadcrumb at top: Purpose › [Exercise name]
+× close button top-right
+Card fades + lifts in over 500ms with cubic-bezier ease
+Mobile: 95vh max-height, gold border kept, padding 60px/16px/24px
+
+For step 6, the Room shell + veil are all we need. Inside the Room, render a stub that says "Exercise content lands in step 7." No exercise logic yet — that comes step 7-10.
+When step 6 is done, pause for verification.

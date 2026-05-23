@@ -384,13 +384,31 @@ html[data-theme="light"]{
 .na1-status-value{ font-size:13.5px; color:var(--na1-text); line-height:1.45; word-break:break-word; }
 .na1-status-value.is-empty{ color:var(--na1-text-mute); font-style:italic; }
 .na1-status-value.is-declaration{ font-family:var(--na1-serif); font-style:italic; color:var(--gold); font-size:14.5px; }
-/* Room placeholder overlay (full Rooms come in steps 7-10) */
-.na1-room-overlay{ position:fixed; inset:0; z-index:80; background:rgba(13,27,46,0.78); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:24px; animation:na1RoomFadeIn .25s ease; }
-[data-theme="light"] .na1-room-overlay{ background:rgba(245,243,239,0.82); }
-.na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-xl); padding:32px 28px; max-width:560px; width:100%; max-height:90vh; overflow:auto; position:relative; font-family:var(--na1-sans); box-shadow:0 24px 80px rgba(0,0,0,0.4); }
-.na1-room-close{ position:absolute; top:14px; right:14px; width:36px; height:36px; border-radius:50%; background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+/* ── Veil (entry transition) ── */
+.na1-veil{ position:fixed; inset:0; z-index:100; pointer-events:none; background:radial-gradient(ellipse at center, rgba(212,175,80,0.92) 0%, rgba(13,27,46,0.98) 70%); transform:translateY(100%); transition:transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-theme="light"] .na1-veil{ background:radial-gradient(ellipse at center, rgba(212,175,80,0.95) 0%, rgba(245,243,239,0.98) 70%); }
+.na1-veil.is-rising, .na1-veil.is-hold{ transform:translateY(0); }
+.na1-veil.is-falling{ transform:translateY(-100%); transition:transform 700ms cubic-bezier(0.65, 0, 0.35, 1); }
+.na1-veil-text{ position:absolute; top:50%; left:50%; transform:translate(-50%, calc(-50% + 14px)); font-family:var(--na1-serif); font-style:italic; color:var(--gold); font-size:22px; line-height:1.4; text-align:center; padding:0 24px; max-width:540px; opacity:0; transition:opacity 500ms ease 400ms, transform 500ms ease 400ms; text-shadow:0 0 24px rgba(212,175,80,0.4); }
+.na1-veil.is-rising .na1-veil-text, .na1-veil.is-hold .na1-veil-text{ opacity:1; transform:translate(-50%, -50%); }
+.na1-veil.is-falling .na1-veil-text{ opacity:0; transform:translate(-50%, calc(-50% - 14px)); transition:opacity 300ms ease, transform 300ms ease; }
+@media (max-width:600px){ .na1-veil-text{ font-size:18px; } }
+/* ── Explore page dim/blur underneath open Room ── */
+.na1-explore-dimmed{ filter:blur(2px); opacity:0.32; transition:filter 400ms ease, opacity 400ms ease; pointer-events:none; }
+/* ── Room shell (View A — card on dim bg) ── */
+.na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+.na1-room-overlay.is-open{ opacity:1; pointer-events:auto; }
+.na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--gold); box-shadow:0 0 80px var(--gold-glow), 0 24px 60px rgba(0,0,0,0.32); border-radius:var(--na1-radius-xl); max-width:720px; width:100%; max-height:90vh; overflow:auto; padding:80px 24px 40px; position:relative; font-family:var(--na1-sans); transform:translateY(20px); transition:transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+.na1-room-overlay.is-open .na1-room-card{ transform:translateY(0); }
+@media (max-width:600px){ .na1-room-card{ max-height:95vh; padding:60px 16px 24px; } }
+.na1-room-close{ position:absolute; top:18px; right:18px; width:36px; height:36px; border-radius:50%; background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; transition:color .18s, border-color .18s; }
 .na1-room-close:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); }
-@keyframes na1RoomFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+.na1-room-crumb{ position:absolute; top:24px; left:28px; right:60px; font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+@media (max-width:600px){ .na1-room-crumb{ left:18px; right:50px; top:18px; font-size:11px; } }
+.na1-room-crumb a{ color:var(--na1-text-sec); cursor:pointer; text-decoration:none; }
+.na1-room-crumb a:hover{ color:var(--gold); }
+.na1-room-crumb .sep{ color:var(--na1-text-mute); }
+.na1-room-crumb .current{ color:var(--na1-text); font-weight:600; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -9815,43 +9833,27 @@ function NewA1Grid({ name, progress, onOpenPurpose }: { name?: string; progress:
 
 // ─── NEW A1: Explore page (intro video + 4 exercise rows + status strip) ───
 const NA1_EXERCISES = [
-  { n:1, key:"sym",     name:"Owned Symptoms", tone:"burgundy", subtitle:"The cost — what you've been holding back." },
-  { n:2, key:"to",      name:"True Ownership", tone:"gold",     subtitle:"The vision — 6 questions, mixed cadence." },
-  { n:3, key:"peel",    name:"The Peel",       tone:"cyan",     subtitle:"The work — peel until something feels final." },
-  { n:4, key:"declare", name:"Declare",        tone:"gold",     subtitle:"Claimed — your Purpose, in one phrase." },
+  { n:1, key:"sym",     name:"Owned Symptoms", tone:"burgundy", subtitle:"The cost — what you've been holding back.",       threshold:"Stepping into the room with Katherine…" },
+  { n:2, key:"to",      name:"True Ownership", tone:"gold",     subtitle:"The vision — 6 questions, mixed cadence.",        threshold:"Imagining the owner…" },
+  { n:3, key:"peel",    name:"The Peel",       tone:"cyan",     subtitle:"The work — peel until something feels final.",    threshold:"Going deeper with Katherine…" },
+  { n:4, key:"declare", name:"Declare",        tone:"gold",     subtitle:"Claimed — your Purpose, in one phrase.",          threshold:"The moment of claiming…" },
 ] as const;
+type NA1Exercise = typeof NA1_EXERCISES[number];
 
-function NewA1RoomPlaceholder({ exercise, onClose }: { exercise: typeof NA1_EXERCISES[number]; onClose: () => void; }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  return (
-    <div className="na1-room-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label={exercise.name}>
-      <div className="na1-room-card">
-        <button type="button" className="na1-room-close" onClick={onClose} aria-label="Close">×</button>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:`var(--${exercise.tone})`, marginBottom:6, fontFamily:"var(--na1-sans)" }}>Mirror 1 · Exercise {exercise.n}</div>
-        <h2 style={{ fontFamily:"var(--na1-serif)", fontSize:26, fontWeight:600, lineHeight:1.25, margin:"0 0 10px", color:"var(--na1-text)" }}>{exercise.name}</h2>
-        <p style={{ fontFamily:"var(--na1-sans)", fontSize:14.5, lineHeight:1.6, color:"var(--na1-text-sec)", margin:"0 0 18px" }}>{exercise.subtitle}</p>
-        <div style={{ padding:"14px 16px", background:"var(--gold-warm)", border:"1px dashed var(--gold-line)", borderRadius:"var(--na1-radius)", fontFamily:"var(--na1-sans)", fontSize:13, color:"var(--na1-text-sec)", marginBottom:20 }}>
-          Room placeholder · the full exercise lands in a follow-up step. Click outside or press <kbd>Esc</kbd> to close.
-        </div>
-        <div style={{ display:"flex", justifyContent:"flex-end" }}>
-          <button type="button" className="na1-btn-ghost" onClick={onClose}>Close</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// Status strip is hidden until after Rooms ship — re-enable by flipping to true.
+const SHOW_STATUS_STRIP = false;
 
-function NewA1Explore({ progress, onBack }: { progress: { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; purposeFinal: string }; onBack: () => void; }) {
+function NewA1Explore({ progress, onBack, onLaunchRoom, dimmed }: {
+  progress: { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; purposeFinal: string };
+  onBack: () => void;
+  onLaunchRoom: (ex: NA1Exercise) => void;
+  dimmed: boolean;
+}) {
   const [videoOpen, setVideoOpen] = useState(false);
-  const [openRoom, setOpenRoom] = useState<null | typeof NA1_EXERCISES[number]>(null);
   const doneArr = [progress.ex1, progress.ex2, progress.ex3, progress.ex4];
   const firstIncomplete = doneArr.findIndex(d => !d);
   const currentIdx = firstIncomplete === -1 ? 3 : firstIncomplete;
-  // Status strip values
+  // Status strip values — kept computed for when SHOW_STATUS_STRIP flips back on.
   const symHoldback = String(loadDataSync("a1_sym_holdback") || "").trim();
   const toAnswers: any[] = Array.isArray(loadDataSync("a1_to_answers")) ? loadDataSync("a1_to_answers") : [];
   const toFilled = toAnswers.filter((a) => {
@@ -9862,8 +9864,66 @@ function NewA1Explore({ progress, onBack }: { progress: { ex1: boolean; ex2: boo
   const peelLayers: any[] = Array.isArray((loadDataSync(KEYS.map) as any)?.purpose_layers) ? (loadDataSync(KEYS.map) as any).purpose_layers : [];
   const peelCount = peelLayers.filter((l) => String(l || "").trim().length > 0).length;
   const declaration = progress.purposeFinal;
+  const main = (
+    <>
+      <div className="na1-ex-eyebrow">A1 · Mirror 1 · Explore with Katherine</div>
+      <h1 className="na1-ex-title">Purpose</h1>
+      <p className="na1-ex-sub">Four exercises. Katherine guides each one with a short video. When she says <em>"come to your space"</em> — tap the active exercise below.</p>
+      <p className="na1-ex-foot-sub">You can return anytime to edit anything you've written.</p>
+      <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
+        <div className="na1-intro-video-head" onClick={() => setVideoOpen(v => !v)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setVideoOpen(v => !v); } }} aria-expanded={videoOpen}>
+          <div className="na1-intro-video-left">
+            <div className="na1-intro-video-play-mini" aria-hidden>▶</div>
+            <div className="na1-intro-video-title-row">
+              <span className="na1-intro-video-eyebrow">Start here · Katherine introduces Purpose</span>
+              <span className="na1-intro-video-title">Purpose · Your Internal Why</span>
+            </div>
+          </div>
+          <span className="na1-intro-video-meta">6 min</span>
+          <span className="na1-intro-video-chev" aria-hidden>▾</span>
+        </div>
+        <div className="na1-intro-video-body">
+          <div className="na1-video-stub">
+            <button type="button" className="na1-video-stub-play" aria-label="Play intro video">▶</button>
+            <div className="na1-video-stub-caption">Katherine's Purpose intro · 6 min</div>
+          </div>
+        </div>
+      </div>
+      <div className="na1-ex-list">
+        {NA1_EXERCISES.map((ex, idx) => {
+          const isDone = doneArr[idx];
+          // Strict sequence: ex1 always unlocked; each subsequent unlocks only when previous _done flag is set.
+          const isUnlocked = idx === 0 || doneArr[idx - 1];
+          const isCurrent = isUnlocked && !isDone && idx === currentIdx;
+          const isLocked = !isUnlocked;
+          const cls = [
+            "na1-ex-row",
+            `tone-${ex.tone}`,
+            isDone ? "is-complete" : "",
+            isCurrent ? "is-current" : "",
+            isLocked ? "is-locked" : "is-unlocked",
+          ].filter(Boolean).join(" ");
+          const statusLabel = isDone ? "Complete" : isCurrent ? "Up next · tap to begin" : isLocked ? `Unlocks after ${NA1_EXERCISES[idx - 1].name}` : "Available";
+          const iconChar = isDone ? "✓" : isLocked ? "🔒" : String(ex.n);
+          return (
+            <button type="button" key={ex.key} className={cls} disabled={isLocked} onClick={() => { if (!isLocked) onLaunchRoom(ex); }} aria-label={`${ex.name} — ${statusLabel}`}>
+              <span className="na1-ex-icon" aria-hidden>{iconChar}</span>
+              <span className="na1-ex-text">
+                <span className="na1-ex-name" style={{ display:"block" }}>{ex.name}</span>
+                <span className="na1-ex-status" style={{ display:"block" }}>{statusLabel}</span>
+              </span>
+              {!isLocked && <span className="na1-ex-arrow" aria-hidden>›</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ display:"flex", justifyContent:"flex-start", marginTop:8 }}>
+        <button type="button" className="na1-btn-ghost" onClick={onBack}>← Back to A1</button>
+      </div>
+    </>
+  );
   return (
-    <div className="na1-root">
+    <div className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`} aria-hidden={dimmed || undefined}>
       <div className="na1-shell">
         <div className="na1-breadcrumb">
           <a onClick={onBack}>Entry Hall</a>
@@ -9872,102 +9932,125 @@ function NewA1Explore({ progress, onBack }: { progress: { ex1: boolean; ex2: boo
           <span className="sep">›</span>
           <span className="current">Purpose</span>
         </div>
-        <div className="na1-explore-layout">
-          <div>
-            <div className="na1-ex-eyebrow">A1 · Mirror 1 · Explore with Katherine</div>
-            <h1 className="na1-ex-title">Purpose</h1>
-            <p className="na1-ex-sub">Four exercises. Katherine guides each one with a short video. When she says <em>"come to your space"</em> — tap the active exercise below.</p>
-            <p className="na1-ex-foot-sub">You can return anytime to edit anything you've written.</p>
-            <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
-              <div className="na1-intro-video-head" onClick={() => setVideoOpen(v => !v)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setVideoOpen(v => !v); } }} aria-expanded={videoOpen}>
-                <div className="na1-intro-video-left">
-                  <div className="na1-intro-video-play-mini" aria-hidden>▶</div>
-                  <div className="na1-intro-video-title-row">
-                    <span className="na1-intro-video-eyebrow">Start here · Katherine introduces Purpose</span>
-                    <span className="na1-intro-video-title">Purpose · Your Internal Why</span>
-                  </div>
-                </div>
-                <span className="na1-intro-video-meta">6 min</span>
-                <span className="na1-intro-video-chev" aria-hidden>▾</span>
+        {SHOW_STATUS_STRIP ? (
+          <div className="na1-explore-layout">
+            <div>{main}</div>
+            <aside className="na1-status-strip" aria-label="Your Purpose so far">
+              <div className="na1-status-eyebrow">Your Purpose so far</div>
+              <div className="na1-status-row">
+                <span className="na1-status-label">Holding back</span>
+                <span className={`na1-status-value ${symHoldback ? "" : "is-empty"}`}>{symHoldback || "—"}</span>
               </div>
-              <div className="na1-intro-video-body">
-                <div className="na1-video-stub">
-                  <button type="button" className="na1-video-stub-play" aria-label="Play intro video">▶</button>
-                  <div className="na1-video-stub-caption">Katherine's Purpose intro · 6 min</div>
-                </div>
+              <div className="na1-status-row">
+                <span className="na1-status-label">True Ownership</span>
+                <span className={`na1-status-value ${toFilled ? "" : "is-empty"}`}>{toFilled ? `${toFilled} of 6 answered` : "—"}</span>
               </div>
-            </div>
-            <div className="na1-ex-list">
-              {NA1_EXERCISES.map((ex, idx) => {
-                const isDone = doneArr[idx];
-                const isCurrent = idx === currentIdx && !isDone;
-                const isUnlocked = idx === 0 || doneArr[idx - 1];
-                const isLocked = !isUnlocked && !isDone;
-                const cls = [
-                  "na1-ex-row",
-                  `tone-${ex.tone}`,
-                  isDone ? "is-complete" : "",
-                  isCurrent ? "is-current" : "",
-                  isLocked ? "is-locked" : "is-unlocked",
-                ].filter(Boolean).join(" ");
-                const statusLabel = isDone ? "Complete" : isCurrent ? "Up next · tap to begin" : isLocked ? `Unlocks after ${NA1_EXERCISES[idx - 1].name}` : "Available";
-                const iconChar = isDone ? "✓" : isLocked ? "🔒" : String(ex.n);
-                return (
-                  <button type="button" key={ex.key} className={cls} disabled={isLocked} onClick={() => { if (!isLocked) setOpenRoom(ex); }} aria-label={`${ex.name} — ${statusLabel}`}>
-                    <span className="na1-ex-icon" aria-hidden>{iconChar}</span>
-                    <span className="na1-ex-text">
-                      <span className="na1-ex-name" style={{ display:"block" }}>{ex.name}</span>
-                      <span className="na1-ex-status" style={{ display:"block" }}>{statusLabel}</span>
-                    </span>
-                    {!isLocked && <span className="na1-ex-arrow" aria-hidden>›</span>}
-                  </button>
-                );
-              })}
-            </div>
-            <div style={{ display:"flex", justifyContent:"flex-start", marginTop:8 }}>
-              <button type="button" className="na1-btn-ghost" onClick={onBack}>← Back to A1</button>
-            </div>
+              <div className="na1-status-row">
+                <span className="na1-status-label">Peel layers</span>
+                <span className={`na1-status-value ${peelCount ? "" : "is-empty"}`}>{peelCount ? `${peelCount} ${peelCount === 1 ? "layer" : "layers"}` : "—"}</span>
+              </div>
+              <div className="na1-status-row">
+                <span className="na1-status-label">Declaration</span>
+                <span className={`na1-status-value ${declaration ? "is-declaration" : "is-empty"}`}>{declaration ? `"${declaration}"` : "—"}</span>
+              </div>
+            </aside>
           </div>
-          <aside className="na1-status-strip" aria-label="Your Purpose so far">
-            <div className="na1-status-eyebrow">Your Purpose so far</div>
-            <div className="na1-status-row">
-              <span className="na1-status-label">Holding back</span>
-              <span className={`na1-status-value ${symHoldback ? "" : "is-empty"}`}>{symHoldback || "—"}</span>
-            </div>
-            <div className="na1-status-row">
-              <span className="na1-status-label">True Ownership</span>
-              <span className={`na1-status-value ${toFilled ? "" : "is-empty"}`}>{toFilled ? `${toFilled} of 6 answered` : "—"}</span>
-            </div>
-            <div className="na1-status-row">
-              <span className="na1-status-label">Peel layers</span>
-              <span className={`na1-status-value ${peelCount ? "" : "is-empty"}`}>{peelCount ? `${peelCount} ${peelCount === 1 ? "layer" : "layers"}` : "—"}</span>
-            </div>
-            <div className="na1-status-row">
-              <span className="na1-status-label">Declaration</span>
-              <span className={`na1-status-value ${declaration ? "is-declaration" : "is-empty"}`}>{declaration ? `"${declaration}"` : "—"}</span>
-            </div>
-          </aside>
-        </div>
+        ) : main}
       </div>
-      {openRoom && <NewA1RoomPlaceholder exercise={openRoom} onClose={() => setOpenRoom(null)} />}
     </div>
   );
 }
 
+// ─── Step 6: Veil + Room shell ───
+function NewA1Veil({ phase, text }: { phase: "rising" | "hold" | "falling"; text: string }) {
+  return (
+    <div className={`na1-veil is-${phase}`} aria-hidden>
+      <div className="na1-veil-text">{text}</div>
+    </div>
+  );
+}
+
+function NewA1RoomShell({ exercise, open, onClose }: { exercise: NA1Exercise; open: boolean; onClose: () => void; }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open, onClose]);
+  return (
+    <div className={`na1-room-overlay ${open ? "is-open" : ""}`} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label={exercise.name}>
+      <div className="na1-room-card">
+        <div className="na1-room-crumb">
+          <a onClick={onClose}>Purpose</a>
+          <span className="sep">›</span>
+          <span className="current">{exercise.name}</span>
+        </div>
+        <button type="button" className="na1-room-close" onClick={onClose} aria-label="Close">×</button>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:`var(--${exercise.tone})`, marginBottom:8, fontFamily:"var(--na1-sans)" }}>Mirror 1 · Exercise {exercise.n}</div>
+        <h2 style={{ fontFamily:"var(--na1-serif)", fontSize:28, fontWeight:600, lineHeight:1.2, margin:"0 0 12px", color:"var(--na1-text)" }}>{exercise.name}</h2>
+        <p style={{ fontFamily:"var(--na1-sans)", fontSize:15, lineHeight:1.65, color:"var(--na1-text-sec)", margin:"0 0 22px" }}>{exercise.subtitle}</p>
+        <div style={{ padding:"16px 18px", background:"var(--gold-warm)", border:"1px dashed var(--gold-line)", borderRadius:"var(--na1-radius)", fontFamily:"var(--na1-sans)", fontSize:13.5, lineHeight:1.55, color:"var(--na1-text-sec)", marginBottom:24 }}>
+          Exercise content lands in step 7. Press <kbd>Esc</kbd>, click ×, or tap outside the card to close.
+        </div>
+        <div style={{ display:"flex", justifyContent:"flex-end" }}>
+          <button type="button" className="na1-btn-ghost" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type NA1VeilPhase = "idle" | "rising" | "hold" | "falling";
+
 function NewA1View({ name }: { name?: string }) {
   const [view, setView] = useState<"grid" | "explore">("grid");
-  // Re-read on every view transition so progress reflects latest saves.
+  const [openEx, setOpenEx] = useState<NA1Exercise | null>(null);
+  const [roomOpen, setRoomOpen] = useState(false);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
+  const timeoutsRef = useRef<number[]>([]);
+  // Re-read on every view transition + each time a room closes so progress reflects latest saves.
   const progress = useMemo(() => {
     const map = (loadDataSync(KEYS.map) as any) || {};
     return {
       ex1: !!loadDataSync("a1_ex1_done"),
       ex2: !!loadDataSync("a1_ex2_done"),
       ex3: !!loadDataSync("a1_ex3_done"),
-      ex4: !!(map.purpose_final && String(map.purpose_final).trim()),
+      // Strict: only the new explicit done flag counts. Older purpose_final stays in the DB but won't mark Declare complete.
+      ex4: !!loadDataSync("a1_ex4_done"),
       purposeFinal: String(map.purpose_final || "").trim(),
     };
-  }, [view]);
-  if (view === "explore") return <NewA1Explore progress={progress} onBack={() => setView("grid")} />;
+  }, [view, roomOpen]);
+  const clearTimers = () => { timeoutsRef.current.forEach((t) => window.clearTimeout(t)); timeoutsRef.current = []; };
+  useEffect(() => () => clearTimers(), []);
+  const launchRoom = (ex: NA1Exercise) => {
+    clearTimers();
+    setOpenEx(ex);
+    setVeilPhase("rising");
+    // Veil timing (~2.7s total):
+    //   0      → rising (text fades in starting at 400ms, completes ~900ms)
+    //   900ms  → hold begins (mount Room under veil; HOLD lasts 1400ms)
+    //   2300ms → falling (text fades out 300ms, veil peels back over 700ms)
+    //   3300ms → idle (veil unmounted)
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("hold"); setRoomOpen(true); }, 900));
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("falling"); }, 2300));
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("idle"); }, 3300));
+  };
+  const closeRoom = () => {
+    setRoomOpen(false);
+    // Unmount the exercise reference shortly after the fade-out completes.
+    window.setTimeout(() => setOpenEx((cur) => (roomOpen ? null : cur)), 520);
+  };
+  if (view === "explore") {
+    return (
+      <>
+        <NewA1Explore progress={progress} onBack={() => setView("grid")} onLaunchRoom={launchRoom} dimmed={roomOpen} />
+        {openEx && <NewA1RoomShell exercise={openEx} open={roomOpen} onClose={closeRoom} />}
+        {veilPhase !== "idle" && openEx && <NewA1Veil phase={veilPhase} text={openEx.threshold} />}
+      </>
+    );
+  }
   return <NewA1Grid name={name} progress={progress} onOpenPurpose={() => setView("explore")} />;
 }
 
