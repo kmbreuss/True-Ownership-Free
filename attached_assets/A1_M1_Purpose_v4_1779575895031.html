@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>A1 · Purpose · Explore with Katherine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --serif: Georgia, 'Times New Roman', serif;
+    --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+  :root, [data-theme="dark"] {
+    --bg: #0a0a0a;
+    --bg-card: #111113;
+    --bg-soft: #1a1a1c;
+    --bg-input: #0a0a0a;
+    --bg-overlay: rgba(10,10,10,0.78);
+    --bg-video: #050505;
+    --text: #f0ece4;
+    --text-sec: #9a9590;
+    --text-mute: #5c5752;
+    --border: #2a2826;
+    --border-soft: #1f1d1b;
+    --cyan: #4fcbf2;
+    --cyan-soft: rgba(79,203,242,0.13);
+    --cyan-line: rgba(79,203,242,0.32);
+    --cyan-glow: rgba(79,203,242,0.18);
+    --gold: #C9A24B;
+    --gold-soft: rgba(201,162,75,0.13);
+    --gold-line: rgba(201,162,75,0.34);
+    --gold-glow: rgba(201,162,75,0.20);
+    --gold-warm: rgba(201,162,75,0.06);
+    --burgundy: #A03B3B;
+    --burgundy-soft: rgba(160,59,59,0.10);
+    --burgundy-line: rgba(160,59,59,0.40);
+    --burgundy-glow: rgba(160,59,59,0.18);
+  }
+  [data-theme="light"] {
+    --bg: #f5f3ef;
+    --bg-card: #ffffff;
+    --bg-soft: #ebe7df;
+    --bg-input: #f9f8f6;
+    --bg-overlay: rgba(245,243,239,0.82);
+    --bg-video: #1a1a1a;
+    --text: #1a1a1a;
+    --text-sec: #5c5752;
+    --text-mute: #9a9590;
+    --border: #e0ddd8;
+    --border-soft: #ece8df;
+    --cyan: #2a8fb5;
+    --cyan-soft: rgba(42,143,181,0.10);
+    --cyan-line: rgba(42,143,181,0.34);
+    --cyan-glow: rgba(42,143,181,0.12);
+    --gold: #B8892F;
+    --gold-soft: rgba(184,137,47,0.10);
+    --gold-line: rgba(184,137,47,0.34);
+    --gold-glow: rgba(184,137,47,0.18);
+    --gold-warm: rgba(184,137,47,0.05);
+    --burgundy: #7A2E2E;
+    --burgundy-soft: rgba(122,46,46,0.07);
+    --burgundy-line: rgba(122,46,46,0.40);
+    --burgundy-glow: rgba(122,46,46,0.10);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ────── HEADER ────── */
+  .app-header {
+    position: sticky; top: 0; z-index: 60;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .app-header-inner {
+    max-width: 1180px; margin: 0 auto;
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand-link {
+    display: flex; flex-direction: column; line-height: 1.1;
+    text-decoration: none; color: inherit; cursor: pointer;
+  }
+  .brand-eyebrow {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.22em;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .brand-title {
+    font-family: var(--serif); font-size: 18px; font-weight: 600;
+    color: var(--text); margin-top: 2px; white-space: nowrap;
+  }
+  .brand-title .tm { font-size: 0.6em; vertical-align: super; color: var(--gold); margin-left: 1px; }
+  .map-button {
+    background: var(--gold-soft);
+    border: 1px solid var(--gold-line);
+    color: var(--gold);
+    font-family: inherit; font-size: 12.5px; font-weight: 600;
+    height: 32px; padding: 0 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.18s;
+  }
+  .map-button:hover { background: var(--gold); color: var(--bg); }
+  [data-theme="light"] .map-button:hover { color: #fff; }
+  .map-button .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+  .map-button:hover .dot { background: var(--bg); }
+  [data-theme="light"] .map-button:hover .dot { background: #fff; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .theme-toggle {
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-sec); font-family: inherit; font-size: 13px;
+    height: 32px; padding: 0 12px;
+    border-radius: 100px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .theme-toggle:hover { color: var(--text); border-color: var(--text-mute); }
+  .user-name { font-size: 13px; color: var(--text-sec); }
+
+  /* ────── SCREENS ────── */
+  .screen { display: none; }
+  .screen.is-active { display: block; animation: pageFadeIn 0.4s ease both; }
+  @keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .shell { max-width: 1180px; margin: 0 auto; padding: 36px 28px 96px; }
+  .shell-narrow { max-width: 760px; margin: 0 auto; padding: 36px 28px 96px; }
+
+  /* Dimmed state when a room is open */
+  .shell-narrow.is-dimmed, .shell.is-dimmed {
+    filter: blur(2px);
+    opacity: 0.32;
+    pointer-events: none;
+    transition: filter 0.4s ease, opacity 0.4s ease;
+  }
+
+  .demo-banner {
+    max-width: 1180px; margin: 16px auto 0;
+    padding: 10px 16px 10px 18px;
+    background: var(--cyan-soft);
+    border: 1px solid var(--cyan-line);
+    border-radius: var(--radius);
+    color: var(--cyan);
+    font-size: 12.5px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+
+  .breadcrumb {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 24px;
+    font-size: 13px; color: var(--text-mute);
+  }
+  .breadcrumb a {
+    color: var(--text-sec); text-decoration: none; cursor: pointer;
+  }
+  .breadcrumb a:hover { color: var(--text); }
+  .breadcrumb .sep { color: var(--text-mute); }
+  .breadcrumb .current { color: var(--text); }
+
+  /* ════════ A1 GRID ════════ */
+  .a-hero {
+    margin-bottom: 28px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+  }
+  .a-hero-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.22em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .a-hero-title {
+    font-family: var(--serif); font-size: 36px; font-weight: 600;
+    line-height: 1.15; letter-spacing: -0.005em; margin: 0 0 6px;
+  }
+  .a-hero-sub { font-size: 14.5px; color: var(--text-sec); margin: 0; max-width: 580px; }
+  .a-hero-meta { font-size: 13px; color: var(--text-sec); text-align: right; }
+  .a-hero-meta strong { color: var(--text); font-weight: 600; }
+  .mirror-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+  .mirror-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    transition: all 0.2s;
+    display: flex; flex-direction: column;
+    min-height: 240px;
+  }
+  .mirror-card.is-complete { border-color: var(--gold-line); }
+  .mirror-card.is-current {
+    border-color: var(--cyan-line);
+    background: linear-gradient(180deg, var(--cyan-soft) 0%, var(--bg-card) 50%);
+    box-shadow: 0 0 0 1px var(--cyan-glow), 0 0 24px var(--cyan-glow);
+  }
+  .mirror-card.is-inprogress { border-color: var(--cyan-line); }
+  .mirror-card.is-locked {
+    border-style: dashed; border-color: var(--border);
+    background: transparent; opacity: 0.65;
+  }
+  .mirror-card-head {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;
+  }
+  .mirror-card-num {
+    font-family: var(--serif); font-size: 17px;
+    color: var(--text-mute); font-variant-numeric: tabular-nums;
+  }
+  .mirror-card.is-current .mirror-card-num,
+  .mirror-card.is-inprogress .mirror-card-num { color: var(--cyan); }
+  .mirror-card.is-complete .mirror-card-num { color: var(--gold); }
+  .mirror-card-status {
+    margin-left: auto;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 3px 9px; border-radius: 100px;
+    background: var(--bg-soft); color: var(--text-mute);
+    border: 1px solid var(--border);
+  }
+  .mirror-card.is-current .mirror-card-status,
+  .mirror-card.is-inprogress .mirror-card-status {
+    background: var(--cyan-soft); color: var(--cyan); border-color: var(--cyan-line);
+  }
+  .mirror-card.is-complete .mirror-card-status {
+    background: var(--gold-soft); color: var(--gold); border-color: var(--gold-line);
+  }
+  .mirror-card-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--text-mute); margin-bottom: 5px;
+  }
+  .mirror-card-name {
+    font-family: var(--serif); font-size: 21px; font-weight: 600;
+    line-height: 1.25; margin: 0 0 6px; color: var(--text);
+  }
+  .mirror-card-sub {
+    font-size: 13px; color: var(--text-sec); line-height: 1.5; margin: 0 0 16px;
+  }
+  .mirror-card-progress-mini {
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .progress-pip {
+    width: 14px; height: 4px;
+    background: var(--border);
+    border-radius: 100px;
+    transition: background 0.2s;
+  }
+  .progress-pip.is-done { background: var(--gold); }
+  .progress-pip.is-active { background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); }
+  .mirror-card-progress-text {
+    font-size: 11.5px; color: var(--text-mute);
+    margin-left: 4px;
+  }
+  .mirror-card-empty-state {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-mute); font-style: italic; font-size: 13.5px;
+    text-align: center; padding: 16px 0;
+  }
+  .mirror-card-action {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .mirror-card.is-locked .mirror-card-action {
+    border-top: none; align-items: center;
+  }
+  .mirror-card-meta { font-size: 11.5px; color: var(--text-mute); }
+
+  /* ────── BUTTONS ────── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 10px 18px; border-radius: 100px;
+    cursor: pointer; transition: all 0.18s;
+    border: 1px solid transparent;
+    background: transparent; color: var(--text-sec);
+    text-decoration: none;
+  }
+  .btn:hover { color: var(--text); border-color: var(--text-mute); }
+  .btn-block { width: 100%; }
+  .btn-cyan {
+    background: var(--cyan-soft); color: var(--cyan); border-color: var(--cyan);
+  }
+  .btn-cyan:hover { background: rgba(79,203,242,0.22); }
+  [data-theme="light"] .btn-cyan:hover { background: rgba(42,143,181,0.18); }
+  .btn-gold {
+    background: var(--gold); color: #1a1a1a; border-color: var(--gold);
+  }
+  .btn-gold:hover { background: #d6b056; }
+  [data-theme="light"] .btn-gold:hover { background: #a37928; color: #fff; }
+  .btn-gold-soft {
+    background: var(--gold-soft); color: var(--gold); border-color: var(--gold);
+  }
+  .btn-ghost {
+    background: transparent; border-color: var(--border); color: var(--text-sec);
+  }
+  .btn-burgundy {
+    background: var(--burgundy-soft); color: var(--burgundy); border-color: var(--burgundy);
+  }
+  .btn-burgundy:hover { background: rgba(160,59,59,0.18); }
+  [data-theme="light"] .btn-burgundy:hover { background: rgba(122,46,46,0.14); }
+  .btn-large { padding: 13px 26px; font-size: 14px; }
+
+  /* ════════ EXPLORE PAGE ════════ */
+  .ex-home-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.22em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 12px;
+  }
+  .ex-home-title {
+    font-family: var(--serif); font-size: 36px; font-weight: 600;
+    line-height: 1.2; margin: 0 0 14px;
+  }
+  .ex-home-sub {
+    font-size: 16px; line-height: 1.7; color: var(--text-sec);
+    margin: 0 0 8px; max-width: 580px;
+  }
+  .ex-home-foot-sub {
+    font-size: 14px; line-height: 1.7; color: var(--text-mute);
+    margin: 0; max-width: 580px;
+  }
+
+  /* Intro Video */
+  .intro-video {
+    margin: 24px 0 24px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-video);
+    border: 1px solid var(--border-soft);
+  }
+  .intro-video.is-collapsed .intro-video-body { max-height: 0; }
+  .intro-video-head {
+    padding: 14px 18px;
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; gap: 12px;
+  }
+  .intro-video.is-collapsed .intro-video-head { border-bottom: none; }
+  .intro-video:not(.is-collapsed) .intro-video-head {
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .intro-video-left { display: flex; align-items: center; gap: 12px; }
+  .intro-video-play-mini {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--gold-soft); border: 1.5px solid var(--gold);
+    color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+  .intro-video-title-row {
+    display: flex; flex-direction: column; line-height: 1.2;
+  }
+  .intro-video-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .intro-video-title {
+    font-family: var(--serif); font-size: 15px; font-weight: 600;
+    color: var(--text); margin-top: 2px;
+  }
+  .intro-video-meta { font-size: 12px; color: var(--text-mute); white-space: nowrap; }
+  .intro-video-chev {
+    color: var(--text-mute);
+    transition: transform 0.3s;
+    font-size: 13px;
+  }
+  .intro-video:not(.is-collapsed) .intro-video-chev { transform: rotate(180deg); }
+  .intro-video-body {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .video-stub {
+    aspect-ratio: 16 / 9;
+    background: var(--bg-video);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .video-stub::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, var(--gold-glow) 0%, transparent 70%);
+    opacity: 0.5;
+  }
+  .video-stub-play {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--gold); color: #1a1a1a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; cursor: pointer;
+    position: relative; z-index: 1;
+    border: none;
+  }
+  .video-stub-caption {
+    position: absolute; bottom: 12px; left: 16px;
+    font-family: var(--serif); font-size: 12px; font-style: italic;
+    color: #f4f1eb; opacity: 0.85; z-index: 1;
+  }
+
+  /* Inter-exercise video divider */
+  .inter-video {
+    margin: 0;
+    padding: 14px 18px;
+    background: var(--gold-warm);
+    border: 1px dashed var(--gold-line);
+    border-radius: var(--radius);
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .inter-video:hover {
+    background: var(--gold-soft);
+    border-style: solid;
+  }
+  .inter-video-play {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--gold-soft); border: 1.5px solid var(--gold);
+    color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; flex-shrink: 0;
+  }
+  .inter-video-text { flex: 1; }
+  .inter-video-eyebrow {
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.16em;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .inter-video-title {
+    font-family: var(--serif); font-size: 13.5px; font-style: italic;
+    color: var(--text); margin: 2px 0 0;
+  }
+  .inter-video-meta { font-size: 11.5px; color: var(--text-mute); }
+
+  /* Exercise list */
+  .ex-list {
+    display: flex; flex-direction: column;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+  .ex-row {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+    cursor: default;
+    transition: all 0.25s;
+  }
+  .ex-row.is-unlocked { cursor: pointer; }
+  .ex-row.is-unlocked:hover {
+    transform: translateY(-1px);
+    border-color: var(--text-mute);
+  }
+  .ex-row.is-current.tone-burgundy {
+    border-color: var(--burgundy-line);
+    box-shadow: 0 0 0 1px var(--burgundy-glow), 0 0 24px var(--burgundy-glow);
+  }
+  .ex-row.is-current.tone-gold {
+    border-color: var(--gold-line);
+    box-shadow: 0 0 0 1px var(--gold-glow), 0 0 24px var(--gold-glow);
+  }
+  .ex-row.is-current.tone-cyan {
+    border-color: var(--cyan-line);
+    box-shadow: 0 0 0 1px var(--cyan-glow), 0 0 24px var(--cyan-glow);
+  }
+  .ex-row.is-complete {
+    border-color: var(--gold-line);
+    border-left: 3px solid var(--gold);
+  }
+  .ex-row.is-locked {
+    opacity: 0.55;
+    border-style: dashed;
+    background: transparent;
+  }
+  .ex-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--bg-soft);
+    border: 1.5px solid var(--border);
+    color: var(--text-mute);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .ex-row.is-current.tone-burgundy .ex-icon {
+    background: var(--burgundy-soft);
+    border-color: var(--burgundy);
+    color: var(--burgundy);
+    box-shadow: 0 0 12px var(--burgundy-glow);
+  }
+  .ex-row.is-current.tone-gold .ex-icon {
+    background: var(--gold-soft);
+    border-color: var(--gold);
+    color: var(--gold);
+    box-shadow: 0 0 12px var(--gold-glow);
+  }
+  .ex-row.is-current.tone-cyan .ex-icon {
+    background: var(--cyan-soft);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan-glow);
+  }
+  .ex-row.is-complete .ex-icon {
+    background: var(--gold-soft);
+    border-color: var(--gold);
+    color: var(--gold);
+    font-size: 18px;
+  }
+  .ex-row.is-locked .ex-icon { background: transparent; }
+  .ex-text { flex: 1; min-width: 0; }
+  .ex-name {
+    font-family: var(--serif); font-size: 18px; font-weight: 600;
+    color: var(--text); margin: 0 0 3px;
+    line-height: 1.3;
+  }
+  .ex-row.is-locked .ex-name { color: var(--text-mute); font-weight: 500; }
+  .ex-status { font-size: 12px; color: var(--text-mute); margin: 0; }
+  .ex-row.is-current.tone-burgundy .ex-status { color: var(--burgundy); font-weight: 600; }
+  .ex-row.is-current.tone-gold .ex-status { color: var(--gold); font-weight: 600; }
+  .ex-row.is-current.tone-cyan .ex-status { color: var(--cyan); font-weight: 600; }
+  .ex-row.is-complete .ex-status { color: var(--gold); font-weight: 600; }
+  .ex-arrow {
+    color: var(--text-mute);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .ex-row.is-current.tone-burgundy .ex-arrow { color: var(--burgundy); }
+  .ex-row.is-current.tone-gold .ex-arrow { color: var(--gold); }
+  .ex-row.is-current.tone-cyan .ex-arrow { color: var(--cyan); }
+  .ex-row.is-complete .ex-arrow { color: var(--gold); }
+  .ex-lock-icon { width: 18px; height: 18px; color: var(--text-mute); }
+
+  /* Continue / Complete bottom block */
+  .ex-bottom-cta {
+    text-align: center;
+    padding: 28px 32px;
+    border: 1.5px solid var(--gold-line);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--gold-soft) 0%, transparent 80%);
+  }
+  .ex-cta-title {
+    font-family: var(--serif); font-size: 22px; font-weight: 600;
+    margin: 0 0 8px;
+  }
+  .ex-cta-sub {
+    font-size: 14px; line-height: 1.6; color: var(--text-sec);
+    margin: 0 0 18px; max-width: 480px; margin-left: auto; margin-right: auto;
+  }
+
+  /* ════════ ROOM (View A — card on dim bg) ════════ */
+  .room-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 80;
+    pointer-events: none;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 80px 24px 40px;
+    overflow-y: auto;
+  }
+  .room-overlay.is-active { pointer-events: auto; }
+  .room-overlay::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(10,8,4,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  [data-theme="light"] .room-overlay::before {
+    background: rgba(50,40,28,0.30);
+  }
+  .room-overlay.is-active::before { opacity: 1; }
+
+  .room {
+    position: relative;
+    max-width: 720px; width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--gold-line);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 20px 80px rgba(0,0,0,0.5), 0 0 80px var(--gold-glow);
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    transition: opacity 0.5s ease 0.1s, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+  }
+  [data-theme="light"] .room {
+    box-shadow: 0 20px 60px rgba(50,40,28,0.18), 0 0 60px var(--gold-glow);
+  }
+  .room-overlay.is-active .room {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .room-crumb {
+    padding: 14px 32px 0;
+    font-size: 12px; color: var(--text-mute);
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .room-crumb a {
+    color: var(--text-sec); text-decoration: none; cursor: pointer;
+  }
+  .room-crumb a:hover { color: var(--text); }
+  .room-crumb .sep { color: var(--text-mute); }
+  .room-crumb .current { color: var(--gold); }
+  .room-close {
+    position: absolute;
+    top: 12px; right: 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-sec);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    z-index: 2;
+  }
+  .room-close:hover { color: var(--text); border-color: var(--text-mute); }
+  .room-body {
+    padding: 28px 36px 30px;
+  }
+
+  /* ────── EXERCISE CONTENT ────── */
+  .video-pause-banner {
+    background: var(--gold-warm);
+    border: 1px solid var(--gold-line);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .vpb-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--gold); color: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0; font-weight: 700;
+  }
+  [data-theme="light"] .vpb-icon { color: #fff; }
+  .vpb-text { flex: 1; }
+  .vpb-eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 2px;
+  }
+  .vpb-content {
+    font-size: 13px; color: var(--text); margin: 0; line-height: 1.5;
+  }
+  .vpb-content strong { font-weight: 700; }
+  .ex-step-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .ex-step-label.tone-burgundy { color: var(--burgundy); }
+  .ex-step-label.tone-gold { color: var(--gold); }
+  .ex-step-label.tone-cyan { color: var(--cyan); }
+  .ex-full-title {
+    font-family: var(--serif); font-size: 27px; font-weight: 600;
+    color: var(--text); margin: 0 0 8px;
+    line-height: 1.25;
+  }
+  .ex-full-context {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--text-sec);
+    margin: 0 0 24px;
+  }
+  .sub-progress {
+    margin: 0 0 22px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sub-progress-label {
+    font-size: 11px; color: var(--text-mute);
+    font-weight: 600; letter-spacing: 0.04em;
+    margin-right: 6px;
+  }
+  .sub-progress-pips {
+    display: flex; gap: 5px; flex: 1;
+  }
+  .sub-pip {
+    flex: 1; height: 3px; background: var(--border);
+    border-radius: 100px; max-width: 38px;
+  }
+  .sub-pip.tone-burgundy.is-done { background: var(--burgundy); }
+  .sub-pip.tone-burgundy.is-active { background: var(--burgundy); box-shadow: 0 0 6px var(--burgundy-glow); }
+  .sub-pip.tone-gold.is-done { background: var(--gold); }
+  .sub-pip.tone-gold.is-active { background: var(--gold); box-shadow: 0 0 6px var(--gold-glow); }
+
+  /* Quote callback (showing the user's one thing in Exercise 2) */
+  .quote-callback {
+    margin-bottom: 26px;
+    padding: 16px 20px;
+    background: var(--burgundy-soft);
+    border-left: 3px solid var(--burgundy);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .quote-callback-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+    color: var(--burgundy); text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .quote-callback-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text);
+    margin: 0;
+  }
+  .quote-callback-prompt {
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: var(--text-sec);
+    line-height: 1.5;
+  }
+
+  .symptom-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .symptom-chip {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-sec);
+    font-family: inherit; font-size: 14px;
+    padding: 11px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: left; line-height: 1.3;
+  }
+  .symptom-chip:hover {
+    border-color: var(--burgundy); color: var(--text);
+  }
+  .symptom-chip.is-selected {
+    background: var(--burgundy-soft);
+    border-color: var(--burgundy);
+    color: var(--burgundy);
+  }
+  .symptom-chip.is-selected::before {
+    content: "✓ "; font-weight: 700;
+  }
+
+  /* Feeling chips for True Ownership (gold themed) */
+  .feeling-grid {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 20px;
+  }
+  .feeling-chip {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-sec);
+    font-family: inherit; font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .feeling-chip:hover {
+    border-color: var(--gold); color: var(--text);
+  }
+  .feeling-chip.is-selected {
+    background: var(--gold-soft);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .feeling-chip.is-selected::before {
+    content: "✓ "; font-weight: 700;
+  }
+  .feeling-chip.feeling-chip-custom {
+    border-style: dashed;
+    color: var(--text-mute);
+  }
+  .feeling-chip.feeling-chip-custom:hover {
+    border-style: solid;
+  }
+  .feeling-chip.feeling-chip-custom.is-selected {
+    border-style: solid;
+  }
+  .custom-feeling-input {
+    margin-top: 4px;
+    margin-bottom: 16px;
+    border-color: var(--gold-line);
+  }
+  .feeling-prompt {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    margin-bottom: 10px;
+    letter-spacing: 0.02em;
+  }
+  .single-line-input {
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 12px;
+  }
+  .single-line-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-warm);
+  }
+  .single-line-input::placeholder {
+    color: var(--text-mute); font-style: italic;
+  }
+  .completion-stem {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15.5px;
+    color: var(--text-sec);
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+  .completion-stem.is-first { margin-top: 0; }
+
+  .ex-textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 18px 22px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .ex-textarea.tone-burgundy:focus {
+    border-color: var(--burgundy);
+    box-shadow: 0 0 0 3px var(--burgundy-soft);
+  }
+  .ex-textarea.tone-gold:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-warm);
+  }
+  .ex-textarea.tone-cyan:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px var(--cyan-soft);
+  }
+  .ex-textarea::placeholder { color: var(--text-mute); font-style: italic; }
+
+  .ex-input-single {
+    width: 100%;
+    padding: 22px 26px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--gold-line);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.4;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .ex-input-single:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-warm);
+  }
+
+  .peel-layers {
+    display: flex; flex-direction: column;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .peel-layer {
+    background: var(--gold-warm);
+    border-left: 2px solid var(--gold);
+    padding: 12px 16px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .peel-layer-meta {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .peel-layer-prompt {
+    font-family: var(--serif); font-style: italic;
+    font-size: 13px; color: var(--text-mute);
+    margin: 0 0 4px;
+  }
+  .peel-layer-answer {
+    font-family: var(--serif); font-size: 15px;
+    color: var(--text); margin: 0;
+    line-height: 1.5;
+  }
+  .peel-current-prompt {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 16px 0 12px;
+    line-height: 1.35;
+  }
+
+  .answer-block {
+    margin-bottom: 14px;
+    padding: 14px 18px;
+    background: var(--gold-warm);
+    border-left: 2px solid var(--gold);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .answer-block-q {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-mute);
+    margin: 0 0 6px;
+  }
+  .answer-block-a {
+    font-family: var(--serif);
+    font-size: 15.5px;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .ex-actions {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    align-items: center;
+    margin-top: 22px;
+  }
+  .ex-actions-note {
+    margin-left: auto;
+    font-size: 12px; color: var(--text-mute);
+    font-style: italic;
+  }
+  .saved-answers {
+    display: flex; flex-direction: column;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .ex-katherine-ping {
+    margin-top: 18px;
+    background: none; border: none;
+    color: var(--text-mute); font-family: inherit; font-size: 12.5px;
+    font-style: italic; cursor: pointer; padding: 6px 0;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .ex-katherine-ping::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--gold);
+  }
+  .ex-katherine-ping:hover { color: var(--text-sec); }
+
+  /* ────── VEIL TRANSITION ────── */
+  .room-veil {
+    position: fixed; inset: 0; z-index: 150;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .room-veil.is-active {
+    pointer-events: auto; opacity: 1;
+  }
+  .room-veil-curtain {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(201,162,75,0.25) 0%, rgba(8,6,4,0.95) 70%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [data-theme="light"] .room-veil-curtain {
+    background: radial-gradient(ellipse at center, rgba(184,137,47,0.25) 0%, rgba(40,30,18,0.85) 70%);
+  }
+  .room-veil.is-rising .room-veil-curtain {
+    transform: scaleY(1);
+  }
+  .room-veil.is-falling .room-veil-curtain {
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .room-veil-text {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) translateY(8px);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    color: var(--gold);
+    opacity: 0;
+    transition: opacity 0.5s ease 0.4s, transform 0.7s ease 0.4s;
+    text-align: center;
+    max-width: 560px;
+    padding: 0 24px;
+    line-height: 1.4;
+  }
+  .room-veil.is-rising .room-veil-text {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  .room-veil.is-falling .room-veil-text {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  /* ────── RESPONSIVE ────── */
+  @media (max-width: 900px) {
+    .app-header-inner { padding: 12px 18px; }
+    .user-name { display: none; }
+    .theme-toggle .label { display: none; }
+    .theme-toggle { padding: 0 10px; }
+    .shell, .shell-narrow { padding: 24px 18px 96px; }
+    .a-hero-title { font-size: 28px; }
+    .a-hero { flex-direction: column; align-items: flex-start; }
+    .a-hero-meta { text-align: left; }
+    .ex-home-title { font-size: 28px; }
+    .room-body { padding: 24px 22px 26px; }
+    .ex-full-title { font-size: 22px; }
+    .ex-full-context { font-size: 14.5px; }
+    .ex-input-single { font-size: 20px; padding: 18px 20px; }
+    .symptom-grid { grid-template-columns: 1fr; }
+    .room-veil-text { font-size: 20px; }
+    .room-overlay { padding: 70px 16px 30px; }
+  }
+  @media (max-width: 560px) {
+    .mirror-grid { grid-template-columns: 1fr; }
+    .mirror-card { min-height: auto; }
+    .ex-input-single { font-size: 18px; }
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <a class="brand-link" data-go="a1">
+      <span class="brand-eyebrow">From Owned to Owner</span>
+      <span class="brand-title">True Ownership<span class="tm">™</span></span>
+    </a>
+    <div class="header-right">
+      <button class="map-button">
+        <span class="dot"></span>
+        <span>My Map of Me</span>
+      </button>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <span id="themeIcon">☾</span>
+        <span class="label" id="themeLabel">Dark</span>
+      </button>
+      <span class="user-name">Katherine</span>
+    </div>
+  </div>
+</header>
+
+<div class="demo-banner">
+  <strong>v4 · View A room-feel · Full Purpose flow:</strong>
+  <span>Click Explore. Click Owned Symptoms — opens as gold card on dimmed Explore page. Step 1 of 2 (symptoms chips), Next → Step 2 of 2 (holding back). Then True Ownership opens with your one thing quoted back as context for 6 mixed-cadence questions. Then Peel. Then Declare.</span>
+</div>
+
+<!-- ═══════════ A1 GRID ═══════════ -->
+<section class="screen is-active" id="screen-a1">
+  <div class="shell" id="shellA1">
+    <div class="breadcrumb">
+      <a>Entry Hall</a>
+      <span class="sep">›</span>
+      <span class="current">A1 · All In It · The Commitment</span>
+    </div>
+    <div class="a-hero">
+      <div>
+        <div class="a-hero-eyebrow">A1 · All In It</div>
+        <h1 class="a-hero-title">Commit to who you are becoming.</h1>
+        <p class="a-hero-sub">Four mirrors. Name your purpose, dream your 10 years, claim your gifts, declare what you stand for.</p>
+      </div>
+      <div class="a-hero-meta"><strong>0 of 4</strong> complete · ~3 hrs remaining</div>
+    </div>
+    <div class="mirror-grid">
+      <article class="mirror-card is-current" id="purposeCard">
+        <div class="mirror-card-head">
+          <span class="mirror-card-num">01</span>
+          <span class="mirror-card-status" id="purposeStatus">Up next</span>
+        </div>
+        <div class="mirror-card-eyebrow">Mirror 1</div>
+        <h2 class="mirror-card-name">Purpose</h2>
+        <p class="mirror-card-sub">Your internal why — independent of role.</p>
+        <div class="mirror-card-progress-mini" id="purposePips">
+          <div class="progress-pip"></div>
+          <div class="progress-pip"></div>
+          <div class="progress-pip"></div>
+          <div class="progress-pip"></div>
+          <span class="mirror-card-progress-text" id="purposeProgress">0 of 4</span>
+        </div>
+        <div class="mirror-card-empty-state" id="purposeEmpty">Not yet explored.</div>
+        <div class="mirror-card-action">
+          <button class="btn btn-gold btn-block" id="purposeOpenBtn" data-go="explore">Explore with Katherine →</button>
+          <span class="mirror-card-meta">4 exercises · ~50 min · 4 videos</span>
+        </div>
+      </article>
+      <article class="mirror-card is-locked">
+        <div class="mirror-card-head"><span class="mirror-card-num">02</span><span class="mirror-card-status">Locked</span></div>
+        <div class="mirror-card-eyebrow">Mirror 2 · 10-Year Vision</div>
+        <h2 class="mirror-card-name">BAG · Big Ass Goal</h2>
+        <p class="mirror-card-sub">Who you've become in 10 years.</p>
+        <div class="mirror-card-empty-state">Unlocks after Purpose</div>
+        <div class="mirror-card-action"><span class="mirror-card-meta">Complete Purpose to unlock</span></div>
+      </article>
+      <article class="mirror-card is-locked">
+        <div class="mirror-card-head"><span class="mirror-card-num">03</span><span class="mirror-card-status">Locked</span></div>
+        <div class="mirror-card-eyebrow">Mirror 3</div>
+        <h2 class="mirror-card-name">Identity · Superpowers</h2>
+        <p class="mirror-card-sub">What you carry that others don't.</p>
+        <div class="mirror-card-empty-state">Unlocks after BAG</div>
+        <div class="mirror-card-action"><span class="mirror-card-meta">Complete Mirror 2 to unlock</span></div>
+      </article>
+      <article class="mirror-card is-locked">
+        <div class="mirror-card-head"><span class="mirror-card-num">04</span><span class="mirror-card-status">Locked</span></div>
+        <div class="mirror-card-eyebrow">Mirror 4</div>
+        <h2 class="mirror-card-name">Values · Behaviors</h2>
+        <p class="mirror-card-sub">What you stand for.</p>
+        <div class="mirror-card-empty-state">Unlocks after Identity</div>
+        <div class="mirror-card-action"><span class="mirror-card-meta">Complete Mirror 3 to unlock</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ EXPLORE PAGE ═══════════ -->
+<section class="screen" id="screen-explore">
+  <div class="shell-narrow" id="shellExplore">
+    <div class="breadcrumb">
+      <a data-go="a1">Entry Hall</a>
+      <span class="sep">›</span>
+      <a data-go="a1">A1 · All In It</a>
+      <span class="sep">›</span>
+      <span class="current">Purpose</span>
+    </div>
+
+    <div class="ex-home-eyebrow">A1 · Mirror 1 · Explore with Katherine</div>
+    <h1 class="ex-home-title">Purpose</h1>
+    <p class="ex-home-sub">Four exercises. Katherine guides each one with a short video. When she says <em>"come to your space"</em> — tap the active exercise below.</p>
+    <p class="ex-home-foot-sub">You can return anytime to edit anything you've written.</p>
+
+    <div class="intro-video is-collapsed" id="introVideo">
+      <div class="intro-video-head" id="introVideoHead">
+        <div class="intro-video-left">
+          <div class="intro-video-play-mini">▶</div>
+          <div class="intro-video-title-row">
+            <span class="intro-video-eyebrow">Start here · Katherine introduces Purpose</span>
+            <span class="intro-video-title">Purpose · Your Internal Why</span>
+          </div>
+        </div>
+        <span class="intro-video-meta">6 min</span>
+        <span class="intro-video-chev">▾</span>
+      </div>
+      <div class="intro-video-body">
+        <!-- REPLIT: Replace this stub with: <iframe src="..." allow="autoplay; fullscreen" allowfullscreen></iframe> -->
+        <div class="video-stub">
+          <button class="video-stub-play">▶</button>
+          <div class="video-stub-caption">Katherine's Purpose intro · 6 min</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ex-list" id="exList">
+      <!-- populated -->
+    </div>
+
+    <div id="exBottomCta">
+      <!-- populated -->
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ROOM OVERLAY (View A) ═══════════ -->
+<div class="room-overlay" id="roomOverlay">
+  <div class="room">
+    <button class="room-close" data-close-room>×</button>
+    <div class="room-crumb">
+      <a data-go="explore">Purpose</a>
+      <span class="sep">›</span>
+      <span class="current" id="roomCrumbCurrent">Exercise</span>
+    </div>
+    <div class="room-body" id="roomBody">
+      <!-- populated -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ VEIL ═══════════ -->
+<div class="room-veil" id="roomVeil">
+  <div class="room-veil-curtain"></div>
+  <div class="room-veil-text" id="roomVeilText">Stepping into the room with Katherine…</div>
+</div>
+
+<script>
+  // ────── State ──────
+  const state = {
+    activeExercise: 1,
+    completed: [false, false, false, false],
+    currentEditing: null,
+    // Exercise 1
+    symptoms: { picks: [], note: '', holdingBack: '' },
+    symptomsStep: 1, // 1 or 2 (within ex 1)
+    // Exercise 2 - 6 questions with new lighter cadence
+    trueOwnership: {
+      answers: [
+        { type: 'feeling-only', feeling: '' },                  // Q1 owned time — chip OR type-your-own
+        { type: 'heavy', text: '' },                            // Q2 prioritized
+        { type: 'feeling-only', feeling: '' },                  // Q3 achieved results — feeling only, no sentence
+        { type: 'feeling-only', feeling: '' },                  // Q4 enjoyed journey — chip OR type-your-own
+        { type: 'completion', c1: '', c2: '' },                 // Q5 aligned (sentence completion)
+        { type: 'heavy', text: '' }                             // Q6 boundaries (HEAVY - final landing)
+      ],
+      currentQ: 0
+    },
+    // Exercise 3
+    peel: { layers: [] },
+    // Exercise 4
+    declaration: ''
+  };
+
+  // ────── Exercise meta ──────
+  const EX = [
+    { n: 1, name: 'Owned Symptoms', tone: 'burgundy', eyebrow: 'The cost', video: 'During the opening', roomLabel: 'Stepping into the room with Katherine…' },
+    { n: 2, name: 'True Ownership', tone: 'gold', eyebrow: 'The vision', video: 'After Katherine paints the picture', roomLabel: 'Imagining the owner…' },
+    { n: 3, name: 'The Peel', tone: 'cyan', eyebrow: 'The work', video: 'When she guides the peel', roomLabel: 'Going deeper with Katherine…' },
+    { n: 4, name: 'Declare', tone: 'gold', eyebrow: 'Claimed', video: 'At the end', roomLabel: 'The moment of claiming…' }
+  ];
+
+  const TO_QUESTIONS = [
+    { stem: 'Describe what life would be like if you owned your time.', type: 'feeling-only', feelings: ['Spacious', 'Unhurried', 'Energized', 'Free', 'Sovereign', 'At ease'], allowCustom: true },
+    { stem: 'Describe what life would be like if you prioritized what mattered to you.', type: 'heavy' },
+    { stem: 'Describe what life would be like if you achieved the results you wanted.', type: 'feeling-only', feelings: ['Proud', 'Lit up', 'Calm', 'At peace', 'Whole', 'Lifted'], allowCustom: false },
+    { stem: 'Describe what life would be like if you enjoyed the journey.', type: 'feeling-only', feelings: ['Playful', 'Curious', 'Alive', 'In flow', 'Awake', 'Light'], allowCustom: true },
+    { stem: 'Describe what life would be like if you felt aligned on the inside.', type: 'completion', stem1: 'When I\'m aligned, I notice ____.', stem2: 'And the thing I no longer do is ____.' },
+    { stem: 'Describe what life would be like if you set and managed boundaries.', type: 'heavy' }
+  ];
+
+  const PEEL_PROMPTS = [
+    'When are you most alive?',
+    'So what does that give you?',
+    'And what does THAT give you?',
+    'Underneath that — what\'s the deepest version?',
+    'One more level — what\'s the essence?'
+  ];
+
+  // ────── Theme toggle ──────
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const isDark = document.body.dataset.theme === 'dark';
+    document.body.dataset.theme = isDark ? 'light' : 'dark';
+    document.getElementById('themeIcon').textContent = isDark ? '☀' : '☾';
+    document.getElementById('themeLabel').textContent = isDark ? 'Light' : 'Dark';
+  });
+
+  // ────── Screen nav ──────
+  function goTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('is-active'));
+    document.getElementById('screen-' + screenId).classList.add('is-active');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-go]');
+    if (el) {
+      e.preventDefault();
+      const target = el.dataset.go;
+      if (target === 'a1') {
+        closeRoom();
+        goTo('a1');
+        updateMirrorCard();
+      } else if (target === 'explore') {
+        closeRoom();
+        renderExploreList();
+        goTo('explore');
+      }
+    }
+    const close = e.target.closest('[data-close-room]');
+    if (close) {
+      closeRoom();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeRoom();
+  });
+
+  document.getElementById('introVideoHead').addEventListener('click', () => {
+    document.getElementById('introVideo').classList.toggle('is-collapsed');
+  });
+
+  // ────── Render Explore list ──────
+  function renderExploreList() {
+    const list = document.getElementById('exList');
+    list.innerHTML = '';
+    EX.forEach((ex, idx) => {
+      if (idx > 0) {
+        const v = document.createElement('div');
+        v.className = 'inter-video';
+        v.innerHTML = `
+          <div class="inter-video-play">▶</div>
+          <div class="inter-video-text">
+            <div class="inter-video-eyebrow">Katherine continues</div>
+            <p class="inter-video-title">Before ${ex.name.toLowerCase()}…</p>
+          </div>
+          <span class="inter-video-meta">~3 min</span>
+        `;
+        list.appendChild(v);
+      }
+      const isComplete = state.completed[ex.n - 1];
+      const isCurrent = !isComplete && ex.n === state.activeExercise;
+      const isUnlocked = isComplete || isCurrent;
+      const row = document.createElement('div');
+      row.className = `ex-row tone-${ex.tone}`;
+      if (isComplete) row.classList.add('is-complete');
+      else if (isCurrent) row.classList.add('is-current');
+      else row.classList.add('is-locked');
+      if (isUnlocked) row.classList.add('is-unlocked');
+      let iconContent;
+      if (isComplete) iconContent = '✓';
+      else if (isCurrent) iconContent = ex.n;
+      else iconContent = '<svg class="ex-lock-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a3 3 0 0 0-3 3v3H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1V4a3 3 0 0 0-3-3zm0 1a2 2 0 0 1 2 2v3H6V4a2 2 0 0 1 2-2z"/></svg>';
+      let statusText;
+      if (isComplete) statusText = '✓ Complete · tap to edit';
+      else if (isCurrent) statusText = 'Ready — Katherine sent you here';
+      else statusText = `Locked — unlocks ${ex.video.toLowerCase()}`;
+      row.innerHTML = `
+        <div class="ex-icon">${iconContent}</div>
+        <div class="ex-text">
+          <h3 class="ex-name">${ex.name}</h3>
+          <p class="ex-status">${statusText}</p>
+        </div>
+        ${isUnlocked ? '<span class="ex-arrow">→</span>' : ''}
+      `;
+      if (isUnlocked) row.addEventListener('click', () => openExercise(ex.n));
+      list.appendChild(row);
+    });
+    const ctaWrap = document.getElementById('exBottomCta');
+    const doneCount = state.completed.filter(Boolean).length;
+    if (doneCount === 4) {
+      ctaWrap.innerHTML = `
+        <div class="ex-bottom-cta">
+          <h3 class="ex-cta-title">Purpose · complete</h3>
+          <p class="ex-cta-sub">Your Purpose is declared. Mirror 2 — BAG — is now unlocked.</p>
+          <button class="btn btn-gold btn-large" data-go="a1">Return to A1 →</button>
+        </div>
+      `;
+    } else if (doneCount === 0) {
+      ctaWrap.innerHTML = `
+        <div class="ex-bottom-cta">
+          <p class="ex-cta-sub" style="margin-bottom:0">Watch Katherine's intro first. She'll tell you when to come back here for Exercise 1.</p>
+        </div>
+      `;
+    } else {
+      const nextEx = EX[state.activeExercise - 1];
+      const btnClass = nextEx.tone === 'cyan' ? 'btn-cyan' : nextEx.tone === 'burgundy' ? 'btn-burgundy' : 'btn-gold';
+      ctaWrap.innerHTML = `
+        <div style="text-align:center;">
+          <button class="btn ${btnClass} btn-large" id="continueBtn">Continue — ${nextEx.name} →</button>
+        </div>
+      `;
+      document.getElementById('continueBtn').addEventListener('click', () => openExercise(state.activeExercise));
+    }
+  }
+
+  // ────── Open room with veil ──────
+  function openExercise(n) {
+    const ex = EX[n - 1];
+    state.currentEditing = n;
+    if (n === 1) state.symptomsStep = 1;
+    if (n === 2) {
+      // Find first unanswered question
+      const ans = state.trueOwnership.answers;
+      let firstUnanswered = 0;
+      for (let i = 0; i < ans.length; i++) {
+        if (!isAnswered(ans[i])) { firstUnanswered = i; break; }
+        if (i === ans.length - 1) firstUnanswered = i; // all answered, show last
+      }
+      state.trueOwnership.currentQ = state.completed[1] ? 0 : firstUnanswered;
+      state.trueOwnership._editing = false;
+    }
+    
+    const veil = document.getElementById('roomVeil');
+    document.getElementById('roomVeilText').textContent = ex.roomLabel;
+    veil.classList.add('is-active', 'is-rising');
+
+    setTimeout(() => {
+      // dim the explore page
+      document.getElementById('shellExplore').classList.add('is-dimmed');
+      // open the room
+      renderRoom();
+      document.getElementById('roomOverlay').classList.add('is-active');
+    }, 900);
+
+    setTimeout(() => {
+      veil.classList.remove('is-rising');
+      veil.classList.add('is-falling');
+      setTimeout(() => {
+        veil.classList.remove('is-active', 'is-falling');
+      }, 700);
+    }, 2000);
+  }
+
+  function closeRoom() {
+    document.getElementById('roomOverlay').classList.remove('is-active');
+    document.getElementById('shellExplore').classList.remove('is-dimmed');
+  }
+
+  function isAnswered(answer) {
+    if (answer.type === 'feeling-only') return !!answer.feeling;
+    if (answer.type === 'heavy') return !!answer.text.trim();
+    if (answer.type === 'completion') return !!answer.c1.trim() && !!answer.c2.trim();
+    return false;
+  }
+
+  function renderRoom() {
+    const n = state.currentEditing;
+    const ex = EX[n - 1];
+    document.getElementById('roomCrumbCurrent').textContent = ex.name;
+    
+    const body = document.getElementById('roomBody');
+    const isComplete = state.completed[n - 1];
+
+    let html = '';
+
+    // Video pause banner
+    html += `
+      <div class="video-pause-banner">
+        <div class="vpb-icon">${isComplete ? '✓' : '⏸'}</div>
+        <div class="vpb-text">
+          <div class="vpb-eyebrow">${isComplete ? 'You already explored this · edit anytime' : 'Katherine sent you here'}</div>
+          <p class="vpb-content">${isComplete ? `Your answers are saved below — type to update anything.` : `<strong>Pause the video.</strong> ${ex.video}.`}</p>
+        </div>
+      </div>
+    `;
+    html += `<div class="ex-step-label tone-${ex.tone}">Exercise ${n} of 4 · ${ex.eyebrow}</div>`;
+
+    if (n === 1) html += renderEx1();
+    if (n === 2) html += renderEx2();
+    if (n === 3) html += renderEx3();
+    if (n === 4) html += renderEx4();
+
+    body.innerHTML = html;
+    attachHandlers(n);
+  }
+
+  // ────── Exercise 1 ──────
+  function renderEx1() {
+    if (state.symptomsStep === 1) return renderEx1Step1();
+    return renderEx1Step2();
+  }
+  function renderEx1Step1() {
+    const symptoms = [
+      "I'm tired but can't tell why", "I say yes when I mean no",
+      "I shrink in certain rooms", "My calendar runs me",
+      "I'm performing, not living", "I keep waiting for permission",
+      "I scroll instead of feel", "I'm successful and empty"
+    ];
+    return `
+      <div class="sub-progress">
+        <span class="sub-progress-label">Step 1 of 2</span>
+        <div class="sub-progress-pips">
+          <div class="sub-pip tone-burgundy is-active"></div>
+          <div class="sub-pip tone-burgundy"></div>
+        </div>
+      </div>
+      <h1 class="ex-full-title">What are the signs you're living someone else's life right now?</h1>
+      <p class="ex-full-context">Tap any that ring true. There's no judgment — these are just the data. Then add one in your own words.</p>
+      <div class="symptom-grid" id="symptomGrid">
+        ${symptoms.map(s => `<button class="symptom-chip ${state.symptoms.picks.includes(s) ? 'is-selected' : ''}" data-symptom>${s}</button>`).join('')}
+      </div>
+      <textarea class="ex-textarea tone-burgundy" id="symptomText" placeholder="What else? Name one in your own words...">${escapeHtml(state.symptoms.note || '')}</textarea>
+      <div class="ex-actions">
+        <button class="btn btn-burgundy btn-large" id="symptomsNext">Next: The single thing →</button>
+        <span class="ex-actions-note">Pick at least 1 · or write your own</span>
+      </div>
+    `;
+  }
+  function renderEx1Step2() {
+    return `
+      <div class="sub-progress">
+        <span class="sub-progress-label">Step 2 of 2</span>
+        <div class="sub-progress-pips">
+          <div class="sub-pip tone-burgundy is-done"></div>
+          <div class="sub-pip tone-burgundy is-active"></div>
+        </div>
+      </div>
+      <h1 class="ex-full-title">The single thing holding you back</h1>
+      <p class="ex-full-context">If you could remove ONE thing right now and reclaim your life — what would it be? Don't list five. Find the one that, if it were gone, would change everything.</p>
+      <textarea class="ex-textarea tone-burgundy" id="holdingBackText" placeholder="The one thing is...">${escapeHtml(state.symptoms.holdingBack || '')}</textarea>
+      <div class="ex-actions">
+        <button class="btn btn-ghost btn-large" id="holdingBackBack">← Back to symptoms</button>
+        <button class="btn btn-burgundy btn-large" id="holdingBackSave">${state.completed[0] ? '✓ Save changes' : '✓ Save & continue'}</button>
+      </div>
+    `;
+  }
+
+  // ────── Exercise 2 — True Ownership ──────
+  function renderEx2() {
+    const allAnswered = state.trueOwnership.answers.every(isAnswered);
+    if (state.completed[1] && allAnswered && !state.trueOwnership._editing) {
+      // Review view
+      return `
+        <h1 class="ex-full-title">True Ownership · your picture</h1>
+        <p class="ex-full-context">Six questions, six answers. This is what life looks like on the other side — the life Katherine's pointing you toward.</p>
+        <div class="saved-answers">
+          ${TO_QUESTIONS.map((q, i) => {
+            const a = state.trueOwnership.answers[i];
+            let displayText;
+            if (a.type === 'feeling-only') displayText = a.feeling;
+            else if (a.type === 'completion') displayText = `I notice ${escapeHtml(a.c1)}. I no longer ${escapeHtml(a.c2)}.`;
+            else displayText = escapeHtml(a.text);
+            return `
+              <div class="answer-block">
+                <p class="answer-block-q">${i + 1}. "${q.stem}"</p>
+                <p class="answer-block-a">${displayText}</p>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="ex-actions">
+          <button class="btn btn-ghost btn-large" id="ex2Edit">Edit answers</button>
+          <button class="btn btn-gold-soft btn-large" data-close-room>← Back to Purpose</button>
+        </div>
+      `;
+    }
+
+    const qIdx = state.trueOwnership.currentQ;
+    const q = TO_QUESTIONS[qIdx];
+    const a = state.trueOwnership.answers[qIdx];
+
+    // Quote callback only on Q1 — show user's "one thing"
+    let callbackHtml = '';
+    if (qIdx === 0 && state.symptoms.holdingBack) {
+      callbackHtml = `
+        <div class="quote-callback">
+          <div class="quote-callback-label">You named your one thing</div>
+          <p class="quote-callback-text">"${escapeHtml(state.symptoms.holdingBack)}"</p>
+          <p class="quote-callback-prompt">Now imagine life without it. These six questions paint the picture.</p>
+        </div>
+      `;
+    }
+
+    // Sub-progress (6 pips)
+    let pipsHtml = `
+      <div class="sub-progress">
+        <span class="sub-progress-label">Question ${qIdx + 1} of 6</span>
+        <div class="sub-progress-pips">
+          ${TO_QUESTIONS.map((_, i) => {
+            const done = isAnswered(state.trueOwnership.answers[i]) && i < qIdx;
+            const active = i === qIdx;
+            return `<div class="sub-pip tone-gold ${done ? 'is-done' : ''} ${active ? 'is-active' : ''}"></div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+
+    let inputHtml = '';
+    if (q.type === 'feeling-only') {
+      // Check if current feeling is a preset or custom
+      const isCustom = a.feeling && !q.feelings.includes(a.feeling);
+      inputHtml = `
+        <div class="feeling-prompt">What's the feeling that comes up?</div>
+        <div class="feeling-grid" id="feelingGrid">
+          ${q.feelings.map(f => `<button class="feeling-chip ${a.feeling === f ? 'is-selected' : ''}" data-feeling="${f}">${f}</button>`).join('')}
+          ${q.allowCustom ? `
+            <button class="feeling-chip feeling-chip-custom ${isCustom ? 'is-selected' : ''}" data-feeling-custom>
+              ${isCustom ? escapeHtml(a.feeling) : '+ Other…'}
+            </button>
+          ` : ''}
+        </div>
+        ${q.allowCustom ? `
+          <input class="single-line-input custom-feeling-input" id="customFeelingInput" placeholder="Type your own feeling…" value="${isCustom ? escapeHtml(a.feeling) : ''}" style="display:${isCustom ? 'block' : 'none'};max-width:320px" />
+        ` : ''}
+      `;
+    } else if (q.type === 'completion') {
+      inputHtml = `
+        <p class="completion-stem is-first">${q.stem1}</p>
+        <input class="single-line-input" id="c1Input" placeholder="I notice..." value="${escapeHtml(a.c1 || '')}" />
+        <p class="completion-stem">${q.stem2}</p>
+        <input class="single-line-input" id="c2Input" placeholder="I no longer..." value="${escapeHtml(a.c2 || '')}" />
+      `;
+    } else {
+      inputHtml = `
+        <textarea class="ex-textarea tone-gold" id="heavyText" placeholder="In that life…" style="min-height:140px">${escapeHtml(a.text || '')}</textarea>
+      `;
+    }
+
+    return `
+      ${callbackHtml}
+      ${pipsHtml}
+      <h1 class="ex-full-title">${q.stem}</h1>
+      <p class="ex-full-context">Picture it. Not the version that "should" be — the version that would actually be yours.</p>
+      ${inputHtml}
+      <div class="ex-actions">
+        ${qIdx > 0 ? `<button class="btn btn-ghost btn-large" id="toBack">← Previous</button>` : ''}
+        <button class="btn btn-gold btn-large" id="toNext">${qIdx === 5 ? '✓ Save all 6 answers' : `Next: question ${qIdx + 2} →`}</button>
+      </div>
+    `;
+  }
+
+  // ────── Exercise 3 — Peel ──────
+  function renderEx3() {
+    const layers = state.peel.layers;
+    const currentPrompt = PEEL_PROMPTS[Math.min(layers.length, PEEL_PROMPTS.length - 1)];
+    return `
+      ${layers.length === 0 ? `
+        <h1 class="ex-full-title">Now we peel.</h1>
+        <p class="ex-full-context">Katherine will ask "so what's that give you?" after each layer. Don't reach for the polished answer — the one underneath is the one worth claiming. Keep peeling until you hit a phrase that feels final.</p>
+      ` : `
+        <h1 class="ex-full-title">Keep peeling.</h1>
+        <p class="ex-full-context">${layers.length} layer${layers.length === 1 ? '' : 's'} so far. Stay with it.</p>
+      `}
+      ${layers.length > 0 ? `
+        <div class="peel-layers">
+          ${layers.map((l, i) => `
+            <div class="peel-layer">
+              <div class="peel-layer-meta">Layer ${i + 1}</div>
+              <p class="peel-layer-prompt">"${escapeHtml(l.prompt)}"</p>
+              <p class="peel-layer-answer">${escapeHtml(l.answer)}</p>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <p class="peel-current-prompt">"${currentPrompt}"</p>
+      <textarea class="ex-textarea tone-cyan" id="peelText" placeholder="When I sit with that..." style="min-height:120px"></textarea>
+      <div class="ex-actions">
+        <button class="btn btn-cyan btn-large" id="peelDeeper">↓ Keep peeling — go deeper</button>
+        ${layers.length >= 2 ? `
+          <button class="btn btn-gold btn-large" id="peelDeclare">✓ This is my bottom — declare</button>
+        ` : `<span class="ex-actions-note">Need at least 2 layers before declaring</span>`}
+      </div>
+    `;
+  }
+
+  // ────── Exercise 4 — Declare ──────
+  function renderEx4() {
+    const lastLayer = state.peel.layers[state.peel.layers.length - 1];
+    const declared = state.declaration || (lastLayer ? lastLayer.answer : '');
+    return `
+      <h1 class="ex-full-title">In one phrase — your Purpose, claimed.</h1>
+      <p class="ex-full-context">This is the bottom you reached in the peel. Or a version of it that feels more true. Two or three words. Italic. Yours.</p>
+      <input class="ex-input-single" id="declareInput" placeholder="" value="${escapeHtml(declared)}" />
+      <div class="ex-actions">
+        <button class="btn btn-gold btn-large" id="declareSave">${state.completed[3] ? '✓ Save changes' : '✓ Declare'}</button>
+        <span class="ex-actions-note">This becomes your Purpose in Map of Me</span>
+      </div>
+    `;
+  }
+
+  function attachHandlers(n) {
+    if (n === 1) {
+      if (state.symptomsStep === 1) {
+        document.querySelectorAll('[data-symptom]').forEach(chip => {
+          chip.addEventListener('click', () => {
+            chip.classList.toggle('is-selected');
+            const txt = chip.textContent;
+            if (chip.classList.contains('is-selected')) {
+              if (!state.symptoms.picks.includes(txt)) state.symptoms.picks.push(txt);
+            } else {
+              state.symptoms.picks = state.symptoms.picks.filter(s => s !== txt);
+            }
+          });
+        });
+        document.getElementById('symptomsNext').addEventListener('click', () => {
+          const note = document.getElementById('symptomText').value.trim();
+          if (state.symptoms.picks.length === 0 && !note) return;
+          state.symptoms.note = note;
+          state.symptomsStep = 2;
+          renderRoom();
+        });
+      } else {
+        document.getElementById('holdingBackBack').addEventListener('click', () => {
+          const val = document.getElementById('holdingBackText').value.trim();
+          state.symptoms.holdingBack = val;
+          state.symptomsStep = 1;
+          renderRoom();
+        });
+        document.getElementById('holdingBackSave').addEventListener('click', () => {
+          const val = document.getElementById('holdingBackText').value.trim();
+          if (!val) return;
+          state.symptoms.holdingBack = val;
+          state.completed[0] = true;
+          if (state.activeExercise < 2) state.activeExercise = 2;
+          closeRoom();
+          renderExploreList();
+        });
+      }
+    }
+    if (n === 2) {
+      const allAnswered = state.trueOwnership.answers.every(isAnswered);
+      if (state.completed[1] && allAnswered && !state.trueOwnership._editing) {
+        document.getElementById('ex2Edit').addEventListener('click', () => {
+          state.trueOwnership._editing = true;
+          state.trueOwnership.currentQ = 0;
+          renderRoom();
+        });
+        return;
+      }
+
+      const qIdx = state.trueOwnership.currentQ;
+      const q = TO_QUESTIONS[qIdx];
+      const a = state.trueOwnership.answers[qIdx];
+
+      // wire input handlers
+      if (q.type === 'feeling-only') {
+        document.querySelectorAll('[data-feeling]').forEach(chip => {
+          chip.addEventListener('click', () => {
+            document.querySelectorAll('.feeling-chip').forEach(c => c.classList.remove('is-selected'));
+            chip.classList.add('is-selected');
+            a.feeling = chip.dataset.feeling;
+            const customIn = document.getElementById('customFeelingInput');
+            if (customIn) { customIn.style.display = 'none'; customIn.value = ''; }
+          });
+        });
+        const customBtn = document.querySelector('[data-feeling-custom]');
+        const customInput = document.getElementById('customFeelingInput');
+        if (customBtn && customInput) {
+          customBtn.addEventListener('click', () => {
+            document.querySelectorAll('.feeling-chip').forEach(c => c.classList.remove('is-selected'));
+            customBtn.classList.add('is-selected');
+            customInput.style.display = 'block';
+            customInput.focus();
+            // Don't reset feeling yet — let them type
+          });
+          customInput.addEventListener('input', () => {
+            a.feeling = customInput.value.trim();
+            customBtn.textContent = customInput.value.trim() || '+ Other…';
+          });
+        }
+      }
+
+      const back = document.getElementById('toBack');
+      if (back) {
+        back.addEventListener('click', () => {
+          saveQ2Current();
+          state.trueOwnership.currentQ--;
+          renderRoom();
+        });
+      }
+      document.getElementById('toNext').addEventListener('click', () => {
+        if (!saveQ2Current()) return;
+        if (qIdx === 5) {
+          // all done
+          state.completed[1] = true;
+          state.trueOwnership._editing = false;
+          if (state.activeExercise < 3) state.activeExercise = 3;
+          closeRoom();
+          renderExploreList();
+        } else {
+          state.trueOwnership.currentQ++;
+          renderRoom();
+        }
+      });
+    }
+    if (n === 3) {
+      const deeper = document.getElementById('peelDeeper');
+      if (deeper) {
+        deeper.addEventListener('click', () => {
+          const val = document.getElementById('peelText').value.trim();
+          if (!val) return;
+          const currentPrompt = PEEL_PROMPTS[Math.min(state.peel.layers.length, PEEL_PROMPTS.length - 1)];
+          state.peel.layers.push({ prompt: currentPrompt, answer: val });
+          renderRoom();
+        });
+      }
+      const declare = document.getElementById('peelDeclare');
+      if (declare) {
+        declare.addEventListener('click', () => {
+          const val = document.getElementById('peelText').value.trim();
+          if (val) {
+            const currentPrompt = PEEL_PROMPTS[Math.min(state.peel.layers.length, PEEL_PROMPTS.length - 1)];
+            state.peel.layers.push({ prompt: currentPrompt, answer: val });
+          }
+          state.completed[2] = true;
+          if (state.activeExercise < 4) state.activeExercise = 4;
+          closeRoom();
+          renderExploreList();
+        });
+      }
+    }
+    if (n === 4) {
+      document.getElementById('declareSave').addEventListener('click', () => {
+        const val = document.getElementById('declareInput').value.trim();
+        if (!val) return;
+        state.declaration = val;
+        state.completed[3] = true;
+        closeRoom();
+        renderExploreList();
+      });
+    }
+  }
+
+  function saveQ2Current() {
+    const qIdx = state.trueOwnership.currentQ;
+    const q = TO_QUESTIONS[qIdx];
+    const a = state.trueOwnership.answers[qIdx];
+    if (q.type === 'feeling-only') {
+      // Feeling is set via chip-click or custom-input typing — already in a.feeling
+      if (!a.feeling || !a.feeling.trim()) return false;
+    } else if (q.type === 'completion') {
+      const c1 = document.getElementById('c1Input').value.trim();
+      const c2 = document.getElementById('c2Input').value.trim();
+      a.c1 = c1; a.c2 = c2;
+      if (!c1 || !c2) return false;
+    } else {
+      const text = document.getElementById('heavyText').value.trim();
+      a.text = text;
+      if (!text) return false;
+    }
+    return true;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function updateMirrorCard() {
+    const doneCount = state.completed.filter(Boolean).length;
+    const pips = document.querySelectorAll('#purposePips .progress-pip');
+    pips.forEach((p, i) => {
+      p.classList.remove('is-done', 'is-active');
+      if (state.completed[i]) p.classList.add('is-done');
+      else if (i + 1 === state.activeExercise) p.classList.add('is-active');
+    });
+    document.getElementById('purposeProgress').textContent = doneCount === 4 ? '4 of 4 · Complete' : `${doneCount} of 4`;
+    const empty = document.getElementById('purposeEmpty');
+    const btn = document.getElementById('purposeOpenBtn');
+    const card = document.getElementById('purposeCard');
+    const status = document.getElementById('purposeStatus');
+    if (doneCount === 0) {
+      empty.style.display = 'flex';
+      empty.textContent = 'Not yet explored.';
+      empty.style.color = '';
+      empty.style.fontStyle = '';
+      btn.textContent = 'Explore with Katherine →';
+      btn.className = 'btn btn-gold btn-block';
+      card.className = 'mirror-card is-current';
+      status.textContent = 'Up next';
+    } else if (doneCount < 4) {
+      empty.style.display = 'flex';
+      empty.textContent = `In progress · Exercise ${state.activeExercise} of 4 is up next`;
+      empty.style.color = 'var(--cyan)';
+      empty.style.fontStyle = 'italic';
+      btn.textContent = 'Continue with Katherine →';
+      btn.className = 'btn btn-cyan btn-block';
+      card.className = 'mirror-card is-inprogress';
+      status.textContent = 'In progress';
+    } else {
+      empty.style.display = 'none';
+      status.textContent = 'Complete';
+      card.className = 'mirror-card is-complete';
+      btn.textContent = 'Review →';
+      btn.className = 'btn btn-gold-soft btn-block';
+    }
+  }
+
+  renderExploreList();
+</script>
+
+</body>
+</html>

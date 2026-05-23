@@ -1,0 +1,42 @@
+This is a really good plan. Agent did exactly what you asked — read the files, sent a plan, no code yet. Let me walk you through it section by section so you can approve it confidently.
+What's excellent
+(a) Files touched — disciplined and narrow. Only App.tsx and the global CSS. Nine new components, all additive, all gated behind the ?newA1=1 flag. No refactoring of existing code. This is the subtractive approach you wanted.
+(b) Data migration plan — surgical and correct.
+
+The reuse of purpose_layers and purpose_final is exactly right. That's your existing peel and declaration data — the new Peel Room and Declare Room write to the same keys, so when the user flips the flag back off, their work is still there. No data loss either direction.
+All direction_3yr, direction_1yr, BAG, identity, values data — completely untouched. Confirmed.
+New keys all live in the existing JSONB column (profile_data via the use() hook). No schema migration.
+
+(c) No new DB columns, no new endpoints. This is the answer you wanted. Agent passed the test — it didn't try to over-engineer.
+(d) Untouched list — covers everything that matters. Sidebar, Purpose·Direction page, PurposePeelingInline, BAGPage, OneYearPage, Katherine engine, auto-save hook, A2-A5, /api/me/profile, auth. All explicitly named.
+Build sequence — sensible order. Design tokens first, then theme toggle fix, then flag, then build outward from grid to rooms. Mobile pass before Done Criteria. This is how I'd order it too.
+One small thing to flag — the theme toggle fix
+Agent says: "Theme toggle: currently exists in the header but doesn't apply data-theme to <html>. I'll fix it to write document.documentElement.setAttribute('data-theme', ...) and persist the choice — this fix applies globally (both flag-on and flag-off views)."
+This is a global change, not flag-gated. That's fine — it's a bug fix, not a redesign — but it means light mode will start working everywhere when this ships, including on the old A1, Introduction page, etc. Some pages may have been styled assuming dark-only and might look weird in light mode.
+This isn't a reason to block — it's a reason to test light mode across the whole app before going to prod, not just inside the new A1. I'd tell Agent: "Approved, but call out any existing pages that look broken in light mode during the work — we'll triage those separately."
+Agent's one question — answer it now
+
+"Should I build the status strip now, or keep the Explore page as a single-column list of 4 exercise rows and add the status strip later?"
+
+Agent is being smart and subtractive. My recommendation: build the status strip now, but as a minimal version. Here's why:
+
+The status strip is the visible proof that this is "Option B" — Katherine in the Room, the page is the output. Without it, the Explore page is just a checklist. With it, you can already see your work reflected back even before Map of Me is built.
+It's not expensive — four rows, dash placeholders until each exercise saves, then it surfaces: Holding back: "I'm performing, not living" etc.
+Leaving it for later means Agent has to come back into the same code, which is more risk than building it now while context is fresh.
+
+But — minimal version, no scope creep. Just four labeled rows, dashes when empty, real value when filled.
+What to paste back to Agent
+Here's a clean reply to send:
+
+Plan approved with two notes.
+1. Fork status: I'll fork the project now via Replit menu → Fork → True-Ownership-Snapshot-Pre-A1-Redesign. I'll confirm when done before you start building.
+2. On the theme toggle fix: Agreed it applies globally — that's the right scope for a bug fix. While doing the work, please call out any existing pages (Introduction, Purpose·Direction, BAG, etc.) that look visually broken in light mode. We won't fix them this round, but I want a list so I can triage them in a future handoff.
+3. Status strip question — build it now, but minimal. Four labeled rows on the right side of the Explore page:
+
+Holding back → dash until Ex1 saves, then the user's saved text
+True Ownership → "0 of 6" until Ex2 starts, then "N of 6 answered"
+Peel layers → "0" until layers exist, then the count
+Declaration → dash until Ex4 saves, then the declared phrase in italic
+
+No fancy styling — just the same calm panel treatment as the rest of the prototype's right-rail blocks. This is what makes the "page is the output" pattern visible. On mobile (≤900px) the strip stacks below the exercise list.
+Proceed with the build sequence as listed once I confirm the fork is done.

@@ -229,6 +229,47 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .chip-red:hover{background:rgba(239,68,68,.18);}
 .chip-drag{cursor:grab;}.chip-drag:active{cursor:grabbing;}
 .drop-zone{transition:border-color .2s,background .2s;}.drop-zone.over{background:rgba(201,168,76,.04);}
+
+/* ══════════════ NEW A1 DESIGN TOKENS (?newA1=1) ══════════════
+   Layered on top of existing vars. Activated via data-theme on <html>.
+   Default is dark; light variant overrides selected tokens. */
+:root, html[data-theme="dark"]{
+  /* Gold family */
+  --gold:#c9a84b; --gold-soft:rgba(201,168,75,.14); --gold-warm:rgba(201,168,75,.06);
+  --gold-line:rgba(201,168,75,.32); --gold-glow:rgba(201,168,75,.22);
+  /* Burgundy (Owned Symptoms tone) */
+  --burgundy:#b34d52; --burgundy-soft:rgba(179,77,82,.15); --burgundy-line:rgba(179,77,82,.45); --burgundy-glow:rgba(179,77,82,.25);
+  /* Cyan (Peel tone) */
+  --cyan:#6aa9b8; --cyan-soft:rgba(106,169,184,.15); --cyan-line:rgba(106,169,184,.45); --cyan-glow:rgba(106,169,184,.22);
+  /* Surfaces */
+  --na1-bg:#0d1b2e; --na1-bg-soft:#112240; --na1-bg-card:#13243d; --na1-bg-input:#0f1c30; --na1-bg-video:#0a1626;
+  --na1-text:#f4f1eb; --na1-text-sec:#cfc8b9; --na1-text-mute:#7d8a98;
+  --na1-border:#1f3553;
+  --na1-radius-sm:6px; --na1-radius:10px; --na1-radius-lg:14px; --na1-radius-xl:18px;
+  --na1-serif:Georgia, 'Times New Roman', serif;
+  --na1-sans:'DM Sans', system-ui, sans-serif;
+}
+html[data-theme="light"]{
+  --gold:#b8892f; --gold-soft:rgba(184,137,47,.16); --gold-warm:rgba(184,137,47,.08);
+  --gold-line:rgba(184,137,47,.38); --gold-glow:rgba(184,137,47,.25);
+  --burgundy:#9b3d44; --burgundy-soft:rgba(155,61,68,.12); --burgundy-line:rgba(155,61,68,.40); --burgundy-glow:rgba(155,61,68,.20);
+  --cyan:#4a8a99; --cyan-soft:rgba(74,138,153,.12); --cyan-line:rgba(74,138,153,.40); --cyan-glow:rgba(74,138,153,.18);
+  --na1-bg:#f5f3ef; --na1-bg-soft:#ece8df; --na1-bg-card:#fffdf8; --na1-bg-input:#fbf8f1; --na1-bg-video:#e8e3d6;
+  --na1-text:#2a2620; --na1-text-sec:#534b3f; --na1-text-mute:#8a8170;
+  --na1-border:#d8d1c2;
+}
+.na1-root{ background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); min-height:100vh; }
+.na1-root *{ -webkit-tap-highlight-color: transparent; }
+.na1-theme-toggle{
+  position:fixed; top:14px; right:14px; z-index:90;
+  display:inline-flex; align-items:center; gap:8px;
+  min-height:44px; padding:0 14px; border-radius:100px;
+  background:transparent; border:1px solid var(--na1-border, #1f3553);
+  color:inherit; font-family:var(--na1-sans,'DM Sans',sans-serif); font-size:13px;
+  cursor:pointer; transition:border-color .18s, background .18s;
+}
+.na1-theme-toggle:hover{ border-color: var(--gold, #c9a84b); }
+@media (max-width: 900px){ .na1-theme-toggle .label{ display:none; } .na1-theme-toggle{ padding:0 12px; } }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -9571,7 +9612,44 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
     </div>
   );
 }
+// ─── NEW A1 (?newA1=1) feature flag ───
+// Reads once at module load; changes require a page reload.
+const NEW_A1_FLAG = (() => {
+  try { return new URLSearchParams(window.location.search).has("newA1"); }
+  catch { return false; }
+})();
+
+function NewA1Placeholder({ name }: { name?: string }) {
+  return (
+    <div className="na1-root" style={{ padding:"80px 24px 60px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", textAlign:"center" }}>
+      <div style={{ maxWidth:560 }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase", color:"var(--gold)", marginBottom:14 }}>
+          ?newA1=1 · Flag detected
+        </div>
+        <h1 style={{ fontFamily:"var(--na1-serif)", fontSize:36, lineHeight:1.2, fontWeight:600, margin:"0 0 14px", color:"var(--na1-text)" }}>
+          New A1 placeholder
+        </h1>
+        <p style={{ fontFamily:"var(--na1-sans)", fontSize:16, lineHeight:1.6, color:"var(--na1-text-sec)", margin:"0 0 20px" }}>
+          The redesigned A1 Purpose mirror grid renders here. This stub confirms the flag is wired up and the new design tokens are loaded. Existing A1 is untouched at the default URL.
+        </p>
+        <div style={{ display:"inline-flex", flexDirection:"column", gap:8, padding:"16px 22px", border:"1px solid var(--gold-line)", borderRadius:"var(--na1-radius)", background:"var(--gold-warm)", textAlign:"left", fontFamily:"var(--na1-sans)", fontSize:13, color:"var(--na1-text-sec)" }}>
+          <div><span style={{ color:"var(--na1-text-mute)" }}>User:</span> {name || "(unknown)"}</div>
+          <div><span style={{ color:"var(--na1-text-mute)" }}>Theme toggle:</span> top-right corner · try it</div>
+          <div><span style={{ color:"var(--na1-text-mute)" }}>Default URL:</span> /a1 (no flag) → existing experience</div>
+        </div>
+        <p style={{ marginTop:24, fontSize:12, color:"var(--na1-text-mute)", fontFamily:"var(--na1-sans)" }}>
+          Next step: 4-card mirror grid + Purpose explore page + 4 rooms.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function A1({ intake, onDone, phase, setPhase }) {
+  // FLAG ON: short-circuit to the new A1 surface. Existing engine below is left intact.
+  if (NEW_A1_FLAG) {
+    return <NewA1Placeholder name={intake?.name} />;
+  }
   const [step, setStep] = useState("to_intro");
   const [voice, setVoice] = useState(intake.defaultVoice);
   const [done, setDone] = useState([]);
@@ -13861,9 +13939,36 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ─── NEW A1: global theme toggle (visible on login + every authed view) ───
+function Na1ThemeToggle() {
+  const [theme, setThemeState] = useState<"dark" | "light">(() => {
+    try {
+      const saved = localStorage.getItem("na1_theme");
+      return saved === "light" ? "light" : "dark";
+    } catch { return "dark"; }
+  });
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "dark") document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+    try { localStorage.setItem("na1_theme", theme); } catch {}
+  }, [theme]);
+  return (
+    <button
+      className="na1-theme-toggle"
+      onClick={() => setThemeState(t => t === "dark" ? "light" : "dark")}
+      aria-label="Toggle light or dark theme"
+      title={theme === "dark" ? "Switch to light" : "Switch to dark"}
+    >
+      <span aria-hidden>{theme === "dark" ? "☾" : "☀"}</span>
+      <span className="label">{theme === "dark" ? "Dark" : "Light"}</span>
+    </button>
+  );
+}
+
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
-  if (isLoading) return <LoadingScreen />;
-  if (!isAuthenticated) return <SignInScreen />;
-  return <ServerDataLoader><AuthedApp /></ServerDataLoader>;
+  if (isLoading) return <><style>{CSS}</style><Na1ThemeToggle /><LoadingScreen /></>;
+  if (!isAuthenticated) return <><style>{CSS}</style><Na1ThemeToggle /><SignInScreen /></>;
+  return <><Na1ThemeToggle /><ServerDataLoader><AuthedApp /></ServerDataLoader></>;
 }
