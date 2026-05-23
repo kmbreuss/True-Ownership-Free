@@ -1,0 +1,95 @@
+Locked. Updating the tweak in the Agent message.
+Here's the final combined message — paste this whole thing:
+
+Step 8 PASSED with three tweaks before step 9 — bundle all, then pause.
+Verified end-to-end in real Chrome:
+
+Width fix landed — content sits in a ~760px column, 4 mirror cards arrange as a clean 2×2 grid, intimate journal feel ✅
+Q1 burgundy callout shows my saved holdback in italic burgundy ✅
+Q1 "+ Other…" chip morphs and updates label live as I type ✅
+Q2 heavy textarea with autofocus, gold ring, proper placeholder ✅
+Q3 chips work; pip progress, navigation, validation gating all working ✅
+
+Tweak 1 — Add "+ Other…" chip to Q3.
+Q3 currently has 6 chips (Proud, Lit up, Calm, At peace, Whole, Lifted) but no custom option. Add a dashed "+ Other…" chip at the end — identical behavior to Q1's: click to morph into selected state, gold input field appears below with "Your word…" placeholder, chip label updates live as user types, click any preset chip clears the custom input.
+Update the data model: Q3 now has customAllowed: true, same as Q1 and Q4. Q5 stays as the two-input sentence completion (no chips, no Other). Q2 and Q6 stay as heavy textareas.
+Tweak 2 — Trim veil HOLD from 1400ms to 1100ms.
+Adjust the veil state machine:
+StageWasNewRise600ms600ms (unchanged)Text fade-in delay + duration400ms + 500ms400ms + 500ms (unchanged)HOLD1400ms1100msText fade-out300ms300ms (unchanged)Fall700ms700ms (unchanged)Total~2.7s~2.4s
+Only the HOLD changes. All easing curves and other phases stay identical. The threshold line still has time to land — just 300ms tighter.
+Tweak 3 — Step 9: PeelRoom (Ex3 — the multi-layer peel).
+Per Replit_Handoff_A1_Purpose.md Exercise 3 section. Cyan tone (working energy, in progress). Recursive "what's underneath?" exercise.
+Structure: Multi-layer peel. Open-ended. 2+ layers required before user can declare.
+Five prompts in order:
+
+"When are you most alive?"
+"So what does that give you?"
+"And what does THAT give you?"
+"Underneath that — what's the deepest version?"
+"One more level — what's the essence?"
+
+If the user peels beyond 5, prompt 5 repeats.
+Layout:
+
+Cyan eyebrow: MIRROR 1 · EXERCISE 3 · THE PEEL
+Georgia title at top: "The Peel"
+Sub: "Each answer points to a deeper one. Keep going until you reach the bottom — the version of you that doesn't need more layers."
+Each completed layer renders above the current prompt as a gold-bordered milestone showing:
+
+Layer N eyebrow (small, muted)
+The prompt that was answered (italic, muted)
+The user's answer (Georgia, larger)
+
+
+Current prompt is rendered below the milestones in a card with:
+
+Cyan border
+The prompt (Georgia title)
+Single textarea (DM Sans regular, NOT italic serif), autofocused
+Cyan ring on focus
+
+
+
+Buttons (below the textarea):
+
+"↓ Keep peeling — go deeper" — cyan filled button (44px tap target). Appears only when textarea has text. On click: saves the layer to purpose_layers, advances to next prompt, clears textarea, scrolls so new prompt is visible.
+"✓ This is my bottom — declare" — gold filled button. Appears ONLY after 2+ layers exist AND current layer has text. On click: saves final layer, sets a1_ex3_done = true, closes Room, Declare exercise unlocks.
+
+Data model:
+
+purpose_layers (reuse existing key): array of { prompt: string, answer: string }
+a1_peel_draft: string — the in-progress current layer text (separate key so the committed array isn't corrupted)
+a1_ex3_done: boolean, true on declare button click
+Important: Existing purpose_layers data from the old app pre-populates the milestones when user opens Ex3 fresh. They see their existing peel work as milestones, can continue from there, OR click "✓ Declare" if 2+ layers already exist.
+
+Auto-save:
+
+Textarea text: debounced 500ms → a1_peel_draft
+On "Keep peeling": append {prompt, answer} to purpose_layers, clear a1_peel_draft, advance to next prompt
+On "Declare": same as Keep peeling but also set a1_ex3_done = true
+
+Edit-anytime (completed Ex3):
+
+Gold edit banner at top: "You already explored this · edit anytime"
+Render all existing layers as milestones
+Below them, two CTAs:
+
+"↓ Keep peeling" (cyan ghost — adds another layer)
+"✓ Done — close" (gold filled — just closes the Room, no state change)
+
+
+
+Mobile (≤900px):
+
+Milestones stack with proper line-height
+Textarea min 16px font, generous height
+Buttons stack vertically if needed, ≥44px tap target each
+No horizontal scroll
+
+Token discipline:
+
+Cyan is the Ex3 tone: var(--cyan) for active prompt border, "Keep peeling" button, eyebrow
+Gold reserved for declare button + milestones (completed = honored)
+No hardcoded hex anywhere
+
+When all three (Q3 "+ Other…", veil 2.4s, Peel Room) are done, pause for verification.

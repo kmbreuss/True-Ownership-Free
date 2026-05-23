@@ -452,6 +452,22 @@ html[data-theme="light"]{
 .na1-completion-cell input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--na1-sans); font-size:16px; box-sizing:border-box; transition:border-color .18s, box-shadow .18s; }
 .na1-completion-cell input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-glow); }
 .na1-chip.tone-gold.is-selected{ background:var(--gold-warm); border-color:var(--gold); color:var(--gold); }
+/* Peel (Ex3) — cyan tone */
+.na1-peel-milestone{ padding:14px 16px; border:1px solid var(--gold-line); background:var(--gold-warm); border-radius:var(--na1-radius); margin-bottom:12px; }
+.na1-peel-milestone-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); margin-bottom:4px; font-family:var(--na1-sans); }
+.na1-peel-milestone-prompt{ font-family:var(--na1-sans); font-size:12.5px; font-style:italic; color:var(--na1-text-mute); margin:0 0 6px; line-height:1.5; }
+.na1-peel-milestone-answer{ font-family:var(--na1-serif); font-size:16px; line-height:1.5; color:var(--na1-text); margin:0; }
+.na1-peel-current{ padding:18px; border:1.5px solid var(--cyan); border-radius:var(--na1-radius); background:var(--na1-bg-soft); margin:18px 0 14px; }
+.na1-peel-current-prompt{ font-family:var(--na1-serif); font-size:21px; font-weight:600; line-height:1.3; color:var(--na1-text); margin:0 0 12px; }
+.na1-peel-textarea{ width:100%; min-height:110px; padding:12px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); font-size:16px; line-height:1.55; resize:vertical; box-sizing:border-box; transition:border-color .18s, box-shadow .18s; }
+.na1-peel-textarea:focus{ outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px var(--cyan-glow, rgba(110,200,210,0.25)); }
+.na1-btn-cyan{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 20px; border-radius:var(--na1-radius); border:1.5px solid var(--cyan); background:var(--cyan); color:#0d1b2e; font-family:var(--na1-sans); font-size:14px; font-weight:600; cursor:pointer; transition:filter .18s, opacity .18s; }
+.na1-btn-cyan:hover{ filter:brightness(1.08); }
+.na1-btn-cyan:disabled, .na1-btn-cyan[disabled]{ opacity:0.4; cursor:not-allowed; }
+.na1-btn-cyan-ghost{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 20px; border-radius:var(--na1-radius); border:1.5px solid var(--cyan); background:transparent; color:var(--cyan); font-family:var(--na1-sans); font-size:14px; font-weight:600; cursor:pointer; transition:background .18s; }
+.na1-btn-cyan-ghost:hover{ background:var(--cyan-soft, rgba(110,200,210,0.12)); }
+.na1-peel-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+@media (max-width:600px){ .na1-peel-actions > button{ flex:1 1 100%; } }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -10187,7 +10203,7 @@ const TO_QUESTIONS: ReadonlyArray<
 > = [
   { n:1, stem:"owned your time.", type:"feeling-only", chips:["Spacious","Unhurried","Energized","Free","Sovereign","At ease"], allowOther:true },
   { n:2, stem:"prioritized what mattered to you.", type:"heavy" },
-  { n:3, stem:"achieved the results you wanted.", type:"feeling-only", chips:["Proud","Lit up","Calm","At peace","Whole","Lifted"], allowOther:false },
+  { n:3, stem:"achieved the results you wanted.", type:"feeling-only", chips:["Proud","Lit up","Calm","At peace","Whole","Lifted"], allowOther:true },
   { n:4, stem:"enjoyed the journey.", type:"feeling-only", chips:["Playful","Curious","Alive","In flow","Awake","Light"], allowOther:true },
   { n:5, stem:"felt aligned on the inside.", type:"completion", lead1:"When I'm aligned, I notice", tail1:".", lead2:"And the thing I no longer do is", tail2:"." },
   { n:6, stem:"set and managed boundaries.", type:"heavy" },
@@ -10390,6 +10406,133 @@ function NewA1TOActions({ curQ, isLast, isCurValid, allValid, saving, wasDone, o
   );
 }
 
+// ─── Step 9: The Peel Room (Ex3 — multi-layer recursive peel, cyan tone) ───
+const PEEL_PROMPTS: readonly string[] = [
+  "When are you most alive?",
+  "So what does that give you?",
+  "And what does THAT give you?",
+  "Underneath that — what's the deepest version?",
+  "One more level — what's the essence?",
+];
+function peelPromptFor(idx: number): string { return PEEL_PROMPTS[Math.min(idx, PEEL_PROMPTS.length - 1)]; }
+
+function normalizePeelLayers(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((l) => typeof l === "string" ? l : (l && typeof l === "object" && typeof (l as any).answer === "string" ? (l as any).answer : "")).filter((s) => s.trim().length > 0);
+}
+
+function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
+  const wasDone = !!loadDataSync("a1_ex3_done");
+  const initialMap = (loadDataSync(KEYS.map) as any) || {};
+  const initialLayers = normalizePeelLayers(initialMap.purpose_layers);
+  const initialDraft = String(loadDataSync("a1_peel_draft") || "");
+  const [layers, setLayers] = useState<string[]>(initialLayers);
+  const [draft, setDraft] = useState<string>(initialDraft);
+  const [saving, setSaving] = useState(false);
+  const currentRef = useRef<HTMLDivElement | null>(null);
+  // Debounced draft auto-save.
+  useEffect(() => {
+    if (draft === initialDraft) return;
+    const t = window.setTimeout(() => { saveData("a1_peel_draft", draft); }, 500);
+    return () => window.clearTimeout(t);
+  }, [draft]); // eslint-disable-line react-hooks/exhaustive-deps
+  const writeLayers = async (next: string[]) => {
+    const cur = (await loadData(KEYS.map)) as any;
+    const merged = { ...(cur || initialMap), purpose_layers: next };
+    await saveData(KEYS.map, merged);
+  };
+  const keepPeeling = async () => {
+    const v = draft.trim();
+    if (!v || saving) return;
+    setSaving(true);
+    const next = [...layers, v];
+    setLayers(next);
+    setDraft("");
+    await writeLayers(next);
+    await saveData("a1_peel_draft", "");
+    setSaving(false);
+    window.setTimeout(() => { currentRef.current?.scrollIntoView({ behavior:"smooth", block:"center" }); }, 80);
+  };
+  const declareBottom = async () => {
+    const v = draft.trim();
+    if (saving) return;
+    if (!wasDone && (layers.length + (v ? 1 : 0)) < 2) return;
+    setSaving(true);
+    let next = layers;
+    if (v) {
+      next = [...layers, v];
+      setLayers(next);
+      setDraft("");
+      await writeLayers(next);
+    }
+    await saveData("a1_peel_draft", "");
+    await saveData("a1_ex3_done", true);
+    setSaving(false);
+    onSaved();
+  };
+  const closeNoChange = () => { onClose(); };
+  const currentPromptIdx = layers.length;
+  const draftValid = draft.trim().length > 0;
+  const canDeclare = (layers.length >= 2 && draftValid) || (wasDone && layers.length >= 2);
+  return (
+    <>
+      <div className="na1-room-eyebrow tone-cyan">Mirror 1 · Exercise 3 · The Peel</div>
+      <h2 className="na1-room-title">The Peel</h2>
+      <p className="na1-room-context">Each answer points to a deeper one. Keep going until you reach the bottom — the version of you that doesn't need more layers.</p>
+      {wasDone && (
+        <div className="na1-edit-banner">
+          <span className="na1-edit-banner-dot" aria-hidden />
+          <span>You already explored this · edit anytime.</span>
+        </div>
+      )}
+      {layers.map((answer, i) => (
+        <div key={i} className="na1-peel-milestone">
+          <div className="na1-peel-milestone-eyebrow">Layer {i + 1}</div>
+          <p className="na1-peel-milestone-prompt">{peelPromptFor(i)}</p>
+          <p className="na1-peel-milestone-answer">{answer}</p>
+        </div>
+      ))}
+      {wasDone ? (
+        <div className="na1-peel-actions">
+          <button type="button" className="na1-btn-cyan-ghost" onClick={() => { /* reveal a new current card by pretending we have a draft slot */
+            // Always render a current card below in edit-anytime mode; this just focuses textarea.
+            const ta = document.getElementById("na1-peel-draft") as HTMLTextAreaElement | null;
+            ta?.focus();
+          }}>↓ Keep peeling</button>
+          <button type="button" className="na1-btn-gold" onClick={closeNoChange}>✓ Done — close</button>
+        </div>
+      ) : null}
+      <div className="na1-peel-current" ref={currentRef}>
+        <h3 className="na1-peel-current-prompt">{peelPromptFor(currentPromptIdx)}</h3>
+        <textarea
+          id="na1-peel-draft"
+          className="na1-peel-textarea"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Write what comes up. Don't edit yourself."
+          rows={4}
+          autoFocus
+        />
+        <div className="na1-peel-actions">
+          {draftValid && (
+            <button type="button" className="na1-btn-cyan" disabled={saving} onClick={keepPeeling}>
+              {saving ? "Saving…" : "↓ Keep peeling — go deeper"}
+            </button>
+          )}
+          {canDeclare && (
+            <button type="button" className="na1-btn-gold" disabled={saving} onClick={declareBottom}>
+              {saving ? "Saving…" : wasDone ? "✓ Save changes" : "✓ This is my bottom — declare"}
+            </button>
+          )}
+          {!wasDone && !draftValid && (
+            <span className="na1-save-hint">{layers.length < 2 ? `${Math.max(0, 2 - layers.length)} more ${layers.length === 1 ? "layer" : "layers"} before you can declare.` : "Write your next layer, then keep peeling or declare."}</span>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 type NA1VeilPhase = "idle" | "rising" | "hold" | "falling";
 
 function NewA1View({ name }: { name?: string }) {
@@ -10416,14 +10559,14 @@ function NewA1View({ name }: { name?: string }) {
     clearTimers();
     setOpenEx(ex);
     setVeilPhase("rising");
-    // Veil timing (~2.7s total):
+    // Veil timing (~2.4s total):
     //   0      → rising (text fades in starting at 400ms, completes ~900ms)
-    //   900ms  → hold begins (mount Room under veil; HOLD lasts 1400ms)
-    //   2300ms → falling (text fades out 300ms, veil peels back over 700ms)
-    //   3300ms → idle (veil unmounted)
+    //   900ms  → hold begins (mount Room under veil; HOLD lasts 1100ms — trimmed from 1400ms)
+    //   2000ms → falling (text fades out 300ms, veil peels back over 700ms)
+    //   3000ms → idle (veil unmounted)
     timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("hold"); setRoomOpen(true); }, 900));
-    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("falling"); }, 2300));
-    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("idle"); }, 3300));
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("falling"); }, 2000));
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("idle"); }, 3000));
   };
   const closeRoom = () => {
     setRoomOpen(false);
@@ -10438,6 +10581,7 @@ function NewA1View({ name }: { name?: string }) {
           <NewA1RoomShell exercise={openEx} open={roomOpen} onClose={closeRoom}>
             {openEx.key === "sym" ? <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
               : openEx.key === "to" ? <NewA1TrueOwnershipBody onSaved={closeRoom} onClose={closeRoom} />
+              : openEx.key === "peel" ? <NewA1PeelBody onSaved={closeRoom} onClose={closeRoom} />
               : <NewA1RoomPlaceholderBody exercise={openEx} onClose={closeRoom} />}
           </NewA1RoomShell>
         )}
