@@ -1,0 +1,63 @@
+Esc closes the Room cleanly. Back to Explore page, blur lifted, blue focus ring around the Owned Symptoms row (expected — keyboard focus returned to the row that opened the Room). Everything good.
+Step 6 verdict: PASSED — all criteria met
+✅ Status strip hidden — clean single-column Explore
+✅ Strict sequence — Declare locked, "Unlocks after The Peel"
+✅ Veil works — gold radial gradient, italic Georgia threshold text, HOLD phase felt clearly
+✅ Room shell — gold border, breadcrumb, ×, dashed callout, close button
+✅ View A pattern — Explore dimmed + blurred behind the card
+✅ Esc closes cleanly
+✅ Light mode honored throughout
+This is the moment where the "stepping into Katherine's room" feeling actually lives. Beautiful work from Agent.
+
+Paste this to Agent
+Step 6 PASSED. Verified in real Chrome at /?newA1=1:
+
+Status strip hidden — clean single-column Explore layout ✅
+Strict sequence enforced — Declare correctly locked ("Unlocks after The Peel") despite existing purpose_final data ✅
+Veil felt like a threshold — radial gold gradient, italic Georgia "Stepping into the room with Katherine…" held visibly through the HOLD phase, not a flash ✅
+Room shell matches View A pattern — gold border, breadcrumb, × close, burgundy eyebrow, Georgia title, dashed gold-warm callout ✅
+Explore dimmed + blurred behind the card during Room open ✅
+Esc closes cleanly, page un-blurs, focus returns to the row ✅
+
+Continue with step 7: OwnedSymptomsRoom (Ex1 — the real exercise).
+Per Replit_Handoff_A1_Purpose.md Exercise 1 section:
+Structure: 2 sub-steps with progress dots at the top of the Room (showing 1 of 2 → 2 of 2).
+Sub-step 1 — Symptoms multi-select:
+
+Title (Georgia, large): "What are the signs you're living someone else's life right now?"
+Context: "Tap any that ring true. There's no judgment — these are just the data. Then add one in your own words."
+8 chip options, multi-select, burgundy-tinted when selected (use var(--burgundy) border + var(--burgundy-soft) bg):
+
+"I'm tired but can't tell why"
+"I say yes when I mean no"
+"I shrink in certain rooms"
+"My calendar runs me"
+"I'm performing, not living"
+"I keep waiting for permission"
+"I scroll instead of feel"
+"I'm successful and empty"
+
+
+Free-text textarea below chips (DM Sans regular, NOT italic serif): placeholder "What else? Name one in your own words..."
+Validation: at least 1 chip selected OR a non-empty note. Disable Next until valid.
+Button: gold filled, "Next: The single thing →" (44px min-height tap target)
+
+Sub-step 2 — The single thing:
+
+Title (Georgia, large): "The single thing holding you back"
+Context: "If you could remove ONE thing right now and reclaim your life — what would it be? Don't list five. Find the one that, if it were gone, would change everything."
+Single textarea (DM Sans, ~120px height): placeholder "The one thing is..."
+Two buttons in a row:
+
+Left, ghost: "← Back to symptoms" (returns to sub-step 1 without losing data)
+Right, gold filled: "✓ Save & continue" (44px tap target)
+
+
+Validation: a1_sym_holdback trimmed must be non-empty. Disable Save & continue until valid.
+On save: write a1_sym_picks, a1_sym_note, a1_sym_holdback, set a1_ex1_done = true, close Room, return to Explore. Ex2 (True Ownership) now unlocks.
+
+Auto-save (debounced ~500ms for text, immediate for chips): a1_sym_picks (JSON array), a1_sym_note (string), a1_sym_holdback (string). a1_ex1_done = true ONLY on successful "Save & continue" click in sub-step 2.
+Edit-anytime behavior: When the user returns to a completed Ex1 (click on the "Complete" row), pre-fill chips/note/holding-back. Button label becomes "Save changes" instead of "Save & continue." Subtle gold note at top of Room: "You already explored this · edit anytime."
+Mobile (≤900px): Chips wrap, no horizontal scroll. All buttons ≥44px tap target. Textareas min-font 16px (prevent iOS zoom). Room padding tightens per spec.
+Token discipline: All colors via var(--burgundy), var(--gold), var(--text), etc. — no hardcoded hex. Burgundy is the Ex1 tone (cost, mirror) — chip selected state, sub-step progress dot, title accent. Gold reserved for the Save action only.
+When step 7 is done, pause for verification. I'll walk Ex1 end-to-end and confirm: chip toggling, note typing, advance to sub-step 2, holding-back save, return to Explore with Ex1 marked complete, Ex2 unlocked.

@@ -409,6 +409,35 @@ html[data-theme="light"]{
 .na1-room-crumb a:hover{ color:var(--gold); }
 .na1-room-crumb .sep{ color:var(--na1-text-mute); }
 .na1-room-crumb .current{ color:var(--na1-text); font-weight:600; }
+/* ── Room body building blocks (shared by all 4 Rooms) ── */
+.na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
+.na1-room-eyebrow.tone-burgundy{ color:var(--burgundy); }
+.na1-room-eyebrow.tone-gold{ color:var(--gold); }
+.na1-room-eyebrow.tone-cyan{ color:var(--cyan); }
+.na1-room-title{ font-family:var(--na1-serif); font-size:28px; font-weight:600; line-height:1.2; color:var(--na1-text); margin:0 0 12px; }
+@media (max-width:600px){ .na1-room-title{ font-size:23px; } }
+.na1-room-context{ font-family:var(--na1-sans); font-size:14.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 22px; }
+.na1-room-context em{ font-style:italic; color:var(--na1-text); }
+.na1-room-actions{ display:flex; justify-content:flex-end; gap:12px; margin-top:24px; flex-wrap:wrap; }
+.na1-room-actions.is-split{ justify-content:space-between; align-items:center; }
+.na1-btn-gold[disabled], .na1-btn-gold:disabled{ opacity:0.4; cursor:not-allowed; filter:none; }
+.na1-substep-dots{ display:flex; gap:8px; margin-bottom:18px; align-items:center; }
+.na1-substep-dot{ width:26px; height:4px; border-radius:2px; background:var(--na1-border); transition:background .2s; }
+.na1-substep-dot.is-active{ background:var(--burgundy); }
+.na1-substep-dot.is-done{ background:var(--burgundy); opacity:0.7; }
+.na1-substep-meta{ font-size:11px; color:var(--na1-text-mute); letter-spacing:0.1em; text-transform:uppercase; margin-left:6px; font-family:var(--na1-sans); }
+.na1-chip-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.na1-chip{ display:inline-flex; align-items:center; min-height:40px; padding:8px 14px; border-radius:100px; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:13.5px; cursor:pointer; transition:background .18s, border-color .18s, color .18s; }
+.na1-chip:hover{ border-color:var(--na1-text-mute); color:var(--na1-text); }
+.na1-chip.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); font-weight:600; }
+.na1-chip.is-selected:hover{ border-color:var(--burgundy); }
+.na1-textarea{ width:100%; min-height:96px; padding:12px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--na1-sans); font-size:16px; line-height:1.55; resize:vertical; transition:border-color .18s, box-shadow .18s; box-sizing:border-box; }
+.na1-textarea:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-glow); }
+.na1-textarea::placeholder{ color:var(--na1-text-mute); }
+.na1-field-label{ display:block; font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--na1-text-mute); margin:0 0 8px; font-family:var(--na1-sans); }
+.na1-edit-banner{ padding:10px 14px; background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); font-family:var(--na1-sans); font-size:12.5px; line-height:1.5; color:var(--gold); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+.na1-edit-banner-dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; }
+.na1-save-hint{ font-size:11.5px; color:var(--na1-text-mute); font-family:var(--na1-sans); font-style:italic; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -9970,7 +9999,7 @@ function NewA1Veil({ phase, text }: { phase: "rising" | "hold" | "falling"; text
   );
 }
 
-function NewA1RoomShell({ exercise, open, onClose }: { exercise: NA1Exercise; open: boolean; onClose: () => void; }) {
+function NewA1RoomShell({ exercise, open, onClose, children }: { exercise: NA1Exercise; open: boolean; onClose: () => void; children: React.ReactNode; }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -9988,17 +10017,146 @@ function NewA1RoomShell({ exercise, open, onClose }: { exercise: NA1Exercise; op
           <span className="current">{exercise.name}</span>
         </div>
         <button type="button" className="na1-room-close" onClick={onClose} aria-label="Close">×</button>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:`var(--${exercise.tone})`, marginBottom:8, fontFamily:"var(--na1-sans)" }}>Mirror 1 · Exercise {exercise.n}</div>
-        <h2 style={{ fontFamily:"var(--na1-serif)", fontSize:28, fontWeight:600, lineHeight:1.2, margin:"0 0 12px", color:"var(--na1-text)" }}>{exercise.name}</h2>
-        <p style={{ fontFamily:"var(--na1-sans)", fontSize:15, lineHeight:1.65, color:"var(--na1-text-sec)", margin:"0 0 22px" }}>{exercise.subtitle}</p>
-        <div style={{ padding:"16px 18px", background:"var(--gold-warm)", border:"1px dashed var(--gold-line)", borderRadius:"var(--na1-radius)", fontFamily:"var(--na1-sans)", fontSize:13.5, lineHeight:1.55, color:"var(--na1-text-sec)", marginBottom:24 }}>
-          Exercise content lands in step 7. Press <kbd>Esc</kbd>, click ×, or tap outside the card to close.
-        </div>
-        <div style={{ display:"flex", justifyContent:"flex-end" }}>
-          <button type="button" className="na1-btn-ghost" onClick={onClose}>Close</button>
-        </div>
+        {children}
       </div>
     </div>
+  );
+}
+
+function NewA1RoomPlaceholderBody({ exercise, onClose }: { exercise: NA1Exercise; onClose: () => void; }) {
+  return (
+    <>
+      <div className={`na1-room-eyebrow tone-${exercise.tone}`}>Mirror 1 · Exercise {exercise.n}</div>
+      <h2 className="na1-room-title">{exercise.name}</h2>
+      <p className="na1-room-context">{exercise.subtitle}</p>
+      <div style={{ padding:"16px 18px", background:"var(--gold-warm)", border:"1px dashed var(--gold-line)", borderRadius:"var(--na1-radius)", fontFamily:"var(--na1-sans)", fontSize:13.5, lineHeight:1.55, color:"var(--na1-text-sec)", marginBottom:24 }}>
+        Exercise content lands in a follow-up step. Press <kbd>Esc</kbd>, click ×, or tap outside the card to close.
+      </div>
+      <div className="na1-room-actions">
+        <button type="button" className="na1-btn-ghost" onClick={onClose}>Close</button>
+      </div>
+    </>
+  );
+}
+
+// ─── Step 7: Owned Symptoms Room (Ex1) ───
+const NA1_SYM_CHIPS = [
+  "I'm tired but can't tell why",
+  "I say yes when I mean no",
+  "I shrink in certain rooms",
+  "My calendar runs me",
+  "I'm performing, not living",
+  "I keep waiting for permission",
+  "I scroll instead of feel",
+  "I'm successful and empty",
+] as const;
+
+function NewA1OwnedSymptomsBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
+  // Pre-fill from any existing data (edit-anytime).
+  const initialPicks: string[] = Array.isArray(loadDataSync("a1_sym_picks")) ? (loadDataSync("a1_sym_picks") as string[]) : [];
+  const initialNote = String(loadDataSync("a1_sym_note") || "");
+  const initialHoldback = String(loadDataSync("a1_sym_holdback") || "");
+  const wasDone = !!loadDataSync("a1_ex1_done");
+  const [substep, setSubstep] = useState<1 | 2>(1);
+  const [picks, setPicks] = useState<string[]>(initialPicks);
+  const [note, setNote] = useState(initialNote);
+  const [holdback, setHoldback] = useState(initialHoldback);
+  const [saving, setSaving] = useState(false);
+  // Debounced auto-save for text fields. Chips save immediately on toggle.
+  useEffect(() => {
+    if (note === initialNote) return;
+    const t = window.setTimeout(() => { saveData("a1_sym_note", note); }, 500);
+    return () => window.clearTimeout(t);
+  }, [note]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (holdback === initialHoldback) return;
+    const t = window.setTimeout(() => { saveData("a1_sym_holdback", holdback); }, 500);
+    return () => window.clearTimeout(t);
+  }, [holdback]); // eslint-disable-line react-hooks/exhaustive-deps
+  const togglePick = (chip: string) => {
+    setPicks((cur) => {
+      const next = cur.includes(chip) ? cur.filter((c) => c !== chip) : [...cur, chip];
+      saveData("a1_sym_picks", next);
+      return next;
+    });
+  };
+  const step1Valid = picks.length > 0 || note.trim().length > 0;
+  const step2Valid = holdback.trim().length > 0;
+  const saveAndClose = async () => {
+    if (!step2Valid || saving) return;
+    setSaving(true);
+    await saveData("a1_sym_picks", picks);
+    await saveData("a1_sym_note", note);
+    await saveData("a1_sym_holdback", holdback.trim());
+    await saveData("a1_ex1_done", true);
+    setSaving(false);
+    onSaved();
+  };
+  return (
+    <>
+      <div className="na1-room-eyebrow tone-burgundy">Mirror 1 · Exercise 1 · Owned Symptoms</div>
+      <div className="na1-substep-dots" aria-label={`Step ${substep} of 2`}>
+        <span className={`na1-substep-dot ${substep === 1 ? "is-active" : "is-done"}`} />
+        <span className={`na1-substep-dot ${substep === 2 ? "is-active" : ""}`} />
+        <span className="na1-substep-meta">Step {substep} of 2</span>
+      </div>
+      {wasDone && (
+        <div className="na1-edit-banner">
+          <span className="na1-edit-banner-dot" aria-hidden />
+          <span>You already explored this · edit anytime.</span>
+        </div>
+      )}
+      {substep === 1 ? (
+        <>
+          <h2 className="na1-room-title">What are the signs you're living someone else's life right now?</h2>
+          <p className="na1-room-context">Tap any that ring true. There's no judgment — these are just the data. Then add one in your own words.</p>
+          <div className="na1-chip-grid" role="group" aria-label="Symptom chips">
+            {NA1_SYM_CHIPS.map((chip) => {
+              const on = picks.includes(chip);
+              return (
+                <button key={chip} type="button" className={`na1-chip ${on ? "is-selected" : ""}`} aria-pressed={on} onClick={() => togglePick(chip)}>
+                  {chip}
+                </button>
+              );
+            })}
+          </div>
+          <label className="na1-field-label" htmlFor="na1-sym-note">In your own words</label>
+          <textarea
+            id="na1-sym-note"
+            className="na1-textarea"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="What else? Name one in your own words..."
+            rows={3}
+          />
+          <div className="na1-room-actions">
+            <button type="button" className="na1-btn-gold" disabled={!step1Valid} onClick={() => setSubstep(2)}>Next: The single thing →</button>
+          </div>
+        </>
+      ) : (
+        <>
+          <h2 className="na1-room-title">The single thing holding you back</h2>
+          <p className="na1-room-context">If you could remove ONE thing right now and reclaim your life — what would it be? Don't list five. Find the one that, if it were gone, would change everything.</p>
+          <label className="na1-field-label" htmlFor="na1-sym-holdback">The one thing</label>
+          <textarea
+            id="na1-sym-holdback"
+            className="na1-textarea"
+            style={{ minHeight:120 }}
+            value={holdback}
+            onChange={(e) => setHoldback(e.target.value)}
+            placeholder="The one thing is..."
+            rows={4}
+            autoFocus
+          />
+          <div className="na1-room-actions is-split">
+            <button type="button" className="na1-btn-ghost" onClick={() => setSubstep(1)}>← Back to symptoms</button>
+            <button type="button" className="na1-btn-gold" disabled={!step2Valid || saving} onClick={saveAndClose}>
+              {saving ? "Saving…" : wasDone ? "✓ Save changes" : "✓ Save & continue"}
+            </button>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
@@ -10046,7 +10204,13 @@ function NewA1View({ name }: { name?: string }) {
     return (
       <>
         <NewA1Explore progress={progress} onBack={() => setView("grid")} onLaunchRoom={launchRoom} dimmed={roomOpen} />
-        {openEx && <NewA1RoomShell exercise={openEx} open={roomOpen} onClose={closeRoom} />}
+        {openEx && (
+          <NewA1RoomShell exercise={openEx} open={roomOpen} onClose={closeRoom}>
+            {openEx.key === "sym"
+              ? <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
+              : <NewA1RoomPlaceholderBody exercise={openEx} onClose={closeRoom} />}
+          </NewA1RoomShell>
+        )}
         {veilPhase !== "idle" && openEx && <NewA1Veil phase={veilPhase} text={openEx.threshold} />}
       </>
     );
