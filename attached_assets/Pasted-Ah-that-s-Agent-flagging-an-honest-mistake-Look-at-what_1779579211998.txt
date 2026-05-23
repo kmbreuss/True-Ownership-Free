@@ -1,0 +1,94 @@
+Ah — that's Agent flagging an honest mistake. Look at what I sent you: I pasted my own draft message back to Agent before adding your verification verdict. The message I gave you ended with my notes to you about step 8, and Agent caught that there was no "verified ✅" or "continue" signal in the part you pasted.
+Agent is being precise — good behavior, not a problem. It wants a clear "continue" signal before moving on. Let me give you the clean, fixed message to paste.
+
+Step 7 PASSED. Verified end-to-end in real Chrome at /?newA1=1:
+
+Veil + Room opened with burgundy eyebrow, Georgia title, progress dots ✅
+Sub-step 1: chip selection works (multiple selectable, burgundy state correct), Next gold button enables on valid input ✅
+Sub-step 2 transition smooth, progress dots both burgundy, textarea autofocuses ✅
+Save & continue saved, closed Room cleanly ✅
+Owned Symptoms row → "Complete" with gold checkmark + gold border ✅
+True Ownership row unlocked as "Up next · tap to begin" ✅
+The Peel + Declare correctly stay locked ✅
+Reopening Owned Symptoms shows gold edit-anytime banner with chips pre-filled ✅
+Esc closes cleanly ✅
+
+Continue. Two tasks for this round — width fix first, then step 8.
+Task 1 — quick width fix:
+The Explore page and A1 grid currently span the full viewport (~1380px on desktop), making them feel like a SaaS dashboard rather than the "stepping into Katherine's room" prototype.
+Per the prototype's .shell-narrow spec (A1_M1_Purpose_v4.html line 142): max-width: 760px; margin: 0 auto; padding: 36px 28px 96px;
+Apply to:
+
+The new A1 grid container (NewA1Grid wrapper)
+The Explore page content container (NewA1Explore wrapper)
+Apply ONLY when ?newA1=1 is active — don't touch other pages
+
+The Room card (already 720px max-width) and the page header/toggle (full-width chrome) stay as they are.
+Task 2 — step 8: TrueOwnershipRoom (Ex2 — the 6-question carousel):
+Per Replit_Handoff_A1_Purpose.md Exercise 2 section. This is the highest-risk step — 6 question types in one room, custom "+ Other…" chip that morphs into input.
+Structure: 6 questions, one at a time, with sub-progress pips at the top of the Room (1 of 6 → 6 of 6).
+Critical: On Q1 ONLY, display a burgundy callout above the question:
+
+"You named your one thing: '[their saved a1_sym_holdback value].' Now imagine life without it. These six questions paint the picture."
+
+All 6 questions use the stem: "Describe what life would be like if you..."
+#QuestionInput typeFeeling chips (if any)"+ Other…"1...owned your time.Feeling chip onlySpacious, Unhurried, Energized, Free, Sovereign, At easeYes2...prioritized what mattered to you.Heavy textarea——3...achieved the results you wanted.Feeling chip onlyProud, Lit up, Calm, At peace, Whole, LiftedNo4...enjoyed the journey.Feeling chip onlyPlayful, Curious, Alive, In flow, Awake, LightYes5...felt aligned on the inside.Sentence completion (two inputs)——6...set and managed boundaries.Heavy textarea——
+Q5 sentence completion structure:
+
+"When I'm aligned, I notice ____." → single-line input
+"And the thing I no longer do is ____." → single-line input
+
+Custom "+ Other…" chip behavior (Q1, Q4 only):
+
+Dashed-border chip labeled "+ Other…" at end of chip row
+On click: deselect all other chips, become selected, show a single-line text input below the chip grid
+As user types, the chip label updates to show what they typed
+When other chips are clicked, the custom input hides and clears
+
+Navigation:
+
+Previous button: enabled from Q2 onward. Saves current, goes back one.
+Next button: saves current, advances one. On Q6: "✓ Save & continue" — closes Room, sets a1_ex2_done = true, returns to Explore. The Peel unlocks.
+Validation per-question:
+
+feeling-only (Q1, Q3, Q4): feeling non-empty (chip OR custom text)
+heavy (Q2, Q6): text trimmed non-empty
+completion (Q5): BOTH c1 AND c2 trimmed non-empty
+
+
+Disable Next until current question valid
+
+Data model (per spec):
+jsa1_to_answers: [
+  { type: 'feeling-only', feeling: '' },       // Q1
+  { type: 'heavy', text: '' },                 // Q2
+  { type: 'feeling-only', feeling: '' },       // Q3
+  { type: 'feeling-only', feeling: '' },       // Q4
+  { type: 'completion', c1: '', c2: '' },      // Q5
+  { type: 'heavy', text: '' }                  // Q6
+]
+a1_to_curq: 0  // 0-5, persists if user leaves mid-flow
+a1_ex2_done: false
+Auto-save (debounced ~500ms for text, immediate for chips): answers array, current question index. a1_ex2_done = true ONLY on Save & continue from Q6 with all 6 valid.
+Resume behavior: When the user reopens Ex2 mid-flow, restore a1_to_curq so they land on the last question. Pre-fill all answers from a1_to_answers.
+Edit-anytime (completed Ex2):
+
+Pre-fill all 6 answers
+Gold edit banner at top: "You already explored this · edit anytime."
+Save button label: "✓ Save changes" instead of "✓ Save & continue"
+User can navigate freely (Prev/Next) through all 6 questions
+
+Mobile (≤900px):
+
+Chip grid wraps cleanly, no horizontal scroll
+All buttons ≥44px tap target
+Textareas min 16px font to block iOS zoom
+Q5 two single-line inputs stack vertically on mobile, side-by-side on desktop
+
+Token discipline:
+
+All colors via var(--gold), var(--burgundy), var(--text) — no hardcoded hex
+Gold is the Ex2 tone (vision, declared) — selected chip state, sub-progress pip, Next button
+Q1 callout uses burgundy (cost reference) — text and border, against var(--burgundy-soft) background
+
+When both tasks are done, pause for verification.

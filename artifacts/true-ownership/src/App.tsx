@@ -271,8 +271,8 @@ html[data-theme="light"]{
 .na1-theme-toggle:hover{ border-color: var(--gold, #c9a84b); }
 @media (max-width: 900px){ .na1-theme-toggle .label{ display:none; } .na1-theme-toggle{ padding:0 12px; } }
 /* ─── NEW A1: page shell ─── */
-.na1-shell{ max-width:1180px; margin:0 auto; padding:80px 24px 60px; }
-@media (max-width:600px){ .na1-shell{ padding:64px 16px 40px; } }
+.na1-shell{ max-width:760px; margin:0 auto; padding:36px 28px 96px; }
+@media (max-width:600px){ .na1-shell{ padding:32px 16px 60px; } }
 .na1-breadcrumb{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px; font-size:13px; color:var(--na1-text-mute); font-family:var(--na1-sans); }
 .na1-breadcrumb a{ color:var(--na1-text-sec); text-decoration:none; cursor:pointer; }
 .na1-breadcrumb a:hover{ color:var(--na1-text); }
@@ -438,6 +438,20 @@ html[data-theme="light"]{
 .na1-edit-banner{ padding:10px 14px; background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); font-family:var(--na1-sans); font-size:12.5px; line-height:1.5; color:var(--gold); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
 .na1-edit-banner-dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; }
 .na1-save-hint{ font-size:11.5px; color:var(--na1-text-mute); font-family:var(--na1-sans); font-style:italic; }
+.na1-q1-callout{ padding:14px 16px; background:var(--burgundy-soft); border-left:3px solid var(--burgundy); border-radius:6px; font-family:var(--na1-sans); font-size:13.5px; line-height:1.55; color:var(--na1-text); margin-bottom:18px; }
+.na1-q1-callout .quoted{ color:var(--burgundy); font-weight:600; font-style:italic; }
+.na1-q-stem-lead{ display:block; font-family:var(--na1-sans); font-size:13px; font-weight:500; letter-spacing:0.02em; color:var(--na1-text-mute); margin-bottom:6px; text-transform:none; }
+.na1-chip.is-other{ border-style:dashed; }
+.na1-chip.is-other.is-selected{ border-style:solid; }
+.na1-other-input{ width:100%; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--gold); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--na1-sans); font-size:16px; box-sizing:border-box; margin:-8px 0 18px; box-shadow:0 0 0 3px var(--gold-glow); }
+.na1-other-input:focus{ outline:none; }
+.na1-completion-row{ display:grid; grid-template-columns:1fr; gap:14px; margin-bottom:18px; }
+@media (min-width:720px){ .na1-completion-row{ grid-template-columns:1fr 1fr; gap:16px; } }
+.na1-completion-cell label{ display:block; font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text-sec); margin-bottom:6px; line-height:1.4; }
+.na1-completion-cell .blank{ font-style:italic; color:var(--gold); font-weight:600; }
+.na1-completion-cell input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--na1-sans); font-size:16px; box-sizing:border-box; transition:border-color .18s, box-shadow .18s; }
+.na1-completion-cell input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-glow); }
+.na1-chip.tone-gold.is-selected{ background:var(--gold-warm); border-color:var(--gold); color:var(--gold); }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -10160,6 +10174,222 @@ function NewA1OwnedSymptomsBody({ onSaved, onClose }: { onSaved: () => void; onC
   );
 }
 
+// ─── Step 8: True Ownership Room (Ex2 — 6Q carousel) ───
+type TOAnswer =
+  | { type: "feeling-only"; feeling: string }
+  | { type: "heavy"; text: string }
+  | { type: "completion"; c1: string; c2: string };
+
+const TO_QUESTIONS: ReadonlyArray<
+  | { n: number; stem: string; type: "feeling-only"; chips: readonly string[]; allowOther: boolean }
+  | { n: number; stem: string; type: "heavy" }
+  | { n: number; stem: string; type: "completion"; lead1: string; tail1: string; lead2: string; tail2: string }
+> = [
+  { n:1, stem:"owned your time.", type:"feeling-only", chips:["Spacious","Unhurried","Energized","Free","Sovereign","At ease"], allowOther:true },
+  { n:2, stem:"prioritized what mattered to you.", type:"heavy" },
+  { n:3, stem:"achieved the results you wanted.", type:"feeling-only", chips:["Proud","Lit up","Calm","At peace","Whole","Lifted"], allowOther:false },
+  { n:4, stem:"enjoyed the journey.", type:"feeling-only", chips:["Playful","Curious","Alive","In flow","Awake","Light"], allowOther:true },
+  { n:5, stem:"felt aligned on the inside.", type:"completion", lead1:"When I'm aligned, I notice", tail1:".", lead2:"And the thing I no longer do is", tail2:"." },
+  { n:6, stem:"set and managed boundaries.", type:"heavy" },
+];
+
+const TO_DEFAULT_ANSWERS: TOAnswer[] = [
+  { type:"feeling-only", feeling:"" },
+  { type:"heavy", text:"" },
+  { type:"feeling-only", feeling:"" },
+  { type:"feeling-only", feeling:"" },
+  { type:"completion", c1:"", c2:"" },
+  { type:"heavy", text:"" },
+];
+
+function toAnswerValid(q: typeof TO_QUESTIONS[number], a: TOAnswer): boolean {
+  if (q.type === "feeling-only" && a.type === "feeling-only") return a.feeling.trim().length > 0;
+  if (q.type === "heavy" && a.type === "heavy") return a.text.trim().length > 0;
+  if (q.type === "completion" && a.type === "completion") return a.c1.trim().length > 0 && a.c2.trim().length > 0;
+  return false;
+}
+
+function NewA1TrueOwnershipBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
+  const holdback = String(loadDataSync("a1_sym_holdback") || "").trim();
+  const wasDone = !!loadDataSync("a1_ex2_done");
+  const loadedRaw = loadDataSync("a1_to_answers");
+  const initialAnswers: TOAnswer[] = (Array.isArray(loadedRaw) && loadedRaw.length === 6)
+    ? (loadedRaw as TOAnswer[]).map((a, i) => {
+        const def = TO_DEFAULT_ANSWERS[i];
+        if (!a || typeof a !== "object" || a.type !== def.type) return def;
+        return a;
+      })
+    : TO_DEFAULT_ANSWERS.map((a) => ({ ...a }));
+  const initialCurQ = (() => {
+    const raw = loadDataSync("a1_to_curq");
+    const n = typeof raw === "number" ? raw : Number(raw);
+    return Number.isFinite(n) && n >= 0 && n <= 5 ? Math.floor(n) : 0;
+  })();
+  const [answers, setAnswers] = useState<TOAnswer[]>(initialAnswers);
+  const [curQ, setCurQ] = useState<number>(initialCurQ);
+  const [saving, setSaving] = useState(false);
+  // Custom-other state for Q1, Q4: derived from whether feeling text isn't in chips list.
+  const q = TO_QUESTIONS[curQ];
+  const ans = answers[curQ];
+  // Debounced auto-save for the answers array (text + custom-other typing).
+  const lastSavedRef = useRef<string>(JSON.stringify(initialAnswers));
+  useEffect(() => {
+    const cur = JSON.stringify(answers);
+    if (cur === lastSavedRef.current) return;
+    const t = window.setTimeout(() => { saveData("a1_to_answers", answers); lastSavedRef.current = cur; }, 500);
+    return () => window.clearTimeout(t);
+  }, [answers]);
+  // Persist curQ immediately so resume lands on the right step.
+  useEffect(() => { saveData("a1_to_curq", curQ); }, [curQ]);
+  const updateAnswer = (next: TOAnswer) => {
+    setAnswers((cur) => { const out = cur.slice(); out[curQ] = next; return out; });
+  };
+  const writeAnswerNow = async (next: TOAnswer) => {
+    const out = answers.slice(); out[curQ] = next;
+    setAnswers(out);
+    lastSavedRef.current = JSON.stringify(out);
+    await saveData("a1_to_answers", out);
+  };
+  const isCurValid = toAnswerValid(q, ans);
+  const allValid = TO_QUESTIONS.every((qq, i) => toAnswerValid(qq, answers[i]));
+  const isLast = curQ === TO_QUESTIONS.length - 1;
+  const goPrev = () => { if (curQ > 0) setCurQ(curQ - 1); };
+  const goNext = () => { if (!isCurValid) return; if (!isLast) setCurQ(curQ + 1); };
+  const saveAndClose = async () => {
+    if (!allValid || saving) return;
+    setSaving(true);
+    await saveData("a1_to_answers", answers);
+    await saveData("a1_to_curq", curQ);
+    await saveData("a1_ex2_done", true);
+    setSaving(false);
+    onSaved();
+  };
+  // Render body per question type.
+  let body: React.ReactNode = null;
+  if (q.type === "feeling-only" && ans.type === "feeling-only") {
+    const chipSet = new Set(q.chips);
+    const usingOther = ans.feeling.length > 0 && !chipSet.has(ans.feeling);
+    const otherLabel = usingOther ? (ans.feeling.length > 18 ? ans.feeling.slice(0, 18) + "…" : ans.feeling) : "+ Other…";
+    return (
+      <>
+        <NewA1TOHeader curQ={curQ} wasDone={wasDone} holdback={holdback} />
+        <h2 className="na1-room-title">
+          <span className="na1-q-stem-lead">Describe what life would be like if you…</span>
+          …{q.stem}
+        </h2>
+        <p className="na1-room-context">Tap the feeling that fits best.{q.allowOther ? ' Or add your own with "+ Other…".' : ""}</p>
+        <div className="na1-chip-grid" role="group" aria-label="Feeling chips">
+          {q.chips.map((chip) => {
+            const on = ans.feeling === chip;
+            return (
+              <button key={chip} type="button" className={`na1-chip tone-gold ${on ? "is-selected" : ""}`} aria-pressed={on} onClick={() => writeAnswerNow({ type:"feeling-only", feeling: on ? "" : chip })}>
+                {chip}
+              </button>
+            );
+          })}
+          {q.allowOther && (
+            <button type="button" className={`na1-chip tone-gold is-other ${usingOther ? "is-selected" : ""}`} aria-pressed={usingOther} onClick={() => { if (!usingOther) writeAnswerNow({ type:"feeling-only", feeling:" " }); }}>
+              {otherLabel}
+            </button>
+          )}
+        </div>
+        {q.allowOther && usingOther && (
+          <input
+            type="text"
+            className="na1-other-input"
+            value={ans.feeling.trim() === "" ? "" : ans.feeling}
+            onChange={(e) => updateAnswer({ type:"feeling-only", feeling: e.target.value })}
+            placeholder="Your word…"
+            autoFocus
+            maxLength={60}
+          />
+        )}
+        <NewA1TOActions curQ={curQ} isLast={isLast} isCurValid={isCurValid} allValid={allValid} saving={saving} wasDone={wasDone} onPrev={goPrev} onNext={goNext} onSave={saveAndClose} />
+      </>
+    );
+  }
+  if (q.type === "heavy" && ans.type === "heavy") {
+    body = (
+      <>
+        <label className="na1-field-label" htmlFor={`na1-to-text-${curQ}`}>Your answer</label>
+        <textarea
+          id={`na1-to-text-${curQ}`}
+          className="na1-textarea"
+          style={{ minHeight:140 }}
+          value={ans.text}
+          onChange={(e) => updateAnswer({ type:"heavy", text: e.target.value })}
+          placeholder="Take your time. There's no wrong answer."
+          rows={5}
+          autoFocus
+        />
+      </>
+    );
+  } else if (q.type === "completion" && ans.type === "completion") {
+    body = (
+      <div className="na1-completion-row">
+        <div className="na1-completion-cell">
+          <label htmlFor="na1-to-c1">{q.lead1} <span className="blank">____</span>{q.tail1}</label>
+          <input id="na1-to-c1" type="text" value={ans.c1} onChange={(e) => updateAnswer({ type:"completion", c1: e.target.value, c2: ans.c2 })} placeholder="…" autoFocus />
+        </div>
+        <div className="na1-completion-cell">
+          <label htmlFor="na1-to-c2">{q.lead2} <span className="blank">____</span>{q.tail2}</label>
+          <input id="na1-to-c2" type="text" value={ans.c2} onChange={(e) => updateAnswer({ type:"completion", c1: ans.c1, c2: e.target.value })} placeholder="…" />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <>
+      <NewA1TOHeader curQ={curQ} wasDone={wasDone} holdback={holdback} />
+      <h2 className="na1-room-title">
+        <span className="na1-q-stem-lead">Describe what life would be like if you…</span>
+        …{q.stem}
+      </h2>
+      {body}
+      <NewA1TOActions curQ={curQ} isLast={isLast} isCurValid={isCurValid} allValid={allValid} saving={saving} wasDone={wasDone} onPrev={goPrev} onNext={goNext} onSave={saveAndClose} />
+    </>
+  );
+}
+
+function NewA1TOHeader({ curQ, wasDone, holdback }: { curQ: number; wasDone: boolean; holdback: string; }) {
+  return (
+    <>
+      <div className="na1-room-eyebrow tone-gold">Mirror 1 · Exercise 2 · True Ownership</div>
+      <div className="na1-substep-dots" aria-label={`Question ${curQ + 1} of 6`}>
+        {TO_QUESTIONS.map((_, i) => (
+          <span key={i} className={`na1-substep-dot ${i === curQ ? "is-active" : i < curQ ? "is-done" : ""}`} style={{ background: i === curQ ? "var(--gold)" : i < curQ ? "var(--gold)" : undefined, opacity: i < curQ ? 0.65 : undefined }} />
+        ))}
+        <span className="na1-substep-meta">Q{curQ + 1} of 6</span>
+      </div>
+      {wasDone && (
+        <div className="na1-edit-banner">
+          <span className="na1-edit-banner-dot" aria-hidden />
+          <span>You already explored this · edit anytime.</span>
+        </div>
+      )}
+      {curQ === 0 && holdback && (
+        <div className="na1-q1-callout">
+          You named your one thing: <span className="quoted">"{holdback}"</span>. Now imagine life without it. These six questions paint the picture.
+        </div>
+      )}
+    </>
+  );
+}
+
+function NewA1TOActions({ curQ, isLast, isCurValid, allValid, saving, wasDone, onPrev, onNext, onSave }: {
+  curQ: number; isLast: boolean; isCurValid: boolean; allValid: boolean; saving: boolean; wasDone: boolean;
+  onPrev: () => void; onNext: () => void; onSave: () => void;
+}) {
+  return (
+    <div className="na1-room-actions is-split">
+      <button type="button" className="na1-btn-ghost" disabled={curQ === 0} onClick={onPrev} style={curQ === 0 ? { opacity:0.35, cursor:"not-allowed" } : undefined}>← Previous</button>
+      {isLast
+        ? <button type="button" className="na1-btn-gold" disabled={!allValid || saving} onClick={onSave}>{saving ? "Saving…" : wasDone ? "✓ Save changes" : "✓ Save & continue"}</button>
+        : <button type="button" className="na1-btn-gold" disabled={!isCurValid} onClick={onNext}>Next →</button>}
+    </div>
+  );
+}
+
 type NA1VeilPhase = "idle" | "rising" | "hold" | "falling";
 
 function NewA1View({ name }: { name?: string }) {
@@ -10206,8 +10436,8 @@ function NewA1View({ name }: { name?: string }) {
         <NewA1Explore progress={progress} onBack={() => setView("grid")} onLaunchRoom={launchRoom} dimmed={roomOpen} />
         {openEx && (
           <NewA1RoomShell exercise={openEx} open={roomOpen} onClose={closeRoom}>
-            {openEx.key === "sym"
-              ? <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
+            {openEx.key === "sym" ? <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
+              : openEx.key === "to" ? <NewA1TrueOwnershipBody onSaved={closeRoom} onClose={closeRoom} />
               : <NewA1RoomPlaceholderBody exercise={openEx} onClose={closeRoom} />}
           </NewA1RoomShell>
         )}
