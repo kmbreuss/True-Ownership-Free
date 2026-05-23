@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "qR-xA74_JSOJU5F2k5m2u"
+uri = "file://backups/App_latest_20260523_205857.tar.gz"
+type = "unspecified"
+title = "App.tsx (latest — 13,869 lines, tar.gz)"
