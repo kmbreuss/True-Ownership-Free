@@ -1,0 +1,102 @@
+Already gave it — but I'll commit to it cleanly: Option 3 — both.
+Here's the reasoning in plain terms:
+Imagine a future user three months from now opening Mirror 1 again. They want to revise. Two scenarios:
+
+"My third layer is almost right — just one word off." → They need edit. Without it, they have to delete the whole layer and retype it.
+"All of this is from when I was stuck in a different headspace. I want to start over." → They need start fresh. Without it, they're deleting layers one at a time.
+
+Either alone leaves a real gap. Both together costs almost nothing extra to build because they share the same backend (purpose_layers array — splice for delete, replace string for edit, empty array for fresh).
+One thing to add for safety: the "Start fresh" button needs a confirmation dialog. "This will remove all 3 layers. You can't undo this. Continue?" Otherwise it's a one-click footgun.
+Combined message for Agent — Peel edits + Step 10 (Declare)
+
+Step 9 mostly passed but flagging an editing gap before continuing. Bundle the fix with step 10.
+Verified in real Chrome:
+
+Q3 "+ Other…" chip added and works identically to Q1/Q4 ✅
+Veil trim from 2.7s → 2.4s feels right — still has ritual, no longer lingers ✅
+The Peel Room renders existing purpose_layers data as 3 gold milestone cards above the current prompt ✅
+Cyan eyebrow + Georgia title + current card with cyan border + textarea all correct ✅
+Sequence enforcement working — Declare locked until Peel completes ✅
+
+Gap to fix in PeelRoom — existing milestones are read-only.
+The 3 layers from my legacy purpose_layers data render as milestones but I can't edit or remove them. One of them clearly reads like a draft note ("I want the impact statement from above to be a short 2 to 3 words") — I need to either fix it or wipe it. Add two things to PeelRoom:
+1. Per-layer edit + delete on each milestone card:
+
+Add a small pencil icon (top right of each milestone, ~16px, muted, hover gold) → on click, the answer line becomes an inline textarea pre-filled with the existing text. Two small buttons appear: "Save" (gold) and "Cancel" (ghost). Save updates purpose_layers[idx].answer and rerenders. Cancel reverts.
+Add a small trash icon (right of the pencil) → on click, show a small inline confirm: "Remove this layer?" with "Remove" (burgundy ghost) and "Cancel" (ghost) buttons. Remove splices the layer out of purpose_layers. Subsequent layers' numbers renumber automatically. If only 1 or 0 layers remain after delete, the Declare button hides (validation re-runs).
+Don't introduce new keyboard shortcuts. Click-only.
+
+2. "Start fresh" button at the top of PeelRoom:
+
+Placement: small ghost button (burgundy outline), top-right of the Room body — just below the close × — labeled "↻ Start fresh".
+Only renders when there are 1+ existing layers.
+On click: show modal/inline confirm "This will remove all [N] layers. You can't undo this. Continue?" with "Yes, start fresh" (burgundy filled) and "Cancel" (ghost) buttons.
+On confirm: clear purpose_layers to [], clear a1_peel_draft, reset a1_ex3_done to false (in case user had declared then came back), close any open inline edit/delete confirms, scroll back to top. Room stays open so user can begin again from prompt 1.
+
+Tokens: edit/delete icons use var(--text-mute) default, var(--gold) on hover for pencil and var(--burgundy) on hover for trash. Confirm buttons follow the existing button styles.
+Mobile: edit/delete icons stay 24×24 minimum, with proper tap padding. Inline edit textarea full-width within the milestone card. Confirm buttons stack vertically.
+
+Then proceed with step 10: DeclareRoom (Ex4 — the final declaration).
+Per Replit_Handoff_A1_Purpose.md Exercise 4 section. Gold tone (truth, claimed, honored). The simplest Room in the whole Mirror.
+Layout:
+
+Gold eyebrow: MIRROR 1 · EXERCISE 4 · DECLARE
+Georgia 28px title: "In one phrase — your Purpose, claimed."
+Context (DM Sans muted): "This is the bottom you reached in the peel. Or a version of it that feels more true. Two or three words. Italic. Yours."
+
+The input:
+
+Single-line input, centered, large (Georgia, italic, 28px), with a subtle gold underline (no border box — it's a fill-in-the-blank line, not a form field)
+Pre-fill with the last layer's answer from purpose_layers (most recent peel) ON FIRST OPEN. If user has already declared (a1_ex4_done = true), pre-fill with the saved purpose_final value.
+Auto-save debounced 500ms to purpose_final
+Subtle gold caret blink on focus
+
+Below the input:
+
+Small muted helper text: "Two or three words usually lands deepest. But yours is yours."
+"↺ Try the peel again" — small ghost cyan button, far left (links back to The Peel Room as a soft revision path)
+"✓ Declare" — gold filled button (44px tap target), centered or right-aligned. Disabled until input trimmed length > 0.
+
+On declare click:
+
+Save the final purpose_final value
+Set a1_ex4_done = true
+Fade Room out
+NEW: Trigger a brief "declaration moment" before returning to Explore — a 1.5-second gold-tinted glow overlay with the declared text rendered in large Georgia italic gold, then fade. This is the only Room with an exit ceremony — the rest just close. The principle: "Gold honors what's true. The declaration deserves a moment."
+
+Edit-anytime (completed Ex4):
+
+Gold edit banner at top: "Already declared · edit anytime"
+Pre-fill input with purpose_final
+Declare button label: "✓ Save changes"
+No exit ceremony on edit save (only on first declaration)
+
+Mobile (≤900px):
+
+Input font slightly smaller (24px instead of 28px), still italic Georgia
+Buttons stack vertically, 44px tap target each
+Exit ceremony scales: text size adapts to viewport
+
+Token discipline:
+
+All gold: var(--gold), var(--gold-warm), var(--gold-line), var(--gold-glow)
+No cyan or burgundy in this Room (Declare is the gold moment — purely honored)
+No hardcoded hex
+
+Data model:
+
+purpose_final (reuse existing key): string, the declared purpose
+a1_ex4_done: boolean, true on declare click
+
+When the Peel edits are done AND Step 10 lands, pause for verification. I'll walk:
+
+Pencil edit on a layer → save → milestone updates
+Trash → confirm → layer removed → subsequent layers renumber
+Start fresh → confirm → all layers gone → I'm back at prompt 1
+Peel through 2+ new layers → declare
+Declare Room opens with last peel layer pre-filled
+Declare ceremony plays (~1.5s gold glow)
+Mirror 1 (Purpose) shows as 4 of 4 complete on the A1 grid
+Re-open Declare → edit anytime, save changes, no ceremony
+
+This finishes Mirror 1 (Purpose) end-to-end.

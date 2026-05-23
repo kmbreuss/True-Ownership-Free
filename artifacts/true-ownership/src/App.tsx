@@ -466,8 +466,55 @@ html[data-theme="light"]{
 .na1-btn-cyan:disabled, .na1-btn-cyan[disabled]{ opacity:0.4; cursor:not-allowed; }
 .na1-btn-cyan-ghost{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 20px; border-radius:var(--na1-radius); border:1.5px solid var(--cyan); background:transparent; color:var(--cyan); font-family:var(--na1-sans); font-size:14px; font-weight:600; cursor:pointer; transition:background .18s; }
 .na1-btn-cyan-ghost:hover{ background:var(--cyan-soft, rgba(110,200,210,0.12)); }
-.na1-peel-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+.na1-peel-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; align-items:center; }
 @media (max-width:600px){ .na1-peel-actions > button{ flex:1 1 100%; } }
+/* Peel — milestone edit/delete */
+.na1-peel-milestone{ position:relative; }
+.na1-peel-milestone-actions{ position:absolute; top:10px; right:10px; display:flex; gap:4px; opacity:0.55; transition:opacity .18s; }
+.na1-peel-milestone:hover .na1-peel-milestone-actions,
+.na1-peel-milestone:focus-within .na1-peel-milestone-actions{ opacity:1; }
+.na1-icon-btn{ width:28px; height:28px; min-width:28px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:1px solid transparent; border-radius:6px; cursor:pointer; color:var(--na1-text-mute); transition:color .18s, border-color .18s, background .18s; font-size:13px; line-height:1; }
+.na1-icon-btn:hover{ background:var(--na1-bg); }
+.na1-icon-btn.is-edit:hover{ color:var(--gold); border-color:var(--gold-line); }
+.na1-icon-btn.is-trash:hover{ color:var(--burgundy); border-color:var(--burgundy-line, rgba(140,30,50,0.35)); }
+.na1-peel-edit-input{ width:100%; min-height:80px; padding:10px 12px; border-radius:var(--na1-radius); border:1.5px solid var(--gold); background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-serif); font-size:16px; line-height:1.5; resize:vertical; box-sizing:border-box; margin-top:4px; }
+.na1-peel-edit-input:focus{ outline:none; box-shadow:0 0 0 3px var(--gold-glow); }
+.na1-peel-edit-actions{ display:flex; gap:8px; margin-top:10px; }
+.na1-peel-delete-confirm{ margin-top:10px; padding:10px 12px; border:1px solid var(--burgundy-line, rgba(140,30,50,0.35)); background:var(--burgundy-soft, rgba(140,30,50,0.08)); border-radius:var(--na1-radius); font-family:var(--na1-sans); font-size:13px; color:var(--na1-text); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.na1-peel-delete-confirm > span{ flex:1 1 100%; }
+.na1-btn-burgundy-ghost{ display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:6px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--burgundy); background:transparent; color:var(--burgundy); font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:background .18s; }
+.na1-btn-burgundy-ghost:hover{ background:var(--burgundy-soft, rgba(140,30,50,0.1)); }
+.na1-btn-burgundy{ display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:6px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--burgundy); background:var(--burgundy); color:#fff; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:filter .18s; }
+.na1-btn-burgundy:hover{ filter:brightness(1.08); }
+.na1-btn-sm{ min-height:32px; padding:4px 12px; font-size:12.5px; }
+/* Peel — Start fresh */
+.na1-start-fresh{ position:absolute; top:18px; right:64px; display:inline-flex; align-items:center; gap:4px; min-height:32px; padding:4px 12px; border-radius:var(--na1-radius); border:1px solid var(--burgundy); background:transparent; color:var(--burgundy); font-family:var(--na1-sans); font-size:12.5px; font-weight:600; cursor:pointer; z-index:2; transition:background .18s; }
+.na1-start-fresh:hover{ background:var(--burgundy-soft, rgba(140,30,50,0.1)); }
+.na1-start-fresh-confirm{ margin:12px 0 18px; padding:14px 16px; border:1px solid var(--burgundy); background:var(--burgundy-soft, rgba(140,30,50,0.08)); border-radius:var(--na1-radius); font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
+.na1-start-fresh-confirm p{ margin:0 0 10px; line-height:1.5; }
+.na1-start-fresh-confirm-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+@media (max-width:600px){
+  .na1-start-fresh{ top:14px; right:56px; padding:4px 10px; font-size:12px; }
+  .na1-start-fresh-confirm-actions > button{ flex:1 1 100%; }
+}
+/* Declare (Ex4) — gold input + ceremony */
+.na1-declare-wrap{ text-align:center; padding:6px 0 4px; }
+.na1-declare-input{ width:100%; max-width:560px; padding:14px 8px 12px; border:none; border-bottom:2px solid var(--gold); background:transparent; color:var(--na1-text); font-family:var(--na1-serif); font-size:28px; font-style:italic; line-height:1.3; text-align:center; box-sizing:border-box; caret-color:var(--gold); transition:border-color .18s; }
+.na1-declare-input:focus{ outline:none; border-bottom-color:var(--gold); box-shadow:0 4px 0 -2px var(--gold-glow); }
+.na1-declare-input::placeholder{ color:var(--na1-text-mute); font-style:italic; opacity:0.7; }
+.na1-declare-helper{ font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-mute); margin:14px 0 22px; font-style:italic; }
+.na1-declare-actions{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.na1-declare-actions .na1-btn-cyan-ghost{ min-height:36px; padding:6px 14px; font-size:13px; }
+@media (max-width:600px){
+  .na1-declare-input{ font-size:24px; }
+  .na1-declare-actions{ flex-direction:column-reverse; align-items:stretch; }
+  .na1-declare-actions > *{ width:100%; }
+}
+.na1-ceremony{ position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; padding:32px; background:radial-gradient(ellipse at center, var(--gold-warm) 0%, var(--gold-warm) 35%, var(--na1-bg) 90%); opacity:0; pointer-events:none; transition:opacity 320ms ease-out; }
+.na1-ceremony.is-on{ opacity:1; }
+.na1-ceremony-text{ font-family:var(--na1-serif); font-style:italic; font-size:48px; line-height:1.2; color:var(--gold); text-align:center; max-width:880px; transform:translateY(8px); opacity:0; transition:opacity 420ms ease-out 120ms, transform 420ms ease-out 120ms; text-shadow:0 0 24px var(--gold-glow); }
+.na1-ceremony.is-on .na1-ceremony-text{ opacity:1; transform:translateY(0); }
+@media (max-width:600px){ .na1-ceremony-text{ font-size:32px; } }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -10422,14 +10469,20 @@ function normalizePeelLayers(raw: unknown): string[] {
 }
 
 function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
-  const wasDone = !!loadDataSync("a1_ex3_done");
+  const initialDone = !!loadDataSync("a1_ex3_done");
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialLayers = normalizePeelLayers(initialMap.purpose_layers);
   const initialDraft = String(loadDataSync("a1_peel_draft") || "");
+  const [wasDone, setWasDone] = useState<boolean>(initialDone);
   const [layers, setLayers] = useState<string[]>(initialLayers);
   const [draft, setDraft] = useState<string>(initialDraft);
   const [saving, setSaving] = useState(false);
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [editText, setEditText] = useState<string>("");
+  const [deleteIdx, setDeleteIdx] = useState<number | null>(null);
+  const [freshOpen, setFreshOpen] = useState(false);
   const currentRef = useRef<HTMLDivElement | null>(null);
+  const topRef = useRef<HTMLDivElement | null>(null);
   // Debounced draft auto-save.
   useEffect(() => {
     if (draft === initialDraft) return;
@@ -10471,11 +10524,52 @@ function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
     onSaved();
   };
   const closeNoChange = () => { onClose(); };
+  const startEdit = (i: number) => {
+    setDeleteIdx(null);
+    setEditingIdx(i);
+    setEditText(layers[i]);
+  };
+  const cancelEdit = () => { setEditingIdx(null); setEditText(""); };
+  const saveEdit = async () => {
+    if (editingIdx == null) return;
+    const v = editText.trim();
+    if (!v) return;
+    const next = layers.map((l, i) => i === editingIdx ? v : l);
+    setLayers(next);
+    setEditingIdx(null);
+    setEditText("");
+    await writeLayers(next);
+  };
+  const confirmDelete = (i: number) => { setEditingIdx(null); setDeleteIdx(i); };
+  const cancelDelete = () => setDeleteIdx(null);
+  const doDelete = async () => {
+    if (deleteIdx == null) return;
+    const next = layers.filter((_, i) => i !== deleteIdx);
+    setLayers(next);
+    setDeleteIdx(null);
+    await writeLayers(next);
+  };
+  const doStartFresh = async () => {
+    setLayers([]);
+    setDraft("");
+    setEditingIdx(null);
+    setDeleteIdx(null);
+    setFreshOpen(false);
+    setWasDone(false);
+    await writeLayers([]);
+    await saveData("a1_peel_draft", "");
+    await saveData("a1_ex3_done", false);
+    window.setTimeout(() => { topRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); }, 60);
+  };
   const currentPromptIdx = layers.length;
   const draftValid = draft.trim().length > 0;
   const canDeclare = (layers.length >= 2 && draftValid) || (wasDone && layers.length >= 2);
   return (
     <>
+      <div ref={topRef} />
+      {layers.length >= 1 && !freshOpen && (
+        <button type="button" className="na1-start-fresh" onClick={() => setFreshOpen(true)} title="Clear all layers and start over">↻ Start fresh</button>
+      )}
       <div className="na1-room-eyebrow tone-cyan">Mirror 1 · Exercise 3 · The Peel</div>
       <h2 className="na1-room-title">The Peel</h2>
       <p className="na1-room-context">Each answer points to a deeper one. Keep going until you reach the bottom — the version of you that doesn't need more layers.</p>
@@ -10485,17 +10579,46 @@ function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
           <span>You already explored this · edit anytime.</span>
         </div>
       )}
+      {freshOpen && (
+        <div className="na1-start-fresh-confirm" role="alertdialog" aria-live="polite">
+          <p>This will remove all {layers.length} {layers.length === 1 ? "layer" : "layers"}. You can't undo this. Continue?</p>
+          <div className="na1-start-fresh-confirm-actions">
+            <button type="button" className="na1-btn-burgundy" onClick={doStartFresh}>Yes, start fresh</button>
+            <button type="button" className="na1-btn-ghost na1-btn-sm" onClick={() => setFreshOpen(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
       {layers.map((answer, i) => (
         <div key={i} className="na1-peel-milestone">
+          <div className="na1-peel-milestone-actions">
+            <button type="button" className="na1-icon-btn is-edit" onClick={() => startEdit(i)} aria-label={`Edit layer ${i + 1}`} title="Edit">✎</button>
+            <button type="button" className="na1-icon-btn is-trash" onClick={() => confirmDelete(i)} aria-label={`Remove layer ${i + 1}`} title="Remove">🗑</button>
+          </div>
           <div className="na1-peel-milestone-eyebrow">Layer {i + 1}</div>
           <p className="na1-peel-milestone-prompt">{peelPromptFor(i)}</p>
-          <p className="na1-peel-milestone-answer">{answer}</p>
+          {editingIdx === i ? (
+            <>
+              <textarea className="na1-peel-edit-input" value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} autoFocus />
+              <div className="na1-peel-edit-actions">
+                <button type="button" className="na1-btn-gold na1-btn-sm" onClick={saveEdit} disabled={!editText.trim()}>Save</button>
+                <button type="button" className="na1-btn-ghost na1-btn-sm" onClick={cancelEdit}>Cancel</button>
+              </div>
+            </>
+          ) : (
+            <p className="na1-peel-milestone-answer">{answer}</p>
+          )}
+          {deleteIdx === i && (
+            <div className="na1-peel-delete-confirm" role="alertdialog">
+              <span>Remove this layer?</span>
+              <button type="button" className="na1-btn-burgundy-ghost" onClick={doDelete}>Remove</button>
+              <button type="button" className="na1-btn-ghost na1-btn-sm" onClick={cancelDelete}>Cancel</button>
+            </div>
+          )}
         </div>
       ))}
       {wasDone ? (
         <div className="na1-peel-actions">
-          <button type="button" className="na1-btn-cyan-ghost" onClick={() => { /* reveal a new current card by pretending we have a draft slot */
-            // Always render a current card below in edit-anytime mode; this just focuses textarea.
+          <button type="button" className="na1-btn-cyan-ghost" onClick={() => {
             const ta = document.getElementById("na1-peel-draft") as HTMLTextAreaElement | null;
             ta?.focus();
           }}>↓ Keep peeling</button>
@@ -10529,6 +10652,86 @@ function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
           )}
         </div>
       </div>
+    </>
+  );
+}
+
+// ─── Step 10: Declare Room (Ex4 — single italic-serif input, gold ceremony) ───
+function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () => void; onClose: () => void; onTryPeelAgain: () => void; }) {
+  const wasDone = !!loadDataSync("a1_ex4_done");
+  const initialMap = (loadDataSync(KEYS.map) as any) || {};
+  const peelLayers = normalizePeelLayers(initialMap.purpose_layers);
+  const existingFinal = String(initialMap.purpose_final || "").trim();
+  const initialValue = wasDone ? existingFinal : (existingFinal || peelLayers[peelLayers.length - 1] || "");
+  const [value, setValue] = useState<string>(initialValue);
+  const [saving, setSaving] = useState(false);
+  const [ceremonyOn, setCeremonyOn] = useState(false);
+  const [ceremonyText, setCeremonyText] = useState<string>("");
+  const initialValueRef = useRef<string>(initialValue);
+  // Debounced auto-save of purpose_final.
+  useEffect(() => {
+    if (value === initialValueRef.current) return;
+    const t = window.setTimeout(async () => {
+      const cur = (await loadData(KEYS.map)) as any;
+      const merged = { ...(cur || initialMap), purpose_final: value };
+      await saveData(KEYS.map, merged);
+    }, 500);
+    return () => window.clearTimeout(t);
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  const declare = async () => {
+    const v = value.trim();
+    if (!v || saving) return;
+    setSaving(true);
+    const cur = (await loadData(KEYS.map)) as any;
+    const merged = { ...(cur || initialMap), purpose_final: v };
+    await saveData(KEYS.map, merged);
+    await saveData("a1_ex4_done", true);
+    if (!wasDone) {
+      // First declaration → exit ceremony.
+      setCeremonyText(v);
+      // Defer to next frame so the .is-on class triggers the CSS transition.
+      window.setTimeout(() => setCeremonyOn(true), 20);
+      window.setTimeout(() => { setSaving(false); onSaved(); }, 1500);
+    } else {
+      setSaving(false);
+      onSaved();
+    }
+  };
+  const valid = value.trim().length > 0;
+  return (
+    <>
+      <div className="na1-room-eyebrow tone-gold">Mirror 1 · Exercise 4 · Declare</div>
+      <h2 className="na1-room-title">In one phrase — your Purpose, claimed.</h2>
+      <p className="na1-room-context">This is the bottom you reached in the peel. Or a version of it that feels more true. Two or three words. Italic. Yours.</p>
+      {wasDone && (
+        <div className="na1-edit-banner">
+          <span className="na1-edit-banner-dot" aria-hidden />
+          <span>Already declared · edit anytime.</span>
+        </div>
+      )}
+      <div className="na1-declare-wrap">
+        <input
+          type="text"
+          className="na1-declare-input"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="your purpose…"
+          autoFocus
+          aria-label="Your Purpose"
+        />
+        <p className="na1-declare-helper">Two or three words usually lands deepest. But yours is yours.</p>
+      </div>
+      <div className="na1-declare-actions">
+        <button type="button" className="na1-btn-cyan-ghost" onClick={onTryPeelAgain}>↺ Try the peel again</button>
+        <button type="button" className="na1-btn-gold" disabled={!valid || saving} onClick={declare}>
+          {saving ? "Saving…" : wasDone ? "✓ Save changes" : "✓ Declare"}
+        </button>
+      </div>
+      {ceremonyText && (
+        <div className={`na1-ceremony ${ceremonyOn ? "is-on" : ""}`} aria-hidden="true">
+          <div className="na1-ceremony-text">{ceremonyText}</div>
+        </div>
+      )}
     </>
   );
 }
@@ -10582,6 +10785,12 @@ function NewA1View({ name }: { name?: string }) {
             {openEx.key === "sym" ? <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
               : openEx.key === "to" ? <NewA1TrueOwnershipBody onSaved={closeRoom} onClose={closeRoom} />
               : openEx.key === "peel" ? <NewA1PeelBody onSaved={closeRoom} onClose={closeRoom} />
+              : openEx.key === "declare" ? <NewA1DeclareBody onSaved={closeRoom} onClose={closeRoom} onTryPeelAgain={() => {
+                  const peelEx = NA1_EXERCISES.find(e => e.key === "peel");
+                  if (!peelEx) { closeRoom(); return; }
+                  setRoomOpen(false);
+                  window.setTimeout(() => launchRoom(peelEx), 240);
+                }} />
               : <NewA1RoomPlaceholderBody exercise={openEx} onClose={closeRoom} />}
           </NewA1RoomShell>
         )}
