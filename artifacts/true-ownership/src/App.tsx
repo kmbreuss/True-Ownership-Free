@@ -270,6 +270,52 @@ html[data-theme="light"]{
 }
 .na1-theme-toggle:hover{ border-color: var(--gold, #c9a84b); }
 @media (max-width: 900px){ .na1-theme-toggle .label{ display:none; } .na1-theme-toggle{ padding:0 12px; } }
+/* ─── NEW A1: page shell ─── */
+.na1-shell{ max-width:1180px; margin:0 auto; padding:80px 24px 60px; }
+@media (max-width:600px){ .na1-shell{ padding:64px 16px 40px; } }
+.na1-breadcrumb{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px; font-size:13px; color:var(--na1-text-mute); font-family:var(--na1-sans); }
+.na1-breadcrumb a{ color:var(--na1-text-sec); text-decoration:none; cursor:pointer; }
+.na1-breadcrumb a:hover{ color:var(--na1-text); }
+.na1-breadcrumb .sep{ color:var(--na1-text-mute); }
+.na1-breadcrumb .current{ color:var(--na1-text); }
+.na1-hero{ margin-bottom:28px; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+.na1-hero-eyebrow{ font-size:11px; font-weight:700; letter-spacing:0.22em; color:var(--gold); text-transform:uppercase; margin-bottom:10px; font-family:var(--na1-sans); }
+.na1-hero-title{ font-family:var(--na1-serif); font-size:36px; font-weight:600; line-height:1.15; letter-spacing:-0.005em; margin:0 0 6px; color:var(--na1-text); }
+@media (max-width:600px){ .na1-hero-title{ font-size:28px; } }
+.na1-hero-sub{ font-size:14.5px; color:var(--na1-text-sec); margin:0; max-width:580px; font-family:var(--na1-sans); line-height:1.5; }
+.na1-hero-meta{ font-size:13px; color:var(--na1-text-sec); text-align:right; font-family:var(--na1-sans); }
+.na1-hero-meta strong{ color:var(--na1-text); font-weight:600; }
+/* ─── NEW A1: mirror grid ─── */
+.na1-mirror-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:16px; }
+@media (max-width:600px){ .na1-mirror-grid{ grid-template-columns:1fr; gap:14px; } }
+.na1-mirror-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px; transition:border-color .18s, box-shadow .18s; display:flex; flex-direction:column; min-height:240px; font-family:var(--na1-sans); }
+@media (max-width:600px){ .na1-mirror-card{ min-height:auto; padding:18px; } }
+.na1-mirror-card.is-current{ border-color:var(--cyan-line); background:linear-gradient(180deg, var(--cyan-soft) 0%, var(--na1-bg-card) 50%); box-shadow:0 0 0 1px var(--cyan-glow), 0 0 24px var(--cyan-glow); }
+.na1-mirror-card.is-complete{ border-color:var(--gold-line); }
+.na1-mirror-card.is-locked{ border-style:dashed; border-color:var(--na1-border); background:transparent; opacity:0.65; }
+.na1-mirror-card-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
+.na1-mirror-card-num{ font-family:var(--na1-serif); font-size:17px; color:var(--na1-text-mute); font-variant-numeric:tabular-nums; }
+.na1-mirror-card.is-current .na1-mirror-card-num{ color:var(--cyan); }
+.na1-mirror-card.is-complete .na1-mirror-card-num{ color:var(--gold); }
+.na1-mirror-card-status{ margin-left:auto; font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; padding:3px 9px; border-radius:100px; background:var(--na1-bg-soft); color:var(--na1-text-mute); border:1px solid var(--na1-border); }
+.na1-mirror-card.is-current .na1-mirror-card-status{ background:var(--cyan-soft); color:var(--cyan); border-color:var(--cyan-line); }
+.na1-mirror-card.is-complete .na1-mirror-card-status{ background:var(--gold-soft); color:var(--gold); border-color:var(--gold-line); }
+.na1-mirror-card-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:5px; }
+.na1-mirror-card-name{ font-family:var(--na1-serif); font-size:21px; font-weight:600; line-height:1.25; margin:0 0 6px; color:var(--na1-text); }
+.na1-mirror-card-sub{ font-size:13px; color:var(--na1-text-sec); line-height:1.5; margin:0 0 16px; }
+.na1-progress-mini{ margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.na1-progress-pip{ width:14px; height:4px; background:var(--na1-border); border-radius:100px; transition:background .2s; }
+.na1-progress-pip.is-done{ background:var(--gold); }
+.na1-progress-pip.is-active{ background:var(--cyan); box-shadow:0 0 8px var(--cyan-glow); }
+.na1-progress-text{ font-size:11px; color:var(--na1-text-mute); margin-left:auto; font-variant-numeric:tabular-nums; }
+.na1-mirror-card-empty{ font-size:13px; color:var(--na1-text-mute); font-style:italic; margin-bottom:auto; padding-bottom:14px; }
+.na1-mirror-card-action{ margin-top:auto; display:flex; flex-direction:column; gap:8px; }
+.na1-mirror-card.is-locked .na1-mirror-card-action{ opacity:0.6; }
+.na1-mirror-card-meta{ font-size:11.5px; color:var(--na1-text-mute); text-align:center; }
+.na1-btn-gold{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; border-radius:100px; background:var(--gold); color:#1a1407; border:none; font-family:var(--na1-sans); font-size:14px; font-weight:600; letter-spacing:0.02em; cursor:pointer; transition:filter .18s, transform .12s; }
+.na1-btn-gold:hover{ filter:brightness(1.08); }
+.na1-btn-gold:active{ transform:translateY(1px); }
+.na1-btn-block{ width:100%; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -9619,36 +9665,123 @@ const NEW_A1_FLAG = (() => {
   catch { return false; }
 })();
 
-function NewA1Placeholder({ name }: { name?: string }) {
+// ─── NEW A1: Mirror grid (4 cards · Purpose unlocked, BAG/Identity/Values locked) ───
+function NewA1Grid({ name, progress, onOpenPurpose }: { name?: string; progress: { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; purposeFinal: string }; onOpenPurpose: () => void; }) {
+  const doneCount = [progress.ex1, progress.ex2, progress.ex3, progress.ex4].filter(Boolean).length;
+  const purposeComplete = doneCount === 4;
+  const purposeInProgress = doneCount > 0 && !purposeComplete;
+  const purposeStatusLabel = purposeComplete ? "Complete" : purposeInProgress ? "In progress" : "Up next";
+  const purposeCtaLabel = purposeComplete ? "Review with Katherine →" : purposeInProgress ? "Continue with Katherine →" : "Explore with Katherine →";
+  const purposeEmpty = purposeComplete
+    ? (progress.purposeFinal ? `"${progress.purposeFinal}"` : "Declared.")
+    : purposeInProgress ? `${doneCount} of 4 exercises complete.` : "Not yet explored.";
+  const pips = [progress.ex1, progress.ex2, progress.ex3, progress.ex4];
   return (
-    <div className="na1-root" style={{ padding:"80px 24px 60px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", textAlign:"center" }}>
-      <div style={{ maxWidth:560 }}>
-        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.22em", textTransform:"uppercase", color:"var(--gold)", marginBottom:14 }}>
-          ?newA1=1 · Flag detected
+    <div className="na1-root">
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <span>Entry Hall</span>
+          <span className="sep">›</span>
+          <span className="current">A1 · All In It · The Commitment</span>
         </div>
-        <h1 style={{ fontFamily:"var(--na1-serif)", fontSize:36, lineHeight:1.2, fontWeight:600, margin:"0 0 14px", color:"var(--na1-text)" }}>
-          New A1 placeholder
-        </h1>
-        <p style={{ fontFamily:"var(--na1-sans)", fontSize:16, lineHeight:1.6, color:"var(--na1-text-sec)", margin:"0 0 20px" }}>
-          The redesigned A1 Purpose mirror grid renders here. This stub confirms the flag is wired up and the new design tokens are loaded. Existing A1 is untouched at the default URL.
-        </p>
-        <div style={{ display:"inline-flex", flexDirection:"column", gap:8, padding:"16px 22px", border:"1px solid var(--gold-line)", borderRadius:"var(--na1-radius)", background:"var(--gold-warm)", textAlign:"left", fontFamily:"var(--na1-sans)", fontSize:13, color:"var(--na1-text-sec)" }}>
-          <div><span style={{ color:"var(--na1-text-mute)" }}>User:</span> {name || "(unknown)"}</div>
-          <div><span style={{ color:"var(--na1-text-mute)" }}>Theme toggle:</span> top-right corner · try it</div>
-          <div><span style={{ color:"var(--na1-text-mute)" }}>Default URL:</span> /a1 (no flag) → existing experience</div>
+        <div className="na1-hero">
+          <div>
+            <div className="na1-hero-eyebrow">A1 · All In It{name ? ` · ${name}` : ""}</div>
+            <h1 className="na1-hero-title">Commit to who you are becoming.</h1>
+            <p className="na1-hero-sub">Four mirrors. Name your purpose, dream your 10 years, claim your gifts, declare what you stand for.</p>
+          </div>
+          <div className="na1-hero-meta"><strong>{purposeComplete ? 1 : 0} of 4</strong> complete · ~3 hrs remaining</div>
         </div>
-        <p style={{ marginTop:24, fontSize:12, color:"var(--na1-text-mute)", fontFamily:"var(--na1-sans)" }}>
-          Next step: 4-card mirror grid + Purpose explore page + 4 rooms.
-        </p>
+        <div className="na1-mirror-grid">
+          <article className={`na1-mirror-card ${purposeComplete ? "is-complete" : "is-current"}`}>
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">01</span>
+              <span className="na1-mirror-card-status">{purposeStatusLabel}</span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 1</div>
+            <h2 className="na1-mirror-card-name">Purpose</h2>
+            <p className="na1-mirror-card-sub">Your internal why — independent of role.</p>
+            <div className="na1-progress-mini">
+              {pips.map((done, i) => (
+                <div key={i} className={`na1-progress-pip ${done ? "is-done" : ""}`} aria-label={`Exercise ${i + 1} ${done ? "complete" : "incomplete"}`} />
+              ))}
+              <span className="na1-progress-text">{doneCount} of 4</span>
+            </div>
+            <div className="na1-mirror-card-empty" style={purposeComplete ? { fontStyle:"italic", color:"var(--na1-text-sec)", fontFamily:"var(--na1-serif)" } : undefined}>{purposeEmpty}</div>
+            <div className="na1-mirror-card-action">
+              <button type="button" className="na1-btn-gold na1-btn-block" onClick={onOpenPurpose}>{purposeCtaLabel}</button>
+              <span className="na1-mirror-card-meta">4 exercises · ~50 min · 4 videos</span>
+            </div>
+          </article>
+          {[
+            { num:"02", eyebrow:"Mirror 2 · 10-Year Vision", name:"BAG · Big Ass Goal", sub:"Who you've become in 10 years.", empty:"Unlocks after Purpose", meta:"Complete Purpose to unlock" },
+            { num:"03", eyebrow:"Mirror 3", name:"Identity · Superpowers", sub:"What you carry that others don't.", empty:"Unlocks after BAG", meta:"Complete Mirror 2 to unlock" },
+            { num:"04", eyebrow:"Mirror 4", name:"Values · Behaviors", sub:"What you stand for.", empty:"Unlocks after Identity", meta:"Complete Mirror 3 to unlock" },
+          ].map((c) => (
+            <article key={c.num} className="na1-mirror-card is-locked" aria-disabled="true">
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">{c.num}</span>
+                <span className="na1-mirror-card-status">Locked</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">{c.eyebrow}</div>
+              <h2 className="na1-mirror-card-name">{c.name}</h2>
+              <p className="na1-mirror-card-sub">{c.sub}</p>
+              <div className="na1-mirror-card-empty">{c.empty}</div>
+              <div className="na1-mirror-card-action">
+                <span className="na1-mirror-card-meta">{c.meta}</span>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
+// Temporary Explore stub until step 5 builds the real Explore page + rooms.
+function NewA1ExploreStub({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="na1-root">
+      <div className="na1-shell" style={{ maxWidth:760 }}>
+        <div className="na1-breadcrumb">
+          <a onClick={onBack}>Entry Hall</a>
+          <span className="sep">›</span>
+          <a onClick={onBack}>A1 · All In It</a>
+          <span className="sep">›</span>
+          <span className="current">Purpose</span>
+        </div>
+        <div className="na1-hero-eyebrow">A1 · Mirror 1 · Explore with Katherine</div>
+        <h1 className="na1-hero-title">Purpose</h1>
+        <p className="na1-hero-sub" style={{ marginTop:8 }}>Explore page placeholder. The 4 exercise rows + intro video + status strip land in the next step.</p>
+        <div style={{ marginTop:28 }}>
+          <button type="button" className="na1-btn-gold" onClick={onBack}>← Back to A1</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewA1View({ name }: { name?: string }) {
+  const [view, setView] = useState<"grid" | "explore">("grid");
+  // Re-read on every mount so progress reflects latest saves.
+  const progress = useMemo(() => {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    return {
+      ex1: !!loadDataSync("a1_ex1_done"),
+      ex2: !!loadDataSync("a1_ex2_done"),
+      ex3: !!loadDataSync("a1_ex3_done"),
+      ex4: !!(map.purpose_final && String(map.purpose_final).trim()),
+      purposeFinal: String(map.purpose_final || "").trim(),
+    };
+  }, [view]);
+  if (view === "explore") return <NewA1ExploreStub onBack={() => setView("grid")} />;
+  return <NewA1Grid name={name} progress={progress} onOpenPurpose={() => setView("explore")} />;
+}
+
 function A1({ intake, onDone, phase, setPhase }) {
   // FLAG ON: short-circuit to the new A1 surface. Existing engine below is left intact.
   if (NEW_A1_FLAG) {
-    return <NewA1Placeholder name={intake?.name} />;
+    return <NewA1View name={intake?.name} />;
   }
   const [step, setStep] = useState("to_intro");
   const [voice, setVoice] = useState(intake.defaultVoice);
