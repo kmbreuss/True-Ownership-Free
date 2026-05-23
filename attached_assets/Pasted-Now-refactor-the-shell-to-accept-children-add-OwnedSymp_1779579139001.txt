@@ -1,0 +1,74 @@
+Now refactor the shell to accept children, add OwnedSymptomsRoom, and wire it in:
+
+
+2 actions
+Now wire it into NewA1View and confirm clean:
+
+
+4 actions
+Zero new typecheck errors in the A1 range (9836–10220). Clean HMR. Step 7 complete — pausing for verification.
+
+What landed
+Data model wiring (per spec)
+
+a1_sym_picks — JSON string array (immediate write on chip toggle)
+a1_sym_note — string (debounced 500ms)
+a1_sym_holdback — string (debounced 500ms + final flushed write on Save)
+a1_ex1_done — boolean, only flipped to true on a successful Save & continue click in sub-step 2
+Room body branches on ex.key
+
+"sym" → real NewA1OwnedSymptomsBody
+"to" / "peel" / "declare" → existing NewA1RoomPlaceholderBody (steps 8–10)
+Shell (gold border, breadcrumb, ×, fade+lift, scroll-lock, Esc/backdrop close, View A dim/blur of Explore underneath, veil entry) is unchanged — only the body slot is swapped.
+Sub-step progress dots (.na1-substep-dots)
+
+Two 26×4px pill segments + meta label "STEP X OF 2"
+Sub-step 1 active: first dot burgundy, second muted
+Sub-step 2 active: first dot burgundy 70% opacity (done), second burgundy
+Sub-step 1 — Symptoms multi-select
+
+Burgundy eyebrow "MIRROR 1 · EXERCISE 1 · OWNED SYMPTOMS"
+Georgia title "What are the signs you're living someone else's life right now?" (28px → 23px ≤600px)
+Context: "Tap any that ring true. There's no judgment — these are just the data. Then add one in your own words."
+8 chips (role="group", aria-pressed), wrap freely, 40px tap target, burgundy when selected (var(--burgundy-soft) bg + var(--burgundy) border + burgundy text, 600 weight). Default state: transparent bg + muted border.
+Field label "IN YOUR OWN WORDS" + textarea (16px font to block iOS zoom, gold focus ring, italic placeholder "What else? Name one in your own words…")
+Gold "Next: The single thing →" button — disabled (40% opacity, no-pointer cursor) until picks.length > 0 || note.trim().length > 0
+Sub-step 2 — The single thing
+
+Same eyebrow + dots (now showing dot 1 done, dot 2 active)
+Georgia title "The single thing holding you back"
+Context paragraph verbatim from spec
+Field label "THE ONE THING" + textarea (min-height 120px, autoFocus, 16px font, "The one thing is…" placeholder)
+Action row .is-split (space-between):
+Left ghost "← Back to symptoms" — preserves picks/note/holdback in-state
+Right gold "✓ Save & continue" — disabled until holdback.trim().length > 0; shows "Saving…" while in-flight, "✓ Save changes" when returning to a completed Ex1
+Auto-save
+
+Chip toggle → writes new a1_sym_picks array immediately (no debounce; chips are discrete events)
+Note + holdback → 500ms debounced writes (useEffect with setTimeout + cleanup so rapid keystrokes coalesce into one round-trip)
+Each effect bails on identical initial value so a fresh open doesn't trigger a no-op POST
+Edit-anytime
+
+On open, prefills picks / note / holdback from existing keys
+If a1_ex1_done was already true at mount, the gold note banner appears above the title: small gold dot + "You already explored this · edit anytime." (.na1-edit-banner over var(--gold-warm))
+Save button label flips to "✓ Save changes" instead of "✓ Save & continue"
+Tokens / a11y
+
+All colors: var(--burgundy), var(--burgundy-soft), var(--gold), var(--gold-warm), var(--na1-*). No hex.
+All buttons ≥40px (gold = 44px), textareas 16px (no iOS zoom), chips wrap with no horizontal scroll
+aria: progress dots have aria-label="Step X of 2", chips have aria-pressed, dialog already labelled at shell level
+Your end-to-end walk (real Chrome)
+/?newA1=1 → click Explore with Katherine → → click Owned Symptoms — veil sequence, Room opens
+Sub-step 1: gold Next button is disabled (translucent). Tap a chip → it turns burgundy, Next enables. Tap again to deselect. Type in the textarea (deselect all chips first to confirm note alone also enables Next)
+Tap Next: The single thing → → smoothly swap to sub-step 2, dots update (1 done, 2 active). Textarea autofocuses
+Save button disabled until you type. Type something → enables
+Tap ← Back to symptoms → returns with everything preserved (chips still selected, note still typed)
+Forward again to sub-step 2 → confirm holdback persisted
+Tap ✓ Save & continue → button shows "Saving…", Room fades closed, Explore un-blurs
+Owned Symptoms row should now show "Complete" with gold left-border + ✓ icon, and True Ownership row unlocks as the new "Up next · tap to begin" (gold glow)
+Click the completed Owned Symptoms row again → Room reopens, gold edit banner at top reads "You already explored this · edit anytime.", chips/note/holdback all prefilled, save button reads "✓ Save changes"
+Click True Ownership (now unlocked, gold-glowing) → veil with "Imagining the owner…", then the placeholder body (gold "Exercise content lands in a follow-up step." — that's step 8)
+Mobile 380px: chips wrap cleanly (no horizontal scroll), all buttons stay ≥44px, both textareas show 16px font, action row wraps if needed
+Light mode: burgundy selected chips still distinguishable, gold edit banner readable on cream
+Refresh page mid-typing → reopen → note/holdback should restore from the debounced save (give it >0.5s after typing)
+Reply "continue" once verified and I'll move to step 8 — the True Ownership Room (6-question carousel with mixed cadence: 3 feeling-only chips, 1 sentence-completion, 2 heavy text fields, per TO_QUESTIONS in the spec).
