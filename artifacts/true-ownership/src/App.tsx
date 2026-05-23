@@ -265,7 +265,7 @@ html[data-theme="light"]{
   display:inline-flex; align-items:center; gap:8px;
   min-height:44px; padding:0 14px; border-radius:100px;
   background:transparent; border:1px solid var(--na1-border, #1f3553);
-  color:inherit; font-family:var(--na1-sans,'DM Sans',sans-serif); font-size:13px;
+  color:var(--na1-text, #f4f1eb); font-family:var(--na1-sans,'DM Sans',sans-serif); font-size:13px;
   cursor:pointer; transition:border-color .18s, background .18s;
 }
 .na1-theme-toggle:hover{ border-color: var(--gold, #c9a84b); }
