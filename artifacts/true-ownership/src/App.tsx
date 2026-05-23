@@ -316,6 +316,81 @@ html[data-theme="light"]{
 .na1-btn-gold:hover{ filter:brightness(1.08); }
 .na1-btn-gold:active{ transform:translateY(1px); }
 .na1-btn-block{ width:100%; }
+.na1-btn-ghost{ display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:0 16px; border-radius:100px; background:transparent; color:var(--na1-text-sec); border:1px solid var(--na1-border); font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:color .18s, border-color .18s; }
+.na1-btn-ghost:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); }
+/* ─── NEW A1: Explore page ─── */
+.na1-explore-layout{ display:grid; grid-template-columns:minmax(0, 1fr) 280px; gap:36px; align-items:start; }
+@media (max-width:900px){ .na1-explore-layout{ grid-template-columns:1fr; gap:24px; } }
+.na1-ex-eyebrow{ font-size:11px; font-weight:700; letter-spacing:0.22em; color:var(--gold); text-transform:uppercase; margin-bottom:12px; font-family:var(--na1-sans); }
+.na1-ex-title{ font-family:var(--na1-serif); font-size:36px; font-weight:600; line-height:1.2; margin:0 0 14px; color:var(--na1-text); }
+@media (max-width:600px){ .na1-ex-title{ font-size:28px; } }
+.na1-ex-sub{ font-size:16px; line-height:1.7; color:var(--na1-text-sec); margin:0 0 8px; max-width:580px; font-family:var(--na1-sans); }
+.na1-ex-sub em{ font-style:italic; color:var(--na1-text); }
+.na1-ex-foot-sub{ font-size:14px; line-height:1.7; color:var(--na1-text-mute); margin:0; max-width:580px; font-family:var(--na1-sans); }
+/* Intro video */
+.na1-intro-video{ margin:24px 0; border-radius:var(--na1-radius); overflow:hidden; background:var(--na1-bg-video); border:1px solid var(--na1-border); font-family:var(--na1-sans); }
+.na1-intro-video.is-collapsed .na1-intro-video-body{ max-height:0; }
+.na1-intro-video-head{ padding:14px 18px; background:var(--na1-bg-card); display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:12px; }
+.na1-intro-video:not(.is-collapsed) .na1-intro-video-head{ border-bottom:1px solid var(--na1-border); }
+.na1-intro-video-left{ display:flex; align-items:center; gap:12px; min-width:0; }
+.na1-intro-video-play-mini{ width:32px; height:32px; border-radius:50%; background:var(--gold-soft); border:1.5px solid var(--gold); color:var(--gold); display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+.na1-intro-video-title-row{ display:flex; flex-direction:column; line-height:1.2; min-width:0; }
+.na1-intro-video-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; color:var(--gold); text-transform:uppercase; }
+.na1-intro-video-title{ font-family:var(--na1-serif); font-size:15px; font-weight:600; color:var(--na1-text); margin-top:2px; }
+.na1-intro-video-meta{ font-size:12px; color:var(--na1-text-mute); white-space:nowrap; }
+.na1-intro-video-chev{ color:var(--na1-text-mute); transition:transform .3s; font-size:13px; }
+.na1-intro-video:not(.is-collapsed) .na1-intro-video-chev{ transform:rotate(180deg); }
+.na1-intro-video-body{ max-height:500px; overflow:hidden; transition:max-height .4s ease; }
+.na1-video-stub{ aspect-ratio:16/9; background:var(--na1-bg-video); position:relative; display:flex; align-items:center; justify-content:center; }
+.na1-video-stub::before{ content:""; position:absolute; inset:0; background:radial-gradient(ellipse at center, var(--gold-glow) 0%, transparent 70%); opacity:0.5; }
+.na1-video-stub-play{ width:64px; height:64px; border-radius:50%; background:var(--gold); color:#1a1407; display:flex; align-items:center; justify-content:center; font-size:24px; cursor:pointer; position:relative; z-index:1; border:none; }
+.na1-video-stub-caption{ position:absolute; bottom:12px; left:16px; font-family:var(--na1-serif); font-size:12px; font-style:italic; color:var(--na1-text); opacity:0.85; z-index:1; }
+/* Exercise rows */
+.na1-ex-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:24px; font-family:var(--na1-sans); }
+.na1-ex-row{ background:var(--na1-bg-card); border:1.5px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 20px; display:flex; align-items:center; gap:14px; min-height:80px; cursor:default; transition:transform .2s, border-color .18s, box-shadow .18s; text-align:left; width:100%; font-family:inherit; color:inherit; }
+.na1-ex-row.is-unlocked{ cursor:pointer; }
+.na1-ex-row.is-unlocked:hover{ transform:translateY(-1px); border-color:var(--na1-text-mute); }
+.na1-ex-row.is-current.tone-burgundy{ border-color:var(--burgundy-line); box-shadow:0 0 0 1px var(--burgundy-glow), 0 0 24px var(--burgundy-glow); }
+.na1-ex-row.is-current.tone-gold{ border-color:var(--gold-line); box-shadow:0 0 0 1px var(--gold-glow), 0 0 24px var(--gold-glow); }
+.na1-ex-row.is-current.tone-cyan{ border-color:var(--cyan-line); box-shadow:0 0 0 1px var(--cyan-glow), 0 0 24px var(--cyan-glow); }
+.na1-ex-row.is-complete{ border-color:var(--gold-line); border-left:3px solid var(--gold); }
+.na1-ex-row.is-locked{ opacity:0.55; border-style:dashed; background:transparent; }
+.na1-ex-icon{ width:40px; height:40px; border-radius:50%; background:var(--na1-bg-soft); border:1.5px solid var(--na1-border); color:var(--na1-text-mute); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; font-weight:700; font-family:var(--na1-serif); }
+.na1-ex-row.is-current.tone-burgundy .na1-ex-icon{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); box-shadow:0 0 12px var(--burgundy-glow); }
+.na1-ex-row.is-current.tone-gold .na1-ex-icon{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); box-shadow:0 0 12px var(--gold-glow); }
+.na1-ex-row.is-current.tone-cyan .na1-ex-icon{ background:var(--cyan-soft); border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 12px var(--cyan-glow); }
+.na1-ex-row.is-complete .na1-ex-icon{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); font-size:18px; }
+.na1-ex-row.is-locked .na1-ex-icon{ background:transparent; }
+.na1-ex-text{ flex:1; min-width:0; }
+.na1-ex-name{ font-family:var(--na1-serif); font-size:18px; font-weight:600; color:var(--na1-text); margin:0 0 3px; line-height:1.3; }
+.na1-ex-row.is-locked .na1-ex-name{ color:var(--na1-text-mute); font-weight:500; }
+.na1-ex-status{ font-size:12px; color:var(--na1-text-mute); margin:0; }
+.na1-ex-row.is-current.tone-burgundy .na1-ex-status{ color:var(--burgundy); font-weight:600; }
+.na1-ex-row.is-current.tone-gold .na1-ex-status{ color:var(--gold); font-weight:600; }
+.na1-ex-row.is-current.tone-cyan .na1-ex-status{ color:var(--cyan); font-weight:600; }
+.na1-ex-row.is-complete .na1-ex-status{ color:var(--gold); font-weight:600; }
+.na1-ex-arrow{ color:var(--na1-text-mute); font-size:18px; flex-shrink:0; }
+.na1-ex-row.is-current.tone-burgundy .na1-ex-arrow{ color:var(--burgundy); }
+.na1-ex-row.is-current.tone-gold .na1-ex-arrow{ color:var(--gold); }
+.na1-ex-row.is-current.tone-cyan .na1-ex-arrow{ color:var(--cyan); }
+.na1-ex-row.is-complete .na1-ex-arrow{ color:var(--gold); }
+/* Status strip */
+.na1-status-strip{ position:sticky; top:80px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; font-family:var(--na1-sans); display:flex; flex-direction:column; gap:14px; }
+@media (max-width:900px){ .na1-status-strip{ position:static; } }
+.na1-status-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:2px; }
+.na1-status-row{ display:flex; flex-direction:column; gap:3px; padding-bottom:12px; border-bottom:1px solid var(--na1-border); }
+.na1-status-row:last-child{ border-bottom:none; padding-bottom:0; }
+.na1-status-label{ font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--na1-text-mute); }
+.na1-status-value{ font-size:13.5px; color:var(--na1-text); line-height:1.45; word-break:break-word; }
+.na1-status-value.is-empty{ color:var(--na1-text-mute); font-style:italic; }
+.na1-status-value.is-declaration{ font-family:var(--na1-serif); font-style:italic; color:var(--gold); font-size:14.5px; }
+/* Room placeholder overlay (full Rooms come in steps 7-10) */
+.na1-room-overlay{ position:fixed; inset:0; z-index:80; background:rgba(13,27,46,0.78); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:24px; animation:na1RoomFadeIn .25s ease; }
+[data-theme="light"] .na1-room-overlay{ background:rgba(245,243,239,0.82); }
+.na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-xl); padding:32px 28px; max-width:560px; width:100%; max-height:90vh; overflow:auto; position:relative; font-family:var(--na1-sans); box-shadow:0 24px 80px rgba(0,0,0,0.4); }
+.na1-room-close{ position:absolute; top:14px; right:14px; width:36px; height:36px; border-radius:50%; background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.na1-room-close:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); }
+@keyframes na1RoomFadeIn{ from{ opacity:0; } to{ opacity:1; } }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -9738,11 +9813,58 @@ function NewA1Grid({ name, progress, onOpenPurpose }: { name?: string; progress:
   );
 }
 
-// Temporary Explore stub until step 5 builds the real Explore page + rooms.
-function NewA1ExploreStub({ onBack }: { onBack: () => void }) {
+// ─── NEW A1: Explore page (intro video + 4 exercise rows + status strip) ───
+const NA1_EXERCISES = [
+  { n:1, key:"sym",     name:"Owned Symptoms", tone:"burgundy", subtitle:"The cost — what you've been holding back." },
+  { n:2, key:"to",      name:"True Ownership", tone:"gold",     subtitle:"The vision — 6 questions, mixed cadence." },
+  { n:3, key:"peel",    name:"The Peel",       tone:"cyan",     subtitle:"The work — peel until something feels final." },
+  { n:4, key:"declare", name:"Declare",        tone:"gold",     subtitle:"Claimed — your Purpose, in one phrase." },
+] as const;
+
+function NewA1RoomPlaceholder({ exercise, onClose }: { exercise: typeof NA1_EXERCISES[number]; onClose: () => void; }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="na1-room-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label={exercise.name}>
+      <div className="na1-room-card">
+        <button type="button" className="na1-room-close" onClick={onClose} aria-label="Close">×</button>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.16em", textTransform:"uppercase", color:`var(--${exercise.tone})`, marginBottom:6, fontFamily:"var(--na1-sans)" }}>Mirror 1 · Exercise {exercise.n}</div>
+        <h2 style={{ fontFamily:"var(--na1-serif)", fontSize:26, fontWeight:600, lineHeight:1.25, margin:"0 0 10px", color:"var(--na1-text)" }}>{exercise.name}</h2>
+        <p style={{ fontFamily:"var(--na1-sans)", fontSize:14.5, lineHeight:1.6, color:"var(--na1-text-sec)", margin:"0 0 18px" }}>{exercise.subtitle}</p>
+        <div style={{ padding:"14px 16px", background:"var(--gold-warm)", border:"1px dashed var(--gold-line)", borderRadius:"var(--na1-radius)", fontFamily:"var(--na1-sans)", fontSize:13, color:"var(--na1-text-sec)", marginBottom:20 }}>
+          Room placeholder · the full exercise lands in a follow-up step. Click outside or press <kbd>Esc</kbd> to close.
+        </div>
+        <div style={{ display:"flex", justifyContent:"flex-end" }}>
+          <button type="button" className="na1-btn-ghost" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewA1Explore({ progress, onBack }: { progress: { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; purposeFinal: string }; onBack: () => void; }) {
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [openRoom, setOpenRoom] = useState<null | typeof NA1_EXERCISES[number]>(null);
+  const doneArr = [progress.ex1, progress.ex2, progress.ex3, progress.ex4];
+  const firstIncomplete = doneArr.findIndex(d => !d);
+  const currentIdx = firstIncomplete === -1 ? 3 : firstIncomplete;
+  // Status strip values
+  const symHoldback = String(loadDataSync("a1_sym_holdback") || "").trim();
+  const toAnswers: any[] = Array.isArray(loadDataSync("a1_to_answers")) ? loadDataSync("a1_to_answers") : [];
+  const toFilled = toAnswers.filter((a) => {
+    if (!a || typeof a !== "object") return false;
+    const v = a.text || a.feeling || a.c1 || a.c2 || "";
+    return String(v).trim().length > 0;
+  }).length;
+  const peelLayers: any[] = Array.isArray((loadDataSync(KEYS.map) as any)?.purpose_layers) ? (loadDataSync(KEYS.map) as any).purpose_layers : [];
+  const peelCount = peelLayers.filter((l) => String(l || "").trim().length > 0).length;
+  const declaration = progress.purposeFinal;
   return (
     <div className="na1-root">
-      <div className="na1-shell" style={{ maxWidth:760 }}>
+      <div className="na1-shell">
         <div className="na1-breadcrumb">
           <a onClick={onBack}>Entry Hall</a>
           <span className="sep">›</span>
@@ -9750,20 +9872,91 @@ function NewA1ExploreStub({ onBack }: { onBack: () => void }) {
           <span className="sep">›</span>
           <span className="current">Purpose</span>
         </div>
-        <div className="na1-hero-eyebrow">A1 · Mirror 1 · Explore with Katherine</div>
-        <h1 className="na1-hero-title">Purpose</h1>
-        <p className="na1-hero-sub" style={{ marginTop:8 }}>Explore page placeholder. The 4 exercise rows + intro video + status strip land in the next step.</p>
-        <div style={{ marginTop:28 }}>
-          <button type="button" className="na1-btn-gold" onClick={onBack}>← Back to A1</button>
+        <div className="na1-explore-layout">
+          <div>
+            <div className="na1-ex-eyebrow">A1 · Mirror 1 · Explore with Katherine</div>
+            <h1 className="na1-ex-title">Purpose</h1>
+            <p className="na1-ex-sub">Four exercises. Katherine guides each one with a short video. When she says <em>"come to your space"</em> — tap the active exercise below.</p>
+            <p className="na1-ex-foot-sub">You can return anytime to edit anything you've written.</p>
+            <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
+              <div className="na1-intro-video-head" onClick={() => setVideoOpen(v => !v)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setVideoOpen(v => !v); } }} aria-expanded={videoOpen}>
+                <div className="na1-intro-video-left">
+                  <div className="na1-intro-video-play-mini" aria-hidden>▶</div>
+                  <div className="na1-intro-video-title-row">
+                    <span className="na1-intro-video-eyebrow">Start here · Katherine introduces Purpose</span>
+                    <span className="na1-intro-video-title">Purpose · Your Internal Why</span>
+                  </div>
+                </div>
+                <span className="na1-intro-video-meta">6 min</span>
+                <span className="na1-intro-video-chev" aria-hidden>▾</span>
+              </div>
+              <div className="na1-intro-video-body">
+                <div className="na1-video-stub">
+                  <button type="button" className="na1-video-stub-play" aria-label="Play intro video">▶</button>
+                  <div className="na1-video-stub-caption">Katherine's Purpose intro · 6 min</div>
+                </div>
+              </div>
+            </div>
+            <div className="na1-ex-list">
+              {NA1_EXERCISES.map((ex, idx) => {
+                const isDone = doneArr[idx];
+                const isCurrent = idx === currentIdx && !isDone;
+                const isUnlocked = idx === 0 || doneArr[idx - 1];
+                const isLocked = !isUnlocked && !isDone;
+                const cls = [
+                  "na1-ex-row",
+                  `tone-${ex.tone}`,
+                  isDone ? "is-complete" : "",
+                  isCurrent ? "is-current" : "",
+                  isLocked ? "is-locked" : "is-unlocked",
+                ].filter(Boolean).join(" ");
+                const statusLabel = isDone ? "Complete" : isCurrent ? "Up next · tap to begin" : isLocked ? `Unlocks after ${NA1_EXERCISES[idx - 1].name}` : "Available";
+                const iconChar = isDone ? "✓" : isLocked ? "🔒" : String(ex.n);
+                return (
+                  <button type="button" key={ex.key} className={cls} disabled={isLocked} onClick={() => { if (!isLocked) setOpenRoom(ex); }} aria-label={`${ex.name} — ${statusLabel}`}>
+                    <span className="na1-ex-icon" aria-hidden>{iconChar}</span>
+                    <span className="na1-ex-text">
+                      <span className="na1-ex-name" style={{ display:"block" }}>{ex.name}</span>
+                      <span className="na1-ex-status" style={{ display:"block" }}>{statusLabel}</span>
+                    </span>
+                    {!isLocked && <span className="na1-ex-arrow" aria-hidden>›</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ display:"flex", justifyContent:"flex-start", marginTop:8 }}>
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>← Back to A1</button>
+            </div>
+          </div>
+          <aside className="na1-status-strip" aria-label="Your Purpose so far">
+            <div className="na1-status-eyebrow">Your Purpose so far</div>
+            <div className="na1-status-row">
+              <span className="na1-status-label">Holding back</span>
+              <span className={`na1-status-value ${symHoldback ? "" : "is-empty"}`}>{symHoldback || "—"}</span>
+            </div>
+            <div className="na1-status-row">
+              <span className="na1-status-label">True Ownership</span>
+              <span className={`na1-status-value ${toFilled ? "" : "is-empty"}`}>{toFilled ? `${toFilled} of 6 answered` : "—"}</span>
+            </div>
+            <div className="na1-status-row">
+              <span className="na1-status-label">Peel layers</span>
+              <span className={`na1-status-value ${peelCount ? "" : "is-empty"}`}>{peelCount ? `${peelCount} ${peelCount === 1 ? "layer" : "layers"}` : "—"}</span>
+            </div>
+            <div className="na1-status-row">
+              <span className="na1-status-label">Declaration</span>
+              <span className={`na1-status-value ${declaration ? "is-declaration" : "is-empty"}`}>{declaration ? `"${declaration}"` : "—"}</span>
+            </div>
+          </aside>
         </div>
       </div>
+      {openRoom && <NewA1RoomPlaceholder exercise={openRoom} onClose={() => setOpenRoom(null)} />}
     </div>
   );
 }
 
 function NewA1View({ name }: { name?: string }) {
   const [view, setView] = useState<"grid" | "explore">("grid");
-  // Re-read on every mount so progress reflects latest saves.
+  // Re-read on every view transition so progress reflects latest saves.
   const progress = useMemo(() => {
     const map = (loadDataSync(KEYS.map) as any) || {};
     return {
@@ -9774,7 +9967,7 @@ function NewA1View({ name }: { name?: string }) {
       purposeFinal: String(map.purpose_final || "").trim(),
     };
   }, [view]);
-  if (view === "explore") return <NewA1ExploreStub onBack={() => setView("grid")} />;
+  if (view === "explore") return <NewA1Explore progress={progress} onBack={() => setView("grid")} />;
   return <NewA1Grid name={name} progress={progress} onOpenPurpose={() => setView("explore")} />;
 }
 
