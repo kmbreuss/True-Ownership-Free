@@ -11489,7 +11489,8 @@ function NewA2TwoFuturesBody({ onSaved, onClose }: { onSaved: () => void; onClos
           Sit with this for a minute.<br />
           Then let's go write what owning each of these looks like.
         </div>
-        <div className="na1-room-actions" style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
+        <div className="na1-room-actions" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:8 }}>
+          <button type="button" className="na1-btn-ghost" onClick={goBack}>← Back</button>
           <button type="button" className="na2-btn-continue is-gold" disabled={advancing} onClick={goNext}>{continueLabel}</button>
         </div>
       </>
@@ -11718,6 +11719,212 @@ function NewA2TimeBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
   );
 }
 
+// ─── Mirror 2 · Exercise 3 · Wealth · 10-Year (green prose room) ───
+// 3 sections × 2 blanks = 6 blanks total. Same mechanics as Time; lens=wealth, tone=green.
+const M2_WEALTH_ICONS: Record<string, React.ReactElement> = {
+  cashflow:  (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 7c2 0 3-2 6-2s4 2 6 2 3-2 6-2"/><path d="M3 12c2 0 3-2 6-2s4 2 6 2 3-2 6-2"/><path d="M3 17c2 0 3-2 6-2s4 2 6 2 3-2 6-2"/></svg>),
+  building:  (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 21V5a1 1 0 011-1h9a1 1 0 011 1v16"/><path d="M15 9h4a1 1 0 011 1v11"/><path d="M7 8h2M7 12h2M7 16h2M12 12h0M12 16h0M17 13h0M17 17h0"/><path d="M3 21h18"/></svg>),
+  stability: (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/></svg>),
+};
+function NewA2WealthBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
+  const initialMap = (loadDataSync(KEYS.map) as any) || {};
+  const initialVision: VisionState = (initialMap.vision as VisionState) || EMPTY_VISION;
+  const initialWealth = initialVision.wealth || EMPTY_VISION.wealth;
+  const futureB = initialVision.twoFutures?.futureB?.wealth || EMPTY_VISION.twoFutures.futureB.wealth;
+  const domains = LENS_DOMAINS.wealth;
+  type BlankKey = string;
+  const initialValues: Record<BlankKey, string> = {};
+  domains.forEach(d => {
+    const sec = (initialWealth as any)[d] || { blank1: "", blank2: "" };
+    initialValues[`${d}.blank1`] = String(sec.blank1 || "");
+    initialValues[`${d}.blank2`] = String(sec.blank2 || "");
+  });
+  const [values, setValues] = useState<Record<BlankKey, string>>(initialValues);
+  const [editing, setEditing] = useState<Record<BlankKey, boolean>>(() => {
+    const next: Record<BlankKey, boolean> = {};
+    Object.keys(initialValues).forEach(k => { next[k] = !initialValues[k].trim(); });
+    return next;
+  });
+  const [savedAt, setSavedAt] = useState<Record<BlankKey, number | null>>(() => {
+    const next: Record<BlankKey, number | null> = {};
+    Object.keys(initialValues).forEach(k => { next[k] = initialValues[k].trim() ? Date.now() : null; });
+    return next;
+  });
+  const [pulseDomains, setPulseDomains] = useState<Set<string>>(new Set());
+  const [tipOn, setTipOn] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
+  const [nowTick, setNowTick] = useState(0);
+  const saveTimer = useRef<number | null>(null);
+  useEffect(() => {
+    const t = window.setInterval(() => setNowTick(n => n + 1), 5000);
+    return () => window.clearInterval(t);
+  }, []);
+  const filledCount = Object.values(values).filter(v => v.trim().length > 0).length;
+  const total = domains.length * 2;
+  const allFilled = filledCount === total;
+  const valuesJson = JSON.stringify(values);
+  const initialJson = useRef<string>(JSON.stringify(initialValues));
+  useEffect(() => {
+    if (valuesJson === initialJson.current) return;
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(async () => {
+      const cur = (await loadData(KEYS.map)) as any || initialMap;
+      const curVision: VisionState = cur.vision || EMPTY_VISION;
+      const nextWealth: any = { ...curVision.wealth };
+      domains.forEach(d => {
+        nextWealth[d] = { blank1: values[`${d}.blank1`] || "", blank2: values[`${d}.blank2`] || "" };
+      });
+      await saveData(KEYS.map, { ...cur, vision: { ...curVision, wealth: nextWealth } });
+      initialJson.current = valuesJson;
+      setSavedAt(prev => {
+        const next = { ...prev };
+        Object.keys(values).forEach(k => { if (values[k].trim()) next[k] = Date.now(); });
+        return next;
+      });
+    }, 600);
+    return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
+  }, [valuesJson]); // eslint-disable-line react-hooks/exhaustive-deps
+  const onChangeBlank = (key: BlankKey, v: string) => {
+    setValues(prev => ({ ...prev, [key]: v }));
+    setPulseDomains(prev => {
+      const dom = key.split(".")[0];
+      if (!prev.has(dom)) return prev;
+      const n = new Set(prev); n.delete(dom); return n;
+    });
+  };
+  const onBlurBlank = async (key: BlankKey) => {
+    const v = values[key].trim();
+    if (!v) return;
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    const cur = (await loadData(KEYS.map)) as any || initialMap;
+    const curVision: VisionState = cur.vision || EMPTY_VISION;
+    const nextWealth: any = { ...curVision.wealth };
+    domains.forEach(d => {
+      nextWealth[d] = { blank1: values[`${d}.blank1`] || "", blank2: values[`${d}.blank2`] || "" };
+    });
+    await saveData(KEYS.map, { ...cur, vision: { ...curVision, wealth: nextWealth } });
+    initialJson.current = JSON.stringify(values);
+    setSavedAt(prev => ({ ...prev, [key]: Date.now() }));
+    setEditing(prev => ({ ...prev, [key]: false }));
+  };
+  const startEdit = (key: BlankKey) => {
+    setEditing(prev => ({ ...prev, [key]: true }));
+    window.setTimeout(() => {
+      const el = document.querySelector(`[data-blank="${key}"]`) as HTMLTextAreaElement | null;
+      if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    }, 20);
+  };
+  const tryContinue = () => {
+    if (advancing) return;
+    if (!allFilled) {
+      const missing = new Set<string>();
+      domains.forEach(d => {
+        if (!values[`${d}.blank1`].trim() || !values[`${d}.blank2`].trim()) missing.add(d);
+      });
+      setPulseDomains(missing);
+      setTipOn(true);
+      window.setTimeout(() => setTipOn(false), 3000);
+      window.setTimeout(() => {
+        const first = Array.from(missing)[0];
+        const el = document.querySelector(`[data-section="${first}"]`);
+        if (el && (el as HTMLElement).scrollIntoView) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 30);
+      return;
+    }
+    void finish();
+  };
+  const finish = async () => {
+    setAdvancing(true);
+    try {
+      const cur = (await loadData(KEYS.map)) as any || initialMap;
+      const curVision: VisionState = cur.vision || EMPTY_VISION;
+      const nextWealth: any = { ...curVision.wealth };
+      domains.forEach(d => {
+        nextWealth[d] = { blank1: values[`${d}.blank1`] || "", blank2: values[`${d}.blank2`] || "" };
+      });
+      await saveData(KEYS.map, { ...cur, vision: { ...curVision, wealth: nextWealth, wealth_complete: true } });
+      onSaved();
+    } finally { setAdvancing(false); }
+  };
+  const formatSavedAgo = (ts: number | null): string => {
+    if (!ts) return "";
+    void nowTick;
+    const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (s < 3) return "Saved · just now";
+    if (s < 60) return `Saved · ${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `Saved · ${m}m ago`;
+    return `Saved · ${Math.floor(m / 60)}h ago`;
+  };
+  return (
+    <div className="na2-prose tone-green">
+      <div className="na1-room-eyebrow tone-green" style={{ letterSpacing:"0.08em" }}>Vision · 10-Year Horizon · Wealth</div>
+      <h2 className="na1-room-title">Now write what owning your wealth looks like.</h2>
+      <p className="na2-prose-subtitle">In 10 years — what have you built, and what holds you up?</p>
+      <p className="na1-room-context" style={{ marginTop:0 }}>You claimed these three chips for Future B. Now make each one concrete: name the mechanism, and name how you'd know it's real.</p>
+      <div className="na2-pip-bar" aria-label="Step 3 of 5">
+        <div className="na2-pip is-burgundy" />
+        <div className="na2-pip is-yellow" />
+        <div className="na2-pip is-green" />
+        <div className="na2-pip" />
+        <div className="na2-pip" />
+        <span className="na2-pip-meta">Wealth · 10-year</span>
+      </div>
+      {domains.map(d => {
+        const tier = (futureB as any)[d] as 1|2|3|4 | null;
+        const chipText = tier ? VISION_CHIPS.wealth[d][tier] : null;
+        const tmpl = SENTENCE_TEMPLATES.wealth[d];
+        const ph = PLACEHOLDERS.wealth[d];
+        const k1 = `${d}.blank1`, k2 = `${d}.blank2`;
+        const pulsing = pulseDomains.has(d);
+        return (
+          <div className="na2-prose-section" key={d} data-section={d}>
+            <div className="na2-prose-section-head">
+              <span className="icon" style={{ width:20, height:20, display:"inline-flex" }}>{M2_WEALTH_ICONS[d]}</span>
+              <span className={`label ${pulsing ? "is-pulsing" : ""}`}>{DOMAIN_LABELS.wealth[d]}</span>
+            </div>
+            {chipText
+              ? <span className="na2-prose-chip-pill">{chipText}</span>
+              : <span className="na2-prose-chip-pill is-empty">No Future B chip picked yet</span>}
+            <p className="na2-prose-stem-lead">In 10 years, <span className="chip-echo">{chipText || "—"}</span>.</p>
+            <div className="na2-prose-blank-wrap">
+              <p className="na2-prose-blank-stem">{tmpl.stem1} —</p>
+              {editing[k1] ? (
+                <textarea className="na2-blank-input" data-blank={k1} value={values[k1]} placeholder={ph[1]} rows={2} onChange={(e) => onChangeBlank(k1, e.target.value)} onBlur={() => onBlurBlank(k1)} aria-label={`${DOMAIN_LABELS.wealth[d]} — ${tmpl.stem1}`} />
+              ) : (
+                <span className="na2-blank-filled" tabIndex={0} role="button" onClick={() => startEdit(k1)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startEdit(k1); } }}>{values[k1]}</span>
+              )}
+              {values[k1].trim() && savedAt[k1] && <div className="na2-blank-saved">{formatSavedAgo(savedAt[k1])}</div>}
+            </div>
+            <div className="na2-prose-blank-wrap">
+              <p className="na2-prose-blank-stem">— {tmpl.stem2} —</p>
+              {editing[k2] ? (
+                <textarea className="na2-blank-input" data-blank={k2} value={values[k2]} placeholder={ph[2]} rows={2} onChange={(e) => onChangeBlank(k2, e.target.value)} onBlur={() => onBlurBlank(k2)} aria-label={`${DOMAIN_LABELS.wealth[d]} — ${tmpl.stem2}`} />
+              ) : (
+                <span className="na2-blank-filled" tabIndex={0} role="button" onClick={() => startEdit(k2)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startEdit(k2); } }}>{values[k2]}</span>
+              )}
+              {values[k2].trim() && savedAt[k2] && <div className="na2-blank-saved">{formatSavedAgo(savedAt[k2])}</div>}
+            </div>
+          </div>
+        );
+      })}
+      <div className="na2-prose-foot">
+        <div className="na2-prose-foot-meta">
+          <span>Saves automatically as you write</span>
+          <span className="counter">{filledCount} of {total} blanks filled</span>
+        </div>
+        <div className="na2-prose-actions">
+          <button type="button" className="na1-btn-ghost" onClick={onClose}>← Back</button>
+          <div className="na2-continue-wrap" onMouseEnter={() => { if (!allFilled) window.setTimeout(() => { setTipOn(true); window.setTimeout(() => setTipOn(false), 3000); }, 500); }} onMouseLeave={() => setTipOn(false)}>
+            <button type="button" className={`na2-btn-continue ${allFilled ? "is-green" : ""}`} disabled={!allFilled || advancing} onClick={tryContinue}>Continue · Self →</button>
+            <div className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}>Fill every blank to continue.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NewA2RoomPlaceholderBody({ exercise, onClose }: { exercise: M2Exercise; onClose: () => void; }) {
   return (
     <>
@@ -11830,6 +12037,8 @@ function NewA1View({ name }: { name?: string }) {
               ? <NewA2TwoFuturesBody onSaved={closeRoom} onClose={closeRoom} />
               : openM2Ex.key === "time"
               ? <NewA2TimeBody onSaved={closeRoom} onClose={closeRoom} />
+              : openM2Ex.key === "wealth"
+              ? <NewA2WealthBody onSaved={closeRoom} onClose={closeRoom} />
               : <NewA2RoomPlaceholderBody exercise={openM2Ex} onClose={closeRoom} />}
           </NewA2RoomShell>
         )}
