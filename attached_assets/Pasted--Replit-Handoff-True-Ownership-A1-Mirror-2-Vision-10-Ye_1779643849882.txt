@@ -1,0 +1,1063 @@
+# Replit Handoff · True Ownership™ · A1 · Mirror 2 (Vision · 10-Year Horizon) · FULL
+
+**Scope:** This handoff covers **A1 · Mirror 2 · all 5 exercises**, the Mirror 2 Explore page, and the Katherine seal that closes the Mirror. It supersedes the earlier `Replit_Handoff_Mirror2_TwoFutures.md` partial handoff.
+
+**Important:** Mirror 1 (Purpose) is already shipped behind `?newA1=1`. Mirror 2 builds inside the same flag. Do not touch Mirror 1's code. Do not touch Mirror 3 or Mirror 4 — they are not designed yet.
+
+Keep the existing data model patterns, Katherine integration, auto-save engine, veil transition, and Room/Explore shell from Mirror 1. Mirror 2 reuses the spine; the chip-ladder, lens prose, and seal ceremony are new mechanics.
+
+---
+
+## Before you begin
+
+1. **Confirm Mirror 1 still works.** Open `https://b8363272-ff9f-404c-9632-5af68f34d738-00-2kazqkj8gufie.spock.replit.dev/?newA1=1`. Walk through Purpose end-to-end. If anything is broken, fix Mirror 1 first.
+
+2. **Fork the True Ownership Replit project as a snapshot.** Name the fork `True-Ownership-Snapshot-Pre-M2-Full` so we can roll back if needed.
+
+3. **Read this entire doc once before writing code.** Mirror 2 is substantial — 5 exercises, 11 chip domains, 22 chip-picks, 22 prose blanks, and a Katherine seal. The interdependencies matter.
+
+---
+
+## Naming conventions (use these in code and UI)
+
+- **The 5 As at top level** = "disciplines" — A1 (All In It), A2 (Align With It), A3 (Advocate For It), A4 (Act On It), A5 (Accountable To It)
+- **The journey verbs** are always capitalized in user-facing copy: **Align, Advocate, Act, Account**
+- **Cards inside each A** = "Mirrors" — A1 has Purpose, Vision, Identity, Values
+- **Katherine refers to Mirrors by name** ("your Vision," "your Purpose"), never as "Card" or "Mirror" in dialogue
+- "Mirror" lives in UI chrome (breadcrumbs, count labels) and internal docs
+
+---
+
+## Mirror 2 overview
+
+Mirror 2 is **Vision · 10-Year Horizon** (formerly "BAG · Big Ass Goal"). User enters Mirror 2 via the Vision card on A1 grid, which unlocks once Mirror 1 (Purpose) is complete (state.a1.purpose.declaration non-empty).
+
+The Mirror has 5 exercises:
+
+| # | Exercise | Tone | Type | Output |
+|---|---|---|---|---|
+| 1 | Two Futures | Burgundy / Gold | Chip ladder + wake-up + side-by-side | 22 chip-picks (11 today, 11 future) |
+| 2 | Time · 10-Year | Yellow `#D9A93C` | Prose w/ chip headings | 5 sentence-completions × 2 blanks = 10 blanks |
+| 3 | Wealth · 10-Year | Green `#5C9A6B` | Prose w/ chip headings | 3 sentence-completions × 2 blanks = 6 blanks |
+| 4 | Self · 10-Year | Purple `#9B7CC2` | Prose w/ chip headings | 3 sentence-completions × 2 blanks = 6 blanks |
+| 5 | Vision Declaration | Silver `#C5C9D1` | Read-back + claim + Katherine seal | Locked Vision claim |
+
+When all 5 are complete, the Mirror 2 card on the A1 grid shows "Complete" state in gold and Mirror 3 (Identity) becomes available.
+
+---
+
+## The Mirror 2 Explore page
+
+When user clicks the Vision card on the A1 grid, they land on the Mirror 2 Explore page.
+
+### Layout
+
+```
+┌─ 760px shell ───────────────────────────────────┐
+│  Breadcrumb: A1 · All In It › Vision · 10-Year   │
+│                                                  │
+│  EYEBROW: "Mirror 2 of 4"                        │
+│  TITLE (Georgia 32px): "Vision · 10-Year Horizon"│
+│  SUBTITLE (italic Georgia gold):                 │
+│  "Where you're going. The life you'll own."     │
+│                                                  │
+│  Helper (DM Sans 14px secondary):                │
+│  "Five exercises. The first three diagnose       │
+│   and write; the last two claim. Katherine       │
+│   guides each one."                              │
+│                                                  │
+│  [Collapsed intro video block — placeholder OK]  │
+│                                                  │
+│  Row 1: Two Futures                              │
+│  Row 2: Time · 10-Year   (locked until #1 done) │
+│  Row 3: Wealth · 10-Year (locked until #2 done) │
+│  Row 4: Self · 10-Year   (locked until #3 done) │
+│  Row 5: Vision Declaration (locked until #4)    │
+│                                                  │
+│  ← Back to A1                                    │
+└──────────────────────────────────────────────────┘
+```
+
+### Row content
+
+| # | Title | Subtitle | Tone |
+|---|---|---|---|
+| 1 | Two Futures | The two paths in front of you, side by side. | Burgundy |
+| 2 | Time · 10-Year | The life that holds your hours. | Yellow |
+| 3 | Wealth · 10-Year | What you'll build, what'll hold. | Green |
+| 4 | Self · 10-Year | The person you'll have become. | Purple |
+| 5 | Vision Declaration | One claimed Vision. | Silver |
+
+Row visual states (reuse Mirror 1's exercise row component):
+- **Locked:** greyed text, lock icon, no click handler, subtitle "Unlocks after [previous exercise name]"
+- **Up next:** gold state pill labeled "Up next", CTA "Explore with Katherine →"
+- **In progress:** cyan state pill labeled "In progress", CTA "Continue →"
+- **Complete:** gold check, CTA "Review →"
+
+---
+
+## Exercise 1 · Two Futures
+
+The diagnostic. User reads their current life across 11 domains using a 4-tier "Own It Scale" chip ladder, sees a Katherine wake-up moment that quotes their own words back at them, then claims the rungs they want to be on in 10 years. Closes with a side-by-side ladder showing the climb.
+
+### Veil text on room entry
+
+> *"Looking out ten years…"*
+
+Italic Georgia serif gold. Standard ~2.7 second veil transition per Mirror 1 spec. Fires ONCE on entry; internal screens swap without veil.
+
+### 8-screen flow inside the room
+
+| Screen | Content | Tone | Pip color | Next button |
+|---|---|---|---|---|
+| 1 | Future A · Time today (5 domains) | Burgundy | Burgundy | "Continue · Wealth →" |
+| 2 | Future A · Wealth today (3 domains) | Burgundy | Burgundy | "Continue · Self →" |
+| 3 | Future A · Self today (3 domains) | Burgundy | Burgundy | "Continue →" |
+| 4 | Wake-up moment (Katherine's voice) | Held / gold | — | "Step into Future B" |
+| 5 | Future B · Time future (5 domains) | Gold | Gold | "Continue · Wealth →" |
+| 6 | Future B · Wealth future (3 domains) | Gold | Gold | "Continue · Self →" |
+| 7 | Future B · Self future (3 domains) | Gold | Gold | "Continue →" |
+| 8 | The Climb · side-by-side ladder | Gold-bordered | Gold | "Continue to Time →" |
+
+Pips: 8 pips at top of every chip-pick screen. Pips 1-3 fill burgundy as user progresses through Future A, pip 4 is the wake-up (no pip lights it; pips hidden on wake-up screen), pips 5-7 fill gold through Future B, pip 8 is The Climb. Pips hidden on screens 4 and 8.
+
+### Chip-pick screen layout (screens 1-3, 5-7)
+
+```
+┌─ Room card (gold border, max 720px) ─────────────┐
+│  × (top-right)                                   │
+│  Breadcrumb: Mirror 2 › Two Futures              │
+│                                                  │
+│  Pip bar with meta label "Time · today"          │
+│                                                  │
+│  EYEBROW (burgundy or gold uppercase):           │
+│  "Vision · 10-year horizon › Two Futures ›        │
+│   Future A" (or Future B)                        │
+│                                                  │
+│  TITLE (Georgia 26px):                           │
+│  "If nothing changes, what's true in 10 years?"  │
+│   (or "If you own this, what's true in 10 years?") │
+│                                                  │
+│  SUBTITLE (italic Georgia, lens color):          │
+│  "An honest read on your [lens], today."         │
+│   (or "Where you're climbing toward.             │
+│        Pick the rung you'll claim.")             │
+│                                                  │
+│  HELPER (DM Sans 13px secondary):                │
+│  Future A: "For each domain, pick the chip       │
+│   that's most true right now. No wrong answer    │
+│   — the only wrong move is dressing it up."      │
+│  Future B: "Same domains. This time, pick what   │
+│   you want to be true in 10 years."              │
+│                                                  │
+│  ┌─ Domain row 1 ─────────────────────────────┐  │
+│  │ DOMAIN NAME (Georgia 15px)                 │  │
+│  │ [chip] [chip] [chip] [chip]                │  │
+│  └────────────────────────────────────────────┘  │
+│  (repeat per domain)                             │
+│                                                  │
+│  [← Back]                  [Continue · X →]      │
+└──────────────────────────────────────────────────┘
+```
+
+### The 11 domains and 44 chips (master table)
+
+Chips are written as feeling+reality phrases. Each chip is mapped to a tier (1-4) where Tier 1 = Completely Owned, Tier 2 = Complacent, Tier 3 = Aspiring, Tier 4 = True Owner.
+
+**CRITICAL:** Chip display order is RANDOMIZED per domain on each render. Use `${domainId}-${lens}-${pass}-${userId}` as a deterministic seed so the order is stable within a session but anti-anchored across users.
+
+#### Lens 1 — Time (5 domains)
+
+| Domain | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|---|---|---|---|---|
+| Work | My calendar runs and drains me | I'm coasting at work | Mostly fulfilling, some leaks | I own my work time and it fulfills me |
+| Family | Little engagement | There, but distracted | Half-present | Full and present |
+| Friends | I've lost touch | Surface-level only | Tended but thin | Rich and current |
+| Hobbies | I've forgotten what I love | I make excuses | Squeezed in when I can | Lit up by what I make time for |
+| Health | Running on fumes | Surviving, not thriving | Inconsistent but trying | Strong and rested |
+
+#### Lens 2 — Wealth (3 domains)
+
+| Domain | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|---|---|---|---|---|
+| Cashflow | Money is tight, I'm scrambling | Stable, but stuck | Generating, with margin | Abundant and flowing |
+| Building | Surviving, nothing saved | Saving when I can | Building, no real plan | Compounding on purpose |
+| Stability | One bad month from disaster | Treading water | Solid, but precarious | Rooted and resilient |
+
+#### Lens 3 — Self (3 domains)
+
+| Domain | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|---|---|---|---|---|
+| Self-treatment | I'm cruel to myself | I tolerate myself | Mostly kind to myself | I treat myself like someone I love |
+| Self-perception | I don't recognize who I am | I know the role, not the person | Becoming someone I recognize | I am who I am, fully |
+| Becoming | I'm the version of me from years ago | I change reluctantly | Shifting, with friction | Becoming, with grace |
+
+### Chip rendering
+
+```css
+.chip {
+  border: 1px solid var(--na1-border);
+  background: transparent;
+  color: var(--na1-text-secondary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.3;
+  padding: 7px 12px;
+  border-radius: 18px;
+  min-height: 44px tap target;
+}
+
+/* Selected — Future A */
+.chip.selected-burgundy {
+  border-color: #A03B3B;
+  background: rgba(160, 59, 59, 0.18);
+  color: var(--na1-text-primary);
+  font-weight: 500;
+}
+
+/* Selected — Future B */
+.chip.selected-gold {
+  border-color: #C9A24B;
+  background: rgba(201, 162, 75, 0.16);
+  color: var(--na1-text-primary);
+  font-weight: 500;
+}
+```
+
+Single-select within each domain row. Tap a new chip in a domain → previous chip in that domain deselects.
+
+### Strict completion validation
+
+Continue button is DISABLED until every domain on the current screen has a chip selected.
+
+- **Disabled visual:** background `#1f3550`, text `#5c7088`, cursor not-allowed
+- **Enabled visual:** background `#A03B3B` (Future A) or `#C9A24B` (Future B), text appropriate, hover lifts brightness 1.08
+
+**Highlight what's missing:** When user attempts to click Continue while disabled OR hovers it for >500ms:
+1. Scroll any incomplete domain into view
+2. Pulse the domain name in the tone color for ~1.5s (text-color shift over 600ms × 2 cycles)
+3. Tooltip near Continue: "Pick a chip for each domain to continue." (auto-dismiss 3s)
+
+### Screen 4 · Wake-up
+
+A held moment. Slightly darker background than chip screens. No domain rows, no chips, no input. No back button. No pips. No × close. Just Katherine's voice and a forward button.
+
+#### Layout
+
+```
+┌─ Wake-up screen (max 680px, bg #0a1424) ────────┐
+│                                                  │
+│  ┌── 56px top padding ──┐                        │
+│                                                  │
+│  CALLBACK LABEL (italic Georgia 13px muted):     │
+│  "You named the thing costing you most:"         │
+│                                                  │
+│  CALLBACK QUOTE (italic Georgia gold 15px):      │
+│  "[user's holdingBack value, in quotes]"         │
+│                                                  │
+│  ┌── 36px breathing ──┐                          │
+│                                                  │
+│  BLOCK 1 (italic Georgia 19px primary):          │
+│  "Look at the chips you just picked."            │
+│  (then soft greyed list of 3-4 lowest-tier picks)│
+│                                                  │
+│  BLOCK 2 (italic Georgia 19px):                  │
+│  "Here's what compounds when you don't own it:"  │
+│  (compound lines — see logic below)              │
+│                                                  │
+│  DAGGER (italic Georgia 21px w-500):             │
+│  "The way you keep {oneThingPhrase} —            │
+│   it owns you." ("it owns you" in burgundy)      │
+│                                                  │
+│  GOLD DIVIDER (48px line)                        │
+│                                                  │
+│  PURPOSE LINE (italic Georgia 17px muted):       │
+│  "You named your why: {purpose}."                │
+│                                                  │
+│  IMPERATIVE (Georgia 19px gold, w-500):          │
+│  "Now own it."                                   │
+│                                                  │
+│  PROMPT (italic Georgia 15px muted):             │
+│  "Show me what's true in 10 years when you do."  │
+│                                                  │
+│  ┌── 36px ──┐                                    │
+│                                                  │
+│  [Step into Future B] (gold outline button)      │
+│                                                  │
+│  ┌── 56px bottom padding ──┐                     │
+└──────────────────────────────────────────────────┘
+```
+
+#### Template variables
+
+Two values come from Mirror 1 state:
+- `{oneThing}` — `state.a1.purpose.symptoms.holdingBack`
+- `{purpose}` — `state.a1.purpose.declaration`
+
+#### Variant A — Both filled (canonical)
+
+Shown above. The user's `holdingBack` quoted verbatim. The user's `purpose` declaration in italic gold.
+
+#### Variant B — Only purpose filled (holdingBack empty)
+
+Omit the callback label + callback quote. Omit the dagger. Replace with:
+
+> *"These don't stay where they are."*
+
+(after the compound lines, before the gold divider)
+
+Keep the Purpose section and the imperative as-is.
+
+#### Variant C — Neither filled (rare edge case)
+
+Omit callback label + quote. Omit dagger. Omit Purpose line.
+
+Replace with:
+
+> *"These don't stay where they are. They become more themselves."*
+
+(after compound lines)
+
+Keep the imperative "Now own it." and the prompt.
+
+#### Compound line logic
+
+For each Future A chip the user picked:
+- Tier 1 chip → no compound line (already at bottom)
+- Tier 2 chip → "{Tier 2 chip phrase, sentence-cased} becomes {Tier 1 chip phrase from same domain, sentence-cased}"
+- Tier 3 chip → "{Tier 3 phrase} becomes {Tier 2 phrase from same domain}"
+- Tier 4 chip → no compound line (already at top)
+
+**Cap at 4 compound lines max.** Pick the 4 from lowest tier first, then by domain order (Time → Wealth → Self).
+
+#### Lowest-tier chips list (below Block 1)
+
+Render 3-4 of the user's Tier 1 or Tier 2 picks inline, separated by periods. Greyed text. Example: *"Coasting at work. Half-present. Saving when I can. I tolerate myself."*
+
+If user has no Tier 1 or Tier 2 picks, use Tier 3 picks. If all Tier 4 (extremely rare), single line: *"You're already doing well — but the work isn't done."*
+
+#### "OneThing restated" logic (v1)
+
+The dagger uses `{oneThing}` literally, in quotes, inside the phrasing:
+
+> *The way you keep "{oneThing}" — it owns you.*
+
+The literal quote reads slightly awkward grammatically but ships safely. A v2 iteration could LLM-restate; v1 uses the quote.
+
+### Screen 8 · The Climb · Side-by-side ladder
+
+Closing screen of Two Futures. Renders all 11 domain rows in a two-column format showing Future A chip → Future B chip per domain.
+
+#### Layout
+
+```
+┌─ Climb screen (gold-bordered, max 720px) ───────┐
+│  EYEBROW: "Two Futures · The Climb"              │
+│  TITLE: "This is the work of the next 10 years." │
+│  SUBTITLE: "Where you are. Where you're going."  │
+│                                                  │
+│  ┌─ Column header row ───────────────────────┐   │
+│  │  | WHERE I AM NOW | | WHERE I'M GOING |   │   │
+│  │   (burgundy text)    (gold text)         │   │
+│  └──────────────────────────────────────────┘   │
+│                                                  │
+│  ┌─ LENS: TIME ──────────────────────────────┐   │
+│  │ Time                                       │   │
+│  │ ─────                                      │   │
+│  │ Work        [burg chip] → [gold chip]      │   │
+│  │ Family      [burg chip] → [gold chip]      │   │
+│  │ Friends     [burg chip] → [gold chip]      │   │
+│  │ Hobbies     [burg chip] → [gold chip]      │   │
+│  │ Health      [burg chip] → [gold chip]      │   │
+│  └────────────────────────────────────────────┘   │
+│                                                  │
+│  ┌─ LENS: WEALTH ─ (3 rows) ─────────────────┐   │
+│  └────────────────────────────────────────────┘   │
+│                                                  │
+│  ┌─ LENS: SELF ─ (3 rows) ───────────────────┐   │
+│  └────────────────────────────────────────────┘   │
+│                                                  │
+│  ┌─ Divider ────────────────────────────────┐   │
+│                                                  │
+│  CLOSING TEXT (italic Georgia gold 15px):        │
+│  "Sit with this for a minute."                   │
+│  "Then let's go write what owning each of        │
+│   these looks like."                             │
+│                                                  │
+│  [Continue to Time →] (gold filled button)       │
+└──────────────────────────────────────────────────┘
+```
+
+#### Row structure
+
+Grid: `80px | 1fr | 22px | 1fr`
+- Domain name (12px Georgia, muted text)
+- Future A chip cell (burgundy tinted)
+- Arrow (`→`, 13px, muted)
+- Future B chip cell (gold tinted)
+
+Each chip cell shows the user's chip text + a small uppercase letterspaced TIER LABEL above it:
+- Burgundy side: tier name in `#9a8273`
+- Gold side: tier name in `#d4b876`
+
+This is where the Own It Scale tier names FINALLY become visible to the user.
+
+### Two Futures data model
+
+```js
+state.a1.vision = {
+  twoFutures: {
+    futureA: {
+      time: { work: null, family: null, friends: null, hobbies: null, health: null },
+      wealth: { cashflow: null, building: null, stability: null },
+      self: { selfTreatment: null, selfPerception: null, becoming: null }
+    },
+    futureB: {
+      time: { work: null, family: null, friends: null, hobbies: null, health: null },
+      wealth: { cashflow: null, building: null, stability: null },
+      self: { selfTreatment: null, selfPerception: null, becoming: null }
+    },
+    futureA_complete: false,    // true when all 11 chips picked in A
+    wakeUp_seen: false,
+    futureB_complete: false,    // true when all 11 chips picked in B
+    climb_seen: false,
+    complete: false              // true when climb_seen is true
+  },
+  // ... (prose room state defined below)
+};
+```
+
+Each chip value is the tier number (1, 2, 3, or 4) or null if unpicked. Chip text is looked up from the catalog using `domain` + `tier`.
+
+---
+
+## Exercise 2 · Time · 10-Year (yellow prose room)
+
+User writes the 10-year Time vision. 5 sections (Work, Family, Friends, Hobbies, Health). Each section uses the Future B chip from Two Futures as the section heading (re-tinted from gold to yellow), followed by a sentence-completion with 2 blanks.
+
+### Veil text on room entry
+
+> *"Stepping into the life you'll own…"*
+
+### Layout
+
+```
+┌─ Room card (max 720px) ─────────────────────────┐
+│  Breadcrumb: Mirror 2 › Time · 10-Year           │
+│                                                  │
+│  Pips: 5 pips, exercise 2 of 5                   │
+│                                                  │
+│  EYEBROW (yellow uppercase):                     │
+│  "Vision · 10-Year Horizon · Time"               │
+│                                                  │
+│  TITLE (Georgia 28px):                           │
+│  "Now write what owning your time looks like."   │
+│                                                  │
+│  SUBTITLE (italic Georgia yellow):               │
+│  "In 10 years — what does each part of your time │
+│   look like, lived?"                             │
+│                                                  │
+│  HELPER (DM Sans 13px secondary):                │
+│  "You claimed these five chips for Future B.     │
+│   Now make each one concrete: name the behavior, │
+│   and name how you'd know it's true."            │
+│                                                  │
+│  ┌─ Section: WORK ───────────────────────────┐   │
+│  │ [briefcase icon] WORK                     │   │
+│  │                                            │   │
+│  │ [user's Future B chip as yellow pill]     │   │
+│  │                                            │   │
+│  │ In 10 years, [chip text].                  │   │
+│  │ I do this by —                             │   │
+│  │ [full-width blank input]                   │   │
+│  │                                            │   │
+│  │ — and the work itself feels like —         │   │
+│  │ [full-width blank input]                   │   │
+│  └────────────────────────────────────────────┘   │
+│                                                  │
+│  (repeat for Family, Friends, Hobbies, Health)   │
+│                                                  │
+│  [← Back]              [Continue · Wealth →]     │
+│  "Saves automatically as you write" · "X of 10"  │
+└──────────────────────────────────────────────────┘
+```
+
+### The 5 Time sentences (sentence templates)
+
+The chip text is what the user picked for Future B Time. The template renders the chip + the two blanks the user fills.
+
+| Domain | Sentence template |
+|---|---|
+| Work | "In 10 years, {chip}. I do this by ___, and the work itself feels like ___." |
+| Family | "In 10 years, {chip}. I make this real by ___, and what I notice in our time together is ___." |
+| Friends | "In 10 years, {chip}. I do this by ___, and what we have together looks like ___." |
+| Hobbies | "In 10 years, {chip}. I make space by ___, and it gives me ___." |
+| Health | "In 10 years, {chip}. I tend it daily by ___, and my body tells me ___." |
+
+### Time blank placeholders
+
+| Domain | Blank 1 placeholder | Blank 2 placeholder |
+|---|---|---|
+| Work | The structure that makes it happen | What you'd want every Monday to feel like |
+| Family | The behavior that proves you're here | What you'd see if you were watching the room |
+| Friends | The ritual or rhythm that holds them | The shape of a year in those friendships |
+| Hobbies | How the hobby actually gets into your week | What comes back to you when you do it |
+| Health | The daily move that's non-negotiable | The somatic signal that you're well |
+
+### Time domain icons (Tabler outline, 18px, yellow tinted)
+
+- Work — `ti-briefcase`
+- Family — `ti-home`
+- Friends — `ti-users`
+- Hobbies — `ti-palette`
+- Health — `ti-heart`
+
+---
+
+## Exercise 3 · Wealth · 10-Year (green prose room)
+
+Same structure as Time, 3 sections. Green tone `#5C9A6B`.
+
+### Veil text
+
+> *"Stepping into what you'll build…"*
+
+### The 3 Wealth sentences
+
+| Domain | Sentence template |
+|---|---|
+| Cashflow | "In 10 years, {chip}. I keep it healthy by ___, and what it lets me say yes to is ___." |
+| Building | "In 10 years, {chip}. The way I build wealth is ___, and what I'll have at the end of the decade is ___." |
+| Stability | "In 10 years, {chip}. What protects me is ___, and how I sleep at night is ___." |
+
+### Wealth blank placeholders
+
+| Domain | Blank 1 placeholder | Blank 2 placeholder |
+|---|---|---|
+| Cashflow | The structure that keeps it healthy | The yeses you'll be able to give |
+| Building | Your wealth-building mechanism | The number, the asset, the inheritance |
+| Stability | The structures that hold you up | The body-sense of resting easy |
+
+### Wealth domain icons
+
+- Cashflow — `ti-waves` (wave/flow)
+- Building — `ti-building` or `ti-chart-line`
+- Stability — `ti-shield`
+
+---
+
+## Exercise 4 · Self · 10-Year (purple prose room)
+
+Same structure as Time/Wealth, 3 sections. Purple tone `#9B7CC2`. The three sections map to body/mind/trajectory.
+
+### Veil text
+
+> *"Stepping into who you'll be…"*
+
+### The 3 Self sentences
+
+| Domain | Sentence template | Tag |
+|---|---|---|
+| Self-treatment | "In 10 years, {chip}. I do this by ___, and in my body it feels like ___." | Body |
+| Self-perception | "In 10 years, {chip}. The story I tell about myself is ___, and the inner voice I hear is ___." | Mind |
+| Becoming | "In 10 years, {chip}. The growth practice I keep is ___, and what's still expanding in me is ___." | Trajectory |
+
+The small uppercase Body/Mind/Trajectory tags appear next to each domain label in the section heading. They help the user understand the three sections aren't repetitive — they're three different angles on the self.
+
+### Self blank placeholders
+
+| Domain | Blank 1 placeholder | Blank 2 placeholder |
+|---|---|---|
+| Self-treatment | What you do that proves you matter to you | How your body knows it's being cared for |
+| Self-perception | Who you say you are — in your own words | The tone of your inner voice |
+| Becoming | Your growth practice — books, mentors, deliberate practice | What's still alive and expanding in you |
+
+### Self domain icons
+
+- Self-treatment — `ti-heart` (or `ti-heart-handshake` if available)
+- Self-perception — `ti-eye`
+- Becoming — sprout/leaf icon (custom SVG path — see mockup) or `ti-leaf`
+
+---
+
+## Prose room shared mechanics (Exercises 2, 3, 4)
+
+### Chip-as-section-heading
+
+The Future B chip for that domain renders as a pill at the top of each section. The pill takes the lens color (yellow in Time, green in Wealth, purple in Self) — NOT gold. The chip "re-tints" as it travels from The Climb (where it was gold) into the prose room.
+
+### Blank rendering
+
+Each blank is a full-width line-break input below the corresponding sentence half. NOT inline.
+
+```css
+.blank-input {
+  width: 100%;
+  background: rgba(LENS_COLOR, 0.04);
+  border: none;
+  border-bottom: 1px solid var(--lens-color);
+  color: var(--na1-text-primary);
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  border-radius: 6px 6px 0 0;
+}
+.blank-input:focus {
+  background: rgba(LENS_COLOR, 0.10);
+  border-bottom: 2px solid var(--lens-color);
+}
+.blank-input::placeholder {
+  color: var(--na1-text-tertiary);
+  font-style: italic;
+}
+```
+
+### Saved-state visual transformation
+
+When a blank has saved content (after blur with non-empty text):
+
+The input element is replaced with a styled span showing the saved text:
+```css
+.blank-filled {
+  display: block;
+  width: 100%;
+  background: rgba(LENS_COLOR, 0.06);
+  border-bottom: 1px solid var(--lens-color);
+  color: var(--lens-color);
+  padding: 10px 12px;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 15px;
+  border-radius: 6px 6px 0 0;
+}
+```
+
+Plus a small "Saved · Xs ago" indicator below in muted text.
+
+User can tap the filled blank to re-edit. Click reverts the span back to the input.
+
+### Auto-save behavior
+
+- **On blur (or 600ms debounce while typing):** save to server
+- **On Continue tap:** save all blanks + completion flag, advance
+- **On server save fail:** fallback to sessionStorage, retry on next save attempt
+- **Reuses Mirror 1's existing auto-save engine** — do not write new infrastructure
+
+### Strict completion validation
+
+Continue button disabled until ALL blanks on the screen are filled. Same disabled visual + highlight-missing behavior as Two Futures.
+
+### Progress indicator
+
+Bottom-right of the room shows "X of N blanks filled" updating live as the user fills blanks.
+
+---
+
+## Exercise 5 · Vision Declaration (silver/star)
+
+The closing ceremony of Mirror 2. User reads back what they wrote across all 11 sentences, holds it up to their Purpose, and either claims it or revises.
+
+### Veil text
+
+> *"The moment of claiming…"*
+
+### Two-state design
+
+The Vision Declaration room has TWO states:
+1. **Read-back state** — user reviews their work + clicks Claim or Revise
+2. **Ceremony state** — after Claim tap, Katherine's seal appears + next-step button
+
+The state transitions when the user taps "Claim this Vision." The read-back UI fades out, the ceremony UI fades in (smooth ~600ms crossfade with a brief silver radial expansion overlay).
+
+### Read-back state layout
+
+```
+┌─ Room card (max 720px) ─────────────────────────┐
+│  Breadcrumb: Mirror 2 › Vision Declaration       │
+│                                                  │
+│  Pips: 5 pips (4 filled in lens colors, 5th on  │
+│   silver), exercise 5 of 5                       │
+│                                                  │
+│  EYEBROW (centered, silver letterspaced):        │
+│  "★ The Claim"                                   │
+│                                                  │
+│  TITLE (Georgia 34px centered):                  │
+│  "Your Vision · 10-Year Horizon"                 │
+│                                                  │
+│  SCOPE LINE (centered, small muted):             │
+│  "11 statements · across 3 lenses ·              │
+│   in service of your Purpose"                    │
+│                                                  │
+│  SUBTITLE (italic Georgia muted):                │
+│  "Read it back. Hold it up to your why.          │
+│   Then claim it, or refine it."                  │
+│                                                  │
+│  ┌─ Purpose banner (gold border, gold tint) ──┐  │
+│  │  YOUR WHY                                   │  │
+│  │  "{purpose}"                                │  │
+│  │  Or — return to Purpose to redo your why →  │  │
+│  └─────────────────────────────────────────────┘  │
+│                                                  │
+│  ─── ★ ───                                       │
+│                                                  │
+│  ┌─ Lens 1 · Time ────────────────────────────┐  │
+│  │ Time (Georgia 22px yellow)                 │  │
+│  │                                             │  │
+│  │ Work [domain tag]                           │  │
+│  │ In 10 years, [chip]. I do this by          │  │
+│  │ [user blank 1, italic yellow], and the     │  │
+│  │ work itself feels like [user blank 2,      │  │
+│  │ italic yellow].                             │  │
+│  │ (5 statements like this, each with          │  │
+│  │  domain tag + the woven sentence)           │  │
+│  └─────────────────────────────────────────────┘  │
+│                                                  │
+│  ─── ★ ───                                       │
+│                                                  │
+│  ┌─ Lens 2 · Wealth (3 statements, green) ───┐  │
+│  └─────────────────────────────────────────────┘  │
+│                                                  │
+│  ─── ★ ───                                       │
+│                                                  │
+│  ┌─ Lens 3 · Self (3 statements, purple) ────┐  │
+│  └─────────────────────────────────────────────┘  │
+│                                                  │
+│  ─── ★ ───                                       │
+│                                                  │
+│  ┌─ Question block (subtle bordered card) ────┐  │
+│  │  Does this serve "{purpose}"?               │  │
+│  │  Read it again. Sit with it.                │  │
+│  │  There's no wrong answer.                   │  │
+│  └─────────────────────────────────────────────┘  │
+│                                                  │
+│  [Not yet — revise]    [★ Claim this Vision]    │
+│                                                  │
+│  Claiming saves to Map of Me + completes M2     │
+└──────────────────────────────────────────────────┘
+```
+
+### Statement rendering format
+
+Each of the 11 statements renders as a styled paragraph:
+
+```html
+<p class="statement statement-{lens}">
+  <span class="domain-tag">{domain name}</span>
+  In 10 years, {chip text}. {first half of sentence template} 
+  <em class="user-{lens}">{user blank 1}</em>, 
+  and {second half} 
+  <em class="user-{lens}">{user blank 2}</em>.
+</p>
+```
+
+Style:
+- Left border 2px solid in lens color
+- Padding-left 14px
+- Georgia 17px line-height 1.65
+- User blanks rendered as italic, lens-color, weight 500
+- Domain tag above each statement: 9px uppercase letterspaced muted
+
+### Buttons
+
+- **Not yet — revise** — transparent bg, 1px border `#9a9590`, white text. Tapping returns user to the first prose room (Time) with their blanks pre-filled, allowing edits.
+- **★ Claim this Vision** — gold filled `#C9A24B`, navy text, padding 14px 32px, with a `box-shadow: 0 0 0 4px rgba(197, 201, 209, 0.35)` silver outer ring. Hover: silver ring expands to 6px opacity 0.5.
+
+### Ceremony state (after Claim tap)
+
+When user taps Claim:
+1. **Brief animation (~2 seconds):** silver radial gradient expands from center, peaking at full opacity, then settles. Optional: small star burst SVG animation.
+2. **The read-back UI fades out** (~400ms)
+3. **Ceremony UI fades in** with Katherine's seal text
+
+#### Ceremony layout
+
+```
+┌─ Ceremony screen (radial silver bg) ─────────────┐
+│                                                  │
+│  ┌── 64px top ──┐                                │
+│                                                  │
+│  Large ★ (36px silver, centered)                 │
+│                                                  │
+│  ┌── 32px ──┐                                    │
+│                                                  │
+│  SEAL BODY (italic Georgia 20px, max 480px):     │
+│                                                  │
+│  "This may feel exciting. Big. Maybe a little    │
+│   far-fetched."                                  │
+│  "That's how a Big Ass Goal —                    │
+│   your Vision — is supposed to feel."            │
+│   (the phrase "your Vision" in gold)             │
+│                                                  │
+│  "You're here to live this. Not someone else's.  │
+│   Not the version you thought was 'realistic.'   │
+│   This one."                                     │
+│   (phrases "your Vision" and "This one" in gold) │
+│                                                  │
+│  "First you had to see it. Now you do."          │
+│                                                  │
+│  "In the work that's left, you'll Align,         │
+│   Advocate, Act, Account."                       │
+│  "One step at a time."                           │
+│  "That's how this gets lived."                   │
+│   ("That's how this gets lived" in gold)         │
+│                                                  │
+│  ─── silver divider ───                          │
+│                                                  │
+│  [Continue to Identity →] (gold outline button)  │
+│                                                  │
+│  ┌── 64px bottom ──┐                             │
+└──────────────────────────────────────────────────┘
+```
+
+#### Katherine's seal (exact text)
+
+```
+This may feel exciting. Big. Maybe a little far-fetched.
+That's how a Big Ass Goal — your Vision — is supposed to feel.
+
+You're here to live this. Not someone else's.
+Not the version you thought was "realistic."
+This one.
+
+First you had to see it. Now you do.
+
+In the work that's left, you'll Align, Advocate, Act, Account.
+One step at a time.
+That's how this gets lived.
+```
+
+- Each paragraph (separated by blank line) renders with `margin-bottom: 18px`
+- Phrases in gold (`#C9A24B`, non-italic, weight 500): "your Vision", "This one.", "That's how this gets lived."
+- The four verbs "Align, Advocate, Act, Account" are capitalized in the body of the text — NOT a separate styled element, just capitalized in normal flow
+
+#### Continue button
+
+- Label: **"Continue to Identity →"** (the next Mirror in A1, NOT the next A)
+- Style: transparent bg, 1px gold border, gold text, uppercase letterspaced DM Sans 12px, padding 13px 30px
+- On tap: save final state (`state.a1.vision.complete = true`), close room, return to A1 grid with Vision card showing "Complete" state in gold and Identity card now unlocked
+
+### Important behavior notes
+
+- **The seal cannot be skipped.** No close X on the ceremony state. User must read (or scroll) and click Continue.
+- **The seal renders dynamically.** If `state.a1.purpose.declaration` is empty, the phrase "your Vision" in the seal stays as-is (the seal does NOT inject the Purpose declaration directly — that already lived in the read-back's question block).
+- **Edit-anytime:** if user reopens a complete Vision Declaration via Mirror 2 Explore, they land on the read-back state (NOT the ceremony). The "edit anytime" gold banner appears at top. The two buttons become "Save changes" (gold) and "Cancel" (ghost). No re-ceremony — that moment was the original claim.
+
+---
+
+## Vision Declaration data model
+
+```js
+state.a1.vision = {
+  twoFutures: { ... },         // defined above
+  time: {
+    work: { blank1: '', blank2: '' },
+    family: { blank1: '', blank2: '' },
+    friends: { blank1: '', blank2: '' },
+    hobbies: { blank1: '', blank2: '' },
+    health: { blank1: '', blank2: '' }
+  },
+  time_complete: false,
+  wealth: {
+    cashflow: { blank1: '', blank2: '' },
+    building: { blank1: '', blank2: '' },
+    stability: { blank1: '', blank2: '' }
+  },
+  wealth_complete: false,
+  self: {
+    selfTreatment: { blank1: '', blank2: '' },
+    selfPerception: { blank1: '', blank2: '' },
+    becoming: { blank1: '', blank2: '' }
+  },
+  self_complete: false,
+  declaration: {
+    claimedAt: null,             // ISO timestamp of first claim
+    sealSeen: false,             // true after user advances past ceremony
+    revisedAt: []                // array of timestamps if user later revises
+  },
+  complete: false                // true when sealSeen is true
+};
+```
+
+---
+
+## Constants module
+
+Build one JS module that exports the chip catalog, tier names, domain labels, and sentence templates. Single source of truth for all of Mirror 2.
+
+```js
+export const TIER_NAMES = {
+  1: "Completely Owned",
+  2: "Complacent",
+  3: "Aspiring",
+  4: "True Owner"
+};
+
+export const LENS_COLORS = {
+  time: { primary: "#D9A93C", soft: "rgba(217,169,60,0.16)", border: "rgba(217,169,60,0.5)" },
+  wealth: { primary: "#5C9A6B", soft: "rgba(92,154,107,0.16)", border: "rgba(92,154,107,0.5)" },
+  self: { primary: "#9B7CC2", soft: "rgba(155,124,194,0.16)", border: "rgba(155,124,194,0.5)" },
+  silver: { primary: "#C5C9D1", soft: "rgba(197,201,209,0.16)", border: "rgba(197,201,209,0.5)" }
+};
+
+export const VISION_CHIPS = {
+  time: {
+    work:    { 1: "My calendar runs and drains me", 2: "I'm coasting at work", 3: "Mostly fulfilling, some leaks", 4: "I own my work time and it fulfills me" },
+    family:  { 1: "Little engagement", 2: "There, but distracted", 3: "Half-present", 4: "Full and present" },
+    friends: { 1: "I've lost touch", 2: "Surface-level only", 3: "Tended but thin", 4: "Rich and current" },
+    hobbies: { 1: "I've forgotten what I love", 2: "I make excuses", 3: "Squeezed in when I can", 4: "Lit up by what I make time for" },
+    health:  { 1: "Running on fumes", 2: "Surviving, not thriving", 3: "Inconsistent but trying", 4: "Strong and rested" }
+  },
+  wealth: {
+    cashflow:  { 1: "Money is tight, I'm scrambling", 2: "Stable, but stuck", 3: "Generating, with margin", 4: "Abundant and flowing" },
+    building:  { 1: "Surviving, nothing saved", 2: "Saving when I can", 3: "Building, no real plan", 4: "Compounding on purpose" },
+    stability: { 1: "One bad month from disaster", 2: "Treading water", 3: "Solid, but precarious", 4: "Rooted and resilient" }
+  },
+  self: {
+    selfTreatment:  { 1: "I'm cruel to myself", 2: "I tolerate myself", 3: "Mostly kind to myself", 4: "I treat myself like someone I love" },
+    selfPerception: { 1: "I don't recognize who I am", 2: "I know the role, not the person", 3: "Becoming someone I recognize", 4: "I am who I am, fully" },
+    becoming:       { 1: "I'm the version of me from years ago", 2: "I change reluctantly", 3: "Shifting, with friction", 4: "Becoming, with grace" }
+  }
+};
+
+export const DOMAIN_LABELS = {
+  time:   { work: "Work", family: "Family", friends: "Friends", hobbies: "Hobbies", health: "Health" },
+  wealth: { cashflow: "Cashflow", building: "Building", stability: "Stability" },
+  self:   { selfTreatment: "Self-treatment", selfPerception: "Self-perception", becoming: "Becoming" }
+};
+
+export const SELF_TAGS = {
+  selfTreatment: "Body",
+  selfPerception: "Mind",
+  becoming: "Trajectory"
+};
+
+export const SENTENCE_TEMPLATES = {
+  time: {
+    work:    { stem1: "I do this by", stem2: "and the work itself feels like" },
+    family:  { stem1: "I make this real by", stem2: "and what I notice in our time together is" },
+    friends: { stem1: "I do this by", stem2: "and what we have together looks like" },
+    hobbies: { stem1: "I make space by", stem2: "and it gives me" },
+    health:  { stem1: "I tend it daily by", stem2: "and my body tells me" }
+  },
+  wealth: {
+    cashflow:  { stem1: "I keep it healthy by", stem2: "and what it lets me say yes to is" },
+    building:  { stem1: "The way I build wealth is", stem2: "and what I'll have at the end of the decade is" },
+    stability: { stem1: "What protects me is", stem2: "and how I sleep at night is" }
+  },
+  self: {
+    selfTreatment:  { stem1: "I do this by", stem2: "and in my body it feels like" },
+    selfPerception: { stem1: "The story I tell about myself is", stem2: "and the inner voice I hear is" },
+    becoming:       { stem1: "The growth practice I keep is", stem2: "and what's still expanding in me is" }
+  }
+};
+
+export const PLACEHOLDERS = { /* per-blank placeholder strings, see prose sections above */ };
+```
+
+---
+
+## Veil text per exercise (for consistent room entries)
+
+| Exercise | Veil text |
+|---|---|
+| 1 · Two Futures | "Looking out ten years…" |
+| 2 · Time · 10-Year | "Stepping into the life you'll own…" |
+| 3 · Wealth · 10-Year | "Stepping into what you'll build…" |
+| 4 · Self · 10-Year | "Stepping into who you'll be…" |
+| 5 · Vision Declaration | "The moment of claiming…" |
+
+Each veil runs the standard ~2.7 second Mirror 1 veil transition. Italic Georgia gold serif.
+
+---
+
+## Mobile responsiveness
+
+At ≤900px:
+- Room expands to 95vh max
+- Chip-pick screens: domain rows stack cleanly, chips wrap
+- Prose rooms: blanks stay full-width, sections stay 44px+ tap-friendly
+- The Climb: side-by-side rows stay 2-column down to ~375px; at ≤375px, allow horizontal scroll
+- Vision Declaration: scope-line dots may stack to two lines on narrow viewports
+- Seal ceremony: padding reduces, font sizes reduce by ~2px
+
+---
+
+## Implementation checklist
+
+- [ ] Fork project as `True-Ownership-Snapshot-Pre-M2-Full`
+- [ ] Confirm Mirror 1 still works on dev URL
+- [ ] Build constants module (chips, tiers, sentences, placeholders)
+- [ ] Update A1 grid: unlock Vision card when `state.a1.purpose.declaration` non-empty
+- [ ] Build Mirror 2 Explore page (5 rows, progressive unlock)
+- [ ] **Exercise 1 — Two Futures:**
+  - [ ] Veil + room shell
+  - [ ] Chip-pick screen template (reused for screens 1-3, 5-7)
+  - [ ] Chip randomization (deterministic seed)
+  - [ ] Strict completion validation + highlight-missing
+  - [ ] Wake-up screen with 3 template variants
+  - [ ] The Climb side-by-side ladder with tier labels visible
+- [ ] **Exercise 2 — Time prose:** yellow tone, 5 sentence sections, save behavior, icons
+- [ ] **Exercise 3 — Wealth prose:** green tone, 3 sections
+- [ ] **Exercise 4 — Self prose:** purple tone, 3 sections with Body/Mind/Trajectory tags
+- [ ] **Exercise 5 — Vision Declaration:**
+  - [ ] Read-back state with 11 statements + purpose banner + question block
+  - [ ] Both buttons visible at rest (Claim with silver ring, Revise with white border)
+  - [ ] Claim animation: silver radial expansion + crossfade to ceremony
+  - [ ] Ceremony state with Katherine's seal text
+  - [ ] Continue to Identity button + completion logic
+- [ ] Test all flows in dark and light mode
+- [ ] Test mobile at 375px viewport
+- [ ] Test wake-up variants A, B, C (vary `holdingBack` and `declaration` to trigger each)
+- [ ] Test edit-anytime: complete Mirror 2, reopen each exercise, verify state and buttons change
+- [ ] Test resume-from-state: close room mid-flow on each exercise, reopen, verify correct resume screen
+
+---
+
+## Acceptance criteria
+
+The build is shippable when:
+
+1. User with completed Mirror 1 can click Vision card on A1, see Mirror 2 Explore, click Two Futures to enter
+2. All 8 Two Futures screens render correctly; chip selection saves immediately
+3. Wake-up screen renders variant A when both `holdingBack` and `declaration` are filled
+4. Wake-up renders variant B or C correctly when either field is empty
+5. The Climb shows all 11 rows with correct tier labels and tone colors
+6. After completing Two Futures, Time becomes unlocked; user can enter and fill the 10 blanks
+7. Saved blanks display as italic lens-color Georgia with "Saved" indicator
+8. Wealth and Self prose rooms work the same way with their respective tones
+9. Vision Declaration renders all 11 statements with the user's actual blanks woven in
+10. Both Claim and Revise buttons are clearly visible at rest (no hover dependency)
+11. Tapping Claim triggers silver animation → ceremony → seal text visible → Continue to Identity button
+12. Continue to Identity returns to A1 grid; Vision card shows Complete state; Identity card now unlocked
+13. State persists across page reloads; resume works correctly at every exercise
+14. Mobile layout works at 375px
+15. Edit-anytime works on all 5 exercises
+
+---
+
+## Open questions deferred to v2 (don't block ship)
+
+- LLM-restate of `oneThing` in the dagger phrase (v1 uses literal quote)
+- Audio narration of Katherine's seal (v1 is text-only)
+- Share/export of the Vision Declaration as a downloadable image (v1 just saves to state for Map of Me)
+- Chip haptic feedback on mobile (nice-to-have via `navigator.vibrate(10)`)
+- Animated star particles in the ceremony (v1 uses static silver radial)
+
+---
+
+## Side-thread: Mirror 1 EDIT pending (separate handoff later)
+
+The Owned Symptoms `holdingBack` input in Mirror 1 needs an upgrade to become a stronger callback source for Mirror 2's wake-up. **Do NOT do this edit as part of this M2 handoff.** Wake-up variants B and C handle the current textarea-only `holdingBack` gracefully.
+
+Planned (separate handoff):
+- Replace textarea with sentence-completion stem: *"The one thing costing me the most right now is ___."*
+- Add category tag chip-picker: *"This is mostly a ___ problem."* (Time / Money / Self / Relationship / Work / Health / + Other)
+- Add optional "Why this one?" textarea below
+
+This will make Mirror 2's wake-up dagger sharper and unlock targeted callbacks across A2/A3/A4. Tracked but out of scope for this handoff.
+
+---
+
+**End of Mirror 2 full handoff.**
+
+*Next handoff after this ships:* Mirror 3 · Identity · Superpowers. Will be designed in a Claude session after Katherine tests Mirror 2 on dev.
