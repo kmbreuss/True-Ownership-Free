@@ -417,7 +417,11 @@ html[data-theme="light"]{
 /* ── Explore page dim/blur underneath open Room ── */
 .na1-explore-dimmed{ filter:blur(2px); opacity:0.32; transition:filter 400ms ease, opacity 400ms ease; pointer-events:none; }
 /* ── Room shell (View A — card on dim bg) ── */
-.na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* C1 — scrim background covers the dimmed Explore page during room open; the
+   existing opacity 500ms transition handles the fade in/out. Light-mode tint
+   matches the held-space warmth. */
+.na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; background:rgba(8,15,28,0.55); transition:opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-theme="light"] .na1-room-overlay{ background:rgba(247,242,231,0.55); }
 .na1-room-overlay.is-open{ opacity:1; pointer-events:auto; }
 .na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--gold); box-shadow:0 0 80px var(--gold-glow), 0 24px 60px rgba(0,0,0,0.32); border-radius:var(--na1-radius-xl); max-width:720px; width:100%; max-height:90vh; overflow:auto; padding:80px 24px 40px; position:relative; font-family:var(--na1-sans); transform:translateY(20px); transition:transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
 .na1-room-overlay.is-open .na1-room-card{ transform:translateY(0); }
@@ -554,7 +558,7 @@ html[data-theme="light"]{
   --m2-purple-soft:rgba(155,124,194,0.16);
   --m2-purple-line:rgba(155,124,194,0.50);
   --m2-purple-glow:rgba(155,124,194,0.22);
-  --m2-silver:#C5C9D1;
+  --m2-silver:#D4D9E3; /* E1 — cooler dark-mode silver with metallic hint */
   --m2-silver-soft:rgba(197,201,209,0.16);
   --m2-silver-line:rgba(197,201,209,0.50);
   --m2-silver-glow:rgba(197,201,209,0.35);
@@ -576,7 +580,7 @@ html[data-theme="light"]{
   --m2-purple-soft:rgba(121,96,166,0.12);
   --m2-purple-line:rgba(121,96,166,0.42);
   --m2-purple-glow:rgba(121,96,166,0.20);
-  --m2-silver:#7E8590;
+  --m2-silver:#6B7689; /* E1 — cooler light-mode silver reads as metallic, not grey */
   --m2-silver-soft:rgba(126,133,144,0.12);
   --m2-silver-line:rgba(126,133,144,0.42);
   --m2-silver-glow:rgba(126,133,144,0.28);
@@ -594,7 +598,8 @@ html[data-theme="light"]{
 .na1-ex-row.is-current.tone-yellow .na1-ex-icon{ background:var(--m2-yellow-soft); border-color:var(--m2-yellow); color:var(--m2-yellow); box-shadow:0 0 12px var(--m2-yellow-glow); }
 .na1-ex-row.is-current.tone-green .na1-ex-icon{ background:var(--m2-green-soft); border-color:var(--m2-green); color:var(--m2-green); box-shadow:0 0 12px var(--m2-green-glow); }
 .na1-ex-row.is-current.tone-purple .na1-ex-icon{ background:var(--m2-purple-soft); border-color:var(--m2-purple); color:var(--m2-purple); box-shadow:0 0 12px var(--m2-purple-glow); }
-.na1-ex-row.is-current.tone-silver .na1-ex-icon{ background:var(--m2-silver-soft); border-color:var(--m2-silver); color:var(--m2-silver); box-shadow:0 0 12px var(--m2-silver-glow); }
+/* E1 — metallic shimmer for active silver badge; reads as silver, not grey. */
+.na1-ex-row.is-current.tone-silver .na1-ex-icon{ background:linear-gradient(135deg, rgba(180,190,205,0.30), rgba(140,150,170,0.18)); border-color:var(--m2-silver); color:var(--m2-silver); box-shadow:0 0 12px var(--m2-silver-glow); }
 .na1-ex-row.is-current.tone-yellow .na1-ex-status{ color:var(--m2-yellow); font-weight:600; }
 .na1-ex-row.is-current.tone-green .na1-ex-status{ color:var(--m2-green); font-weight:600; }
 .na1-ex-row.is-current.tone-purple .na1-ex-status{ color:var(--m2-purple); font-weight:600; }
@@ -885,16 +890,21 @@ html[data-theme="light"]{
 .na2-wakeup{ background:linear-gradient(180deg, rgba(10,20,36,0.6) 0%, transparent 100%); border-radius:var(--na1-radius-lg); padding:56px 36px; margin:6px 0 8px; }
 .na1-light .na2-wakeup{ background:linear-gradient(180deg, rgba(247,242,231,0.7) 0%, transparent 100%); }
 .na2-wakeup-callback-label{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin:0 0 6px; }
-.na2-wakeup-callback-quote{ font-family:var(--na1-serif); font-style:italic; font-size:15px; color:var(--gold); margin:0 0 36px; }
-.na2-wakeup-block{ font-family:var(--na1-serif); font-style:italic; font-size:19px; line-height:1.55; color:var(--na1-text); margin:0 0 22px; }
-.na2-wakeup-low-tier{ font-family:var(--na1-serif); font-style:italic; font-size:14.5px; color:var(--na1-text-mute); line-height:1.55; margin:0 0 22px; }
+/* B1 — soft-gold pill anchors the callback in light mode (no more wash). */
+.na2-wakeup-callback-quote{ display:inline-block; font-family:var(--na1-serif); font-style:italic; font-size:15px; font-weight:500; color:var(--gold); background:var(--gold-soft); border-left:3px solid var(--gold); padding:8px 14px; border-radius:8px; margin:0 0 36px; }
+/* B2 — block spacing 22→36px for held-moment pacing. */
+.na2-wakeup-block{ font-family:var(--na1-serif); font-style:italic; font-size:19px; line-height:1.55; color:var(--na1-text); margin:0 0 36px; }
+.na2-wakeup-low-tier{ font-family:var(--na1-serif); font-style:italic; font-size:14.5px; color:var(--na1-text-mute); line-height:1.55; margin:0 0 36px; }
+/* Compound lines pace together (22px between consecutive), 36px after the chain via next block. */
 .na2-wakeup-compound{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; color:var(--na1-text-sec); line-height:1.6; margin:0 0 22px; }
-.na2-wakeup-dagger{ font-family:var(--na1-serif); font-style:italic; font-size:21px; font-weight:500; line-height:1.5; color:var(--na1-text); margin:0 0 0; }
+.na2-wakeup-compound + .na2-wakeup-compound{ margin-top:0; }
+.na2-wakeup-dagger{ font-family:var(--na1-serif); font-style:italic; font-size:21px; font-weight:500; line-height:1.5; color:var(--na1-text); margin:14px 0 0; }
 .na2-wakeup-dagger .accent{ color:var(--burgundy); font-style:italic; }
-.na2-wakeup-divider{ width:48px; height:1px; background:var(--gold); margin:28px 0; }
-.na2-wakeup-purpose{ font-family:var(--na1-serif); font-style:italic; font-size:17px; color:var(--na1-text-mute); margin:0 0 8px; }
-.na2-wakeup-purpose .quote{ color:var(--gold); }
-.na2-wakeup-imperative{ font-family:var(--na1-serif); font-size:19px; font-weight:500; color:var(--gold); margin:0 0 6px; }
+.na2-wakeup-divider{ width:48px; height:1px; background:var(--gold); margin:36px 0; }
+.na2-wakeup-purpose{ font-family:var(--na1-serif); font-style:italic; font-size:17px; color:var(--na1-text-mute); margin:0 0 36px; }
+.na2-wakeup-purpose .quote{ display:inline-block; color:var(--gold); font-weight:500; background:var(--gold-soft); border-left:3px solid var(--gold); padding:6px 12px; border-radius:8px; }
+/* B3 — "Now own it." lands as a directive, not body. */
+.na2-wakeup-imperative{ font-family:var(--na1-serif); font-size:26px; font-weight:600; letter-spacing:-0.01em; color:var(--gold); margin:0 0 10px; line-height:1.2; }
 .na2-wakeup-prompt{ font-family:var(--na1-serif); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin:0 0 36px; }
 .na2-wakeup-cta{ display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 28px; border-radius:100px; background:transparent; color:var(--gold); border:1.5px solid var(--gold); font-family:var(--na1-sans); font-size:14px; font-weight:600; letter-spacing:0.02em; cursor:pointer; transition:background .18s, transform .12s; }
 .na2-wakeup-cta:hover{ background:var(--gold-soft); }
@@ -10438,7 +10448,7 @@ function NewA1Explore({ progress, onBack, onLaunchRoom, dimmed }: {
       <div className="na1-ex-eyebrow">A1 · Mirror 1 · Explore with Katherine</div>
       <h1 className="na1-ex-title">Purpose</h1>
       <p className="na1-ex-sub">Four exercises. Katherine guides each one with a short video. When she says <em>"come to your space"</em> — tap the active exercise below.</p>
-      <p className="na1-ex-foot-sub">You can return anytime to edit anything you've written.</p>
+      <p className="na1-ex-foot-sub">You can return any time to edit anything you've written.</p>
       <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
         <div className="na1-intro-video-head" onClick={() => setVideoOpen(v => !v)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setVideoOpen(v => !v); } }} aria-expanded={videoOpen}>
           <div className="na1-intro-video-left">
@@ -11231,7 +11241,7 @@ function NewA2Explore({ m2Progress, onBack, onLaunchRoom, dimmed }: {
         <div className="na1-ex-eyebrow">A1 · Mirror 2 · Explore with Katherine</div>
         <h1 className="na1-ex-title">Vision · 10-Year Horizon</h1>
         <p className="na1-ex-sub">Five exercises. First you'll see the two paths in front of you. Then you'll dream the life that holds your time, wealth, and self. Finally — you'll claim it.</p>
-        <p className="na1-ex-foot-sub">You can return anytime to edit anything you've written.</p>
+        <p className="na1-ex-foot-sub">You can return any time to edit anything you've written.</p>
         <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
           <div className="na1-intro-video-head" onClick={() => setVideoOpen(v => !v)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setVideoOpen(v => !v); } }} aria-expanded={videoOpen}>
             <div className="na1-intro-video-left">
@@ -11326,6 +11336,11 @@ function NewA2TwoFuturesBody({ onSaved, onClose }: { onSaved: () => void; onClos
   const [futureA, setFutureA] = useState(initialTF.futureA);
   const [futureB, setFutureB] = useState(initialTF.futureB);
   const [wakeUpSeen, setWakeUpSeen] = useState<boolean>(!!initialTF.wakeUp_seen);
+  // D1 — keep a live ref of the latest state so the unmount cleanup can flush
+  // a pending debounced save (otherwise picks made within the last 500ms are
+  // dropped when the user closes the modal).
+  const latestRef = useRef({ futureA, futureB, wakeUpSeen });
+  latestRef.current = { futureA, futureB, wakeUpSeen };
   const isLensComplete = (picks: Record<string, number | null>, lens: Lens) =>
     LENS_DOMAINS[lens].every(d => picks[d] != null);
   // Resume to first incomplete screen on re-entry.
@@ -11368,6 +11383,28 @@ function NewA2TwoFuturesBody({ onSaved, onClose }: { onSaved: () => void; onClos
     }, 500);
     return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
   }, [futureA, futureB, wakeUpSeen]); // eslint-disable-line react-hooks/exhaustive-deps
+  // D1 — on unmount, flush any pending save synchronously-fired (fire-and-forget;
+  // IDB write completes in flight even after the component is gone).
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      const { futureA: fA, futureB: fB, wakeUpSeen: w } = latestRef.current;
+      const next = JSON.stringify({ a: fA, b: fB, w });
+      if (next === initialJson.current) return;
+      void (async () => {
+        const cur = (await loadData(KEYS.map)) as any || {};
+        const curVision: VisionState = cur.vision || EMPTY_VISION;
+        const merged = {
+          ...cur,
+          vision: {
+            ...curVision,
+            twoFutures: { ...curVision.twoFutures, futureA: fA, futureB: fB, wakeUp_seen: w },
+          },
+        };
+        await saveData(KEYS.map, merged);
+      })();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const writeVision = async (patch: Partial<VisionState["twoFutures"]>) => {
     const cur = (await loadData(KEYS.map)) as any || initialMap;
     const curVision: VisionState = cur.vision || EMPTY_VISION;
@@ -12432,7 +12469,7 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
       <div className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}>
         {editMode && (
           <div className="na2-decl-edit-banner">
-            ★ You've already claimed this Vision. You can refine it anytime — the seal stays.
+            ★ You've already claimed this Vision. You can refine it any time — the seal stays.
           </div>
         )}
         <div className="na2-pip-bar" aria-label="Step 5 of 5">
@@ -12644,10 +12681,13 @@ function NewA1View({ name }: { name?: string }) {
   const closeRoom = () => {
     setRoomOpen(false);
     // Unmount the exercise reference shortly after the fade-out completes.
-    window.setTimeout(() => {
+    // D2 — push the close-timeout into timeoutsRef so a rapid re-launch via
+    // clearTimers() cancels it (otherwise the stale close fires and nulls
+    // openEx/openM2Ex right after the new room mounts → stuck loading).
+    timeoutsRef.current.push(window.setTimeout(() => {
       setOpenEx((cur) => (roomOpen ? null : cur));
       setOpenM2Ex((cur) => (roomOpen ? null : cur));
-    }, 520);
+    }, 520));
   };
   if (view === "explore") {
     return (

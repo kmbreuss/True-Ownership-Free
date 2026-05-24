@@ -1,0 +1,33 @@
+Diagnoses approved across the board — excellent read-only investigation. C1 in particular: catching that the "flash" wasn't a timing bug at all but a missing scrim is exactly the kind of insight that makes shipping correct fixes possible. Same caliber as your A1 portal diagnosis.
+Single-ship approved. Per your plan:
+
+B1 — soft-gold pill background + border-left + weight bump for both .na2-wakeup-callback-quote and .na2-wakeup-purpose .quote ✅
+B2 — bump four wake-up block selectors from 22px → 36px; tighten compound chain to 22px between consecutive lines ✅
+B3 — .na2-wakeup-imperative to 26px / 600 weight / -0.01em letter-spacing / 10px margin-bottom ✅
+C1 — add scrim background to .na1-room-overlay: rgba(8,15,28,0.55) dark / rgba(247,242,231,0.55) light. Existing 500ms opacity transition handles fade. ✅
+D1 — unmount-flush useEffect with ref-held latest state on NewA2TwoFuturesBody cleanup ✅
+D2 — push close-timeout id into timeoutsRef.current so clearTimers() cancels it ✅
+E1 — GO METALLIC. Apply your proposed subtle gradient + cooler color shift to the silver tone. The reasoning: every other lens color (yellow, green, purple) reads vividly as itself in the row badge — silver-as-grey breaks that pattern. The metallic shimmer treatment delivers "silver" without going loud. Use the values you proposed: linear-gradient(135deg, rgba(180,190,205,0.30), rgba(140,150,170,0.18)) background, #6B7689 light / #D4D9E3 dark, keep border. ✅
+E2 — closed, no change needed ✅
+
+E3 scope correction — please re-read this section, I'm narrowing it:
+The "Mirror 1 seal text" and "Mirror 1 re-entry banner" strings you couldn't find ARE NOT in code yet. Those were designed in this session as part of a future Mirror 1 build — not a string replace. They're documented in Mirror2_Refinement_Spec.md as deferred scope item M1.B, not part of this polish ship. Skip them entirely.
+E3 in this ship is scoped to only the 3 strings you actually located:
+
+App.tsx line 12435 (M2 banner): "You can refine it anytime" → "You can refine it any time" ✅
+App.tsx line 10441 (M1 Explore footer): "You can return anytime to edit anything you've written." → "You can return any time to edit anything you've written." ✅
+App.tsx line 11234 (same M1 Explore footer occurrence): same fix ✅
+
+Leave the other anytime instances alone (peel again, edit anytime badges at 10646/10893/11042/11172, still update at 13345, change it at 1865) — those weren't in scope and may have intentional voice reasons we haven't audited.
+Single ship approved. D1 medium-risk is fine — it's isolated to Two Futures unmount per your diagnosis.
+When shipped, I'll verify:
+
+Wake-up screen (Two Futures Screen 4) — callback pill anchored, blocks breathing at 36px, "Now own it." lands as a directive
+Open any M2 room — scrim covers dimmed Explore page immediately, no bleed-through
+Two Futures — pick all Future B chips quickly, close modal within 500ms of last pick, re-enter, confirm all chips restored
+Re-enter a completed room rapidly after closing the previous one — no stuck loading
+Mirror 2 Explore — Vision Declaration row's "5" badge reads as silver (not grey) when it activates
+Vision Declaration sealed banner reads "any time" (not "anytime")
+Mirror 1 Explore footer reads "any time" (not "anytime")
+
+Ship it.
