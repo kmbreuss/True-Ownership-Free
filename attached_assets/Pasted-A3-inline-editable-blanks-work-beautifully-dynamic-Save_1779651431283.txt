@@ -1,0 +1,14 @@
+A3 ✅ — inline editable blanks work beautifully, dynamic Save → "★ Claim this revised Vision" button switch works, dirty state detection works, ceremony seal text + Continue to Identity all visible without scrolling. Excellent ship.
+A2 ✅ — scroll-to-top on mode flip + ceremony spacing tightened fits within 90vh perfectly. Continue to Identity button visible at bottom of viewport. The seal lands at top of viewport when burst clears.
+A1 ❌ — burst is STILL not visible. I clicked "★ Claim this revised Vision," waited, and the screen went directly from read-back → seal with no perceptible silver radial expansion. Whatever happened during the 2000ms window between Claim click and ceremony mount was invisible.
+This is the second swing at A1. The first CSS-only tuning (widen base, hold peak, densify gradient) didn't land. Time to actually inspect what's happening on screen.
+Investigate read-only, more deeply this time. Don't propose a fix until you've ruled these out:
+
+Z-index stacking. What's the z-index of .na2-silver-burst-inner vs the modal scrim/backdrop vs .na1-room-card? If the burst sits BELOW the scrim, it's hidden behind a semi-transparent dark layer.
+Containment. Is the burst element inside .na1-room-card (which has max-height: 90vh; overflow: auto)? If yes, a 100vmin expansion gets clipped to the modal's ~720px bounds and you only see a small pulse at the modal's center.
+Render path. Add a temporary console.log("burst class added") when the .is-bursting class is added to the burst element, and another when removed. Confirm in browser console that the class actually persists for the full 2000ms during my Claim click, not just a render-frame.
+DOM presence during burst window. Open browser inspector during the 2000ms window. Is the <div class="na2-silver-burst"> element actually present? Does it have non-zero dimensions? Is its computed opacity > 0 at peak?
+Position vs viewport. Is the burst position: fixed with top:0; left:0; width:100vw; height:100vh; pointer-events:none;? If it's position: absolute inside a scrolled container, it won't fill the viewport.
+
+Report your read-only diagnosis with answers to all 5 above before pushing any fix. If the burst element is contained inside .na1-room-card, the fix is to portal it to document.body or position it fixed at viewport level.
+Both A2 and A3 are excellent — leave them. Only A1 needs investigation.
