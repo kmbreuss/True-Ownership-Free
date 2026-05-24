@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "./lib/auth-context";
 import { Footer } from "./components/Footer";
 import {
@@ -12416,11 +12417,16 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
   const isFading = mode !== "readback";
   return (
     <div className="na2-decl">
-      {/* Silver radial burst — mounted during claiming. */}
-      {showBurst && (
+      {/* Silver radial burst — mounted during claiming. Portaled to
+          document.body so position:fixed resolves against the viewport
+          rather than .na1-room-card (which has a transform and would
+          otherwise become the containing block, clipping the burst to
+          the modal's ~720px box). */}
+      {showBurst && createPortal(
         <div className="na2-silver-burst" aria-hidden>
           <div className="na2-silver-burst-inner" />
-        </div>
+        </div>,
+        document.body
       )}
       {/* ── Read-back state ── */}
       <div className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}>
