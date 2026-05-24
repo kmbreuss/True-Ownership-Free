@@ -1,0 +1,52 @@
+Two real things found. Agent's Group A diagnosis is excellent — and you've found a third issue that needs to be added to the build:
+
+Agent's diagnosis: solid
+A1 burst: Diagnosed precisely — peak silver core is only ~30vmin, glow at 0.35 opacity, peak hits at 1080ms and immediately fades. No held moment. The proposed fix (100vmin base, scale 0.4→1.2→1.6, hold 60-80% at peak opacity, denser gradient stops, 2000ms total) will make it actually land.
+A2 seal position: Two-part problem identified — scrollTo fired before layout shrank (so smooth scroll against ~5000px container), AND ceremony at ~800px tall is below 90vh = ~648px viewport even at scroll-top. Fix is both re-scroll on mode flip AND tighten ceremony spacing.
+Both fixes are localized to Ex5 CSS + NewA2DeclarationBody. No state machine changes. No spec changes. Safe.
+
+New issue you just found: re-entry edit-anytime path is broken
+When you re-enter the sealed Vision Declaration, you only see "Save changes" — there's no way to go back into edit mode and modify the blanks themselves, and no way to re-claim.
+Per the locked spec, edit-anytime should land on the read-back in edit mode with both:
+
+Save changes (gold) — keep current Vision
+Cancel (ghost) — discard edits, restore previous saved state
+
+But the user should ALSO be able to:
+
+Edit the read-back blanks inline (clicking a saved span goes to input)
+Trigger a fresh ceremony if they want to re-claim after edits (e.g. "Re-claim this Vision" or just the original "★ Claim this Vision" button reappears once edits are made)
+
+Right now the edit-anytime state only gives Save changes with no edit affordance and no re-claim. That's broken.
+
+Add this to the Group A ship
+Send Agent this:
+
+MESSAGE TO PASTE INTO AGENT:
+
+Group A diagnosis is excellent — exactly the read-only investigation pattern I want. Approved to ship A1 + A2 together. Add A3 below to the same ship.
+A3 — Edit-anytime re-entry path is broken.
+Per spec, when a user re-enters the sealed Vision Declaration, they land on the read-back IN EDIT MODE with:
+
+All saved blanks editable inline (click any italic-saved span → reverts to input with caret at end, same pattern as Time/Wealth/Self rooms)
+"Save changes" (gold) — keep current Vision, return to A1 grid
+"Cancel" (ghost) — discard edits, restore previous saved state, return to A1 grid
+A way to re-claim — if the user edits content, they should be able to trigger a fresh Claim ceremony again. Either:
+
+Option A: "Save changes" turns into "★ Claim this revised Vision" once any edit is detected, OR
+Option B: A third button appears alongside Save/Cancel: "★ Re-claim this Vision" that re-triggers the radial burst + Katherine's seal
+
+
+
+My preference is Option A — it's cleaner. The button label dynamically reflects state:
+
+No edits made: "Save changes" (gold)
+Edits made: "★ Claim this revised Vision" (gold filled with silver outer ring, same as original Claim)
+Cancel button always present
+
+Current state on dev: I only see "Save changes" with no way to edit blanks and no way to re-claim. Investigate read-only first — is the edit-mode actually wiring the blank-click-to-edit handler? Is the Claim button conditionally hidden when sealSeen === true? Report your diagnosis before pushing the fix.
+Ship A1 + A2 + A3 as one Group A commit when investigation is complete. Then verify on dev — I'll walk:
+
+Claim from fresh read-back → big silver burst (peak held ~360ms) → ceremony at top of viewport → seal text + Continue to Identity all visible without scrolling
+Re-enter sealed Declaration → land on read-back in edit mode → click any saved blank → reverts to editable input → make an edit → button changes from "Save changes" to "★ Claim this revised Vision" → click it → fresh ceremony fires
+Cancel button → discard edits, return to A1 grid with original Vision intact

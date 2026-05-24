@@ -738,18 +738,33 @@ html[data-theme="light"]{
 
 /* Silver radial expansion for Vision Declaration ceremony. */
 @keyframes na2SilverRadial{
-  0%   { opacity:0; transform:scale(0.6); }
-  60%  { opacity:0.95; transform:scale(1.4); }
-  100% { opacity:0;  transform:scale(2.2); }
+  0%   { opacity:0;    transform:scale(0.4);  }
+  25%  { opacity:0.9;  transform:scale(1.0);  }
+  /* Held peak ~360ms (60% → 78% of 2000ms = 1200ms → 1560ms). */
+  60%  { opacity:0.98; transform:scale(1.25); }
+  78%  { opacity:0.98; transform:scale(1.32); }
+  90%  { opacity:0.6;  transform:scale(1.48); }
+  100% { opacity:0;    transform:scale(1.6);  }
 }
 .na2-silver-burst{
   position:fixed; inset:0; z-index:130; pointer-events:none;
   display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at center, rgba(197,201,209,0.10) 0%, transparent 60%);
+  animation:na2SilverScrim 2000ms ease-out forwards;
+}
+@keyframes na2SilverScrim{
+  0%, 100% { background:radial-gradient(circle at center, rgba(197,201,209,0)    0%, transparent 60%); }
+  50%      { background:radial-gradient(circle at center, rgba(197,201,209,0.22) 0%, transparent 70%); }
 }
 .na2-silver-burst-inner{
-  width:60vmin; height:60vmin; border-radius:50%;
-  background:radial-gradient(circle at center, var(--m2-silver) 0%, var(--m2-silver-glow) 35%, transparent 70%);
-  animation:na2SilverRadial 1800ms ease-out forwards;
+  width:100vmin; height:100vmin; border-radius:50%;
+  background:radial-gradient(circle at center,
+    var(--m2-silver) 0%,
+    rgba(197,201,209,0.55) 22%,
+    var(--m2-silver-glow) 45%,
+    rgba(197,201,209,0.15) 65%,
+    transparent 82%);
+  animation:na2SilverRadial 2000ms ease-out forwards;
 }
 
 /* Mirror 2 prose rooms (Time/Wealth/Self) — shared section + chip-pill + counter styles. */
@@ -785,8 +800,10 @@ html[data-theme="light"]{
    ~3000px invisible block). The 380ms opacity fade has long completed
    by then (mode flips to "ceremony" at 1800ms after Claim). */
 .na2-decl-readback.is-hidden{ display:none; }
-.na2-decl-ceremony{ position:absolute; inset:0; opacity:0; pointer-events:none; transition:opacity 380ms ease 380ms; padding:48px 8px 32px; text-align:center; }
-.na2-decl-ceremony.is-on{ opacity:1; pointer-events:auto; position:relative; }
+/* Ceremony stays in normal flow; readback gets .is-hidden (display:none) so
+   there's no absolute/relative swap and no layout jolt at the mode flip. */
+.na2-decl-ceremony{ opacity:0; pointer-events:none; transition:opacity 380ms ease 380ms; padding:24px 8px 24px; text-align:center; display:none; }
+.na2-decl-ceremony.is-on{ opacity:1; pointer-events:auto; display:block; }
 .na2-decl-edit-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--gold); background:var(--gold-soft); border-radius:10px; margin:0 0 16px; font-family:var(--na1-sans); font-size:12.5px; color:var(--gold); letter-spacing:0.02em; }
 .na2-decl-eyebrow{ text-align:center; font-family:var(--na1-sans); font-size:11.5px; letter-spacing:0.22em; text-transform:uppercase; color:var(--m2-silver); margin:6px 0 14px; }
 .na2-decl-title{ font-family:var(--na1-serif); font-size:34px; line-height:1.2; text-align:center; color:var(--na1-text); margin:0 0 10px; }
@@ -828,18 +845,39 @@ html[data-theme="light"]{
 .na2-decl-btn-claim:active{ transform:translateY(1px); }
 .na2-decl-btn-claim:disabled{ opacity:0.5; cursor:not-allowed; box-shadow:0 0 0 4px rgba(197,201,209,0.2); }
 .na2-decl-footnote{ text-align:center; font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); margin:14px 0 0; letter-spacing:0.02em; }
-/* Ceremony */
-.na2-decl-cer-star{ font-size:36px; color:var(--m2-silver); margin:32px 0 18px; line-height:1; }
+/* Ceremony — sized to fit 90vh on a 720p viewport without scrolling. */
+.na2-decl-cer-star{ font-size:36px; color:var(--m2-silver); margin:16px 0 12px; line-height:1; }
 .na2-decl-cer-body{ max-width:480px; margin:0 auto; }
-.na2-decl-cer-para{ font-family:var(--na1-serif); font-style:italic; font-size:20px; line-height:1.55; color:var(--na1-text); margin:0 0 18px; }
+.na2-decl-cer-para{ font-family:var(--na1-serif); font-style:italic; font-size:18px; line-height:1.5; color:var(--na1-text); margin:0 0 14px; }
 .na2-decl-cer-para .seal-gold{ color:var(--gold); font-style:normal; font-weight:500; }
-.na2-decl-cer-divider{ width:48px; height:1px; background:var(--m2-silver); margin:28px auto; }
+.na2-decl-cer-divider{ width:48px; height:1px; background:var(--m2-silver); margin:20px auto; }
 .na2-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold); border:1px solid var(--gold); border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
 .na2-decl-cer-cta:hover{ background:var(--gold-soft); }
 .na2-decl-cer-cta:active{ transform:translateY(1px); }
+/* Inline-editable user blanks in edit-anytime mode. Click the italic span →
+   it swaps to an inline textarea with the same value; blur commits + swaps
+   back. The textarea inherits the surrounding line metrics so the woven
+   sentence keeps its shape. */
+.na2-decl-stmt em.user.is-editable{ cursor:pointer; border-bottom:1px dashed currentColor; }
+.na2-decl-stmt em.user.is-editable:hover{ background:rgba(255,255,255,0.04); }
+.na1-light .na2-decl-stmt em.user.is-editable:hover{ background:rgba(0,0,0,0.03); }
+.na2-decl-stmt textarea.na2-decl-blank-edit{
+  display:inline-block; vertical-align:baseline;
+  font-family:var(--na1-serif); font-style:italic; font-weight:500;
+  font-size:17px; line-height:1.65;
+  background:rgba(197,201,209,0.10); border:1px solid var(--na1-border);
+  border-radius:6px; padding:2px 8px; margin:0 2px;
+  min-width:160px; max-width:100%; width:auto;
+  color:inherit; resize:none; overflow:hidden;
+}
+.na2-decl-lens.tone-yellow .na2-decl-stmt textarea.na2-decl-blank-edit{ color:var(--m2-yellow); border-color:var(--m2-yellow-line); }
+.na2-decl-lens.tone-green  .na2-decl-stmt textarea.na2-decl-blank-edit{ color:var(--m2-green);  border-color:var(--m2-green-line); }
+.na2-decl-lens.tone-purple .na2-decl-stmt textarea.na2-decl-blank-edit{ color:var(--m2-purple); border-color:var(--m2-purple-line); }
+.na2-decl-stmt textarea.na2-decl-blank-edit:focus{ outline:none; box-shadow:0 0 0 2px var(--m2-lens-glow, rgba(197,201,209,0.35)); }
 @media (max-width: 700px){
   .na2-decl-title{ font-size:28px; }
-  .na2-decl-cer-para{ font-size:18px; }
+  .na2-decl-cer-para{ font-size:16px; line-height:1.45; }
+  .na2-decl-cer-star{ font-size:30px; margin:8px 0 8px; }
 }
 
 /* Two Futures · wake-up moment (screen 4). Held, slightly darker than chip screens. */
@@ -12260,28 +12298,83 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
     { lens: "wealth", tone: "green",  title: "Wealth" },
     { lens: "self",   tone: "purple", title: "Self" },
   ];
+  // ── A3 · Inline-editable blanks in edit-anytime mode ──
+  // Snapshot the initial saved blanks so we can detect "dirty" and offer
+  // Cancel = restore. Key shape: `${lens}.${domain}.${'blank1'|'blank2'}`.
+  type BlankMap = Record<string, string>;
+  const initialBlanks = useMemo<BlankMap>(() => {
+    const out: BlankMap = {};
+    for (const { lens } of lensConfig) {
+      for (const d of LENS_DOMAINS[lens]) {
+        const sec = ((initialVision as any)[lens] as any)?.[d] || { blank1: "", blank2: "" };
+        out[`${lens}.${d}.blank1`] = String(sec.blank1 || "");
+        out[`${lens}.${d}.blank2`] = String(sec.blank2 || "");
+      }
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [blankValues, setBlankValues] = useState<BlankMap>(initialBlanks);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const dirty = useMemo(
+    () => Object.keys(initialBlanks).some(k => (blankValues[k] || "").trim() !== (initialBlanks[k] || "").trim()),
+    [blankValues, initialBlanks]
+  );
+  // Re-scroll the room card to top *at* the mode flip — the readback only
+  // collapses (display:none) when mode === "ceremony", so this is the moment
+  // the ceremony actually becomes the top of the scroll container. `auto`
+  // (instant) so the seal is already in place when the 380ms fade begins.
+  useEffect(() => {
+    if (mode !== "ceremony") return;
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "auto" });
+  }, [mode]);
+  // Persist any blank edits back into vision[lens][domain] before claim/save.
+  const writeBlanksInto = (curVision: VisionState): VisionState => {
+    const next: any = { ...curVision };
+    for (const { lens } of lensConfig) {
+      next[lens] = { ...(next[lens] || {}) };
+      for (const d of LENS_DOMAINS[lens]) {
+        const prevSec = (next[lens] as any)[d] || { blank1: "", blank2: "" };
+        (next[lens] as any)[d] = {
+          ...prevSec,
+          blank1: (blankValues[`${lens}.${d}.blank1`] || "").trim(),
+          blank2: (blankValues[`${lens}.${d}.blank2`] || "").trim(),
+        };
+      }
+    }
+    return next as VisionState;
+  };
   const handleClaim = async () => {
     if (working) return;
     setWorking(true);
     setShowBurst(true);
-    // Scroll the room shell to top so the ceremony lands in view when the
-    // crossfade completes (the readback may have been scrolled far down).
+    // First scroll (smooth) — gives the burst a clean stage while the
+    // readback is still in flow. The useEffect re-scrolls instantly when
+    // mode flips to "ceremony" (after readback collapses).
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
     if (card) card.scrollTo({ top: 0, behavior: "smooth" });
-    // Persist immediately so a crash/reload still keeps the claim.
+    // Persist immediately so a crash/reload still keeps the claim. Also
+    // persist any inline blank edits + append a revisedAt entry when this
+    // is a re-claim (editMode + dirty).
     const now = new Date().toISOString();
     const cur = (await loadData(KEYS.map)) as any || initialMap;
     const curVision: VisionState = cur.vision || EMPTY_VISION;
+    const withBlanks = writeBlanksInto(curVision);
+    const prevDecl = curVision.declaration || { claimedAt: now, sealSeen: false, revisedAt: [] };
     const nextDecl = {
-      claimedAt: curVision.declaration?.claimedAt || now,
+      claimedAt: prevDecl.claimedAt || now,
       sealSeen: false, // becomes true on Continue to Identity
-      revisedAt: curVision.declaration?.revisedAt || [],
+      revisedAt: (editMode && dirty)
+        ? [...(prevDecl.revisedAt || []), now]
+        : (prevDecl.revisedAt || []),
     };
-    await saveData(KEYS.map, { ...cur, vision: { ...curVision, declaration: nextDecl } });
-    // Crossfade timing per spec: silver burst ~1.8s, fade-out readback 380ms,
-    // ceremony fades in 380ms (CSS delay). Mode flip kicks the readback fade.
+    await saveData(KEYS.map, { ...cur, vision: { ...withBlanks, declaration: nextDecl } });
+    // Timing: 2000ms burst (matches new keyframe). Mode flips to "claiming"
+    // at 50ms (kicks readback fade), then "ceremony" at 2000ms (unmounts
+    // burst, collapses readback, fades in seal).
     window.setTimeout(() => { setMode("claiming"); }, 50);
-    window.setTimeout(() => { setMode("ceremony"); setShowBurst(false); setWorking(false); }, 1800);
+    window.setTimeout(() => { setMode("ceremony"); setShowBurst(false); setWorking(false); }, 2000);
   };
   const handleContinueToIdentity = async () => {
     if (working) return;
@@ -12304,12 +12397,21 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
     setWorking(true);
     const cur = (await loadData(KEYS.map)) as any || initialMap;
     const curVision: VisionState = cur.vision || EMPTY_VISION;
-    const revisedAt = [...(curVision.declaration?.revisedAt || []), new Date().toISOString()];
+    const withBlanks = writeBlanksInto(curVision);
+    const revisedAt = dirty
+      ? [...(curVision.declaration?.revisedAt || []), new Date().toISOString()]
+      : (curVision.declaration?.revisedAt || []);
     await saveData(KEYS.map, {
       ...cur,
-      vision: { ...curVision, declaration: { ...curVision.declaration, revisedAt } },
+      vision: { ...withBlanks, declaration: { ...curVision.declaration, revisedAt } },
     });
     onSaved();
+  };
+  const handleCancelEdits = () => {
+    // Discard any in-memory blank edits; saved Vision on disk is untouched.
+    setBlankValues(initialBlanks);
+    setEditingKey(null);
+    onClose();
   };
   const isFading = mode !== "readback";
   return (
@@ -12357,13 +12459,64 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
                 const b1 = String(sec.blank1 || "").trim();
                 const b2 = String(sec.blank2 || "").trim();
                 const tag = lens === "self" ? `${DOMAIN_LABELS[lens][d]} · ${SELF_TAGS[d]}` : DOMAIN_LABELS[lens][d];
+                const k1 = `${lens}.${d}.blank1`;
+                const k2 = `${lens}.${d}.blank2`;
+                const v1 = blankValues[k1] || "";
+                const v2 = blankValues[k2] || "";
+                const renderBlank = (key: string, val: string, fallback: string) => {
+                  if (editMode && editingKey === key) {
+                    return (
+                      <textarea
+                        className="na2-decl-blank-edit"
+                        autoFocus
+                        rows={1}
+                        value={val}
+                        onChange={(e) => {
+                          setBlankValues(prev => ({ ...prev, [key]: e.target.value }));
+                          // auto-grow
+                          const t = e.currentTarget;
+                          t.style.height = "auto";
+                          t.style.height = `${t.scrollHeight}px`;
+                        }}
+                        onFocus={(e) => {
+                          const t = e.currentTarget;
+                          t.style.height = "auto";
+                          t.style.height = `${t.scrollHeight}px`;
+                          // caret at end
+                          const len = t.value.length;
+                          t.setSelectionRange(len, len);
+                        }}
+                        onBlur={() => setEditingKey(null)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); setEditingKey(null); }
+                          if (e.key === "Escape") { e.preventDefault(); setEditingKey(null); }
+                        }}
+                      />
+                    );
+                  }
+                  const shown = (val || "").trim();
+                  const cls = `user ${shown ? "" : "is-empty"} ${editMode ? "is-editable" : ""}`;
+                  if (editMode) {
+                    return (
+                      <em
+                        className={cls}
+                        role="button"
+                        tabIndex={0}
+                        title="Click to edit"
+                        onClick={() => setEditingKey(key)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditingKey(key); } }}
+                      >{shown || fallback}</em>
+                    );
+                  }
+                  return <em className={cls}>{shown || fallback}</em>;
+                };
                 return (
                   <div className="na2-decl-stmt" key={d}>
                     <span className="na2-decl-stmt-tag">{tag}</span>
                     <p className="na2-decl-stmt-body">
                       In 10 years, {chipText || <em style={{ color:"var(--na1-text-mute)" }}>(no chip)</em>}. {tmpl.stem1}{" "}
-                      <em className={`user ${b1 ? "" : "is-empty"}`}>{b1 || "—"}</em>, {tmpl.stem2}{" "}
-                      <em className={`user ${b2 ? "" : "is-empty"}`}>{b2 || "—"}</em>.
+                      {renderBlank(k1, v1, "—")}, {tmpl.stem2}{" "}
+                      {renderBlank(k2, v2, "—")}.
                     </p>
                   </div>
                 );
@@ -12379,8 +12532,12 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
         <div className="na2-decl-actions">
           {editMode ? (
             <>
-              <button type="button" className="na2-decl-btn-revise" onClick={onClose} disabled={working}>Cancel</button>
-              <button type="button" className="na2-decl-btn-claim" onClick={handleSaveChanges} disabled={working}>Save changes</button>
+              <button type="button" className="na2-decl-btn-revise" onClick={handleCancelEdits} disabled={working}>Cancel</button>
+              {dirty ? (
+                <button type="button" className="na2-decl-btn-claim" onClick={handleClaim} disabled={working}>★ Claim this revised Vision</button>
+              ) : (
+                <button type="button" className="na2-decl-btn-claim" onClick={handleSaveChanges} disabled={working}>Save changes</button>
+              )}
             </>
           ) : (
             <>
@@ -12390,6 +12547,8 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
           )}
         </div>
         {!editMode && <p className="na2-decl-footnote">Claiming saves to Map of Me + completes Mirror 2</p>}
+        {editMode && dirty && <p className="na2-decl-footnote">You've edited your Vision — re-claim to seal the revision.</p>}
+        {editMode && !dirty && <p className="na2-decl-footnote">Click any italic phrase to refine it. The seal stays.</p>}
       </div>
       {/* ── Ceremony state ── */}
       <div className={`na2-decl-ceremony ${mode === "ceremony" ? "is-on" : ""}`} aria-hidden={mode !== "ceremony"}>
