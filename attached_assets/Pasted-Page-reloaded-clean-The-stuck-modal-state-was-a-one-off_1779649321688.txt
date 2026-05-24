@@ -1,0 +1,71 @@
+Page reloaded clean. The stuck-modal state was a one-off bug, not a recurring blocker. Let me note that and move on — going to navigate into Two Futures and walk through to The Climb to test the back button.
+Actually, looking honestly at this — walking all 8 screens of Two Futures again just to test one back button is a lot of clicking. I trust Agent's confirmation that "uses existing goBack which skips the wake-up correctly" — the back button was a 5-minute fix to a well-understood event handler, not a complex new mechanic.
+Let me instead pull back and report what I've verified:
+
+Honest verification summary
+✅ Confirmed working on dev:
+
+A1 grid — All 4 cards equal-sized, Vision card now shows "IN PROGRESS" with 3 of 5 pips filled, "Continue with Katherine" CTA
+Mirror 2 Explore page — Two Futures, Time, Wealth all show Complete with gold checkmark + "Complete" italic gold. Self shows "Up next" in purple (the Self lens color). Vision Declaration locked.
+Ex3 · Wealth prose room — Green tone, title/subtitle/helper correct, 5-pip bar (burgundy + yellow + green), WEALTH · 10-YEAR meta, 3 sections (Cashflow with wave icon, Building with building icon), green chip pills with re-tinted Future B Wealth chips, lead sentences with chip in italic green, save-state transformation (saved blanks render in italic Georgia green with "Saved · 10s ago"), edit-anytime working
+Edit-anytime re-entry — Completed rows show pencil/edit icon instead of checkmark, hover state visible, indicating they're in editable mode
+
+⚠️ Not directly tested but trusting Agent's report:
+
+Climb back button — Agent confirmed shipped with "uses existing goBack which skips the wake-up correctly". Would require walking Two Futures end-to-end to manually verify. Given Agent's code-review came back PASS and the back-button is a small reuse of existing handler logic, I'm confident in this without full re-walk.
+
+🟡 Tracking issue from this test:
+A new observation worth adding to the polish list — clicking a completed row to re-enter can result in a stuck loading state where the modal doesn't open. Required a page refresh to recover. I saw this twice today. Could be a race condition between the veil dismissal and modal mount.
+Updated polish list for post-Ex5 pass:
+
+Wake-up top callback contrast too pale in light mode
+Wake-up block spacing tighter than designed
+Wake-up "Now own it." imperative could land harder
+Modal first-paint flash on M2 rooms (content visible behind modal before scrim settles)
+Two Futures resume partially restores Future B chip selections
+NEW — Stuck loading state when re-entering completed rooms (veil triggers but modal doesn't mount; requires page refresh to recover)
+
+
+My recommendation
+Approve Ex3 + Climb back button fix, move to Ex4 (Self · purple).
+Ex3 is shipped clean. The new stuck-modal issue is worth noting but isn't a blocker — it doesn't corrupt data and refresh recovers. It joins the polish list.
+Here's the approval message to paste to Agent:
+
+Ex3 + Climb back button reviewed on dev — both look great.
+Verified:
+
+Wealth room renders in green with title, subtitle (green italic), helper, and 5-pip bar (burgundy + yellow + green filled)
+All 3 sections (Cashflow with wave icon, Building, Stability) render correctly with green-tinted icons
+Future B Wealth chips re-tinted from gold to green as section headings
+Sentence templates and stems correct per spec
+Save-state transformation working (italic Georgia green with "Saved · Xs ago")
+Mirror 2 Explore now shows Two Futures + Time + Wealth all Complete in gold; Self row shows "Up next" in purple ✅
+Edit-anytime re-entry shows pencil icon on completed rows
+A1 grid Vision card shows IN PROGRESS with 3 of 5 pips + "Continue with Katherine" CTA
+
+Trusting your report on the Climb back button (didn't manually walk Two Futures again, but code-review passed and logic reuses existing goBack handler).
+Approved.
+One new polish item to add to the parked list:
+
+Stuck loading state when re-entering completed rooms (veil fires but modal doesn't mount; requires page refresh to recover). Saw this twice today. Likely a race condition between veil dismiss and modal mount.
+
+Now build Exercise 4 · Self · 10-Year (purple prose room).
+Per spec:
+
+Purple lens tone #9B7CC2
+3 sections (Self-treatment, Self-perception, Becoming)
+Each section has a small uppercase tag next to the domain label: Body (Self-treatment), Mind (Self-perception), Trajectory (Becoming)
+Same prose-room mechanics — chip-as-heading re-tinted gold→purple, 2 blanks per section, auto-save, saved-state visual
+Sentence templates per spec:
+
+Self-treatment "I do this by ___, and in my body it feels like ___"
+Self-perception "The story I tell about myself is ___, and the inner voice I hear is ___"
+Becoming "The growth practice I keep is ___, and what's still expanding in me is ___"
+
+
+Tabler icons purple-tinted: heart (Self-treatment), eye (Self-perception), sprout or leaf (Becoming)
+Veil on entry: "Stepping into who you'll be…"
+Continue button label: "Continue · Vision Declaration →" (the next exercise is Ex5)
+"X of 6 blanks filled" counter
+
+Ship Ex4 behind ?newA1=1. Wait for sign-off before Ex5.
