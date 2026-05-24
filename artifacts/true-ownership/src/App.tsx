@@ -11184,11 +11184,19 @@ function NewA1PeelBody({ onSaved, onClose, onReadyToDeclare }: { onSaved: () => 
           autoFocus
         />
         <div className="na1-peel-actions">
-          {draftValid && (
+          {draftValid ? (
             <button type="button" className="na1-btn-cyan" disabled={saving} onClick={keepPeeling}>
               {saving ? "Saving…" : "↓ Keep peeling — go deeper"}
             </button>
-          )}
+          ) : wasDone ? (
+            // Re-entry without a draft: ghost "Keep peeling" focuses the
+            // textarea so a new layer can be written, sitting alongside the
+            // gold Ready to Declare CTA so both options are always visible.
+            <button type="button" className="na1-btn-cyan-ghost" onClick={() => {
+              const ta = document.getElementById("na1-peel-draft") as HTMLTextAreaElement | null;
+              ta?.focus();
+            }}>↓ Keep peeling</button>
+          ) : null}
           {wasDone ? (
             // Re-entry: "Save changes" removed per owner — Ready to Declare
             // is the single committed gold CTA. readyToDeclare persists any
