@@ -1,0 +1,35 @@
+Got it. Stopping the check-ins.
+You've now found two real issues with the Claim ceremony AFTER Agent's fix:
+
+No "big bang" — the silver radial burst isn't landing as a moment. Either the animation is firing but too subtle, too fast, or not visible at all.
+Katherine's seal renders below the fold — you have to scroll to see it. Agent's scrollTo({top: 0}) either didn't fire, fired before content mounted, or scrolled the wrong container.
+
+So the fix partially worked (ceremony content is no longer invisible) but two of the three intended behaviors aren't there. Combined with the rest of the polish list, here's the consolidated message to send Agent.
+
+MESSAGE TO PASTE INTO AGENT:
+
+Claim ceremony fix landed partially. Two issues remain on Ex5, then a polish pass on the parked list. Address all of it in priority order with sign-off gates between groups.
+
+GROUP A — Ex5 Claim ceremony (fix first, this is the highest-impact moment in Mirror 2):
+A1. Silver radial burst isn't landing. Tested Claim — no perceptible "big bang." The 1.8s burst either isn't visible, isn't large enough, or the timing is off. Investigate read-only first: is the burst overlay actually rendering with the right opacity/scale/duration? Is z-index keeping it on top? Then propose a fix that makes the burst feel like a real ceremonial moment — silver expansion that fills the viewport, builds to a peak, then crossfades to the seal. This is the emotional anchor of Mirror 2 completion. It needs to land.
+A2. Katherine's seal renders below the fold. After the burst clears, the user has to scroll down to see the seal text and Continue to Identity button. Your previous scrollTo({top: 0}) on the room container either didn't fire, fired before the ceremony mounted, or scrolled the wrong element. Investigate which container actually scrolls (the modal body? a nested wrapper?), then make sure the ceremony content is at the top of the viewport when the burst clears. The 36px silver ★ should be the first thing the user sees after the burst.
+Investigate both A1 and A2 read-only first. Report your diagnosis before pushing fixes.
+
+GROUP B — Wake-up screen polish (after A is signed off):
+B1. Top callback contrast too pale in light mode. "You named the thing costing you most: [holdingBack]" reads as washed-out yellow on white. Deepen the gold or add a subtle background tint pill to anchor it. Should be visible at first glance.
+B2. Block spacing too tight. Currently ~16px between blocks. Bump to ~36px for the held-moment pacing. The wake-up should feel like contemplation, not a paragraph.
+B3. "Now own it." imperative weight. Currently reads like body text. Bump font weight and/or size so it lands as a directive — this is the punch line of the wake-up.
+
+GROUP C — Cross-room polish:
+C1. M2 modal first-paint flash. Every M2 room (Time, Wealth, Self, Vision Declaration, and Two Futures Wake-up/Climb) shows ~1 second of content bleed-through behind the modal before the scrim settles. Fix the scrim/modal mount timing so the modal appears with the scrim already in place. Same fix applies to all rooms.
+
+GROUP D — State bugs:
+D1. Two Futures resume partial restore. When re-entering Two Futures mid-flow, Future B chip selections don't all re-render as selected. Only some restore. Hydration issue in the state restore logic.
+D2. Stuck loading state when re-entering completed rooms. Saw this twice today — clicking a completed row triggers the veil but the modal doesn't mount. Page refresh recovers. Race condition between veil dismiss and modal mount. Investigate and fix.
+
+GROUP E — Quick checks (~30 seconds each, bundle with whichever group you're in):
+E1. Silver "5" badge on Vision Declaration "Up next" state. Renders grey, not silver. Other lens-color badges render in tone (purple "4" for Self). Either apply silver tone or confirm grey is intentional.
+E2. Audit 11 sentence templates in Vision Declaration read-back against locked spec. Any template drift from the locked Mirror 2 design?
+
+Order of operations: Ship GROUP A first, sign-off, then GROUP B, sign-off, then C, then D, then E. Don't bundle everything into one commit. Each group is a discrete ship with verification on dev.
+Start with read-only investigation of A1 and A2.
