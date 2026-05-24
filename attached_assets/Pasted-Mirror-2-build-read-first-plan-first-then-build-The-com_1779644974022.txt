@@ -1,0 +1,37 @@
+Mirror 2 build — read first, plan first, then build.
+The complete design spec for A1 · Mirror 2 is uploaded at:
+attached_assets/Pasted--Replit-Handoff-True-Ownership-A1-Mirror-2-Vision-10-Ye_1779643849882.txt
+Before you write any code:
+
+Read the entire spec document end-to-end from that file.
+Come back to me with a build plan that includes:
+
+Files you'll create or modify (with full paths inside artifacts/true-ownership/)
+The order of work — which exercise first, which last
+State schema changes — what gets added to which keys
+New dependencies or libraries
+Incremental ship plan — Exercise 1 (Two Futures) ships to dev FIRST, my sign-off via ?newA1=1 URL, then Exercise 2, etc.
+
+
+Wait for my approval of the plan before generating any code.
+Match spec complexity to plan complexity. If you find yourself proposing new database tables, new endpoints, or new frameworks not in the spec — STOP and flag it. The spec reuses Mirror 1's existing infrastructure. The new mechanics are the chip ladder, lens prose rooms, and seal ceremony — nothing else.
+Do not touch Mirror 1's code. Mirror 1 (Purpose) is shipped behind ?newA1=1 and works. Mirror 2 builds within the same flag but does not modify Mirror 1's exercises, state, or rendering.
+Codebase context:
+
+Main file: artifacts/true-ownership/src/App.tsx (944,550 bytes, 15,130 lines)
+New A1 gated behind URL flag ?newA1=1, checked at line 9863
+Mirror 2 must be added INSIDE the existing NewA1View component. Do NOT create a parallel new top-level component or new feature flag.
+Because the file is large, do NOT make wholesale replacements. Pastes over ~3KB tend to be silently truncated. Break edits into small targeted changes.
+
+
+Backups in place — DO NOT touch:
+
+artifacts/true-ownership/src/App.tsx.bak_pre_M2
+artifacts/true-ownership/src/main.tsx.bak_pre_M2
+artifacts/true-ownership/src/index.css.bak_pre_M2
+artifacts/true-ownership/package.json.bak_pre_M2
+
+
+
+Read the spec, then present your plan. I'll review and approve before any code is written.
+

@@ -9,6 +9,25 @@ import {
   type PriorContext as SynthPriorContext,
   type PriorContextItem as SynthPriorContextItem,
 } from "./lib/synthesize";
+import {
+  EMPTY_VISION,
+  M2_EXERCISES,
+  M2_VEIL_TEXT,
+  VISION_CHIPS,
+  LENS_DOMAINS,
+  DOMAIN_LABELS,
+  SELF_TAGS,
+  SENTENCE_TEMPLATES,
+  PLACEHOLDERS,
+  TIER_NAMES,
+  LENS_COLORS,
+  SEAL_PARAGRAPHS,
+  SEAL_GOLD_PHRASES,
+  shuffleSeeded,
+  type Lens as M2Lens,
+  type M2ExerciseKey,
+  type VisionState,
+} from "./mirror2Constants";
 const KEYS = {
   map:    "to_map",
   done:   "to_done",
@@ -515,6 +534,217 @@ html[data-theme="light"]{
 .na1-ceremony-text{ font-family:var(--na1-serif); font-style:italic; font-size:48px; line-height:1.2; color:var(--gold); text-align:center; max-width:880px; transform:translateY(8px); opacity:0; transition:opacity 420ms ease-out 120ms, transform 420ms ease-out 120ms; text-shadow:0 0 24px var(--gold-glow); }
 .na1-ceremony.is-on .na1-ceremony-text{ opacity:1; transform:translateY(0); }
 @media (max-width:600px){ .na1-ceremony-text{ font-size:32px; } }
+
+/* ── A1 · Mirror 2 (Vision · 10-Year Horizon) ─────────────────────────── */
+
+/* Lens tokens — dark mode (mirror 2 only). Reuse --na1-bg etc. from M1. */
+:root,
+.na1-root{
+  --m2-yellow:#D9A93C;
+  --m2-yellow-soft:rgba(217,169,60,0.16);
+  --m2-yellow-line:rgba(217,169,60,0.50);
+  --m2-yellow-glow:rgba(217,169,60,0.22);
+  --m2-green:#5C9A6B;
+  --m2-green-soft:rgba(92,154,107,0.16);
+  --m2-green-line:rgba(92,154,107,0.50);
+  --m2-green-glow:rgba(92,154,107,0.22);
+  --m2-purple:#9B7CC2;
+  --m2-purple-soft:rgba(155,124,194,0.16);
+  --m2-purple-line:rgba(155,124,194,0.50);
+  --m2-purple-glow:rgba(155,124,194,0.22);
+  --m2-silver:#C5C9D1;
+  --m2-silver-soft:rgba(197,201,209,0.16);
+  --m2-silver-line:rgba(197,201,209,0.50);
+  --m2-silver-glow:rgba(197,201,209,0.35);
+  --m2-burgundy-chip:#A03B3B;
+  --m2-burgundy-chip-bg:rgba(160,59,59,0.18);
+  --m2-gold-chip:#C9A24B;
+  --m2-gold-chip-bg:rgba(201,162,75,0.16);
+}
+.na1-root.na1-light{
+  --m2-yellow:#B98A1F;
+  --m2-yellow-soft:rgba(185,138,31,0.12);
+  --m2-yellow-line:rgba(185,138,31,0.42);
+  --m2-yellow-glow:rgba(185,138,31,0.20);
+  --m2-green:#458056;
+  --m2-green-soft:rgba(69,128,86,0.12);
+  --m2-green-line:rgba(69,128,86,0.42);
+  --m2-green-glow:rgba(69,128,86,0.20);
+  --m2-purple:#7960A6;
+  --m2-purple-soft:rgba(121,96,166,0.12);
+  --m2-purple-line:rgba(121,96,166,0.42);
+  --m2-purple-glow:rgba(121,96,166,0.20);
+  --m2-silver:#7E8590;
+  --m2-silver-soft:rgba(126,133,144,0.12);
+  --m2-silver-line:rgba(126,133,144,0.42);
+  --m2-silver-glow:rgba(126,133,144,0.28);
+  --m2-burgundy-chip:#8C2F2F;
+  --m2-burgundy-chip-bg:rgba(140,47,47,0.12);
+  --m2-gold-chip:#A8862F;
+  --m2-gold-chip-bg:rgba(168,134,47,0.10);
+}
+
+/* Explore-row tone variants for M2 lenses (mirrors M1 tone-burgundy/gold/cyan pattern). */
+.na1-ex-row.is-current.tone-yellow{ border-color:var(--m2-yellow-line); box-shadow:0 0 0 1px var(--m2-yellow-glow), 0 0 24px var(--m2-yellow-glow); }
+.na1-ex-row.is-current.tone-green{ border-color:var(--m2-green-line); box-shadow:0 0 0 1px var(--m2-green-glow), 0 0 24px var(--m2-green-glow); }
+.na1-ex-row.is-current.tone-purple{ border-color:var(--m2-purple-line); box-shadow:0 0 0 1px var(--m2-purple-glow), 0 0 24px var(--m2-purple-glow); }
+.na1-ex-row.is-current.tone-silver{ border-color:var(--m2-silver-line); box-shadow:0 0 0 1px var(--m2-silver-glow), 0 0 24px var(--m2-silver-glow); }
+.na1-ex-row.is-current.tone-yellow .na1-ex-icon{ background:var(--m2-yellow-soft); border-color:var(--m2-yellow); color:var(--m2-yellow); box-shadow:0 0 12px var(--m2-yellow-glow); }
+.na1-ex-row.is-current.tone-green .na1-ex-icon{ background:var(--m2-green-soft); border-color:var(--m2-green); color:var(--m2-green); box-shadow:0 0 12px var(--m2-green-glow); }
+.na1-ex-row.is-current.tone-purple .na1-ex-icon{ background:var(--m2-purple-soft); border-color:var(--m2-purple); color:var(--m2-purple); box-shadow:0 0 12px var(--m2-purple-glow); }
+.na1-ex-row.is-current.tone-silver .na1-ex-icon{ background:var(--m2-silver-soft); border-color:var(--m2-silver); color:var(--m2-silver); box-shadow:0 0 12px var(--m2-silver-glow); }
+.na1-ex-row.is-current.tone-yellow .na1-ex-status{ color:var(--m2-yellow); font-weight:600; }
+.na1-ex-row.is-current.tone-green .na1-ex-status{ color:var(--m2-green); font-weight:600; }
+.na1-ex-row.is-current.tone-purple .na1-ex-status{ color:var(--m2-purple); font-weight:600; }
+.na1-ex-row.is-current.tone-silver .na1-ex-status{ color:var(--m2-silver); font-weight:600; }
+.na1-ex-row.is-current.tone-yellow .na1-ex-arrow{ color:var(--m2-yellow); }
+.na1-ex-row.is-current.tone-green .na1-ex-arrow{ color:var(--m2-green); }
+.na1-ex-row.is-current.tone-purple .na1-ex-arrow{ color:var(--m2-purple); }
+.na1-ex-row.is-current.tone-silver .na1-ex-arrow{ color:var(--m2-silver); }
+
+/* Room eyebrow tone variants — extends M1 pattern. */
+.na1-room-eyebrow.tone-yellow{ color:var(--m2-yellow); }
+.na1-room-eyebrow.tone-green{ color:var(--m2-green); }
+.na1-room-eyebrow.tone-purple{ color:var(--m2-purple); }
+.na1-room-eyebrow.tone-silver{ color:var(--m2-silver); }
+
+/* Mirror 2 chips — used in Two Futures chip-pick screens. Distinct from .na1-chip. */
+.na2-chip{
+  display:inline-flex; align-items:center; justify-content:flex-start;
+  border:1px solid var(--na1-border);
+  background:transparent;
+  color:var(--na1-text-sec);
+  font-family:var(--na1-sans);
+  font-size:12px;
+  line-height:1.3;
+  padding:7px 12px;
+  min-height:44px;
+  border-radius:18px;
+  cursor:pointer;
+  transition:border-color .15s, background .15s, color .15s, transform .12s;
+  text-align:left;
+}
+.na2-chip:hover{ border-color:var(--na1-border-strong, var(--na1-border)); color:var(--na1-text); }
+.na2-chip.is-burgundy{
+  border-color:var(--m2-burgundy-chip);
+  background:var(--m2-burgundy-chip-bg);
+  color:var(--na1-text);
+  font-weight:500;
+}
+.na2-chip.is-gold{
+  border-color:var(--m2-gold-chip);
+  background:var(--m2-gold-chip-bg);
+  color:var(--na1-text);
+  font-weight:500;
+}
+
+/* Domain row in chip-pick screens. */
+.na2-domain-row{ padding:14px 0 16px; border-top:1px solid var(--na1-border); }
+.na2-domain-row:first-of-type{ border-top:none; padding-top:6px; }
+.na2-domain-name{ font-family:var(--na1-serif); font-size:15px; color:var(--na1-text); margin:0 0 10px; transition:color .25s; }
+.na2-domain-name.is-pulsing{ animation:na2DomainPulse 0.6s ease-in-out 2; }
+@keyframes na2DomainPulse{ 0%,100%{ color:var(--na1-text); } 50%{ color:var(--m2-pulse-color, var(--burgundy)); } }
+.na2-chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
+
+/* Pip bar (8 pips for Two Futures, 5 pips for prose rooms). */
+.na2-pip-bar{ display:flex; align-items:center; gap:6px; margin:0 0 18px; }
+.na2-pip{ width:22px; height:4px; border-radius:2px; background:var(--na1-border); }
+.na2-pip.is-burgundy{ background:var(--m2-burgundy-chip); }
+.na2-pip.is-gold{ background:var(--m2-gold-chip); }
+.na2-pip.is-yellow{ background:var(--m2-yellow); }
+.na2-pip.is-green{ background:var(--m2-green); }
+.na2-pip.is-purple{ background:var(--m2-purple); }
+.na2-pip.is-silver{ background:var(--m2-silver); }
+.na2-pip-meta{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); letter-spacing:0.08em; text-transform:uppercase; margin-left:8px; }
+
+/* Continue button — disabled vs lens-colored enabled. */
+.na2-btn-continue{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-height:44px; padding:0 22px; border-radius:100px; border:none;
+  font-family:var(--na1-sans); font-size:14px; font-weight:600; letter-spacing:0.02em;
+  cursor:pointer; transition:filter .18s, transform .12s;
+}
+.na2-btn-continue:disabled{ background:#1f3550; color:#5c7088; cursor:not-allowed; }
+.na2-btn-continue.is-burgundy{ background:var(--m2-burgundy-chip); color:#fdfaf3; }
+.na2-btn-continue.is-gold{ background:var(--m2-gold-chip); color:#1a1407; }
+.na2-btn-continue.is-yellow{ background:var(--m2-yellow); color:#1a1407; }
+.na2-btn-continue.is-green{ background:var(--m2-green); color:#fdfaf3; }
+.na2-btn-continue.is-purple{ background:var(--m2-purple); color:#fdfaf3; }
+.na2-btn-continue.is-silver{ background:var(--m2-silver); color:#1a1407; }
+.na2-btn-continue:not(:disabled):hover{ filter:brightness(1.08); }
+.na2-btn-continue:not(:disabled):active{ transform:translateY(1px); }
+.na1-light .na2-btn-continue:disabled{ background:#e6e1d4; color:#9a9590; }
+
+/* Continue tooltip when user hovers/clicks disabled. */
+.na2-continue-wrap{ position:relative; display:inline-block; }
+.na2-continue-tip{
+  position:absolute; bottom:calc(100% + 8px); right:0;
+  background:#1a1407; color:#fdfaf3;
+  font-family:var(--na1-sans); font-size:12px; line-height:1.4;
+  padding:8px 12px; border-radius:6px; white-space:nowrap;
+  pointer-events:none; opacity:0; transform:translateY(4px);
+  transition:opacity .18s, transform .18s;
+}
+.na2-continue-tip.is-on{ opacity:1; transform:translateY(0); }
+.na1-light .na2-continue-tip{ background:#2a2520; color:#fdfaf3; }
+
+/* Mirror 2 prose-room blank inputs (Time/Wealth/Self). */
+.na2-blank-input{
+  width:100%;
+  background:rgba(255,255,255,0.02);
+  border:none;
+  border-bottom:1px solid var(--m2-lens-color, var(--gold));
+  color:var(--na1-text);
+  padding:10px 12px;
+  font-family:var(--na1-sans);
+  font-size:15px;
+  line-height:1.5;
+  border-radius:6px 6px 0 0;
+  transition:background .15s, border-bottom-color .15s, border-bottom-width .15s;
+  box-sizing:border-box;
+  resize:vertical;
+}
+.na2-blank-input:focus{
+  outline:none;
+  background:rgba(255,255,255,0.04);
+  border-bottom:2px solid var(--m2-lens-color, var(--gold));
+  padding-bottom:9px;
+}
+.na2-blank-input::placeholder{ color:var(--na1-text-mute); font-style:italic; }
+.na2-blank-filled{
+  display:block; width:100%;
+  background:rgba(255,255,255,0.03);
+  border-bottom:1px solid var(--m2-lens-color, var(--gold));
+  color:var(--m2-lens-color, var(--gold));
+  padding:10px 12px;
+  font-family:var(--na1-serif); font-style:italic; font-size:15px; line-height:1.5;
+  border-radius:6px 6px 0 0;
+  cursor:text;
+  box-sizing:border-box;
+}
+.na2-blank-saved{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); margin-top:4px; font-style:italic; }
+
+/* Silver radial expansion for Vision Declaration ceremony. */
+@keyframes na2SilverRadial{
+  0%   { opacity:0; transform:scale(0.6); }
+  60%  { opacity:0.95; transform:scale(1.4); }
+  100% { opacity:0;  transform:scale(2.2); }
+}
+.na2-silver-burst{
+  position:fixed; inset:0; z-index:130; pointer-events:none;
+  display:flex; align-items:center; justify-content:center;
+}
+.na2-silver-burst-inner{
+  width:60vmin; height:60vmin; border-radius:50%;
+  background:radial-gradient(circle at center, var(--m2-silver) 0%, var(--m2-silver-glow) 35%, transparent 70%);
+  animation:na2SilverRadial 1800ms ease-out forwards;
+}
+
+/* Mirror 2 grid card — interactive Vision card variant. */
+.na1-mirror-card.is-vision-up-next{ border-color:var(--gold-line); background:linear-gradient(180deg, var(--gold-soft) 0%, var(--na1-bg-card) 50%); box-shadow:0 0 0 1px var(--gold-glow), 0 0 24px var(--gold-glow); cursor:pointer; }
+.na1-mirror-card.is-vision-in-progress{ border-color:var(--m2-burgundy-chip); cursor:pointer; }
+.na1-mirror-card.is-vision-in-progress .na1-mirror-card-num{ color:var(--m2-burgundy-chip); }
+.na1-mirror-card.is-vision-in-progress .na1-mirror-card-status{ background:var(--m2-burgundy-chip-bg); color:var(--m2-burgundy-chip); border-color:var(--m2-burgundy-chip); }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -9296,6 +9526,8 @@ const EMPTY_MAP = {
   values: [{ name:"", irk:"", behaviors:"" }],
   behaviors_note: "",
   align_direction:5, align_superpowers:5, align_behaviors:5,
+  // A1 · Mirror 2 (Vision · 10-Year Horizon) — see src/mirror2Constants.ts for the full shape.
+  vision: EMPTY_VISION,
 };
 const MIRROR_CARDS = [
   { side:"internal", id:"purpose",    icon:"🔥", label:"Purpose",    color:"#c9a84c", colorMuted:"rgba(232,149,109,0.08)", colorBorder:"rgba(232,149,109,0.2)", pair:"mirror1", tagline:"Your internal north star",          description:"Purpose is the internal reason you exist -- the impact your presence creates regardless of any role or outcome. Not your business, not your family -- those are expressions of it. Your purpose stays constant when everything else changes. Short enough to say in the car. True enough to get you out of bed on a hard day.", katherine:"\"When I ask people what their purpose is, they usually say their kids or their business. That's not purpose -- those are attachments. Purpose needs to be 100% internal to you.\"" },
@@ -9865,7 +10097,8 @@ const NEW_A1_FLAG = (() => {
 })();
 
 // ─── NEW A1: Mirror grid (4 cards · Purpose unlocked, BAG/Identity/Values locked) ───
-function NewA1Grid({ name, progress, onOpenPurpose }: { name?: string; progress: { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; purposeFinal: string }; onOpenPurpose: () => void; }) {
+type NewA1GridM2Progress = { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; ex5: boolean; complete: boolean };
+function NewA1Grid({ name, progress, m2Progress, onOpenPurpose, onOpenVision }: { name?: string; progress: { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; purposeFinal: string }; m2Progress: NewA1GridM2Progress; onOpenPurpose: () => void; onOpenVision: () => void; }) {
   const doneCount = [progress.ex1, progress.ex2, progress.ex3, progress.ex4].filter(Boolean).length;
   const purposeComplete = doneCount === 4;
   const purposeInProgress = doneCount > 0 && !purposeComplete;
@@ -9875,6 +10108,16 @@ function NewA1Grid({ name, progress, onOpenPurpose }: { name?: string; progress:
     ? (progress.purposeFinal ? `"${progress.purposeFinal}"` : "Declared.")
     : purposeInProgress ? `${doneCount} of 4 exercises complete.` : "Not yet explored.";
   const pips = [progress.ex1, progress.ex2, progress.ex3, progress.ex4];
+  // Mirror 2 (Vision) gating: unlock the moment Purpose is declared.
+  const visionUnlocked = purposeComplete && !!progress.purposeFinal;
+  const m2DoneCount = [m2Progress.ex1, m2Progress.ex2, m2Progress.ex3, m2Progress.ex4, m2Progress.ex5].filter(Boolean).length;
+  const visionComplete = !!m2Progress.complete;
+  const visionInProgress = visionUnlocked && m2DoneCount > 0 && !visionComplete;
+  const visionStatusLabel = visionComplete ? "Complete" : visionInProgress ? "In progress" : "Up next";
+  const visionCtaLabel = visionComplete ? "Review with Katherine →" : visionInProgress ? "Continue with Katherine →" : "Explore with Katherine →";
+  const visionEmpty = visionComplete ? "Claimed." : visionInProgress ? `${m2DoneCount} of 5 exercises complete.` : "Not yet explored.";
+  const visionPips = [m2Progress.ex1, m2Progress.ex2, m2Progress.ex3, m2Progress.ex4, m2Progress.ex5];
+  const mirrorsComplete = (purposeComplete ? 1 : 0) + (visionComplete ? 1 : 0);
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -9889,7 +10132,7 @@ function NewA1Grid({ name, progress, onOpenPurpose }: { name?: string; progress:
             <h1 className="na1-hero-title">Commit to who you are becoming.</h1>
             <p className="na1-hero-sub">Four mirrors. Name your purpose, dream your 10 years, claim your gifts, declare what you stand for.</p>
           </div>
-          <div className="na1-hero-meta"><strong>{purposeComplete ? 1 : 0} of 4</strong> complete · ~3 hrs remaining</div>
+          <div className="na1-hero-meta"><strong>{mirrorsComplete} of 4</strong> complete · ~3 hrs remaining</div>
         </div>
         <div className="na1-mirror-grid">
           <article className={`na1-mirror-card ${purposeComplete ? "is-complete" : "is-current"}`}>
@@ -9912,9 +10155,44 @@ function NewA1Grid({ name, progress, onOpenPurpose }: { name?: string; progress:
               <span className="na1-mirror-card-meta">4 exercises · ~50 min · 4 videos</span>
             </div>
           </article>
+          {visionUnlocked ? (
+            <article className={`na1-mirror-card ${visionComplete ? "is-complete" : visionInProgress ? "is-vision-in-progress" : "is-vision-up-next"}`}>
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">02</span>
+                <span className="na1-mirror-card-status">{visionStatusLabel}</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">Mirror 2 · 10-Year Vision</div>
+              <h2 className="na1-mirror-card-name">Vision</h2>
+              <p className="na1-mirror-card-sub">Who you've become in 10 years — across time, wealth, and self.</p>
+              <div className="na1-progress-mini">
+                {visionPips.map((done, i) => (
+                  <div key={i} className={`na1-progress-pip ${done ? "is-done" : ""}`} aria-label={`Exercise ${i + 1} ${done ? "complete" : "incomplete"}`} />
+                ))}
+                <span className="na1-progress-text">{m2DoneCount} of 5</span>
+              </div>
+              <div className="na1-mirror-card-empty" style={visionComplete ? { fontStyle:"italic", color:"var(--na1-text-sec)", fontFamily:"var(--na1-serif)" } : undefined}>{visionEmpty}</div>
+              <div className="na1-mirror-card-action">
+                <button type="button" className="na1-btn-gold na1-btn-block" onClick={onOpenVision}>{visionCtaLabel}</button>
+                <span className="na1-mirror-card-meta">5 exercises · ~40 min · 5 videos</span>
+              </div>
+            </article>
+          ) : (
+            <article className="na1-mirror-card is-locked" aria-disabled="true">
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">02</span>
+                <span className="na1-mirror-card-status">Locked</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">Mirror 2 · 10-Year Vision</div>
+              <h2 className="na1-mirror-card-name">Vision</h2>
+              <p className="na1-mirror-card-sub">Who you've become in 10 years.</p>
+              <div className="na1-mirror-card-empty">Unlocks after Purpose</div>
+              <div className="na1-mirror-card-action">
+                <span className="na1-mirror-card-meta">Complete Purpose to unlock</span>
+              </div>
+            </article>
+          )}
           {[
-            { num:"02", eyebrow:"Mirror 2 · 10-Year Vision", name:"BAG · Big Ass Goal", sub:"Who you've become in 10 years.", empty:"Unlocks after Purpose", meta:"Complete Purpose to unlock" },
-            { num:"03", eyebrow:"Mirror 3", name:"Identity · Superpowers", sub:"What you carry that others don't.", empty:"Unlocks after BAG", meta:"Complete Mirror 2 to unlock" },
+            { num:"03", eyebrow:"Mirror 3", name:"Identity · Superpowers", sub:"What you carry that others don't.", empty: visionComplete ? "Coming soon" : "Unlocks after Vision", meta: visionComplete ? "Coming soon" : "Complete Vision to unlock" },
             { num:"04", eyebrow:"Mirror 4", name:"Values · Behaviors", sub:"What you stand for.", empty:"Unlocks after Identity", meta:"Complete Mirror 3 to unlock" },
           ].map((c) => (
             <article key={c.num} className="na1-mirror-card is-locked" aria-disabled="true">
@@ -10738,9 +11016,136 @@ function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () =>
 
 type NA1VeilPhase = "idle" | "rising" | "hold" | "falling";
 
+// ─── A1 · Mirror 2 (Vision · 10-Year Horizon) — components ───
+// Lives inside the existing NEW_A1_FLAG surface; dispatched from NewA1View when
+// view === "explore2". Mirror 2 state is persisted at `map.vision` (server-synced
+// via the map blob). No new top-level component, no new feature flag.
+
+type M2Exercise = typeof M2_EXERCISES[number];
+
+function NewA2Explore({ m2Progress, onBack, onLaunchRoom, dimmed }: {
+  m2Progress: { ex1: boolean; ex2: boolean; ex3: boolean; ex4: boolean; ex5: boolean; complete: boolean };
+  onBack: () => void;
+  onLaunchRoom: (ex: M2Exercise) => void;
+  dimmed: boolean;
+}) {
+  const [videoOpen, setVideoOpen] = useState(false);
+  const doneArr = [m2Progress.ex1, m2Progress.ex2, m2Progress.ex3, m2Progress.ex4, m2Progress.ex5];
+  const firstIncomplete = doneArr.findIndex(d => !d);
+  const currentIdx = firstIncomplete === -1 ? 4 : firstIncomplete;
+  return (
+    <div className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`} aria-hidden={dimmed || undefined}>
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <a onClick={onBack}>Entry Hall</a>
+          <span className="sep">›</span>
+          <a onClick={onBack}>A1 · All In It</a>
+          <span className="sep">›</span>
+          <span className="current">Vision</span>
+        </div>
+        <div className="na1-ex-eyebrow">A1 · Mirror 2 · Explore with Katherine</div>
+        <h1 className="na1-ex-title">Vision · 10-Year Horizon</h1>
+        <p className="na1-ex-sub">Five exercises. First you'll see the two paths in front of you. Then you'll dream the life that holds your time, wealth, and self. Finally — you'll claim it.</p>
+        <p className="na1-ex-foot-sub">You can return anytime to edit anything you've written.</p>
+        <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
+          <div className="na1-intro-video-head" onClick={() => setVideoOpen(v => !v)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setVideoOpen(v => !v); } }} aria-expanded={videoOpen}>
+            <div className="na1-intro-video-left">
+              <div className="na1-intro-video-play-mini" aria-hidden>▶</div>
+              <div className="na1-intro-video-title-row">
+                <span className="na1-intro-video-eyebrow">Start here · Katherine introduces Vision</span>
+                <span className="na1-intro-video-title">Vision · 10-Year Horizon</span>
+              </div>
+            </div>
+            <span className="na1-intro-video-meta">5 min</span>
+            <span className="na1-intro-video-chev" aria-hidden>▾</span>
+          </div>
+          <div className="na1-intro-video-body">
+            <div className="na1-video-stub">
+              <button type="button" className="na1-video-stub-play" aria-label="Play intro video">▶</button>
+              <div className="na1-video-stub-caption">Katherine's Vision intro · 5 min</div>
+            </div>
+          </div>
+        </div>
+        <div className="na1-ex-list">
+          {M2_EXERCISES.map((ex, idx) => {
+            const isDone = doneArr[idx];
+            // Strict sequence: ex1 always unlocked; each subsequent unlocks only when previous done flag is set.
+            const isUnlocked = idx === 0 || doneArr[idx - 1];
+            const isCurrent = isUnlocked && !isDone && idx === currentIdx;
+            const isLocked = !isUnlocked;
+            const cls = [
+              "na1-ex-row",
+              `tone-${ex.tone}`,
+              isDone ? "is-complete" : "",
+              isCurrent ? "is-current" : "",
+              isLocked ? "is-locked" : "is-unlocked",
+            ].filter(Boolean).join(" ");
+            const statusLabel = isDone ? "Complete" : isCurrent ? "Up next · tap to begin" : isLocked ? `Unlocks after ${M2_EXERCISES[idx - 1].name}` : "Available";
+            const iconChar = isDone ? "✓" : isLocked ? "🔒" : String(ex.n);
+            return (
+              <button type="button" key={ex.key} className={cls} disabled={isLocked} onClick={() => { if (!isLocked) onLaunchRoom(ex); }} aria-label={`${ex.name} — ${statusLabel}`}>
+                <span className="na1-ex-icon" aria-hidden>{iconChar}</span>
+                <span className="na1-ex-text">
+                  <span className="na1-ex-name" style={{ display:"block" }}>{ex.name}</span>
+                  <span className="na1-ex-status" style={{ display:"block" }}>{statusLabel}</span>
+                </span>
+                {!isLocked && <span className="na1-ex-arrow" aria-hidden>›</span>}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ display:"flex", justifyContent:"flex-start", marginTop:8 }}>
+          <button type="button" className="na1-btn-ghost" onClick={onBack}>← Back to A1</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewA2RoomShell({ exercise, open, onClose, children }: { exercise: M2Exercise; open: boolean; onClose: () => void; children: React.ReactNode; }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open, onClose]);
+  return (
+    <div className={`na1-room-overlay ${open ? "is-open" : ""}`} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label={exercise.name}>
+      <div className="na1-room-card">
+        <div className="na1-room-crumb">
+          <a onClick={onClose}>Vision</a>
+          <span className="sep">›</span>
+          <span className="current">{exercise.name}</span>
+        </div>
+        <button type="button" className="na1-room-close" onClick={onClose} aria-label="Close">×</button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function NewA2RoomPlaceholderBody({ exercise, onClose }: { exercise: M2Exercise; onClose: () => void; }) {
+  return (
+    <>
+      <div className={`na1-room-eyebrow tone-${exercise.tone}`}>Mirror 2 · Exercise {exercise.n}</div>
+      <h2 className="na1-room-title">{exercise.name}</h2>
+      <p className="na1-room-context">{exercise.subtitle}</p>
+      <div style={{ padding:"16px 18px", background:"var(--gold-warm)", border:"1px dashed var(--gold-line)", borderRadius:"var(--na1-radius)", fontFamily:"var(--na1-sans)", fontSize:13.5, lineHeight:1.55, color:"var(--na1-text-sec)", marginBottom:24 }}>
+        Exercise content lands in a follow-up step. Press <kbd>Esc</kbd>, click ×, or tap outside the card to close.
+      </div>
+      <div className="na1-room-actions">
+        <button type="button" className="na1-btn-ghost" onClick={onClose}>Close</button>
+      </div>
+    </>
+  );
+}
+
 function NewA1View({ name }: { name?: string }) {
-  const [view, setView] = useState<"grid" | "explore">("grid");
+  const [view, setView] = useState<"grid" | "explore" | "explore2">("grid");
   const [openEx, setOpenEx] = useState<NA1Exercise | null>(null);
+  const [openM2Ex, setOpenM2Ex] = useState<M2Exercise | null>(null);
   const [roomOpen, setRoomOpen] = useState(false);
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
@@ -10754,6 +11159,20 @@ function NewA1View({ name }: { name?: string }) {
       // Strict: only the new explicit done flag counts. Older purpose_final stays in the DB but won't mark Declare complete.
       ex4: !!loadDataSync("a1_ex4_done"),
       purposeFinal: String(map.purpose_final || "").trim(),
+    };
+  }, [view, roomOpen]);
+  // M2 progress derived from `map.vision` (server-synced via the map blob).
+  // Per-exercise completion is read from VisionState flags — no extra storage keys.
+  const m2Progress = useMemo(() => {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    const v: VisionState | undefined = map.vision;
+    return {
+      ex1: !!v?.twoFutures?.complete,
+      ex2: !!v?.time_complete,
+      ex3: !!v?.wealth_complete,
+      ex4: !!v?.self_complete,
+      ex5: !!v?.complete,
+      complete: !!v?.complete,
     };
   }, [view, roomOpen]);
   const clearTimers = () => { timeoutsRef.current.forEach((t) => window.clearTimeout(t)); timeoutsRef.current = []; };
@@ -10771,10 +11190,21 @@ function NewA1View({ name }: { name?: string }) {
     timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("falling"); }, 2000));
     timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("idle"); }, 3000));
   };
+  const launchRoomM2 = (ex: M2Exercise) => {
+    clearTimers();
+    setOpenM2Ex(ex);
+    setVeilPhase("rising");
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("hold"); setRoomOpen(true); }, 900));
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("falling"); }, 2000));
+    timeoutsRef.current.push(window.setTimeout(() => { setVeilPhase("idle"); }, 3000));
+  };
   const closeRoom = () => {
     setRoomOpen(false);
     // Unmount the exercise reference shortly after the fade-out completes.
-    window.setTimeout(() => setOpenEx((cur) => (roomOpen ? null : cur)), 520);
+    window.setTimeout(() => {
+      setOpenEx((cur) => (roomOpen ? null : cur));
+      setOpenM2Ex((cur) => (roomOpen ? null : cur));
+    }, 520);
   };
   if (view === "explore") {
     return (
@@ -10798,7 +11228,20 @@ function NewA1View({ name }: { name?: string }) {
       </>
     );
   }
-  return <NewA1Grid name={name} progress={progress} onOpenPurpose={() => setView("explore")} />;
+  if (view === "explore2") {
+    return (
+      <>
+        <NewA2Explore m2Progress={m2Progress} onBack={() => setView("grid")} onLaunchRoom={launchRoomM2} dimmed={roomOpen} />
+        {openM2Ex && (
+          <NewA2RoomShell exercise={openM2Ex} open={roomOpen} onClose={closeRoom}>
+            <NewA2RoomPlaceholderBody exercise={openM2Ex} onClose={closeRoom} />
+          </NewA2RoomShell>
+        )}
+        {veilPhase !== "idle" && openM2Ex && <NewA1Veil phase={veilPhase} text={openM2Ex.threshold} />}
+      </>
+    );
+  }
+  return <NewA1Grid name={name} progress={progress} m2Progress={m2Progress} onOpenPurpose={() => setView("explore")} onOpenVision={() => setView("explore2")} />;
 }
 
 function A1({ intake, onDone, phase, setPhase }) {
