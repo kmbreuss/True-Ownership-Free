@@ -11172,17 +11172,6 @@ function NewA1PeelBody({ onSaved, onClose, onReadyToDeclare }: { onSaved: () => 
           )}
         </div>
       ))}
-      {wasDone ? (
-        <div className="na1-peel-actions">
-          <button type="button" className="na1-btn-cyan-ghost" onClick={() => {
-            const ta = document.getElementById("na1-peel-draft") as HTMLTextAreaElement | null;
-            ta?.focus();
-          }}>↓ Keep peeling</button>
-          <button type="button" className="na1-btn-gold" onClick={readyToDeclare} disabled={saving}>
-            {saving ? "Saving…" : "★ Ready to Declare →"}
-          </button>
-        </div>
-      ) : null}
       <div className="na1-peel-current" ref={currentRef}>
         <h3 className="na1-peel-current-prompt">{peelPromptFor(currentPromptIdx)}</h3>
         <textarea
@@ -11200,11 +11189,18 @@ function NewA1PeelBody({ onSaved, onClose, onReadyToDeclare }: { onSaved: () => 
               {saving ? "Saving…" : "↓ Keep peeling — go deeper"}
             </button>
           )}
-          {canDeclare && (
-            <button type="button" className="na1-btn-gold" disabled={saving} onClick={declareBottom}>
-              {saving ? "Saving…" : wasDone ? "✓ Save changes" : "✓ This is my bottom — declare"}
+          {wasDone ? (
+            // Re-entry: "Save changes" removed per owner — Ready to Declare
+            // is the single committed gold CTA. readyToDeclare persists any
+            // non-empty draft as a new layer first, so edits aren't lost.
+            <button type="button" className="na1-btn-gold" disabled={saving} onClick={readyToDeclare}>
+              {saving ? "Saving…" : "★ Ready to Declare →"}
             </button>
-          )}
+          ) : canDeclare ? (
+            <button type="button" className="na1-btn-gold" disabled={saving} onClick={declareBottom}>
+              {saving ? "Saving…" : "✓ This is my bottom — declare"}
+            </button>
+          ) : null}
           {!wasDone && !draftValid && (
             <span className="na1-save-hint">{layers.length < 2 ? `${Math.max(0, 2 - layers.length)} more ${layers.length === 1 ? "layer" : "layers"} before you can declare.` : "Write your next layer, then keep peeling or declare."}</span>
           )}
