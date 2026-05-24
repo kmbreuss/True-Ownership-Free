@@ -25,6 +25,7 @@ import {
   SEAL_GOLD_PHRASES,
   shuffleSeeded,
   type Lens as M2Lens,
+  type Lens,
   type M2ExerciseKey,
   type VisionState,
 } from "./mirror2Constants";
@@ -305,9 +306,9 @@ html[data-theme="light"]{
 .na1-hero-meta{ font-size:13px; color:var(--na1-text-sec); text-align:right; font-family:var(--na1-sans); }
 .na1-hero-meta strong{ color:var(--na1-text); font-weight:600; }
 /* ─── NEW A1: mirror grid ─── */
-.na1-mirror-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); gap:16px; }
-@media (max-width:600px){ .na1-mirror-grid{ grid-template-columns:1fr; gap:14px; } }
-.na1-mirror-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px; transition:border-color .18s, box-shadow .18s; display:flex; flex-direction:column; min-height:240px; font-family:var(--na1-sans); }
+.na1-mirror-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); grid-auto-rows:1fr; gap:16px; align-items:stretch; }
+@media (max-width:600px){ .na1-mirror-grid{ grid-template-columns:1fr; gap:14px; grid-auto-rows:auto; } }
+.na1-mirror-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px; transition:border-color .18s, box-shadow .18s; display:flex; flex-direction:column; min-height:340px; height:100%; font-family:var(--na1-sans); }
 @media (max-width:600px){ .na1-mirror-card{ min-height:auto; padding:18px; } }
 .na1-mirror-card.is-current{ border-color:var(--cyan-line); background:linear-gradient(180deg, var(--cyan-soft) 0%, var(--na1-bg-card) 50%); box-shadow:0 0 0 1px var(--cyan-glow), 0 0 24px var(--cyan-glow); }
 .na1-mirror-card.is-complete{ border-color:var(--gold-line); }
@@ -601,6 +602,17 @@ html[data-theme="light"]{
 .na1-ex-row.is-current.tone-green .na1-ex-arrow{ color:var(--m2-green); }
 .na1-ex-row.is-current.tone-purple .na1-ex-arrow{ color:var(--m2-purple); }
 .na1-ex-row.is-current.tone-silver .na1-ex-arrow{ color:var(--m2-silver); }
+/* Locked M2 rows keep a subtle lens identity (left border + tinted icon stroke) so the user can scan the path ahead. Calm, not loud. */
+.na1-ex-row.is-locked.tone-burgundy{ border-left:3px solid var(--burgundy-line); }
+.na1-ex-row.is-locked.tone-yellow{ border-left:3px solid var(--m2-yellow-line); }
+.na1-ex-row.is-locked.tone-green{ border-left:3px solid var(--m2-green-line); }
+.na1-ex-row.is-locked.tone-purple{ border-left:3px solid var(--m2-purple-line); }
+.na1-ex-row.is-locked.tone-silver{ border-left:3px solid var(--m2-silver-line); }
+.na1-ex-row.is-locked.tone-burgundy .na1-ex-icon{ border-color:var(--burgundy-line); color:var(--burgundy); }
+.na1-ex-row.is-locked.tone-yellow .na1-ex-icon{ border-color:var(--m2-yellow-line); color:var(--m2-yellow); }
+.na1-ex-row.is-locked.tone-green .na1-ex-icon{ border-color:var(--m2-green-line); color:var(--m2-green); }
+.na1-ex-row.is-locked.tone-purple .na1-ex-icon{ border-color:var(--m2-purple-line); color:var(--m2-purple); }
+.na1-ex-row.is-locked.tone-silver .na1-ex-icon{ border-color:var(--m2-silver-line); color:var(--m2-silver); }
 
 /* Room eyebrow tone variants — extends M1 pattern. */
 .na1-room-eyebrow.tone-yellow{ color:var(--m2-yellow); }
@@ -738,6 +750,50 @@ html[data-theme="light"]{
   width:60vmin; height:60vmin; border-radius:50%;
   background:radial-gradient(circle at center, var(--m2-silver) 0%, var(--m2-silver-glow) 35%, transparent 70%);
   animation:na2SilverRadial 1800ms ease-out forwards;
+}
+
+/* Two Futures · wake-up moment (screen 4). Held, slightly darker than chip screens. */
+.na2-wakeup{ background:linear-gradient(180deg, rgba(10,20,36,0.6) 0%, transparent 100%); border-radius:var(--na1-radius-lg); padding:56px 36px; margin:6px 0 8px; }
+.na1-light .na2-wakeup{ background:linear-gradient(180deg, rgba(247,242,231,0.7) 0%, transparent 100%); }
+.na2-wakeup-callback-label{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin:0 0 6px; }
+.na2-wakeup-callback-quote{ font-family:var(--na1-serif); font-style:italic; font-size:15px; color:var(--gold); margin:0 0 36px; }
+.na2-wakeup-block{ font-family:var(--na1-serif); font-style:italic; font-size:19px; line-height:1.55; color:var(--na1-text); margin:0 0 22px; }
+.na2-wakeup-low-tier{ font-family:var(--na1-serif); font-style:italic; font-size:14.5px; color:var(--na1-text-mute); line-height:1.55; margin:0 0 22px; }
+.na2-wakeup-compound{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; color:var(--na1-text-sec); line-height:1.6; margin:0 0 22px; }
+.na2-wakeup-dagger{ font-family:var(--na1-serif); font-style:italic; font-size:21px; font-weight:500; line-height:1.5; color:var(--na1-text); margin:0 0 0; }
+.na2-wakeup-dagger .accent{ color:var(--burgundy); font-style:italic; }
+.na2-wakeup-divider{ width:48px; height:1px; background:var(--gold); margin:28px 0; }
+.na2-wakeup-purpose{ font-family:var(--na1-serif); font-style:italic; font-size:17px; color:var(--na1-text-mute); margin:0 0 8px; }
+.na2-wakeup-purpose .quote{ color:var(--gold); }
+.na2-wakeup-imperative{ font-family:var(--na1-serif); font-size:19px; font-weight:500; color:var(--gold); margin:0 0 6px; }
+.na2-wakeup-prompt{ font-family:var(--na1-serif); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin:0 0 36px; }
+.na2-wakeup-cta{ display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 28px; border-radius:100px; background:transparent; color:var(--gold); border:1.5px solid var(--gold); font-family:var(--na1-sans); font-size:14px; font-weight:600; letter-spacing:0.02em; cursor:pointer; transition:background .18s, transform .12s; }
+.na2-wakeup-cta:hover{ background:var(--gold-soft); }
+.na2-wakeup-cta:active{ transform:translateY(1px); }
+
+/* Two Futures · climb table (screen 8). Side-by-side ladder. */
+.na2-climb-headers{ display:grid; grid-template-columns:80px 1fr 22px 1fr; column-gap:14px; padding:10px 0 14px; border-bottom:1px solid var(--na1-border); margin-bottom:12px; }
+.na2-climb-headers .h-col-a{ font-family:var(--na1-sans); font-size:11px; color:var(--m2-burgundy-chip); letter-spacing:0.1em; text-transform:uppercase; grid-column:2; }
+.na2-climb-headers .h-col-b{ font-family:var(--na1-sans); font-size:11px; color:var(--m2-gold-chip); letter-spacing:0.1em; text-transform:uppercase; grid-column:4; }
+.na2-climb-lens{ margin:18px 0; }
+.na2-climb-lens-title{ font-family:var(--na1-serif); font-size:16px; color:var(--na1-text); letter-spacing:0.02em; margin:0 0 4px; }
+.na2-climb-lens-rule{ height:1px; background:var(--na1-border); margin-bottom:10px; }
+.na2-climb-row{ display:grid; grid-template-columns:80px 1fr 22px 1fr; column-gap:14px; align-items:center; padding:8px 0; }
+.na2-climb-domain{ font-family:var(--na1-serif); font-size:12px; color:var(--na1-text-mute); }
+.na2-climb-cell{ padding:8px 12px; border-radius:10px; font-family:var(--na1-sans); font-size:12.5px; line-height:1.35; }
+.na2-climb-cell .tier-label{ display:block; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:3px; }
+.na2-climb-cell.tone-burgundy{ background:var(--m2-burgundy-chip-bg); color:var(--na1-text); }
+.na2-climb-cell.tone-burgundy .tier-label{ color:#9a8273; }
+.na2-climb-cell.tone-gold{ background:var(--m2-gold-chip-bg); color:var(--na1-text); }
+.na2-climb-cell.tone-gold .tier-label{ color:#d4b876; }
+.na2-climb-arrow{ text-align:center; color:var(--na1-text-mute); font-size:13px; }
+.na2-climb-closing{ font-family:var(--na1-serif); font-style:italic; font-size:15px; color:var(--gold); line-height:1.6; margin:22px 0 18px; padding-top:18px; border-top:1px solid var(--na1-border); }
+@media (max-width:560px){
+  .na2-climb-headers, .na2-climb-row{ grid-template-columns:1fr 1fr; column-gap:8px; }
+  .na2-climb-headers .h-col-a{ grid-column:1; }
+  .na2-climb-headers .h-col-b{ grid-column:2; }
+  .na2-climb-domain{ grid-column:1 / -1; padding-top:6px; }
+  .na2-climb-arrow{ display:none; }
 }
 
 /* Mirror 2 grid card — interactive Vision card variant. */
@@ -11126,6 +11182,300 @@ function NewA2RoomShell({ exercise, open, onClose, children }: { exercise: M2Exe
   );
 }
 
+// ─── Mirror 2 · Exercise 1 · Two Futures ───
+// 8 screens: 3 burgundy "Future A" chip picks → wake-up → 3 gold "Future B" chip picks → climb.
+// Persisted at map.vision.twoFutures via debounced 500ms auto-save (mirrors M1 pattern).
+function NewA2TwoFuturesBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
+  const { user } = useAuth();
+  const userId = user?.id || "anon";
+  const initialMap = (loadDataSync(KEYS.map) as any) || {};
+  const initialVision: VisionState = (initialMap.vision as VisionState) || EMPTY_VISION;
+  const initialTF = initialVision.twoFutures || EMPTY_VISION.twoFutures;
+  // Pull Mirror 1 callbacks for wake-up screen.
+  const oneThing = String(loadDataSync("a1_sym_holdback") || "").trim();
+  const purpose = String(initialMap.purpose_final || "").trim();
+  const [futureA, setFutureA] = useState(initialTF.futureA);
+  const [futureB, setFutureB] = useState(initialTF.futureB);
+  const [wakeUpSeen, setWakeUpSeen] = useState<boolean>(!!initialTF.wakeUp_seen);
+  const isLensComplete = (picks: Record<string, number | null>, lens: Lens) =>
+    LENS_DOMAINS[lens].every(d => picks[d] != null);
+  // Resume to first incomplete screen on re-entry.
+  const computeStartScreen = (): number => {
+    if (initialTF.complete || initialTF.climb_seen) return 8;
+    if (initialTF.futureB_complete) return 8;
+    if (initialTF.wakeUp_seen) {
+      if (!isLensComplete(initialTF.futureB.time as any, "time")) return 5;
+      if (!isLensComplete(initialTF.futureB.wealth as any, "wealth")) return 6;
+      return 7;
+    }
+    if (initialTF.futureA_complete) return 4;
+    if (!isLensComplete(initialTF.futureA.time as any, "time")) return 1;
+    if (!isLensComplete(initialTF.futureA.wealth as any, "wealth")) return 2;
+    return 3;
+  };
+  const [screen, setScreen] = useState<number>(() => computeStartScreen());
+  const [pulseDomains, setPulseDomains] = useState<Set<string>>(new Set());
+  const [tipOn, setTipOn] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
+  const saveTimer = useRef<number | null>(null);
+  const initialJson = useRef<string>(JSON.stringify({ a: initialTF.futureA, b: initialTF.futureB, w: initialTF.wakeUp_seen }));
+  // Debounced auto-save of chip picks + wakeUp flag.
+  useEffect(() => {
+    const next = JSON.stringify({ a: futureA, b: futureB, w: wakeUpSeen });
+    if (next === initialJson.current) return;
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(async () => {
+      const cur = (await loadData(KEYS.map)) as any || initialMap;
+      const curVision: VisionState = cur.vision || EMPTY_VISION;
+      const merged = {
+        ...cur,
+        vision: {
+          ...curVision,
+          twoFutures: { ...curVision.twoFutures, futureA, futureB, wakeUp_seen: wakeUpSeen },
+        },
+      };
+      await saveData(KEYS.map, merged);
+      initialJson.current = next;
+    }, 500);
+    return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
+  }, [futureA, futureB, wakeUpSeen]); // eslint-disable-line react-hooks/exhaustive-deps
+  const writeVision = async (patch: Partial<VisionState["twoFutures"]>) => {
+    const cur = (await loadData(KEYS.map)) as any || initialMap;
+    const curVision: VisionState = cur.vision || EMPTY_VISION;
+    await saveData(KEYS.map, {
+      ...cur,
+      vision: { ...curVision, twoFutures: { ...curVision.twoFutures, futureA, futureB, wakeUp_seen: wakeUpSeen, ...patch } },
+    });
+  };
+  const pickChip = (which: "A" | "B", lens: Lens, domain: string, tier: 1|2|3|4) => {
+    if (which === "A") {
+      setFutureA(prev => ({ ...prev, [lens]: { ...(prev as any)[lens], [domain]: tier } }));
+    } else {
+      setFutureB(prev => ({ ...prev, [lens]: { ...(prev as any)[lens], [domain]: tier } }));
+    }
+    setPulseDomains(prev => { if (!prev.has(domain)) return prev; const n = new Set(prev); n.delete(domain); return n; });
+  };
+  const lensForScreen = (s: number): Lens => (s === 1 || s === 5) ? "time" : (s === 2 || s === 6) ? "wealth" : "self";
+  const futureForScreen = (s: number): "A" | "B" => s <= 3 ? "A" : "B";
+  const currentLens = lensForScreen(screen);
+  const currentFuture = futureForScreen(screen);
+  const currentPicks = (currentFuture === "A" ? futureA : futureB)[currentLens] as Record<string, number | null>;
+  const allPicked = LENS_DOMAINS[currentLens].every(d => currentPicks[d] != null);
+  const continueLabel = (() => {
+    if (screen === 1 || screen === 5) return "Continue · Wealth →";
+    if (screen === 2 || screen === 6) return "Continue · Self →";
+    if (screen === 3 || screen === 7) return "Continue →";
+    if (screen === 8) return "Continue to Time →";
+    return "Continue →";
+  })();
+  const goNext = async () => {
+    if (advancing) return;
+    setAdvancing(true);
+    try {
+      if (screen === 3) { await writeVision({ futureA_complete: true }); setScreen(4); }
+      else if (screen === 4) { setWakeUpSeen(true); await writeVision({ wakeUp_seen: true }); setScreen(5); }
+      else if (screen === 7) { await writeVision({ futureB_complete: true }); setScreen(8); }
+      else if (screen === 8) { await writeVision({ climb_seen: true, complete: true }); onSaved(); return; }
+      else { setScreen(screen + 1); }
+    } finally { setAdvancing(false); }
+  };
+  const tryContinue = () => {
+    if (advancing) return;
+    if (!allPicked) {
+      const missing = LENS_DOMAINS[currentLens].filter(d => currentPicks[d] == null);
+      setPulseDomains(new Set(missing));
+      setTipOn(true);
+      window.setTimeout(() => setTipOn(false), 3000);
+      window.setTimeout(() => {
+        const el = document.querySelector(`[data-domain="${missing[0]}"]`);
+        if (el && (el as HTMLElement).scrollIntoView) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 30);
+      return;
+    }
+    goNext();
+  };
+  const goBack = () => {
+    if (screen === 1) { onClose(); return; }
+    if (screen === 5) { setScreen(3); return; } // skip wake-up
+    setScreen(screen - 1);
+  };
+  // Pips bar (screens 1-3, 5-7).
+  const renderPipBar = () => {
+    if (screen === 4 || screen === 8) return null;
+    const pipMeta = `${currentLens.charAt(0).toUpperCase()}${currentLens.slice(1)} · ${currentFuture === "A" ? "today" : "future"}`;
+    return (
+      <div className="na2-pip-bar" aria-label={`Step ${screen} of 8`}>
+        {[1,2,3,4,5,6,7,8].map(i => (
+          <div key={i} className={`na2-pip ${i <= 3 && screen >= i && screen !== 4 ? "is-burgundy" : (i >= 5 && i <= 7 && screen >= i) ? "is-gold" : ""}`} />
+        ))}
+        <span className="na2-pip-meta">{pipMeta}</span>
+      </div>
+    );
+  };
+  // Chip-pick screen renderer (screens 1-3 burgundy, 5-7 gold).
+  const renderChipScreen = () => {
+    const tone: "burgundy" | "gold" = currentFuture === "A" ? "burgundy" : "gold";
+    const eyebrow = `Vision · 10-year horizon › Two Futures › Future ${currentFuture}`;
+    const title = currentFuture === "A" ? "If nothing changes, what's true in 10 years?" : "If you own this, what's true in 10 years?";
+    const subtitleLensName = currentLens === "time" ? "time" : currentLens === "wealth" ? "wealth" : "self";
+    const subtitle = currentFuture === "A" ? `An honest read on your ${subtitleLensName}, today.` : "Where you're climbing toward. Pick the rung you'll claim.";
+    const helper = currentFuture === "A"
+      ? "For each domain, pick the chip that's most true right now. No wrong answer — the only wrong move is dressing it up."
+      : "Same domains. This time, pick what you want to be true in 10 years.";
+    const subtitleStyle: React.CSSProperties = { fontFamily:"var(--na1-serif)", fontStyle:"italic", color: tone === "burgundy" ? "var(--burgundy)" : "var(--gold)", margin:"0 0 10px" };
+    return (
+      <>
+        <div className={`na1-room-eyebrow tone-${tone === "burgundy" ? "burgundy" : "gold"}`} style={{ letterSpacing:"0.08em" }}>{eyebrow}</div>
+        <h2 className="na1-room-title">{title}</h2>
+        <p style={subtitleStyle}>{subtitle}</p>
+        <p className="na1-room-context" style={{ marginTop:0 }}>{helper}</p>
+        {renderPipBar()}
+        <div>
+          {LENS_DOMAINS[currentLens].map(domain => {
+            const tiers: (1|2|3|4)[] = [1,2,3,4];
+            const seed = `${domain}-${currentLens}-${currentFuture}-${userId}`;
+            const orderedTiers = shuffleSeeded(tiers, seed);
+            const selected = currentPicks[domain];
+            const pulsing = pulseDomains.has(domain);
+            const pulseColor = tone === "burgundy" ? "var(--burgundy)" : "var(--gold)";
+            return (
+              <div className="na2-domain-row" key={domain} data-domain={domain}>
+                <h3 className={`na2-domain-name ${pulsing ? "is-pulsing" : ""}`} style={pulsing ? ({ ["--m2-pulse-color" as any]: pulseColor }) : undefined}>{DOMAIN_LABELS[currentLens][domain]}</h3>
+                <div className="na2-chip-row">
+                  {orderedTiers.map(t => {
+                    const isSel = selected === t;
+                    const cls = `na2-chip ${isSel ? (tone === "burgundy" ? "is-burgundy" : "is-gold") : ""}`;
+                    return (
+                      <button type="button" key={t} className={cls} onClick={() => pickChip(currentFuture, currentLens, domain, t)} aria-pressed={isSel}>
+                        {VISION_CHIPS[currentLens][domain][t]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="na1-room-actions" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:20 }}>
+          <button type="button" className="na1-btn-ghost" onClick={goBack}>← Back</button>
+          <div className="na2-continue-wrap" onMouseEnter={() => { if (!allPicked) window.setTimeout(() => { setTipOn(true); window.setTimeout(() => setTipOn(false), 3000); }, 500); }} onMouseLeave={() => setTipOn(false)}>
+            <button type="button" className={`na2-btn-continue ${allPicked ? (tone === "burgundy" ? "is-burgundy" : "is-gold") : ""}`} disabled={!allPicked || advancing} onClick={tryContinue}>{continueLabel}</button>
+            <div className={`na2-continue-tip ${tipOn && !allPicked ? "is-on" : ""}`}>Pick a chip for each domain to continue.</div>
+          </div>
+        </div>
+      </>
+    );
+  };
+  // Wake-up screen renderer (screen 4).
+  const renderWakeUp = () => {
+    const variant = oneThing && purpose ? "A" : (!oneThing && purpose) ? "B" : "C";
+    // Lowest-tier list: 3-4 of user's Tier 1 or Tier 2 picks across all lenses.
+    const allAPicks: { lens: Lens; domain: string; tier: 1|2|3|4 }[] = [];
+    (["time","wealth","self"] as Lens[]).forEach(l => {
+      LENS_DOMAINS[l].forEach(d => {
+        const t = (futureA[l] as any)[d];
+        if (t) allAPicks.push({ lens: l, domain: d, tier: t });
+      });
+    });
+    let lowestPool = allAPicks.filter(p => p.tier === 1 || p.tier === 2);
+    if (lowestPool.length === 0) lowestPool = allAPicks.filter(p => p.tier === 3);
+    const lowestList = lowestPool.slice(0, 4);
+    const lowestText = lowestList.length === 0
+      ? "You're already doing well — but the work isn't done."
+      : lowestList.map(p => {
+          const phrase = VISION_CHIPS[p.lens][p.domain][p.tier];
+          return phrase.charAt(0).toUpperCase() + phrase.slice(1) + ".";
+        }).join(" ");
+    // Compound lines: tier 2 → tier 1, tier 3 → tier 2; cap at 4; lowest tier first.
+    const compoundCandidates = allAPicks
+      .filter(p => p.tier === 2 || p.tier === 3)
+      .sort((a, b) => a.tier - b.tier)
+      .slice(0, 4);
+    const sentenceCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    const compoundLines = compoundCandidates.map(p => {
+      const from = sentenceCase(VISION_CHIPS[p.lens][p.domain][p.tier]);
+      const to = sentenceCase(VISION_CHIPS[p.lens][p.domain][(p.tier - 1) as 1|2]);
+      return `${from} becomes ${to.toLowerCase()}.`;
+    });
+    return (
+      <div className="na2-wakeup">
+        {variant === "A" && (<>
+          <p className="na2-wakeup-callback-label">You named the thing costing you most:</p>
+          <p className="na2-wakeup-callback-quote">"{oneThing}"</p>
+        </>)}
+        <p className="na2-wakeup-block">Look at the chips you just picked.</p>
+        <p className="na2-wakeup-low-tier">{lowestText}</p>
+        <p className="na2-wakeup-block">Here's what compounds when you don't own it:</p>
+        {compoundLines.length > 0 ? (
+          compoundLines.map((line, i) => (<p className="na2-wakeup-compound" key={i}>{line}</p>))
+        ) : (
+          variant !== "A" && (<p className="na2-wakeup-compound" style={{ fontStyle:"italic" }}>{variant === "B" ? "These don't stay where they are." : "These don't stay where they are. They become more themselves."}</p>)
+        )}
+        {variant === "A" && (
+          <p className="na2-wakeup-dagger">The way you keep "{oneThing}" — <span className="accent">it owns you.</span></p>
+        )}
+        {(variant === "A" || variant === "B") && (<>
+          <div className="na2-wakeup-divider" />
+          <p className="na2-wakeup-purpose">You named your why: <span className="quote">{purpose}.</span></p>
+        </>)}
+        {variant === "C" && (<div className="na2-wakeup-divider" />)}
+        <p className="na2-wakeup-imperative">Now own it.</p>
+        <p className="na2-wakeup-prompt">Show me what's true in 10 years when you do.</p>
+        <button type="button" className="na2-wakeup-cta" onClick={goNext} disabled={advancing}>Step into Future B</button>
+      </div>
+    );
+  };
+  // Climb screen renderer (screen 8).
+  const renderClimb = () => {
+    const lensTitle = (l: Lens) => l === "time" ? "Time" : l === "wealth" ? "Wealth" : "Self";
+    return (
+      <>
+        <div className="na1-room-eyebrow tone-gold" style={{ letterSpacing:"0.08em" }}>Two Futures · The Climb</div>
+        <h2 className="na1-room-title">This is the work of the next 10 years.</h2>
+        <p className="na1-room-context" style={{ fontStyle:"italic", color:"var(--gold)" }}>Where you are. Where you're going.</p>
+        <div className="na2-climb-headers" aria-hidden>
+          <span className="h-col-a">Where I am now</span>
+          <span className="h-col-b">Where I'm going</span>
+        </div>
+        {(["time","wealth","self"] as Lens[]).map(l => (
+          <div className="na2-climb-lens" key={l}>
+            <h3 className="na2-climb-lens-title">{lensTitle(l)}</h3>
+            <div className="na2-climb-lens-rule" />
+            {LENS_DOMAINS[l].map(d => {
+              const ta = (futureA[l] as any)[d] as 1|2|3|4 | null;
+              const tb = (futureB[l] as any)[d] as 1|2|3|4 | null;
+              return (
+                <div className="na2-climb-row" key={d}>
+                  <span className="na2-climb-domain">{DOMAIN_LABELS[l][d]}</span>
+                  <div className="na2-climb-cell tone-burgundy">
+                    <span className="tier-label">{ta ? TIER_NAMES[ta] : "—"}</span>
+                    {ta ? VISION_CHIPS[l][d][ta] : <em style={{ color:"var(--na1-text-mute)" }}>not picked</em>}
+                  </div>
+                  <span className="na2-climb-arrow" aria-hidden>→</span>
+                  <div className="na2-climb-cell tone-gold">
+                    <span className="tier-label">{tb ? TIER_NAMES[tb] : "—"}</span>
+                    {tb ? VISION_CHIPS[l][d][tb] : <em style={{ color:"var(--na1-text-mute)" }}>not picked</em>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+        <div className="na2-climb-closing">
+          Sit with this for a minute.<br />
+          Then let's go write what owning each of these looks like.
+        </div>
+        <div className="na1-room-actions" style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
+          <button type="button" className="na2-btn-continue is-gold" disabled={advancing} onClick={goNext}>{continueLabel}</button>
+        </div>
+      </>
+    );
+  };
+  if (screen === 4) return renderWakeUp();
+  if (screen === 8) return renderClimb();
+  return renderChipScreen();
+}
+
 function NewA2RoomPlaceholderBody({ exercise, onClose }: { exercise: M2Exercise; onClose: () => void; }) {
   return (
     <>
@@ -11234,7 +11584,9 @@ function NewA1View({ name }: { name?: string }) {
         <NewA2Explore m2Progress={m2Progress} onBack={() => setView("grid")} onLaunchRoom={launchRoomM2} dimmed={roomOpen} />
         {openM2Ex && (
           <NewA2RoomShell exercise={openM2Ex} open={roomOpen} onClose={closeRoom}>
-            <NewA2RoomPlaceholderBody exercise={openM2Ex} onClose={closeRoom} />
+            {openM2Ex.key === "twoFutures"
+              ? <NewA2TwoFuturesBody onSaved={closeRoom} onClose={closeRoom} />
+              : <NewA2RoomPlaceholderBody exercise={openM2Ex} onClose={closeRoom} />}
           </NewA2RoomShell>
         )}
         {veilPhase !== "idle" && openM2Ex && <NewA1Veil phase={veilPhase} text={openM2Ex.threshold} />}
