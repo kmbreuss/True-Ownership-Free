@@ -1,0 +1,37 @@
+Ex1 reviewed on dev — looking really good. Walked all 8 screens end-to-end:
+
+All 3 Future A burgundy chip-pick screens (Time, Wealth, Self today) render correctly with single-select gating
+Pip bar fills burgundy 1→2→3 as Future A progresses
+Continue button correctly gated (disabled until all domains have a chip; lights up in tone color when complete)
+Wake-up screen renders Variant A with both holdingBack callback (dagger phrase "the way you keep '[thing]' — it owns you" with "it owns you." in burgundy) AND purpose_final (callback "You named your why: [purpose]" + imperative "Now own it." in gold)
+Future B gold chip-pick screens render correctly, pip bar transitions cleanly from burgundy → gold
+Chip order randomized per render
+The Climb side-by-side ladder renders all 11 domains grouped by lens (Time 5 / Wealth 3 / Self 3), with TRUE OWNER tier labels finally visible above each chip — the hidden Own It Scale revealed
+Closing text and "Continue to Time" gold button present
+
+Approved.
+A few small polish notes I'm tracking for AFTER Ex5 ships (do NOT fix these now — park them, address all together in a polish pass at the end):
+
+Wake-up top callback ("You named the thing costing you most: [holdingBack]") is too pale in light mode — yellow on white washes out. Needs higher contrast.
+Wake-up block spacing is tighter than designed (~16px between blocks, should be ~36px for the held-moment pacing).
+Wake-up imperative "Now own it." could be slightly larger / heavier weight to land harder.
+Brief modal first-paint flash on open — content briefly visible behind modal before scrim settles (~1 second). Probably CSS timing.
+
+Park those — keep building.
+Now build Exercise 2 · Time · 10-Year (yellow prose room).
+Per the spec:
+
+Yellow lens tone #D9A93C
+5 sentence-completion sections (Work, Family, Friends, Hobbies, Health)
+Each section pulls the user's Future B chip from Ex1 and re-tints it as a yellow pill heading (the chip "travels" from gold in The Climb to yellow in Time)
+Sentence templates per spec: Work uses "I do this by ___, and the work itself feels like ___", Family uses "I make this real by ___, and what I notice in our time together is ___", etc.
+Two full-width line-break blank inputs per section (10 blanks total)
+Auto-save on blur + 600ms debounce, reusing Mirror 1's save engine
+Saved-state visual transformation: filled blank renders as italic Georgia in yellow with "Saved · Xs ago" indicator
+Strict Continue gating: button disabled until all 10 blanks filled
+"X of 10 blanks filled" live counter at bottom-right
+Tabler outline icons per domain: briefcase (Work), home (Family), users (Friends), palette (Hobbies), heart (Health) — yellow tinted
+Veil on entry: "Stepping into the life you'll own…"
+Continue button label: "Continue · Wealth →" (next exercise is Wealth)
+
+Ship Ex2 behind ?newA1=1. When ready, tell me what URL path to test and what to walk through. Wait for sign-off before starting Ex3.

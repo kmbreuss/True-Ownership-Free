@@ -752,6 +752,30 @@ html[data-theme="light"]{
   animation:na2SilverRadial 1800ms ease-out forwards;
 }
 
+/* Mirror 2 prose rooms (Time/Wealth/Self) — shared section + chip-pill + counter styles. */
+.na2-prose{ --m2-lens-color: var(--m2-yellow); }
+.na2-prose.tone-yellow{ --m2-lens-color: var(--m2-yellow); --m2-lens-soft: var(--m2-yellow-soft); --m2-lens-line: var(--m2-yellow-line); }
+.na2-prose.tone-green{ --m2-lens-color: var(--m2-green); --m2-lens-soft: var(--m2-green-soft); --m2-lens-line: var(--m2-green-line); }
+.na2-prose.tone-purple{ --m2-lens-color: var(--m2-purple); --m2-lens-soft: var(--m2-purple-soft); --m2-lens-line: var(--m2-purple-line); }
+.na2-prose-subtitle{ font-family:var(--na1-serif); font-style:italic; font-size:15px; color:var(--m2-lens-color); margin:0 0 10px; line-height:1.55; }
+.na2-prose-section{ padding:22px 0 8px; border-top:1px solid var(--na1-border); margin-top:18px; }
+.na2-prose-section:first-of-type{ border-top:none; padding-top:6px; margin-top:8px; }
+.na2-prose-section-head{ display:flex; align-items:center; gap:10px; margin:0 0 12px; }
+.na2-prose-section-head .icon{ width:20px; height:20px; color:var(--m2-lens-color); flex-shrink:0; }
+.na2-prose-section-head .label{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text); letter-spacing:0.12em; text-transform:uppercase; font-weight:600; }
+.na2-prose-section-head .label.is-pulsing{ animation:na2DomainPulse 0.6s ease-in-out 2; --m2-pulse-color: var(--m2-lens-color); }
+.na2-prose-section-head .tag{ font-family:var(--na1-sans); font-size:10px; color:var(--m2-lens-color); letter-spacing:0.14em; text-transform:uppercase; padding:2px 8px; border:1px solid var(--m2-lens-line); border-radius:10px; margin-left:6px; }
+.na2-prose-chip-pill{ display:inline-block; padding:6px 14px; border-radius:18px; background:var(--m2-lens-soft); border:1px solid var(--m2-lens-line); color:var(--m2-lens-color); font-family:var(--na1-sans); font-size:12.5px; font-weight:500; margin:0 0 16px; }
+.na2-prose-chip-pill.is-empty{ background:transparent; border-style:dashed; color:var(--na1-text-mute); font-style:italic; }
+.na2-prose-stem-lead{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; color:var(--na1-text); margin:0 0 14px; line-height:1.55; }
+.na2-prose-stem-lead .chip-echo{ color:var(--m2-lens-color); }
+.na2-prose-blank-wrap{ margin:0 0 16px; }
+.na2-prose-blank-stem{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--na1-text-sec); margin:0 0 6px; line-height:1.45; }
+.na2-prose-foot{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-top:18px; padding-top:14px; border-top:1px solid var(--na1-border); }
+.na2-prose-foot-meta{ display:flex; flex-direction:column; gap:2px; font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); }
+.na2-prose-foot-meta .counter{ color:var(--m2-lens-color); font-weight:500; letter-spacing:0.04em; }
+.na2-prose-actions{ display:flex; gap:12px; align-items:center; }
+
 /* Two Futures · wake-up moment (screen 4). Held, slightly darker than chip screens. */
 .na2-wakeup{ background:linear-gradient(180deg, rgba(10,20,36,0.6) 0%, transparent 100%); border-radius:var(--na1-radius-lg); padding:56px 36px; margin:6px 0 8px; }
 .na1-light .na2-wakeup{ background:linear-gradient(180deg, rgba(247,242,231,0.7) 0%, transparent 100%); }
@@ -11476,6 +11500,224 @@ function NewA2TwoFuturesBody({ onSaved, onClose }: { onSaved: () => void; onClos
   return renderChipScreen();
 }
 
+// ─── Mirror 2 · Exercise 2 · Time · 10-Year (yellow prose room) ───
+// 5 sections × 2 blanks = 10 blanks total. Each section heads with the user's
+// Future B chip from Ex1 (re-tinted gold → yellow). Auto-saves at map.vision.time
+// via debounced 600ms write (matches M1 save engine pattern).
+const M2_TIME_ICONS: Record<string, React.ReactElement> = {
+  // Tabler-style 18px outline SVGs (inline so we don't add a dep).
+  work:    (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 9.5A2.5 2.5 0 015.5 7h13A2.5 2.5 0 0121 9.5V18a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/><path d="M9 7V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5V7"/><path d="M3 13h18"/></svg>),
+  family:  (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>),
+  friends: (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M14.5 15.5c2 .3 4.5 1.6 4.5 4.5"/></svg>),
+  hobbies: (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 3a9 9 0 100 18c1.5 0 2-1 2-2 0-1.5-1-2-1-3s.5-1.5 2-1.5h2a4 4 0 004-4 9 9 0 00-9-7.5z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="9.5" cy="6.5" r="1.2"/><circle cx="14.5" cy="6.5" r="1.2"/><circle cx="17" cy="10" r="1.2"/></svg>),
+  health:  (<svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20.5 8.5a5 5 0 00-8.5-3.5 5 5 0 00-8.5 3.5c0 6 8.5 11.5 8.5 11.5s8.5-5.5 8.5-11.5z"/></svg>),
+};
+function NewA2TimeBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
+  const initialMap = (loadDataSync(KEYS.map) as any) || {};
+  const initialVision: VisionState = (initialMap.vision as VisionState) || EMPTY_VISION;
+  const initialTime = initialVision.time || EMPTY_VISION.time;
+  const futureB = initialVision.twoFutures?.futureB?.time || EMPTY_VISION.twoFutures.futureB.time;
+  const domains = LENS_DOMAINS.time;
+  // Per-blank value map: keys like "work.blank1".
+  type BlankKey = string;
+  const initialValues: Record<BlankKey, string> = {};
+  domains.forEach(d => {
+    const sec = (initialTime as any)[d] || { blank1: "", blank2: "" };
+    initialValues[`${d}.blank1`] = String(sec.blank1 || "");
+    initialValues[`${d}.blank2`] = String(sec.blank2 || "");
+  });
+  const [values, setValues] = useState<Record<BlankKey, string>>(initialValues);
+  const [editing, setEditing] = useState<Record<BlankKey, boolean>>(() => {
+    // Saved blanks start in "filled" mode; empty blanks start in "input" mode.
+    const next: Record<BlankKey, boolean> = {};
+    Object.keys(initialValues).forEach(k => { next[k] = !initialValues[k].trim(); });
+    return next;
+  });
+  const [savedAt, setSavedAt] = useState<Record<BlankKey, number | null>>(() => {
+    const next: Record<BlankKey, number | null> = {};
+    Object.keys(initialValues).forEach(k => { next[k] = initialValues[k].trim() ? Date.now() : null; });
+    return next;
+  });
+  const [pulseDomains, setPulseDomains] = useState<Set<string>>(new Set());
+  const [tipOn, setTipOn] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
+  const [nowTick, setNowTick] = useState(0);
+  const saveTimer = useRef<number | null>(null);
+  // "X seconds ago" ticker.
+  useEffect(() => {
+    const t = window.setInterval(() => setNowTick(n => n + 1), 5000);
+    return () => window.clearInterval(t);
+  }, []);
+  const filledCount = Object.values(values).filter(v => v.trim().length > 0).length;
+  const total = domains.length * 2;
+  const allFilled = filledCount === total;
+  // Debounced 600ms autosave on values change.
+  const valuesJson = JSON.stringify(values);
+  const initialJson = useRef<string>(JSON.stringify(initialValues));
+  useEffect(() => {
+    if (valuesJson === initialJson.current) return;
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(async () => {
+      const cur = (await loadData(KEYS.map)) as any || initialMap;
+      const curVision: VisionState = cur.vision || EMPTY_VISION;
+      const nextTime: any = { ...curVision.time };
+      domains.forEach(d => {
+        nextTime[d] = { blank1: values[`${d}.blank1`] || "", blank2: values[`${d}.blank2`] || "" };
+      });
+      await saveData(KEYS.map, { ...cur, vision: { ...curVision, time: nextTime } });
+      initialJson.current = valuesJson;
+      // Stamp saved-at for currently-non-empty blanks.
+      setSavedAt(prev => {
+        const next = { ...prev };
+        Object.keys(values).forEach(k => { if (values[k].trim()) next[k] = Date.now(); });
+        return next;
+      });
+    }, 600);
+    return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
+  }, [valuesJson]); // eslint-disable-line react-hooks/exhaustive-deps
+  const onChangeBlank = (key: BlankKey, v: string) => {
+    setValues(prev => ({ ...prev, [key]: v }));
+    setPulseDomains(prev => {
+      const dom = key.split(".")[0];
+      if (!prev.has(dom)) return prev;
+      const n = new Set(prev); n.delete(dom); return n;
+    });
+  };
+  const onBlurBlank = async (key: BlankKey) => {
+    const v = values[key].trim();
+    if (!v) return;
+    // Flush save immediately on blur (don't wait for debounce).
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    const cur = (await loadData(KEYS.map)) as any || initialMap;
+    const curVision: VisionState = cur.vision || EMPTY_VISION;
+    const nextTime: any = { ...curVision.time };
+    domains.forEach(d => {
+      nextTime[d] = { blank1: values[`${d}.blank1`] || "", blank2: values[`${d}.blank2`] || "" };
+    });
+    await saveData(KEYS.map, { ...cur, vision: { ...curVision, time: nextTime } });
+    initialJson.current = JSON.stringify(values);
+    setSavedAt(prev => ({ ...prev, [key]: Date.now() }));
+    setEditing(prev => ({ ...prev, [key]: false }));
+  };
+  const startEdit = (key: BlankKey) => {
+    setEditing(prev => ({ ...prev, [key]: true }));
+    // Focus the input after the render.
+    window.setTimeout(() => {
+      const el = document.querySelector(`[data-blank="${key}"]`) as HTMLTextAreaElement | null;
+      if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    }, 20);
+  };
+  const tryContinue = () => {
+    if (advancing) return;
+    if (!allFilled) {
+      const missing = new Set<string>();
+      domains.forEach(d => {
+        if (!values[`${d}.blank1`].trim() || !values[`${d}.blank2`].trim()) missing.add(d);
+      });
+      setPulseDomains(missing);
+      setTipOn(true);
+      window.setTimeout(() => setTipOn(false), 3000);
+      window.setTimeout(() => {
+        const first = Array.from(missing)[0];
+        const el = document.querySelector(`[data-section="${first}"]`);
+        if (el && (el as HTMLElement).scrollIntoView) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 30);
+      return;
+    }
+    void finish();
+  };
+  const finish = async () => {
+    setAdvancing(true);
+    try {
+      const cur = (await loadData(KEYS.map)) as any || initialMap;
+      const curVision: VisionState = cur.vision || EMPTY_VISION;
+      const nextTime: any = { ...curVision.time };
+      domains.forEach(d => {
+        nextTime[d] = { blank1: values[`${d}.blank1`] || "", blank2: values[`${d}.blank2`] || "" };
+      });
+      await saveData(KEYS.map, { ...cur, vision: { ...curVision, time: nextTime, time_complete: true } });
+      onSaved();
+    } finally { setAdvancing(false); }
+  };
+  const formatSavedAgo = (ts: number | null): string => {
+    if (!ts) return "";
+    void nowTick;
+    const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (s < 3) return "Saved · just now";
+    if (s < 60) return `Saved · ${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `Saved · ${m}m ago`;
+    return `Saved · ${Math.floor(m / 60)}h ago`;
+  };
+  return (
+    <div className="na2-prose tone-yellow">
+      <div className="na1-room-eyebrow tone-yellow" style={{ letterSpacing:"0.08em" }}>Vision · 10-Year Horizon · Time</div>
+      <h2 className="na1-room-title">Now write what owning your time looks like.</h2>
+      <p className="na2-prose-subtitle">In 10 years — what does each part of your time look like, lived?</p>
+      <p className="na1-room-context" style={{ marginTop:0 }}>You claimed these five chips for Future B. Now make each one concrete: name the behavior, and name how you'd know it's true.</p>
+      <div className="na2-pip-bar" aria-label="Step 2 of 5">
+        <div className="na2-pip is-burgundy" />
+        <div className="na2-pip is-yellow" />
+        <div className="na2-pip" />
+        <div className="na2-pip" />
+        <div className="na2-pip" />
+        <span className="na2-pip-meta">Time · 10-year</span>
+      </div>
+      {domains.map(d => {
+        const tier = (futureB as any)[d] as 1|2|3|4 | null;
+        const chipText = tier ? VISION_CHIPS.time[d][tier] : null;
+        const tmpl = SENTENCE_TEMPLATES.time[d];
+        const ph = PLACEHOLDERS.time[d];
+        const k1 = `${d}.blank1`, k2 = `${d}.blank2`;
+        const pulsing = pulseDomains.has(d);
+        return (
+          <div className="na2-prose-section" key={d} data-section={d}>
+            <div className="na2-prose-section-head">
+              <span className="icon" style={{ width:20, height:20, display:"inline-flex" }}>{M2_TIME_ICONS[d]}</span>
+              <span className={`label ${pulsing ? "is-pulsing" : ""}`}>{DOMAIN_LABELS.time[d]}</span>
+            </div>
+            {chipText
+              ? <span className="na2-prose-chip-pill">{chipText}</span>
+              : <span className="na2-prose-chip-pill is-empty">No Future B chip picked yet</span>}
+            <p className="na2-prose-stem-lead">In 10 years, <span className="chip-echo">{chipText || "—"}</span>.</p>
+            <div className="na2-prose-blank-wrap">
+              <p className="na2-prose-blank-stem">{tmpl.stem1} —</p>
+              {editing[k1] ? (
+                <textarea className="na2-blank-input" data-blank={k1} value={values[k1]} placeholder={ph[1]} rows={2} onChange={(e) => onChangeBlank(k1, e.target.value)} onBlur={() => onBlurBlank(k1)} aria-label={`${DOMAIN_LABELS.time[d]} — ${tmpl.stem1}`} />
+              ) : (
+                <span className="na2-blank-filled" tabIndex={0} role="button" onClick={() => startEdit(k1)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startEdit(k1); } }}>{values[k1]}</span>
+              )}
+              {values[k1].trim() && savedAt[k1] && <div className="na2-blank-saved">{formatSavedAgo(savedAt[k1])}</div>}
+            </div>
+            <div className="na2-prose-blank-wrap">
+              <p className="na2-prose-blank-stem">— {tmpl.stem2} —</p>
+              {editing[k2] ? (
+                <textarea className="na2-blank-input" data-blank={k2} value={values[k2]} placeholder={ph[2]} rows={2} onChange={(e) => onChangeBlank(k2, e.target.value)} onBlur={() => onBlurBlank(k2)} aria-label={`${DOMAIN_LABELS.time[d]} — ${tmpl.stem2}`} />
+              ) : (
+                <span className="na2-blank-filled" tabIndex={0} role="button" onClick={() => startEdit(k2)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); startEdit(k2); } }}>{values[k2]}</span>
+              )}
+              {values[k2].trim() && savedAt[k2] && <div className="na2-blank-saved">{formatSavedAgo(savedAt[k2])}</div>}
+            </div>
+          </div>
+        );
+      })}
+      <div className="na2-prose-foot">
+        <div className="na2-prose-foot-meta">
+          <span>Saves automatically as you write</span>
+          <span className="counter">{filledCount} of {total} blanks filled</span>
+        </div>
+        <div className="na2-prose-actions">
+          <button type="button" className="na1-btn-ghost" onClick={onClose}>← Back</button>
+          <div className="na2-continue-wrap" onMouseEnter={() => { if (!allFilled) window.setTimeout(() => { setTipOn(true); window.setTimeout(() => setTipOn(false), 3000); }, 500); }} onMouseLeave={() => setTipOn(false)}>
+            <button type="button" className={`na2-btn-continue ${allFilled ? "is-yellow" : ""}`} disabled={!allFilled || advancing} onClick={tryContinue}>Continue · Wealth →</button>
+            <div className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}>Fill every blank to continue.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NewA2RoomPlaceholderBody({ exercise, onClose }: { exercise: M2Exercise; onClose: () => void; }) {
   return (
     <>
@@ -11586,6 +11828,8 @@ function NewA1View({ name }: { name?: string }) {
           <NewA2RoomShell exercise={openM2Ex} open={roomOpen} onClose={closeRoom}>
             {openM2Ex.key === "twoFutures"
               ? <NewA2TwoFuturesBody onSaved={closeRoom} onClose={closeRoom} />
+              : openM2Ex.key === "time"
+              ? <NewA2TimeBody onSaved={closeRoom} onClose={closeRoom} />
               : <NewA2RoomPlaceholderBody exercise={openM2Ex} onClose={closeRoom} />}
           </NewA2RoomShell>
         )}
