@@ -1872,7 +1872,7 @@ function TierRankingSection_v2({ items, tiers, setTiers, horizonLabel, confirmed
                 }}>✓ Confirm my ranking</button>
                 <div style={{
                   fontSize: 11, color: "var(--text3)", fontStyle: "italic", marginTop: 8,
-                }}>Once you confirm, this section collapses to a compact view. You can expand and change it anytime.</div>
+                }}>Once you confirm, this section collapses to a compact view. You can expand and change it any time.</div>
               </div>
             )}
           </>)}
@@ -10037,7 +10037,7 @@ function PurposePeelingInline({ layers, onLayersChange, purposeFinal, onFinalCha
           <div style={{ marginTop:18 }}>
             <button onClick={() => setLivingOpen(o => !o)}
               style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"9px 14px", background:"none", border:"1px solid var(--border)", borderRadius:8, cursor:"pointer", fontFamily:"var(--sans)", fontSize:11, color:"var(--text4)", textAlign:"left" }}>
-              <span><span style={{ marginRight:8 }}>↻</span>This is a living exercise -- you can peel again anytime</span>
+              <span><span style={{ marginRight:8 }}>↻</span>This is a living exercise -- you can peel again any time</span>
               <span style={{ fontSize:10, opacity:0.7 }}>{livingOpen ? "▴" : "▾"}</span>
             </button>
             {livingOpen && (
@@ -10653,7 +10653,7 @@ function NewA1OwnedSymptomsBody({ onSaved, onClose }: { onSaved: () => void; onC
       {wasDone && (
         <div className="na1-edit-banner">
           <span className="na1-edit-banner-dot" aria-hidden />
-          <span>You already explored this · edit anytime.</span>
+          <span>You already explored this · edit any time.</span>
         </div>
       )}
       {substep === 1 ? (
@@ -10900,7 +10900,7 @@ function NewA1TOHeader({ curQ, wasDone, holdback }: { curQ: number; wasDone: boo
       {wasDone && (
         <div className="na1-edit-banner">
           <span className="na1-edit-banner-dot" aria-hidden />
-          <span>You already explored this · edit anytime.</span>
+          <span>You already explored this · edit any time.</span>
         </div>
       )}
       {curQ === 0 && holdback && (
@@ -11049,7 +11049,7 @@ function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
       {wasDone && (
         <div className="na1-edit-banner">
           <span className="na1-edit-banner-dot" aria-hidden />
-          <span>You already explored this · edit anytime.</span>
+          <span>You already explored this · edit any time.</span>
         </div>
       )}
       {freshOpen && (
@@ -11179,7 +11179,7 @@ function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () =>
       {wasDone && (
         <div className="na1-edit-banner">
           <span className="na1-edit-banner-dot" aria-hidden />
-          <span>Already declared · edit anytime.</span>
+          <span>Already declared · edit any time.</span>
         </div>
       )}
       <div className="na1-declare-wrap">
@@ -13382,7 +13382,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             </div>
             {map.mirror1_reflection_done && (
               <div className="fade-in" style={{ marginTop:10, fontSize:12, color:"#34d399", display:"flex", alignItems:"center", gap:6 }}>
-                <span>✓</span> Confirmed -- your mirror is set. You can still update anytime.
+                <span>✓</span> Confirmed -- your mirror is set. You can still update any time.
               </div>
             )}
           </div>
