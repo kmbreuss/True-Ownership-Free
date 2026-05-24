@@ -1,0 +1,74 @@
+A1 burst portal fix verified — Mirror 2 ceremony lands as designed. Excellent diagnostic + fix work.
+Now ship the Mirror 2 polish pass — all four remaining groups in one round.
+I'm asking you to fix all of these together, but please use your judgment: if while investigating any item you find it's interconnected with another in a non-obvious way, OR if two items conflict, OR if one fix is risky enough that you want it isolated, you have authority to split the ship into smaller commits. Default goal is one ship; safety valve is yours to use.
+Per the S19 pattern: investigate each item read-only first, propose your diagnosis + fix plan back to me, await my green light, then ship. Do NOT push code without my approval per item.
+
+GROUP B — Wake-up screen polish (Two Futures Screen 4, all three variants A/B/C)
+The wake-up is the most emotionally significant screen in Mirror 2. Three light-mode rendering issues prevent it from landing as designed.
+B1. Top callback contrast too pale in light mode.
+The dagger callback line — "You named the thing costing you most: [holdingBack]" — renders as pale yellow on white background. Washes out, requires effort to read. Should be visible at first glance without effort, maintaining the "held moment" tone (not loud or shouty). Light mode should read with same emotional weight as dark mode. Propose your direction: deepen the gold, add a subtle gold-tinted background pill behind the callback, increase font weight + slight upsize, or some combination. I'll evaluate visually.
+B2. Wake-up block spacing too tight.
+Currently ~16px between text blocks. Designed for ~36px to create held-moment pacing. The wake-up should feel paced and contemplative, not rushed. Apply across all three variants (A with both callbacks, B with purpose only, C with neither).
+B3. "Now own it." imperative weight.
+The gold imperative line reads like body text. Bump font weight (semibold or bold) and/or slight size increase (1.2-1.4× body) so it lands as a directive, not body text. Maintains gold semantic.
+
+GROUP C — Cross-room polish
+C1. M2 modal first-paint flash.
+Every M2 room open (Time, Wealth, Self, Vision Declaration, Two Futures wake-up + Climb) shows ~1 second of content bleed-through behind the modal before the scrim/backdrop settles. Breaks the "enter a held space" emotional choreography.
+Hypothesis (untested): CSS timing — scrim animation runs in parallel with modal mount, but render-paint sequence shows content first then scrim. Fix likely: render scrim first with opacity: 0 initial state, then transition opacity on mount, OR use pointer-events: none + opacity transition on the overlay container. Investigate the actual render sequence before proposing the fix. Same solution should apply across all M2 rooms (single CSS solution preferred).
+
+GROUP D — State bugs
+D1. Two Futures resume partial Future B restore.
+When a user closes Two Futures mid-flow and re-enters, Future B chip selections don't fully re-render as selected. Some restore (e.g., Cashflow), others don't (e.g., Building, Stability). State IS saving (writes were logged in S28 testing). Hydration logic may be reading from map.vision.twoFutures.futureB but iterating incorrectly, OR render-key issue where chips don't reflect updated state on initial mount.
+Investigate the actual hydration path. Test by completing Future B for all 3 Wealth domains, closing the modal, re-opening — all 3 should re-render selected (gold outline + fill).
+D2. Stuck loading state when re-entering completed rooms.
+Clicking a completed row from the Explore page sometimes triggers the veil ("Stepping into...") but the modal doesn't mount. Page sits in loading state until refresh. Saw this twice in S28 testing.
+Hypothesis (untested): race condition between veil dismiss timer and modal mount. Could share root cause with C1 (same timing window). Investigate whether D2 and C1 are actually one bug or two.
+
+GROUP E — Quick checks (~5 min each, bundle with whichever group you're in)
+E1. Silver "5" badge on Vision Declaration "Up next" state.
+When Vision Declaration row activates (after Self completes), the "5" badge renders grey. Other lens-color badges render in tone (purple "4" for Self when Wealth completes). Either apply tone-silver to match, or if grey is intentional (silver reserved for ceremony), confirm so I can close E1.
+E2. Audit 11 sentence templates in Vision Declaration read-back against locked spec.
+Verify each template in code matches verbatim. Locked templates:
+Time:
+
+Work: "I do this by [blank], and the work itself feels like [blank]"
+Family: "I make this real by [blank], and what I notice in our time together is [blank]"
+Friends: "I do this by [blank], and what we have together looks like [blank]"
+Hobbies: "I make space by [blank], and it gives me [blank]"
+Health: "I tend it daily by [blank], and my body tells me [blank]"
+
+Wealth:
+
+Cashflow: "I keep it healthy by [blank], and what it lets me say yes to is [blank]"
+Building: "The way I build wealth is [blank], and what I'll have at the end of the decade is [blank]"
+Stability: "What protects me is [blank], and how I sleep at night is [blank]"
+
+Self:
+
+Self-treatment (Body): "I do this by [blank], and in my body it feels like [blank]"
+Self-perception (Mind): "The story I tell about myself is [blank], and the inner voice I hear is [blank]"
+Becoming (Trajectory): "The growth practice I keep is [blank], and what's still expanding in me is [blank]"
+
+Any drift documented + restored, or flagged for owner decision.
+
+What I expect from you next:
+
+Investigate each item read-only — do not push code yet
+Report back with your diagnosis + proposed fix per item
+Flag any items that should ship separately (risk, conflict, interdependence)
+Wait for my approval, then ship
+Walk me through what to test on dev when shipped
+
+Take your time on the diagnosis. The polish quality matters more than the speed.
+
+Reminder — DO NOT TOUCH these locked items:
+
+A1 grid title: "Commit to the life you'll live." (LOCKED — do not change)
+Vision card label remains "Vision" (LOCKED — do not change to BAG)
+BAG language only appears in the Katherine seal text (LOCKED)
+Edit-anytime A3 pattern in Vision Declaration (just shipped, do not regress)
+A1 burst portal fix (just shipped, do not regress)
+Color semantics, journey verb capitalization, warm-to-cool gradient (all LOCKED from S28)
+
+
