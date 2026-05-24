@@ -1,0 +1,67 @@
+Good catch — that's the right call. After the Mirror 1 seal lands with "Continue to Vision →", clicking that button should take the user into Mirror 2 (Vision), not back to Mirror 1's Explore page where they came from. Currently it just closes the modal.
+Let me add this to the message for Agent. I'll combine both items into one ship — they're both in NewA1DeclareBody and related component flow, so one Agent investigation pass can cover both.
+
+MESSAGE TO PASTE INTO REPLIT AGENT:
+
+Two related Mirror 1 polish items — both surfaced from testing the just-shipped seal ceremony. Same component area (NewA1DeclareBody + Peel + post-claim routing), so investigate both together and ship as one round.
+
+Item 1 — "Ready to Declare →" button inside The Peel
+Bug reproduction on dev:
+
+Open Declare modal with previously claimed Purpose
+Click "↺ Try the peel again" → routes to The Peel ✅
+Add a new layer at the bottom of The Peel — click Save changes ✅
+Click "Done — close" → returns to Mirror 1 Explore ⚠️
+Manually re-enter Declare
+Expected: Declare field shows new peel bottom, dirty=true, button "★ Declare Purpose again"
+Actual: Declare field still shows old claim, new peel layer ignored
+
+The wasDone === true branch in NewA1DeclareBody always restores existingFinal, so any new peel additions are silently discarded. The helper copy "or use ↺ Try the peel again to start over from the bottom" makes a promise the wiring doesn't keep.
+Locked design fix — replace "Done — close" with "★ Ready to Declare →":
+
+Inside The Peel modal, replace "✓ Done — close" button with "★ Ready to Declare →" (gold filled, same styling as ★ Declare Purpose again). Keep "↓ Keep peeling" on the left as-is.
+The × close button in the modal corner remains as the escape hatch for users who want to abandon without declaring.
+When user clicks "★ Ready to Declare →":
+
+Save any pending peel input first (existing save behavior)
+Close The Peel modal
+Open Declare modal directly (auto-navigate — don't dump user back to Mirror 1 Explore)
+Pre-populate the Declare field with the last NON-EMPTY peel layer (skip empty entries; if all empty, fall back to current purpose_final)
+Set dirty = true automatically (field now differs from initialValueRef.current)
+Button shows "★ Declare Purpose again" (seal ceremony fires when they claim)
+User can still edit the field inside Declare before claiming
+
+
+If user closes Declare without claiming (× or Esc): Previous purpose_final remains untouched. No silent overwrite.
+First-time flow (user has never declared): Ready to Declare → opens Declare with last peel layer pre-filled → "✓ Declare" button fires first-time ceremony.
+
+
+Item 2 — "Continue to Vision →" should actually go to Vision
+Bug reproduction on dev:
+
+In Declare modal, claim Purpose (first-time OR re-declare with edits) → gold burst + seal ceremony fires beautifully ✅
+Click "Continue to Vision →" button at bottom of seal
+Expected: Modal closes, user lands on Mirror 2 (Vision) — either A1 grid with Vision card highlighted/active, or directly inside Mirror 2's Explore page
+Actual: Modal closes, user returns to Mirror 1's Explore page
+
+The button label promises a destination it doesn't deliver. Same pattern problem as Item 1 — copy promises something wiring doesn't keep.
+Locked design fix:
+Wire "Continue to Vision →" to navigate the user into Mirror 2 (Vision). Specifically, on click:
+
+Persist sealSeen (existing behavior)
+Close Declare modal
+Route the user to Mirror 2's Explore page (the page that shows the 5 Vision exercises — Two Futures, Time, Wealth, Self, Vision Declaration)
+
+If for any reason direct routing to Mirror 2's Explore isn't possible from this context (e.g., requires specific state setup), fall back to A1 grid with Vision card scrolled/highlighted — but route TO Vision, not back to Mirror 1.
+Reference the existing navigation pattern used in Mirror 2's "Continue to Identity →" button on the Vision Declaration ceremony — that one correctly returns user to A1 grid where Identity (Mirror 3) is the next card. Apply the same pattern logic here, but pointing at Vision (Mirror 2) instead.
+
+What I want from you next:
+
+Investigate both items read-only — don't push code yet
+For Item 1: confirm where The Peel's bottom buttons live, how Peel→Declare routing currently works (or doesn't), how peelLayers state flows between modals
+For Item 2: confirm where "Continue to Vision" handler lives in the seal ceremony, what Mirror 2's "Continue to Identity" handler does for comparison, what's needed to navigate cross-mirror
+Report your diagnosis + fix plan for BOTH items
+Flag any items that should ship separately (risk, interdependence)
+Wait for my approval, then ship as one round
+
+Take your time on the diagnosis. Quality of these flows matters — these are the connective tissue between Mirrors.
