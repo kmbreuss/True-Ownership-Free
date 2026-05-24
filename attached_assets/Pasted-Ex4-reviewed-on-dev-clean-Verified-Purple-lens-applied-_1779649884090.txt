@@ -1,0 +1,82 @@
+Ex4 reviewed on dev — clean.
+Verified:
+
+Purple lens applied throughout
+All 3 sections render: Self-treatment · BODY (heart icon), Self-perception · MIND (eye icon), Becoming · TRAJECTORY (sprout icon)
+Body/Mind/Trajectory tags render as small uppercase pills next to domain labels
+Future B Self chips re-tinted from gold to purple as section headings
+Sentence templates correct per spec
+Save-state transformation working
+5-pip bar correct (burgundy + yellow + green + purple lit; silver waiting)
+"1 of 6 blanks filled" counter in purple
+Continue · Vision Declaration button properly gated
+
+Approved.
+Two tasks for this round — one small wording fix + Ex5.
+
+TASK 1 (small): Update A1 grid title.
+Current title on NewA1Grid: "Commit to who you are becoming."
+Change to: "Commit to the life you'll live."
+Reason: the current title leans entirely into the identity dimension (Purpose, Identity, Values) and misses the direction dimension (Vision). The new title holds both becoming and direction in a single phrase. Same place, same component, just a string change.
+If the title appears anywhere else (breadcrumb, eyebrow, marketing copy elsewhere in App.tsx), update consistently. Do NOT touch the helper line below ("Four mirrors. Name your purpose…") — that stays.
+
+TASK 2: Build Exercise 5 · Vision Declaration + Katherine's seal — the closing ceremony.
+Per spec, this is the most design-significant exercise:
+Read-back state:
+
+Centered "★ The Claim" eyebrow in silver #C5C9D1
+Title: "Your Vision · 10-Year Horizon"
+Scope line: "11 statements · across 3 lenses · in service of your Purpose"
+Italic muted subtitle: "Read it back. Hold it up to your why. Then claim it, or refine it."
+Gold Purpose banner pulling from map.purpose_final with secondary link "Or — return to Purpose to redo your why →"
+Silver star dividers separating lens sections
+3 lens sections rendering 11 woven statements:
+
+Time (5 statements, yellow tint with yellow left border)
+Wealth (3 statements, green)
+Self (3 statements, purple)
+
+
+Each statement weaves "In 10 years, {chip}. {stem1} {user blank 1 italic lens-color}, and {stem2} {user blank 2 italic lens-color}."
+Each statement has a small domain tag above (Work, Family, Self-treatment · Body, etc.)
+Question block (bordered card): "Does this serve '{purpose_final}'?" with subtitle "Read it again. Sit with it. There's no wrong answer."
+Two buttons:
+
+"Not yet — revise" (transparent, 1px border) — returns user to first prose room (Time) with blanks pre-filled for editing
+"★ Claim this Vision" (gold filled with 4px silver outer ring) — triggers ceremony
+
+
+Footer note: "Claiming saves to Map of Me + completes Mirror 2"
+
+Ceremony state (after Claim tap):
+
+Silver radial expansion animation (~2 seconds peak)
+Crossfade (~400ms) from read-back to ceremony
+Large silver ★ at top (36px)
+Katherine's seal text — use SEAL_PARAGRAPHS + SEAL_GOLD_PHRASES from constants:
+
+"This may feel exciting. Big. Maybe a little far-fetched."
+"That's how a Big Ass Goal — your Vision — is supposed to feel."
+"You're here to live this. Not someone else's."
+"Not the version you thought was 'realistic.'"
+"This one."
+"First you had to see it. Now you do."
+"In the work that's left, you'll Align, Advocate, Act, Account."
+"One step at a time."
+"That's how this gets lived."
+
+
+Gold-emphasized phrases: "your Vision", "This one.", "That's how this gets lived."
+Silver divider
+Continue button: "Continue to Identity →" (gold outline) — cannot be skipped, no × close on ceremony state
+
+On Continue:
+
+Set state.a1.vision.complete = true and state.a1.vision.declaration.sealSeen = true
+Close room, return to A1 grid
+Vision card shows "Complete" gold state on A1 grid
+Mirror 3 (Identity) unlocks (visible-but-locked → "Up next" or appropriate state per existing M1 pattern)
+
+Edit-anytime: Re-entering a sealed Declaration lands on read-back in edit mode — no re-ceremony. Two buttons become "Save changes" (gold) and "Cancel" (ghost).
+Veil on entry: "The moment of claiming…"
+Ship both behind ?newA1=1. When ready, tell me what to walk through. After Ex5 ships and is approved, the parked polish list gets addressed in one final pass.

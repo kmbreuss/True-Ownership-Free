@@ -776,6 +776,67 @@ html[data-theme="light"]{
 .na2-prose-foot-meta .counter{ color:var(--m2-lens-color); font-weight:500; letter-spacing:0.04em; }
 .na2-prose-actions{ display:flex; gap:12px; align-items:center; }
 
+/* Mirror 2 · Ex5 · Vision Declaration (silver ceremony). */
+.na2-decl{ position:relative; }
+.na2-decl-readback{ transition:opacity 380ms ease; }
+.na2-decl-readback.is-fading{ opacity:0; pointer-events:none; }
+.na2-decl-ceremony{ position:absolute; inset:0; opacity:0; pointer-events:none; transition:opacity 380ms ease 380ms; padding:48px 8px 32px; text-align:center; }
+.na2-decl-ceremony.is-on{ opacity:1; pointer-events:auto; position:relative; }
+.na2-decl-edit-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--gold); background:var(--gold-soft); border-radius:10px; margin:0 0 16px; font-family:var(--na1-sans); font-size:12.5px; color:var(--gold); letter-spacing:0.02em; }
+.na2-decl-eyebrow{ text-align:center; font-family:var(--na1-sans); font-size:11.5px; letter-spacing:0.22em; text-transform:uppercase; color:var(--m2-silver); margin:6px 0 14px; }
+.na2-decl-title{ font-family:var(--na1-serif); font-size:34px; line-height:1.2; text-align:center; color:var(--na1-text); margin:0 0 10px; }
+.na2-decl-scope{ font-family:var(--na1-sans); font-size:12.5px; text-align:center; color:var(--na1-text-mute); letter-spacing:0.04em; margin:0 0 12px; }
+.na2-decl-subtitle{ font-family:var(--na1-serif); font-style:italic; font-size:15px; text-align:center; color:var(--na1-text-sec); max-width:520px; margin:0 auto 22px; line-height:1.55; }
+.na2-decl-purpose{ border:1px solid var(--gold); background:var(--gold-soft); border-radius:12px; padding:16px 18px; margin:0 0 22px; }
+.na2-decl-purpose .your-why{ font-family:var(--na1-sans); font-size:10.5px; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold); margin:0 0 6px; }
+.na2-decl-purpose .purpose-text{ font-family:var(--na1-serif); font-style:italic; font-size:17px; color:var(--gold); line-height:1.5; margin:0 0 8px; }
+.na2-decl-purpose .purpose-link{ display:inline-block; font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); text-decoration:underline; background:transparent; border:0; padding:0; cursor:pointer; }
+.na2-decl-purpose .purpose-link:hover{ color:var(--gold); }
+.na2-decl-divider{ display:flex; align-items:center; justify-content:center; gap:14px; margin:24px 0; color:var(--m2-silver); font-size:14px; }
+.na2-decl-divider .rule{ flex:1; height:1px; background:var(--na1-border); max-width:140px; }
+.na2-decl-lens{ margin:0 0 8px; }
+.na2-decl-lens-title{ font-family:var(--na1-serif); font-size:22px; margin:0 0 14px; }
+.na2-decl-lens.tone-yellow .na2-decl-lens-title{ color:var(--m2-yellow); }
+.na2-decl-lens.tone-green  .na2-decl-lens-title{ color:var(--m2-green); }
+.na2-decl-lens.tone-purple .na2-decl-lens-title{ color:var(--m2-purple); }
+.na2-decl-stmt{ padding:8px 0 14px 14px; margin:0 0 14px; border-left:2px solid var(--na1-border); }
+.na2-decl-lens.tone-yellow .na2-decl-stmt{ border-left-color:var(--m2-yellow); }
+.na2-decl-lens.tone-green  .na2-decl-stmt{ border-left-color:var(--m2-green); }
+.na2-decl-lens.tone-purple .na2-decl-stmt{ border-left-color:var(--m2-purple); }
+.na2-decl-stmt-tag{ display:block; font-family:var(--na1-sans); font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--na1-text-mute); margin:0 0 6px; }
+.na2-decl-stmt-body{ font-family:var(--na1-serif); font-size:17px; line-height:1.65; color:var(--na1-text); margin:0; }
+.na2-decl-stmt em.user{ font-style:italic; font-weight:500; }
+.na2-decl-lens.tone-yellow .na2-decl-stmt em.user{ color:var(--m2-yellow); }
+.na2-decl-lens.tone-green  .na2-decl-stmt em.user{ color:var(--m2-green); }
+.na2-decl-lens.tone-purple .na2-decl-stmt em.user{ color:var(--m2-purple); }
+.na2-decl-stmt em.user.is-empty{ color:var(--na1-text-mute); font-style:italic; font-weight:400; }
+.na2-decl-question{ border:1px solid var(--na1-border); border-radius:12px; padding:18px 18px; margin:22px 0; text-align:center; background:rgba(255,255,255,0.02); }
+.na1-light .na2-decl-question{ background:rgba(0,0,0,0.02); }
+.na2-decl-question .q{ font-family:var(--na1-serif); font-style:italic; font-size:18px; color:var(--na1-text); margin:0 0 8px; line-height:1.45; }
+.na2-decl-question .q .quote{ color:var(--gold); }
+.na2-decl-question .sub{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin:0; line-height:1.5; }
+.na2-decl-actions{ display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; }
+.na2-decl-btn-revise{ display:inline-flex; align-items:center; min-height:44px; padding:0 22px; background:transparent; color:var(--na1-text); border:1px solid #9a9590; border-radius:100px; font-family:var(--na1-sans); font-size:13px; cursor:pointer; transition:background .18s, border-color .18s; }
+.na2-decl-btn-revise:hover{ background:rgba(154,149,144,0.08); border-color:var(--na1-text); }
+.na2-decl-btn-claim{ display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 32px; background:var(--gold); color:#1a1407; border:0; border-radius:100px; font-family:var(--na1-sans); font-size:14px; font-weight:600; letter-spacing:0.02em; cursor:pointer; box-shadow:0 0 0 4px rgba(197,201,209,0.35); transition:box-shadow .22s, transform .12s; }
+.na2-decl-btn-claim:hover{ box-shadow:0 0 0 6px rgba(197,201,209,0.5); }
+.na2-decl-btn-claim:active{ transform:translateY(1px); }
+.na2-decl-btn-claim:disabled{ opacity:0.5; cursor:not-allowed; box-shadow:0 0 0 4px rgba(197,201,209,0.2); }
+.na2-decl-footnote{ text-align:center; font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); margin:14px 0 0; letter-spacing:0.02em; }
+/* Ceremony */
+.na2-decl-cer-star{ font-size:36px; color:var(--m2-silver); margin:32px 0 18px; line-height:1; }
+.na2-decl-cer-body{ max-width:480px; margin:0 auto; }
+.na2-decl-cer-para{ font-family:var(--na1-serif); font-style:italic; font-size:20px; line-height:1.55; color:var(--na1-text); margin:0 0 18px; }
+.na2-decl-cer-para .seal-gold{ color:var(--gold); font-style:normal; font-weight:500; }
+.na2-decl-cer-divider{ width:48px; height:1px; background:var(--m2-silver); margin:28px auto; }
+.na2-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold); border:1px solid var(--gold); border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
+.na2-decl-cer-cta:hover{ background:var(--gold-soft); }
+.na2-decl-cer-cta:active{ transform:translateY(1px); }
+@media (max-width: 700px){
+  .na2-decl-title{ font-size:28px; }
+  .na2-decl-cer-para{ font-size:18px; }
+}
+
 /* Two Futures · wake-up moment (screen 4). Held, slightly darker than chip screens. */
 .na2-wakeup{ background:linear-gradient(180deg, rgba(10,20,36,0.6) 0%, transparent 100%); border-radius:var(--na1-radius-lg); padding:56px 36px; margin:6px 0 8px; }
 .na1-light .na2-wakeup{ background:linear-gradient(180deg, rgba(247,242,231,0.7) 0%, transparent 100%); }
@@ -12134,6 +12195,206 @@ function NewA2SelfBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
   );
 }
 
+// ─── Mirror 2 · Exercise 5 · Vision Declaration (silver / star ceremony) ───
+// Two-state surface inside one body:
+//   1) read-back — weaves the 11 sentences, shows Purpose banner, Claim/Revise
+//   2) ceremony  — silver radial burst → Katherine's seal → "Continue to Identity →"
+// Edit-anytime: if vision.complete is already true, we land on read-back in edit
+// mode (gold banner + "Save changes"/"Cancel" buttons) and skip the ceremony.
+function renderSealParagraph(text: string, idx: number): React.ReactElement {
+  // Render seal text with gold-emphasized phrases + preserve in-paragraph \n breaks.
+  // The phrase list in constants is small and non-overlapping, so a sequential
+  // splitter is sufficient and avoids regex-escaping headaches.
+  type Chunk = { text: string; gold: boolean };
+  let chunks: Chunk[] = [{ text, gold: false }];
+  for (const phrase of SEAL_GOLD_PHRASES) {
+    const next: Chunk[] = [];
+    for (const c of chunks) {
+      if (c.gold) { next.push(c); continue; }
+      const parts = c.text.split(phrase);
+      parts.forEach((p, i) => {
+        if (p) next.push({ text: p, gold: false });
+        if (i < parts.length - 1) next.push({ text: phrase, gold: true });
+      });
+    }
+    chunks = next;
+  }
+  return (
+    <p className="na2-decl-cer-para" key={idx}>
+      {chunks.map((c, i) => {
+        const pieces = c.text.split("\n");
+        return (
+          <React.Fragment key={i}>
+            {pieces.map((piece, j) => (
+              <React.Fragment key={j}>
+                {c.gold ? <span className="seal-gold">{piece}</span> : piece}
+                {j < pieces.length - 1 && <br />}
+              </React.Fragment>
+            ))}
+          </React.Fragment>
+        );
+      })}
+    </p>
+  );
+}
+function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => void; onClose: () => void; onRevise: () => void; }) {
+  const initialMap = (loadDataSync(KEYS.map) as any) || {};
+  const initialVision: VisionState = (initialMap.vision as VisionState) || EMPTY_VISION;
+  const purposeFinal = String(initialMap.purpose_final || initialMap.purpose_draft || "").trim();
+  const alreadyComplete = !!initialVision.complete;
+  // Mode: "readback" (claim or edit) → "claiming" (silver burst) → "ceremony" (seal).
+  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">("readback");
+  const [showBurst, setShowBurst] = useState(false);
+  const [working, setWorking] = useState(false);
+  const editMode = alreadyComplete; // edit-anytime: re-entering a sealed Vision
+  const futureB = initialVision.twoFutures.futureB;
+  // Build the 11 woven statements grouped by lens, in canonical order.
+  type Lensx = "time" | "wealth" | "self";
+  const lensConfig: { lens: Lensx; tone: "yellow"|"green"|"purple"; title: string; }[] = [
+    { lens: "time",   tone: "yellow", title: "Time" },
+    { lens: "wealth", tone: "green",  title: "Wealth" },
+    { lens: "self",   tone: "purple", title: "Self" },
+  ];
+  const handleClaim = async () => {
+    if (working) return;
+    setWorking(true);
+    setShowBurst(true);
+    // Persist immediately so a crash/reload still keeps the claim.
+    const now = new Date().toISOString();
+    const cur = (await loadData(KEYS.map)) as any || initialMap;
+    const curVision: VisionState = cur.vision || EMPTY_VISION;
+    const nextDecl = {
+      claimedAt: curVision.declaration?.claimedAt || now,
+      sealSeen: false, // becomes true on Continue to Identity
+      revisedAt: curVision.declaration?.revisedAt || [],
+    };
+    await saveData(KEYS.map, { ...cur, vision: { ...curVision, declaration: nextDecl } });
+    // Crossfade timing per spec: silver burst ~1.8s, fade-out readback 380ms,
+    // ceremony fades in 380ms (CSS delay). Mode flip kicks the readback fade.
+    window.setTimeout(() => { setMode("claiming"); }, 50);
+    window.setTimeout(() => { setMode("ceremony"); setShowBurst(false); setWorking(false); }, 1800);
+  };
+  const handleContinueToIdentity = async () => {
+    if (working) return;
+    setWorking(true);
+    const cur = (await loadData(KEYS.map)) as any || initialMap;
+    const curVision: VisionState = cur.vision || EMPTY_VISION;
+    const claimedAt = curVision.declaration?.claimedAt || new Date().toISOString();
+    await saveData(KEYS.map, {
+      ...cur,
+      vision: {
+        ...curVision,
+        declaration: { ...curVision.declaration, claimedAt, sealSeen: true, revisedAt: curVision.declaration?.revisedAt || [] },
+        complete: true,
+      },
+    });
+    onSaved();
+  };
+  const handleSaveChanges = async () => {
+    if (working) return;
+    setWorking(true);
+    const cur = (await loadData(KEYS.map)) as any || initialMap;
+    const curVision: VisionState = cur.vision || EMPTY_VISION;
+    const revisedAt = [...(curVision.declaration?.revisedAt || []), new Date().toISOString()];
+    await saveData(KEYS.map, {
+      ...cur,
+      vision: { ...curVision, declaration: { ...curVision.declaration, revisedAt } },
+    });
+    onSaved();
+  };
+  const isFading = mode !== "readback";
+  return (
+    <div className="na2-decl">
+      {/* Silver radial burst — mounted during claiming. */}
+      {showBurst && (
+        <div className="na2-silver-burst" aria-hidden>
+          <div className="na2-silver-burst-inner" />
+        </div>
+      )}
+      {/* ── Read-back state ── */}
+      <div className={`na2-decl-readback ${isFading ? "is-fading" : ""}`}>
+        {editMode && (
+          <div className="na2-decl-edit-banner">
+            ★ You've already claimed this Vision. You can refine it anytime — the seal stays.
+          </div>
+        )}
+        <div className="na2-pip-bar" aria-label="Step 5 of 5">
+          <div className="na2-pip is-burgundy" />
+          <div className="na2-pip is-yellow" />
+          <div className="na2-pip is-green" />
+          <div className="na2-pip is-purple" />
+          <div className="na2-pip is-silver" />
+          <span className="na2-pip-meta">Vision Declaration</span>
+        </div>
+        <div className="na2-decl-eyebrow">★ The Claim</div>
+        <h2 className="na2-decl-title">Your Vision · 10-Year Horizon</h2>
+        <div className="na2-decl-scope">11 statements · across 3 lenses · in service of your Purpose</div>
+        <p className="na2-decl-subtitle">Read it back. Hold it up to your why. Then claim it, or refine it.</p>
+        <div className="na2-decl-purpose">
+          <div className="your-why">Your Why</div>
+          <p className="purpose-text">{purposeFinal ? `"${purposeFinal}"` : <em style={{ color:"var(--na1-text-mute)" }}>(no Purpose claimed yet)</em>}</p>
+          <button type="button" className="purpose-link" onClick={onClose}>Or — return to Purpose to redo your why →</button>
+        </div>
+        {lensConfig.map(({ lens, tone, title }) => (
+          <React.Fragment key={lens}>
+            <div className="na2-decl-divider"><div className="rule" /><span>★</span><div className="rule" /></div>
+            <div className={`na2-decl-lens tone-${tone}`}>
+              <h3 className="na2-decl-lens-title">{title}</h3>
+              {LENS_DOMAINS[lens].map(d => {
+                const tier = (futureB as any)[lens][d] as 1|2|3|4 | null;
+                const chipText = tier ? VISION_CHIPS[lens][d][tier] : null;
+                const tmpl = SENTENCE_TEMPLATES[lens][d];
+                const sec = ((initialVision as any)[lens] as any)?.[d] || { blank1: "", blank2: "" };
+                const b1 = String(sec.blank1 || "").trim();
+                const b2 = String(sec.blank2 || "").trim();
+                const tag = lens === "self" ? `${DOMAIN_LABELS[lens][d]} · ${SELF_TAGS[d]}` : DOMAIN_LABELS[lens][d];
+                return (
+                  <div className="na2-decl-stmt" key={d}>
+                    <span className="na2-decl-stmt-tag">{tag}</span>
+                    <p className="na2-decl-stmt-body">
+                      In 10 years, {chipText || <em style={{ color:"var(--na1-text-mute)" }}>(no chip)</em>}. {tmpl.stem1}{" "}
+                      <em className={`user ${b1 ? "" : "is-empty"}`}>{b1 || "—"}</em>, {tmpl.stem2}{" "}
+                      <em className={`user ${b2 ? "" : "is-empty"}`}>{b2 || "—"}</em>.
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </React.Fragment>
+        ))}
+        <div className="na2-decl-divider"><div className="rule" /><span>★</span><div className="rule" /></div>
+        <div className="na2-decl-question">
+          <p className="q">Does this serve {purposeFinal ? <span className="quote">"{purposeFinal}"</span> : <span style={{ color:"var(--na1-text-mute)" }}>your Purpose</span>}?</p>
+          <p className="sub">Read it again. Sit with it. There's no wrong answer.</p>
+        </div>
+        <div className="na2-decl-actions">
+          {editMode ? (
+            <>
+              <button type="button" className="na2-decl-btn-revise" onClick={onClose} disabled={working}>Cancel</button>
+              <button type="button" className="na2-decl-btn-claim" onClick={handleSaveChanges} disabled={working}>Save changes</button>
+            </>
+          ) : (
+            <>
+              <button type="button" className="na2-decl-btn-revise" onClick={onRevise} disabled={working}>Not yet — revise</button>
+              <button type="button" className="na2-decl-btn-claim" onClick={handleClaim} disabled={working}>★ Claim this Vision</button>
+            </>
+          )}
+        </div>
+        {!editMode && <p className="na2-decl-footnote">Claiming saves to Map of Me + completes Mirror 2</p>}
+      </div>
+      {/* ── Ceremony state ── */}
+      <div className={`na2-decl-ceremony ${mode === "ceremony" ? "is-on" : ""}`} aria-hidden={mode !== "ceremony"}>
+        <div className="na2-decl-cer-star" aria-hidden>★</div>
+        <div className="na2-decl-cer-body">
+          {SEAL_PARAGRAPHS.map((p, i) => renderSealParagraph(p, i))}
+        </div>
+        <div className="na2-decl-cer-divider" />
+        <button type="button" className="na2-decl-cer-cta" onClick={handleContinueToIdentity} disabled={working}>Continue to Identity →</button>
+      </div>
+    </div>
+  );
+}
+
 function NewA2RoomPlaceholderBody({ exercise, onClose }: { exercise: M2Exercise; onClose: () => void; }) {
   return (
     <>
@@ -12250,6 +12511,14 @@ function NewA1View({ name }: { name?: string }) {
               ? <NewA2WealthBody onSaved={closeRoom} onClose={closeRoom} />
               : openM2Ex.key === "self"
               ? <NewA2SelfBody onSaved={closeRoom} onClose={closeRoom} />
+              : openM2Ex.key === "declaration"
+              ? <NewA2DeclarationBody onSaved={closeRoom} onClose={closeRoom} onRevise={() => {
+                  // Revise → close current room, then launch Time prose room (first sentence room per spec).
+                  const timeEx = M2_EXERCISES.find(e => e.key === "time");
+                  if (!timeEx) { closeRoom(); return; }
+                  setRoomOpen(false);
+                  window.setTimeout(() => launchRoomM2(timeEx), 240);
+                }} />
               : <NewA2RoomPlaceholderBody exercise={openM2Ex} onClose={closeRoom} />}
           </NewA2RoomShell>
         )}
