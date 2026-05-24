@@ -10270,7 +10270,7 @@ function NewA1Grid({ name, progress, m2Progress, onOpenPurpose, onOpenVision }: 
         <div className="na1-hero">
           <div>
             <div className="na1-hero-eyebrow">A1 · All In It{name ? ` · ${name}` : ""}</div>
-            <h1 className="na1-hero-title">Commit to who you are becoming.</h1>
+            <h1 className="na1-hero-title">Commit to the life you'll live.</h1>
             <p className="na1-hero-sub">Four mirrors. Name your purpose, dream your 10 years, claim your gifts, declare what you stand for.</p>
           </div>
           <div className="na1-hero-meta"><strong>{mirrorsComplete} of 4</strong> complete · ~3 hrs remaining</div>
