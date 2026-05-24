@@ -780,6 +780,11 @@ html[data-theme="light"]{
 .na2-decl{ position:relative; }
 .na2-decl-readback{ transition:opacity 380ms ease; }
 .na2-decl-readback.is-fading{ opacity:0; pointer-events:none; }
+/* Once the ceremony is fully on, drop the readback from layout so the
+   ceremony renders at the top of the scroll container (not below a
+   ~3000px invisible block). The 380ms opacity fade has long completed
+   by then (mode flips to "ceremony" at 1800ms after Claim). */
+.na2-decl-readback.is-hidden{ display:none; }
 .na2-decl-ceremony{ position:absolute; inset:0; opacity:0; pointer-events:none; transition:opacity 380ms ease 380ms; padding:48px 8px 32px; text-align:center; }
 .na2-decl-ceremony.is-on{ opacity:1; pointer-events:auto; position:relative; }
 .na2-decl-edit-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--gold); background:var(--gold-soft); border-radius:10px; margin:0 0 16px; font-family:var(--na1-sans); font-size:12.5px; color:var(--gold); letter-spacing:0.02em; }
@@ -12259,6 +12264,10 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
     if (working) return;
     setWorking(true);
     setShowBurst(true);
+    // Scroll the room shell to top so the ceremony lands in view when the
+    // crossfade completes (the readback may have been scrolled far down).
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "smooth" });
     // Persist immediately so a crash/reload still keeps the claim.
     const now = new Date().toISOString();
     const cur = (await loadData(KEYS.map)) as any || initialMap;
@@ -12312,7 +12321,7 @@ function NewA2DeclarationBody({ onSaved, onClose, onRevise }: { onSaved: () => v
         </div>
       )}
       {/* ── Read-back state ── */}
-      <div className={`na2-decl-readback ${isFading ? "is-fading" : ""}`}>
+      <div className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}>
         {editMode && (
           <div className="na2-decl-edit-banner">
             ★ You've already claimed this Vision. You can refine it anytime — the seal stays.
