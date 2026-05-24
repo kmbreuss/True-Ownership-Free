@@ -1,0 +1,90 @@
+🚩 BUG CONFIRMED. I clicked "Save changes" and the modal silently closed — straight back to the Mirror 1 Explore page with no:
+
+No seal text appearing
+No ceremony moment
+No confirmation
+No animation
+No "any time" banner update
+Nothing — just modal close, back to explore page
+
+This confirms your observation. "Save changes" gives you no feedback at all — neither for first-time declare nor for re-declare.
+
+Honest read of both issues
+Issue 1: The Peel → Declare disconnect — CONFIRMED
+
+The Peel is a beautifully-structured 8-layer drill-down with prompt questions
+The Declare modal's helper text reads "This is the bottom you reached in the peel. Or a version of it that feels more true." — implying it should hand off from The Peel
+But the Declare field is manually editable with no apparent connection to the bottom of The Peel
+Your Layer 8 was "Light up people" — your Declare says "Luminal Leader: Shining light on the dark"
+Either the auto-populate from Peel→Declare isn't wired, OR it's intentional that user types fresh (in which case the helper copy is misleading)
+
+Issue 2: Save Changes → No seal/ceremony moment — CONFIRMED
+
+Currently Save Changes silently closes the modal
+No version of the Mirror 1 closing seal text we designed has been built yet
+The locked seal is documented in Mirror2_Refinement_Spec.md Section M1.B but NEVER shipped to code
+This is not a regression — it's the existing M1 build, missing the seal we designed
+
+Your question — "is that only when it's the first time":
+Honest answer — no, neither first-time nor revisions show any seal moment. It's silent across the board.
+
+What this means for Mirror 1
+Mirror 1 was built before we designed the closing seal pattern. It has the structure (Peel → Declare with re-entry banner) but lacks:
+
+The Peel → Declare auto-populate connection
+The Katherine seal ceremony moment we designed (with the 3 test questions, "Now you have", etc.)
+The dynamic Save Changes → "★ Declare Purpose again" button behavior
+The re-experience of the seal on re-declare
+
+This is exactly the M1 polish work documented in our refinement spec (Section M1.B). But the scope is bigger than just adding seal text — it includes fixing the Peel→Declare handoff too.
+
+What I'd send to Agent
+I think this earns its own targeted ship. Two related fixes that work together:
+
+MESSAGE TO PASTE INTO REPLIT AGENT:
+
+Found two related issues in Mirror 1 — both confirmed on dev. Want you to investigate read-only first, then I'll approve fixes.
+Issue 1: The Peel → Declare handoff is broken.
+The Peel modal lets the user drill through up to 8 layers, with the helper text suggesting they "reach the bottom — the version of you that doesn't need more layers." The Declare modal helper text says: "This is the bottom you reached in the peel. Or a version of it that feels more true. Two or three words. Italic. Yours."
+Expected behavior: when a user enters Declare, the field should auto-populate from the bottom-most (last) entry in their Peel. They can keep it or refine it.
+Actual behavior: the Declare field shows whatever was previously typed there. My Peel layers go through "Light up people" at Layer 8, but my Declare says "Luminal Leader: Shining light on the dark" — never auto-populated from my peel.
+Investigate: how is The Peel's last layer stored, and how does Declare's input field initialize? Is there a wiring gap, or is Declare intentionally independent?
+Issue 2: Save Changes in Declare modal closes silently with no seal moment.
+Clicked Save Changes → modal closed → back to Explore page. No ceremony, no confirmation, no feedback.
+Per the locked Mirror 1 closing seal design in Mirror2_Refinement_Spec.md Section M1.B (which I'll paste below for reference), Save Changes should trigger a Katherine seal moment with:
+
+Veil overlay
+Centered held seal text (italic Georgia)
+Gold-emphasized phrases (Purpose statement quoted, "Now you have." in gold)
+Continue button that returns to Explore page
+
+Plus the declare-anytime pattern from Mirror 2:
+
+Re-entry: banner shows + inline editable field
+On edit: button label flips from "Save changes" → "★ Declare Purpose again"
+On declare-again: seal moment fires again (same as first declare)
+
+Locked seal text (from refinement spec):
+
+Look at what you've named.
+"[purpose_final]"
+Does it light you up?
+Get you out of bed?
+Cross every area of your life?
+If yes — you've named something real. If not — go back at any time and write it again.
+This is the foundation everything else gets built on.
+Now — Align it. Advocate for it. Act on it. Be Accountable to it.
+First you had to name it. Now you have.
+
+Important formatting: Each of the three test questions ("Does it light you up?" / "Get you out of bed?" / "Cross every area of your life?") MUST appear on its own line with paragraph spacing — they're held beats, not a single line.
+Gold emphasis: The Purpose statement quoted at top + "Now you have." closing — both in gold, non-italic. Everything else italic Georgia.
+Journey verbs capitalized: Align, Advocate, Act, Accountable.
+What I want from you next:
+
+Investigate Issue 1 read-only — what's the existing wiring (if any) between Peel and Declare?
+Investigate Issue 2 read-only — what does Save Changes currently do, where does it live in code?
+Report your diagnoses back, then propose fix plans for both
+Wait for my approval per item
+Ship as one combined Mirror 1 polish round (or two if you find them better isolated)
+
+Reference Mirror 2's existing ceremony implementation (NewA2DeclarationBody) for the burst portal + scroll-to-top + dirty-state + dynamic button patterns — Mirror 1's seal should follow the same architectural patterns, just with Mirror 1's content.
