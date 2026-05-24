@@ -1,0 +1,35 @@
+Excellent diagnosis — exactly the read-only depth I want, with the right pattern reuse instinct (cloning onTryPeelAgain). All three questions answered:
+Q1 — Silent-overwrite mitigation: Confirmed. Go with the recommended mitigation. Skip auto-save in fromPeel mode until the user's first manual keystroke. If they close without editing manually, the previous purpose_final stays untouched. Track via a separate ref (e.g., userEditedSinceMount). On first keystroke, set ref true → resume normal debounced auto-save. The seal must remain the only path to advance the claim.
+Q2 — Empty draft on "★ Ready to Declare →": Always show, always navigate. Predictability matters more than conditional UI. If the new bottom equals current purpose_final, dirty=false and button stays "Save changes" — that's correct behavior, not a bug. Don't hide the button.
+Q3 — Keep existing "↺ Try the peel again" on Declare: Keep it. They serve different intents:
+
+"↺ Try the peel again" (Declare → Peel) = "I want to revisit my peel work"
+"★ Ready to Declare →" (Peel → Declare) = "I'm done peeling, lock in my latest"
+
+Removing one would force the other to do double duty.
+
+Approved to ship — single combined Mirror 1 polish round.
+Per your plan:
+
+NewA1PeelBody — replace "✓ Done — close" with "★ Ready to Declare →" (gold filled, na1-btn-gold style). Click handler persists any unsaved draft as new layer first, then calls onReadyToDeclare(). Keep "↓ Keep peeling" unchanged. × close button on shell remains unchanged escape hatch.
+NewA1DeclareBody — add fromPeel?: boolean and onContinueToVision: () => void props.
+
+When fromPeel===true: pre-fill from last non-empty peel layer (skip empty entries; fall back to existingFinal if all empty). Set initialValueRef.current = existingFinal so dirty=true automatically.
+Implement Q1 mitigation: track userEditedSinceMount ref, skip debounced auto-save until first manual keystroke when fromPeel===true.
+Wire handleContinue to call onContinueToVision() instead of onSaved().
+
+
+NewA1View parent wiring — implement the pendingFromPeelRef one-shot pattern + consumePendingFromPeel() helper. Wire onReadyToDeclare (peel → declare with flag set) and onContinueToVision (closeRoom + setView("explore2")).
+
+
+What I'll verify on dev when shipped:
+
+Open Declare → "↺ Try the peel again" → routes to Peel (existing flow, unchanged) ✅
+In Peel, add a new layer → click "★ Ready to Declare →" → auto-routes to Declare with new layer pre-filled, dirty=true, button "★ Declare Purpose again"
+Inside Declare, click × close without editing → reopen Declare from Mirror 1 Explore → original Purpose intact (no silent overwrite)
+Repeat step 2 → manually edit the auto-filled value → close with × → reopen → the manually edited value persists (auto-save resumed after first keystroke)
+Repeat step 2 → click "★ Declare Purpose again" → gold burst + seal ceremony fires → click "Continue to Vision →" → lands on Mirror 2 Explore page (the 5-exercise list), NOT back on Mirror 1 Explore
+First-time flow: a fresh user (no prior purpose_final) does Peel → "★ Ready to Declare →" → Declare with peel bottom pre-filled → "✓ Declare" button → first-time ceremony → Continue to Vision → Mirror 2 Explore
+Existing entry path: enter Declare directly from Mirror 1 Explore (no peel detour) → fromPeel=false → existing behavior fully preserved, "↺ Try the peel again" link still works
+
+Ship it.

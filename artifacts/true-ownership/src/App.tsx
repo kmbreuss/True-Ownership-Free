@@ -11002,7 +11002,7 @@ function normalizePeelLayers(raw: unknown): string[] {
   return raw.map((l) => typeof l === "string" ? l : (l && typeof l === "object" && typeof (l as any).answer === "string" ? (l as any).answer : "")).filter((s) => s.trim().length > 0);
 }
 
-function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () => void; }) {
+function NewA1PeelBody({ onSaved, onClose, onReadyToDeclare }: { onSaved: () => void; onClose: () => void; onReadyToDeclare: () => void; }) {
   const initialDone = !!loadDataSync("a1_ex3_done");
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialLayers = normalizePeelLayers(initialMap.purpose_layers);
@@ -11058,6 +11058,28 @@ function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
     onSaved();
   };
   const closeNoChange = () => { onClose(); };
+  // ★ Ready to Declare → — persist any unsaved draft as a new layer, then
+  // hand off to the parent which closes Peel and opens Declare with the
+  // fromPeel flag set (so the Declare body pre-fills with the new bottom
+  // and flips into the re-claim path). Per owner Q2: always navigate,
+  // even if there's no new content — predictability over conditional UI.
+  const readyToDeclare = async () => {
+    if (saving) return;
+    const v = draft.trim();
+    setSaving(true);
+    if (v) {
+      const next = [...layers, v];
+      setLayers(next);
+      setDraft("");
+      await writeLayers(next);
+      await saveData("a1_peel_draft", "");
+    }
+    // Mark the exercise complete so Mirror 1 progress reflects the visit
+    // (mirrors what declareBottom does). This is idempotent.
+    await saveData("a1_ex3_done", true);
+    setSaving(false);
+    onReadyToDeclare();
+  };
   const startEdit = (i: number) => {
     setDeleteIdx(null);
     setEditingIdx(i);
@@ -11156,7 +11178,9 @@ function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
             const ta = document.getElementById("na1-peel-draft") as HTMLTextAreaElement | null;
             ta?.focus();
           }}>↓ Keep peeling</button>
-          <button type="button" className="na1-btn-gold" onClick={closeNoChange}>✓ Done — close</button>
+          <button type="button" className="na1-btn-gold" onClick={readyToDeclare} disabled={saving}>
+            {saving ? "Saving…" : "★ Ready to Declare →"}
+          </button>
         </div>
       ) : null}
       <div className="na1-peel-current" ref={currentRef}>
@@ -11191,28 +11215,58 @@ function NewA1PeelBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
 }
 
 // ─── Step 10: Declare Room (Ex4 — single italic-serif input, gold ceremony) ───
-function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () => void; onClose: () => void; onTryPeelAgain: () => void; }) {
+function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain, onContinueToVision, fromPeel = false }: { onSaved: () => void; onClose: () => void; onTryPeelAgain: () => void; onContinueToVision: () => void; fromPeel?: boolean; }) {
   const wasDone = !!loadDataSync("a1_ex4_done");
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const peelLayers = normalizePeelLayers(initialMap.purpose_layers);
   const existingFinal = String(initialMap.purpose_final || "").trim();
-  // First entry: pre-fill from the last peel layer if no draft exists. On
-  // re-entry (wasDone), restore the user's claimed purpose_final — the seal
-  // stays; refinement is opt-in via edit + re-claim. Use ↺ Try the peel again
-  // to re-sync from the peel.
-  const initialValue = wasDone ? existingFinal : (existingFinal || peelLayers[peelLayers.length - 1] || "");
+  // Pick the last NON-EMPTY peel layer (normalizePeelLayers already strips
+  // empties, but be defensive in case future refactors change that).
+  const lastPeelLayer = (() => {
+    for (let i = peelLayers.length - 1; i >= 0; i--) {
+      const s = String(peelLayers[i] || "").trim();
+      if (s) return s;
+    }
+    return "";
+  })();
+  // Pre-fill logic:
+  // - fromPeel (any wasDone): user just clicked ★ Ready to Declare → in Peel.
+  //   Pre-fill with the new peel bottom, but baseline initialValueRef to
+  //   existingFinal so `dirty` evaluates true automatically and the button
+  //   flips to "★ Declare Purpose again" (or stays "✓ Declare" first-time).
+  //   Fall back to existingFinal if every peel layer is empty.
+  // - wasDone (no fromPeel): restore the claimed purpose_final. Seal stays;
+  //   refinement is opt-in via edit + re-claim.
+  // - First-time (!wasDone, no fromPeel): legacy path — pre-fill from peel
+  //   bottom if no draft exists.
+  const initialValue = fromPeel
+    ? (lastPeelLayer || existingFinal)
+    : (wasDone ? existingFinal : (existingFinal || lastPeelLayer));
   const [value, setValue] = useState<string>(initialValue);
   const [working, setWorking] = useState(false);
   // Mode: "readback" (claim or edit) → "claiming" (gold burst) → "ceremony" (seal).
   const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">("readback");
   const [showBurst, setShowBurst] = useState(false);
-  const initialValueRef = useRef<string>(initialValue);
+  // fromPeel baseline: keep initialValueRef at existingFinal so the auto-
+  // populated peel bottom registers as dirty. Without this, the user lands
+  // on Declare and the button reads "Save changes" — the peel layer would
+  // silently overwrite purpose_final via debounced auto-save with no seal.
+  const initialValueRef = useRef<string>(fromPeel ? existingFinal : initialValue);
+  // Q1 mitigation (silent-overwrite guard): in fromPeel mode, the field is
+  // pre-filled with a value the user did NOT type. If they close (× / Esc)
+  // without manually editing AND without claiming, purpose_final must stay
+  // untouched. Track first manual keystroke; auto-save is gated until then.
+  // Outside fromPeel, the value either is existingFinal (no-op) or came from
+  // user intent (typed peel bottom on first entry), so always allow save.
+  const userEditedSinceMount = useRef<boolean>(!fromPeel);
   const editMode = wasDone;
   const dirty = value.trim() !== initialValueRef.current.trim();
   // Debounced auto-save of purpose_final. Keeps mid-edit drafts safe if the
-  // user navigates away before claiming.
+  // user navigates away before claiming. Gated by userEditedSinceMount in
+  // fromPeel mode — see Q1 mitigation above.
   useEffect(() => {
     if (value === initialValueRef.current) return;
+    if (!userEditedSinceMount.current) return;
     const t = window.setTimeout(async () => {
       const cur = (await loadData(KEYS.map)) as any;
       const merged = { ...(cur || initialMap), purpose_final: value };
@@ -11263,7 +11317,7 @@ function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () =>
   };
   const handleContinue = () => {
     if (working) return;
-    onSaved();
+    onContinueToVision();
   };
   const valid = value.trim().length > 0;
   const ceremonyPurpose = value.trim();
@@ -11307,7 +11361,13 @@ function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () =>
             type="text"
             className="na1-declare-input"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              // First manual keystroke flips the gate so auto-save resumes.
+              // This is what distinguishes "I edited this" from "I accepted
+              // the peel-bottom prefill and closed without claiming".
+              userEditedSinceMount.current = true;
+              setValue(e.target.value);
+            }}
             placeholder="your purpose…"
             autoFocus
             aria-label="Your Purpose"
@@ -12767,6 +12827,16 @@ function NewA1View({ name }: { name?: string }) {
   const [roomOpen, setRoomOpen] = useState(false);
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
+  // One-shot flag for the Peel → Declare auto-nav. Set by onReadyToDeclare
+  // before launchRoom(declareEx); consumed by NewA1DeclareBody's fromPeel
+  // prop on mount, then cleared so subsequent direct entries to Declare
+  // don't accidentally inherit the flag.
+  const pendingFromPeelRef = useRef<boolean>(false);
+  const consumePendingFromPeel = (): boolean => {
+    const v = pendingFromPeelRef.current;
+    pendingFromPeelRef.current = false;
+    return v;
+  };
   // Re-read on every view transition + each time a room closes so progress reflects latest saves.
   const progress = useMemo(() => {
     const map = (loadDataSync(KEYS.map) as any) || {};
@@ -12835,12 +12905,37 @@ function NewA1View({ name }: { name?: string }) {
           <NewA1RoomShell exercise={openEx} open={roomOpen} onClose={closeRoom}>
             {openEx.key === "sym" ? <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
               : openEx.key === "to" ? <NewA1TrueOwnershipBody onSaved={closeRoom} onClose={closeRoom} />
-              : openEx.key === "peel" ? <NewA1PeelBody onSaved={closeRoom} onClose={closeRoom} />
-              : openEx.key === "declare" ? <NewA1DeclareBody onSaved={closeRoom} onClose={closeRoom} onTryPeelAgain={() => {
+              : openEx.key === "peel" ? <NewA1PeelBody onSaved={closeRoom} onClose={closeRoom} onReadyToDeclare={() => {
+                  const declareEx = NA1_EXERCISES.find(e => e.key === "declare");
+                  if (!declareEx) { closeRoom(); return; }
+                  setRoomOpen(false);
+                  window.setTimeout(() => {
+                    pendingFromPeelRef.current = true;
+                    launchRoom(declareEx);
+                  }, 240);
+                }} />
+              : openEx.key === "declare" ? <NewA1DeclareBody onSaved={closeRoom} onClose={closeRoom} fromPeel={consumePendingFromPeel()} onTryPeelAgain={() => {
                   const peelEx = NA1_EXERCISES.find(e => e.key === "peel");
                   if (!peelEx) { closeRoom(); return; }
                   setRoomOpen(false);
                   window.setTimeout(() => launchRoom(peelEx), 240);
+                }} onContinueToVision={() => {
+                  // Close Declare and route to Mirror 2's Explore. We do
+                  // NOT call closeRoom() here because its 520ms cleanup
+                  // captures `roomOpen` from closure and can be cancelled
+                  // by a fast-follow launchRoomM2 → clearTimers() within
+                  // ~280ms (user taps a Mirror 2 card immediately after
+                  // Continue), which would leak a stale openEx="declare".
+                  // Since this transition is committed (we're leaving
+                  // Mirror 1 entirely), null openEx ourselves — race-free
+                  // and independent of clearTimers behavior. 240ms delay
+                  // on setView matches the modal fade-out so the view-swap
+                  // doesn't fight the close animation.
+                  setRoomOpen(false);
+                  window.setTimeout(() => {
+                    setView("explore2");
+                    setOpenEx(null);
+                  }, 240);
                 }} />
               : <NewA1RoomPlaceholderBody exercise={openEx} onClose={closeRoom} />}
           </NewA1RoomShell>
