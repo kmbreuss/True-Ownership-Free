@@ -30,6 +30,11 @@ import {
   type M2ExerciseKey,
   type VisionState,
 } from "./mirror2Constants";
+import {
+  M1_SEAL_PARAGRAPHS,
+  M1_SEAL_GOLD_PHRASES,
+  M1_PURPOSE_TOKEN,
+} from "./mirror1Constants";
 const KEYS = {
   map:    "to_map",
   done:   "to_done",
@@ -867,6 +872,62 @@ html[data-theme="light"]{
 .na2-decl-stmt em.user.is-editable{ cursor:pointer; border-bottom:1px dashed currentColor; }
 .na2-decl-stmt em.user.is-editable:hover{ background:rgba(255,255,255,0.04); }
 .na1-light .na2-decl-stmt em.user.is-editable:hover{ background:rgba(0,0,0,0.03); }
+
+/* Mirror 1 · Ex4 · Declare ceremony (gold burst + Katherine seal).
+   Mirrors the M2 declaration architecture — readback collapses to display:none
+   when mode flips to ceremony so the seal lands at the top of the scroll
+   container with no layout jolt. */
+.na1-decl{ position:relative; }
+.na1-decl-readback{ transition:opacity 380ms ease; }
+.na1-decl-readback.is-fading{ opacity:0; pointer-events:none; }
+.na1-decl-readback.is-hidden{ display:none; }
+.na1-decl-ceremony{ opacity:0; pointer-events:none; transition:opacity 380ms ease 380ms; padding:24px 8px 24px; text-align:center; display:none; }
+.na1-decl-ceremony.is-on{ opacity:1; pointer-events:auto; display:block; }
+.na1-decl-cer-star{ font-size:36px; color:var(--gold); margin:16px 0 12px; line-height:1; text-shadow:0 0 16px var(--gold-glow); }
+.na1-decl-cer-body{ max-width:520px; margin:0 auto; }
+.na1-decl-cer-para{ font-family:var(--na1-serif); font-style:italic; font-size:18px; line-height:1.55; color:var(--na1-text); margin:0 0 14px; }
+.na1-decl-cer-para .seal-gold{ color:var(--gold); font-style:normal; font-weight:500; }
+.na1-decl-cer-divider{ width:48px; height:1px; background:var(--gold); margin:20px auto; }
+.na1-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold); border:1px solid var(--gold); border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
+.na1-decl-cer-cta:hover{ background:var(--gold-soft); }
+.na1-decl-cer-cta:active{ transform:translateY(1px); }
+@media (max-width:600px){
+  .na1-decl-cer-para{ font-size:16px; line-height:1.5; }
+  .na1-decl-cer-star{ font-size:30px; margin:8px 0 8px; }
+}
+
+/* Gold radial expansion for Mirror 1 Declare ceremony — parallels
+   .na2-silver-burst but in gold (Mirror 1's lens color). Portal-mounted
+   to document.body in NewA1DeclareBody so position:fixed resolves
+   against the viewport instead of the transformed .na1-room-card. */
+@keyframes na1GoldRadial{
+  0%   { opacity:0;    transform:scale(0.4);  }
+  25%  { opacity:0.9;  transform:scale(1.0);  }
+  60%  { opacity:0.98; transform:scale(1.25); }
+  78%  { opacity:0.98; transform:scale(1.32); }
+  90%  { opacity:0.6;  transform:scale(1.48); }
+  100% { opacity:0;    transform:scale(1.6);  }
+}
+@keyframes na1GoldScrim{
+  0%, 100% { background:radial-gradient(circle at center, rgba(201,162,75,0)    0%, transparent 60%); }
+  50%      { background:radial-gradient(circle at center, rgba(201,162,75,0.22) 0%, transparent 70%); }
+}
+.na1-gold-burst{
+  position:fixed; inset:0; z-index:130; pointer-events:none;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at center, rgba(201,162,75,0.10) 0%, transparent 60%);
+  animation:na1GoldScrim 2000ms ease-out forwards;
+}
+.na1-gold-burst-inner{
+  width:100vmin; height:100vmin; border-radius:50%;
+  background:radial-gradient(circle at center,
+    var(--gold) 0%,
+    rgba(201,162,75,0.55) 22%,
+    var(--gold-glow) 45%,
+    rgba(201,162,75,0.15) 65%,
+    transparent 82%);
+  animation:na1GoldRadial 2000ms ease-out forwards;
+}
 .na2-decl-stmt textarea.na2-decl-blank-edit{
   display:inline-block; vertical-align:baseline;
   font-family:var(--na1-serif); font-style:italic; font-weight:500;
@@ -11135,13 +11196,21 @@ function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () =>
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const peelLayers = normalizePeelLayers(initialMap.purpose_layers);
   const existingFinal = String(initialMap.purpose_final || "").trim();
+  // First entry: pre-fill from the last peel layer if no draft exists. On
+  // re-entry (wasDone), restore the user's claimed purpose_final — the seal
+  // stays; refinement is opt-in via edit + re-claim. Use ↺ Try the peel again
+  // to re-sync from the peel.
   const initialValue = wasDone ? existingFinal : (existingFinal || peelLayers[peelLayers.length - 1] || "");
   const [value, setValue] = useState<string>(initialValue);
-  const [saving, setSaving] = useState(false);
-  const [ceremonyOn, setCeremonyOn] = useState(false);
-  const [ceremonyText, setCeremonyText] = useState<string>("");
+  const [working, setWorking] = useState(false);
+  // Mode: "readback" (claim or edit) → "claiming" (gold burst) → "ceremony" (seal).
+  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">("readback");
+  const [showBurst, setShowBurst] = useState(false);
   const initialValueRef = useRef<string>(initialValue);
-  // Debounced auto-save of purpose_final.
+  const editMode = wasDone;
+  const dirty = value.trim() !== initialValueRef.current.trim();
+  // Debounced auto-save of purpose_final. Keeps mid-edit drafts safe if the
+  // user navigates away before claiming.
   useEffect(() => {
     if (value === initialValueRef.current) return;
     const t = window.setTimeout(async () => {
@@ -11151,61 +11220,124 @@ function NewA1DeclareBody({ onSaved, onClose, onTryPeelAgain }: { onSaved: () =>
     }, 500);
     return () => window.clearTimeout(t);
   }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
-  const declare = async () => {
+  // Re-scroll the room card to top at the mode flip → ceremony. Matches the
+  // M2 pattern: readback only collapses (display:none) when mode === "ceremony",
+  // so this is the moment the ceremony actually becomes the top of the scroll
+  // container. `auto` (instant) so the seal is already in place when the 380ms
+  // fade begins.
+  useEffect(() => {
+    if (mode !== "ceremony") return;
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "auto" });
+  }, [mode]);
+  const handleClaim = async () => {
     const v = value.trim();
-    if (!v || saving) return;
-    setSaving(true);
+    if (!v || working) return;
+    setWorking(true);
+    setShowBurst(true);
+    // First scroll (smooth) — gives the burst a clean stage while the
+    // readback is still in flow. The useEffect re-scrolls instantly when
+    // mode flips to "ceremony" (after readback collapses).
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "smooth" });
+    // Persist immediately so a crash/reload still keeps the claim.
     const cur = (await loadData(KEYS.map)) as any;
     const merged = { ...(cur || initialMap), purpose_final: v };
     await saveData(KEYS.map, merged);
     await saveData("a1_ex4_done", true);
-    if (!wasDone) {
-      // First declaration → exit ceremony.
-      setCeremonyText(v);
-      // Defer to next frame so the .is-on class triggers the CSS transition.
-      window.setTimeout(() => setCeremonyOn(true), 20);
-      window.setTimeout(() => { setSaving(false); onSaved(); }, 1500);
-    } else {
-      setSaving(false);
-      onSaved();
-    }
+    // Reset the dirty baseline so a follow-up edit in the same session
+    // correctly flips the button back to "★ Declare Purpose again".
+    initialValueRef.current = v;
+    // Timing: 2000ms burst (matches M2 keyframe). Mode flips to "claiming"
+    // at 50ms (kicks readback fade), then "ceremony" at 2000ms (unmounts
+    // burst, collapses readback, fades in seal).
+    window.setTimeout(() => { setMode("claiming"); }, 50);
+    window.setTimeout(() => { setMode("ceremony"); setShowBurst(false); setWorking(false); }, 2000);
+  };
+  const handleSaveChanges = async () => {
+    // Edit-mode + not dirty: no celebration since nothing changed. The
+    // debounced auto-save above already persisted; this just closes the room.
+    if (working) return;
+    setWorking(true);
+    onSaved();
+  };
+  const handleContinue = () => {
+    if (working) return;
+    onSaved();
   };
   const valid = value.trim().length > 0;
+  const ceremonyPurpose = value.trim();
+  // Dynamic gold-phrase list: user's quoted Purpose at top + the locked
+  // closing phrase. Substituted into M1_SEAL_PARAGRAPHS at render time so the
+  // seal celebrates the just-claimed value (per owner Q5).
+  const sealGoldPhrases = useMemo(
+    () => [`"${ceremonyPurpose}"`, ...M1_SEAL_GOLD_PHRASES],
+    [ceremonyPurpose],
+  );
+  const isFading = mode !== "readback";
   return (
-    <>
-      <div className="na1-room-eyebrow tone-gold">Mirror 1 · Exercise 4 · Declare</div>
-      <h2 className="na1-room-title">In one phrase — your Purpose, claimed.</h2>
-      <p className="na1-room-context">This is the bottom you reached in the peel. Or a version of it that feels more true. Two or three words. Italic. Yours.</p>
-      {wasDone && (
-        <div className="na1-edit-banner">
-          <span className="na1-edit-banner-dot" aria-hidden />
-          <span>Already declared · edit any time.</span>
-        </div>
+    <div className="na1-decl">
+      {/* Gold radial burst — mounted during claiming. Portaled to
+          document.body so position:fixed resolves against the viewport
+          rather than .na1-room-card (which has a transform and would
+          otherwise become the containing block, clipping the burst). */}
+      {showBurst && createPortal(
+        <div className="na1-gold-burst" aria-hidden>
+          <div className="na1-gold-burst-inner" />
+        </div>,
+        document.body
       )}
-      <div className="na1-declare-wrap">
-        <input
-          type="text"
-          className="na1-declare-input"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="your purpose…"
-          autoFocus
-          aria-label="Your Purpose"
-        />
-        <p className="na1-declare-helper">Two or three words usually lands deepest. But yours is yours.</p>
-      </div>
-      <div className="na1-declare-actions">
-        <button type="button" className="na1-btn-cyan-ghost" onClick={onTryPeelAgain}>↺ Try the peel again</button>
-        <button type="button" className="na1-btn-gold" disabled={!valid || saving} onClick={declare}>
-          {saving ? "Saving…" : wasDone ? "✓ Save changes" : "✓ Declare"}
-        </button>
-      </div>
-      {ceremonyText && (
-        <div className={`na1-ceremony ${ceremonyOn ? "is-on" : ""}`} aria-hidden="true">
-          <div className="na1-ceremony-text">{ceremonyText}</div>
+      {/* ── Read-back state ── */}
+      <div className={`na1-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}>
+        <div className="na1-room-eyebrow tone-gold">Mirror 1 · Exercise 4 · Declare</div>
+        <h2 className="na1-room-title">In one phrase — your Purpose, claimed.</h2>
+        <p className="na1-room-context">
+          {wasDone
+            ? <>This is what you claimed. Refine it any time — or use <em>↺ Try the peel again</em> to start over from the bottom.</>
+            : <>This is the bottom you reached in the peel. Or a version of it that feels more true. Two or three words. Italic. Yours.</>}
+        </p>
+        {wasDone && (
+          <div className="na1-edit-banner">
+            <span className="na1-edit-banner-dot" aria-hidden />
+            <span>Already declared · edit any time.</span>
+          </div>
+        )}
+        <div className="na1-declare-wrap">
+          <input
+            type="text"
+            className="na1-declare-input"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="your purpose…"
+            autoFocus
+            aria-label="Your Purpose"
+          />
+          <p className="na1-declare-helper">Two or three words usually lands deepest. But yours is yours.</p>
         </div>
-      )}
-    </>
+        <div className="na1-declare-actions">
+          <button type="button" className="na1-btn-cyan-ghost" onClick={onTryPeelAgain} disabled={working}>↺ Try the peel again</button>
+          {editMode && !dirty ? (
+            <button type="button" className="na1-btn-gold" disabled={working} onClick={handleSaveChanges}>Save changes</button>
+          ) : (
+            <button type="button" className="na1-btn-gold" disabled={!valid || working} onClick={handleClaim}>
+              {working ? "Saving…" : editMode ? "★ Declare Purpose again" : "✓ Declare"}
+            </button>
+          )}
+        </div>
+      </div>
+      {/* ── Ceremony state ── */}
+      <div className={`na1-decl-ceremony ${mode === "ceremony" ? "is-on" : ""}`} aria-hidden={mode !== "ceremony"}>
+        <div className="na1-decl-cer-star" aria-hidden>★</div>
+        <div className="na1-decl-cer-body">
+          {M1_SEAL_PARAGRAPHS.map((p, i) => {
+            const substituted = p.split(M1_PURPOSE_TOKEN).join(ceremonyPurpose);
+            return renderSealParagraph(substituted, i, sealGoldPhrases, "na1-decl-cer-para");
+          })}
+        </div>
+        <div className="na1-decl-cer-divider" />
+        <button type="button" className="na1-decl-cer-cta" onClick={handleContinue}>Continue to Vision →</button>
+      </div>
+    </div>
   );
 }
 
@@ -12282,13 +12414,19 @@ function NewA2SelfBody({ onSaved, onClose }: { onSaved: () => void; onClose: () 
 //   2) ceremony  — silver radial burst → Katherine's seal → "Continue to Identity →"
 // Edit-anytime: if vision.complete is already true, we land on read-back in edit
 // mode (gold banner + "Save changes"/"Cancel" buttons) and skip the ceremony.
-function renderSealParagraph(text: string, idx: number): React.ReactElement {
+function renderSealParagraph(
+  text: string,
+  idx: number,
+  phrases: ReadonlyArray<string> = SEAL_GOLD_PHRASES,
+  className: string = "na2-decl-cer-para",
+): React.ReactElement {
   // Render seal text with gold-emphasized phrases + preserve in-paragraph \n breaks.
   // The phrase list in constants is small and non-overlapping, so a sequential
   // splitter is sufficient and avoids regex-escaping headaches.
+  // Mirror 1 reuses this with its own phrase list + className (.na1-decl-cer-para).
   type Chunk = { text: string; gold: boolean };
   let chunks: Chunk[] = [{ text, gold: false }];
-  for (const phrase of SEAL_GOLD_PHRASES) {
+  for (const phrase of phrases) {
     const next: Chunk[] = [];
     for (const c of chunks) {
       if (c.gold) { next.push(c); continue; }
@@ -12301,7 +12439,7 @@ function renderSealParagraph(text: string, idx: number): React.ReactElement {
     chunks = next;
   }
   return (
-    <p className="na2-decl-cer-para" key={idx}>
+    <p className={className} key={idx}>
       {chunks.map((c, i) => {
         const pieces = c.text.split("\n");
         return (

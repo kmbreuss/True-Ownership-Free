@@ -1,0 +1,57 @@
+Good — "Continue to Vision →" locked in. Mirrors M2's pattern exactly. Here's the final green-light message with all 5 answers.
+
+MESSAGE TO PASTE INTO REPLIT AGENT:
+
+Excellent diagnosis — exactly the read-only depth I want. Approved across the board. Answers to your 5 questions:
+Q1 — Issue 1 copy approach: Option A confirmed. Copy fix only, no auto-resync affordance. The ↺ Try the peel again button is the existing escape hatch — users who want fresh peel content can route back. Don't introduce a competing "use latest peel?" prompt.
+Use your proposed re-entry copy: "This is what you claimed. Refine it any time — or use ↺ Try the peel again to start over from the bottom."
+First-entry copy stays unchanged.
+Q2 — Constants location: Create mirror1Constants.ts. Your pick, confirmed. Keeps M1 and M2 cleanly separated, matches existing file boundary.
+Q3 — Burst color for M1: Gold confirmed. Mirror 1's lens color is gold (same gold used in the "your why" Purpose banner inside Mirror 2's Vision Declaration). Gold-for-M1, silver-for-M2 reinforces the locked warm-to-cool gradient.
+Q4 — Continue CTA label: "Continue to Vision →" — mirrors M2's "Continue to Identity →" pattern exactly. Names the next Mirror, gives the user clear forward direction. Per your spec investigation, Vision should unlock after Purpose is sealed (matching M1.B design pattern), so the label aligns with the actual unlock chain.
+Q5 — Re-claim seal text content: New (just-claimed) value. The seal quotes the named Purpose at the moment of claiming. On re-declare, the new value IS what was just named — the seal celebrates the current commitment, not historical state. Use the live purpose_final value at ceremony render time.
+
+Approved to ship — single combined Mirror 1 polish round.
+Per your plan:
+
+Issue 1 copy fix (1 conditional string)
+Issue 2a + 2b rebuild of NewA1DeclareBody to mirror NewA2DeclarationBody architecture
+New mirror1Constants.ts with M1_SEAL_PARAGRAPHS and M1_SEAL_GOLD_PHRASES
+Gold burst portal-mounted to document.body (clone .na2-silver-burst pattern, swap gradient color)
+Mode state machine: readback / claiming / ceremony
+Dirty state derived from initialValueRef.current
+Dynamic button label per A3 pattern:
+
+!editMode → "✓ Declare" (fires ceremony)
+editMode && dirty → "★ Declare Purpose again" (fires ceremony)
+editMode && !dirty → "Save changes" (silent close — only valid path with no celebration since nothing changed)
+
+
+Ceremony state renders the full seal text with three test questions on their own lines
+Gold emphasis on the user's quoted Purpose at top + "Now you have." at bottom
+Journey verbs (Align, Advocate, Act, Accountable) capitalized, italic only, no gold treatment
+Continue CTA: "Continue to Vision →" — returns to Explore + persists sealSeen
+
+Critical formatting reminder: In M1_SEAL_PARAGRAPHS, the second paragraph contains the three test questions separated by \n\n (double newlines) so they render on their own lines with paragraph spacing — they are held beats, not a single line. Do NOT collapse them.
+Architectural reuse: Reference NewA2DeclarationBody for the burst portal pattern (A1 fix from earlier today), mode state machine, dirty-state detection, dynamic button switch, and renderSealParagraph splitter for gold-phrase emphasis. The patterns are battle-tested — minimize new invention.
+What I'll verify on dev when shipped:
+
+Re-enter Declare modal → re-entry helper copy reads "This is what you claimed. Refine it any time — or use ↺ Try the peel again to start over from the bottom."
+Make no edits, click "Save changes" → silent close (no ceremony, since nothing changed)
+Make an edit → button label flips to "★ Declare Purpose again"
+Click "★ Declare Purpose again" → gold burst fills viewport → crossfade → seal lands at top of viewport with:
+
+Large gold ★
+Locked seal text in italic Georgia
+User's Purpose quoted at top in gold non-italic
+Three test questions on separate lines with held spacing
+"Now you have." in gold non-italic at bottom
+Gold divider
+"Continue to Vision →" button (gold outline)
+
+
+Click Continue to Vision → modal closes, returns to A1 grid (or Mirror 2 if applicable)
+Re-enter sealed Declare → lands on readback in edit mode (no ceremony replay), button shows "Save changes" until dirty
+
+Ship it.
+
