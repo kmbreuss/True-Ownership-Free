@@ -41,7 +41,17 @@ import {
   M1_SEAL_GOLD_PHRASES,
   M1_PURPOSE_TOKEN,
 } from "./mirror1Constants";
-import { EMPTY_MIRROR3 } from "./mirror3Constants";
+import {
+  EMPTY_MIRROR3,
+  GIFTS_BY_THEME,
+  THEME_LABEL,
+  THEME_TAGLINE,
+  THEME_COLOR,
+  THEME_OF_GIFT,
+  type Theme,
+  type PickedGift,
+  type Mirror3State,
+} from "./mirror3Constants";
 const KEYS = {
   map: "to_map",
   done: "to_done",
@@ -1139,6 +1149,45 @@ html[data-theme="light"]{
 .na1-mirror-card.is-vision-in-progress{ border-color:var(--m2-burgundy-chip); cursor:pointer; }
 .na1-mirror-card.is-vision-in-progress .na1-mirror-card-num{ color:var(--m2-burgundy-chip); }
 .na1-mirror-card.is-vision-in-progress .na1-mirror-card-status{ background:var(--m2-burgundy-chip-bg); color:var(--m2-burgundy-chip); border-color:var(--m2-burgundy-chip); }
+
+/* ─── Mirror 3 · Step 1a · Pick ───────────────────────────────────────────── */
+.m3-pick{ max-width:880px; margin:0 auto; padding:48px 24px 120px; font-family:var(--na1-sans); color:var(--na1-text); }
+@media (max-width:600px){ .m3-pick{ padding:32px 16px 100px; } }
+.m3-pick-back{ display:inline-flex; align-items:center; gap:6px; background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:13px; cursor:pointer; padding:0; margin-bottom:24px; }
+.m3-pick-back:hover{ color:var(--na1-text); }
+.m3-pick-eyebrow{ font-size:11px; font-weight:700; letter-spacing:0.22em; color:var(--burgundy); text-transform:uppercase; margin-bottom:10px; }
+.m3-pick-title{ font-family:var(--na1-serif); font-size:36px; font-weight:600; line-height:1.2; margin:0 0 12px; color:var(--na1-text); }
+@media (max-width:600px){ .m3-pick-title{ font-size:28px; } }
+.m3-pick-sub{ font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.6; color:var(--na1-text-sec); margin:0 0 22px; max-width:640px; }
+.m3-pick-legend{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:0 0 36px; font-size:12.5px; color:var(--na1-text-mute); }
+.m3-pick-legend-chip{ display:inline-flex; align-items:center; gap:6px; }
+.m3-pick-legend-swatch{ display:inline-flex; align-items:center; justify-content:center; min-height:28px; padding:4px 12px; border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; }
+.m3-pick-legend-swatch.is-owned{ background:#C9A24B; color:#1a1407; border:1.5px solid #C9A24B; }
+.m3-pick-legend-swatch.is-emerging{ background:transparent; color:#C9A24B; border:1.5px solid #C9A24B; }
+.m3-pick-section{ margin:0 0 32px; }
+.m3-pick-section-head{ display:flex; align-items:baseline; gap:10px; margin:0 0 14px; flex-wrap:wrap; }
+.m3-pick-section-name{ font-family:var(--na1-serif); font-size:22px; font-weight:600; color:var(--theme-color, var(--na1-text)); margin:0; line-height:1; }
+.m3-pick-section-tag{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--na1-text-mute); }
+.m3-pick-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.m3-pick-chip{ display:inline-flex; align-items:center; gap:6px; min-height:38px; padding:6px 14px; border-radius:100px; background:transparent; border:1.5px solid var(--theme-color, var(--na1-border)); color:var(--theme-color, var(--na1-text-sec)); font-family:var(--na1-sans); font-size:13.5px; font-weight:500; cursor:pointer; transition:background .15s ease, color .15s ease, border-color .15s ease, transform .08s ease; user-select:none; }
+.m3-pick-chip:hover{ filter:brightness(1.05); }
+.m3-pick-chip:active{ transform:translateY(1px); }
+.m3-pick-chip.is-owned{ background:#C9A24B; border-color:#C9A24B; color:#1a1407; font-weight:600; }
+.m3-pick-chip.is-emerging{ background:transparent; border-color:#C9A24B; color:#C9A24B; font-weight:600; }
+.m3-pick-chip-marker{ display:inline-block; line-height:1; font-size:12px; }
+.m3-pick-add{ display:inline-flex; align-items:center; gap:6px; min-height:38px; padding:6px 14px; border-radius:100px; background:transparent; border:1.5px dashed var(--theme-color, var(--na1-border)); color:var(--theme-color, var(--na1-text-mute)); font-family:var(--na1-sans); font-size:13px; font-weight:500; cursor:pointer; opacity:0.75; transition:opacity .15s; }
+.m3-pick-add:hover{ opacity:1; }
+.m3-pick-add-form{ display:inline-flex; align-items:center; gap:6px; }
+.m3-pick-add-input{ min-height:38px; padding:6px 12px; border-radius:100px; background:var(--na1-bg-card); border:1.5px solid var(--theme-color, var(--na1-border)); color:var(--na1-text); font-family:var(--na1-sans); font-size:13.5px; outline:none; min-width:140px; }
+.m3-pick-add-input:focus{ border-color:var(--theme-color, var(--gold)); }
+.m3-pick-add-confirm{ display:inline-flex; align-items:center; justify-content:center; min-height:38px; padding:0 14px; border-radius:100px; background:var(--theme-color, var(--gold)); color:#1a1407; border:none; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; }
+.m3-pick-add-cancel{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:13px; cursor:pointer; padding:0 6px; }
+.m3-pick-counter-bar{ position:sticky; bottom:0; margin:40px -24px -120px; padding:18px 24px 28px; background:linear-gradient(180deg, transparent 0%, var(--na1-bg) 30%); display:flex; flex-direction:column; gap:6px; align-items:center; }
+@media (max-width:600px){ .m3-pick-counter-bar{ margin:32px -16px -100px; padding:16px 16px 24px; } }
+.m3-pick-counter{ font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); font-variant-numeric:tabular-nums; }
+.m3-pick-counter strong{ color:var(--na1-text); font-weight:700; }
+.m3-pick-hint{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); font-style:italic; margin:0 0 12px; }
+.m3-pick-actions{ display:flex; gap:12px; align-items:center; justify-content:center; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -31896,31 +31945,347 @@ function NewA1View({ name }: { name?: string }) {
   );
 }
 
-// ─── NEW M3 (?newM3=1) · Ship 1 placeholder ───
-// Foundations have landed (mirror3Constants.ts + map.mirror3 schema + flag).
-// Step 1a (Pick) UI lands in Ship 2. This stub confirms the M2 → M3 handoff
-// is wired end-to-end and lets the owner demo the routing on dev.
+// ─── NEW M3 (?newM3=1) · Step 1a · Pick ───
+// 5 themed sections (Mind / Heart / Spine / Spark / Hands) with the full
+// 75-gift library. Single-tap chip rotates unpicked → owned → emerging →
+// unpicked. Each section ends with a `+ add` affordance for custom gifts
+// (default state: owned). Counter + soft hint at the bottom — never gates
+// Continue. Saves are debounced 500ms into `state.mirror3.pickedGifts[]`.
+
+const M3_THEME_ORDER: Theme[] = ["mind", "heart", "spine", "spark", "hands"];
+
+function m3Slug(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function loadMirror3State(): Mirror3State {
+  try {
+    const m = (loadDataSync(KEYS.map) as any) || {};
+    const cur = m?.mirror3;
+    if (cur && Array.isArray(cur.pickedGifts)) {
+      return { ...EMPTY_MIRROR3, ...cur };
+    }
+  } catch {}
+  return EMPTY_MIRROR3;
+}
+
 function NewA1M3View({ onBack }: { onBack: () => void }) {
+  const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
+  // Map: gift id → PickedGift, for O(1) cycle lookup.
+  const pickedById = useMemo(() => {
+    const out: Record<string, PickedGift> = {};
+    for (const p of state.pickedGifts) out[p.id] = p;
+    return out;
+  }, [state.pickedGifts]);
+
+  // Per-theme custom-add UI state (which theme has the inline input open
+  // + its current draft text). Only one input open at a time.
+  const [openAddTheme, setOpenAddTheme] = useState<Theme | null>(null);
+  const [addDraft, setAddDraft] = useState("");
+
+  // Debounced auto-save (500ms) of state.mirror3 into the existing engine.
+  // We track the latest state in a ref so an unmount during the debounce
+  // window can flush the pending write — prevents lost picks if the user
+  // taps Back / Shape immediately after a chip change.
+  const firstRun = useRef(true);
+  const latestStateRef = useRef(state);
+  const pendingFlushRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
+
+  const flushSave = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (!pendingFlushRef.current) return;
+    pendingFlushRef.current = false;
+    const cur = (loadDataSync(KEYS.map) as any) || {};
+    saveData(KEYS.map, { ...cur, mirror3: latestStateRef.current });
+  }, []);
+
+  useEffect(() => {
+    latestStateRef.current = state;
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    pendingFlushRef.current = true;
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
+      timerRef.current = null;
+      flushSave();
+    }, 500);
+  }, [state, flushSave]);
+
+  // On unmount, flush any pending debounce write so navigation never
+  // strands the most recent picks.
+  useEffect(() => {
+    return () => {
+      flushSave();
+    };
+  }, [flushSave]);
+
+  const cycleGift = (theme: Theme, label: string, custom: boolean) => {
+    const id = custom ? `g_custom_${m3Slug(label)}` : `g_${m3Slug(label)}`;
+    setState((prev) => {
+      const existing = prev.pickedGifts.find((p) => p.id === id);
+      if (!existing) {
+        // unpicked → owned
+        return {
+          ...prev,
+          pickedGifts: [
+            ...prev.pickedGifts,
+            { id, label, theme, state: "owned", custom },
+          ],
+        };
+      }
+      if (existing.state === "owned") {
+        // owned → emerging
+        return {
+          ...prev,
+          pickedGifts: prev.pickedGifts.map((p) =>
+            p.id === id ? { ...p, state: "emerging" } : p,
+          ),
+        };
+      }
+      // emerging → unpicked (remove)
+      return {
+        ...prev,
+        pickedGifts: prev.pickedGifts.filter((p) => p.id !== id),
+      };
+    });
+  };
+
+  const addCustom = (theme: Theme, raw: string) => {
+    const label = raw.trim();
+    if (!label) return;
+    const id = `g_custom_${m3Slug(label)}`;
+    setState((prev) => {
+      // De-dupe: if a chip with this id (library or custom) already exists,
+      // leave it alone — user can cycle it from its existing position.
+      if (prev.pickedGifts.some((p) => p.id === id)) return prev;
+      // If the label collides with a library gift in this theme, treat the
+      // tap as a normal pick (mark library gift as owned) rather than
+      // creating a phantom custom duplicate.
+      const libraryHit = (GIFTS_BY_THEME[theme] as readonly string[]).some(
+        (g) => g.toLowerCase() === label.toLowerCase(),
+      );
+      if (libraryHit) {
+        const libId = `g_${m3Slug(label)}`;
+        if (prev.pickedGifts.some((p) => p.id === libId)) return prev;
+        return {
+          ...prev,
+          pickedGifts: [
+            ...prev.pickedGifts,
+            {
+              id: libId,
+              label: label,
+              theme,
+              state: "owned",
+              custom: false,
+            },
+          ],
+        };
+      }
+      return {
+        ...prev,
+        pickedGifts: [
+          ...prev.pickedGifts,
+          { id, label, theme, state: "owned", custom: true },
+        ],
+      };
+    });
+    setOpenAddTheme(null);
+    setAddDraft("");
+  };
+
+  // Counter: derived from pickedGifts.
+  const ownedCount = state.pickedGifts.filter((p) => p.state === "owned").length;
+  const emergingCount = state.pickedGifts.filter(
+    (p) => p.state === "emerging",
+  ).length;
+  const pickedCount = ownedCount + emergingCount;
+
+  // Render a single theme section.
+  const renderTheme = (theme: Theme) => {
+    const themeColor = THEME_COLOR[theme];
+    const libraryGifts = GIFTS_BY_THEME[theme];
+    // Custom gifts the user added in this theme (sit after library chips).
+    const customGifts = state.pickedGifts.filter(
+      (p) => p.theme === theme && p.custom,
+    );
+    return (
+      <section
+        key={theme}
+        className="m3-pick-section"
+        style={{ ["--theme-color" as any]: themeColor }}
+      >
+        <div className="m3-pick-section-head">
+          <h2 className="m3-pick-section-name">{THEME_LABEL[theme]}</h2>
+          <span className="m3-pick-section-tag">— {THEME_TAGLINE[theme]}</span>
+        </div>
+        <div className="m3-pick-chips">
+          {libraryGifts.map((g) => {
+            const id = `g_${m3Slug(g)}`;
+            const picked = pickedById[id];
+            const cls = picked
+              ? `m3-pick-chip is-${picked.state}`
+              : "m3-pick-chip";
+            return (
+              <button
+                key={id}
+                type="button"
+                className={cls}
+                onClick={() => cycleGift(theme, g, false)}
+                aria-pressed={!!picked}
+                aria-label={
+                  picked
+                    ? `${g}, ${picked.state}. Tap to cycle.`
+                    : `${g}, unpicked. Tap to mark owned.`
+                }
+              >
+                {picked?.state === "emerging" && (
+                  <span className="m3-pick-chip-marker" aria-hidden>
+                    ✦
+                  </span>
+                )}
+                {g}
+              </button>
+            );
+          })}
+          {customGifts.map((p) => {
+            const cls = `m3-pick-chip is-${p.state}`;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={cls}
+                onClick={() => cycleGift(theme, p.label, true)}
+                aria-pressed
+                aria-label={`${p.label}, ${p.state}. Tap to cycle.`}
+              >
+                {p.state === "emerging" && (
+                  <span className="m3-pick-chip-marker" aria-hidden>
+                    ✦
+                  </span>
+                )}
+                {p.label}
+              </button>
+            );
+          })}
+          {openAddTheme === theme ? (
+            <form
+              className="m3-pick-add-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addCustom(theme, addDraft);
+              }}
+            >
+              <input
+                className="m3-pick-add-input"
+                autoFocus
+                placeholder={`Add a ${THEME_LABEL[theme].toLowerCase()} gift…`}
+                value={addDraft}
+                onChange={(e) => setAddDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    setOpenAddTheme(null);
+                    setAddDraft("");
+                  }
+                }}
+                maxLength={32}
+              />
+              <button
+                type="submit"
+                className="m3-pick-add-confirm"
+                disabled={!addDraft.trim()}
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                className="m3-pick-add-cancel"
+                onClick={() => {
+                  setOpenAddTheme(null);
+                  setAddDraft("");
+                }}
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              className="m3-pick-add"
+              onClick={() => {
+                setOpenAddTheme(theme);
+                setAddDraft("");
+              }}
+              aria-label={`Add a custom ${THEME_LABEL[theme]} gift`}
+            >
+              + add
+            </button>
+          )}
+        </div>
+      </section>
+    );
+  };
+
   return (
-    <div className="na1-room-card" style={{ maxWidth: 720, margin: "48px auto", padding: 32 }}>
-      <div className="na1-room-eyebrow tone-burgundy">Mirror 3 · Identity</div>
-      <h2 className="na1-room-title">Foundations are in place</h2>
-      <p className="na1-room-context" style={{ marginTop: 16 }}>
-        The gift library (75), animal library (31), cluster archetypes (24),
-        and Mind + Heart shadow libraries are loaded. The map schema now
-        carries <code>mirror3</code> and round-trips through the existing save
-        engine.
+    <div className="m3-pick">
+      <button type="button" className="m3-pick-back" onClick={onBack}>
+        ← Mirror grid
+      </button>
+      <div className="m3-pick-eyebrow">Mirror 3 · Step 1 of 5 · Pick</div>
+      <h1 className="m3-pick-title">What gifts do you carry?</h1>
+      <p className="m3-pick-sub">
+        Tap once for what's already yours. Tap again for what's emerging. Tap
+        a third time to clear. There's no right number — only what's true.
       </p>
-      <p className="na1-room-context" style={{ marginTop: 12, color: "var(--na1-text-sec)" }}>
-        <strong>Step 1a · Pick</strong> lands in Ship 2. The "Continue to
-        Identity →" button at the end of your Vision seal now routes here
-        whenever <code>?newM3=1</code> is set (or saved to localStorage).
-      </p>
-      <div className="na1-room-actions" style={{ marginTop: 24 }}>
-        <button type="button" className="na1-btn-ghost" onClick={onBack}>
-          ← Back to mirror grid
-        </button>
+      <div className="m3-pick-legend" aria-label="Chip state legend">
+        <span className="m3-pick-legend-chip">
+          <span className="m3-pick-legend-swatch is-owned">Owned</span>
+          <span>filled — already mine</span>
+        </span>
+        <span className="m3-pick-legend-chip">
+          <span className="m3-pick-legend-swatch is-emerging">✦ Emerging</span>
+          <span>outlined — becoming mine</span>
+        </span>
       </div>
+      {M3_THEME_ORDER.map((t) => renderTheme(t))}
+      <div className="m3-pick-counter-bar">
+        <div className="m3-pick-counter">
+          <strong>{pickedCount}</strong> picked ·{" "}
+          <strong>{ownedCount}</strong> owned ·{" "}
+          <strong>{emergingCount}</strong> emerging
+        </div>
+        <p className="m3-pick-hint">Aim for 12–20.</p>
+        <div className="m3-pick-actions">
+          <button
+            type="button"
+            className="na1-btn-gold"
+            onClick={() => {
+              // Shape (Step 1b) lands in Ship 3. For now the button is wired
+              // and visible — clicking acknowledges the pick set is saved
+              // and bumps back to the grid so the owner can verify
+              // persistence on reload.
+              const cur = (loadDataSync(KEYS.map) as any) || {};
+              saveData(KEYS.map, { ...cur, mirror3: state });
+              onBack();
+            }}
+          >
+            Shape →
+          </button>
+        </div>
+      </div>
+      {/* Silence the THEME_OF_GIFT unused-import warning — it lands in
+          Ship 3 (Shape) for shadow rendering. */}
+      <span hidden>{Object.keys(THEME_OF_GIFT).length}</span>
     </div>
   );
 }
