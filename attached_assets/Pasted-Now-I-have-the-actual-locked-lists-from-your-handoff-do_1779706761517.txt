@@ -1,0 +1,65 @@
+Now I have the actual locked lists from your handoff doc. Let me verify against Agent's mismatch list:
+SPINE — actual locked 15:
+Bold · Direct · Steady · Decisive · Courageous · Unshakeable · Fierce · Honest · Sovereign · Resilient · Protective · Anchored · Grounded · Unwavering · Self-trusting
+SPARK — actual locked 15:
+Playful · Creative · Original · Magnetic · Alive · Imaginative · Inventive · Bold-hearted · Inspired · Spirited · Joyful · Expressive · Mischievous · Free · Wild
+HANDS — actual locked 15:
+Reliable · Patient · Precise · Industrious · Capable · Resourceful · Skillful · Methodical · Effective · Steady-handed · Diligent · Practical · Tactile · Tending · Self-sustaining
+Agent's mismatch list was accurate. Their reading of the file matched the handoff doc exactly. So the 22 missing gifts I need to write shadows for are:
+SPINE (8): Direct · Courageous · Unshakeable · Fierce · Honest · Sovereign · Unwavering · Self-trusting
+SPARK (8): Original · Alive · Inventive · Spirited · Joyful · Mischievous · Free · Wild
+HANDS (6): Patient · Precise · Methodical · Steady-handed · Tactile · Self-sustaining
+22 gifts × 4 shadow words = 88 words. Drafting now in the same voice as Mind/Heart (gift mismetered — not opposite, the same energy in distortion).
+
+SPINE — missing 8
+GiftShadow wordsDirectBlunt · Cutting · Brusque · SteamrollingCourageousReckless · Charging · Defiant · BulldozingUnshakeableRigid · Closed · Impenetrable · UnmovedFierceAggressive · Volatile · Intimidating · BurningHonestBrutal · Tactless · Wounding · Self-righteousSovereignAloof · Untouchable · Disconnected · Above-it-allUnwaveringStubborn · Rigid · Inflexible · Closed-offSelf-trustingSelf-referential · Closed to input · Arrogant · Echo chamber
+
+SPARK — missing 8
+GiftShadow wordsOriginalContrarian · Different-for-different's-sake · Isolated · Self-importantAliveManic · Overwhelming · Too-much · ExhaustingInventiveRestless · Half-finished · Tinkering · Never-shippingSpiritedVolatile · Over-the-top · Burning out · PerformativeJoyfulPerformative · Avoiding the hard thing · Saccharine · BypassingMischievousDisruptive · Boundary-crossing · Provocative · ChildishFreeUntethered · Unaccountable · Running · Commitment-phobicWildChaotic · Reckless · Untamed · Destructive
+
+HANDS — missing 6
+GiftShadow wordsPatientAvoidant · Passive · Enabling · StagnantPrecisePerfectionistic · Rigid · Joyless · PedanticMethodicalSlow · Plodding · Over-structured · JoylessSteady-handedMechanical · Detached · Going-through-motions · UnfeelingTactileHands-on to a fault · Can't delegate · Micromanaging · Over-physicalSelf-sustainingIsolated · Refusing help · Lone-wolf · Over-burdened
+
+88 words written. A few specific calls worth flagging:
+
+Honest → Brutal · Tactless · Wounding · Self-righteous. "Honest in shadow looks like weaponizing truth." That one's heavy on purpose.
+Sovereign → Aloof · Untouchable · Disconnected · Above-it-all. The shadow of sovereignty is exactly "too far up the mountain to be reached." Hard burgundy work.
+Joyful → Performative · Avoiding the hard thing · Saccharine · Bypassing. "Joy in shadow looks like spiritual bypass." This one's pointed.
+Self-trusting → Self-referential · Closed to input · Arrogant · Echo chamber. "Trusting yourself in shadow looks like nobody else's input lands." Real.
+Free → Untethered · Unaccountable · Running · Commitment-phobic. "Free in shadow looks like running." Tight.
+
+Ship-ready format below — paste this to Agent as a follow-up:
+
+Two items for the next ship:
+Item 1 — Veil timing change. Update the .na1-veil hold timing from 2.4s to 2.0s. Since .na1-veil is the shared component across M1 Purpose, M2 Vision (5 rooms), M3 Identity (4 rooms), the change should propagate everywhere automatically. Don't fork — one shared timing value.
+Item 2 — Spine/Spark/Hands shadow library completion. The mismatch flags you surfaced in the last ship correctly identified 22 gifts in my draft that don't exist in your locked lists, and 22 gifts in the locked lists that I missed. Here are the 88 missing shadow words for the 22 gifts that ARE in the locked lists. Add these to SHADOW_LIBRARY in mirror3Constants.ts:
+typescript// SPINE — adding 8 missing
+"Direct": ["Blunt", "Cutting", "Brusque", "Steamrolling"],
+"Courageous": ["Reckless", "Charging", "Defiant", "Bulldozing"],
+"Unshakeable": ["Rigid", "Closed", "Impenetrable", "Unmoved"],
+"Fierce": ["Aggressive", "Volatile", "Intimidating", "Burning"],
+"Honest": ["Brutal", "Tactless", "Wounding", "Self-righteous"],
+"Sovereign": ["Aloof", "Untouchable", "Disconnected", "Above-it-all"],
+"Unwavering": ["Stubborn", "Rigid", "Inflexible", "Closed-off"],
+"Self-trusting": ["Self-referential", "Closed to input", "Arrogant", "Echo chamber"],
+
+// SPARK — adding 8 missing
+"Original": ["Contrarian", "Different-for-different's-sake", "Isolated", "Self-important"],
+"Alive": ["Manic", "Overwhelming", "Too-much", "Exhausting"],
+"Inventive": ["Restless", "Half-finished", "Tinkering", "Never-shipping"],
+"Spirited": ["Volatile", "Over-the-top", "Burning out", "Performative"],
+"Joyful": ["Performative", "Avoiding the hard thing", "Saccharine", "Bypassing"],
+"Mischievous": ["Disruptive", "Boundary-crossing", "Provocative", "Childish"],
+"Free": ["Untethered", "Unaccountable", "Running", "Commitment-phobic"],
+"Wild": ["Chaotic", "Reckless", "Untamed", "Destructive"],
+
+// HANDS — adding 6 missing
+"Patient": ["Avoidant", "Passive", "Enabling", "Stagnant"],
+"Precise": ["Perfectionistic", "Rigid", "Joyless", "Pedantic"],
+"Methodical": ["Slow", "Plodding", "Over-structured", "Joyless"],
+"Steady-handed": ["Mechanical", "Detached", "Going-through-motions", "Unfeeling"],
+"Tactile": ["Hands-on to a fault", "Can't delegate", "Micromanaging", "Over-physical"],
+"Self-sustaining": ["Isolated", "Refusing help", "Lone-wolf", "Over-burdened"]
+While you're in the constants file — clean up the orphan entries. The previous ship added shadow words for gift names that don't exist in the locked lists (Brave, Disciplined, Resolute, Strong, Patient(spine), Stable, Composed, Innovative, Generative, Pioneering, Catalyzing, Audacious, Adventurous, Free-Spirited, Visionary(spark), Productive, Crafted, Building, Finishing, Embodied, Skilled, Loyal-spine, Nurturing-hands, plus the casing duplicates Bold-Hearted/Bold-hearted). Delete the dead entries — they're never referenced because no gift in the locked list matches their keys. Keep the file clean.
+After this lands, every gift across all 5 themes has 4 shadow word suggestions. The Spine/Spark/Hands + add-only fallback rows should all switch to showing 4 suggested chips. Walk Under Pressure with picks from every theme to verify.
+Stop at owner demo. Same cadence — clean localStorage, fresh load with ?newA1=1&newM3=1, walk the path.

@@ -29149,6 +29149,20 @@ function NewA1DeclareBody({
 
 type NA1VeilPhase = "idle" | "rising" | "hold" | "falling";
 
+// Shared veil timing for .na1-veil — used by M1 Purpose, M2 Vision (5 rooms),
+// and M3 Identity (4 rooms). Single source of truth so updates propagate
+// everywhere. Ship 5 trimmed total visible time from ~2.4s → ~2.0s by
+// shortening the HOLD phase from 1100ms to 700ms.
+//   0      → rising (text fades in starting at 400ms, completes ~900ms)
+//   900ms  → hold begins (mount Room under veil; 700ms HOLD)
+//   1600ms → falling (text fades out 300ms, veil peels back over 700ms)
+//   2600ms → idle (veil unmounted)
+const NA1_VEIL_TIMING = {
+  holdAt: 900,
+  fallingAt: 1600,
+  idleAt: 2600,
+} as const;
+
 // ─── A1 · Mirror 2 (Vision · 10-Year Horizon) — components ───
 // Lives inside the existing NEW_A1_FLAG surface; dispatched from NewA1View when
 // view === "explore2". Mirror 2 state is persisted at `map.vision` (server-synced
@@ -31854,47 +31868,44 @@ function NewA1View({ name }: { name?: string }) {
     clearTimers();
     setOpenEx(ex);
     setVeilPhase("rising");
-    // Veil timing (~2.4s total):
-    //   0      → rising (text fades in starting at 400ms, completes ~900ms)
-    //   900ms  → hold begins (mount Room under veil; HOLD lasts 1100ms — trimmed from 1400ms)
-    //   2000ms → falling (text fades out 300ms, veil peels back over 700ms)
-    //   3000ms → idle (veil unmounted)
+    // Uses shared NA1_VEIL_TIMING (~2.0s total · see definition for phases).
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("hold");
         setRoomOpen(true);
-      }, 900),
+      }, NA1_VEIL_TIMING.holdAt),
     );
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("falling");
-      }, 2000),
+      }, NA1_VEIL_TIMING.fallingAt),
     );
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("idle");
-      }, 3000),
+      }, NA1_VEIL_TIMING.idleAt),
     );
   };
   const launchRoomM2 = (ex: M2Exercise) => {
     clearTimers();
     setOpenM2Ex(ex);
     setVeilPhase("rising");
+    // Uses shared NA1_VEIL_TIMING.
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("hold");
         setRoomOpen(true);
-      }, 900),
+      }, NA1_VEIL_TIMING.holdAt),
     );
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("falling");
-      }, 2000),
+      }, NA1_VEIL_TIMING.fallingAt),
     );
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("idle");
-      }, 3000),
+      }, NA1_VEIL_TIMING.idleAt),
     );
   };
   const closeRoom = () => {
@@ -32380,17 +32391,17 @@ function NewA1M3Container({
     clearTimers();
     setOpenRoom(room);
     setVeilPhase("rising");
-    // Veil timing mirrors launchRoomM2: ~2.4s total with a 1.1s hold.
+    // Uses shared NA1_VEIL_TIMING (~2.0s total · see definition for phases).
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("hold");
         if (room.bodyShipped) setRoomOpen(true);
-      }, 900),
+      }, NA1_VEIL_TIMING.holdAt),
     );
     timeoutsRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("falling");
-      }, 2000),
+      }, NA1_VEIL_TIMING.fallingAt),
     );
     timeoutsRef.current.push(
       window.setTimeout(() => {
@@ -32398,7 +32409,7 @@ function NewA1M3Container({
         // For locked rooms (no body shipped) the veil falls back to the
         // hub — clear the room reference so the veil unmounts cleanly.
         if (!room.bodyShipped) setOpenRoom(null);
-      }, 3000),
+      }, NA1_VEIL_TIMING.idleAt),
     );
   };
 

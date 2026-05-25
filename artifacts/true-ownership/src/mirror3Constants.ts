@@ -225,85 +225,56 @@ export const SHADOW_LIBRARY: Record<string, readonly string[]> = {
   "Forgiving":     ["Doormat", "Self-erasing", "Tolerating-harm", "Over-explaining-others"],
   "Sensitive":     ["Over-reactive", "Easily-wounded", "Withdrawing", "Hyper-personal"],
 
-  // ── SPINE ── (draft · owner's voice)
-  // FLAG · names below DO NOT match the locked GIFTS_BY_THEME.spine list.
-  //   extras  (not in spine list): Brave, Disciplined, Resolute, Strong,
-  //                                Stable, Composed
-  //   cross-theme: Loyal → heart, Patient → hands
-  //   spine gifts WITHOUT shadows (will keep the `+ add` only fallback):
-  //     Direct, Courageous, Unshakeable, Fierce, Honest, Sovereign,
-  //     Unwavering, Self-trusting
-  // Owner will reconcile at demo — no auto-correction here.
-  "Brave":        ["Reckless", "Reactive", "Charging", "Bulldozing"],
-  "Bold":         ["Aggressive", "Overbearing", "Forcing", "Steamrolling"],
-  "Decisive":     ["Rigid", "Closed", "Premature", "Dismissive"],
-  "Anchored":     ["Stuck", "Inflexible", "Heavy", "Immovable"],
-  "Steady":       ["Stagnant", "Plodding", "Predictable", "Slow"],
-  "Disciplined":  ["Punishing", "Harsh", "Brittle", "Joyless"],
-  "Resolute":     ["Stubborn", "Tunnel-visioned", "Unyielding", "Closed-off"],
-  "Grounded":     ["Stuck", "Earthbound", "Resistant", "Joyless"],
-  "Strong":       ["Domineering", "Forceful", "Intimidating", "Suffocating"],
-  "Resilient":    ["Numbing", "Bulldozing", "Pushing-through", "Disconnected"],
-  "Protective":   ["Walled", "Controlling", "Suffocating", "Possessive"],
-  "Loyal-spine":  ["Enabling", "Self-erasing", "Blind", "Trapped"], // FLAG · "Loyal" already keyed under Heart above; suffixed to avoid dup-key. Owner: pick canonical theme at demo.
-  "Patient":      ["Avoidant", "Passive", "Stagnant", "Enabling"],
-  "Stable":       ["Inert", "Predictable", "Risk-averse", "Stuck"],
-  "Composed":     ["Detached", "Suppressed", "Frozen", "Unreachable"],
+  // ── SPINE ── (owner's voice · matches locked GIFTS_BY_THEME.spine)
+  "Bold":           ["Aggressive", "Overbearing", "Forcing", "Steamrolling"],
+  "Direct":         ["Blunt", "Cutting", "Brusque", "Steamrolling"],
+  "Steady":         ["Stagnant", "Plodding", "Predictable", "Slow"],
+  "Decisive":       ["Rigid", "Closed", "Premature", "Dismissive"],
+  "Courageous":     ["Reckless", "Charging", "Defiant", "Bulldozing"],
+  "Unshakeable":    ["Rigid", "Closed", "Impenetrable", "Unmoved"],
+  "Fierce":         ["Aggressive", "Volatile", "Intimidating", "Burning"],
+  "Honest":         ["Brutal", "Tactless", "Wounding", "Self-righteous"],
+  "Sovereign":      ["Aloof", "Untouchable", "Disconnected", "Above-it-all"],
+  "Resilient":      ["Numbing", "Bulldozing", "Pushing-through", "Disconnected"],
+  "Protective":     ["Walled", "Controlling", "Suffocating", "Possessive"],
+  "Anchored":       ["Stuck", "Inflexible", "Heavy", "Immovable"],
+  "Grounded":       ["Stuck", "Earthbound", "Resistant", "Joyless"],
+  "Unwavering":     ["Stubborn", "Rigid", "Inflexible", "Closed-off"],
+  "Self-trusting":  ["Self-referential", "Closed to input", "Arrogant", "Echo chamber"],
 
-  // ── SPARK ── (draft · owner's voice)
-  // FLAG · names below DO NOT match the locked GIFTS_BY_THEME.spark list.
-  //   extras  (not in spark list): Innovative, Generative, Pioneering,
-  //                                Catalyzing, Audacious, Adventurous,
-  //                                Free-Spirited
-  //   cross-theme: Visionary → mind
-  //   case mismatch: "Bold-Hearted" here vs locked "Bold-hearted" — both
-  //     keys present below so chip-render covers either casing.
-  //   spark gifts WITHOUT shadows (will keep the `+ add` only fallback):
-  //     Original, Alive, Inventive, Spirited, Joyful, Mischievous, Free,
-  //     Wild
-  "Visionary-spark": ["Untethered", "Floating", "Impractical", "Out of touch"], // alias note — owner may collapse with Mind "Visionary" at demo
-  "Imaginative":     ["Escapist", "Unrealistic", "Distracted", "Disconnected"],
-  "Creative":        ["Scattered", "Half-finished", "Restless", "Self-indulgent"],
-  "Inspired":        ["Manic", "Burning out", "Unfocused", "Unsustainable"],
-  "Innovative":      ["Disruptive", "Chaotic", "Reinventing", "Restless"],
-  "Generative":      ["Overflowing", "Unfocused", "Spilling", "Exhausting"],
-  "Pioneering":      ["Reckless", "Lonely", "Impatient", "Disconnected"],
-  "Playful":         ["Avoidant", "Flippant", "Unserious", "Childish"],
-  "Magnetic":        ["Performative", "Demanding attention", "Manipulative", "Draining"],
-  "Expressive":      ["Performative", "Overflowing", "Self-centered", "Exhausting"],
-  "Catalyzing":      ["Disruptive", "Stirring", "Pushing", "Reckless"],
-  "Bold-Hearted":    ["Impulsive", "Volatile", "Reckless", "Burning bridges"],
-  "Bold-hearted":    ["Impulsive", "Volatile", "Reckless", "Burning bridges"],
-  "Audacious":       ["Reckless", "Brash", "Self-important", "Hubris"],
-  "Adventurous":     ["Restless", "Escapist", "Avoidant", "Untethered"],
-  "Free-Spirited":   ["Flighty", "Unaccountable", "Disconnected", "Untethered"],
+  // ── SPARK ── (owner's voice · matches locked GIFTS_BY_THEME.spark)
+  "Playful":      ["Avoidant", "Flippant", "Unserious", "Childish"],
+  "Creative":     ["Scattered", "Half-finished", "Restless", "Self-indulgent"],
+  "Original":     ["Contrarian", "Different-for-different's-sake", "Isolated", "Self-important"],
+  "Magnetic":     ["Performative", "Demanding attention", "Manipulative", "Draining"],
+  "Alive":        ["Manic", "Overwhelming", "Too-much", "Exhausting"],
+  "Imaginative":  ["Escapist", "Unrealistic", "Distracted", "Disconnected"],
+  "Inventive":    ["Restless", "Half-finished", "Tinkering", "Never-shipping"],
+  "Bold-hearted": ["Impulsive", "Volatile", "Reckless", "Burning bridges"],
+  "Inspired":     ["Manic", "Burning out", "Unfocused", "Unsustainable"],
+  "Spirited":     ["Volatile", "Over-the-top", "Burning out", "Performative"],
+  "Joyful":       ["Performative", "Avoiding the hard thing", "Saccharine", "Bypassing"],
+  "Expressive":   ["Performative", "Overflowing", "Self-centered", "Exhausting"],
+  "Mischievous":  ["Disruptive", "Boundary-crossing", "Provocative", "Childish"],
+  "Free":         ["Untethered", "Unaccountable", "Running", "Commitment-phobic"],
+  "Wild":         ["Chaotic", "Reckless", "Untamed", "Destructive"],
 
-  // ── HANDS ── (draft · owner's voice)
-  // FLAG · names below DO NOT match the locked GIFTS_BY_THEME.hands list.
-  //   extras  (not in hands list): Productive, Crafted, Building, Finishing,
-  //                                Embodied
-  //   name mismatch: "Skilled" here vs locked "Skillful" — both keys present
-  //     below so either chip renders.
-  //   cross-theme: Nurturing → heart
-  //   hands gifts WITHOUT shadows (will keep the `+ add` only fallback):
-  //     Patient (also in spine draft above), Precise, Methodical,
-  //     Steady-handed, Tactile, Self-sustaining
-  "Skilled":      ["Perfectionistic", "Cold", "Mechanical", "Joyless"],
-  "Skillful":     ["Perfectionistic", "Cold", "Mechanical", "Joyless"],
-  "Capable":      ["Over-relied-on", "Stretched-thin", "Exhausted", "Indispensable"],
-  "Productive":   ["Busy", "Hollow", "Driven", "Output-only"],
-  "Diligent":     ["Grinding", "Joyless", "Over-working", "Brittle"],
-  "Reliable":     ["Over-burdened", "Everyone's rock", "Resentful", "Trapped"],
-  "Effective":    ["Cold", "Transactional", "Outcome-only", "Hollow"],
-  "Practical":    ["Reductive", "Joyless", "Dismissive", "Flattening"],
-  "Resourceful":  ["Scrappy", "Cutting corners", "MacGyvering", "Patchwork"],
-  "Industrious":  ["Workaholic", "Identity-via-output", "Restless", "Hollow"],
-  "Crafted":      ["Perfectionistic", "Slow", "Precious", "Polishing"],
-  "Tending":      ["Smothering", "Self-erasing", "Codependent", "Enabling"],
-  "Nurturing-hands": ["Smothering", "Over-giving", "Self-erasing", "Enabling"], // FLAG · "Nurturing" already keyed under Heart above; suffixed to avoid dup-key. Owner: pick canonical theme at demo.
-  "Building":     ["Constructing", "Never-finishing", "Restless", "Over-extended"],
-  "Finishing":    ["Rushing", "Premature-close", "Cutting-off", "Impatient"],
-  "Embodied":     ["Over-physical", "Reactive", "Acting-out", "Somatic-only"],
+  // ── HANDS ── (owner's voice · matches locked GIFTS_BY_THEME.hands)
+  "Reliable":         ["Over-burdened", "Everyone's rock", "Resentful", "Trapped"],
+  "Patient":          ["Avoidant", "Passive", "Enabling", "Stagnant"],
+  "Precise":          ["Perfectionistic", "Rigid", "Joyless", "Pedantic"],
+  "Industrious":      ["Workaholic", "Identity-via-output", "Restless", "Hollow"],
+  "Capable":          ["Over-relied-on", "Stretched-thin", "Exhausted", "Indispensable"],
+  "Resourceful":      ["Scrappy", "Cutting corners", "MacGyvering", "Patchwork"],
+  "Skillful":         ["Perfectionistic", "Cold", "Mechanical", "Joyless"],
+  "Methodical":       ["Slow", "Plodding", "Over-structured", "Joyless"],
+  "Effective":        ["Cold", "Transactional", "Outcome-only", "Hollow"],
+  "Steady-handed":    ["Mechanical", "Detached", "Going-through-motions", "Unfeeling"],
+  "Diligent":         ["Grinding", "Joyless", "Over-working", "Brittle"],
+  "Practical":        ["Reductive", "Joyless", "Dismissive", "Flattening"],
+  "Tactile":          ["Hands-on to a fault", "Can't delegate", "Micromanaging", "Over-physical"],
+  "Tending":          ["Smothering", "Self-erasing", "Codependent", "Enabling"],
+  "Self-sustaining":  ["Isolated", "Refusing help", "Lone-wolf", "Over-burdened"],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
