@@ -26978,6 +26978,7 @@ function NewA1Grid({
   m2Progress,
   onOpenPurpose,
   onOpenVision,
+  onOpenM3,
 }: {
   name?: string;
   progress: {
@@ -26990,6 +26991,9 @@ function NewA1Grid({
   m2Progress: NewA1GridM2Progress;
   onOpenPurpose: () => void;
   onOpenVision: () => void;
+  // Optional: when present AND vision is complete, the Mirror 3 card
+  // unlocks and routes here. Parent wires this only when the M3 flag is on.
+  onOpenM3?: () => void;
 }) {
   const doneCount = [
     progress.ex1,
@@ -27203,17 +27207,79 @@ function NewA1Grid({
               </div>
             </article>
           )}
+          {/* Mirror 3 · Identity — unlocks early when the M3 flag is on and
+              Vision is complete (Ship 1 routes to the foundations placeholder;
+              real Step 1a UI lands in Ship 2). Otherwise renders locked. */}
+          {onOpenM3 && visionComplete ? (
+            <article
+              className="na1-mirror-card is-vision-up-next"
+              role="button"
+              tabIndex={0}
+              onClick={onOpenM3}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onOpenM3();
+                }
+              }}
+            >
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">03</span>
+                <span className="na1-mirror-card-status">Up next</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+              <h2 className="na1-mirror-card-name">Identity · Superpowers</h2>
+              <p className="na1-mirror-card-sub">
+                What you carry that others don't.
+              </p>
+              <div className="na1-mirror-card-empty" style={{ fontStyle: "normal", color: "var(--na1-text-sec)" }}>
+                Pick your gifts, shape your clusters, name what's true.
+              </div>
+              <div className="na1-mirror-card-action">
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenM3();
+                  }}
+                >
+                  Begin Identity →
+                </button>
+                <span className="na1-mirror-card-meta">
+                  5 steps · gifts · animals · shadows
+                </span>
+              </div>
+            </article>
+          ) : (
+            <article
+              className="na1-mirror-card is-locked"
+              aria-disabled="true"
+            >
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">03</span>
+                <span className="na1-mirror-card-status">Locked</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+              <h2 className="na1-mirror-card-name">
+                Identity · Superpowers
+              </h2>
+              <p className="na1-mirror-card-sub">
+                What you carry that others don't.
+              </p>
+              <div className="na1-mirror-card-empty">
+                {visionComplete ? "Coming soon" : "Unlocks after Vision"}
+              </div>
+              <div className="na1-mirror-card-action">
+                <span className="na1-mirror-card-meta">
+                  {visionComplete
+                    ? "Coming soon"
+                    : "Complete Vision to unlock"}
+                </span>
+              </div>
+            </article>
+          )}
           {[
-            {
-              num: "03",
-              eyebrow: "Mirror 3",
-              name: "Identity · Superpowers",
-              sub: "What you carry that others don't.",
-              empty: visionComplete ? "Coming soon" : "Unlocks after Vision",
-              meta: visionComplete
-                ? "Coming soon"
-                : "Complete Vision to unlock",
-            },
             {
               num: "04",
               eyebrow: "Mirror 4",
@@ -31425,6 +31491,20 @@ function NewA2DeclarationBody({
                   Save changes
                 </button>
               )}
+              {/* Always-visible "Continue to Identity →" in revisit state.
+                  The first-claim path renders it inside the ceremony block;
+                  on revisit the ceremony block is hidden (mode stays at
+                  "readback"), so the button must live here too — otherwise
+                  every returning user is stranded. */}
+              <button
+                type="button"
+                className="na2-decl-cer-cta"
+                onClick={handleContinueToIdentity}
+                disabled={working}
+                style={{ marginLeft: "auto" }}
+              >
+                Continue to Identity →
+              </button>
             </>
           ) : (
             <>
@@ -31800,6 +31880,14 @@ function NewA1View({ name }: { name?: string }) {
       m2Progress={m2Progress}
       onOpenPurpose={() => setView("explore")}
       onOpenVision={() => setView("explore2")}
+      onOpenM3={
+        // Only expose the M3 entry on the grid when the flag is on.
+        // shouldRouteToM3() also accepts pickedGifts>0 as evidence of
+        // an opt-in once Ship 2 lands; both paths route to the same view.
+        NEW_M3_FLAG_URL || NEW_M3_FLAG_LOCAL || shouldRouteToM3(loadDataSync(KEYS.map) || {})
+          ? () => setView("m3")
+          : undefined
+      }
     />
   );
 }
