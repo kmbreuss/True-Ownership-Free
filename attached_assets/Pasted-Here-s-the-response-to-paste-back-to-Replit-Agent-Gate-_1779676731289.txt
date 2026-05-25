@@ -1,0 +1,22 @@
+Here's the response to paste back to Replit Agent:
+
+Gate 1 still failing. Two related issues to fix:
+Issue 1: Duplicate "Continue to Identity →" buttons.
+DOM inspection shows TWO buttons with text: "Continue to Identity →" and parent class na2-decl-cer-cta. One is the revisit-footer button you added in the bug-fix pass. The other is the original ceremony-state button still rendering at a different render path. There should be exactly one Continue to Identity button. Remove the duplicate.
+Issue 2: Neither button reliably routes to Identity.
+When clicked, the buttons sometimes appear to work — but that's only because sticky localStorage from a previous session is carrying the newM3 flag forward, masking the failure. The actual click handler isn't routing. DOM-level onclick attribute on both buttons reads function noop$1() { } — empty no-op. The handler must be on React's synthetic event system (__reactProps), but it's clearly not firing the route.
+Required fix:
+
+Single button only. One "Continue to Identity →" button that renders in the post-claim state (whether first-time claim ceremony OR revisit after claiming). NOT in the edit-mode footer alongside Cancel/Save changes. Remove the revisit-footer version you added.
+Verify the React onClick is actually wired to a function that calls setView("m3") (or whatever the equivalent routing function is). Trace from the JSX prop → the function that gets called → confirm it dispatches the view change. Don't just confirm the button exists in the DOM.
+Test by clearing localStorage first. Before each demo, run localStorage.clear() in the dev console. Then load ?newA1=1&newM3=1, walk through Vision, claim it, click Continue to Identity. The route should fire from the URL flag alone — not from sticky storage. If it doesn't work in a fresh-localStorage state, the route isn't actually wired.
+Test the revisit path too. After claiming, reload the page (with localStorage cleared again), click into Vision Declaration in revisit mode, find the single Continue to Identity button, click it. Should route. If it doesn't, the revisit-state render is also missing the wiring.
+
+Acceptance criteria:
+
+Exactly ONE Continue to Identity button visible in the post-claim Vision Declaration screen
+Clean console (no React warnings about missing handlers)
+With localStorage.clear() + ?newA1=1&newM3=1, claiming Vision and clicking Continue to Identity routes to M3 Foundations on the very first click
+Same flow on revisit (already-claimed state) routes to M3 Foundations on the very first click
+
+Don't sign off Ship Gate 1 until BOTH paths route cleanly from a fresh localStorage state. Re-demo when ready.

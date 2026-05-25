@@ -31227,23 +31227,32 @@ function NewA2DeclarationBody({
   const handleContinueToIdentity = async () => {
     if (working) return;
     setWorking(true);
-    const cur = ((await loadData(KEYS.map)) as any) || initialMap;
-    const curVision: VisionState = cur.vision || EMPTY_VISION;
-    const claimedAt =
-      curVision.declaration?.claimedAt || new Date().toISOString();
-    await saveData(KEYS.map, {
-      ...cur,
-      vision: {
-        ...curVision,
-        declaration: {
-          ...curVision.declaration,
-          claimedAt,
-          sealSeen: true,
-          revisedAt: curVision.declaration?.revisedAt || [],
+    // Persist the sealSeen flag, but never let a save failure strand the
+    // user on the Declaration screen — routing to Identity must always fire.
+    try {
+      const cur = ((await loadData(KEYS.map)) as any) || initialMap;
+      const curVision: VisionState = cur.vision || EMPTY_VISION;
+      const claimedAt =
+        curVision.declaration?.claimedAt || new Date().toISOString();
+      await saveData(KEYS.map, {
+        ...cur,
+        vision: {
+          ...curVision,
+          declaration: {
+            ...curVision.declaration,
+            claimedAt,
+            sealSeen: true,
+            revisedAt: curVision.declaration?.revisedAt || [],
+          },
+          complete: true,
         },
-        complete: true,
-      },
-    });
+      });
+    } catch (err) {
+      // Swallow — route anyway.
+      console.warn("[M2→M3] sealSeen save failed; routing anyway", err);
+    } finally {
+      setWorking(false);
+    }
     if (onContinueToIdentity) onContinueToIdentity();
     else onSaved();
   };
@@ -31491,20 +31500,6 @@ function NewA2DeclarationBody({
                   Save changes
                 </button>
               )}
-              {/* Always-visible "Continue to Identity →" in revisit state.
-                  The first-claim path renders it inside the ceremony block;
-                  on revisit the ceremony block is hidden (mode stays at
-                  "readback"), so the button must live here too — otherwise
-                  every returning user is stranded. */}
-              <button
-                type="button"
-                className="na2-decl-cer-cta"
-                onClick={handleContinueToIdentity}
-                disabled={working}
-                style={{ marginLeft: "auto" }}
-              >
-                Continue to Identity →
-              </button>
             </>
           ) : (
             <>
@@ -31543,10 +31538,14 @@ function NewA2DeclarationBody({
           </p>
         )}
       </div>
-      {/* ── Ceremony state ── */}
+      {/* ── Ceremony state ──
+          Visible after first-claim (mode === "ceremony") AND on revisit
+          for an already-sealed Vision with no pending edits (editMode &&
+          !dirty). This is the single source for the "Continue to Identity →"
+          button — do NOT duplicate it into the edit-mode footer. */}
       <div
-        className={`na2-decl-ceremony ${mode === "ceremony" ? "is-on" : ""}`}
-        aria-hidden={mode !== "ceremony"}
+        className={`na2-decl-ceremony ${mode === "ceremony" || (editMode && !dirty) ? "is-on" : ""}`}
+        aria-hidden={!(mode === "ceremony" || (editMode && !dirty))}
       >
         <div className="na2-decl-cer-star" aria-hidden>
           ★
