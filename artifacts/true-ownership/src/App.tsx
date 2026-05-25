@@ -1088,8 +1088,51 @@ html[data-theme="light"]{
 .m3-seal-bigclaim-power{ font-family:var(--na1-serif); font-style:italic; font-size:21px; font-weight:600; color:#DCB860; line-height:1.55; text-align:center; margin:0 0 14px; }
 .m3-seal-bigclaim-shadow{ font-family:var(--na1-serif); font-style:italic; font-size:17px; color:var(--burgundy); line-height:1.55; text-align:center; margin:0 0 22px; }
 .m3-seal-bigclaim-final{ font-family:var(--na1-serif); font-size:22px; font-weight:600; color:var(--gold); line-height:1.5; text-align:center; padding-top:14px; border-top:1px solid rgba(201,168,75,0.2); margin:0; }
+/* Ship 5.5c.1 · Collapsible creature cards.
+   The header (creature name + sublabel) becomes the toggle target. The
+   chevron sits absolute-right of the centered title so the title doesn't
+   shift; a left spacer would also work. The triptych wrapper animates
+   max-height + opacity in 200ms ease-out. We commit to the max-height
+   approach (over height-auto-via-ref) because (a) the triptych content
+   is bounded and ~600-900px tall in practice, well under the 2000px
+   ceiling, and (b) it survives content re-render without re-measuring.
+   If a future creature card ever grows past ~1800px, bump the ceiling
+   or switch to the height-auto pattern noted in the plan. */
+.m3-seal-cluster-header{
+  position:relative;
+  cursor:pointer;
+  user-select:none;
+  padding:4px 28px;
+  margin:0 -28px;
+  border-radius:8px;
+  transition:background-color 200ms ease-out;
+}
+.m3-seal-cluster-header:hover{ background-color:rgba(201,168,75,0.05); }
+.m3-seal-cluster-header:focus-visible{ outline:1px solid var(--gold-line); outline-offset:2px; }
+.m3-seal-cluster-chevron{
+  position:absolute;
+  right:8px;
+  top:18px;
+  color:var(--gold);
+  opacity:0.55;
+  font-size:14px;
+  line-height:1;
+  transition:opacity 200ms ease-out;
+}
+.m3-seal-cluster-header:hover .m3-seal-cluster-chevron{ opacity:0.9; }
+.m3-seal-triptych{
+  overflow:hidden;
+  transition:max-height 200ms ease-out, opacity 200ms ease-out;
+}
+.m3-seal-triptych.is-expanded{ max-height:2000px; opacity:1; }
+.m3-seal-triptych.is-collapsed{ max-height:0; opacity:0; }
+/* Collapse the sublabel's bottom margin when the triptych is hidden so
+   the header doesn't leave a lonely gap above the next cluster. */
+.m3-seal-cluster.is-collapsed .m3-seal-creature-sublabel{ margin-bottom:0; }
 @media (max-width:600px){
   .m3-seal-cluster{ padding:22px 18px; }
+  .m3-seal-cluster-header{ padding:4px 18px; margin:0 -18px; }
+  .m3-seal-cluster-chevron{ right:4px; top:14px; }
   .m3-seal-bigclaim{ padding:22px 18px; }
   .m3-seal-creature-name{ font-size:22px; }
   .m3-seal-sentence-text{ font-size:15.5px; }
@@ -32664,6 +32707,55 @@ function NewA1M3OwnItView({
   const [showBurst, setShowBurst] = useState(false);
   const [working, setWorking] = useState(false);
   const editMode = initialSealCompleted.current; // edit-anytime once sealed
+  // Ship 5.5c.1 · Per-creature collapse state for the readback triptychs.
+  // Keyed by cluster.id so add/remove on Superpowers between visits keeps
+  // the survivors' states intact. Defaults: first-arrival (no prior
+  // stored state, seal not yet claimed) → first cluster expanded, rest
+  // collapsed. Post-claim revisit with no prior stored state → all
+  // collapsed. Unknown ids on subsequent renders default to collapsed.
+  const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(
+    () => {
+      const stored = state.ownItUi?.collapsed;
+      const out: Record<string, boolean> = {};
+      const hasStored = stored && Object.keys(stored).length > 0;
+      if (hasStored) {
+        for (const c of state.clusters) {
+          out[c.id] = stored![c.id] ?? true;
+        }
+        return out;
+      }
+      if (initialSealCompleted.current) {
+        for (const c of state.clusters) out[c.id] = true;
+      } else {
+        state.clusters.forEach((c, i) => {
+          out[c.id] = i !== 0;
+        });
+      }
+      return out;
+    },
+  );
+  const toggleCollapse = useCallback((id: string) => {
+    setCollapsedMap((prev) => {
+      const next = { ...prev, [id]: !(prev[id] ?? true) };
+      // Persist async; collapse is UI-only so don't block on save.
+      (async () => {
+        try {
+          const cur = ((await loadData(KEYS.map)) as any) || {};
+          const curM3: Mirror3State = {
+            ...EMPTY_MIRROR3,
+            ...(cur.mirror3 || {}),
+          };
+          await saveData(KEYS.map, {
+            ...cur,
+            mirror3: { ...curM3, ownItUi: { collapsed: next } },
+          });
+        } catch (err) {
+          console.warn("[M3 Own It] collapse persist failed", err);
+        }
+      })();
+      return next;
+    });
+  }, []);
   const sealParagraphs = useMemo<ReadonlyArray<string>>(
     () => M3_SEAL_PARAGRAPHS,
     [],
@@ -32836,12 +32928,44 @@ function NewA1M3OwnItView({
               };
             })
             .filter((r): r is NonNullable<typeof r> => r !== null);
+          const isCollapsed = collapsedMap[c.id] ?? true;
           return (
-            <div key={c.id} className="m3-seal-cluster">
-              <h3 className="m3-seal-creature-name">{creature}</h3>
-              {sublabel && (
-                <div className="m3-seal-creature-sublabel">{sublabel}</div>
-              )}
+            <div
+              key={c.id}
+              className={`m3-seal-cluster ${isCollapsed ? "is-collapsed" : ""}`}
+            >
+              {/* Clickable header (Ship 5.5c.1) — name + sublabel + chevron.
+                  Chevron is absolute so it doesn't perturb the centered
+                  title. Aria attrs make the toggle accessible. */}
+              <div
+                role="button"
+                tabIndex={0}
+                className="m3-seal-cluster-header"
+                aria-expanded={!isCollapsed}
+                aria-label={`${creature} — ${isCollapsed ? "expand" : "collapse"} details`}
+                onClick={() => toggleCollapse(c.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleCollapse(c.id);
+                  }
+                }}
+              >
+                <h3 className="m3-seal-creature-name">{creature}</h3>
+                {sublabel && (
+                  <div className="m3-seal-creature-sublabel">{sublabel}</div>
+                )}
+                <span className="m3-seal-cluster-chevron" aria-hidden>
+                  {isCollapsed ? "▸" : "▾"}
+                </span>
+              </div>
+
+              {/* Triptych wrapper (Ship 5.5c.1) — animates max-height +
+                  opacity in 200ms ease-out. Content stays mounted so the
+                  transition actually plays in both directions. */}
+              <div
+                className={`m3-seal-triptych ${isCollapsed ? "is-collapsed" : "is-expanded"}`}
+              >
 
               {/* Power card — gold, sits above the pairing grid. Label
                   calls back to the Superpowers room via the creature name
@@ -32912,6 +33036,7 @@ function NewA1M3OwnItView({
                     (unwritten — finish in Under Pressure)
                   </p>
                 )}
+              </div>
               </div>
             </div>
           );

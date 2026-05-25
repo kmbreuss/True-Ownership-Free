@@ -451,6 +451,16 @@ export type ShadowSentence = {
 //   3 → "In my power, I am the {a1}, the {a2}, and the {a3}."
 //   4–5 → same Oxford-comma list. Shadow line mirrors the structure.
 
+// Ship 5.5c.1 · UI-only persistence for the Own It seal. `collapsed` is
+// keyed by cluster.id (not array index) so that adding or removing a
+// cluster on Superpowers between Own It visits preserves the collapse
+// state of the survivors. Optional/absent on legacy state; the seal view
+// computes a first-arrival default (first expanded, rest collapsed) or a
+// post-claim default (all collapsed) when nothing is stored.
+export type OwnItUiState = {
+  collapsed: Record<string, boolean>;
+};
+
 export type Mirror3State = {
   pickedGifts: PickedGift[];
   clusters: Cluster[];
@@ -462,6 +472,9 @@ export type Mirror3State = {
   sealCompleted: boolean;
   sealCompletedAt: string | null;
   sealRevisedAt: string[];
+  // Ship 5.5c.1 · UI-only persistence for the Own It seal's collapsible
+  // creature cards. Absent on legacy state; defaults computed at read site.
+  ownItUi?: OwnItUiState;
 };
 
 export const EMPTY_MIRROR3: Mirror3State = {
