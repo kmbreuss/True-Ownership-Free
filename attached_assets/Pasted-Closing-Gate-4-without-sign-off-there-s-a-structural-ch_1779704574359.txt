@@ -1,0 +1,89 @@
+Closing Gate 4 without sign-off — there's a structural change to fold in before we lock. This is Ship 4.5 — Mirror 3 structural correction. It's a real spec change across Steps 1a, 1b, 3, and the eventual Seal, not a polish pass. Treat it accordingly.Reversal of locked decisions (be explicit in the commit):The "Aim for 12-20" soft hint and the 2-3 cluster default are being reversed based on demo experience. Replacing both with a per-theme cap and a flexible cluster count. The reason: walking the build on dev surfaced that the prior structure produced too much volume in Under Pressure to land emotionally, and the cluster default didn't honor how gifts actually pattern across themes.Step 1a · Your Gifts — changes:
+Hard cap: up to 5 gifts per theme (Mind / Heart / Spine / Spark / Hands)
+
+User can pick 1-5 in any theme
+User can leave any theme at 0
+6th tap on a chip in a theme that's already at 5 → gentle shake animation on the offending chip + small toast: "5 max per theme — clear one first"
+Per-theme picks still cycle through unpicked → owned → emerging → unpicked
+
+
+
+New helper text at top of Pick (gold-bordered card, between the subhead and the first theme section):
+
+"The gifts that are most you — owned today, or emerging into you. Up to 5 per theme."
+
+
+
+Per-theme counter — each theme section header gets its own count:
+
+Format: "Mind · N of 5 picked" (where N is total picked in that theme)
+Visual: small gold tracked uppercase, sits next to the theme name in the section header
+Updates live as user taps chips
+
+
+
+Footer counter copy — replace the old "N picked · X owned · Y emerging · Aim for 12-20" with:
+
+Total picks only: "N picked · X owned · Y emerging"
+No "Aim for X" hint anymore — the per-theme cap does that work
+Continue button (Continue to Animals →) enabled at ≥1 total pick
+
+
+
+Existing-state migration — users with current pick counts above 5-per-theme need handling on first load after this ship:
+
+If any theme has > 5 picked, surface a banner: "Your gifts have been refined. Please narrow each theme to your top 5."
+Leave their picks intact (don't auto-truncate); let them deselect
+Continue button disabled until all themes are ≤ 5
+
+
+Step 1b · Animals as Anchors — changes:
+Rewrite the auto-clustering heuristic. Old rule was 2-3 clusters max with theme-grouping bias. New rule: cluster count flexes 1-5 based on what makes sense for the user's picks. Animals can span themes — Eagle could carry Mind + Spine gifts if the archetype library scores them together.
+
+Use the existing 24-archetype library matching as the primary signal. Archetypes already pattern-match across themes (Eagle = "clarity at altitude" can carry Mind gifts like Strategic and Spine gifts like Discerning). Keep highest gift-overlap scoring, tie-break by library order.
+
+Cluster count rule:
+
+1-2 gifts total → 1 cluster
+3-5 gifts total → 2 clusters
+6-10 gifts → 2-3 clusters (based on archetype scoring)
+11-15 gifts → 3-4 clusters
+16+ gifts → 4-5 clusters
+Heuristic should pick the count that produces clusters with at least 2 gifts each where possible. Avoid 1-gift clusters unless unavoidable.
+
+
+
+× remove cluster button — already shipped, stays. Removing a cluster round-robins its gifts into remaining clusters.
+
+Animal alternatives — top 4 by theme overlap with cluster's gifts, already shipped, stays.
+
+Validation per cluster — unchanged: name + animal + 2 descriptors + ≥1 gift.
+Step 3 · Under Pressure — changes:
+Replace the free-text shadow story textarea with a three-blank sentence completion. Same structural pattern as M2's prose rooms (behavior + proof), extended to three blanks for shadow work.
+Per-cluster sentence stem:
+
+"When the {animal} goes shadow, ________, ________, and ________."
+Three blanks, in order:
+
+Blank 1 — what I do — placeholder: "what I do"
+Blank 2 — what it costs me — placeholder: "what it costs me"
+Blank 3 — what it costs others — placeholder: "what it costs others"
+Styling:
+
+Each blank is an inline editable field, gold-tinted background until filled
+Once filled: user's words render in italic burgundy serif (#A03B3B for dark mode, #7A2E2E for light), matching the room's lens color
+Placeholders in italic muted serif
+Tab/click-out commits to state
+Validation: all three blanks must be filled for the cluster to count as complete. Continue button disabled until all clusters' sentences are complete.
+All picked gifts shadow-mapped — both Owned and Emerging gifts go through the full shadow chip treatment. No Owned-only cap.
+
+Capitalization fix on Continue button. Currently rendering as "Continue to under pressure →". Fix to "Continue to Under Pressure →" — Title Case on the room name half. Audit all standardized Continue buttons app-wide for consistent Title Case.
+
+Chip styling — picked shadow state. The prototype shows picked shadow chips with a gold outline around the burgundy fill — currently the live build has just the burgundy fill. Add border: 1px solid var(--gold) to .m3-under-shadow-chip.is-picked (or equivalent class). Primary shadow keeps the burgundy dot marker (#A03B3B) at left of chip text — no change there.
+The Seal — adjustments needed (not yet built, flagging for Ship 5):The Seal needs to handle a variable animal count (1-5 instead of fixed 3). Power line template adapts:
+
+1 animal: "In my power, I am the {creature}."
+2 animals: "In my power, I am the {creature1} and the {creature2}."
+3 animals: "In my power, I am the {creature1}, the {creature2}, and the {creature3}."
+4-5 animals: same pattern, Oxford comma
+Shadow line template adapts the same way.Don't build the Seal in this ship — just confirm the spec change is captured for Ship 5.

@@ -61,6 +61,7 @@ import {
   type Cluster,
   type Mirror3State,
   type ShadowsForGift,
+  type ShadowSentence,
 } from "./mirror3Constants";
 const KEYS = {
   map: "to_map",
@@ -1174,6 +1175,14 @@ html[data-theme="light"]{
 .m3-pick-legend-swatch{ display:inline-flex; align-items:center; justify-content:center; min-height:28px; padding:4px 12px; border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; }
 .m3-pick-legend-swatch.is-owned{ background:#C9A24B; color:#1a1407; border:1.5px solid #C9A24B; }
 .m3-pick-legend-swatch.is-emerging{ background:transparent; color:#C9A24B; border:1.5px solid #C9A24B; }
+/* Ship 4.5 · Pick helper card, per-theme counter, migration banner, shake + toast. */
+.m3-pick-helper-card{ margin:0 0 28px; padding:14px 18px; border:1px solid var(--gold-line); border-radius:12px; background:var(--na1-bg-card); font-family:var(--na1-serif); font-style:italic; font-size:14.5px; line-height:1.55; color:var(--na1-text-sec); text-align:center; }
+.m3-pick-migration-banner{ margin:0 0 22px; padding:12px 16px; border:1px solid var(--burgundy-line); border-radius:10px; background:rgba(160,59,59,0.08); color:#A03B3B; font-family:var(--na1-sans); font-size:13px; line-height:1.5; text-align:center; }
+.m3-pick-section-count{ font-family:var(--na1-sans); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-left:auto; padding-left:8px; }
+@keyframes m3PickShake{ 0%,100%{ transform:translateX(0);} 20%,60%{ transform:translateX(-4px);} 40%,80%{ transform:translateX(4px);} }
+.m3-pick-chip.is-shake{ animation:m3PickShake .32s ease-in-out; border-color:var(--burgundy)!important; }
+.m3-pick-toast{ position:fixed; left:50%; bottom:32px; transform:translateX(-50%); padding:10px 18px; border-radius:100px; background:rgba(40,28,18,0.94); color:var(--gold); font-family:var(--na1-sans); font-size:12.5px; letter-spacing:.02em; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.4); pointer-events:none; animation:m3ToastIn .18s ease-out; }
+@keyframes m3ToastIn{ from{ opacity:0; transform:translate(-50%, 8px);} to{ opacity:1; transform:translate(-50%, 0);} }
 .m3-pick-section{ margin:0 0 32px; }
 .m3-pick-section-head{ display:flex; align-items:baseline; gap:10px; margin:0 0 14px; flex-wrap:wrap; }
 .m3-pick-section-name{ font-family:var(--na1-serif); font-size:22px; font-weight:600; color:var(--theme-color, var(--na1-text)); margin:0; line-height:1; }
@@ -1284,7 +1293,7 @@ html[data-theme="light"]{
 .m3-under-shadow-bin{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-height:36px; }
 .m3-under-shadow-chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:12.5px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; user-select:none; }
 .m3-under-shadow-chip:hover{ border-color:rgba(160,59,59,0.5); }
-.m3-under-shadow-chip.is-picked{ background:#A03B3B; border-color:#A03B3B; color:#fff; }
+.m3-under-shadow-chip.is-picked{ background:#A03B3B; border-color:var(--gold); color:#fff; box-shadow:0 0 0 1px var(--gold) inset; }
 .m3-under-shadow-chip.is-primary::before{ content:""; width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px #A03B3B inset; }
 .m3-under-shadow-chip.is-primary:not(.is-picked)::before{ background:#A03B3B; box-shadow:none; }
 .m3-under-add-btn{ display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border-radius:100px; border:1px dashed var(--na1-border); background:transparent; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:12px; cursor:pointer; }
@@ -1292,11 +1301,14 @@ html[data-theme="light"]{
 .m3-under-add-input{ padding:6px 12px; border-radius:100px; border:1px solid var(--gold-line); background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); font-size:12.5px; min-width:120px; outline:none; }
 .m3-under-add-input:focus{ border-color:var(--gold); }
 .m3-under-primary-hint{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); font-style:italic; padding:0 0 4px; }
-.m3-under-story{ display:flex; flex-direction:column; gap:8px; padding-top:6px; border-top:1px solid var(--na1-border); }
-.m3-under-story-label{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:0; }
-.m3-under-story-text{ width:100%; min-height:80px; padding:12px 14px; border-radius:12px; border:1px solid var(--na1-border); background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); font-size:13.5px; line-height:1.55; resize:vertical; outline:none; }
-.m3-under-story-text:focus{ border-color:var(--gold-line); }
-.m3-under-story-meta{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); }
+/* 3-blank sentence completion (Ship 4.5 — replaces free-text story). */
+.m3-under-sentence{ display:block; padding-top:14px; border-top:1px solid var(--na1-border); font-family:var(--na1-serif); font-size:17px; line-height:1.9; color:var(--na1-text); }
+@media (max-width:600px){ .m3-under-sentence{ font-size:15.5px; line-height:1.85; } }
+.m3-under-blank{ display:inline-block; min-width:120px; max-width:100%; padding:4px 10px; margin:0 2px; border:none; border-bottom:1px dashed var(--gold-line); background:var(--gold-soft); color:#A03B3B; font-family:var(--na1-serif); font-style:italic; font-size:inherit; line-height:1.4; outline:none; border-radius:4px 4px 0 0; transition:background .15s, border-color .15s; }
+.m3-under-blank::placeholder{ color:var(--na1-text-mute); font-style:italic; opacity:.7; }
+.m3-under-blank:focus{ background:#fbf4e1; border-bottom-color:var(--gold); }
+.m3-under-blank.is-filled{ background:transparent; border-bottom-color:var(--gold-line); color:#A03B3B; }
+@media (prefers-color-scheme: light){ .m3-under-blank.is-filled{ color:#7A2E2E; } }
 .m3-under-actions{ display:flex; justify-content:center; padding-top:6px; }
 .m3-under-cta{ display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 22px; border-radius:100px; background:var(--gold); color:#1a1407; border:none; font-family:var(--na1-sans); font-size:14px; font-weight:600; letter-spacing:.02em; cursor:pointer; transition:filter .18s, transform .12s; }
 .m3-under-cta:hover{ filter:brightness(1.08); }
@@ -32330,16 +32342,29 @@ function NewA1M3Container({
           c.giftIds.length > 0,
       );
     // Under Pressure (Step 3) is complete when every cluster's gifts each
-    // have ≥1 shadow picked and exactly 1 primary flagged. Own It body
-    // hasn't shipped yet.
+    // have ≥1 shadow picked + 1 primary, AND the cluster's 3-blank shadow
+    // sentence is fully filled (Ship 4.5). Own It body hasn't shipped yet.
     const underPressureDone =
       s.clusters.length > 0 &&
-      s.clusters.every((c) =>
-        c.giftIds.every((gid) => {
+      s.clusters.every((c) => {
+        const giftsOk = c.giftIds.every((gid) => {
           const sh = s.shadows[gid];
           return !!sh && sh.pickedShadows.length > 0 && sh.primaryShadow != null;
-        }),
-      );
+        });
+        if (!giftsOk) return false;
+        const raw = s.shadowStories[c.id];
+        const sent =
+          raw && typeof raw === "object"
+            ? (raw as { blank1: string; blank2: string; blank3: string })
+            : typeof raw === "string"
+              ? { blank1: raw, blank2: "", blank3: "" }
+              : { blank1: "", blank2: "", blank3: "" };
+        return (
+          sent.blank1.trim() !== "" &&
+          sent.blank2.trim() !== "" &&
+          sent.blank3.trim() !== ""
+        );
+      });
     return [yourGiftsDone, animalsDone, underPressureDone, false];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTick]);
@@ -32457,14 +32482,18 @@ function m3Slug(s: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-// ─── M3 · Step 1b · Shape helpers ───
-// Assemble clusters from pickedGifts on first entry. Heuristic per spec:
-//   < 6 gifts → 2 clusters (split alternating by index)
-//   3+ themes present → 3 clusters, one per top-3 theme; gifts of other
-//     themes round-robin into the 3
-//   1-2 themes → 2 clusters (split alternating)
-// Each group then scores against CLUSTER_ARCHETYPES (highest gift overlap
-// wins; ties broken by library id order). Zero matches → "Version N".
+// ─── M3 · Step 1b · Shape helpers (Ship 4.5 rewrite) ───
+// Archetypes pattern-match across themes — Eagle ("clarity at altitude")
+// can carry Mind gifts like Strategic plus Spine gifts like Discerning.
+// Heuristic:
+//   1-2 gifts   → 1 cluster
+//   3-5 gifts   → 2 clusters
+//   6-10 gifts  → 2-3 clusters (archetype scoring picks the count)
+//   11-15 gifts → 3-4 clusters
+//   16+ gifts   → 4-5 clusters
+// Pick top-N archetypes by overlap (tie-break: library id), assign each gift
+// to its best-matching chosen archetype, then merge 1-gift singletons into
+// the smallest non-singleton group where possible to avoid orphan clusters.
 function m3ScoreArchetype(group: PickedGift[]) {
   const scored = CLUSTER_ARCHETYPES.map((a) => ({
     a,
@@ -32474,49 +32503,95 @@ function m3ScoreArchetype(group: PickedGift[]) {
   return scored[0];
 }
 
+function m3TargetClusterCount(n: number): number {
+  if (n <= 2) return 1;
+  if (n <= 5) return 2;
+  if (n <= 10) return 3;
+  if (n <= 15) return 4;
+  return 5;
+}
+
 function m3AssembleClusters(picked: readonly PickedGift[]): Cluster[] {
   if (picked.length === 0) return [];
-  const byTheme: Record<string, PickedGift[]> = {};
+  const target = m3TargetClusterCount(picked.length);
+
+  // Rank archetypes by overlap with the full pick set. Pick top-`target`
+  // with overlap > 0; placeholders fill the remainder if matches are thin.
+  const archScored = CLUSTER_ARCHETYPES.map((a) => ({
+    a,
+    overlap: picked.filter((g) => a.giftCriteria.includes(g.label)).length,
+  })).sort((x, y) => y.overlap - x.overlap || x.a.id - y.a.id);
+  const chosen: (typeof archScored[number]["a"] | null)[] = [];
+  for (const s of archScored) {
+    if (s.overlap === 0) break;
+    chosen.push(s.a);
+    if (chosen.length >= target) break;
+  }
+  while (chosen.length < target) chosen.push(null);
+
+  // Assign each gift to its best chosen archetype; ties → smallest group.
+  const groups: PickedGift[][] = chosen.map(() => []);
   for (const g of picked) {
-    (byTheme[g.theme] ||= []).push(g);
+    let bestIdx = -1;
+    let bestMatch = false;
+    for (let i = 0; i < chosen.length; i++) {
+      const a = chosen[i];
+      const match = !!a && a.giftCriteria.includes(g.label);
+      if (match && !bestMatch) {
+        bestMatch = true;
+        bestIdx = i;
+      } else if (match && bestMatch && groups[i].length < groups[bestIdx].length) {
+        bestIdx = i;
+      }
+    }
+    if (bestIdx === -1) {
+      // No archetype claims this gift — drop into the smallest current group.
+      let minIdx = 0;
+      for (let i = 1; i < groups.length; i++) {
+        if (groups[i].length < groups[minIdx].length) minIdx = i;
+      }
+      bestIdx = minIdx;
+    }
+    groups[bestIdx].push(g);
   }
-  const themesByCount = Object.entries(byTheme).sort(
-    (a, b) => b[1].length - a[1].length,
-  );
-  let groups: PickedGift[][];
-  if (picked.length < 6) {
-    // Alternating split keeps theme variety balanced across the 2 clusters
-    // — important when total gift count is small.
-    groups = [[], []];
-    picked.forEach((g, i) => groups[i % 2].push(g));
-  } else if (themesByCount.length >= 3) {
-    const top3 = themesByCount.slice(0, 3);
-    groups = top3.map(([, gs]) => [...gs]);
-    const rest = themesByCount.slice(3).flatMap(([, gs]) => gs);
-    rest.forEach((g, i) => groups[i % 3].push(g));
+
+  // Avoid 1-gift clusters where possible: merge singletons into smallest
+  // non-singleton group. If everything is a singleton (very small pick
+  // sets) keep them as-is.
+  const nonEmpty = groups.filter((g) => g.length > 0);
+  const nonSingletons = nonEmpty.filter((g) => g.length > 1);
+  const singletons = nonEmpty.filter((g) => g.length === 1).flat();
+  let finalGroups: PickedGift[][];
+  if (nonSingletons.length === 0) {
+    finalGroups = singletons.map((s) => [s]);
   } else {
-    groups = [[], []];
-    picked.forEach((g, i) => groups[i % 2].push(g));
+    finalGroups = nonSingletons.map((g) => [...g]);
+    for (const s of singletons) {
+      let minIdx = 0;
+      for (let i = 1; i < finalGroups.length; i++) {
+        if (finalGroups[i].length < finalGroups[minIdx].length) minIdx = i;
+      }
+      finalGroups[minIdx].push(s);
+    }
   }
+
   let versionN = 1;
-  return groups
-    .filter((g) => g.length > 0)
-    .map((group, idx) => {
-      const top = m3ScoreArchetype(group);
-      const useVersion = !top || top.overlap === 0;
-      const name = useVersion ? `Version ${versionN++}` : top.a.name;
-      const animal = useVersion ? "Owl" : top.a.defaultAnimal;
-      return {
-        id: `c_${idx + 1}`,
-        name,
-        nameWasEdited: false,
-        animal,
-        animalEmoji: EMOJI_BY_ANIMAL[animal] || "🦊",
-        descriptorWord1: "",
-        descriptorWord2: "",
-        giftIds: group.map((g) => g.id),
-      };
-    });
+  return finalGroups.map((group, idx) => {
+    const top = m3ScoreArchetype(group);
+    const useVersion = !top || top.overlap === 0;
+    const name = useVersion ? `Version ${versionN++}` : top.a.name;
+    const animal = useVersion ? "Owl" : top.a.defaultAnimal;
+    return {
+      id: `c_${idx + 1}`,
+      name,
+      nameWasEdited: false,
+      animal,
+      animalEmoji: EMOJI_BY_ANIMAL[animal] || "🦊",
+      descriptorWord1: "",
+      descriptorWord2: "",
+      giftIds: group.map((g) => g.id),
+    };
+  });
 }
 
 // Animal alternatives for a cluster: ANIMALS sharing themes with the
@@ -32981,12 +33056,27 @@ function NewA1M3UnderPressureView({
   // Resume on first cluster whose validation isn't satisfied; if all are
   // already complete, land on the last one (allows the user to revise).
   const isClusterValid = useCallback(
-    (c: Cluster) =>
-      c.giftIds.every((gid) => {
+    (c: Cluster) => {
+      const giftsOk = c.giftIds.every((gid) => {
         const sh = state.shadows[gid];
         return !!sh && sh.pickedShadows.length > 0 && sh.primaryShadow != null;
-      }),
-    [state.shadows],
+      });
+      if (!giftsOk) return false;
+      // Ship 4.5 · all 3 blanks of the shadow sentence must be filled.
+      const raw = state.shadowStories[c.id];
+      const s =
+        raw && typeof raw === "object"
+          ? (raw as ShadowSentence)
+          : typeof raw === "string"
+            ? { blank1: raw, blank2: "", blank3: "" }
+            : { blank1: "", blank2: "", blank3: "" };
+      return (
+        s.blank1.trim() !== "" &&
+        s.blank2.trim() !== "" &&
+        s.blank3.trim() !== ""
+      );
+    },
+    [state.shadows, state.shadowStories],
   );
   const [activeIdx, setActiveIdx] = useState<number>(() => {
     if (clusters.length === 0) return 0;
@@ -33177,11 +33267,35 @@ function NewA1M3UnderPressureView({
     setAdding((a) => ({ ...a, [giftId]: null }));
   };
 
-  const setStory = (clusterId: string, text: string) => {
-    setState((s) => ({
-      ...s,
-      shadowStories: { ...s.shadowStories, [clusterId]: text },
-    }));
+  // 3-blank sentence completion (Ship 4.5). Normalizes any legacy plain-
+  // string value into blank1, leaving blank2/3 empty so the new validation
+  // can prompt the user to finish.
+  const getSentence = (clusterId: string): ShadowSentence => {
+    const v = state.shadowStories[clusterId];
+    if (v && typeof v === "object") return v as ShadowSentence;
+    if (typeof v === "string") return { blank1: v, blank2: "", blank3: "" };
+    return { blank1: "", blank2: "", blank3: "" };
+  };
+  const setBlank = (
+    clusterId: string,
+    key: keyof ShadowSentence,
+    text: string,
+  ) => {
+    setState((s) => {
+      const prev = (() => {
+        const v = s.shadowStories[clusterId];
+        if (v && typeof v === "object") return v as ShadowSentence;
+        if (typeof v === "string") return { blank1: v, blank2: "", blank3: "" };
+        return { blank1: "", blank2: "", blank3: "" };
+      })();
+      return {
+        ...s,
+        shadowStories: {
+          ...s.shadowStories,
+          [clusterId]: { ...prev, [key]: text },
+        },
+      };
+    });
   };
 
   const activeValid = isClusterValid(active);
@@ -33354,26 +33468,39 @@ function NewA1M3UnderPressureView({
             );
           })}
         </div>
-        <div className="m3-under-story">
-          <label className="m3-under-story-label" htmlFor={`story-${active.id}`}>
-            When the {active.animal || "creature"} goes shadow — what does it
-            actually look like in your life?
-          </label>
-          <textarea
-            id={`story-${active.id}`}
-            className="m3-under-story-text"
-            value={state.shadowStories[active.id] || ""}
-            onChange={(e) => setStory(active.id, e.target.value)}
-            placeholder="Optional · a few sentences if you want."
-            rows={3}
-          />
-          <span className="m3-under-story-meta">
-            {(state.shadowStories[active.id] || "").length} chars
-            {(state.shadowStories[active.id] || "").length < 30
-              ? " · 30+ suggested"
-              : ""}
-          </span>
-        </div>
+        {(() => {
+          const sentence = getSentence(active.id);
+          const renderBlank = (
+            key: keyof ShadowSentence,
+            placeholder: string,
+            sizeCh: number,
+          ) => {
+            const val = sentence[key];
+            return (
+              <input
+                type="text"
+                className={`m3-under-blank${val.trim() ? " is-filled" : ""}`}
+                value={val}
+                placeholder={placeholder}
+                size={sizeCh}
+                onChange={(e) => setBlank(active.id, key, e.target.value)}
+                onBlur={() => flush()}
+                aria-label={placeholder}
+              />
+            );
+          };
+          return (
+            <div
+              className="m3-under-sentence"
+              aria-label="Shadow sentence completion"
+            >
+              When the {active.animal || "creature"} goes shadow,{" "}
+              {renderBlank("blank1", "what I do", 14)},{" "}
+              {renderBlank("blank2", "what it costs me", 18)}, and{" "}
+              {renderBlank("blank3", "what it costs others", 20)}.
+            </div>
+          );
+        })()}
       </div>
       <div className="m3-under-actions">
         <button
@@ -33454,6 +33581,14 @@ function NewA1M3View({
 
   const cycleGift = (theme: Theme, label: string, custom: boolean) => {
     const id = custom ? `g_custom_${m3Slug(label)}` : `g_${m3Slug(label)}`;
+    // Ship 4.5 cap: 6th pick attempt in a theme already at 5 → shake + toast,
+    // no state change. Only blocks the unpicked → owned transition; cycling
+    // owned → emerging or emerging → unpicked stays free.
+    const existingNow = state.pickedGifts.find((p) => p.id === id);
+    if (!existingNow && (themeCounts[theme] || 0) >= 5) {
+      flashCap(id);
+      return;
+    }
     setState((prev) => {
       const existing = prev.pickedGifts.find((p) => p.id === id);
       if (!existing) {
@@ -33486,6 +33621,12 @@ function NewA1M3View({
   const addCustom = (theme: Theme, raw: string) => {
     const label = raw.trim();
     if (!label) return;
+    // Ship 4.5 cap: refuse a new chip when the theme is already at 5.
+    if ((themeCounts[theme] || 0) >= 5) {
+      flashCap(`g_custom_${m3Slug(label)}`);
+      setToast("5 max per theme — clear one first");
+      return;
+    }
     const id = `g_custom_${m3Slug(label)}`;
     setState((prev) => {
       // De-dupe: if a chip with this id (library or custom) already exists,
@@ -33533,6 +33674,34 @@ function NewA1M3View({
   ).length;
   const pickedCount = ownedCount + emergingCount;
 
+  // Ship 4.5 · per-theme pick counts + 5-per-theme cap with shake + toast.
+  const themeCounts = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const t of M3_THEME_ORDER) out[t] = 0;
+    for (const p of state.pickedGifts) out[p.theme] = (out[p.theme] || 0) + 1;
+    return out;
+  }, [state.pickedGifts]);
+  const anyThemeOver5 = M3_THEME_ORDER.some((t) => (themeCounts[t] || 0) > 5);
+  const [shakeId, setShakeId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const shakeTimerRef = useRef<number | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (shakeTimerRef.current !== null) window.clearTimeout(shakeTimerRef.current);
+      if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+    },
+    [],
+  );
+  const flashCap = (chipId: string) => {
+    setShakeId(chipId);
+    setToast("5 max per theme — clear one first");
+    if (shakeTimerRef.current !== null) window.clearTimeout(shakeTimerRef.current);
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+    shakeTimerRef.current = window.setTimeout(() => setShakeId(null), 350);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 1900);
+  };
+
   // Render a single theme section.
   const renderTheme = (theme: Theme) => {
     const themeColor = THEME_COLOR[theme];
@@ -33550,14 +33719,17 @@ function NewA1M3View({
         <div className="m3-pick-section-head">
           <h2 className="m3-pick-section-name">{THEME_LABEL[theme]}</h2>
           <span className="m3-pick-section-tag">— {THEME_TAGLINE[theme]}</span>
+          <span className="m3-pick-section-count">
+            {THEME_LABEL[theme]} · {themeCounts[theme] || 0} of 5 picked
+          </span>
         </div>
         <div className="m3-pick-chips">
           {libraryGifts.map((g) => {
             const id = `g_${m3Slug(g)}`;
             const picked = pickedById[id];
-            const cls = picked
-              ? `m3-pick-chip is-${picked.state}`
-              : "m3-pick-chip";
+            const cls = `${
+              picked ? `m3-pick-chip is-${picked.state}` : "m3-pick-chip"
+            }${shakeId === id ? " is-shake" : ""}`;
             return (
               <button
                 key={id}
@@ -33581,7 +33753,9 @@ function NewA1M3View({
             );
           })}
           {customGifts.map((p) => {
-            const cls = `m3-pick-chip is-${p.state}`;
+            const cls = `m3-pick-chip is-${p.state}${
+              shakeId === p.id ? " is-shake" : ""
+            }`;
             return (
               <button
                 key={p.id}
@@ -33682,6 +33856,19 @@ function NewA1M3View({
           <span>outlined — becoming mine</span>
         </span>
       </div>
+      {/* Ship 4.5 · helper card sets the per-theme expectation. */}
+      <div className="m3-pick-helper-card" role="note">
+        The gifts that are most you — owned today, or emerging into you. Up
+        to 5 per theme.
+      </div>
+      {/* Ship 4.5 · migration banner for legacy state where any theme has
+          more than 5 picks. Continue stays disabled until all themes ≤ 5. */}
+      {anyThemeOver5 && (
+        <div className="m3-pick-migration-banner" role="alert">
+          Your gifts have been refined. Please narrow each theme to your top
+          5.
+        </div>
+      )}
       {M3_THEME_ORDER.map((t) => renderTheme(t))}
       <div className="m3-pick-counter-bar">
         <div className="m3-pick-counter">
@@ -33689,16 +33876,15 @@ function NewA1M3View({
           <strong>{ownedCount}</strong> owned ·{" "}
           <strong>{emergingCount}</strong> emerging
         </div>
-        <p className="m3-pick-hint">Aim for 12–20.</p>
         <div className="m3-pick-actions">
           <button
             type="button"
             className="na1-btn-gold"
+            disabled={pickedCount < 1 || anyThemeOver5}
             onClick={() => {
-              // Persist and close back to the hub. Shape (Step 1b · Animals
-              // as Anchors) lands in a later ship; for now the button
-              // acknowledges the pick set and returns to the hub where the
-              // Your Gifts card will read as Complete (pickedGifts > 0).
+              if (pickedCount < 1 || anyThemeOver5) return;
+              // Persist and close back to the hub. Animals as Anchors picks
+              // up the cluster assembly from state.mirror3.pickedGifts.
               const cur = (loadDataSync(KEYS.map) as any) || {};
               saveData(KEYS.map, { ...cur, mirror3: state });
               onBack();
@@ -33708,6 +33894,11 @@ function NewA1M3View({
           </button>
         </div>
       </div>
+      {toast && (
+        <div className="m3-pick-toast" role="status" aria-live="polite">
+          {toast}
+        </div>
+      )}
       {/* Silence the THEME_OF_GIFT unused-import warning — it lands in
           Ship 3 (Shape) for shadow rendering. */}
       <span hidden>{Object.keys(THEME_OF_GIFT).length}</span>

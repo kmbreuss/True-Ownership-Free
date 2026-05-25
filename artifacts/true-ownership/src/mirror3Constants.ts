@@ -296,12 +296,30 @@ export type ShadowsForGift = {
   customShadows: string[];     // user-typed adds (subset of pickedShadows)
 };
 
+// Ship 4.5 · Under Pressure now uses a 3-blank sentence completion in place
+// of the free-text shadow story. Stored per cluster.id. Legacy string values
+// from earlier demos are normalized on read in NewA1M3UnderPressureView.
+export type ShadowSentence = {
+  blank1: string;  // what I do
+  blank2: string;  // what it costs me
+  blank3: string;  // what it costs others
+};
+
+// Ship 5 · Seal note: the power/shadow line templates must adapt to a
+// variable animal count (1–5 clusters, not the old fixed 3). Pattern:
+//   1 → "In my power, I am the {a}."
+//   2 → "In my power, I am the {a1} and the {a2}."
+//   3 → "In my power, I am the {a1}, the {a2}, and the {a3}."
+//   4–5 → same Oxford-comma list. Shadow line mirrors the structure.
+
 export type Mirror3State = {
   pickedGifts: PickedGift[];
   clusters: Cluster[];
   superpowers: SuperpowersMap;
   shadows: Record<string, ShadowsForGift>; // keyed by gift.id
-  shadowStories: Record<string, string>;   // keyed by cluster.id
+  // Stored as ShadowSentence per cluster.id. Older demo state may contain
+  // legacy plain strings; normalize at the read site.
+  shadowStories: Record<string, ShadowSentence | string>;
   sealCompleted: boolean;
   sealCompletedAt: string | null;
   sealRevisedAt: string[];
