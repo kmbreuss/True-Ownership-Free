@@ -32734,28 +32734,52 @@ function NewA1M3OwnItView({
       return out;
     },
   );
-  const toggleCollapse = useCallback((id: string) => {
-    setCollapsedMap((prev) => {
-      const next = { ...prev, [id]: !(prev[id] ?? true) };
-      // Persist async; collapse is UI-only so don't block on save.
-      (async () => {
-        try {
-          const cur = ((await loadData(KEYS.map)) as any) || {};
-          const curM3: Mirror3State = {
-            ...EMPTY_MIRROR3,
-            ...(cur.mirror3 || {}),
-          };
-          await saveData(KEYS.map, {
-            ...cur,
-            mirror3: { ...curM3, ownItUi: { collapsed: next } },
-          });
-        } catch (err) {
+  // Ship 5.5c.1 · Serialize all M3 writes from this view through a single
+  // promise chain. Without this, a fire-and-forget collapse save could
+  // read mirror3 BEFORE handleClaim's save lands, then write AFTER it —
+  // overwriting `sealCompleted` / `sealCompletedAt` / `sealRevisedAt`
+  // with stale values. The queue guarantees each writer reads the
+  // freshest persisted mirror3 immediately before its own save.
+  // Additionally, collapse writes ONLY patch `ownItUi` on the freshly-
+  // loaded `curM3`, so even in pathological cases they can't clobber
+  // claim fields they didn't touch.
+  const m3WriteQueueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueueM3Write = useCallback(
+    (mutate: (m3: Mirror3State) => Mirror3State): Promise<Mirror3State> => {
+      const next = m3WriteQueueRef.current.then(async () => {
+        const cur = ((await loadData(KEYS.map)) as any) || {};
+        const curM3: Mirror3State = {
+          ...EMPTY_MIRROR3,
+          ...(cur.mirror3 || {}),
+        };
+        const updated = mutate(curM3);
+        await saveData(KEYS.map, { ...cur, mirror3: updated });
+        return updated;
+      });
+      // Keep the chain alive even if this write rejects, so subsequent
+      // writes still execute in order rather than stalling forever.
+      m3WriteQueueRef.current = next.catch(() => undefined);
+      return next as Promise<Mirror3State>;
+    },
+    [],
+  );
+  const toggleCollapse = useCallback(
+    (id: string) => {
+      setCollapsedMap((prev) => {
+        const next = { ...prev, [id]: !(prev[id] ?? true) };
+        // Persist async via the serialized queue. Patch ONLY `ownItUi`
+        // on the freshly-loaded state — never spread stale claim fields.
+        enqueueM3Write((latest) => ({
+          ...latest,
+          ownItUi: { collapsed: next },
+        })).catch((err) => {
           console.warn("[M3 Own It] collapse persist failed", err);
-        }
-      })();
-      return next;
-    });
-  }, []);
+        });
+        return next;
+      });
+    },
+    [enqueueM3Write],
+  );
   const sealParagraphs = useMemo<ReadonlyArray<string>>(
     () => M3_SEAL_PARAGRAPHS,
     [],
@@ -32795,23 +32819,21 @@ function NewA1M3OwnItView({
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
     if (card) card.scrollTo({ top: 0, behavior: "smooth" });
     // Persist immediately so a crash/reload preserves the claim. Also
-    // append a revisedAt entry on re-claim.
+    // append a revisedAt entry on re-claim. Routed through the shared
+    // M3 write queue (Ship 5.5c.1) so any in-flight collapse write
+    // drains first and can't clobber the claim fields.
     const now = new Date().toISOString();
-    const cur = ((await loadData(KEYS.map)) as any) || {};
-    const curM3: Mirror3State = {
-      ...EMPTY_MIRROR3,
-      ...(cur.mirror3 || state),
-    };
-    const wasSealed = !!curM3.sealCompleted;
-    const nextM3: Mirror3State = {
-      ...curM3,
-      sealCompleted: true,
-      sealCompletedAt: curM3.sealCompletedAt || now,
-      sealRevisedAt: wasSealed
-        ? [...(curM3.sealRevisedAt || []), now]
-        : curM3.sealRevisedAt || [],
-    };
-    await saveData(KEYS.map, { ...cur, mirror3: nextM3 });
+    const nextM3 = await enqueueM3Write((curM3) => {
+      const wasSealed = !!curM3.sealCompleted;
+      return {
+        ...curM3,
+        sealCompleted: true,
+        sealCompletedAt: curM3.sealCompletedAt || now,
+        sealRevisedAt: wasSealed
+          ? [...(curM3.sealRevisedAt || []), now]
+          : curM3.sealRevisedAt || [],
+      };
+    });
     setState(nextM3);
     // Timing mirrors M2: 50ms → claiming (kicks readback fade), 2000ms → ceremony.
     window.setTimeout(() => setMode("claiming"), 50);
@@ -32828,24 +32850,19 @@ function NewA1M3OwnItView({
     // Defensive: ensure sealCompleted persisted before routing (covers the
     // edge case where the user revisits a sealed Own It and taps Continue
     // without re-claiming — handleClaim already saved, but a fresh-load
-    // ceremony state never wrote anything new).
+    // ceremony state never wrote anything new). Routed through the
+    // shared M3 write queue (Ship 5.5c.1) for the same race-free
+    // guarantee as handleClaim.
     try {
-      const cur = ((await loadData(KEYS.map)) as any) || {};
-      const curM3: Mirror3State = {
-        ...EMPTY_MIRROR3,
-        ...(cur.mirror3 || state),
-      };
-      if (!curM3.sealCompleted) {
+      await enqueueM3Write((curM3) => {
+        if (curM3.sealCompleted) return curM3;
         const now = new Date().toISOString();
-        await saveData(KEYS.map, {
-          ...cur,
-          mirror3: {
-            ...curM3,
-            sealCompleted: true,
-            sealCompletedAt: curM3.sealCompletedAt || now,
-          },
-        });
-      }
+        return {
+          ...curM3,
+          sealCompleted: true,
+          sealCompletedAt: curM3.sealCompletedAt || now,
+        };
+      });
     } catch (err) {
       console.warn("[M3 Own It] continue save failed; routing anyway", err);
     } finally {
