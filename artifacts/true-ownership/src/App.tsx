@@ -29483,8 +29483,8 @@ function NewA2TwoFuturesBody({
     (d) => currentPicks[d] != null,
   );
   const continueLabel = (() => {
-    if (screen === 1 || screen === 5) return "Continue · Wealth →";
-    if (screen === 2 || screen === 6) return "Continue · Self →";
+    if (screen === 1 || screen === 5) return "Continue to Wealth →";
+    if (screen === 2 || screen === 6) return "Continue to Self →";
     if (screen === 3 || screen === 7) return "Continue →";
     if (screen === 8) return "Continue to Time →";
     return "Continue →";
@@ -30328,7 +30328,7 @@ function NewA2TimeBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Continue · Wealth →
+              Continue to Wealth →
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -30734,7 +30734,7 @@ function NewA2WealthBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Continue · Self →
+              Continue to Self →
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -31139,7 +31139,7 @@ function NewA2SelfBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Continue · Vision Declaration →
+              Continue to Vision Declaration →
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -32814,9 +32814,9 @@ function NewA1M3ShapeView({
           className="m3-shape-super-btn"
           disabled={!isValid}
           onClick={onSuperpowers}
-          aria-label="Continue to superpowers"
+          aria-label="Continue to Under Pressure"
         >
-          superpowers →
+          Continue to Under Pressure →
         </button>
       </div>
       {browseCluster && (
@@ -33198,7 +33198,7 @@ function NewA1M3View({
               onBack();
             }}
           >
-            Shape →
+            Continue to Animals →
           </button>
         </div>
       </div>
