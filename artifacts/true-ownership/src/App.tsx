@@ -32083,8 +32083,10 @@ function NewA1M3HubView({
                 type="button"
                 key={room.key}
                 className={cls}
-                aria-disabled={isLocked || undefined}
-                onClick={() => onLaunchRoom(room)}
+                disabled={isLocked}
+                onClick={() => {
+                  if (!isLocked) onLaunchRoom(room);
+                }}
                 aria-label={`${room.name} — ${statusLabel}`}
               >
                 <span className="na1-ex-icon" aria-hidden>
@@ -32098,9 +32100,11 @@ function NewA1M3HubView({
                     {statusLabel}
                   </span>
                 </span>
-                <span className="na1-ex-arrow" aria-hidden>
-                  ›
-                </span>
+                {!isLocked && (
+                  <span className="na1-ex-arrow" aria-hidden>
+                    ›
+                  </span>
+                )}
               </button>
             );
           })}
