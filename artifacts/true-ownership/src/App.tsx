@@ -29151,16 +29151,16 @@ type NA1VeilPhase = "idle" | "rising" | "hold" | "falling";
 
 // Shared veil timing for .na1-veil — used by M1 Purpose, M2 Vision (5 rooms),
 // and M3 Identity (4 rooms). Single source of truth so updates propagate
-// everywhere. Ship 5 trimmed total visible time from ~2.4s → ~2.0s by
-// shortening the HOLD phase from 1100ms to 700ms.
-//   0      → rising (text fades in starting at 400ms, completes ~900ms)
-//   900ms  → hold begins (mount Room under veil; 700ms HOLD)
-//   1600ms → falling (text fades out 300ms, veil peels back over 700ms)
-//   2600ms → idle (veil unmounted)
+// everywhere. Ship 5 (round 2) bumped from ~2.0s → ~2.2s by shifting every
+// phase +200ms, preserving hold/falling/idle ratios.
+//   0       → rising (text fades in starting at 400ms, completes ~1100ms)
+//   1100ms  → hold begins (mount Room under veil; 700ms HOLD)
+//   1800ms  → falling (text fades out 300ms, veil peels back over 700ms)
+//   2800ms  → idle (veil unmounted)
 const NA1_VEIL_TIMING = {
-  holdAt: 900,
-  fallingAt: 1600,
-  idleAt: 2600,
+  holdAt: 1100,
+  fallingAt: 1800,
+  idleAt: 2800,
 } as const;
 
 // ─── A1 · Mirror 2 (Vision · 10-Year Horizon) — components ───
