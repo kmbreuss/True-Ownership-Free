@@ -1,0 +1,416 @@
+# Mirror 3 · Identity · Replit Handover (FINAL — S29)
+
+**Status:** Design + content libraries LOCKED. Ready to build.
+**Build context:** True Ownership Replit project (sidebar-nav app, not Boardroom). Feature flag: `?newM3=1`.
+**Pattern reference:** Same architecture as Mirror 1 (Purpose, shipped) and Mirror 2 (Vision, in flight).
+
+> **Supersedes earlier draft** in `Replit_Handoff_Mirror3_Identity.md` — incorporates S29 changes: combined 1b/1c into single screen, burgundy dot replaces gold star for primary shadow, emoji auto+tap-to-swap, locked content libraries, one-animal-at-a-time for Step 2 & Step 3.
+
+---
+
+## Where this lives
+
+**Discipline:** A1 · All In It
+**Mirror:** Mirror 3 of 4 (after Purpose, after Vision, before Values)
+
+| Room | Slug | Pattern |
+|------|------|---------|
+| Step 1 · Identity | `step1a` + `step1b` | Two sub-screens: Pick → Shape (with 2-pip subbar) |
+| Step 2 · Superpowers | `step2` | One animal at a time with Continue button. **DEFERRED — use legacy schema reference, build last.** |
+| Step 3 · Under Pressure | `step3` | One animal at a time with Continue button. Pip-subbar shows progress (Eagle 1 of 3). |
+| Seal | `seal` | Read-only snapshot + binding sentence + Katherine seal |
+
+---
+
+## CRITICAL WIRING: M2 → M3 handoff
+
+**At the close of M2 Vision Declaration seal, the "Continue to Identity →" button MUST route to the new Mirror 3 Step 1a (`?newM3=1` or equivalent), NOT the legacy A1 Identity screen.**
+
+If `?newM3=1` is active in the URL, the M2 seal's continue button preserves that flag in its routing. The legacy Identity screen stays available only for users without the flag.
+
+---
+
+## Core principles (read first)
+
+1. **Gifts, not qualities.** Every user-facing string uses "gift." Never "quality," "trait," "attribute," "strength."
+
+2. **Animals are memory anchors.** Image + descriptor sticks where word lists don't. The animal carries the gift-cluster.
+
+3. **Both sides are theirs.** Gift = identity. Shadow = pattern to watch. The seal's closing line — *"Both are mine. Owning both is how I come home."* — is locked copy.
+
+4. **System suggests, user owns the naming.** Cluster names, animals, chip groupings, and shadow words are all suggestions. User overrides anything. Suggestions are scaffolding.
+
+5. **Read-only seal.** No inputs on the seal. Held moment.
+
+6. **One animal at a time on Step 2 + Step 3.** No long scrolling pages. Continue button moves to next animal.
+
+---
+
+## Data model
+
+```javascript
+state.mirror3 = {
+  // Step 1a — Pick
+  pickedGifts: [
+    {
+      id: 'g_strategic',
+      label: 'Strategic',
+      theme: 'mind',              // 'mind' | 'heart' | 'spine' | 'spark' | 'hands'
+      state: 'owned',             // 'owned' | 'emerging'
+      custom: false
+    }
+  ],
+
+  // Step 1b — Shape (2-4 clusters)
+  clusters: [
+    {
+      id: 'c_1',
+      name: 'The strategist in me',
+      nameWasEdited: false,
+      animal: 'Eagle',
+      animalEmoji: '🦅',          // auto-assigned, user can swap
+      descriptorWord1: 'Gracefully',
+      descriptorWord2: 'Wise',
+      giftIds: ['g_strategic', 'g_wise', 'g_curious']
+    }
+  ],
+
+  // Step 2 — Superpowers (DEFERRED, legacy schema scoped to clusters)
+  superpowers: { /* per cluster */ },
+
+  // Step 3 — Under Pressure
+  shadows: {
+    'g_strategic': {
+      pickedShadows: ['cold', 'overthinks'],
+      primaryShadow: 'overthinks',   // ONE — burgundy dot marker in UI
+      customShadows: []
+    }
+  },
+  shadowStories: {
+    'c_1': "When the Eagle takes over, I retreat..."
+  },
+
+  // Seal
+  sealCompleted: false,
+  sealCompletedAt: null,
+  sealRevisedAt: []
+};
+```
+
+---
+
+## GIFT LIBRARY · LOCKED (75 gifts)
+
+### MIND · *what I think with* (15)
+Strategic · Wise · Analytical · Visionary · Perceptive · Discerning · Reflective · Inquisitive · Sharp · Curious · Intuitive · Insightful · Thoughtful · Clear · Big-picture
+
+### HEART · *what I care with* (15)
+Warm · Loyal · Empathetic · Generous · Attuned · Tender · Devoted · Open · Compassionate · Present · Nurturing · Kind · Affectionate · Forgiving · Sensitive
+
+### SPINE · *what I hold with* (15)
+Bold · Direct · Steady · Decisive · Courageous · Unshakeable · Fierce · Honest · Sovereign · Resilient · Protective · Anchored · Grounded · Unwavering · Self-trusting
+
+### SPARK · *what I create with* (15)
+Playful · Creative · Original · Magnetic · Alive · Imaginative · Inventive · Bold-hearted · Inspired · Spirited · Joyful · Expressive · Mischievous · Free · Wild
+
+### HANDS · *what I do with* (15)
+Reliable · Patient · Precise · Industrious · Capable · Resourceful · Skillful · Methodical · Effective · Steady-handed · Diligent · Practical · Tactile · Tending · Self-sustaining
+
+---
+
+## ANIMAL LIBRARY · LOCKED (31 animals)
+
+| Animal | Archetype | Default Emoji | Match Themes |
+|--------|-----------|---------------|--------------|
+| Eagle | clarity at altitude | 🦅 | Mind |
+| Owl | patient observer | 🦉 | Mind + Reflective |
+| Hawk | sharp focus | 🦅 | Mind + Decisive |
+| Dolphin | relational intelligence | 🐬 | Heart + Mind |
+| Bear | grounded protector | 🐻 | Heart + Hands |
+| Elephant | deep memory, devoted | 🐘 | Heart + Spine |
+| Horse | noble endurance | 🐴 | Spine + Hands |
+| Lion | direct authority | 🦁 | Spine |
+| Wolf | loyal pack-leader | 🐺 | Spine + Heart |
+| Fox | strategic adaptability | 🦊 | Mind + Spark |
+| Tiger | fierce sovereignty | 🐅 | Spine + Spark |
+| Stag | dignified presence | 🦌 | Spine + Heart |
+| Hummingbird | bright energy | 🐦 | Spark |
+| Otter | playful intelligence | 🦦 | Spark + Heart |
+| Tortoise | patient builder | 🐢 | Hands + Spine |
+| Mountain Goat | sure-footed climber | 🐐 | Hands + Spine |
+| Lioness | fierce nurturer | 🦁 | Heart + Spine |
+| Doe | gentle awareness | 🦌 | Heart + Mind |
+| Raven | wise observer | 🦅 | Mind + Spark |
+| Swan | graceful sovereignty | 🦢 | Heart + Spine |
+| Panther | quiet intensity | 🐆 | Spine + Spark |
+| Whale | deep knowing | 🐋 | Mind + Heart |
+| Crow | clever messenger | 🐦‍⬛ | Mind + Spark |
+| Hare | swift instinct | 🐇 | Spark + Mind |
+| Snake | transformation | 🐍 | Spark + Spine |
+| Falcon | precision in motion | 🦅 | Mind + Hands |
+| Bee | devoted builder | 🐝 | Hands + Heart |
+| Cat | self-possessed | 🐈 | Spine + Spark |
+| Wolfhound | loyal guardian | 🐕 | Heart + Spine |
+| Heron | still patience | 🦩 | Hands + Mind |
+| Beaver | industrious builder | 🦫 | Hands + Spine |
+
+**Emoji handling:** Auto-assigned from this table. Tap on emoji opens swap picker (3-5 alternatives). User selection persists in `clusters[i].animalEmoji`.
+
+---
+
+## CLUSTER ARCHETYPE LIBRARY · LOCKED (24)
+
+| # | Cluster Name | Gift Criteria | Default Animal |
+|---|--------------|---------------|----------------|
+| 1 | The strategist in me | Strategic, Wise, Discerning, Analytical, Big-picture | Eagle |
+| 2 | The seer in me | Visionary, Perceptive, Insightful, Intuitive | Owl |
+| 3 | The sage in me | Wise, Reflective, Discerning, Thoughtful | Whale |
+| 4 | The healer in me | Empathetic, Warm, Compassionate, Tender, Present | Dolphin |
+| 5 | The anchor in me | Warm, Loyal, Reliable, Steady, Patient | Bear |
+| 6 | The keeper in me | Loyal, Devoted, Patient, Steady, Protective | Wolfhound |
+| 7 | The warrior in me | Bold, Direct, Fierce, Sovereign, Courageous | Lion |
+| 8 | The advocate in me | Honest, Direct, Loyal, Courageous, Protective | Wolf |
+| 9 | The fire in me | Bold, Fierce, Magnetic, Alive, Spirited | Tiger |
+| 10 | The creator in me | Creative, Original, Inventive, Imaginative, Expressive | Fox |
+| 11 | The spark in me | Playful, Magnetic, Alive, Inspired, Joyful | Hummingbird |
+| 12 | The builder in me | Reliable, Methodical, Capable, Skillful, Industrious | Beaver |
+| 13 | The steward in me | Patient, Reliable, Devoted, Grounded, Tending | Bee |
+| 14 | The protector in me | Loyal, Steady, Resilient, Devoted, Protective | Bear |
+| 15 | The truth-teller in me | Honest, Direct, Sharp, Perceptive, Clear | Hawk |
+| 16 | The visionary in me | Visionary, Inspired, Magnetic, Bold-hearted | Eagle |
+| 17 | The nurturer in me | Nurturing, Warm, Protective, Tender, Affectionate | Lioness |
+| 18 | The wild one in me | Wild, Free, Spirited, Bold, Mischievous | Panther |
+| 19 | The witness in me | Reflective, Present, Attuned, Thoughtful, Sensitive | Doe |
+| 20 | The mystic in me | Intuitive, Insightful, Visionary, Reflective | Raven |
+| 21 | The sovereign in me | Sovereign, Anchored, Self-trusting, Unwavering, Honest | Swan |
+| 22 | The hunter in me | Sharp, Decisive, Bold, Strategic, Perceptive | Falcon |
+| 23 | The teacher in me | Wise, Patient, Generous, Clear, Present | Elephant |
+| 24 | The wanderer in me | Curious, Free, Spirited, Open, Imaginative | Hare |
+
+**Matching algorithm:** For each cluster, count gift overlaps with each archetype's criteria. Highest score wins. Ties broken by library order. If 0 matches (only custom gifts), fall back to `Version [N]` placeholder.
+
+---
+
+## SHADOW LIBRARY · MIND + HEART LOCKED (remaining themes still pending)
+
+### MIND shadow words
+
+| Gift | Shadow Words (4) |
+|------|-----------------|
+| Strategic | Cold · Manipulative · Overthinks · Detached |
+| Wise | Withholding · Aloof · Preachy · Judging |
+| Analytical | Paralyzed · Cold · Over-thinking · Nit-picky |
+| Visionary | Untethered · Impractical · Pie-in-the-sky · Disconnected |
+| Perceptive | Hyper-vigilant · Mistrustful · Suspicious · Reads-too-much-in |
+| Discerning | Judging · Critical · Withholding · Elitist |
+| Reflective | Stuck-in-head · Paralyzed · Ruminating · Avoidant |
+| Inquisitive | Intrusive · Restless · Never-satisfied · Interrogating |
+| Sharp | Cutting · Cold · Cruel · Dismissive |
+| Curious | Restless · Distracted · Never-satisfied · Scattered |
+| Intuitive | Mistrustful · Paranoid · Reads-too-much-in · Override-reason |
+| Insightful | Know-it-all · Over-explaining · Patronizing · Withholding |
+| Thoughtful | Paralyzed · Indecisive · Over-considering · Frozen |
+| Clear | Cutting · Brutal · Cold · Reductive |
+| Big-picture | Disconnected · Vague · Out-of-touch · Bypasses-detail |
+
+### HEART shadow words
+
+| Gift | Shadow Words (4) |
+|------|-----------------|
+| Warm | People-pleasing · Smothering · Enmeshed · Performative |
+| Loyal | Self-abandoning · Codependent · Stays-too-long · Sacrificing |
+| Empathetic | Absorbs-others · Lost-in-them · Boundaryless · Drained |
+| Generous | Over-giving · Depleted · Martyring · Resentful |
+| Attuned | Hyper-vigilant · Tracking · Walking-on-eggshells · Anxious |
+| Tender | Fragile · Easily-wounded · Avoidant · Collapsing |
+| Devoted | Obsessive · Self-erasing · Idolizing · Stays-too-long |
+| Open | Unboundaried · Over-shares · Naive · Exposed |
+| Compassionate | Rescuing · Enabling · Over-extending · Burnt-out |
+| Present | Hyper-attentive · Self-forgetting · Available-to-everyone · Drained |
+| Nurturing | Smothering · Controlling-through-care · Enmeshed · Self-sacrificing |
+| Kind | People-pleasing · Conflict-avoidant · Performative · Self-suppressing |
+| Affectionate | Clingy · Smothering · Insecure · Possessive |
+| Forgiving | Doormat · Self-erasing · Tolerating-harm · Over-explaining-others |
+| Sensitive | Over-reactive · Easily-wounded · Withdrawing · Hyper-personal |
+
+### SPINE · PENDING — needs content session
+### SPARK · PENDING — needs content session
+### HANDS · PENDING — needs content session
+
+**For custom gifts (user-added),** no suggestions — show only `+ add` for user to type their own shadow words.
+
+---
+
+## STEP 1a · PICK
+
+[Same as previous spec — themed gift library, 3-state chip cycle, no minimum to proceed]
+
+Only changes from previous spec:
+- Counter copy: *"N picked · X owned · Y emerging"* with hint *"Aim for 12–20."*
+- Auto-save on every chip change, debounced 500ms
+
+---
+
+## STEP 1b · SHAPE YOUR VERSIONS (combined 1b/1c)
+
+**Pip bar now shows 2 dots, not 3** (Pick + Shape).
+
+### Layout (per cluster card)
+
+1. **Cluster name** (suggested from library, editable) + × remove
+2. **Animal row** (in a slight inset block):
+   - Emoji icon (auto-assigned, tappable to swap)
+   - `[descriptor word 1]` `[descriptor word 2]` `[animal name]` — 3 inputs side-by-side
+   - `browse →` link (opens curated animal modal scored for this cluster's gifts)
+3. **Help row:** *"★ Add two words that capture your {animal} in its power"*
+4. **Gifts that creature carries** label + chip bin (tap chip to move it to another cluster)
+
+### Initial state on landing
+- Cluster name: PRE-FILLED from suggestion library + `SUGGESTED · TAP TO RENAME` micro-label
+- Animal: PRE-FILLED from animal library based on gift pattern
+- Emoji: AUTO-ASSIGNED from animal map
+- Word 1 + Word 2: **EMPTY** with placeholder text (`word 1`, `word 2`), gold-tinted background to draw eye
+
+### Initial cluster assembly (Step 1a → 1b transition)
+1. Take all picked gifts
+2. Group by theme (Mind/Heart/Spine/Spark/Hands)
+3. Heuristic:
+   - 3+ themes present → 3 clusters, one per dominant theme
+   - 1-2 themes → split by count
+   - <6 gifts → 2 clusters
+4. Run cluster name + animal matching on each
+5. Render
+
+### Validation to proceed
+- Each cluster: name (text) + animal (text) + descriptor word 1 + descriptor word 2 + at least 1 gift
+- Cannot proceed if any field empty
+- Primary button (`superpowers →`) disabled at 50% opacity until valid
+
+---
+
+## STEP 2 · SUPERPOWERS (DEFERRED)
+
+Use legacy schema scoped to clusters. Build last. One-animal-at-a-time pattern with Continue button.
+
+---
+
+## STEP 3 · UNDER PRESSURE
+
+### Layout pattern: ONE ANIMAL AT A TIME with Continue button
+
+- Pip-subbar shows progress: *"Eagle · 1 of 3"*
+- One full-card view per animal (creature name, version label, gift-shadow pairs, shadow story textarea)
+- Continue button at bottom: *"Continue to {next animal name} →"*
+- On the last animal, button reads *"claim · seal mirror 3 →"*
+
+### Per-gift shadow row
+- Left: gift chip (gold)
+- Center: `→` arrow
+- Right: shadow chip picker
+  - 4 system-suggested shadow chips from library
+  - Tap to pick (fills burgundy)
+  - One can be marked primary via long-press OR tap-twice — gets **burgundy dot marker `#A03B3B`** at left of chip text (NOT gold star)
+  - `+ add` reveals inline input for custom shadow word
+
+### Shadow story (per cluster)
+- Prompt: *"When the {animal} goes shadow — what does it actually look like in your life?"*
+- Free textarea, auto-grow
+- Soft validation: 30+ characters preferred, not enforced
+
+### Validation
+- Each gift needs ≥1 shadow chip picked
+- Each gift needs exactly 1 primary shadow flagged
+- Shadow story optional but encouraged
+
+---
+
+## SEAL
+
+### Layout
+- Eyebrow `MIRROR 3 OF 4 · SEAL` + gold ★ divider
+- H1 *"What lives in you"*
+- Opening line: *"Three creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch."*
+- Legend: *"Filled chips = gifts you live with · Outlined chips ✦ = gifts emerging in you"*
+- **Per-animal triptych** (read-only):
+  - Centered animal name (gold italic) + version label (uppercase tracked)
+  - Axis header: *"in {her/his/their} shadow"* (left, muted lowercase) | *"IN {HER/HIS/THEIR} POWER"* (right, uppercase gold)
+  - Grid: shadow chip (small, quiet, burgundy with dot for primary) | `→` | gift chip (large, gold, bold)
+- **Binding sentence** (system-assembled):
+  - Power line: *"In my power, I am [the {creature1}, the {creature2}, and the {creature3}]."*
+  - Shadow line (smaller, muted): *"In shadow, I drift into [{primary1}, {primary2}, and {primary3}]."*
+  - Closing line (gold italic, locked copy): *"Both are mine. Owning both is how I come home."*
+- **Katherine seal block** (italic Georgia, gold left border, locked copy)
+- Buttons: `← edit anything` / `align with it · A2 →`
+
+### Seal ceremony
+- Gold burst on first land + ~360ms plateau
+- Content fades in
+- If user revisits after edit, full ceremony re-fires + `sealRevisedAt[]` appends timestamp
+
+---
+
+## A2 INTEGRATION
+
+Per gift, A2 renders:
+- Slider with 5 named positions: **Shadow · Slipping · Holding · Growing · In Your Power**
+- Internally stored as 1-5 for bottleneck math
+- Left anchor: primary shadow word from M3 (with burgundy dot to maintain visual continuity)
+- Right anchor: gift name (gold)
+- Track gradient: burgundy → gold
+- Position label below slider: *"You are {POSITION} with this gift right now."*
+- Optional context: *"YOUR WORDS FROM MIRROR 3"* pulls shadow story
+
+After all gifts rated, bottleneck summary:
+- Ranked by score (1 = most shadow)
+- Closing prompt: *"Which one feels like it would open up the most if you worked here? Pick one — it carries forward into A3."*
+
+---
+
+## COLOR TOKENS
+
+```css
+--gold: #C9A24B;
+--gold-glow: rgba(201,162,75,0.15);
+--burgundy: #7A2E2E;
+--burgundy-light: #A03B3B;       /* PRIMARY SHADOW DOT */
+--shadow-text: #E5A8A8;
+--cream: #F0E8E8;
+
+--bg-base: #0a0a0a;
+--bg-card: #111113;
+--bg-card-deeper: #0d0d0f;
+--border-subtle: #2a2826;
+--text-primary: #f0ece4;
+--text-secondary: #9a9590;
+--text-muted: #5c5752;
+
+--mind: #85B7EB;
+--heart: #F09595;
+--spine: #E27B7B;
+--spark: #AFA9EC;
+--hands: #97C459;
+```
+
+---
+
+## BUILD ORDER
+
+1. Data model + persistence (`state.mirror3`)
+2. Step 1a · Pick (themed library, 3-state cycle, auto-save)
+3. Step 1b · Shape (combined screen — name + animal + emoji + descriptors + chip bin)
+4. Step 3 · Under Pressure (one-animal-at-a-time, primary shadow burgundy dot)
+5. Seal (read-only, system assembly, ceremony)
+6. A2 stub (receive M3 handoff)
+7. Step 2 · Superpowers (deferred — last)
+
+Ship 1a + 1b + 3 + Seal behind `?newM3=1` first. Test the arc before Step 2.
+
+---
+
+## OPEN CONTENT TASKS
+
+1. **SPINE shadow library** — 15 gifts × 4 shadow words = 60 words. Next content session.
+2. **SPARK shadow library** — 60 words.
+3. **HANDS shadow library** — 60 words.
+
+Mirror 3 can ship with Mind + Heart shadows + a placeholder fallback (`+ add` only) for Spine/Spark/Hands until libraries lock.
