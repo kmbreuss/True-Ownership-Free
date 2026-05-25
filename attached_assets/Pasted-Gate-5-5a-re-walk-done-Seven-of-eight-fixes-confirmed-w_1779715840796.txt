@@ -1,0 +1,22 @@
+Gate 5.5a re-walk done. Seven of eight fixes confirmed working:
+✅ Bug 1 — Continue button reads Continue to Under Pressure → in Title Case
+✅ Bug 2 — "MOVE TO WHICH CREATURE?" picker fires on inventory chip tap with clean Owl/Bear/Dolphin button list + cancel link
+✅ Bug 3 — Picker fires on "+ add" flow (custom "Strategic" gift placed correctly)
+✅ Fix 5 — Picker drops below the tap location, dropdown-style
+✅ Fix 6 — "+ Add another creature" button + cap counter visible
+✅ Fix 7 — Spine chips render teal, clearly distinct from Heart pink
+✅ Fix 8 — Custom gift input ("+ add a custom Mind gift...") with "add" button at bottom of every library panel; "+ Custom creature" affordance also visible inside browse modal
+Two items remaining before Gate 5.5a signs off — one bug fix, one small copy change:
+Bug 4 — Overlay first-paint bleed-through is STILL HAPPENING. When the Superpowers overlay opens from the hub, hub content (breadcrumb "Identity · Your Gifts & Shadows", cluster cards Your Gifts / Superpowers / Under Pressure / Own It) bleeds through the new overlay heavily on first open. Cleans up after the user scrolls — but the first-paint experience is messy. Your last commit said this was fixed, but visual evidence shows the hub is still showing through on first paint.
+Diagnosis steps to find the actual cause:
+
+Inspect the overlay container's computed background in DevTools after it opens. If it's rgba(...) with any alpha < 1, OR transparent, OR no background-color set, that's the bug.
+Check for a fade-in transition or opacity animation on the overlay container. If the overlay animates from opacity: 0 to opacity: 1 over 200ms+, the hub is visible during that fade. Either remove the fade or ensure the overlay paints fully opaque from frame 1.
+Check the hub container z-index vs overlay z-index. If they're close (e.g. hub at z-index 10 and overlay at z-index 11), some stacking-context shenanigans could let hub show through. Overlay should be z-index 50+ above hub, or hub should get visibility: hidden the moment the overlay opens.
+Check for paint timing race. If the overlay's children render before the overlay's own background paints, you'll see hub through transparent gaps. Solid background-color on the overlay container (same --bg-card navy as the rest of the card) usually fixes this.
+
+The fix is one CSS block — either backdrop opacity, paint timing, z-index, or visibility toggle on the hub. Don't ship a guess; inspect the live DOM first to confirm which.
+Copy change — "browse →" link. The link at the right end of every animal row currently reads browse →. Change to Browse animals (Title Case, no arrow). Two reasons: (a) "Browse animals" is more explicit about what tapping does (the bare "browse →" reads ambiguously — browse what?); (b) consistent with the rest of the app's Title Case affordance copy.
+Update everywhere the "browse →" link appears — every cluster card's animal row, including newly-added empty clusters.
+Once Bug 4 is genuinely fixed and the browse copy updated, Gate 5.5a signs off and we proceed to Gate 5.5b (Under Pressure header restore).
+Stop discipline holds — don't start 5.5b until 5.5a is fully signed off.

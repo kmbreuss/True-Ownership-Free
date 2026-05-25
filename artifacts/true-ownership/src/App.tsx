@@ -592,9 +592,16 @@ html[data-theme="light"]{
 /* C1 — scrim background covers the dimmed Explore page during room open; the
    existing opacity 500ms transition handles the fade in/out. Light-mode tint
    matches the held-space warmth. */
-.na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; background:rgba(8,15,28,0.88); backdrop-filter:blur(8px) saturate(115%); -webkit-backdrop-filter:blur(8px) saturate(115%); will-change:opacity, backdrop-filter; transition:opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
-[data-theme="light"] .na1-room-overlay{ background:rgba(247,242,231,0.9); }
-.na1-room-overlay.is-open{ opacity:1; pointer-events:auto; }
+/* Bug 4 (round 2) — paint the overlay fully opaque from frame 1 so hub
+   content can't bleed through during entry. The opacity transition is
+   what was leaking: a 500ms 0→1 fade of an rgba bg meant the navy was
+   <100% visible for half a second every open. We now toggle via
+   visibility (instant) and rely on the card's translateY for entry
+   feel; backdrop is solid (alpha 1) so even one frame of rendering
+   blocks the hub completely. */
+.na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; visibility:hidden; pointer-events:none; background:rgb(8,15,28); }
+[data-theme="light"] .na1-room-overlay{ background:rgb(247,242,231); }
+.na1-room-overlay.is-open{ visibility:visible; pointer-events:auto; }
 .na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--gold); box-shadow:0 0 80px var(--gold-glow), 0 24px 60px rgba(0,0,0,0.32); border-radius:var(--na1-radius-xl); max-width:720px; width:100%; max-height:90vh; overflow:auto; padding:80px 24px 40px; position:relative; font-family:var(--na1-sans); transform:translateY(20px); transition:transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
 .na1-room-overlay.is-open .na1-room-card{ transform:translateY(0); }
 @media (max-width:600px){ .na1-room-card{ max-height:95vh; padding:60px 16px 24px; } }
@@ -33900,7 +33907,7 @@ function NewA1M3ShapeView({
                   className="m3-browse-link"
                   onClick={() => setBrowseFor(c.id)}
                 >
-                  browse →
+                  Browse animals
                 </button>
               </div>
               <p className="m3-animal-help">
