@@ -49,9 +49,14 @@ import {
   THEME_COLOR,
   THEME_OF_GIFT,
   M3_ROOMS,
+  ANIMALS,
+  ANIMAL_BY_NAME,
+  EMOJI_BY_ANIMAL,
+  CLUSTER_ARCHETYPES,
   type M3RoomKey,
   type Theme,
   type PickedGift,
+  type Cluster,
   type Mirror3State,
 } from "./mirror3Constants";
 const KEYS = {
@@ -1192,6 +1197,67 @@ html[data-theme="light"]{
 .m3-pick.is-embedded{ padding:0; max-width:none; margin:0; }
 .m3-pick.is-embedded .m3-pick-counter-bar{ margin:32px -24px -40px; background:linear-gradient(180deg, transparent 0%, var(--na1-bg-card) 30%); }
 @media (max-width:600px){ .m3-pick.is-embedded .m3-pick-counter-bar{ margin:24px -16px -24px; } }
+/* ─── M3 · Step 1b · Shape · Animals as Anchors ─── */
+.m3-shape{ display:flex; flex-direction:column; gap:24px; }
+.m3-shape-subbar{ display:flex; align-items:center; justify-content:center; gap:10px; margin:0 0 4px; }
+.m3-shape-pip{ display:inline-flex; align-items:center; gap:8px; font-family:var(--na1-sans); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--na1-text-mute); padding:6px 14px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; cursor:default; }
+.m3-shape-pip-dot{ width:8px; height:8px; border-radius:50%; background:var(--na1-text-mute); }
+.m3-shape-pip.is-filled{ color:var(--na1-text-sec); border-color:var(--gold-line); }
+.m3-shape-pip.is-filled .m3-shape-pip-dot{ background:var(--gold); }
+.m3-shape-pip.is-active{ color:var(--na1-text); border-color:var(--gold); background:var(--na1-bg-card); box-shadow:0 0 0 1px var(--gold-glow), 0 0 18px var(--gold-glow); }
+.m3-shape-pip.is-active .m3-shape-pip-dot{ background:var(--gold); }
+.m3-shape-sep{ width:18px; height:1px; background:var(--na1-border); }
+.m3-shape-intro{ font-family:var(--na1-serif); font-size:15px; color:var(--na1-text-sec); text-align:center; margin:0 0 4px; line-height:1.55; font-style:italic; }
+.m3-shape-list{ display:flex; flex-direction:column; gap:18px; }
+.m3-cluster-card{ background:var(--na1-bg-card); border:1.5px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; display:flex; flex-direction:column; gap:14px; position:relative; }
+.m3-cluster-head{ display:flex; align-items:flex-start; gap:10px; }
+.m3-cluster-name-wrap{ flex:1; display:flex; flex-direction:column; gap:2px; }
+.m3-cluster-name-input{ width:100%; background:transparent; border:none; outline:none; color:var(--na1-text); font-family:var(--na1-serif); font-size:22px; font-weight:500; padding:0 0 4px; border-bottom:1px dashed transparent; transition:border-color .18s; }
+.m3-cluster-name-input:focus,.m3-cluster-name-input:hover{ border-bottom-color:var(--na1-border); }
+.m3-cluster-name-meta{ font-family:var(--na1-sans); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); opacity:.85; }
+.m3-cluster-remove{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; line-height:1; flex-shrink:0; transition:color .18s, border-color .18s; }
+.m3-cluster-remove:hover{ color:var(--burgundy); border-color:var(--burgundy-line); }
+.m3-animal-row{ background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:12px; padding:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.m3-animal-emoji{ font-size:28px; line-height:1; cursor:pointer; user-select:none; padding:4px 8px; border-radius:8px; transition:background .18s; flex-shrink:0; }
+.m3-animal-emoji:hover{ background:var(--na1-bg-card); }
+.m3-animal-input{ flex:1 1 80px; min-width:80px; background:transparent; border:none; border-bottom:1px solid var(--na1-border); padding:6px 4px; color:var(--na1-text); font-family:var(--na1-sans); font-size:13.5px; outline:none; transition:border-color .18s; }
+.m3-animal-input::placeholder{ color:var(--na1-text-mute); font-style:italic; }
+.m3-animal-input:focus{ border-color:var(--gold); }
+.m3-animal-input.is-needs-fill{ background:rgba(195,155,86,0.10); border-bottom-color:var(--gold-line); padding:6px 8px; border-radius:6px; }
+.m3-animal-name{ flex:1 1 110px; min-width:110px; font-weight:500; }
+.m3-browse-link{ background:transparent; border:none; color:var(--gold); font-family:var(--na1-sans); font-size:12px; cursor:pointer; padding:0 4px; flex-shrink:0; text-decoration:none; }
+.m3-browse-link:hover{ text-decoration:underline; }
+.m3-animal-help{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); margin:0; padding:0 4px; font-style:italic; }
+.m3-animal-help .m3-help-star{ color:var(--gold); margin-right:4px; }
+.m3-cluster-gifts{ display:flex; flex-direction:column; gap:8px; }
+.m3-cluster-gifts-label{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--na1-text-mute); margin:0; }
+.m3-cluster-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.m3-cluster-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg); border:1px solid var(--na1-border); color:var(--na1-text-sec); border-radius:100px; padding:6px 12px; font-family:var(--na1-sans); font-size:12.5px; cursor:pointer; transition:border-color .18s, color .18s; position:relative; }
+.m3-cluster-chip:hover{ border-color:var(--gold-line); color:var(--na1-text); }
+.m3-cluster-chip.is-moving{ opacity:.55; }
+.m3-shape-actions{ display:flex; justify-content:center; padding:8px 0 4px; }
+.m3-shape-super-btn{ background:var(--gold); color:#1a1407; border:none; border-radius:100px; padding:12px 32px; font-family:var(--na1-sans); font-size:13.5px; font-weight:600; letter-spacing:.04em; text-transform:lowercase; cursor:pointer; min-height:44px; transition:opacity .18s, transform .18s; }
+.m3-shape-super-btn:hover:not(:disabled){ transform:translateY(-1px); }
+.m3-shape-super-btn:disabled{ opacity:.5; cursor:not-allowed; }
+/* Browse modal */
+.m3-browse-overlay{ position:fixed; inset:0; background:rgba(8,12,20,0.72); display:flex; align-items:center; justify-content:center; z-index:60; padding:20px; }
+.m3-browse-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:24px; max-width:480px; width:100%; max-height:78vh; overflow:auto; position:relative; }
+.m3-browse-title{ font-family:var(--na1-serif); font-size:18px; color:var(--na1-text); margin:0 0 4px; }
+.m3-browse-sub{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); margin:0 0 16px; }
+.m3-browse-close{ position:absolute; top:14px; right:14px; background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:16px; line-height:1; }
+.m3-browse-grid{ display:flex; flex-direction:column; gap:6px; }
+.m3-browse-row{ display:flex; align-items:center; gap:12px; padding:10px 12px; background:transparent; border:1px solid var(--na1-border); border-radius:12px; color:var(--na1-text); font-family:var(--na1-sans); font-size:13px; cursor:pointer; text-align:left; transition:border-color .18s, background .18s; }
+.m3-browse-row:hover{ border-color:var(--gold-line); background:var(--na1-bg); }
+.m3-browse-row.is-current{ border-color:var(--gold); background:var(--na1-bg); }
+.m3-browse-row-emoji{ font-size:22px; line-height:1; }
+.m3-browse-row-text{ flex:1; display:flex; flex-direction:column; gap:1px; }
+.m3-browse-row-name{ font-weight:600; }
+.m3-browse-row-arch{ font-size:11.5px; color:var(--na1-text-mute); font-style:italic; }
+@media (max-width:600px){
+  .m3-animal-row{ flex-direction:column; align-items:stretch; }
+  .m3-animal-emoji{ align-self:center; }
+  .m3-animal-input{ width:100%; }
+}
 .m3-pick-counter{ font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); font-variant-numeric:tabular-nums; }
 .m3-pick-counter strong{ color:var(--na1-text); font-weight:700; }
 .m3-pick-hint{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); font-style:italic; margin:0 0 12px; }
@@ -32205,9 +32271,20 @@ function NewA1M3Container({
   const doneArr = useMemo(() => {
     const s = loadMirror3State();
     const yourGiftsDone = s.pickedGifts.length > 0;
-    // Subsequent rooms haven't shipped — they stay locked until upstream
-    // bodies land. Surface them as not-done so the lock state holds.
-    return [yourGiftsDone, false, false, false];
+    // Animals as Anchors (Step 1b · Shape) complete when every cluster has
+    // name + animal + 2 descriptor words + ≥1 gift.
+    const animalsDone =
+      s.clusters.length > 0 &&
+      s.clusters.every(
+        (c) =>
+          c.name.trim() !== "" &&
+          c.animal.trim() !== "" &&
+          c.descriptorWord1.trim() !== "" &&
+          c.descriptorWord2.trim() !== "" &&
+          c.giftIds.length > 0,
+      );
+    // Under Pressure + Own It bodies haven't shipped yet.
+    return [yourGiftsDone, animalsDone, false, false];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTick]);
 
@@ -32269,6 +32346,25 @@ function NewA1M3Container({
         >
           {openRoom.key === "yourGifts" ? (
             <NewA1M3View embedded onBack={closeRoom} />
+          ) : openRoom.key === "animals" ? (
+            <NewA1M3ShapeView
+              embedded
+              onSuperpowers={() => {
+                // Step 2 (Superpowers) is deferred — route to Under Pressure
+                // for now. Under Pressure body isn't shipped, so the veil
+                // fail-safe will play "Where the gifts go shadow…" then
+                // dismiss back to hub.
+                const next = M3_ROOMS.find((r) => r.key === "underPressure");
+                setRoomOpen(false);
+                timeoutsRef.current.push(
+                  window.setTimeout(() => {
+                    setOpenRoom(null);
+                    setRefreshTick((t) => t + 1);
+                    if (next) launchRoom(next);
+                  }, 520),
+                );
+              }}
+            />
           ) : null}
         </NewA1M3RoomShell>
       )}
@@ -32287,6 +32383,88 @@ function m3Slug(s: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+// ─── M3 · Step 1b · Shape helpers ───
+// Assemble clusters from pickedGifts on first entry. Heuristic per spec:
+//   < 6 gifts → 2 clusters (split alternating by index)
+//   3+ themes present → 3 clusters, one per top-3 theme; gifts of other
+//     themes round-robin into the 3
+//   1-2 themes → 2 clusters (split alternating)
+// Each group then scores against CLUSTER_ARCHETYPES (highest gift overlap
+// wins; ties broken by library id order). Zero matches → "Version N".
+function m3ScoreArchetype(group: PickedGift[]) {
+  const scored = CLUSTER_ARCHETYPES.map((a) => ({
+    a,
+    overlap: group.filter((g) => a.giftCriteria.includes(g.label)).length,
+  }));
+  scored.sort((x, y) => y.overlap - x.overlap || x.a.id - y.a.id);
+  return scored[0];
+}
+
+function m3AssembleClusters(picked: readonly PickedGift[]): Cluster[] {
+  if (picked.length === 0) return [];
+  const byTheme: Record<string, PickedGift[]> = {};
+  for (const g of picked) {
+    (byTheme[g.theme] ||= []).push(g);
+  }
+  const themesByCount = Object.entries(byTheme).sort(
+    (a, b) => b[1].length - a[1].length,
+  );
+  let groups: PickedGift[][];
+  if (picked.length < 6) {
+    // Alternating split keeps theme variety balanced across the 2 clusters
+    // — important when total gift count is small.
+    groups = [[], []];
+    picked.forEach((g, i) => groups[i % 2].push(g));
+  } else if (themesByCount.length >= 3) {
+    const top3 = themesByCount.slice(0, 3);
+    groups = top3.map(([, gs]) => [...gs]);
+    const rest = themesByCount.slice(3).flatMap(([, gs]) => gs);
+    rest.forEach((g, i) => groups[i % 3].push(g));
+  } else {
+    groups = [[], []];
+    picked.forEach((g, i) => groups[i % 2].push(g));
+  }
+  let versionN = 1;
+  return groups
+    .filter((g) => g.length > 0)
+    .map((group, idx) => {
+      const top = m3ScoreArchetype(group);
+      const useVersion = !top || top.overlap === 0;
+      const name = useVersion ? `Version ${versionN++}` : top.a.name;
+      const animal = useVersion ? "Owl" : top.a.defaultAnimal;
+      return {
+        id: `c_${idx + 1}`,
+        name,
+        nameWasEdited: false,
+        animal,
+        animalEmoji: EMOJI_BY_ANIMAL[animal] || "🦊",
+        descriptorWord1: "",
+        descriptorWord2: "",
+        giftIds: group.map((g) => g.id),
+      };
+    });
+}
+
+// Animal alternatives for a cluster: ANIMALS sharing themes with the
+// cluster's gifts, ranked by theme overlap. Returns up to 4 (so swap UI
+// shows current + 4 alternatives = 5 total). Falls back to library order.
+function m3AnimalAlternatives(
+  cluster: Cluster,
+  pickedById: Record<string, PickedGift>,
+): string[] {
+  const giftThemes = new Set<Theme>();
+  for (const id of cluster.giftIds) {
+    const g = pickedById[id];
+    if (g) giftThemes.add(g.theme);
+  }
+  const scored = ANIMALS.filter((a) => a.name !== cluster.animal).map((a) => ({
+    a,
+    overlap: a.themes.filter((t) => giftThemes.has(t)).length,
+  }));
+  scored.sort((x, y) => y.overlap - x.overlap);
+  return scored.slice(0, 4).map((x) => x.a.name);
+}
+
 function loadMirror3State(): Mirror3State {
   try {
     const m = (loadDataSync(KEYS.map) as any) || {};
@@ -32296,6 +32474,415 @@ function loadMirror3State(): Mirror3State {
     }
   } catch {}
   return EMPTY_MIRROR3;
+}
+
+// ─── M3 · Step 1b · Shape · Animals as Anchors ───
+// Auto-assembles clusters from pickedGifts on first entry, then renders
+// editable cluster cards with archetype name + animal + 2 descriptor
+// words + chip bin of the cluster's gifts. Auto-saves debounced 500ms
+// into state.mirror3.clusters[]. "superpowers →" routes the owner to
+// Under Pressure (Step 2 is deferred — under pressure's body isn't
+// shipped so it'll play the veil and return to hub per the fail-safe).
+function NewA1M3ShapeView({
+  embedded = false,
+  onSuperpowers,
+}: {
+  embedded?: boolean;
+  onSuperpowers: () => void;
+}) {
+  const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
+  const pickedById = useMemo(() => {
+    const out: Record<string, PickedGift> = {};
+    for (const p of state.pickedGifts) out[p.id] = p;
+    return out;
+  }, [state.pickedGifts]);
+
+  // First-entry assembly: if clusters is empty, derive from pickedGifts
+  // and commit once (does NOT re-assemble on re-entry — re-entry resumes
+  // mid-flow per spec).
+  useEffect(() => {
+    if (state.clusters.length === 0 && state.pickedGifts.length > 0) {
+      const next = m3AssembleClusters(state.pickedGifts);
+      setState((s) => ({ ...s, clusters: next }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced save (500ms) into state.mirror3, with unmount flush.
+  const firstRun = useRef(true);
+  const latestStateRef = useRef(state);
+  const pendingFlushRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
+  const flushSave = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (!pendingFlushRef.current) return;
+    pendingFlushRef.current = false;
+    const cur = (loadDataSync(KEYS.map) as any) || {};
+    saveData(KEYS.map, { ...cur, mirror3: latestStateRef.current });
+  }, []);
+  useEffect(() => {
+    latestStateRef.current = state;
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    pendingFlushRef.current = true;
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
+      flushSave();
+    }, 500);
+  }, [state, flushSave]);
+  useEffect(() => () => flushSave(), [flushSave]);
+
+  // Inline browse modal — opens for a specific cluster.
+  const [browseFor, setBrowseFor] = useState<string | null>(null);
+
+  // Move-chip popover state: which gift is being moved
+  const [movingGift, setMovingGift] = useState<string | null>(null);
+
+  const updateCluster = (id: string, patch: Partial<Cluster>) => {
+    setState((s) => ({
+      ...s,
+      clusters: s.clusters.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+    }));
+  };
+
+  const removeCluster = (id: string) => {
+    setState((s) => {
+      const removed = s.clusters.find((c) => c.id === id);
+      const remaining = s.clusters.filter((c) => c.id !== id);
+      if (!removed || remaining.length === 0) return s;
+      // Re-home orphaned gifts: round-robin into remaining clusters.
+      const next = remaining.map((c) => ({ ...c, giftIds: [...c.giftIds] }));
+      removed.giftIds.forEach((gid, i) => {
+        next[i % next.length].giftIds.push(gid);
+      });
+      return { ...s, clusters: next };
+    });
+  };
+
+  const moveChip = (giftId: string, fromClusterId: string, toClusterId: string) => {
+    if (fromClusterId === toClusterId) return;
+    setState((s) => ({
+      ...s,
+      clusters: s.clusters.map((c) => {
+        if (c.id === fromClusterId) {
+          return { ...c, giftIds: c.giftIds.filter((id) => id !== giftId) };
+        }
+        if (c.id === toClusterId) {
+          return { ...c, giftIds: [...c.giftIds, giftId] };
+        }
+        return c;
+      }),
+    }));
+    setMovingGift(null);
+  };
+
+  const swapAnimal = (clusterId: string, animalName: string) => {
+    const a = ANIMAL_BY_NAME[animalName];
+    if (!a) return;
+    updateCluster(clusterId, { animal: a.name, animalEmoji: a.emoji });
+    setBrowseFor(null);
+  };
+
+  // Validation: every cluster needs name + animal + descriptor1 + descriptor2 + ≥1 gift.
+  const isValid = state.clusters.length > 0 && state.clusters.every(
+    (c) =>
+      c.name.trim() !== "" &&
+      c.animal.trim() !== "" &&
+      c.descriptorWord1.trim() !== "" &&
+      c.descriptorWord2.trim() !== "" &&
+      c.giftIds.length > 0,
+  );
+
+  const browseCluster = browseFor
+    ? state.clusters.find((c) => c.id === browseFor)
+    : null;
+  const browseAlts = browseCluster
+    ? m3AnimalAlternatives(browseCluster, pickedById)
+    : [];
+
+  return (
+    <div className={`m3-shape ${embedded ? "is-embedded" : ""}`}>
+      <div className="m3-shape-subbar" role="tablist" aria-label="Step 1 progress">
+        <span className="m3-shape-pip is-filled" role="tab" aria-selected="false">
+          <span className="m3-shape-pip-dot" aria-hidden />
+          Pick
+        </span>
+        <span className="m3-shape-sep" aria-hidden />
+        <span className="m3-shape-pip is-active" role="tab" aria-selected="true">
+          <span className="m3-shape-pip-dot" aria-hidden />
+          Shape
+        </span>
+      </div>
+      <p className="m3-shape-intro">
+        Your gifts gather into shapes. Name each one. Give it an animal that
+        carries it in its power.
+      </p>
+      <div className="m3-shape-list">
+        {state.clusters.map((c) => {
+          const giftLabels = c.giftIds
+            .map((id) => pickedById[id])
+            .filter(Boolean) as PickedGift[];
+          const otherClusters = state.clusters.filter((x) => x.id !== c.id);
+          return (
+            <div key={c.id} className="m3-cluster-card">
+              <div className="m3-cluster-head">
+                <div className="m3-cluster-name-wrap">
+                  <input
+                    className="m3-cluster-name-input"
+                    value={c.name}
+                    onChange={(e) =>
+                      updateCluster(c.id, {
+                        name: e.target.value,
+                        nameWasEdited: true,
+                      })
+                    }
+                    aria-label="Cluster name"
+                  />
+                  {!c.nameWasEdited && (
+                    <span className="m3-cluster-name-meta">
+                      Suggested · tap to rename
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="m3-cluster-remove"
+                  onClick={() => removeCluster(c.id)}
+                  aria-label="Remove cluster"
+                  disabled={state.clusters.length <= 1}
+                  title={
+                    state.clusters.length <= 1
+                      ? "At least one cluster required"
+                      : "Remove cluster"
+                  }
+                >
+                  ×
+                </button>
+              </div>
+              <div className="m3-animal-row">
+                <button
+                  type="button"
+                  className="m3-animal-emoji"
+                  onClick={() => setBrowseFor(c.id)}
+                  aria-label="Swap animal"
+                  title="Tap to swap animal"
+                >
+                  {c.animalEmoji}
+                </button>
+                <input
+                  className={`m3-animal-input ${c.descriptorWord1.trim() === "" ? "is-needs-fill" : ""}`}
+                  value={c.descriptorWord1}
+                  onChange={(e) =>
+                    updateCluster(c.id, { descriptorWord1: e.target.value })
+                  }
+                  placeholder="word 1"
+                  aria-label="Descriptor word 1"
+                />
+                <input
+                  className={`m3-animal-input ${c.descriptorWord2.trim() === "" ? "is-needs-fill" : ""}`}
+                  value={c.descriptorWord2}
+                  onChange={(e) =>
+                    updateCluster(c.id, { descriptorWord2: e.target.value })
+                  }
+                  placeholder="word 2"
+                  aria-label="Descriptor word 2"
+                />
+                <input
+                  className="m3-animal-input m3-animal-name"
+                  value={c.animal}
+                  onChange={(e) => updateCluster(c.id, { animal: e.target.value })}
+                  placeholder="animal"
+                  aria-label="Animal name"
+                />
+                <button
+                  type="button"
+                  className="m3-browse-link"
+                  onClick={() => setBrowseFor(c.id)}
+                >
+                  browse →
+                </button>
+              </div>
+              <p className="m3-animal-help">
+                <span className="m3-help-star" aria-hidden>★</span>
+                Add two words that capture your {c.animal || "animal"} in its
+                power
+              </p>
+              <div className="m3-cluster-gifts">
+                <p className="m3-cluster-gifts-label">
+                  Gifts that creature carries
+                </p>
+                <div className="m3-cluster-chips">
+                  {giftLabels.map((g) => (
+                    <div
+                      key={g.id}
+                      style={{ position: "relative", display: "inline-block" }}
+                    >
+                      <button
+                        type="button"
+                        className={`m3-cluster-chip ${movingGift === g.id ? "is-moving" : ""}`}
+                        onClick={() =>
+                          setMovingGift((prev) => (prev === g.id ? null : g.id))
+                        }
+                        title="Tap to move to another cluster"
+                      >
+                        {g.label}
+                      </button>
+                      {movingGift === g.id && otherClusters.length > 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            marginTop: 6,
+                            background: "var(--na1-bg-card)",
+                            border: "1px solid var(--na1-border)",
+                            borderRadius: 12,
+                            padding: 6,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 4,
+                            zIndex: 10,
+                            minWidth: 160,
+                            boxShadow: "0 6px 20px rgba(0,0,0,0.4)",
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div
+                            style={{
+                              fontSize: 10.5,
+                              letterSpacing: ".08em",
+                              textTransform: "uppercase",
+                              color: "var(--na1-text-mute)",
+                              padding: "4px 8px 2px",
+                            }}
+                          >
+                            Move to
+                          </div>
+                          {otherClusters.map((dest) => (
+                            <button
+                              key={dest.id}
+                              type="button"
+                              onClick={() => moveChip(g.id, c.id, dest.id)}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                color: "var(--na1-text)",
+                                fontFamily: "var(--na1-sans)",
+                                fontSize: 12.5,
+                                padding: "6px 8px",
+                                cursor: "pointer",
+                                textAlign: "left",
+                                borderRadius: 8,
+                              }}
+                            >
+                              {dest.animalEmoji} {dest.name}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setMovingGift(null)}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "var(--na1-text-mute)",
+                              fontFamily: "var(--na1-sans)",
+                              fontSize: 11.5,
+                              padding: "4px 8px",
+                              cursor: "pointer",
+                              textAlign: "left",
+                            }}
+                          >
+                            cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="m3-shape-actions">
+        <button
+          type="button"
+          className="m3-shape-super-btn"
+          disabled={!isValid}
+          onClick={onSuperpowers}
+          aria-label="Continue to superpowers"
+        >
+          superpowers →
+        </button>
+      </div>
+      {browseCluster && (
+        <div
+          className="m3-browse-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setBrowseFor(null);
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Browse animals"
+        >
+          <div className="m3-browse-card">
+            <button
+              type="button"
+              className="m3-browse-close"
+              onClick={() => setBrowseFor(null)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h3 className="m3-browse-title">Browse animals</h3>
+            <p className="m3-browse-sub">
+              Suggested for {browseCluster.name} · tap to swap
+            </p>
+            <div className="m3-browse-grid">
+              {[browseCluster.animal, ...browseAlts].map((name) => {
+                const a = ANIMAL_BY_NAME[name];
+                if (!a) return null;
+                const isCurrent = name === browseCluster.animal;
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    className={`m3-browse-row ${isCurrent ? "is-current" : ""}`}
+                    onClick={() => swapAnimal(browseCluster.id, name)}
+                  >
+                    <span className="m3-browse-row-emoji" aria-hidden>
+                      {a.emoji}
+                    </span>
+                    <span className="m3-browse-row-text">
+                      <span className="m3-browse-row-name">{a.name}</span>
+                      <span className="m3-browse-row-arch">{a.archetype}</span>
+                    </span>
+                    {isCurrent && (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          color: "var(--gold)",
+                          letterSpacing: ".08em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Current
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function NewA1M3View({
