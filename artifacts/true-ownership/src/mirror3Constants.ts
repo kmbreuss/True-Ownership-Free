@@ -34,14 +34,16 @@ export const THEME_COLOR: Record<Theme, string> = {
   hands: "#97C459",
 };
 
-// Shadow libraries are only locked for these themes. The others render the
-// `+ add`-only fallback in Step 3.
+// Ship 5 · all five themes now have locked owner-voice shadow libraries
+// in SHADOW_LIBRARY below. Step 3 (Under Pressure) renders 4 suggested
+// chips for every library gift across every theme; custom-added gifts
+// still fall through to `+ add` only by design.
 export const SHADOWS_AVAILABLE: Record<Theme, boolean> = {
-  mind: true,
+  mind:  true,
   heart: true,
-  spine: false,
-  spark: false,
-  hands: false,
+  spine: true,
+  spark: true,
+  hands: true,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
