@@ -1181,6 +1181,7 @@ html[data-theme="light"]{
 .m3-pick-section-count{ font-family:var(--na1-sans); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-left:auto; padding-left:8px; }
 @keyframes m3PickShake{ 0%,100%{ transform:translateX(0);} 20%,60%{ transform:translateX(-4px);} 40%,80%{ transform:translateX(4px);} }
 .m3-pick-chip.is-shake{ animation:m3PickShake .32s ease-in-out; border-color:var(--burgundy)!important; }
+.m3-pick-add-form.is-shake{ animation:m3PickShake .32s ease-in-out; }
 .m3-pick-toast{ position:fixed; left:50%; bottom:32px; transform:translateX(-50%); padding:10px 18px; border-radius:100px; background:rgba(40,28,18,0.94); color:var(--gold); font-family:var(--na1-sans); font-size:12.5px; letter-spacing:.02em; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.4); pointer-events:none; animation:m3ToastIn .18s ease-out; }
 @keyframes m3ToastIn{ from{ opacity:0; transform:translate(-50%, 8px);} to{ opacity:1; transform:translate(-50%, 0);} }
 .m3-pick-section{ margin:0 0 32px; }
@@ -33621,10 +33622,11 @@ function NewA1M3View({
   const addCustom = (theme: Theme, raw: string) => {
     const label = raw.trim();
     if (!label) return;
-    // Ship 4.5 cap: refuse a new chip when the theme is already at 5.
+    // Ship 4.5 cap: refuse a new chip when the theme is already at 5. The
+    // would-be chip does not exist yet, so target the add form itself with
+    // a sentinel id so the shake animation has a visible element.
     if ((themeCounts[theme] || 0) >= 5) {
-      flashCap(`g_custom_${m3Slug(label)}`);
-      setToast("5 max per theme — clear one first");
+      flashCap(`__addform_${theme}`);
       return;
     }
     const id = `g_custom_${m3Slug(label)}`;
@@ -33776,7 +33778,9 @@ function NewA1M3View({
           })}
           {openAddTheme === theme ? (
             <form
-              className="m3-pick-add-form"
+              className={`m3-pick-add-form${
+                shakeId === `__addform_${theme}` ? " is-shake" : ""
+              }`}
               onSubmit={(e) => {
                 e.preventDefault();
                 addCustom(theme, addDraft);
