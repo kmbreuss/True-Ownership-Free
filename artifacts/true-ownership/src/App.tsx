@@ -43,6 +43,9 @@ import {
 } from "./mirror1Constants";
 import {
   EMPTY_MIRROR3,
+  M3_SEAL_PARAGRAPHS,
+  M3_SEAL_GOLD_PHRASES,
+  SEAL_CLOSING_LINE,
   GIFTS_BY_THEME,
   THEME_LABEL,
   THEME_TAGLINE,
@@ -1024,6 +1027,22 @@ html[data-theme="light"]{
 .na2-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold); border:1px solid var(--gold); border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
 .na2-decl-cer-cta:hover{ background:var(--gold-soft); }
 .na2-decl-cer-cta:active{ transform:translateY(1px); }
+/* Ship 5 · M3 Own It (Seal) — per-cluster triptych + Big Claim. Sits on top
+   of the .na2-decl shell so it inherits the readback/ceremony/burst chrome. */
+.m3-own-block{ margin:24px 0 8px; padding:18px 20px; border:1px solid var(--na1-border); border-radius:14px; background:var(--gold-warm); }
+.m3-own-cluster-name{ margin:0 0 10px; font-family:var(--na1-serif); font-size:20px; line-height:1.3; color:var(--na1-text); }
+.m3-own-power{ margin:6px 0; font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.5; color:var(--gold); }
+.m3-own-shadow{ margin:6px 0; font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.5; color:var(--burgundy); }
+.m3-own-held{ margin:10px 0 0; font-family:var(--na1-serif); font-style:italic; font-size:16px; line-height:1.5; background:linear-gradient(90deg, var(--gold), var(--burgundy)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.m3-own-bigclaim{ margin:18px 0 4px; padding:20px 22px; border:1px solid var(--gold-line); border-radius:14px; background:var(--gold-soft); text-align:left; }
+.m3-own-bigclaim-eyebrow{ font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:0.22em; color:var(--gold); text-transform:uppercase; margin-bottom:10px; }
+.m3-own-final{ margin:14px 0 0; font-family:var(--na1-serif); font-size:20px; line-height:1.4; color:var(--gold); font-weight:500; }
+@media (max-width:720px){
+  .m3-own-block{ padding:14px 16px; }
+  .m3-own-cluster-name{ font-size:18px; }
+  .m3-own-power, .m3-own-shadow, .m3-own-held{ font-size:15.5px; }
+  .m3-own-final{ font-size:18px; }
+}
 /* Inline-editable user blanks in edit-anytime mode. Click the italic span →
    it swaps to an inline textarea with the same value; blur commits + swaps
    back. The textarea inherits the surrounding line metrics so the woven
@@ -32321,6 +32340,336 @@ function NewA1M3RoomShell({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Ship 5 · M3 Step 4 · Own It (Seal)
+// Closing ceremony of Mirror 3. Reads back each cluster's triptych
+// (power / shadow / held), composes Big Claim roll-ups (Oxford comma,
+// variable 1-5), shows Katherine's seal, and writes claim → Map of Me.
+// Reuses NewA2DeclarationBody's mode + burst + ceremony pattern with
+// the same na2-decl-* CSS for visual parity.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function m3OxfordList(items: string[]): string {
+  const cleaned = items.map((s) => s.trim()).filter((s) => s !== "");
+  if (cleaned.length === 0) return "";
+  if (cleaned.length === 1) return cleaned[0];
+  if (cleaned.length === 2) return `${cleaned[0]} and ${cleaned[1]}`;
+  const head = cleaned.slice(0, -1).join(", ");
+  const tail = cleaned[cleaned.length - 1];
+  return `${head}, and ${tail}`;
+}
+
+function m3CreatureWithDescriptors(c: Cluster): string {
+  const parts = [c.descriptorWord1, c.descriptorWord2, c.animal]
+    .map((s) => s.trim())
+    .filter((s) => s !== "");
+  return parts.join(" ");
+}
+
+function m3NormalizeShadowSentence(raw: unknown): ShadowSentence {
+  if (raw && typeof raw === "object") return raw as ShadowSentence;
+  if (typeof raw === "string") return { blank1: raw, blank2: "", blank3: "" };
+  return { blank1: "", blank2: "", blank3: "" };
+}
+
+// Compose the per-cluster shadow line into a single readable sentence
+// from the 3 blanks (what I do · what it costs me · what it costs others).
+function m3ComposeShadowLine(s: ShadowSentence): string {
+  const b1 = s.blank1.trim();
+  const b2 = s.blank2.trim();
+  const b3 = s.blank3.trim();
+  if (!b1 && !b2 && !b3) return "";
+  const parts: string[] = [];
+  if (b1) parts.push(b1);
+  if (b2) parts.push(`costing me ${b2}`);
+  if (b3) parts.push(`and costing others ${b3}`);
+  return parts.join(", ") + ".";
+}
+
+// Pick the primary shadow word for a cluster — the primaryShadow of the
+// cluster's first gift that has one set. Falls back to empty string.
+function m3ClusterPrimaryShadow(
+  c: Cluster,
+  shadows: Record<string, ShadowsForGift>,
+): string {
+  for (const gid of c.giftIds) {
+    const sh = shadows[gid];
+    if (sh && sh.primaryShadow) return sh.primaryShadow;
+  }
+  return "";
+}
+
+function NewA1M3OwnItView({
+  embedded = false,
+  onContinueToValues,
+}: {
+  embedded?: boolean;
+  onContinueToValues: () => void;
+}) {
+  const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
+  const initialSealCompleted = useRef<boolean>(state.sealCompleted);
+  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">(
+    () => (initialSealCompleted.current ? "ceremony" : "readback"),
+  );
+  const [showBurst, setShowBurst] = useState(false);
+  const [working, setWorking] = useState(false);
+  const editMode = initialSealCompleted.current; // edit-anytime once sealed
+  const sealParagraphs = useMemo<ReadonlyArray<string>>(
+    () => M3_SEAL_PARAGRAPHS,
+    [],
+  );
+  const sealPhrases = useMemo<ReadonlyArray<string>>(
+    () => M3_SEAL_GOLD_PHRASES,
+    [],
+  );
+
+  // Re-scroll to top when ceremony fades in (matches M2 pattern).
+  useEffect(() => {
+    if (mode !== "ceremony") return;
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "auto" });
+  }, [mode]);
+
+  const clusters = state.clusters;
+  const powerItems = clusters
+    .map((c) => m3CreatureWithDescriptors(c))
+    .filter((s) => s !== "");
+  const shadowItems = clusters
+    .map((c) => m3ClusterPrimaryShadow(c, state.shadows))
+    .filter((s) => s !== "");
+  const bigPower =
+    powerItems.length > 0
+      ? `In my power, I am ${m3OxfordList(powerItems.map((s) => `the ${s}`))}.`
+      : "";
+  const bigShadow =
+    shadowItems.length > 0
+      ? `And when I go shadow, ${m3OxfordList(shadowItems.map((w) => `I ${w}`))}.`
+      : "";
+
+  const handleClaim = async () => {
+    if (working) return;
+    setWorking(true);
+    setShowBurst(true);
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "smooth" });
+    // Persist immediately so a crash/reload preserves the claim. Also
+    // append a revisedAt entry on re-claim.
+    const now = new Date().toISOString();
+    const cur = ((await loadData(KEYS.map)) as any) || {};
+    const curM3: Mirror3State = {
+      ...EMPTY_MIRROR3,
+      ...(cur.mirror3 || state),
+    };
+    const wasSealed = !!curM3.sealCompleted;
+    const nextM3: Mirror3State = {
+      ...curM3,
+      sealCompleted: true,
+      sealCompletedAt: curM3.sealCompletedAt || now,
+      sealRevisedAt: wasSealed
+        ? [...(curM3.sealRevisedAt || []), now]
+        : curM3.sealRevisedAt || [],
+    };
+    await saveData(KEYS.map, { ...cur, mirror3: nextM3 });
+    setState(nextM3);
+    // Timing mirrors M2: 50ms → claiming (kicks readback fade), 2000ms → ceremony.
+    window.setTimeout(() => setMode("claiming"), 50);
+    window.setTimeout(() => {
+      setMode("ceremony");
+      setShowBurst(false);
+      setWorking(false);
+    }, 2000);
+  };
+
+  const handleContinueToValues = async () => {
+    if (working) return;
+    setWorking(true);
+    // Defensive: ensure sealCompleted persisted before routing (covers the
+    // edge case where the user revisits a sealed Own It and taps Continue
+    // without re-claiming — handleClaim already saved, but a fresh-load
+    // ceremony state never wrote anything new).
+    try {
+      const cur = ((await loadData(KEYS.map)) as any) || {};
+      const curM3: Mirror3State = {
+        ...EMPTY_MIRROR3,
+        ...(cur.mirror3 || state),
+      };
+      if (!curM3.sealCompleted) {
+        const now = new Date().toISOString();
+        await saveData(KEYS.map, {
+          ...cur,
+          mirror3: {
+            ...curM3,
+            sealCompleted: true,
+            sealCompletedAt: curM3.sealCompletedAt || now,
+          },
+        });
+      }
+    } catch (err) {
+      console.warn("[M3 Own It] continue save failed; routing anyway", err);
+    } finally {
+      setWorking(false);
+    }
+    onContinueToValues();
+  };
+
+  const isFading = mode !== "readback";
+
+  return (
+    <div className={`na2-decl m3-own ${embedded ? "is-embedded" : ""}`}>
+      {showBurst &&
+        createPortal(
+          <div className="na2-silver-burst" aria-hidden>
+            <div className="na2-silver-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      {/* ── Read-back / claim state ── */}
+      <div
+        className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
+      >
+        {editMode && (
+          <div className="na2-decl-edit-banner">
+            ★ You've claimed your Identity. The seal stays — you can refine
+            any line, then re-claim.
+          </div>
+        )}
+        <div className="na2-decl-eyebrow">Mirror 3 of 4 · Step 5 · Own It</div>
+        <h2 className="na2-decl-title">Own it</h2>
+        <p
+          className="na2-decl-subtitle"
+          style={{
+            fontFamily: "var(--na1-serif)",
+            fontStyle: "italic",
+            color: "var(--gold)",
+            textAlign: "center",
+          }}
+        >
+          Both are mine. Owning both is how I come home.
+        </p>
+
+        {clusters.length === 0 && (
+          <p
+            className="na2-decl-footnote"
+            style={{ textAlign: "center", marginTop: 24 }}
+          >
+            <em>(no clusters yet — complete the earlier steps to see them here)</em>
+          </p>
+        )}
+
+        {clusters.map((c) => {
+          const creature = m3CreatureWithDescriptors(c);
+          const powerLine = creature
+            ? `In my power, I am the ${creature}.`
+            : "";
+          const shadowLine = m3ComposeShadowLine(
+            m3NormalizeShadowSentence(state.shadowStories[c.id]),
+          );
+          return (
+            <div key={c.id} className="m3-own-block">
+              <h3 className="m3-own-cluster-name">
+                {c.name.trim() || "(unnamed cluster)"}
+              </h3>
+              {powerLine && (
+                <p className="m3-own-power">{powerLine}</p>
+              )}
+              {shadowLine && (
+                <p className="m3-own-shadow">Under pressure, I {shadowLine}</p>
+              )}
+              <p className="m3-own-held">{SEAL_CLOSING_LINE.split(".")[0]}.</p>
+            </div>
+          );
+        })}
+
+        {(bigPower || bigShadow) && (
+          <div className="na2-decl-divider">
+            <div className="rule" />
+            <span>★</span>
+            <div className="rule" />
+          </div>
+        )}
+
+        {(bigPower || bigShadow) && (
+          <div className="m3-own-bigclaim">
+            <div className="m3-own-bigclaim-eyebrow">The Big Claim</div>
+            {bigPower && <p className="m3-own-power">{bigPower}</p>}
+            {bigShadow && <p className="m3-own-shadow">{bigShadow}</p>}
+            <p className="m3-own-final">{SEAL_CLOSING_LINE}</p>
+          </div>
+        )}
+
+        <div
+          className="na1-room-actions"
+          style={{ justifyContent: "center", marginTop: 28 }}
+        >
+          <button
+            type="button"
+            className="na2-decl-btn-claim"
+            onClick={handleClaim}
+            disabled={working || clusters.length === 0}
+          >
+            {editMode ? "★ Re-claim my Identity" : "★ Own it"}
+          </button>
+        </div>
+        {!editMode && (
+          <p className="na2-decl-footnote">
+            Claiming saves to Map of Me + completes Mirror 3
+          </p>
+        )}
+        {editMode && (
+          <p className="na2-decl-footnote">
+            Edit any earlier room to refine — re-claim here to seal the revision.
+          </p>
+        )}
+      </div>
+
+      {/* ── Ceremony state ── */}
+      <div
+        className={`na2-decl-ceremony ${mode === "ceremony" ? "is-on" : ""}`}
+        aria-hidden={mode !== "ceremony"}
+      >
+        <div className="na2-decl-cer-star" aria-hidden>
+          ★
+        </div>
+        <div className="na2-decl-cer-body">
+          {sealParagraphs.map((p, i) =>
+            renderSealParagraph(p, i, sealPhrases),
+          )}
+        </div>
+        <div className="na2-decl-cer-divider" />
+        <button
+          type="button"
+          className="na2-decl-cer-cta"
+          onClick={handleContinueToValues}
+          disabled={working}
+        >
+          Continue to Values →
+        </button>
+        <p
+          className="na2-decl-footnote"
+          style={{ marginTop: 18, textAlign: "center" }}
+        >
+          You've claimed your Identity. The seal stays.
+        </p>
+        {/* Revisit affordance: from a sealed ceremony state, drop back into
+            readback so the user can re-read the triptychs + re-claim after
+            editing an earlier room. Without this, sealed users land on the
+            seal and can't surface the Re-claim button. */}
+        {editMode && (
+          <button
+            type="button"
+            className="purpose-link"
+            onClick={() => setMode("readback")}
+            disabled={working}
+            style={{ display: "block", margin: "12px auto 0" }}
+          >
+            ← Revise my Identity readback
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Container: holds the hub state + room overlay + veil transition. The
 // hub is the default landing for `view === "m3"`; rooms open inside an
 // na1-room-card overlay after the M2 veil plays. Locked rooms play the
@@ -32377,7 +32726,9 @@ function NewA1M3Container({
           sent.blank3.trim() !== ""
         );
       });
-    return [yourGiftsDone, animalsDone, underPressureDone, false];
+    // Ship 5: Own It is complete once the user has claimed (sealCompleted).
+    const ownItDone = !!s.sealCompleted;
+    return [yourGiftsDone, animalsDone, underPressureDone, ownItDone];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTick]);
 
@@ -32463,8 +32814,6 @@ function NewA1M3Container({
               embedded
               onComplete={() => {
                 // After the last animal, route to Own It (Seal · Ship 5).
-                // Own It body isn't shipped yet, so the existing veil
-                // fail-safe in launchRoom dismisses back to hub.
                 const next = M3_ROOMS.find((r) => r.key === "ownIt");
                 setRoomOpen(false);
                 timeoutsRef.current.push(
@@ -32472,6 +32821,24 @@ function NewA1M3Container({
                     setOpenRoom(null);
                     setRefreshTick((t) => t + 1);
                     if (next) launchRoom(next);
+                  }, 520),
+                );
+              }}
+            />
+          ) : openRoom.key === "ownIt" ? (
+            <NewA1M3OwnItView
+              embedded
+              onContinueToValues={() => {
+                // Mirror 4 (Values) body not shipped yet — fail-safe per
+                // spec: close the Own It room and return to the A1 grid
+                // so the user sees Mirror 3 marked Complete + can pick
+                // M4 from the grid (which plays its own veil).
+                setRoomOpen(false);
+                timeoutsRef.current.push(
+                  window.setTimeout(() => {
+                    setOpenRoom(null);
+                    setRefreshTick((t) => t + 1);
+                    onBackToGrid();
                   }, 520),
                 );
               }}

@@ -309,10 +309,31 @@ export const M3_ROOMS: ReadonlyArray<{
   threshold: string;
   bodyShipped: boolean;
 }> = [
-  { n: 1, key: "yourGifts",     name: "Your Gifts",          tone: "burgundy", threshold: M3_VEIL_TEXT.yourGifts,     bodyShipped: true  },
-  { n: 2, key: "animals",       name: "Animals as Anchors",  tone: "gold",     threshold: M3_VEIL_TEXT.animals,       bodyShipped: true  },
-  { n: 3, key: "underPressure", name: "Under Pressure",      tone: "burgundy", threshold: M3_VEIL_TEXT.underPressure, bodyShipped: true  },
-  { n: 4, key: "ownIt",         name: "Own It",              tone: "silver",   threshold: M3_VEIL_TEXT.ownIt,         bodyShipped: false },
+  { n: 1, key: "yourGifts",     name: "Your Gifts",          tone: "burgundy", threshold: M3_VEIL_TEXT.yourGifts,     bodyShipped: true },
+  { n: 2, key: "animals",       name: "Animals as Anchors",  tone: "gold",     threshold: M3_VEIL_TEXT.animals,       bodyShipped: true },
+  { n: 3, key: "underPressure", name: "Under Pressure",      tone: "burgundy", threshold: M3_VEIL_TEXT.underPressure, bodyShipped: true },
+  { n: 4, key: "ownIt",         name: "Own It",              tone: "silver",   threshold: M3_VEIL_TEXT.ownIt,         bodyShipped: true },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Katherine's M3 seal · LOCKED
+// Mirrors mirror2Constants SEAL_PARAGRAPHS / SEAL_GOLD_PHRASES so the existing
+// renderSealParagraph helper can render M3 with its own phrase list + the M2
+// .na2-decl-cer-para class for visual parity.
+// "Align, Advocate, Act, Account" are capitalized inline — not styled gold.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const M3_SEAL_PARAGRAPHS: ReadonlyArray<string> = [
+  "This is who you are.\nNot the polished version. Not the side you've been editing for safety.",
+  "The way you lead, the way you give, the way you create —\nand the way each of those falls into shadow when you're under pressure.",
+  "You can't grow what you won't claim.\nSo claim it. The full thing.",
+  "In the work that's left, you'll Align, Advocate, Act, Account.\nOne step at a time.\nThat's how this gets lived.",
+];
+
+export const M3_SEAL_GOLD_PHRASES: ReadonlyArray<string> = [
+  "This is who you are.",
+  "claim it. The full thing.",
+  "That's how this gets lived.",
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,76 @@
+Ship Gate 4.5+ signed off. Veil timing 2.2s lands clean across all 10 veils. Shadow library coverage verified — every library gift across all 5 themes now renders 4 suggested chips. Only custom-typed gifts fall through to + add, working as designed.
+Proceed to Ship 5 — Own It (Seal) room body.
+Spec from Replit_Handoff_Mirror3_FINAL.md (STEP · OWN IT / SEAL):
+Purpose: The closing ceremony of Mirror 3. User reads back their Identity work, holds the power-and-shadow tension, claims the whole self, and Map of Me gets populated.
+Veil already wired: "The moment of claiming…" — same pattern as Vision Declaration seal.
+Room structure (top to bottom):
+
+Eyebrow (uppercase tracked gold): MIRROR 3 OF 4 · STEP 5 · OWN IT
+Title (serif H1): Own it
+Italic gold subhead, centered: "Both are mine. Owning both is how I come home."
+Per-cluster triptych blocks (one block per cluster, sequentially stacked):
+
+Cluster name (serif heading, e.g. "The Strategist in me")
+Power line (gold italic): "In my power, I am [the {Gracefully Wise Eagle}]."
+Shadow line (burgundy italic): "Under pressure, I [combine the three blanks from Under Pressure into a single readable sentence]."
+Held line (gold·burgundy gradient, serif italic): "Both are mine."
+
+
+The Big Claim at the bottom — the overall self-claim
+
+Power roll-up (gold italic): "In my power, I am the {creature1}, the {creature2}, and the {creature3}." (variable count 1-5, Oxford comma)
+Shadow roll-up (burgundy italic): "And when I go shadow, I [composed from primary shadows of each cluster]." (compose pattern TBD by Agent — recommend: "I {primary shadow word of cluster 1}, I {primary shadow word of cluster 2}, and I {primary shadow word of cluster 3}")
+Final claim (gold serif, larger): "Both are mine. Owning both is how I come home."
+
+
+Katherine's seal (held moment block, italic Georgia gold):
+
+★ (gold star centerpiece)
+"This is who you are. Not the polished version. Not the side you've been editing for safety."
+"The way you lead, the way you give, the way you create — and the way each of those falls into shadow when you're under pressure."
+"You can't grow what you won't claim. So claim it. The full thing."
+"In the work that's left, you'll Align, Advocate, Act, Account. One step at a time. That's how this gets lived."
+(reuses the M2 Vision Declaration seal pattern with the four journey verbs capitalized)
+
+
+The claim button: Own it → (gold filled, centered, large)
+
+First-claim state: button reads Own it →
+After claim: button transforms into a quieter Continue to Values → and a held banner appears: "You've claimed your Identity. The seal stays."
+
+
+Below the claim button (after first claim): editable mode with Cancel · Save changes · Continue to Values → (same revisit pattern as Vision Declaration)
+
+Variable animal count handling:
+The Power roll-up sentence must adapt to 1-5 animals:
+
+1 animal: "In my power, I am the {creature}."
+2 animals: "In my power, I am the {creature1} and the {creature2}."
+3 animals: "In my power, I am the {creature1}, the {creature2}, and the {creature3}."
+4-5 animals: same pattern with Oxford comma
+
+Shadow roll-up follows the same variable-count grammar.
+Map of Me handoff:
+When the user claims (first time), populate the Identity row in Map of Me with:
+
+Per cluster: {cluster name} · {creature with descriptors} · {primary shadow word}
+Plus the held line: "Both are mine. Owning both is how I come home."
+
+Schema location TBD by Agent — should follow the same pattern as M2 Vision claim → Map of Me Vision row.
+State persistence:
+
+First-claim writes state.mirror3.claimed = true + state.mirror3.claimedAt = timestamp
+Subsequent visits show the revisit state (edits allowed via Save changes)
+All field edits auto-save debounced 500ms
+
+Hub state on completion:
+
+Own It card transitions from Up next to Complete (gold ✓)
+Mirror 3 card on the A1 grid transitions to Complete
+Mirror 4 (Values) unlocks — Up next · tap to begin (if M4 body exists, route normally; if not, veil + return to A1 grid is the fail-safe)
+
+Reference standards (read first):
+Read AG45_App_Standards.md (in /docs/ if synced, otherwise the most recent version owner provided). Specifically Sections 1 (veil), 2 (Continue button), 3 (color), 4 (typography), 5 (room architecture), and 7 (state logic). Apply those as defaults.
+Re-demo path:
+Clean localStorage, walk Vision → Continue to Identity → hub → Your Gifts (pick 5-10) → Continue to Animals → name clusters → Continue to Under Pressure → fill sentences for all clusters → Continue to Own It → veil "The moment of claiming…" → Own It room loads with all triptych blocks populated, big claim composed from the user's work → Own it → button → seal animation/transition → returns to hub showing Mirror 3 Complete.
+Stop at Ship Gate 5 for owner demo.
