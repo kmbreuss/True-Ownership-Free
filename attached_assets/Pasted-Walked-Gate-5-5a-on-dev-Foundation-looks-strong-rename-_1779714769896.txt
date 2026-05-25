@@ -1,0 +1,39 @@
+Walked Gate 5.5a on dev. Foundation looks strong — rename cascade landed clean, inventory bar renders correctly with all 5 themes + "+ add" buttons, "+ add" library panel is gorgeous (inline below inventory bar = perfect UX call), Superpower sentence blocks render with correct stem and placeholders, "+ Add another creature" button and "2 of 5" counter present, Continue button visibly disabled.
+8 fixes needed before Gate 5.5a signs off. Most are small.
+Bug 1 — Continue button capitalization. Reads continue to under pressure → (lowercase). Should be Continue to Under Pressure → (Title Case). Same standard we established across the app. 1-character fix per word.
+Bug 2 — "Which creature?" picker doesn't fire on inventory chip tap. Tapped "Reliable" chip in the Hands row of the inventory bar — no visible picker appeared. The MOVE-from-inventory trigger of the picker seems unwired or anchoring off-screen. Verify click handler exists on the inventory chips and the picker renders within viewport.
+Bug 3 — "Which creature?" picker doesn't fire on add-gift flow. Tapped "+ add" on Mind → panel opened correctly → tapped "Strategic" → panel closed but NO picker appeared. With 2 clusters present (Owl and Bear), the picker should ask which one carries Strategic. The single-cluster auto-place behavior shouldn't kick in here. Either Strategic got silently auto-placed (state mismatch) or the picker is failing to render. Check whether the add flow is calling into the picker code path at all.
+Bug 4 — Overlay first-paint bleed-through. When the Superpowers overlay opens over the hub, hub content (other cluster cards, breadcrumb, hub title) shows through the new overlay before user scrolls. Cleans up after scroll. Likely overlay backdrop opacity or z-index. CSS adjustment on the overlay container.
+Fix 5 — Picker positioning should always drop directly below the trigger. When the picker DOES fire (after Bugs 2/3 are fixed), it should anchor as a dropdown directly under the "+ add" button (for add flow) or directly under the tapped chip (for move flow) — predictable location every time, like a standard dropdown menu. If the picker would overflow the bottom of the viewport, it should scroll into view automatically. Currently the spec said "anchored popover" — switching to "always below the trigger" for consistency. User shouldn't have to hunt for it.
+Fix 6 — Empty cluster pulse animation. When a new empty cluster is created via "+ Add another creature", add a gold pulsing glow animation to the inventory bar (subtle gold border glow that pulses every ~1.8s) plus a small "↓ TAP TO ADD" hint chip in the inventory header. Both stop animating once at least one gift has been moved into the empty cluster. Purpose: visually direct the user up to the source where they need to tap gifts. No "+ add gifts" button on the cluster itself, no directional drop zone copy — just the pulse on the inventory bar.
+CSS reference (use these timing values for consistency with the rest of the app):
+css@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 75, 0.35); border-color: var(--gold); }
+  50% { box-shadow: 0 0 0 8px rgba(201, 162, 75, 0.18), 0 0 30px rgba(201, 162, 75, 0.25); border-color: #DCB860; }
+}
+Fix 7 — Spine theme color change. Current SPINE theme color (gold #C9A24B) is too close to HEART pink and also conflicts with the app's primary gold (which is used for selected/owned states). Replace SPINE with deep teal #4FA8B5. Update everywhere the spine theme color is referenced — inventory bar theme dot, inventory chip border/background tint, gift chip color in the "+ add" library panel, anywhere else SPINE renders as a theme.
+Updated theme color palette (lock this in mirror3Constants.ts):
+
+MIND = #6A9BD8 (sky blue)
+HEART = #D87A7A (pink)
+SPINE = #4FA8B5 (teal) ← CHANGED
+SPARK = #C285D8 (purple)
+HANDS = #7AC79B (green)
+
+All five themes now visually distinct, none competing with primary gold.
+Fix 8 — Custom gift typing in Superpowers "+ add" flow. Currently the inline library panel that opens from "+ add" on any theme row shows only library gifts. Add the same "+ add custom" affordance Step 1a has at the bottom of each theme's chip-picker — a small inline input where user can type a custom gift name. Confirmed custom gifts:
+
+Flow into state.mirror3.pickedGifts with custom: true flag
+Get the "Which creature?" picker (same as library gifts)
+Get the manually-placed flag so they don't get re-clustered
+Render in the inventory bar with the same theme color treatment as library gifts
+
+Reuse Step 1a's existing custom-add component — don't build a new one.
+Demo path after all 8 fixes: Clean localStorage → ?newA1=1&newM3=1 → Vision → Continue to Identity → Your Gifts → Continue to Superpowers. Verify all four interactions:
+
+Tap any inventory chip → picker drops below → tap a creature → chip moves
+Tap "+ add" on any theme → library panel opens below inventory (with custom input at bottom) → pick library gift OR type custom → picker drops below the panel → tap creature → chip lands
+Add new creature via "+ Add another creature" → inventory pulses + hint chip appears → user taps inventory chip → moves to new cluster → pulse stops
+Walk back to Your Gifts → confirm custom gift added in step 2 is visible there (state synced)
+
+Plus visual verification: Spine theme color reads teal everywhere (not gold), Continue button reads Continue to Under Pressure → in Title Case, overlay opens cleanly without bleed-through.

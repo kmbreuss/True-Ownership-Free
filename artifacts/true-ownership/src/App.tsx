@@ -592,8 +592,8 @@ html[data-theme="light"]{
 /* C1 — scrim background covers the dimmed Explore page during room open; the
    existing opacity 500ms transition handles the fade in/out. Light-mode tint
    matches the held-space warmth. */
-.na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; background:rgba(8,15,28,0.55); transition:opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
-[data-theme="light"] .na1-room-overlay{ background:rgba(247,242,231,0.55); }
+.na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; background:rgba(8,15,28,0.88); backdrop-filter:blur(8px) saturate(115%); -webkit-backdrop-filter:blur(8px) saturate(115%); will-change:opacity, backdrop-filter; transition:opacity 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-theme="light"] .na1-room-overlay{ background:rgba(247,242,231,0.9); }
 .na1-room-overlay.is-open{ opacity:1; pointer-events:auto; }
 .na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--gold); box-shadow:0 0 80px var(--gold-glow), 0 24px 60px rgba(0,0,0,0.32); border-radius:var(--na1-radius-xl); max-width:720px; width:100%; max-height:90vh; overflow:auto; padding:80px 24px 40px; position:relative; font-family:var(--na1-sans); transform:translateY(20px); transition:transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
 .na1-room-overlay.is-open .na1-room-card{ transform:translateY(0); }
@@ -1270,7 +1270,7 @@ html[data-theme="light"]{
 .m3-cluster-chip:hover{ border-color:var(--gold-line); color:var(--na1-text); }
 .m3-cluster-chip.is-moving{ opacity:.55; }
 .m3-shape-actions{ display:flex; justify-content:center; padding:8px 0 4px; }
-.m3-shape-super-btn{ background:var(--gold); color:#1a1407; border:none; border-radius:100px; padding:12px 32px; font-family:var(--na1-sans); font-size:13.5px; font-weight:600; letter-spacing:.04em; text-transform:lowercase; cursor:pointer; min-height:44px; transition:opacity .18s, transform .18s; }
+.m3-shape-super-btn{ background:var(--gold); color:#1a1407; border:none; border-radius:100px; padding:12px 32px; font-family:var(--na1-sans); font-size:13.5px; font-weight:600; letter-spacing:.04em; cursor:pointer; min-height:44px; transition:opacity .18s, transform .18s; }
 .m3-shape-super-btn:hover:not(:disabled){ transform:translateY(-1px); }
 .m3-shape-super-btn:disabled{ opacity:.5; cursor:not-allowed; }
 /* ─── Ship 5.5a · Gift Inventory bar (sticky inside .na1-room-card scroll) ─── */
@@ -1304,8 +1304,8 @@ html[data-theme="light"]{
 .m3-inv-lib-chip.is-already{ opacity:.4; cursor:not-allowed; }
 
 /* ─── Which-creature? picker (anchored popover; mobile bottom-sheet <480px) ─── */
-.m3-picker-back{ position:fixed; inset:0; z-index:90; background:transparent; }
-.m3-picker{ position:fixed; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:14px; padding:8px; min-width:220px; max-width:300px; box-shadow:0 10px 32px rgba(0,0,0,0.5); z-index:91; }
+.m3-picker-back{ position:fixed; inset:0; z-index:9998; background:transparent; }
+.m3-picker{ position:fixed; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:14px; padding:8px; min-width:220px; max-width:300px; box-shadow:0 10px 32px rgba(0,0,0,0.5); z-index:9999; overflow-y:auto; }
 .m3-picker-title{ font-family:var(--na1-sans); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); padding:4px 10px 6px; }
 .m3-picker-opt{ display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; background:transparent; border:none; color:var(--na1-text); font-family:var(--na1-sans); font-size:13px; cursor:pointer; border-radius:8px; text-align:left; }
 .m3-picker-opt:not(:disabled):hover{ background:var(--na1-bg); }
@@ -1356,7 +1356,24 @@ html[data-theme="light"]{
 .m3-custom-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); border-radius:100px; padding:8px 14px; font-family:var(--na1-sans); font-size:12.5px; cursor:pointer; }
 
 /* ─── Single-cluster auto-place toast (minimal, no infra; per owner note C) ─── */
-.m3-toast{ position:fixed; left:50%; bottom:18%; transform:translateX(-50%); padding:10px 18px; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:100px; color:var(--gold); font-family:var(--na1-sans); font-size:13px; font-weight:500; box-shadow:0 6px 20px rgba(0,0,0,0.4); z-index:95; pointer-events:none; animation:m3ToastIO 2.28s ease forwards; }
+.m3-toast{ position:fixed; left:50%; bottom:18%; transform:translateX(-50%); padding:10px 18px; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:100px; color:var(--gold); font-family:var(--na1-sans); font-size:13px; font-weight:500; box-shadow:0 6px 20px rgba(0,0,0,0.4); z-index:9999; pointer-events:none; animation:m3ToastIO 2.28s ease forwards; }
+
+/* ─── Fix 6 · empty user-added cluster pulse glow + hint chip ─── */
+.m3-inv.is-pulsing{ animation:m3InvPulse 1.8s ease-in-out infinite; border:1px solid var(--gold); border-radius:14px; }
+@keyframes m3InvPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 75, 0.35); border-color: var(--gold); }
+  50%      { box-shadow: 0 0 0 8px rgba(201, 162, 75, 0.18), 0 0 30px rgba(201, 162, 75, 0.25); border-color: #DCB860; }
+}
+.m3-inv-hint{ display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:100px; background:var(--gold-soft); border:1px solid var(--gold); color:var(--gold); font-family:var(--na1-sans); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:600; margin-left:10px; animation:m3HintFade .35s ease-out; }
+@keyframes m3HintFade { from { opacity:0; transform:translateY(-2px); } to { opacity:1; transform:translateY(0); } }
+
+/* ─── Fix 8 · custom-gift input inside inline library panel ─── */
+.m3-inv-lib-custom{ display:flex; gap:6px; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed var(--gold-line); }
+.m3-inv-lib-input{ flex:1; min-width:120px; padding:6px 12px; background:transparent; border:1px solid var(--m3inv-color, var(--gold-line)); border-radius:100px; color:var(--na1-text); font-family:var(--na1-sans); font-size:12.5px; outline:none; transition:border-color .15s; }
+.m3-inv-lib-input::placeholder{ color:var(--na1-text-mute); opacity:.7; }
+.m3-inv-lib-input:focus{ border-color:var(--m3inv-color, var(--gold)); }
+.m3-inv-lib-add{ padding:6px 14px; background:var(--m3inv-color, var(--gold)); color:#1a1407; border:none; border-radius:100px; font-family:var(--na1-sans); font-size:11.5px; font-weight:600; cursor:pointer; flex-shrink:0; }
+.m3-inv-lib-add:disabled{ opacity:.4; cursor:not-allowed; }
 @keyframes m3ToastIO{ 0%{ opacity:0; transform:translate(-50%, 10px); } 10.5%{ opacity:1; transform:translate(-50%, 0); } 89.5%{ opacity:1; transform:translate(-50%, 0); } 100%{ opacity:0; transform:translate(-50%, -10px); } }
 
 /* Browse modal */
@@ -33406,12 +33423,27 @@ function NewA1M3ShapeView({
     [state.clusters],
   );
 
-  // Anchor coords for fixed-position popover/bottom-sheet.
-  const anchorFromEvent = (e: React.MouseEvent | React.PointerEvent) => {
+  // Fix 5 · always drop the picker directly below the trigger (predictable
+  // dropdown behavior). Render-time clamping keeps it inside the viewport
+  // and CSS `max-height` + `overflow-y:auto` lets it scroll if the list
+  // would overflow the bottom of the screen.
+  const anchorFromEvent = (
+    e: React.MouseEvent | React.PointerEvent | React.KeyboardEvent,
+  ) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const below = rect.bottom + 260 < window.innerHeight;
-    return { x: rect.left, y: below ? rect.bottom + 6 : rect.top - 6, below };
+    return { x: rect.left, y: rect.bottom + 6, below: true };
   };
+
+  // Fix 8 · custom-gift input state for the inline "+ add" library
+  // panel. One shared string is fine because only one panel can be
+  // open at a time; we clear it whenever the panel closes.
+  // (Handler `addCustomGiftFromLib` is declared below `commitAddGift`
+  // so its closure captures an already-initialized reference — avoids
+  // any TDZ concern on first-render evaluation.)
+  const [customGiftInput, setCustomGiftInput] = useState("");
+  useEffect(() => {
+    if (!inlineLibTheme) setCustomGiftInput("");
+  }, [inlineLibTheme]);
 
   // Commit a newly-added gift into a chosen cluster + flag manuallyPlaced.
   const commitAddGift = useCallback(
@@ -33458,6 +33490,38 @@ function NewA1M3ShapeView({
     const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
     if (state.pickedGifts.some((p) => p.id === `g_${slug}`)) return; // defensive
     const pending = { label, theme, state: "owned" as GiftState, custom: false };
+    if (state.clusters.length === 1) {
+      commitAddGift(pending, state.clusters[0].id, state.clusters[0].name);
+      setInlineLibTheme(null);
+      return;
+    }
+    setPicker({ mode: "add", pending, anchor: anchorFromEvent(e) });
+    setInlineLibTheme(null);
+  };
+
+  // Fix 8 · add a custom-typed gift from the library panel. Same flow as
+  // addGiftFromLibrary (single-cluster auto-place → toast; else picker).
+  // Declared after commitAddGift so the closure captures it cleanly.
+  const addCustomGiftFromLib = (
+    theme: Theme,
+    e: React.MouseEvent | React.KeyboardEvent,
+  ) => {
+    const label = customGiftInput.trim();
+    if (!label) return;
+    if (
+      state.pickedGifts.some(
+        (p) => p.label.toLowerCase() === label.toLowerCase(),
+      )
+    ) {
+      setToast({ text: `"${label}" already in inventory`, key: Date.now() });
+      return;
+    }
+    const pending = {
+      label,
+      theme,
+      state: "owned" as GiftState,
+      custom: true,
+    };
     if (state.clusters.length === 1) {
       commitAddGift(pending, state.clusters[0].id, state.clusters[0].name);
       setInlineLibTheme(null);
@@ -33608,10 +33672,24 @@ function NewA1M3ShapeView({
           its power (e.g. Gracefully Wise Eagle).
         </span>
       </div>
-      {/* Ship 5.5a · sticky Gift Inventory bar (anchors inside .na1-room-card scroll) */}
-      <div className="m3-inv">
+      {/* Ship 5.5a · sticky Gift Inventory bar (anchors inside .na1-room-card scroll).
+          Fix 6 · pulses + shows hint chip whenever ≥1 user-added cluster
+          is still empty, directing the eye up to the source. */}
+      {(() => {
+        const pulseActive = state.clusters.some(
+          (c) => c.userAdded === true && c.giftIds.length === 0,
+        );
+        return (
+      <div className={`m3-inv ${pulseActive ? "is-pulsing" : ""}`}>
         <div className="m3-inv-header">
-          <span className="m3-inv-title">Gift Inventory</span>
+          <span className="m3-inv-title">
+            Gift Inventory
+            {pulseActive && (
+              <span className="m3-inv-hint" aria-live="polite">
+                ↓ TAP TO ADD
+              </span>
+            )}
+          </span>
           <span className="m3-inv-count">
             {state.pickedGifts.length} picked
           </span>
@@ -33710,10 +33788,36 @@ function NewA1M3ShapeView({
                   );
                 })}
               </div>
+              {/* Fix 8 · "+ add custom" affordance (mirrors Step 1a). */}
+              <div className="m3-inv-lib-custom">
+                <input
+                  className="m3-inv-lib-input"
+                  value={customGiftInput}
+                  onChange={(e) => setCustomGiftInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && customGiftInput.trim()) {
+                      addCustomGiftFromLib(t, e);
+                    }
+                  }}
+                  placeholder={`+ add a custom ${THEME_LABEL[t]} gift...`}
+                  maxLength={40}
+                  aria-label={`Custom ${THEME_LABEL[t]} gift name`}
+                />
+                <button
+                  type="button"
+                  className="m3-inv-lib-add"
+                  onClick={(e) => addCustomGiftFromLib(t, e)}
+                  disabled={!customGiftInput.trim()}
+                >
+                  add
+                </button>
+              </div>
             </div>
           );
         })()}
       </div>
+        );
+      })()}
       <div className="m3-shape-list">
         {state.clusters.map((c) => {
           const giftLabels = c.giftIds
@@ -34133,9 +34237,12 @@ function NewA1M3ShapeView({
           </div>
         </div>
       )}
-      {/* Ship 5.5a · Which-creature? picker (ADD from library | MOVE from inventory).
-          Desktop = anchored popover; mobile (<480px) becomes bottom-sheet via CSS. */}
-      {picker && (
+      {/* Bug 2/3 · picker portaled to document.body so it escapes
+          .na1-room-card's `transform: translateY` (which would otherwise
+          re-root position:fixed to the card itself and hide the popover
+          off-screen). Fix 5 · always drop below trigger, clamped to
+          viewport so the list never overflows the bottom. */}
+      {picker && createPortal(
         <>
           <div
             className="m3-picker-back"
@@ -34144,16 +34251,25 @@ function NewA1M3ShapeView({
           />
           <div
             className="m3-picker"
-            style={{
-              top: picker.anchor.below ? picker.anchor.y : undefined,
-              bottom: picker.anchor.below
-                ? undefined
-                : Math.max(8, window.innerHeight - picker.anchor.y),
-              left: Math.max(
-                8,
-                Math.min(picker.anchor.x, window.innerWidth - 240),
-              ),
-            }}
+            style={(() => {
+              // Fix D · clamp `top` so the picker always fits within the
+              // viewport even when the trigger sits near the bottom. We
+              // reserve at least 200px of vertical space so the list is
+              // never clipped off-screen; the picker may overlap the
+              // trigger in that edge case, which is the standard mobile
+              // dropdown pattern.
+              const MIN_VISIBLE = 200;
+              const maxTop = window.innerHeight - MIN_VISIBLE - 8;
+              const top = Math.max(8, Math.min(picker.anchor.y, maxTop));
+              return {
+                top,
+                left: Math.max(
+                  8,
+                  Math.min(picker.anchor.x, window.innerWidth - 248),
+                ),
+                maxHeight: `${window.innerHeight - top - 8}px`,
+              };
+            })()}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -34190,12 +34306,14 @@ function NewA1M3ShapeView({
               cancel
             </button>
           </div>
-        </>
+        </>,
+        document.body,
       )}
-      {toast && (
+      {toast && createPortal(
         <div key={toast.key} className="m3-toast" role="status">
           {toast.text}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

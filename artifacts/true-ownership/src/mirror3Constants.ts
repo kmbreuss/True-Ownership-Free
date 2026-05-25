@@ -29,7 +29,7 @@ export const THEME_TAGLINE: Record<Theme, string> = {
 export const THEME_COLOR: Record<Theme, string> = {
   mind: "#85B7EB",
   heart: "#F09595",
-  spine: "#E27B7B",
+  spine: "#4FA8B5",
   spark: "#AFA9EC",
   hands: "#97C459",
 };
