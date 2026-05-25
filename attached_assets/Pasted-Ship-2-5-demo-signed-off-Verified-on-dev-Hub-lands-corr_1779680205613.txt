@@ -1,0 +1,44 @@
+Ship 2.5 demo signed off. Verified on dev:
+
+Hub lands correctly from Vision seal Continue and from reload (no deep-link, no auto-route)
+Your Gifts card shows Complete (gold ✓)
+Animals as Anchors card shows "Up next · tap to begin"
+Under Pressure card shows "Unlocks after Animals as Anchors" with lock
+Own It card shows "Unlocks after Under Pressure" with lock
+Tapping Animals as Anchors fires the veil "Giving them a shape…" and returns to hub (correct fail-safe — body lands in this ship)
+
+Proceed to Ship 3 — Animals as Anchors (Step 1b · Shape) room body.
+Spec reminders from Replit_Handoff_Mirror3_FINAL.md (STEP 1b · SHAPE):
+2-pip subbar at top of room: Pick (filled) · Shape (active). User experiences it as one room — Step 1 — internally two screens.
+Initial cluster assembly on landing (Step 1a → 1b transition):
+
+Take all pickedGifts from Step 1a
+Group by theme (Mind/Heart/Spine/Spark/Hands)
+Heuristic: 3+ themes present → 3 clusters, one per dominant theme. 1-2 themes → split by count. <6 gifts → 2 clusters
+Run cluster name + animal matching against the 24-archetype library — highest gift-overlap wins, ties broken by library order, 0 matches falls back to Version [N] placeholder
+Auto-assign emoji from animal table
+Render
+
+Per-cluster card layout:
+
+Cluster name (suggested from archetype library, editable inline) + × remove button. Initial state: PRE-FILLED with SUGGESTED · TAP TO RENAME micro-label
+Animal row in slight inset block: emoji icon (auto-assigned, tappable to swap from 3-5 alternatives) + 3 inputs side-by-side [descriptor word 1] [descriptor word 2] [animal name] + browse → link opens curated animal modal scored for this cluster's gifts
+Help row: "★ Add two words that capture your {animal} in its power"
+Initial state: animal PRE-FILLED, emoji AUTO-ASSIGNED, descriptor words 1+2 EMPTY with placeholders word 1 / word 2 and gold-tinted background to draw the eye
+"Gifts that creature carries" label + chip bin showing the cluster's gifts. Tap a chip to move it to another cluster
+
+Validation:
+
+Each cluster needs: name (text) + animal (text) + descriptor word 1 + descriptor word 2 + at least 1 gift
+Cannot proceed if any field empty
+Primary button at bottom reads superpowers → (Step 2 is deferred — button label stays, routes to Under Pressure for now since Step 2 isn't built). Disabled at 50% opacity until valid
+
+Persistence:
+
+All edits auto-save debounced 500ms into state.mirror3.clusters[]
+Re-entering after partial work resumes mid-flow
+
+Mobile: 375px clean. Cluster cards stack vertically, descriptor word inputs may need to flex below animal name on narrow widths.
+All content (animal names, archetype names, emoji defaults) comes from mirror3Constants.ts — do not invent new strings.
+Stop at Ship Gate 3 for owner demo. Same cadence as Gates 1 and 2: clean localStorage, fresh load, walk Vision → Continue to Identity → Your Gifts (pick 12-20) → Shape → see the auto-assembled clusters → edit / rename / swap an animal / drag a chip / type descriptors → verify auto-save → tap superpowers →.
+Send it.
