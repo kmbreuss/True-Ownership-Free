@@ -1,0 +1,47 @@
+Proceed to Ship 4 — Under Pressure (Step 3) room body.
+Spec reminders from Replit_Handoff_Mirror3_FINAL.md (STEP 3 · UNDER PRESSURE):
+Layout pattern: ONE ANIMAL AT A TIME with Continue button. Not a long scrolling page. One full-card view per animal/cluster.
+Pip-subbar shows progress: "Eagle · 1 of 3" (or whatever the user's animals are). The animal's name + position in the sequence. This pip subbar IS appropriate here — it's progress through animals within the same exercise, same room. Different from the deleted Pick/Shape pips, which contradicted the hub architecture.
+Per-animal card structure:
+
+Creature name (gold serif) + version label "Gracefully Wise Eagle" (uppercase tracked)
+Per-gift shadow row, for each gift in that cluster:
+
+Left: gift chip (filled gold)
+Center: → arrow
+Right: shadow chip picker — 4 system-suggested shadow chips from the locked Mind/Heart libraries
+Tap a shadow chip → fills burgundy
+One can be marked primary via long-press OR tap-twice — gets the burgundy dot marker #A03B3B at left of chip text (NOT gold star)
++ add reveals inline input for custom shadow word — custom words are first-class candidates for primary flagging
+
+
+Shadow story textarea (per cluster, not per gift):
+
+Prompt: "When the {animal} goes shadow — what does it actually look like in your life?"
+Free textarea, auto-grow
+Soft validation: 30+ characters preferred, not enforced
+
+
+
+Spine / Spark / Hands shadow fallback (locked behavior from earlier): For any gift whose theme has no shadow library yet (Spine, Spark, Hands), render the row as: gift chip → arrow → ONLY a + add input on the right. No suggested chips, no empty container. Same visual row layout as Mind/Heart rows so user can't tell which themes have library coverage. Custom shadow word is first-class — can be flagged primary same as any library chip.
+Validation per animal card:
+
+Each gift in the cluster needs ≥1 shadow chip picked
+Each gift needs exactly 1 primary shadow flagged
+Shadow story optional but encouraged
+Continue button at bottom disabled at 50% opacity until valid
+
+Continue button labels:
+
+Animals 1, 2: Continue to {next animal name} → (e.g. "Continue to Owl →")
+Last animal: Continue to Own It → (routes to Seal — Ship 5)
+
+Persistence:
+
+All edits auto-save debounced 500ms into state.mirror3.shadows[] and state.mirror3.shadowStories[]
+Re-entering mid-flow resumes on the animal where the user left off
+
+Veil on room entry: "Where the gifts go shadow…" — already wired in Ship 2.5, just needs to peel into the room body instead of returning to hub.
+Mobile: 375px clean. Per-gift shadow rows may need to stack vertically (gift chip → arrow centered below → shadow chips wrap).
+All content (shadow word libraries for Mind/Heart, fallback behavior for Spine/Spark/Hands) comes from mirror3Constants.ts — do not invent new strings.
+Stop at Ship Gate 4 for owner demo.

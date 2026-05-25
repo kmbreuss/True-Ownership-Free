@@ -53,11 +53,14 @@ import {
   ANIMAL_BY_NAME,
   EMOJI_BY_ANIMAL,
   CLUSTER_ARCHETYPES,
+  SHADOW_LIBRARY,
+  SHADOWS_AVAILABLE,
   type M3RoomKey,
   type Theme,
   type PickedGift,
   type Cluster,
   type Mirror3State,
+  type ShadowsForGift,
 } from "./mirror3Constants";
 const KEYS = {
   map: "to_map",
@@ -1259,6 +1262,52 @@ html[data-theme="light"]{
 .m3-pick-counter strong{ color:var(--na1-text); font-weight:700; }
 .m3-pick-hint{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); font-style:italic; margin:0 0 12px; }
 .m3-pick-actions{ display:flex; gap:12px; align-items:center; justify-content:center; }
+/* ─── M3 · Step 3 · Under Pressure ─── */
+.m3-under{ display:flex; flex-direction:column; gap:20px; }
+.m3-under-eyebrow{ display:block; font-family:var(--na1-sans); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--burgundy, #A03B3B); text-align:center; margin:0 0 8px; }
+.m3-under-pip-bar{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:0 0 6px; }
+.m3-under-pip{ display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; font-family:var(--na1-sans); font-size:12px; letter-spacing:.06em; color:var(--na1-text-mute); cursor:default; text-transform:none; }
+.m3-under-pip-dot{ width:8px; height:8px; border-radius:50%; background:var(--na1-text-mute); }
+.m3-under-pip.is-done{ color:var(--na1-text-sec); border-color:var(--gold-line); }
+.m3-under-pip.is-done .m3-under-pip-dot{ background:var(--gold); }
+.m3-under-pip.is-active{ color:var(--na1-text); border-color:#A03B3B; background:var(--na1-bg-card); box-shadow:0 0 0 1px rgba(160,59,59,0.35), 0 0 18px rgba(160,59,59,0.25); }
+.m3-under-pip.is-active .m3-under-pip-dot{ background:#A03B3B; }
+.m3-under-card{ background:var(--na1-bg-card); border:1.5px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px 22px 20px; display:flex; flex-direction:column; gap:18px; }
+.m3-under-head{ display:flex; flex-direction:column; gap:6px; text-align:center; padding-bottom:6px; border-bottom:1px solid var(--na1-border); }
+.m3-under-creature{ font-family:var(--na1-serif); font-size:26px; color:var(--gold); margin:0; line-height:1.1; display:flex; align-items:center; justify-content:center; gap:10px; }
+.m3-under-version{ font-family:var(--na1-sans); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--na1-text-mute); margin:0; }
+.m3-under-gift-rows{ display:flex; flex-direction:column; gap:14px; }
+.m3-under-row{ display:grid; grid-template-columns:minmax(120px, 1fr) auto minmax(0, 2.4fr); align-items:center; gap:12px; padding:8px 0; border-bottom:1px dashed var(--na1-border); }
+.m3-under-row:last-child{ border-bottom:none; }
+.m3-under-gift-chip{ display:inline-flex; align-items:center; justify-content:center; padding:8px 14px; border-radius:100px; background:var(--gold); color:#1a1407; font-family:var(--na1-sans); font-size:13px; font-weight:600; letter-spacing:.02em; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.m3-under-arrow{ color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:18px; line-height:1; user-select:none; }
+.m3-under-shadow-bin{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-height:36px; }
+.m3-under-shadow-chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:12.5px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; user-select:none; }
+.m3-under-shadow-chip:hover{ border-color:rgba(160,59,59,0.5); }
+.m3-under-shadow-chip.is-picked{ background:#A03B3B; border-color:#A03B3B; color:#fff; }
+.m3-under-shadow-chip.is-primary::before{ content:""; width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px #A03B3B inset; }
+.m3-under-shadow-chip.is-primary:not(.is-picked)::before{ background:#A03B3B; box-shadow:none; }
+.m3-under-add-btn{ display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border-radius:100px; border:1px dashed var(--na1-border); background:transparent; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:12px; cursor:pointer; }
+.m3-under-add-btn:hover{ color:var(--na1-text-sec); border-color:var(--na1-text-mute); }
+.m3-under-add-input{ padding:6px 12px; border-radius:100px; border:1px solid var(--gold-line); background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); font-size:12.5px; min-width:120px; outline:none; }
+.m3-under-add-input:focus{ border-color:var(--gold); }
+.m3-under-primary-hint{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); font-style:italic; padding:0 0 4px; }
+.m3-under-story{ display:flex; flex-direction:column; gap:8px; padding-top:6px; border-top:1px solid var(--na1-border); }
+.m3-under-story-label{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:0; }
+.m3-under-story-text{ width:100%; min-height:80px; padding:12px 14px; border-radius:12px; border:1px solid var(--na1-border); background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); font-size:13.5px; line-height:1.55; resize:vertical; outline:none; }
+.m3-under-story-text:focus{ border-color:var(--gold-line); }
+.m3-under-story-meta{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); }
+.m3-under-actions{ display:flex; justify-content:center; padding-top:6px; }
+.m3-under-cta{ display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 22px; border-radius:100px; background:var(--gold); color:#1a1407; border:none; font-family:var(--na1-sans); font-size:14px; font-weight:600; letter-spacing:.02em; cursor:pointer; transition:filter .18s, transform .12s; }
+.m3-under-cta:hover{ filter:brightness(1.08); }
+.m3-under-cta:disabled{ opacity:0.5; cursor:not-allowed; filter:none; }
+@media (max-width:600px){
+  .m3-under-card{ padding:18px 14px 16px; }
+  .m3-under-creature{ font-size:22px; }
+  .m3-under-row{ grid-template-columns:1fr; justify-items:center; gap:8px; padding:12px 0; }
+  .m3-under-arrow{ transform:rotate(90deg); }
+  .m3-under-shadow-bin{ justify-content:center; }
+}
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -32280,8 +32329,18 @@ function NewA1M3Container({
           c.descriptorWord2.trim() !== "" &&
           c.giftIds.length > 0,
       );
-    // Under Pressure + Own It bodies haven't shipped yet.
-    return [yourGiftsDone, animalsDone, false, false];
+    // Under Pressure (Step 3) is complete when every cluster's gifts each
+    // have ≥1 shadow picked and exactly 1 primary flagged. Own It body
+    // hasn't shipped yet.
+    const underPressureDone =
+      s.clusters.length > 0 &&
+      s.clusters.every((c) =>
+        c.giftIds.every((gid) => {
+          const sh = s.shadows[gid];
+          return !!sh && sh.pickedShadows.length > 0 && sh.primaryShadow != null;
+        }),
+      );
+    return [yourGiftsDone, animalsDone, underPressureDone, false];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTick]);
 
@@ -32347,11 +32406,29 @@ function NewA1M3Container({
             <NewA1M3ShapeView
               embedded
               onSuperpowers={() => {
-                // Step 2 (Superpowers) is deferred — route to Under Pressure
-                // for now. Under Pressure body isn't shipped, so the veil
-                // fail-safe will play "Where the gifts go shadow…" then
-                // dismiss back to hub.
+                // Step 2 (Superpowers) is deferred — Animals' Continue
+                // routes straight to Under Pressure. Close the Animals
+                // overlay then launch the next room normally (veil +
+                // body mount).
                 const next = M3_ROOMS.find((r) => r.key === "underPressure");
+                setRoomOpen(false);
+                timeoutsRef.current.push(
+                  window.setTimeout(() => {
+                    setOpenRoom(null);
+                    setRefreshTick((t) => t + 1);
+                    if (next) launchRoom(next);
+                  }, 520),
+                );
+              }}
+            />
+          ) : openRoom.key === "underPressure" ? (
+            <NewA1M3UnderPressureView
+              embedded
+              onComplete={() => {
+                // After the last animal, route to Own It (Seal · Ship 5).
+                // Own It body isn't shipped yet, so the existing veil
+                // fail-safe in launchRoom dismisses back to hub.
+                const next = M3_ROOMS.find((r) => r.key === "ownIt");
                 setRoomOpen(false);
                 timeoutsRef.current.push(
                   window.setTimeout(() => {
@@ -32880,6 +32957,435 @@ function NewA1M3ShapeView({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── M3 · Step 3 · Under Pressure ───
+// One-animal-at-a-time. For each cluster in sequence, shows the creature
+// header + per-gift "gift → shadow chips" rows + a shadow story textarea.
+// Mind/Heart gifts get 4 suggested shadows from SHADOW_LIBRARY; Spine /
+// Spark / Hands render the same row skeleton but with only `+ add` (the
+// "library coverage hidden" pattern from the spec). Custom shadow words
+// are first-class — flaggable as primary just like library chips.
+function NewA1M3UnderPressureView({
+  embedded = false,
+  onComplete,
+}: {
+  embedded?: boolean;
+  onComplete: () => void;
+}) {
+  const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
+  const clusters = state.clusters;
+
+  // Resume on first cluster whose validation isn't satisfied; if all are
+  // already complete, land on the last one (allows the user to revise).
+  const isClusterValid = useCallback(
+    (c: Cluster) =>
+      c.giftIds.every((gid) => {
+        const sh = state.shadows[gid];
+        return !!sh && sh.pickedShadows.length > 0 && sh.primaryShadow != null;
+      }),
+    [state.shadows],
+  );
+  const [activeIdx, setActiveIdx] = useState<number>(() => {
+    if (clusters.length === 0) return 0;
+    const firstIncomplete = clusters.findIndex(
+      (c) =>
+        !c.giftIds.every((gid) => {
+          const sh = state.shadows[gid];
+          return !!sh && sh.pickedShadows.length > 0 && sh.primaryShadow != null;
+        }),
+    );
+    return firstIncomplete === -1 ? clusters.length - 1 : firstIncomplete;
+  });
+
+  // Debounced 500ms save with unmount flush (mirrors ShapeView pattern).
+  const firstRun = useRef(true);
+  const latestRef = useRef(state);
+  const pendingRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
+  const flush = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (!pendingRef.current) return;
+    pendingRef.current = false;
+    const cur = (loadDataSync(KEYS.map) as any) || {};
+    saveData(KEYS.map, { ...cur, mirror3: latestRef.current });
+  }, []);
+  useEffect(() => {
+    latestRef.current = state;
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    pendingRef.current = true;
+    if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(flush, 500);
+  }, [state, flush]);
+  useEffect(() => () => flush(), [flush]);
+
+  // `+ add` per-gift input state: { [giftId]: currentText | null }
+  const [adding, setAdding] = useState<Record<string, string | null>>({});
+
+  // Track last-tap per chip to implement tap-twice → primary (within 400ms).
+  const tapLogRef = useRef<Record<string, number>>({});
+
+  // Long-press timing + pointer dedupe (defined before any early return so
+  // hook ordering stays stable across all render paths).
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressFiredRef = useRef(false);
+
+  if (clusters.length === 0) {
+    return (
+      <div className={`m3-under ${embedded ? "is-embedded" : ""}`}>
+        <p
+          style={{
+            fontFamily: "var(--na1-serif)",
+            fontStyle: "italic",
+            color: "var(--na1-text-mute)",
+            textAlign: "center",
+            padding: 40,
+          }}
+        >
+          Shape your clusters in Animals as Anchors first — then come back
+          here to meet them under pressure.
+        </p>
+      </div>
+    );
+  }
+
+  const active = clusters[activeIdx];
+  const giftById: Record<string, PickedGift> = {};
+  for (const g of state.pickedGifts) giftById[g.id] = g;
+
+  const getShadow = (giftId: string): ShadowsForGift => {
+    return (
+      state.shadows[giftId] || {
+        pickedShadows: [],
+        primaryShadow: null,
+        customShadows: [],
+      }
+    );
+  };
+
+  const updateShadow = (giftId: string, patch: Partial<ShadowsForGift>) => {
+    setState((s) => {
+      const prev: ShadowsForGift = s.shadows[giftId] || {
+        pickedShadows: [],
+        primaryShadow: null,
+        customShadows: [],
+      };
+      return {
+        ...s,
+        shadows: { ...s.shadows, [giftId]: { ...prev, ...patch } },
+      };
+    });
+  };
+
+  const toggleChip = (giftId: string, word: string) => {
+    const sh = getShadow(giftId);
+    const picked = sh.pickedShadows.includes(word);
+    const tapKey = `${giftId}::${word}`;
+    const now = Date.now();
+    const prevTap = tapLogRef.current[tapKey] || 0;
+    const isDoubleTap = picked && now - prevTap < 400;
+    tapLogRef.current[tapKey] = now;
+
+    if (isDoubleTap) {
+      // Promote/demote primary on already-picked chip.
+      updateShadow(giftId, {
+        primaryShadow: sh.primaryShadow === word ? null : word,
+      });
+      return;
+    }
+
+    if (picked) {
+      // Single-tap on an already-picked chip removes it; clear primary if
+      // it was the primary.
+      updateShadow(giftId, {
+        pickedShadows: sh.pickedShadows.filter((w) => w !== word),
+        primaryShadow: sh.primaryShadow === word ? null : sh.primaryShadow,
+        customShadows: sh.customShadows.filter((w) => w !== word),
+      });
+    } else {
+      // First pick: also auto-flag primary if nothing's primary yet (spec
+      // says "exactly 1 primary" — owner can always tap-twice to move it).
+      const nextPicked = [...sh.pickedShadows, word];
+      updateShadow(giftId, {
+        pickedShadows: nextPicked,
+        primaryShadow: sh.primaryShadow ?? word,
+      });
+    }
+  };
+
+  const handlePressStart = (giftId: string, word: string) => {
+    longPressFiredRef.current = false;
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+    }
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressFiredRef.current = true;
+      const sh = getShadow(giftId);
+      // Long-press picks if not picked, then promotes to primary.
+      const nextPicked = sh.pickedShadows.includes(word)
+        ? sh.pickedShadows
+        : [...sh.pickedShadows, word];
+      updateShadow(giftId, {
+        pickedShadows: nextPicked,
+        primaryShadow: word,
+      });
+    }, 500);
+  };
+  const handlePressEnd = (giftId: string, word: string) => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (longPressFiredRef.current) {
+      longPressFiredRef.current = false;
+      return;
+    }
+    toggleChip(giftId, word);
+  };
+  const handlePressCancel = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    longPressFiredRef.current = false;
+  };
+
+  const commitAdd = (giftId: string) => {
+    const raw = (adding[giftId] || "").trim();
+    if (!raw) {
+      setAdding((a) => ({ ...a, [giftId]: null }));
+      return;
+    }
+    const sh = getShadow(giftId);
+    if (sh.pickedShadows.includes(raw)) {
+      setAdding((a) => ({ ...a, [giftId]: null }));
+      return;
+    }
+    updateShadow(giftId, {
+      pickedShadows: [...sh.pickedShadows, raw],
+      customShadows: [...sh.customShadows, raw],
+      primaryShadow: sh.primaryShadow ?? raw,
+    });
+    setAdding((a) => ({ ...a, [giftId]: null }));
+  };
+
+  const setStory = (clusterId: string, text: string) => {
+    setState((s) => ({
+      ...s,
+      shadowStories: { ...s.shadowStories, [clusterId]: text },
+    }));
+  };
+
+  const activeValid = isClusterValid(active);
+  const isLast = activeIdx === clusters.length - 1;
+  const nextName = isLast ? null : clusters[activeIdx + 1].animal || "next";
+  const ctaLabel = isLast
+    ? "Continue to Own It →"
+    : `Continue to ${nextName} →`;
+
+  const handleCta = () => {
+    flush();
+    if (isLast) {
+      onComplete();
+    } else {
+      setActiveIdx((i) => i + 1);
+      // Scroll the new card into view next tick.
+      window.setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 0);
+    }
+  };
+
+  const versionLabel = [active.descriptorWord1, active.descriptorWord2, active.animal]
+    .filter((s) => s.trim() !== "")
+    .join(" ");
+
+  return (
+    <div className={`m3-under ${embedded ? "is-embedded" : ""}`}>
+      <span className="m3-under-eyebrow">
+        Mirror 3 of 4 · Step 3 · Under Pressure
+      </span>
+      <div className="m3-under-pip-bar" role="tablist" aria-label="Animals progress">
+        {clusters.map((c, i) => {
+          const done = isClusterValid(c);
+          const cls =
+            i === activeIdx
+              ? "m3-under-pip is-active"
+              : done
+                ? "m3-under-pip is-done"
+                : "m3-under-pip";
+          return (
+            <button
+              key={c.id}
+              type="button"
+              className={cls}
+              onClick={() => {
+                flush();
+                setActiveIdx(i);
+              }}
+              role="tab"
+              aria-selected={i === activeIdx}
+              style={{ cursor: "pointer" }}
+            >
+              <span className="m3-under-pip-dot" aria-hidden />
+              {(c.animal || "Animal")} · {i + 1} of {clusters.length}
+            </button>
+          );
+        })}
+      </div>
+      <div className="m3-under-card">
+        <div className="m3-under-head">
+          <h2 className="m3-under-creature">
+            <span aria-hidden>{active.animalEmoji}</span>
+            {active.animal || "Unnamed"}
+          </h2>
+          {versionLabel.trim() !== "" && (
+            <p className="m3-under-version">{versionLabel}</p>
+          )}
+        </div>
+        <p className="m3-under-primary-hint">
+          Tap a shadow chip to pick it · tap twice (or long-press) to mark the
+          one that shows up most.
+        </p>
+        <div className="m3-under-gift-rows">
+          {active.giftIds.map((gid) => {
+            const gift = giftById[gid];
+            if (!gift) return null;
+            const sh = getShadow(gid);
+            const themeHasLib = SHADOWS_AVAILABLE[gift.theme];
+            const lib = themeHasLib
+              ? (SHADOW_LIBRARY[gift.label] || []).slice(0, 4)
+              : [];
+            // Render order: library suggestions first (4 max), then any
+            // custom adds the user already saved that aren't in `lib`.
+            const renderedWords = [
+              ...lib,
+              ...sh.pickedShadows.filter(
+                (w) => !lib.includes(w),
+              ),
+            ];
+            return (
+              <div key={gid} className="m3-under-row">
+                <div className="m3-under-gift-chip" title={gift.label}>
+                  {gift.label}
+                </div>
+                <div className="m3-under-arrow" aria-hidden>
+                  →
+                </div>
+                <div className="m3-under-shadow-bin">
+                  {renderedWords.map((word) => {
+                    const isPicked = sh.pickedShadows.includes(word);
+                    const isPrimary = sh.primaryShadow === word;
+                    const cls = [
+                      "m3-under-shadow-chip",
+                      isPicked && "is-picked",
+                      isPrimary && "is-primary",
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+                    return (
+                      <button
+                        key={word}
+                        type="button"
+                        className={cls}
+                        onPointerDown={(e) => {
+                          // Only the primary button on mouse/pen; touch
+                          // events have no button concept and pass through.
+                          if (e.pointerType === "mouse" && e.button !== 0) return;
+                          handlePressStart(gid, word);
+                        }}
+                        onPointerUp={(e) => {
+                          if (e.pointerType === "mouse" && e.button !== 0) return;
+                          handlePressEnd(gid, word);
+                        }}
+                        onPointerCancel={handlePressCancel}
+                        onPointerLeave={handlePressCancel}
+                        aria-pressed={isPicked}
+                        title={
+                          isPrimary
+                            ? "Primary shadow · tap twice to unmark"
+                            : isPicked
+                              ? "Picked · tap twice to mark as primary"
+                              : "Tap to pick"
+                        }
+                      >
+                        {word}
+                      </button>
+                    );
+                  })}
+                  {adding[gid] != null ? (
+                    <input
+                      autoFocus
+                      className="m3-under-add-input"
+                      value={adding[gid] || ""}
+                      onChange={(e) =>
+                        setAdding((a) => ({ ...a, [gid]: e.target.value }))
+                      }
+                      onBlur={() => commitAdd(gid)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          commitAdd(gid);
+                        } else if (e.key === "Escape") {
+                          setAdding((a) => ({ ...a, [gid]: null }));
+                        }
+                      }}
+                      placeholder="your word"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="m3-under-add-btn"
+                      onClick={() => setAdding((a) => ({ ...a, [gid]: "" }))}
+                    >
+                      + add
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="m3-under-story">
+          <label className="m3-under-story-label" htmlFor={`story-${active.id}`}>
+            When the {active.animal || "creature"} goes shadow — what does it
+            actually look like in your life?
+          </label>
+          <textarea
+            id={`story-${active.id}`}
+            className="m3-under-story-text"
+            value={state.shadowStories[active.id] || ""}
+            onChange={(e) => setStory(active.id, e.target.value)}
+            placeholder="Optional · a few sentences if you want."
+            rows={3}
+          />
+          <span className="m3-under-story-meta">
+            {(state.shadowStories[active.id] || "").length} chars
+            {(state.shadowStories[active.id] || "").length < 30
+              ? " · 30+ suggested"
+              : ""}
+          </span>
+        </div>
+      </div>
+      <div className="m3-under-actions">
+        <button
+          type="button"
+          className="m3-under-cta"
+          disabled={!activeValid}
+          onClick={handleCta}
+          aria-label={ctaLabel}
+        >
+          {ctaLabel}
+        </button>
+      </div>
     </div>
   );
 }

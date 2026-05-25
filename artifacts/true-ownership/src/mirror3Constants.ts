@@ -258,7 +258,7 @@ export const M3_ROOMS: ReadonlyArray<{
 }> = [
   { n: 1, key: "yourGifts",     name: "Your Gifts",          tone: "burgundy", threshold: M3_VEIL_TEXT.yourGifts,     bodyShipped: true  },
   { n: 2, key: "animals",       name: "Animals as Anchors",  tone: "gold",     threshold: M3_VEIL_TEXT.animals,       bodyShipped: true  },
-  { n: 3, key: "underPressure", name: "Under Pressure",      tone: "burgundy", threshold: M3_VEIL_TEXT.underPressure, bodyShipped: false },
+  { n: 3, key: "underPressure", name: "Under Pressure",      tone: "burgundy", threshold: M3_VEIL_TEXT.underPressure, bodyShipped: true  },
   { n: 4, key: "ownIt",         name: "Own It",              tone: "silver",   threshold: M3_VEIL_TEXT.ownIt,         bodyShipped: false },
 ];
 
