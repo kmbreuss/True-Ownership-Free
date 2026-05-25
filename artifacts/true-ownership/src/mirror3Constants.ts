@@ -145,6 +145,23 @@ export const EMOJI_BY_ANIMAL: Record<string, string> = (() => {
   return out;
 })();
 
+// Ship 5.5c · pronoun lookup for the Own It seal headers + "in {pronoun}
+// shadow / IN {PRONOUN} POWER". Conservative principle: only assign
+// gendered pronouns to animals whose names unambiguously signal gender in
+// the locked 31-animal library. Lion/Stag → his · Lioness/Doe → her ·
+// everyone else → its. All custom (✨) creatures also default to "its".
+// Owner can refine via the map below if a creature feels mis-gendered.
+export type Pronoun = "his" | "her" | "its";
+export const ANIMAL_PRONOUN: Record<string, Pronoun> = {
+  Lion: "his",
+  Stag: "his",
+  Lioness: "her",
+  Doe: "her",
+};
+export function getAnimalPronoun(animal: string): Pronoun {
+  return ANIMAL_PRONOUN[animal] ?? "its";
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Cluster archetype library · LOCKED · 24 archetypes
 // ─────────────────────────────────────────────────────────────────────────────

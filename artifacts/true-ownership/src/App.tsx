@@ -70,6 +70,8 @@ import {
   EMPTY_SUPERPOWER,
   getSuperpower,
   isSuperpowerFilled,
+  getAnimalPronoun,
+  type Pronoun,
 } from "./mirror3Constants";
 const KEYS = {
   map: "to_map",
@@ -1039,21 +1041,67 @@ html[data-theme="light"]{
 .na2-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold); border:1px solid var(--gold); border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
 .na2-decl-cer-cta:hover{ background:var(--gold-soft); }
 .na2-decl-cer-cta:active{ transform:translateY(1px); }
-/* Ship 5 · M3 Own It (Seal) — per-cluster triptych + Big Claim. Sits on top
-   of the .na2-decl shell so it inherits the readback/ceremony/burst chrome. */
-.m3-own-block{ margin:24px 0 8px; padding:18px 20px; border:1px solid var(--na1-border); border-radius:14px; background:var(--gold-warm); }
-.m3-own-cluster-name{ margin:0 0 10px; font-family:var(--na1-serif); font-size:20px; line-height:1.3; color:var(--na1-text); }
-.m3-own-power{ margin:6px 0; font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.5; color:var(--gold); }
-.m3-own-shadow{ margin:6px 0; font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.5; color:var(--burgundy); }
-.m3-own-held{ margin:10px 0 0; font-family:var(--na1-serif); font-style:italic; font-size:16px; line-height:1.5; background:linear-gradient(90deg, var(--gold), var(--burgundy)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.m3-own-bigclaim{ margin:18px 0 4px; padding:20px 22px; border:1px solid var(--gold-line); border-radius:14px; background:var(--gold-soft); text-align:left; }
-.m3-own-bigclaim-eyebrow{ font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:0.22em; color:var(--gold); text-transform:uppercase; margin-bottom:10px; }
-.m3-own-final{ margin:14px 0 0; font-family:var(--na1-serif); font-size:20px; line-height:1.4; color:var(--gold); font-weight:500; }
-@media (max-width:720px){
-  .m3-own-block{ padding:14px 16px; }
-  .m3-own-cluster-name{ font-size:18px; }
-  .m3-own-power, .m3-own-shadow, .m3-own-held{ font-size:15.5px; }
-  .m3-own-final{ font-size:18px; }
+/* Ship 5.5c · M3 Own It seal — per-creature triptych (Power card · pairing
+   grid · Shadow card) + closing Big Claim. Replaces the old .m3-own-*
+   readback. Sits on top of the .na2-decl shell so it inherits the
+   readback/ceremony/burst chrome. The matched-pair principle: Power and
+   Shadow sentence cards share padding (16px/22px), border weight (1px),
+   and label-then-body internal layout — only the tint + label glyph
+   differ so they read as siblings flanking the pairing grid. */
+.m3-seal-subhead{ font-family:var(--na1-serif); font-style:italic; font-size:18px; line-height:1.55; text-align:center; max-width:620px; margin:6px auto 32px; color:var(--na1-text-sec); }
+.m3-seal-subhead .count{ font-style:normal; font-weight:600; color:var(--gold); }
+.m3-seal-revisit-banner{ font-family:var(--na1-serif); font-style:italic; font-size:14px; line-height:1.5; color:var(--gold); text-align:center; padding:10px 16px; margin:0 auto 20px; max-width:560px; border-top:1px solid var(--gold-line); border-bottom:1px solid var(--gold-line); }
+.m3-seal-cluster{ background:var(--na1-bg-deeper, rgba(0,0,0,0.18)); border:1px solid var(--gold-line); border-radius:12px; padding:32px; margin:0 0 22px; }
+.m3-seal-creature-name{ font-family:var(--na1-serif); font-style:italic; font-size:26px; font-weight:500; color:var(--gold); text-align:center; margin:0 0 4px; line-height:1.2; }
+.m3-seal-creature-sublabel{ font-family:var(--na1-sans); font-size:11px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:var(--na1-text-faint, rgba(232,226,211,0.4)); text-align:center; margin:0 0 28px; }
+.m3-seal-sentence-card{ border-radius:8px; padding:16px 22px; text-align:center; }
+.m3-seal-sentence-card.is-power{ background:var(--gold-warm); border:1px solid var(--gold-line); margin:0 0 24px; }
+.m3-seal-sentence-card.is-shadow{ background:var(--burgundy-soft); border:1px solid var(--burgundy-line); margin:24px 0 0; }
+.m3-seal-sentence-label{ font-family:var(--na1-sans); font-size:10px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; margin:0 0 8px; }
+.m3-seal-sentence-card.is-power .m3-seal-sentence-label{ color:var(--gold); opacity:0.7; }
+.m3-seal-sentence-card.is-shadow .m3-seal-sentence-label{ color:var(--burgundy); opacity:0.8; }
+.m3-seal-sentence-card.is-power .m3-seal-sentence-label::before{ content:"★ "; color:var(--gold); opacity:1; }
+.m3-seal-sentence-card.is-shadow .m3-seal-sentence-label::before{ content:"● "; color:var(--burgundy); opacity:1; }
+.m3-seal-sentence-text{ font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.6; margin:0; }
+.m3-seal-sentence-card.is-power .m3-seal-sentence-text{ color:#DCB860; }
+.m3-seal-sentence-card.is-shadow .m3-seal-sentence-text{ color:var(--burgundy); }
+.m3-seal-sentence-text.is-empty{ color:var(--na1-text-faint, rgba(232,226,211,0.45)); opacity:0.7; }
+.m3-seal-pairing{ display:grid; grid-template-columns:1fr 50px 1fr; gap:0; align-items:center; }
+.m3-seal-pair-header{ padding:0 0 14px; font-family:var(--na1-sans); font-size:11px; }
+.m3-seal-pair-header.is-shadow{ text-align:right; color:var(--burgundy); opacity:0.75; font-style:italic; text-transform:lowercase; letter-spacing:0.05em; }
+.m3-seal-pair-header.is-power{ text-align:left; color:var(--gold); text-transform:uppercase; font-weight:700; letter-spacing:0.2em; }
+.m3-seal-pair-spacer{ }
+.m3-seal-pair-shadow{ text-align:right; padding:6px 0; }
+.m3-seal-pair-arrow{ text-align:center; color:var(--gold); opacity:0.6; font-size:18px; padding:6px 0; }
+.m3-seal-pair-power{ text-align:left; padding:6px 0; }
+.m3-seal-chip-shadow{ display:inline-block; background:var(--burgundy-soft); color:var(--burgundy); border:1px solid var(--burgundy-line); padding:6px 14px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; font-weight:500; }
+.m3-seal-chip-shadow.is-empty{ background:transparent; border-style:dashed; opacity:0.6; font-style:italic; }
+.m3-seal-chip-gift{ display:inline-block; background:var(--gold); color:#1a1407; padding:8px 18px; border-radius:100px; font-family:var(--na1-sans); font-size:15px; font-weight:700; }
+.m3-seal-chip-gift.is-emerging{ background:transparent; color:var(--gold); border:1px solid var(--gold); padding:7px 17px; }
+.m3-seal-bigclaim-divider{ display:flex; align-items:center; gap:16px; margin:36px 0 28px; }
+.m3-seal-bigclaim-divider::before,
+.m3-seal-bigclaim-divider::after{ content:""; flex:1; height:1px; background:var(--gold-line); }
+.m3-seal-bigclaim-divider .star{ color:var(--gold); font-size:16px; }
+.m3-seal-bigclaim{ background:var(--na1-bg-deeper, rgba(0,0,0,0.18)); border:1px solid rgba(201,168,75,0.4); border-radius:12px; padding:32px; margin:0; }
+.m3-seal-bigclaim-label{ font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold); text-align:center; margin:0 0 20px; }
+.m3-seal-bigclaim-power{ font-family:var(--na1-serif); font-style:italic; font-size:21px; font-weight:600; color:#DCB860; line-height:1.55; text-align:center; margin:0 0 14px; }
+.m3-seal-bigclaim-shadow{ font-family:var(--na1-serif); font-style:italic; font-size:17px; color:var(--burgundy); line-height:1.55; text-align:center; margin:0 0 22px; }
+.m3-seal-bigclaim-final{ font-family:var(--na1-serif); font-size:22px; font-weight:600; color:var(--gold); line-height:1.5; text-align:center; padding-top:14px; border-top:1px solid rgba(201,168,75,0.2); margin:0; }
+@media (max-width:600px){
+  .m3-seal-cluster{ padding:22px 18px; }
+  .m3-seal-bigclaim{ padding:22px 18px; }
+  .m3-seal-creature-name{ font-size:22px; }
+  .m3-seal-sentence-text{ font-size:15.5px; }
+  .m3-seal-bigclaim-power{ font-size:19px; }
+  .m3-seal-bigclaim-shadow{ font-size:15.5px; }
+  .m3-seal-bigclaim-final{ font-size:19px; }
+  /* Collapse the 3-col pairing to a stacked layout: shadow row → arrow row → gift row */
+  .m3-seal-pairing{ grid-template-columns:1fr; gap:0; }
+  .m3-seal-pair-header.is-shadow, .m3-seal-pair-header.is-power{ text-align:center; padding-bottom:8px; }
+  .m3-seal-pair-header.is-power{ padding-top:14px; }
+  .m3-seal-pair-spacer{ display:none; }
+  .m3-seal-pair-shadow, .m3-seal-pair-arrow, .m3-seal-pair-power{ text-align:center; padding:4px 0; }
+  .m3-seal-pair-arrow{ transform:rotate(90deg); padding:2px 0; }
 }
 /* Inline-editable user blanks in edit-anytime mode. Click the italic span →
    it swaps to an inline textarea with the same value; blur commits + swaps
@@ -32515,6 +32563,65 @@ function m3ClusterPrimaryShadow(
   return "";
 }
 
+// Ship 5.5c · per-gift primary shadow word for the Own It pairing grid.
+// Returns the user's flagged primary shadow if set, otherwise the first
+// picked shadow as fallback, otherwise empty (caller renders a faint
+// "(no shadow picked)" placeholder chip).
+function m3GiftPrimaryShadow(
+  giftId: string,
+  shadows: Record<string, ShadowsForGift>,
+): string {
+  const sh = shadows[giftId];
+  if (!sh) return "";
+  if (sh.primaryShadow && sh.primaryShadow.trim()) return sh.primaryShadow.trim();
+  if (sh.pickedShadows && sh.pickedShadows.length > 0) {
+    const first = sh.pickedShadows[0];
+    if (first && first.trim()) return first.trim();
+  }
+  return "";
+}
+
+// Ship 5.5c · compose the per-cluster Power sentence from the user's
+// Superpower blanks. Mirrors m3ComposeShadowLine's partial-fill
+// tolerance: returns empty string when all 3 blanks are empty so the
+// caller can render the faint "(unwritten — finish in Superpowers)"
+// placeholder. Stem matches the locked Superpowers sentence shape so
+// the seal reads back exactly what the user wrote.
+function m3ComposePowerLine(s: SuperpowerSentence, animal: string): string {
+  const b1 = s.blank1.trim();
+  const b2 = s.blank2.trim();
+  const b3 = s.blank3.trim();
+  if (!b1 && !b2 && !b3) return "";
+  const animalLower = (animal || "creature").trim().toLowerCase() || "creature";
+  const parts = [b1, b2, b3].filter((p) => p !== "");
+  // Oxford-comma-join the filled blanks; partial-fill still reads naturally.
+  let joined: string;
+  if (parts.length === 1) joined = parts[0];
+  else if (parts.length === 2) joined = `${parts[0]}, and ${parts[1]}`;
+  else joined = `${parts[0]}, ${parts[1]}, and ${parts[2]}`;
+  return `In my power, the ${animalLower} ${joined}.`;
+}
+
+// Ship 5.5c · variable-count subhead copy for the Own It seal. Spelled-out
+// number word + singular ("It carries / It has") vs plural ("Each carries /
+// Each has") grammar per the locked spec. The returned countWord is
+// rendered bold gold non-italic; rest is muted serif italic.
+function m3SubheadCount(n: number): { countWord: string; copy: string } {
+  const WORD: Record<number, string> = {
+    1: "One creature.",
+    2: "Two creatures.",
+    3: "Three creatures.",
+    4: "Four creatures.",
+    5: "Five creatures.",
+  };
+  const countWord = WORD[n] ?? `${n} creatures.`;
+  const copy =
+    n === 1
+      ? " It carries gifts in you. It has a shadow. Your gifts are who you are — your shadow is what to watch."
+      : " Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch.";
+  return { countWord, copy };
+}
+
 function NewA1M3OwnItView({
   embedded = false,
   onContinueToValues,
@@ -32631,7 +32738,7 @@ function NewA1M3OwnItView({
   const isFading = mode !== "readback";
 
   return (
-    <div className={`na2-decl m3-own ${embedded ? "is-embedded" : ""}`}>
+    <div className={`na2-decl m3-seal ${embedded ? "is-embedded" : ""}`}>
       {showBurst &&
         createPortal(
           <div className="na2-silver-burst" aria-hidden>
@@ -32639,29 +32746,26 @@ function NewA1M3OwnItView({
           </div>,
           document.body,
         )}
-      {/* ── Read-back / claim state ── */}
+      {/* ── Read-back / claim state · Ship 5.5c triptych ── */}
       <div
         className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
-        {editMode && (
-          <div className="na2-decl-edit-banner">
-            ★ You've claimed your Identity. The seal stays — you can refine
-            any line, then re-claim.
-          </div>
-        )}
         <div className="na2-decl-eyebrow">Mirror 3 of 4 · Step 5 · Own It</div>
         <h2 className="na2-decl-title">Own it</h2>
-        <p
-          className="na2-decl-subtitle"
-          style={{
-            fontFamily: "var(--na1-serif)",
-            fontStyle: "italic",
-            color: "var(--gold)",
-            textAlign: "center",
-          }}
-        >
-          Both are mine. Owning both is how I come home.
-        </p>
+        {editMode && (
+          <div className="m3-seal-revisit-banner">
+            ★ You've claimed your Identity. The seal stays.
+          </div>
+        )}
+        {(() => {
+          const { countWord, copy } = m3SubheadCount(clusters.length);
+          return (
+            <p className="m3-seal-subhead">
+              <span className="count">{countWord}</span>
+              {copy}
+            </p>
+          );
+        })()}
 
         {clusters.length === 0 && (
           <p
@@ -32673,49 +32777,135 @@ function NewA1M3OwnItView({
         )}
 
         {clusters.map((c) => {
-          const creature = m3CreatureWithDescriptors(c);
-          const powerLine = creature
-            ? `In my power, I am the ${creature}.`
-            : "";
-          const shadowLine = m3ComposeShadowLine(
-            m3NormalizeShadowSentence(state.shadowStories[c.id]),
+          const creature = m3CreatureWithDescriptors(c) || "(unnamed creature)";
+          const sublabel = (c.name || "").trim();
+          const animal = (c.animal || "").trim();
+          const pronoun: Pronoun = getAnimalPronoun(animal);
+          const sup = getSuperpower(c);
+          const powerLine = m3ComposePowerLine(sup, animal);
+          const shadowSentence = m3NormalizeShadowSentence(
+            state.shadowStories[c.id],
           );
+          const shadowLine = m3ComposeShadowLine(shadowSentence);
+          // Gifts in this cluster, in the order the user placed them.
+          const giftRows = c.giftIds
+            .map((gid) => {
+              const g = state.pickedGifts.find((p) => p.id === gid);
+              if (!g) return null;
+              return {
+                id: gid,
+                label: g.label,
+                state: g.state,
+                shadow: m3GiftPrimaryShadow(gid, state.shadows),
+              };
+            })
+            .filter((r): r is NonNullable<typeof r> => r !== null);
           return (
-            <div key={c.id} className="m3-own-block">
-              <h3 className="m3-own-cluster-name">
-                {c.name.trim() || "(unnamed cluster)"}
-              </h3>
-              {powerLine && (
-                <p className="m3-own-power">{powerLine}</p>
+            <div key={c.id} className="m3-seal-cluster">
+              <h3 className="m3-seal-creature-name">{creature}</h3>
+              {sublabel && (
+                <div className="m3-seal-creature-sublabel">{sublabel}</div>
               )}
-              {shadowLine && (
-                <p className="m3-own-shadow">Under pressure, I {shadowLine}</p>
+
+              {/* Power card — gold, sits above the pairing grid */}
+              <div className="m3-seal-sentence-card is-power">
+                <div className="m3-seal-sentence-label">
+                  in {pronoun} power
+                </div>
+                {powerLine ? (
+                  <p className="m3-seal-sentence-text">{powerLine}</p>
+                ) : (
+                  <p className="m3-seal-sentence-text is-empty">
+                    (unwritten — finish in Superpowers)
+                  </p>
+                )}
+              </div>
+
+              {/* Pairing grid — shadow chips ← arrow ← gift chips */}
+              {giftRows.length > 0 && (
+                <div className="m3-seal-pairing">
+                  <div className="m3-seal-pair-header is-shadow">
+                    when pushed…
+                  </div>
+                  <div className="m3-seal-pair-spacer" aria-hidden />
+                  <div className="m3-seal-pair-header is-power">
+                    THE GIFT
+                  </div>
+                  {giftRows.map((r) => (
+                    <React.Fragment key={r.id}>
+                      <div className="m3-seal-pair-shadow">
+                        {r.shadow ? (
+                          <span className="m3-seal-chip-shadow">
+                            {r.shadow}
+                          </span>
+                        ) : (
+                          <span className="m3-seal-chip-shadow is-empty">
+                            no shadow picked
+                          </span>
+                        )}
+                      </div>
+                      <div className="m3-seal-pair-arrow" aria-hidden>
+                        ←
+                      </div>
+                      <div className="m3-seal-pair-power">
+                        <span
+                          className={`m3-seal-chip-gift${r.state === "emerging" ? " is-emerging" : ""}`}
+                        >
+                          {r.state === "emerging" ? `✦ ${r.label}` : r.label}
+                        </span>
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </div>
               )}
-              <p className="m3-own-held">{SEAL_CLOSING_LINE.split(".")[0]}.</p>
+
+              {/* Shadow card — burgundy, sits below the pairing grid */}
+              <div className="m3-seal-sentence-card is-shadow">
+                <div className="m3-seal-sentence-label">
+                  in {pronoun} shadow
+                </div>
+                {shadowLine ? (
+                  <p className="m3-seal-sentence-text">
+                    Under pressure, I {shadowLine}
+                  </p>
+                ) : (
+                  <p className="m3-seal-sentence-text is-empty">
+                    (unwritten — finish in Under Pressure)
+                  </p>
+                )}
+              </div>
             </div>
           );
         })}
 
         {(bigPower || bigShadow) && (
-          <div className="na2-decl-divider">
-            <div className="rule" />
-            <span>★</span>
-            <div className="rule" />
-          </div>
-        )}
-
-        {(bigPower || bigShadow) && (
-          <div className="m3-own-bigclaim">
-            <div className="m3-own-bigclaim-eyebrow">The Big Claim</div>
-            {bigPower && <p className="m3-own-power">{bigPower}</p>}
-            {bigShadow && <p className="m3-own-shadow">{bigShadow}</p>}
-            <p className="m3-own-final">{SEAL_CLOSING_LINE}</p>
-          </div>
+          <>
+            <div className="m3-seal-bigclaim-divider" aria-hidden>
+              <span className="star">★</span>
+            </div>
+            <div className="m3-seal-bigclaim">
+              <div className="m3-seal-bigclaim-label">
+                {clusters.length === 1 ? "The Claim" : "The Big Claim"}
+              </div>
+              {bigPower && (
+                <p className="m3-seal-bigclaim-power">{bigPower}</p>
+              )}
+              {bigShadow && (
+                <p className="m3-seal-bigclaim-shadow">{bigShadow}</p>
+              )}
+              <p className="m3-seal-bigclaim-final">{SEAL_CLOSING_LINE}</p>
+            </div>
+          </>
         )}
 
         <div
           className="na1-room-actions"
-          style={{ justifyContent: "center", marginTop: 28 }}
+          style={{
+            justifyContent: "center",
+            marginTop: 28,
+            gap: 12,
+            flexWrap: "wrap",
+          }}
         >
           <button
             type="button"
@@ -32725,6 +32915,16 @@ function NewA1M3OwnItView({
           >
             {editMode ? "★ Re-claim my Identity" : "★ Own it"}
           </button>
+          {editMode && (
+            <button
+              type="button"
+              className="na2-decl-cer-cta"
+              onClick={handleContinueToValues}
+              disabled={working}
+            >
+              Continue to Values →
+            </button>
+          )}
         </div>
         {!editMode && (
           <p className="na2-decl-footnote">
