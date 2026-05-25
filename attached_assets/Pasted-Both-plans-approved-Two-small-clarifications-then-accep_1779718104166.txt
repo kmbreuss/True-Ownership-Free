@@ -1,0 +1,11 @@
+Both plans approved. Two small clarifications, then accept both tasks in order.
+Ship 5.5c.1 — Collapsible Cards:
+One ambiguity on Step 4 worth resolving up front. "Conditionally render OR display:none + height transition" are meaningfully different — conditional render (unmount) can't animate, display:none doesn't transition, and a real expand/collapse animation needs max-height or a height-auto pattern. Pick whichever feels cleanest in your stack, but commit to ONE approach and make sure the ~200ms ease-out actually plays. If the animation looks janky at demo, that's the likely cause.
+Also: per-cluster state should be keyed by cluster ID, not array index. Agent's proposed shape { collapsed: Record<clusterId, boolean> } already does this — just confirming. Reason: if user adds/removes a cluster on Superpowers between Own It visits, the collapse state survives correctly.
+Proceed when accepted.
+Ship 5.5d — Personalization Audit:
+One clarification on Phase 1 scope before you grep: filter to user-visible strings only. Component JSX, rendered copy, button labels, toast/banner text, page titles. Exclude code comments, variable names (e.g. userId, userPrefs), TypeScript types (User, UserState), backend schema field names, dev artifacts, and error messages that aren't shown to users. Otherwise the classification list will be hundreds of lines and we'll waste cycles ruling out non-issues.
+For Phase 1 deliverable format, please surface the classification list as a markdown table or structured list with three columns:
+| file:line | context excerpt (the surrounding 1-2 lines so I can see what the string is doing) | proposed action (your recommendation: replace-with-name / replace-with-"you" / leave-as-is) |
+I'll go through the list with Claude and mark each one. Stop at Phase 1 for that classification pass — don't auto-swap anything.
+Same stop discipline on both ships. Demo at each gate before the next phase / next ship begins. 5.5c.1 demo → owner sign-off → 5.5d Phase 1 → owner classification → Phase 2 → Phase 3 → final demo → Mirror 3 done.
