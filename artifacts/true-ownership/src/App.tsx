@@ -31609,10 +31609,15 @@ function NewA2RoomPlaceholderBody({
 function NewA1View({ name }: { name?: string }) {
   const [view, setView] = useState<"grid" | "explore" | "explore2" | "m3">(
     () => {
-      // If the user already started Mirror 3, drop them straight into it.
+      // Auto-resume into M3 ONLY if the user has real M3 progress
+      // (pickedGifts.length > 0). The ?newM3=1 / localStorage flag enables
+      // M3 (unlocks the grid card + wires the Vision-seal Continue button)
+      // but must NOT force-route past the mirror grid on every page load —
+      // otherwise a flagged user can never see Mirrors 1/2 or the grid.
       try {
         const m = (loadDataSync(KEYS.map) as any) || {};
-        if (shouldRouteToM3(m)) return "m3";
+        const picked = m?.mirror3?.pickedGifts;
+        if (Array.isArray(picked) && picked.length > 0) return "m3";
       } catch {}
       return "grid";
     },

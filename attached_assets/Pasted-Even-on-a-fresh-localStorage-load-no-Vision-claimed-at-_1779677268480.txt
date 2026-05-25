@@ -1,0 +1,41 @@
+Even on a fresh-localStorage load (no Vision claimed at all), the app still lands directly on M3 Foundations. That's the leftover issue from before — the URL ?newM3=1 is auto-routing to M3 instead of going to the mirror grid.
+Here's my full read on what Agent did:
+What Agent fixed ✓
+
+Duplicate buttons resolved. DOM now confirms only ONE Continue to Identity → button exists. The footer button (alongside Cancel/Save changes) has been removed. The remaining button lives in the ceremony seal block (na2-decl-ceremony is-on).
+Button placement is correct now. It sits at the END of the full Katherine seal block — gold ★, "Big Ass Goal" / "your Vision" / "Align, Advocate, Act, Account" / "That's how this gets lived" — exactly matching your locked M2 seal pattern.
+The button routes. Clicking it took me to M3 Foundations.
+
+What's still off ⚠️
+
+?newM3=1 URL alone auto-routes you straight to M3 Foundations, bypassing the mirror grid and the Vision flow entirely. That's wrong — the flag should enable M3, not route you to it on every page load. Right now you can never get back to the grid without clicking "Back to mirror grid" because the URL keeps re-routing you.
+I can't fully verify the click handler works from a truly cold state because Vision was never re-claimed after my localStorage clear — I can't navigate through the seal to test the post-claim Continue button on a fresh state.
+
+Paste this back to Agent
+
+Looked at the page personally. Some things you fixed cleanly, one big issue still open:
+✓ Resolved:
+
+One Continue to Identity button only (the footer duplicate is gone)
+The button now sits inside the ceremony seal block (na2-decl-ceremony is-on) at the end of the Katherine seal text — correct placement per the locked M2 spec
+Clicking it routes to M3 Foundations
+
+⚠️ Still broken — ?newM3=1 URL auto-routes past the mirror grid:
+When I load ?newA1=1&newM3=1 on a fresh-localStorage state, the app skips the mirror grid entirely and lands me directly on the M3 Foundations placeholder card. That means a user with the flag set can never see Mirror 1, Mirror 2, or the grid — they're shoved into Mirror 3 instantly on every page load.
+The flag should enable M3 as accessible (unlock the M3 card on the grid + wire the Continue button at the Vision seal). It should NOT force-route to M3 on initial page load. The user's entry point should always be the mirror grid; routing to M3 happens only via (a) clicking the Mirror 3 card or (b) clicking Continue to Identity from the Vision seal.
+Fix:
+
+Remove whatever auto-routing logic sends users directly to M3 on initial page load when the flag is set
+Keep the flag's other behaviors: unlocked M3 card on the grid, working Continue to Identity from Vision seal
+Initial landing with ?newA1=1&newM3=1 should hit the mirror grid (same as ?newA1=1 alone)
+
+Re-demo after fix:
+
+localStorage.clear() in console
+Load ?newA1=1&newM3=1
+Should land on the mirror grid (NOT M3 Foundations)
+Click into Vision → reach the seal → click Continue to Identity → routes to M3 Foundations ✓
+Go back to grid → click Mirror 3 card → routes to M3 Foundations ✓
+Reload the page → lands on mirror grid again (NOT M3) ✓
+
+Ship Gate 1 stays open until that's clean.
