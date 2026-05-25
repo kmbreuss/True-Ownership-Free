@@ -41,6 +41,7 @@ import {
   M1_SEAL_GOLD_PHRASES,
   M1_PURPOSE_TOKEN,
 } from "./mirror1Constants";
+import { EMPTY_MIRROR3 } from "./mirror3Constants";
 const KEYS = {
   map: "to_map",
   done: "to_done",
@@ -24465,6 +24466,9 @@ const EMPTY_MAP = {
   align_behaviors: 5,
   // A1 · Mirror 2 (Vision · 10-Year Horizon) — see src/mirror2Constants.ts for the full shape.
   vision: EMPTY_VISION,
+  // A1 · Mirror 3 (Identity) — see src/mirror3Constants.ts for the full shape.
+  // Round-trips through the existing /api/userdata/map endpoint; no new server keys.
+  mirror3: EMPTY_MIRROR3,
 };
 const MIRROR_CARDS = [
   {
@@ -26910,6 +26914,54 @@ const NEW_A1_FLAG = (() => {
     return false;
   }
 })();
+
+// ─── NEW M3 (?newM3=1) opt-in flag ───
+// Per spec S29 routing logic: the M2 Vision Declaration seal's "Continue to
+// Identity →" button routes to the new Mirror 3 surface when newA1=1 is in
+// the URL AND any of these are true:
+//   • newM3=1 in URL
+//   • newM3 truthy in localStorage (lets owner opt in across reloads without
+//     editing the URL each time)
+//   • mirror3.pickedGifts already has content (so a user who has started M3
+//     keeps using it even if the opt-in token disappears)
+// Once Ship 5 lands and demos on dev, a 5-line follow-up flips this so
+// newA1=1 alone routes to M3 by default.
+// Shared truthy-value coercion so URL + localStorage agree and `?newM3=0`
+// or `?newM3=false` does NOT count as opt-in.
+function isFlagTruthy(v: string | null | undefined): boolean {
+  if (v == null) return false;
+  return v === "1" || v.toLowerCase() === "true";
+}
+const NEW_M3_FLAG_URL = (() => {
+  try {
+    return isFlagTruthy(
+      new URLSearchParams(window.location.search).get("newM3"),
+    );
+  } catch {
+    return false;
+  }
+})();
+const NEW_M3_FLAG_LOCAL = (() => {
+  try {
+    return isFlagTruthy(window.localStorage.getItem("newM3"));
+  } catch {
+    return false;
+  }
+})();
+// If newM3=1 is in the URL with a truthy value, persist the opt-in to
+// localStorage so subsequent reloads (without the query param) still land
+// in M3. Falsy values (`?newM3=0`) do not sticky-enable.
+if (NEW_M3_FLAG_URL) {
+  try {
+    window.localStorage.setItem("newM3", "1");
+  } catch {}
+}
+function shouldRouteToM3(mapState: any): boolean {
+  if (!NEW_A1_FLAG) return false;
+  if (NEW_M3_FLAG_URL || NEW_M3_FLAG_LOCAL) return true;
+  const picked = mapState?.mirror3?.pickedGifts;
+  return Array.isArray(picked) && picked.length > 0;
+}
 
 // ─── NEW A1: Mirror grid (4 cards · Purpose unlocked, BAG/Identity/Values locked) ───
 type NewA1GridM2Progress = {
@@ -30970,10 +31022,16 @@ function NewA2DeclarationBody({
   onSaved,
   onClose,
   onRevise,
+  onContinueToIdentity,
 }: {
   onSaved: () => void;
   onClose: () => void;
   onRevise: () => void;
+  // Optional: when provided, the "Continue to Identity →" button calls this
+  // after persisting `declaration.sealSeen = true` + `complete = true`
+  // instead of falling back to `onSaved` (which just closes the room).
+  // Parent NewA1View uses this to route to Mirror 3 when the M3 flag is on.
+  onContinueToIdentity?: () => void;
 }) {
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
@@ -31120,7 +31178,8 @@ function NewA2DeclarationBody({
         complete: true,
       },
     });
-    onSaved();
+    if (onContinueToIdentity) onContinueToIdentity();
+    else onSaved();
   };
   const handleSaveChanges = async () => {
     if (working) return;
@@ -31469,7 +31528,16 @@ function NewA2RoomPlaceholderBody({
 }
 
 function NewA1View({ name }: { name?: string }) {
-  const [view, setView] = useState<"grid" | "explore" | "explore2">("grid");
+  const [view, setView] = useState<"grid" | "explore" | "explore2" | "m3">(
+    () => {
+      // If the user already started Mirror 3, drop them straight into it.
+      try {
+        const m = (loadDataSync(KEYS.map) as any) || {};
+        if (shouldRouteToM3(m)) return "m3";
+      } catch {}
+      return "grid";
+    },
+  );
   const [openEx, setOpenEx] = useState<NA1Exercise | null>(null);
   const [openM2Ex, setOpenM2Ex] = useState<M2Exercise | null>(null);
   const [roomOpen, setRoomOpen] = useState(false);
@@ -31691,6 +31759,22 @@ function NewA1View({ name }: { name?: string }) {
                   setRoomOpen(false);
                   window.setTimeout(() => launchRoomM2(timeEx), 240);
                 }}
+                onContinueToIdentity={() => {
+                  // M2 → M3 handoff. If the M3 flag/state qualifies, route
+                  // directly to the new Mirror 3 surface; otherwise fall
+                  // through to legacy behavior (close room → grid → user
+                  // taps the Identity card from the mirror grid).
+                  const cur = (loadDataSync(KEYS.map) as any) || {};
+                  if (shouldRouteToM3(cur)) {
+                    setRoomOpen(false);
+                    window.setTimeout(() => {
+                      setView("m3");
+                      closeRoom();
+                    }, 240);
+                  } else {
+                    closeRoom();
+                  }
+                }}
               />
             ) : (
               <NewA2RoomPlaceholderBody
@@ -31706,6 +31790,9 @@ function NewA1View({ name }: { name?: string }) {
       </>
     );
   }
+  if (view === "m3") {
+    return <NewA1M3View onBack={() => setView("grid")} />;
+  }
   return (
     <NewA1Grid
       name={name}
@@ -31714,6 +31801,35 @@ function NewA1View({ name }: { name?: string }) {
       onOpenPurpose={() => setView("explore")}
       onOpenVision={() => setView("explore2")}
     />
+  );
+}
+
+// ─── NEW M3 (?newM3=1) · Ship 1 placeholder ───
+// Foundations have landed (mirror3Constants.ts + map.mirror3 schema + flag).
+// Step 1a (Pick) UI lands in Ship 2. This stub confirms the M2 → M3 handoff
+// is wired end-to-end and lets the owner demo the routing on dev.
+function NewA1M3View({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="na1-room-card" style={{ maxWidth: 720, margin: "48px auto", padding: 32 }}>
+      <div className="na1-room-eyebrow tone-burgundy">Mirror 3 · Identity</div>
+      <h2 className="na1-room-title">Foundations are in place</h2>
+      <p className="na1-room-context" style={{ marginTop: 16 }}>
+        The gift library (75), animal library (31), cluster archetypes (24),
+        and Mind + Heart shadow libraries are loaded. The map schema now
+        carries <code>mirror3</code> and round-trips through the existing save
+        engine.
+      </p>
+      <p className="na1-room-context" style={{ marginTop: 12, color: "var(--na1-text-sec)" }}>
+        <strong>Step 1a · Pick</strong> lands in Ship 2. The "Continue to
+        Identity →" button at the end of your Vision seal now routes here
+        whenever <code>?newM3=1</code> is set (or saved to localStorage).
+      </p>
+      <div className="na1-room-actions" style={{ marginTop: 24 }}>
+        <button type="button" className="na1-btn-ghost" onClick={onBack}>
+          ← Back to mirror grid
+        </button>
+      </div>
+    </div>
   );
 }
 
