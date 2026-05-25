@@ -32595,6 +32595,134 @@ function m3AssembleClusters(picked: readonly PickedGift[]): Cluster[] {
   });
 }
 
+// Ship 5 · Sync the existing cluster + shadow state to the current
+// pickedGifts set. Used on every entry to Animals as Anchors and Under
+// Pressure so that going back to Pick and changing selections rebuilds
+// the downstream rooms without wiping manual edits.
+//
+// Rules:
+// 1. Strip removed gift IDs from every cluster's `giftIds`; drop clusters
+//    that become empty. Cluster `name`, `animal`, descriptors are PRESERVED
+//    (manual edits survive a re-pick).
+// 2. Route newly-picked gifts (not in any cluster) into the best-matching
+//    surviving cluster by archetype overlap, tie-broken by smallest cluster.
+//    If no surviving clusters, fall back to a fresh m3AssembleClusters.
+// 3. Drop `state.shadows` entries whose gift ID is no longer picked.
+// 4. Drop `state.shadowStories` entries whose cluster ID no longer exists.
+function m3SyncStateToPicks(state: Mirror3State): Mirror3State {
+  const pickedIds = new Set(state.pickedGifts.map((p) => p.id));
+
+  // 1. Strip removed gift IDs; drop empty clusters.
+  let nextClusters: Cluster[] = state.clusters
+    .map((c) => ({
+      ...c,
+      giftIds: c.giftIds.filter((gid) => pickedIds.has(gid)),
+    }))
+    .filter((c) => c.giftIds.length > 0);
+
+  // 2. Route added gifts.
+  const clusteredIds = new Set<string>();
+  for (const c of nextClusters) for (const gid of c.giftIds) clusteredIds.add(gid);
+  const addedGifts = state.pickedGifts.filter((p) => !clusteredIds.has(p.id));
+
+  // Track full-rebuild path so we can scrub stale shadowStories whose
+  // cluster IDs would otherwise be reused by m3AssembleClusters (c_1, c_2…).
+  let fullRebuild = false;
+  if (addedGifts.length > 0) {
+    if (nextClusters.length === 0) {
+      // No surviving clusters — assemble fresh from current picks.
+      nextClusters = m3AssembleClusters(state.pickedGifts);
+      fullRebuild = true;
+    } else {
+      for (const g of addedGifts) {
+        // Archetypes whose criteria claim this gift's label.
+        const claimingArchNames = new Set(
+          CLUSTER_ARCHETYPES.filter((a) =>
+            a.giftCriteria.includes(g.label),
+          ).map((a) => a.name),
+        );
+        let bestIdx = -1;
+        for (let i = 0; i < nextClusters.length; i++) {
+          if (!claimingArchNames.has(nextClusters[i].name)) continue;
+          if (
+            bestIdx === -1 ||
+            nextClusters[i].giftIds.length < nextClusters[bestIdx].giftIds.length
+          ) {
+            bestIdx = i;
+          }
+        }
+        if (bestIdx === -1) {
+          // No matching cluster name — drop into the smallest existing.
+          bestIdx = 0;
+          for (let i = 1; i < nextClusters.length; i++) {
+            if (
+              nextClusters[i].giftIds.length < nextClusters[bestIdx].giftIds.length
+            ) {
+              bestIdx = i;
+            }
+          }
+        }
+        nextClusters[bestIdx] = {
+          ...nextClusters[bestIdx],
+          giftIds: [...nextClusters[bestIdx].giftIds, g.id],
+        };
+      }
+    }
+  } else if (nextClusters.length === 0 && state.pickedGifts.length > 0) {
+    // First entry with no clusters yet but picks exist.
+    nextClusters = m3AssembleClusters(state.pickedGifts);
+    fullRebuild = true;
+  }
+
+  // 3. Drop stale shadows.
+  const nextShadows: Record<string, ShadowsForGift> = {};
+  for (const [gid, sh] of Object.entries(state.shadows)) {
+    if (pickedIds.has(gid)) nextShadows[gid] = sh;
+  }
+
+  // 4. Drop stale shadowStories. On a full rebuild, cluster IDs are reused
+  // (c_1, c_2, …) so we cannot trust ID lineage — scrub all stories. On
+  // partial sync, keep only entries whose cluster ID still exists.
+  const clusterIds = new Set(nextClusters.map((c) => c.id));
+  const nextStories: Record<string, ShadowSentence | string> = {};
+  if (!fullRebuild) {
+    for (const [cid, st] of Object.entries(state.shadowStories)) {
+      if (clusterIds.has(cid)) nextStories[cid] = st;
+    }
+  }
+
+  // Skip the state write if nothing materially changed. Story comparison
+  // checks key set (not just count) so prunes that happen to keep the
+  // same count but swap which IDs survive still trigger a write.
+  const clustersUnchanged =
+    nextClusters.length === state.clusters.length &&
+    nextClusters.every((c, i) => {
+      const o = state.clusters[i];
+      return (
+        o &&
+        o.id === c.id &&
+        o.giftIds.length === c.giftIds.length &&
+        o.giftIds.every((gid, j) => gid === c.giftIds[j])
+      );
+    });
+  const shadowsUnchanged =
+    Object.keys(nextShadows).length === Object.keys(state.shadows).length &&
+    Object.keys(nextShadows).every((k) => k in state.shadows);
+  const prevStoryKeys = Object.keys(state.shadowStories);
+  const nextStoryKeys = Object.keys(nextStories);
+  const storiesUnchanged =
+    nextStoryKeys.length === prevStoryKeys.length &&
+    nextStoryKeys.every((k) => k in state.shadowStories);
+  if (clustersUnchanged && shadowsUnchanged && storiesUnchanged) return state;
+
+  return {
+    ...state,
+    clusters: nextClusters,
+    shadows: nextShadows,
+    shadowStories: nextStories,
+  };
+}
+
 // Animal alternatives for a cluster: ANIMALS sharing themes with the
 // cluster's gifts, ranked by theme overlap. Returns up to 4 (so swap UI
 // shows current + 4 alternatives = 5 total). Falls back to library order.
@@ -32647,14 +32775,13 @@ function NewA1M3ShapeView({
     return out;
   }, [state.pickedGifts]);
 
-  // First-entry assembly: if clusters is empty, derive from pickedGifts
-  // and commit once (does NOT re-assemble on re-entry — re-entry resumes
-  // mid-flow per spec).
+  // Ship 5 · On every entry, sync clusters + shadows to the current
+  // pickedGifts. Preserves manual cluster edits (name/animal/descriptors)
+  // for gifts still picked; strips removed; routes added gifts into the
+  // best-matching existing cluster. First-entry assembly falls out of the
+  // same path when no clusters exist yet.
   useEffect(() => {
-    if (state.clusters.length === 0 && state.pickedGifts.length > 0) {
-      const next = m3AssembleClusters(state.pickedGifts);
-      setState((s) => ({ ...s, clusters: next }));
-    }
+    setState((s) => m3SyncStateToPicks(s));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -33052,6 +33179,16 @@ function NewA1M3UnderPressureView({
   onComplete: () => void;
 }) {
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
+
+  // Ship 5 · On every entry, sync clusters + shadows to the current
+  // pickedGifts. If the user went back to Pick and changed selections,
+  // shadow rows for unpicked gifts disappear and newly-picked gifts get
+  // fresh rows; manual cluster edits for surviving gifts are preserved.
+  useEffect(() => {
+    setState((s) => m3SyncStateToPicks(s));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const clusters = state.clusters;
 
   // Resume on first cluster whose validation isn't satisfied; if all are
@@ -33090,6 +33227,19 @@ function NewA1M3UnderPressureView({
     );
     return firstIncomplete === -1 ? clusters.length - 1 : firstIncomplete;
   });
+
+  // Ship 5 · clamp activeIdx whenever the cluster list shrinks/reorders
+  // (e.g. after the mount-only m3SyncStateToPicks drops empty clusters).
+  // Without this clamp, `clusters[activeIdx]` can be undefined and the
+  // downstream `active.*` reads crash.
+  useEffect(() => {
+    if (clusters.length === 0) return;
+    if (activeIdx > clusters.length - 1) {
+      setActiveIdx(clusters.length - 1);
+    } else if (activeIdx < 0) {
+      setActiveIdx(0);
+    }
+  }, [clusters.length, activeIdx]);
 
   // Debounced 500ms save with unmount flush (mirrors ShapeView pattern).
   const firstRun = useRef(true);

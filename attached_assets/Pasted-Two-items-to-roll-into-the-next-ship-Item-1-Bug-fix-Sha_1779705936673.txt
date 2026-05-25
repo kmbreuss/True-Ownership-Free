@@ -1,0 +1,80 @@
+Two items to roll into the next ship:
+Item 1 — Bug fix: Shadow rows don't sync when picked gifts change
+Reproducer: Walk to Under Pressure with a set of picked gifts. Go back to Pick. Deselect some gifts, pick different ones. Return to Under Pressure. The shadow rows still show the OLD gifts.
+Expected behavior:
+
+Under Pressure rebuilds the per-cluster gift list on every entry from current state.mirror3.pickedGifts
+Gifts no longer picked → their shadow rows disappear (clear state.mirror3.shadows entries for those gift IDs)
+Newly added gifts → fresh shadow rows render (Mind/Heart with suggestions, Spine/Spark/Hands with + add)
+Previously-filled shadow chips for gifts that ARE still picked → preserve user's work, don't wipe
+
+Fix likely sits in NewA1M3UnderPressureView initialization — derive rows fresh from current state on mount instead of trusting cached state from prior entries.
+Audit Shape (Animals as Anchors) for the same bug. If a user changes their picks, the clusters should rebuild too — but only if they haven't manually edited cluster names/animals/descriptors. Preserve manual edits where the gifts are still picked; rebuild affected clusters where gifts changed.
+Item 2 — Content: Spine / Spark / Hands shadow libraries
+The Spine/Spark/Hands shadow libraries are now written. Add these to mirror3Constants.ts under SHADOW_LIBRARY, same structure as the existing Mind and Heart entries (gift name → array of 4 shadow words).
+When these land, the + add-only fallback rows for those themes should switch automatically to showing the 4 suggested shadow chips — same UX as Mind/Heart gifts already use. No additional code changes needed beyond the constants update.
+SPINE library:
+typescript"Brave": ["Reckless", "Reactive", "Charging", "Bulldozing"],
+"Bold": ["Aggressive", "Overbearing", "Forcing", "Steamrolling"],
+"Decisive": ["Rigid", "Closed", "Premature", "Dismissive"],
+"Anchored": ["Stuck", "Inflexible", "Heavy", "Immovable"],
+"Steady": ["Stagnant", "Plodding", "Predictable", "Slow"],
+"Disciplined": ["Punishing", "Harsh", "Brittle", "Joyless"],
+"Resolute": ["Stubborn", "Tunnel-visioned", "Unyielding", "Closed-off"],
+"Grounded": ["Stuck", "Earthbound", "Resistant", "Joyless"],
+"Strong": ["Domineering", "Forceful", "Intimidating", "Suffocating"],
+"Resilient": ["Numbing", "Bulldozing", "Pushing-through", "Disconnected"],
+"Protective": ["Walled", "Controlling", "Suffocating", "Possessive"],
+"Loyal": ["Enabling", "Self-erasing", "Blind", "Trapped"],
+"Patient": ["Avoidant", "Passive", "Stagnant", "Enabling"],
+"Stable": ["Inert", "Predictable", "Risk-averse", "Stuck"],
+"Composed": ["Detached", "Suppressed", "Frozen", "Unreachable"]
+SPARK library:
+typescript"Visionary": ["Untethered", "Floating", "Impractical", "Out of touch"],
+"Imaginative": ["Escapist", "Unrealistic", "Distracted", "Disconnected"],
+"Creative": ["Scattered", "Half-finished", "Restless", "Self-indulgent"],
+"Inspired": ["Manic", "Burning out", "Unfocused", "Unsustainable"],
+"Innovative": ["Disruptive", "Chaotic", "Reinventing", "Restless"],
+"Generative": ["Overflowing", "Unfocused", "Spilling", "Exhausting"],
+"Pioneering": ["Reckless", "Lonely", "Impatient", "Disconnected"],
+"Playful": ["Avoidant", "Flippant", "Unserious", "Childish"],
+"Magnetic": ["Performative", "Demanding attention", "Manipulative", "Draining"],
+"Expressive": ["Performative", "Overflowing", "Self-centered", "Exhausting"],
+"Catalyzing": ["Disruptive", "Stirring", "Pushing", "Reckless"],
+"Bold-Hearted": ["Impulsive", "Volatile", "Reckless", "Burning bridges"],
+"Audacious": ["Reckless", "Brash", "Self-important", "Hubris"],
+"Adventurous": ["Restless", "Escapist", "Avoidant", "Untethered"],
+"Free-Spirited": ["Flighty", "Unaccountable", "Disconnected", "Untethered"]
+HANDS library:
+typescript"Skilled": ["Perfectionistic", "Cold", "Mechanical", "Joyless"],
+"Capable": ["Over-relied-on", "Stretched-thin", "Exhausted", "Indispensable"],
+"Productive": ["Busy", "Hollow", "Driven", "Output-only"],
+"Diligent": ["Grinding", "Joyless", "Over-working", "Brittle"],
+"Reliable": ["Over-burdened", "Everyone's rock", "Resentful", "Trapped"],
+"Effective": ["Cold", "Transactional", "Outcome-only", "Hollow"],
+"Practical": ["Reductive", "Joyless", "Dismissive", "Flattening"],
+"Resourceful": ["Scrappy", "Cutting corners", "MacGyvering", "Patchwork"],
+"Industrious": ["Workaholic", "Identity-via-output", "Restless", "Hollow"],
+"Crafted": ["Perfectionistic", "Slow", "Precious", "Polishing"],
+"Tending": ["Smothering", "Self-erasing", "Codependent", "Enabling"],
+"Nurturing": ["Smothering", "Over-giving", "Self-erasing", "Enabling"],
+"Building": ["Constructing", "Never-finishing", "Restless", "Over-extended"],
+"Finishing": ["Rushing", "Premature-close", "Cutting-off", "Impatient"],
+"Embodied": ["Over-physical", "Reactive", "Acting-out", "Somatic-only"]
+Notes for the constants update:
+
+These are draft shadow words at owner's voice — if any gift name doesn't match the locked Spine/Spark/Hands lists in your current mirror3Constants.ts, flag the mismatch and don't auto-correct. Owner will catch wrong gift names at demo.
+Word count per gift: exactly 4, matching the Mind/Heart pattern.
+Some words appear across multiple gifts (e.g. "Reckless" in Brave, Bold-Hearted, Audacious). That's intentional — same shadow energy can show up across multiple gifts.
+
+Demo path after this lands:
+
+Clean localStorage, ?newA1=1&newM3=1
+Walk Vision → Continue to Identity → M3 hub
+Pick a mix of gifts from all 5 themes (1-2 per theme is enough to test)
+Continue to Animals → Continue to Under Pressure
+Verify EVERY gift row shows 4 suggested shadow chips — Mind, Heart, Spine, Spark, Hands all populated
+Go back to Pick → change gift selection → return to Under Pressure → verify shadow rows refreshed to reflect new picks (Item 1 fix)
+Verify gifts whose state was preserved still have their shadow chips selected
+
+Stop at Ship Gate 5 for owner demo.
