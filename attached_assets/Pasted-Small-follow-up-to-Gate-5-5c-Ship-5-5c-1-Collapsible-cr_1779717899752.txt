@@ -1,0 +1,21 @@
+Small follow-up to Gate 5.5c — Ship 5.5c.1: Collapsible creature cards on Own It seal.
+Reason: with 3-5 creatures, the seal page gets long (3 full triptychs to scroll through before reaching The Big Claim). Letting users collapse each creature card down to just the header gives them a table-of-contents view they can scan, then expand whichever they want to revisit.
+Scope is pure presentation layer — no state shape changes, no claim logic changes, no Map of Me handoff changes. The triptych itself (Power card / pairing grid / Shadow card) stays exactly as it is — we just wrap each cluster block in a collapsible container.
+Behavior:
+Default state on first arrival (hybrid): First creature expanded, all others collapsed. Sets the visual pattern of the triptych for the user, then invites them to explore the rest. "First arrival" = state.mirror3.claimed === false AND no prior collapse state stored.
+Collapsed state per creature: Header only — italic serif creature name (e.g. "Cleverly Wise Owl") + uppercase tracked sublabel (e.g. "THE SEER IN ME") — same styling as today's expanded header. No Power card, no pairing grid, no Shadow card visible.
+Expanded state per creature: Header + full triptych (Power card → pairing grid → Shadow card) — exactly as it renders today.
+Toggle affordance:
+
+Click anywhere on the creature header (the name + sublabel block) to toggle expand/collapse
+Add a chevron icon on the right side of the header: ▾ when expanded, ▸ when collapsed
+Chevron in gold-dim (var(--gold-dim)), 14px, vertically centered with the header
+Cursor on header: pointer
+Subtle hover state: header background lifts to rgba(201, 162, 75, 0.04) for affordance
+
+The Big Claim: Always visible at the bottom regardless of how many creatures are collapsed. Don't hide or move it. Position stays as it is today (after the cluster stack, gold star divider, then the Big Claim card).
+State persistence: Store per-creature collapse state in state.mirror3.ownItUi = { collapsedIds: string[] } (or similar — your call on naming). Persists across re-entry. On revisit (state.mirror3.claimed === true), restore whatever state the user last left, OR default to all-collapsed if no prior state exists (since revisit is more about scanning the synthesis than re-reading each triptych).
+Claim button behavior unchanged. User can claim regardless of which creatures are collapsed — collapse state is purely visual.
+Transition: Smooth height transition on expand/collapse, ~200ms ease-out. Don't slam — it's a contemplative page. Use CSS transition on max-height or a small lib pattern; whatever's cleanest in your stack.
+One thing to confirm at demo: Make sure the collapsed header still feels visually balanced. Today's header (name + sublabel) is centered. When the chevron is added on the right side, the header should still feel centered (chevron is a decoration, not a visual anchor that pulls the eye right). If chevron placement throws off balance, consider mirroring it with an invisible spacer on the left, OR positioning the chevron absolutely so it doesn't shift the centered content.
+Same stop discipline — propose plan, owner approves, then code. Quick gate at the demo. Stop at the gate before starting Gate 5.5d (personalization).
