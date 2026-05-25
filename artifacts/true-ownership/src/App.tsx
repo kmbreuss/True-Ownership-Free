@@ -61,10 +61,15 @@ import {
   type M3RoomKey,
   type Theme,
   type PickedGift,
+  type GiftState,
   type Cluster,
   type Mirror3State,
   type ShadowsForGift,
   type ShadowSentence,
+  type SuperpowerSentence,
+  EMPTY_SUPERPOWER,
+  getSuperpower,
+  isSuperpowerFilled,
 } from "./mirror3Constants";
 const KEYS = {
   map: "to_map",
@@ -1268,6 +1273,92 @@ html[data-theme="light"]{
 .m3-shape-super-btn{ background:var(--gold); color:#1a1407; border:none; border-radius:100px; padding:12px 32px; font-family:var(--na1-sans); font-size:13.5px; font-weight:600; letter-spacing:.04em; text-transform:lowercase; cursor:pointer; min-height:44px; transition:opacity .18s, transform .18s; }
 .m3-shape-super-btn:hover:not(:disabled){ transform:translateY(-1px); }
 .m3-shape-super-btn:disabled{ opacity:.5; cursor:not-allowed; }
+/* ─── Ship 5.5a · Gift Inventory bar (sticky inside .na1-room-card scroll) ─── */
+.m3-inv{ position:sticky; top:-80px; z-index:30; margin:0 -24px 20px; padding:14px 24px 10px; background:linear-gradient(180deg, var(--na1-bg-card) 0%, var(--na1-bg-card) 88%, rgba(0,0,0,0) 100%); border-bottom:1px solid var(--gold-line); }
+@media (max-width:600px){ .m3-inv{ margin:0 -16px 16px; padding:12px 16px 8px; } }
+.m3-inv-header{ display:flex; justify-content:space-between; align-items:baseline; margin:0 0 8px; }
+.m3-inv-title{ font-family:var(--na1-sans); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin:0; }
+.m3-inv-count{ font-family:var(--na1-sans); font-size:10.5px; color:var(--na1-text-mute); }
+.m3-inv-row{ display:flex; align-items:center; gap:8px; padding:5px 0; flex-wrap:wrap; }
+.m3-inv-row + .m3-inv-row{ border-top:1px dashed rgba(195,155,86,0.18); }
+.m3-inv-theme{ display:inline-flex; align-items:center; gap:6px; font-family:var(--na1-sans); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--na1-text-sec); min-width:64px; flex-shrink:0; }
+.m3-inv-dot{ width:8px; height:8px; border-radius:50%; background:var(--m3inv-color, var(--gold)); flex-shrink:0; }
+.m3-inv-chips{ display:flex; flex-wrap:wrap; gap:5px; flex:1; min-width:0; align-items:center; }
+.m3-inv-chip{ display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:100px; background:transparent; border:1px solid var(--m3inv-color, var(--na1-border)); color:var(--m3inv-color, var(--na1-text-sec)); font-family:var(--na1-sans); font-size:12px; font-weight:500; cursor:pointer; transition:transform .08s, filter .15s; }
+.m3-inv-chip:not(:disabled):hover{ filter:brightness(1.18); }
+.m3-inv-chip:not(:disabled):active{ transform:translateY(1px); }
+.m3-inv-chip:disabled{ cursor:default; opacity:.85; }
+.m3-inv-chip.is-owned{ background:var(--m3inv-color, var(--gold)); color:#1a1407; }
+.m3-inv-chip-mark{ font-size:10px; line-height:1; opacity:.85; }
+.m3-inv-add{ display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:100px; border:1px dashed var(--m3inv-color, var(--na1-border)); background:transparent; color:var(--m3inv-color, var(--na1-text-mute)); font-family:var(--na1-sans); font-size:11.5px; cursor:pointer; flex-shrink:0; }
+.m3-inv-add:hover{ filter:brightness(1.18); }
+.m3-inv-empty{ font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); font-style:italic; }
+/* Inline "+ add" library panel under inventory bar (per owner note B) */
+.m3-inv-lib{ margin-top:10px; padding:12px 14px; background:var(--na1-bg); border:1px solid var(--m3inv-color, var(--gold-line)); border-radius:12px; }
+.m3-inv-lib-head{ display:flex; align-items:center; justify-content:space-between; margin:0 0 8px; }
+.m3-inv-lib-title{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--m3inv-color, var(--gold)); }
+.m3-inv-lib-close{ background:transparent; border:none; color:var(--na1-text-mute); font-size:18px; cursor:pointer; padding:0 4px; line-height:1; }
+.m3-inv-lib-grid{ display:flex; flex-wrap:wrap; gap:6px; }
+.m3-inv-lib-chip{ display:inline-flex; padding:5px 11px; border-radius:100px; background:transparent; border:1px solid var(--m3inv-color, var(--na1-border)); color:var(--m3inv-color, var(--na1-text-sec)); font-family:var(--na1-sans); font-size:12px; cursor:pointer; transition:transform .08s, filter .15s; }
+.m3-inv-lib-chip:not(:disabled):hover{ filter:brightness(1.18); }
+.m3-inv-lib-chip.is-already{ opacity:.4; cursor:not-allowed; }
+
+/* ─── Which-creature? picker (anchored popover; mobile bottom-sheet <480px) ─── */
+.m3-picker-back{ position:fixed; inset:0; z-index:90; background:transparent; }
+.m3-picker{ position:fixed; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:14px; padding:8px; min-width:220px; max-width:300px; box-shadow:0 10px 32px rgba(0,0,0,0.5); z-index:91; }
+.m3-picker-title{ font-family:var(--na1-sans); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); padding:4px 10px 6px; }
+.m3-picker-opt{ display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; background:transparent; border:none; color:var(--na1-text); font-family:var(--na1-sans); font-size:13px; cursor:pointer; border-radius:8px; text-align:left; }
+.m3-picker-opt:not(:disabled):hover{ background:var(--na1-bg); }
+.m3-picker-opt.is-origin{ opacity:.45; cursor:not-allowed; }
+.m3-picker-emoji{ font-size:18px; line-height:1; }
+.m3-picker-cancel{ display:block; width:100%; padding:7px 10px; margin-top:4px; background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:11.5px; cursor:pointer; text-align:left; border-top:1px solid var(--na1-border); }
+@media (max-width:480px){
+  .m3-picker-back{ background:rgba(0,0,0,0.45); }
+  .m3-picker{ left:0!important; right:0!important; top:auto!important; bottom:0; max-width:none; min-width:0; border-radius:14px 14px 0 0; border-bottom:none; padding:14px 12px 22px; max-height:64vh; overflow:auto; }
+  .m3-picker-opt{ padding:13px; font-size:14.5px; }
+}
+
+/* ─── Per-cluster Superpower sentence (Ship 5.5a · 3 inline blanks) ─── */
+.m3-super{ margin-top:6px; padding-top:14px; border-top:1px solid var(--na1-border); display:flex; flex-direction:column; gap:8px; }
+.m3-super-label{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); }
+.m3-super-sentence{ font-family:var(--na1-serif); font-size:16px; line-height:1.95; color:var(--na1-text); }
+@media (max-width:600px){ .m3-super-sentence{ font-size:14.5px; line-height:1.85; } }
+.m3-super-blank{ display:inline-block; min-width:120px; max-width:100%; padding:3px 10px; margin:0 2px; border:none; border-bottom:1px dashed var(--gold-line); background:var(--gold-soft); color:var(--gold); font-family:var(--na1-serif); font-style:italic; font-size:inherit; line-height:1.4; outline:none; border-radius:4px 4px 0 0; transition:background .15s, border-color .15s; }
+.m3-super-blank::placeholder{ color:var(--na1-text-mute); font-style:italic; opacity:.7; }
+.m3-super-blank:focus{ background:#fbf4e1; border-bottom-color:var(--gold); }
+.m3-super-blank.is-filled{ background:transparent; color:var(--na1-text); border-bottom-color:var(--gold-line); }
+.m3-super.is-disabled{ opacity:.35; }
+.m3-super.is-disabled .m3-super-blank{ pointer-events:none; }
+
+/* ─── "+ Add another creature" footer (cap 5) ─── */
+.m3-add-creature{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 0 4px; }
+.m3-add-creature-btn{ display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:100px; border:1px dashed var(--gold-line); background:transparent; color:var(--gold); font-family:var(--na1-sans); font-size:13px; cursor:pointer; transition:background .18s; }
+.m3-add-creature-btn:hover:not(:disabled){ background:var(--gold-soft); }
+.m3-add-creature-btn:disabled{ opacity:.4; cursor:not-allowed; }
+.m3-add-creature-count{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); }
+
+/* ─── Custom-creature panel (inside browse modal) ─── */
+.m3-custom-panel{ margin-top:18px; padding-top:16px; border-top:1px solid var(--na1-border); display:flex; flex-direction:column; gap:10px; }
+.m3-custom-title{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); }
+.m3-custom-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.m3-custom-emoji-preview{ font-size:28px; line-height:1; padding:6px 12px; border-radius:10px; background:var(--na1-bg); border:1px solid var(--gold-line); flex-shrink:0; }
+.m3-custom-name-input{ flex:1; min-width:140px; background:transparent; border:none; border-bottom:1px solid var(--na1-border); padding:8px 4px; color:var(--na1-text); font-family:var(--na1-sans); font-size:14px; outline:none; transition:border-color .18s; }
+.m3-custom-name-input:focus{ border-bottom-color:var(--gold); }
+.m3-custom-emoji-grid{ display:grid; grid-template-columns:repeat(10, 1fr); gap:6px; padding:4px 0; }
+@media (max-width:480px){ .m3-custom-emoji-grid{ grid-template-columns:repeat(8, 1fr); } }
+.m3-custom-emoji-cell{ font-size:22px; padding:8px 0; border-radius:8px; background:transparent; border:1px solid transparent; cursor:pointer; transition:background .15s, border-color .15s; line-height:1; }
+.m3-custom-emoji-cell:hover{ background:var(--na1-bg); }
+.m3-custom-emoji-cell.is-selected{ border-color:var(--gold); background:var(--gold-soft); }
+.m3-custom-actions{ display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+.m3-custom-more{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:11.5px; font-style:italic; cursor:default; margin-right:auto; }
+.m3-custom-apply{ background:var(--gold); color:#1a1407; border:none; border-radius:100px; padding:8px 16px; font-family:var(--na1-sans); font-size:12.5px; font-weight:600; cursor:pointer; }
+.m3-custom-apply:disabled{ opacity:.4; cursor:not-allowed; }
+.m3-custom-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); border-radius:100px; padding:8px 14px; font-family:var(--na1-sans); font-size:12.5px; cursor:pointer; }
+
+/* ─── Single-cluster auto-place toast (minimal, no infra; per owner note C) ─── */
+.m3-toast{ position:fixed; left:50%; bottom:18%; transform:translateX(-50%); padding:10px 18px; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:100px; color:var(--gold); font-family:var(--na1-sans); font-size:13px; font-weight:500; box-shadow:0 6px 20px rgba(0,0,0,0.4); z-index:95; pointer-events:none; animation:m3ToastIO 2.28s ease forwards; }
+@keyframes m3ToastIO{ 0%{ opacity:0; transform:translate(-50%, 10px); } 10.5%{ opacity:1; transform:translate(-50%, 0); } 89.5%{ opacity:1; transform:translate(-50%, 0); } 100%{ opacity:0; transform:translate(-50%, -10px); } }
+
 /* Browse modal */
 .m3-browse-overlay{ position:fixed; inset:0; background:rgba(8,12,20,0.72); display:flex; align-items:center; justify-content:center; z-index:60; padding:20px; }
 .m3-browse-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:24px; max-width:480px; width:100%; max-height:78vh; overflow:auto; position:relative; }
@@ -32991,13 +33082,15 @@ function m3AssembleClusters(picked: readonly PickedGift[]): Cluster[] {
 function m3SyncStateToPicks(state: Mirror3State): Mirror3State {
   const pickedIds = new Set(state.pickedGifts.map((p) => p.id));
 
-  // 1. Strip removed gift IDs; drop empty clusters.
+  // 1. Strip removed gift IDs; drop empty clusters EXCEPT user-added
+  // ones (Ship 5.5a · "+ Add another creature" templates survive empty
+  // so the owner can close + re-enter without losing the slot).
   let nextClusters: Cluster[] = state.clusters
     .map((c) => ({
       ...c,
       giftIds: c.giftIds.filter((gid) => pickedIds.has(gid)),
     }))
-    .filter((c) => c.giftIds.length > 0);
+    .filter((c) => c.giftIds.length > 0 || c.userAdded === true);
 
   // 2. Route added gifts.
   const clusteredIds = new Set<string>();
@@ -33264,14 +33357,229 @@ function NewA1M3ShapeView({
     setBrowseFor(null);
   };
 
-  // Validation: every cluster needs name + animal + descriptor1 + descriptor2 + ≥1 gift.
+  // ── Ship 5.5a · Inventory bar + picker + Superpower sentence + custom-creature ──
+
+  const CUSTOM_EMOJI_GRID: readonly string[] = [
+    "🐺","🐉","🦋","🕊️","🦢","🐢","🦌","🐘","🦒","🐬",
+    "🐅","🐆","🐎","🦄","🌊","🔥","⭐","🌙","☀️","⚡",
+  ];
+
+  // Inline "+ add" library panel (one theme at a time).
+  const [inlineLibTheme, setInlineLibTheme] = useState<Theme | null>(null);
+
+  // Which-creature? picker. ADD mode (from library) holds the pending
+  // gift and only commits on confirm. MOVE mode carries the existing
+  // gift id + origin cluster id. Anchor is the click coords (popover on
+  // desktop, bottom-sheet on mobile via CSS @media).
+  const [picker, setPicker] = useState<
+    | { mode: "add"; pending: { label: string; theme: Theme; state: GiftState; custom: boolean }; anchor: { x: number; y: number; below: boolean } }
+    | { mode: "move"; giftId: string; originClusterId: string; anchor: { x: number; y: number; below: boolean } }
+    | null
+  >(null);
+
+  // Minimal single-cluster auto-place toast (no toast infra per owner note C).
+  const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 2300);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  // Custom-creature panel (lives inside the browse modal).
+  const [customPanel, setCustomPanel] = useState<
+    { clusterId: string; name: string; emoji: string } | null
+  >(null);
+
+  // Group picked gifts by theme for the inventory bar.
+  const inventoryByTheme = useMemo(() => {
+    const out: Record<Theme, PickedGift[]> = {
+      mind: [], heart: [], spine: [], spark: [], hands: [],
+    };
+    for (const p of state.pickedGifts) out[p.theme].push(p);
+    return out;
+  }, [state.pickedGifts]);
+
+  // Find cluster currently containing a gift id.
+  const clusterOfGift = useCallback(
+    (gid: string): Cluster | null =>
+      state.clusters.find((c) => c.giftIds.includes(gid)) || null,
+    [state.clusters],
+  );
+
+  // Anchor coords for fixed-position popover/bottom-sheet.
+  const anchorFromEvent = (e: React.MouseEvent | React.PointerEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const below = rect.bottom + 260 < window.innerHeight;
+    return { x: rect.left, y: below ? rect.bottom + 6 : rect.top - 6, below };
+  };
+
+  // Commit a newly-added gift into a chosen cluster + flag manuallyPlaced.
+  const commitAddGift = useCallback(
+    (
+      pending: { label: string; theme: Theme; state: GiftState; custom: boolean },
+      clusterId: string,
+      creatureName: string,
+    ) => {
+      const slug = pending.label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+      const id = pending.custom ? `g_custom_${slug}_${Date.now()}` : `g_${slug}`;
+      setState((s) => {
+        const exists = s.pickedGifts.some((p) => p.id === id);
+        const nextPicked = exists
+          ? s.pickedGifts
+          : [
+              ...s.pickedGifts,
+              {
+                id,
+                label: pending.label,
+                theme: pending.theme,
+                state: pending.state,
+                custom: pending.custom,
+                manuallyPlaced: true,
+              },
+            ];
+        const nextClusters = s.clusters.map((c) =>
+          c.id === clusterId
+            ? { ...c, giftIds: c.giftIds.includes(id) ? c.giftIds : [...c.giftIds, id] }
+            : c,
+        );
+        return { ...s, pickedGifts: nextPicked, clusters: nextClusters };
+      });
+      setToast({ text: `Added to ${creatureName}`, key: Date.now() });
+    },
+    [],
+  );
+
+  // Add gift from inline library panel: auto-place if single cluster
+  // (skip picker per owner clarification), else open ADD picker.
+  const addGiftFromLibrary = (label: string, theme: Theme, e: React.MouseEvent) => {
+    const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    if (state.pickedGifts.some((p) => p.id === `g_${slug}`)) return; // defensive
+    const pending = { label, theme, state: "owned" as GiftState, custom: false };
+    if (state.clusters.length === 1) {
+      commitAddGift(pending, state.clusters[0].id, state.clusters[0].name);
+      setInlineLibTheme(null);
+      return;
+    }
+    setPicker({ mode: "add", pending, anchor: anchorFromEvent(e) });
+    setInlineLibTheme(null);
+  };
+
+  // Inventory chip tap → open MOVE picker (only if 2+ clusters to move into).
+  const onInventoryChipClick = (gift: PickedGift, e: React.MouseEvent) => {
+    if (state.clusters.length < 2) return;
+    const origin = clusterOfGift(gift.id);
+    if (!origin) return;
+    setPicker({
+      mode: "move",
+      giftId: gift.id,
+      originClusterId: origin.id,
+      anchor: anchorFromEvent(e),
+    });
+  };
+
+  // Picker confirm: ADD → commitAddGift; MOVE → relocate + flag manuallyPlaced.
+  const pickerConfirm = (clusterId: string) => {
+    if (!picker) return;
+    const target = state.clusters.find((c) => c.id === clusterId);
+    if (!target) {
+      setPicker(null);
+      return;
+    }
+    if (picker.mode === "add") {
+      commitAddGift(picker.pending, clusterId, target.name);
+    } else {
+      if (clusterId !== picker.originClusterId) {
+        setState((s) => ({
+          ...s,
+          pickedGifts: s.pickedGifts.map((p) =>
+            p.id === picker.giftId ? { ...p, manuallyPlaced: true } : p,
+          ),
+          clusters: s.clusters.map((c) => {
+            if (c.id === picker.originClusterId) {
+              return { ...c, giftIds: c.giftIds.filter((id) => id !== picker.giftId) };
+            }
+            if (c.id === clusterId) {
+              return {
+                ...c,
+                giftIds: c.giftIds.includes(picker.giftId)
+                  ? c.giftIds
+                  : [...c.giftIds, picker.giftId],
+              };
+            }
+            return c;
+          }),
+        }));
+        setToast({ text: `Moved to ${target.name}`, key: Date.now() });
+      }
+    }
+    setPicker(null);
+  };
+
+  // "+ Add another creature" footer (cap 5).
+  const addAnotherCreature = () => {
+    if (state.clusters.length >= 5) return;
+    setState((s) => {
+      const usedIds = new Set(s.clusters.map((c) => c.id));
+      let nextN = s.clusters.length + 1;
+      while (usedIds.has(`c_${nextN}`)) nextN += 1;
+      const fresh: Cluster = {
+        id: `c_${nextN}`,
+        name: "Your creature",
+        nameWasEdited: false,
+        animal: "",
+        animalEmoji: "🐾",
+        descriptorWord1: "",
+        descriptorWord2: "",
+        giftIds: [],
+        superpower: { ...EMPTY_SUPERPOWER },
+        userAdded: true,
+      };
+      return { ...s, clusters: [...s.clusters, fresh] };
+    });
+  };
+
+  // Update one Superpower blank.
+  const updateSuperBlank = (
+    clusterId: string,
+    blank: "blank1" | "blank2" | "blank3",
+    value: string,
+  ) => {
+    setState((s) => ({
+      ...s,
+      clusters: s.clusters.map((c) => {
+        if (c.id !== clusterId) return c;
+        const cur = getSuperpower(c);
+        return { ...c, superpower: { ...cur, [blank]: value } };
+      }),
+    }));
+  };
+
+  // Apply custom-creature panel (name + emoji) to a cluster's animal slot.
+  const applyCustomCreature = () => {
+    if (!customPanel) return;
+    const name = customPanel.name.trim();
+    if (!name) return;
+    updateCluster(customPanel.clusterId, {
+      animal: name,
+      animalEmoji: customPanel.emoji,
+    });
+    setCustomPanel(null);
+    setBrowseFor(null);
+  };
+
+  // Validation: every cluster needs name + animal + descriptor1 + descriptor2
+  // + ≥1 gift + filled Superpower sentence (Ship 5.5a · gates Continue).
   const isValid = state.clusters.length > 0 && state.clusters.every(
     (c) =>
       c.name.trim() !== "" &&
       c.animal.trim() !== "" &&
       c.descriptorWord1.trim() !== "" &&
       c.descriptorWord2.trim() !== "" &&
-      c.giftIds.length > 0,
+      c.giftIds.length > 0 &&
+      isSuperpowerFilled(getSuperpower(c)),
   );
 
   const browseCluster = browseFor
@@ -33299,6 +33607,112 @@ function NewA1M3ShapeView({
           two words in front of each creature — they name your version of it in
           its power (e.g. Gracefully Wise Eagle).
         </span>
+      </div>
+      {/* Ship 5.5a · sticky Gift Inventory bar (anchors inside .na1-room-card scroll) */}
+      <div className="m3-inv">
+        <div className="m3-inv-header">
+          <span className="m3-inv-title">Gift Inventory</span>
+          <span className="m3-inv-count">
+            {state.pickedGifts.length} picked
+          </span>
+        </div>
+        {M3_THEME_ORDER.map((t) => {
+          const items = inventoryByTheme[t];
+          return (
+            <div
+              key={t}
+              className="m3-inv-row"
+              style={{ ["--m3inv-color" as any]: THEME_COLOR[t] }}
+            >
+              <span className="m3-inv-theme">
+                <span className="m3-inv-dot" />
+                {THEME_LABEL[t]}
+              </span>
+              <div className="m3-inv-chips">
+                {items.length === 0 && (
+                  <span className="m3-inv-empty">no gifts yet</span>
+                )}
+                {items.map((p) => {
+                  const cluster = clusterOfGift(p.id);
+                  const interactive = state.clusters.length >= 2;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`m3-inv-chip is-${p.state}`}
+                      onClick={(e) => onInventoryChipClick(p, e)}
+                      disabled={!interactive}
+                      title={
+                        cluster
+                          ? interactive
+                            ? `In ${cluster.name} · tap to move`
+                            : `In ${cluster.name}`
+                          : "Unplaced"
+                      }
+                    >
+                      <span className="m3-inv-chip-mark" aria-hidden>
+                        {p.state === "owned" ? "✓" : "◆"}
+                      </span>
+                      {p.label}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className="m3-inv-add"
+                  onClick={() =>
+                    setInlineLibTheme((prev) => (prev === t ? null : t))
+                  }
+                  aria-label={`Add ${THEME_LABEL[t]} gift`}
+                >
+                  + add
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {inlineLibTheme && (() => {
+          const t = inlineLibTheme;
+          const lib = GIFTS_BY_THEME[t];
+          const pickedLabels = new Set(state.pickedGifts.map((p) => p.label));
+          return (
+            <div
+              className="m3-inv-lib"
+              style={{ ["--m3inv-color" as any]: THEME_COLOR[t] }}
+            >
+              <div className="m3-inv-lib-head">
+                <span className="m3-inv-lib-title">
+                  Add a {THEME_LABEL[t]} gift
+                </span>
+                <button
+                  type="button"
+                  className="m3-inv-lib-close"
+                  onClick={() => setInlineLibTheme(null)}
+                  aria-label="Close library"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="m3-inv-lib-grid">
+                {lib.map((label) => {
+                  const already = pickedLabels.has(label);
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      className={`m3-inv-lib-chip ${already ? "is-already" : ""}`}
+                      disabled={already}
+                      onClick={(e) => addGiftFromLibrary(label, t, e)}
+                      title={already ? "already in inventory" : ""}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
       <div className="m3-shape-list">
         {state.clusters.map((c) => {
@@ -33483,9 +33897,80 @@ function NewA1M3ShapeView({
                   ))}
                 </div>
               </div>
+              {/* Ship 5.5a · per-cluster Superpower sentence (3 inline blanks).
+                  Disabled until cluster has an animal name + ≥1 gift so the
+                  sentence stem ("the {animal} ...") reads sensibly. */}
+              {(() => {
+                const sp = getSuperpower(c);
+                const disabled =
+                  c.giftIds.length === 0 || c.animal.trim() === "";
+                const animalWord = c.animal.trim() || "creature";
+                return (
+                  <div
+                    className={`m3-super ${disabled ? "is-disabled" : ""}`}
+                  >
+                    <span className="m3-super-label">Superpower</span>
+                    <div className="m3-super-sentence">
+                      In my power, the {c.animalEmoji} {animalWord}{" "}
+                      <input
+                        className={`m3-super-blank ${sp.blank1.trim() ? "is-filled" : ""}`}
+                        value={sp.blank1}
+                        onChange={(e) =>
+                          updateSuperBlank(c.id, "blank1", e.target.value)
+                        }
+                        placeholder="what I do well"
+                        aria-label="Superpower blank 1"
+                        disabled={disabled}
+                      />
+                      ,{" "}
+                      <input
+                        className={`m3-super-blank ${sp.blank2.trim() ? "is-filled" : ""}`}
+                        value={sp.blank2}
+                        onChange={(e) =>
+                          updateSuperBlank(c.id, "blank2", e.target.value)
+                        }
+                        placeholder="what it gives me"
+                        aria-label="Superpower blank 2"
+                        disabled={disabled}
+                      />
+                      , and{" "}
+                      <input
+                        className={`m3-super-blank ${sp.blank3.trim() ? "is-filled" : ""}`}
+                        value={sp.blank3}
+                        onChange={(e) =>
+                          updateSuperBlank(c.id, "blank3", e.target.value)
+                        }
+                        placeholder="what it gives others"
+                        aria-label="Superpower blank 3"
+                        disabled={disabled}
+                      />
+                      .
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           );
         })}
+      </div>
+      {/* Ship 5.5a · "+ Add another creature" footer (cap 5). */}
+      <div className="m3-add-creature">
+        <button
+          type="button"
+          className="m3-add-creature-btn"
+          onClick={addAnotherCreature}
+          disabled={state.clusters.length >= 5}
+          title={
+            state.clusters.length >= 5
+              ? "5-creature limit reached"
+              : "Add a creature slot"
+          }
+        >
+          + Add another creature
+        </button>
+        <span className="m3-add-creature-count">
+          {state.clusters.length} of 5 creatures
+        </span>
       </div>
       <div className="m3-shape-actions">
         <button
@@ -33556,7 +34041,160 @@ function NewA1M3ShapeView({
                 );
               })}
             </div>
+            {/* Ship 5.5a · custom-creature panel (or-name-your-own).
+                Two states: collapsed CTA ("+ Custom creature") and
+                expanded editor (20-emoji grid + name input). */}
+            {(!customPanel || customPanel.clusterId !== browseCluster.id) ? (
+              <div className="m3-custom-panel">
+                <span className="m3-custom-title">
+                  Or name your own creature
+                </span>
+                <button
+                  type="button"
+                  className="m3-add-creature-btn"
+                  onClick={() =>
+                    setCustomPanel({
+                      clusterId: browseCluster.id,
+                      name: "",
+                      emoji: "🐾",
+                    })
+                  }
+                >
+                  + Custom creature
+                </button>
+              </div>
+            ) : (
+              <div className="m3-custom-panel">
+                <span className="m3-custom-title">Name your creature</span>
+                <div className="m3-custom-row">
+                  <span
+                    className="m3-custom-emoji-preview"
+                    aria-hidden
+                  >
+                    {customPanel.emoji}
+                  </span>
+                  <input
+                    className="m3-custom-name-input"
+                    value={customPanel.name}
+                    onChange={(e) =>
+                      setCustomPanel({
+                        ...customPanel,
+                        name: e.target.value,
+                      })
+                    }
+                    placeholder="e.g. Phoenix, Selkie, your own…"
+                    aria-label="Custom creature name"
+                    autoFocus
+                    maxLength={32}
+                  />
+                </div>
+                <div
+                  className="m3-custom-emoji-grid"
+                  role="listbox"
+                  aria-label="Choose emoji"
+                >
+                  {CUSTOM_EMOJI_GRID.map((em) => (
+                    <button
+                      key={em}
+                      type="button"
+                      className={`m3-custom-emoji-cell ${customPanel.emoji === em ? "is-selected" : ""}`}
+                      onClick={() =>
+                        setCustomPanel({ ...customPanel, emoji: em })
+                      }
+                      aria-label={`emoji ${em}`}
+                      aria-selected={customPanel.emoji === em}
+                    >
+                      {em}
+                    </button>
+                  ))}
+                </div>
+                <div className="m3-custom-actions">
+                  <span className="m3-custom-more" aria-hidden>
+                    more emojis coming soon
+                  </span>
+                  <button
+                    type="button"
+                    className="m3-custom-cancel"
+                    onClick={() => setCustomPanel(null)}
+                  >
+                    cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="m3-custom-apply"
+                    onClick={applyCustomCreature}
+                    disabled={!customPanel.name.trim()}
+                  >
+                    use this creature
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+      )}
+      {/* Ship 5.5a · Which-creature? picker (ADD from library | MOVE from inventory).
+          Desktop = anchored popover; mobile (<480px) becomes bottom-sheet via CSS. */}
+      {picker && (
+        <>
+          <div
+            className="m3-picker-back"
+            onClick={() => setPicker(null)}
+            aria-hidden
+          />
+          <div
+            className="m3-picker"
+            style={{
+              top: picker.anchor.below ? picker.anchor.y : undefined,
+              bottom: picker.anchor.below
+                ? undefined
+                : Math.max(8, window.innerHeight - picker.anchor.y),
+              left: Math.max(
+                8,
+                Math.min(picker.anchor.x, window.innerWidth - 240),
+              ),
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Which creature?"
+          >
+            <div className="m3-picker-title">
+              {picker.mode === "add"
+                ? `Place "${picker.pending.label}" with…`
+                : "Move to which creature?"}
+            </div>
+            {state.clusters.map((c) => {
+              const isOrigin =
+                picker.mode === "move" && c.id === picker.originClusterId;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`m3-picker-opt ${isOrigin ? "is-origin" : ""}`}
+                  onClick={() => pickerConfirm(c.id)}
+                  disabled={isOrigin}
+                >
+                  <span className="m3-picker-emoji" aria-hidden>
+                    {c.animalEmoji}
+                  </span>
+                  <span>{c.animal || c.name || "(unnamed)"}</span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              className="m3-picker-cancel"
+              onClick={() => setPicker(null)}
+            >
+              cancel
+            </button>
+          </div>
+        </>
+      )}
+      {toast && (
+        <div key={toast.key} className="m3-toast" role="status">
+          {toast.text}
         </div>
       )}
     </div>

@@ -381,6 +381,12 @@ export type Cluster = {
   // Ship 5.5a · optional/absent on legacy state, defaults to empty
   // strings via the read-site helper.
   superpower?: SuperpowerSentence;
+  // Ship 5.5a · true when the cluster was added via "+ Add another
+  // creature". m3SyncStateToPicks preserves flagged clusters even when
+  // their giftIds list is empty, so an in-progress "name your creature"
+  // template survives the user closing and re-entering the room. Legacy
+  // archetype-derived clusters leave this absent (treated as false).
+  userAdded?: boolean;
 };
 
 // Step 2 (Superpowers) is deferred — keeping the slot empty-typed for now.
