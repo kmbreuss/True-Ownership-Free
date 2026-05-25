@@ -1048,6 +1048,7 @@ html[data-theme="light"]{
    Shadow sentence cards share padding (16px/22px), border weight (1px),
    and label-then-body internal layout — only the tint + label glyph
    differ so they read as siblings flanking the pairing grid. */
+.m3-seal-star{ text-align:center; color:var(--gold); font-size:24px; line-height:1; margin:14px 0 10px; text-shadow:0 0 12px var(--gold-glow); }
 .m3-seal-subhead{ font-family:var(--na1-serif); font-style:italic; font-size:18px; line-height:1.55; text-align:center; max-width:620px; margin:6px auto 32px; color:var(--na1-text-sec); }
 .m3-seal-subhead .count{ font-style:normal; font-weight:600; color:var(--gold); }
 .m3-seal-revisit-banner{ font-family:var(--na1-serif); font-style:italic; font-size:14px; line-height:1.5; color:var(--gold); text-align:center; padding:10px 16px; margin:0 auto 20px; max-width:560px; border-top:1px solid var(--gold-line); border-bottom:1px solid var(--gold-line); }
@@ -32581,6 +32582,32 @@ function m3GiftPrimaryShadow(
   return "";
 }
 
+// Ship 5.5c · seal-only re-composition of the Under Pressure blanks.
+// The Under Pressure room writes its sentence as "Under pressure, I X,
+// costing me Y, costing others Z." — the leading "I " is hard-coded
+// into the stem, so users who write "I judge" in blank1 get a doubled
+// "I I judge" when the same composer runs in Own It. The seal uses a
+// different lead — "When the {animal} goes shadow, …" — so we recompose
+// the raw blanks here without injecting any pronoun, letting whatever
+// the user typed flow through verbatim. Same partial-fill tolerance:
+// returns "" if all three blanks are empty so the caller can render
+// the faint "(unwritten — finish in Under Pressure)" placeholder.
+function m3ComposeShadowLineForSeal(
+  s: ShadowSentence,
+  animal: string,
+): string {
+  const b1 = s.blank1.trim();
+  const b2 = s.blank2.trim();
+  const b3 = s.blank3.trim();
+  if (!b1 && !b2 && !b3) return "";
+  const animalLower = (animal || "creature").trim().toLowerCase() || "creature";
+  const parts: string[] = [];
+  if (b1) parts.push(b1);
+  if (b2) parts.push(`costing me ${b2}`);
+  if (b3) parts.push(`and costing others ${b3}`);
+  return `When the ${animalLower} goes shadow, ${parts.join(", ")}.`;
+}
+
 // Ship 5.5c · compose the per-cluster Power sentence from the user's
 // Superpower blanks. Mirrors m3ComposeShadowLine's partial-fill
 // tolerance: returns empty string when all 3 blanks are empty so the
@@ -32751,7 +32778,8 @@ function NewA1M3OwnItView({
         className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
         <div className="na2-decl-eyebrow">Mirror 3 of 4 · Step 5 · Own It</div>
-        <h2 className="na2-decl-title">Own it</h2>
+        <div className="m3-seal-star" aria-hidden>★</div>
+        <h2 className="na2-decl-title">What lives in you</h2>
         {editMode && (
           <div className="m3-seal-revisit-banner">
             ★ You've claimed your Identity. The seal stays.
@@ -32786,11 +32814,19 @@ function NewA1M3OwnItView({
           const shadowSentence = m3NormalizeShadowSentence(
             state.shadowStories[c.id],
           );
-          const shadowLine = m3ComposeShadowLine(shadowSentence);
+          // Seal-only stem ("When the {animal} goes shadow, …") — see
+          // m3ComposeShadowLineForSeal. Different from the Under Pressure
+          // room's "Under pressure, I …" composer so user blanks that
+          // start with "I" don't get a doubled pronoun.
+          const shadowLine = m3ComposeShadowLineForSeal(shadowSentence, animal);
+          const animalLabel = (animal || "creature").toUpperCase();
           // Gifts in this cluster, in the order the user placed them.
+          // Defensive `?? []` — legacy demo saves predate the
+          // pickedGifts field; without this, .find crashes the seal.
+          const allPicks = state.pickedGifts ?? [];
           const giftRows = c.giftIds
             .map((gid) => {
-              const g = state.pickedGifts.find((p) => p.id === gid);
+              const g = allPicks.find((p) => p.id === gid);
               if (!g) return null;
               return {
                 id: gid,
@@ -32807,10 +32843,13 @@ function NewA1M3OwnItView({
                 <div className="m3-seal-creature-sublabel">{sublabel}</div>
               )}
 
-              {/* Power card — gold, sits above the pairing grid */}
+              {/* Power card — gold, sits above the pairing grid. Label
+                  calls back to the Superpowers room via the creature name
+                  ("THE OWL'S SUPERPOWER") so users round-trip the data
+                  source they wrote it in. */}
               <div className="m3-seal-sentence-card is-power">
                 <div className="m3-seal-sentence-label">
-                  in {pronoun} power
+                  THE {animalLabel}'S SUPERPOWER
                 </div>
                 {powerLine ? (
                   <p className="m3-seal-sentence-text">{powerLine}</p>
@@ -32821,15 +32860,17 @@ function NewA1M3OwnItView({
                 )}
               </div>
 
-              {/* Pairing grid — shadow chips ← arrow ← gift chips */}
+              {/* Pairing grid — shadow chip → arrow → gift chip. Reading
+                  direction is shadow→power: each shadow holds the seed of
+                  its corresponding gift. Headers are pronoun-aware. */}
               {giftRows.length > 0 && (
                 <div className="m3-seal-pairing">
                   <div className="m3-seal-pair-header is-shadow">
-                    when pushed…
+                    in {pronoun} shadow
                   </div>
                   <div className="m3-seal-pair-spacer" aria-hidden />
                   <div className="m3-seal-pair-header is-power">
-                    THE GIFT
+                    IN {pronoun.toUpperCase()} POWER
                   </div>
                   {giftRows.map((r) => (
                     <React.Fragment key={r.id}>
@@ -32845,7 +32886,7 @@ function NewA1M3OwnItView({
                         )}
                       </div>
                       <div className="m3-seal-pair-arrow" aria-hidden>
-                        ←
+                        →
                       </div>
                       <div className="m3-seal-pair-power">
                         <span
@@ -32859,15 +32900,13 @@ function NewA1M3OwnItView({
                 </div>
               )}
 
-              {/* Shadow card — burgundy, sits below the pairing grid */}
+              {/* Shadow card — burgundy, sits below the pairing grid.
+                  Label calls back to the Under Pressure room (parallel
+                  to the Power card's callback to Superpowers). */}
               <div className="m3-seal-sentence-card is-shadow">
-                <div className="m3-seal-sentence-label">
-                  in {pronoun} shadow
-                </div>
+                <div className="m3-seal-sentence-label">UNDER PRESSURE</div>
                 {shadowLine ? (
-                  <p className="m3-seal-sentence-text">
-                    Under pressure, I {shadowLine}
-                  </p>
+                  <p className="m3-seal-sentence-text">{shadowLine}</p>
                 ) : (
                   <p className="m3-seal-sentence-text is-empty">
                     (unwritten — finish in Under Pressure)
