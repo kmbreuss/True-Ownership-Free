@@ -288,8 +288,9 @@ export const SEAL_CLOSING_LINE = "Both are mine. Owning both is how I come home.
 // ─────────────────────────────────────────────────────────────────────────────
 // M3 hub room metadata · veil text + ordering
 // Owner-named rooms (NOT spec labels): Your Gifts (=1a Pick),
-// Animals as Anchors (=1b Shape), Under Pressure (=Step 3), Own It (=Seal).
-// Step 2 Superpowers intentionally absent — deferred per spec.
+// Superpowers (=1b Shape, renamed Ship 5.5a from "Animals as Anchors"),
+// Under Pressure (=Step 3), Own It (=Seal). Internal M3RoomKey "animals"
+// kept for state stability — only the user-visible name changed.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const M3_VEIL_TEXT = {
@@ -310,7 +311,7 @@ export const M3_ROOMS: ReadonlyArray<{
   bodyShipped: boolean;
 }> = [
   { n: 1, key: "yourGifts",     name: "Your Gifts",          tone: "burgundy", threshold: M3_VEIL_TEXT.yourGifts,     bodyShipped: true },
-  { n: 2, key: "animals",       name: "Animals as Anchors",  tone: "gold",     threshold: M3_VEIL_TEXT.animals,       bodyShipped: true },
+  { n: 2, key: "animals",       name: "Superpowers",         tone: "gold",     threshold: M3_VEIL_TEXT.animals,       bodyShipped: true },
   { n: 3, key: "underPressure", name: "Under Pressure",      tone: "burgundy", threshold: M3_VEIL_TEXT.underPressure, bodyShipped: true },
   { n: 4, key: "ownIt",         name: "Own It",              tone: "silver",   threshold: M3_VEIL_TEXT.ownIt,         bodyShipped: true },
 ];
@@ -348,6 +349,24 @@ export type PickedGift = {
   theme: Theme;
   state: GiftState;
   custom: boolean;
+  // Ship 5.5a: true when the gift was added via the Superpowers "+ add"
+  // bar or moved via the "Which creature?" picker. m3SyncStateToPicks
+  // never relocates flagged gifts via archetype matching — the user's
+  // placement wins. Optional/absent on legacy state defaults to false.
+  manuallyPlaced?: boolean;
+};
+
+// Ship 5.5a · per-cluster Superpower sentence on the Superpowers (formerly
+// Animals as Anchors) room. Three inline blanks below the gift bin:
+//   "In my power, the {animal} {blank1}, {blank2}, and {blank3}."
+// Placeholders: what I do well · what it gives me · what it gives others.
+// All three blanks must be filled across every cluster for the
+// "Continue to Under Pressure →" button to enable. Read by the Own It
+// seal to compose per-creature Power sentence cards in Gate 5.5c.
+export type SuperpowerSentence = {
+  blank1: string;
+  blank2: string;
+  blank3: string;
 };
 
 export type Cluster = {
@@ -359,10 +378,33 @@ export type Cluster = {
   descriptorWord1: string;
   descriptorWord2: string;
   giftIds: string[];
+  // Ship 5.5a · optional/absent on legacy state, defaults to empty
+  // strings via the read-site helper.
+  superpower?: SuperpowerSentence;
 };
 
 // Step 2 (Superpowers) is deferred — keeping the slot empty-typed for now.
 export type SuperpowersMap = Record<string, unknown>;
+
+// Ship 5.5a · canonical empty Superpower sentence for new + migrated
+// clusters. Use via `getSuperpower(cluster)` to read with defaults.
+export const EMPTY_SUPERPOWER: SuperpowerSentence = {
+  blank1: "",
+  blank2: "",
+  blank3: "",
+};
+
+export function getSuperpower(c: Cluster): SuperpowerSentence {
+  return c.superpower ?? EMPTY_SUPERPOWER;
+}
+
+export function isSuperpowerFilled(s: SuperpowerSentence): boolean {
+  return (
+    s.blank1.trim().length > 0 &&
+    s.blank2.trim().length > 0 &&
+    s.blank3.trim().length > 0
+  );
+}
 
 export type ShadowsForGift = {
   pickedShadows: string[];     // library + custom union

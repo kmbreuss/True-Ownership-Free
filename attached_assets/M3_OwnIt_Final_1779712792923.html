@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>M3 Own It · Final Seal Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500;1,8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1428;
+    --bg-card: #0f1a30;
+    --bg-card-deeper: #0a1428;
+    --gold: #C9A24B;
+    --gold-bright: #DCB860;
+    --gold-dim: rgba(201, 162, 75, 0.6);
+    --gold-bg: rgba(201, 162, 75, 0.08);
+    --gold-border: rgba(201, 162, 75, 0.3);
+    --burgundy: #A03B3B;
+    --burgundy-dim: rgba(160, 59, 59, 0.75);
+    --burgundy-bg: rgba(160, 59, 59, 0.08);
+    --burgundy-border: rgba(160, 59, 59, 0.3);
+    --text: #e8e2d3;
+    --text-soft: rgba(232, 226, 211, 0.85);
+    --text-muted: rgba(232, 226, 211, 0.55);
+    --text-faint: rgba(232, 226, 211, 0.35);
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.5;
+    padding: 40px 20px 80px;
+  }
+
+  .page-wrap { max-width: 880px; margin: 0 auto; }
+
+  .mockup-banner {
+    text-align: center;
+    margin-bottom: 32px;
+    padding: 20px;
+    background: rgba(201, 162, 75, 0.04);
+    border: 1px solid var(--gold-border);
+    border-radius: 8px;
+  }
+  .mockup-banner .label {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .mockup-banner h2 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .mockup-banner p {
+    color: var(--text-muted);
+    font-style: italic;
+    font-family: var(--serif);
+    font-size: 14px;
+  }
+
+  /* === Room shell === */
+  .card-room {
+    background: var(--bg-card);
+    border: 1px solid var(--gold-border);
+    border-radius: 14px;
+    padding: 48px;
+    position: relative;
+    margin-bottom: 60px;
+  }
+  .crumb {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+  .crumb .sep { color: var(--text-faint); margin: 0 6px; }
+  .crumb .current { color: var(--text); font-weight: 600; }
+  .crumb-x {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    color: var(--text-faint);
+    font-size: 22px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* === Top header === */
+  .eyebrow {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .head-star {
+    text-align: center;
+    color: var(--gold);
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+  .room-title {
+    font-family: var(--serif);
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+    text-align: center;
+  }
+  .room-subhead {
+    color: var(--text-soft);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.55;
+    text-align: center;
+    max-width: 620px;
+    margin: 0 auto 40px;
+  }
+
+  /* === Cluster block (the main per-creature seal) === */
+  .cluster-block {
+    background: var(--bg-card-deeper);
+    border: 1px solid rgba(201, 162, 75, 0.18);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 22px;
+  }
+  .creature-name {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    color: var(--gold);
+    margin-bottom: 4px;
+    text-align: center;
+    font-weight: 500;
+  }
+  .creature-sublabel {
+    color: var(--text-faint);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  /* === Superpower sentence card (ABOVE columns, gold) === */
+  .sentence-card {
+    border-radius: 8px;
+    padding: 16px 22px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .sentence-card.power {
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-border);
+  }
+  .sentence-card.shadow {
+    background: var(--burgundy-bg);
+    border: 1px solid var(--burgundy-border);
+    margin-top: 24px;
+    margin-bottom: 0;
+  }
+  .sentence-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .sentence-card.power .sentence-label { color: var(--gold-dim); }
+  .sentence-card.shadow .sentence-label { color: var(--burgundy-dim); }
+  .sentence-card.power .sentence-label::before { content: "★ "; color: var(--gold); }
+  .sentence-card.shadow .sentence-label::before { content: "● "; color: var(--burgundy); }
+  .sentence-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  .sentence-card.power .sentence-text { color: var(--gold-bright); }
+  .sentence-card.shadow .sentence-text { color: var(--burgundy); }
+
+  /* === Two-column pairing grid === */
+  .pairing-grid {
+    display: grid;
+    grid-template-columns: 1fr 50px 1fr;
+    gap: 0;
+    align-items: center;
+  }
+  .pairing-header {
+    padding-bottom: 16px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+  }
+  .pairing-header.shadow-h {
+    text-align: right;
+    color: var(--burgundy-dim);
+    text-transform: lowercase;
+  }
+  .pairing-header.power-h {
+    color: var(--gold);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+  }
+  .pair-row-shadow {
+    text-align: right;
+    padding: 6px 0;
+  }
+  .pair-row-arrow {
+    text-align: center;
+    color: var(--gold-dim);
+    font-size: 18px;
+    padding: 6px 0;
+  }
+  .pair-row-power {
+    padding: 6px 0;
+  }
+  .chip-shadow {
+    background: var(--burgundy-bg);
+    color: var(--burgundy);
+    border: 1px solid var(--burgundy-border);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-block;
+  }
+  .chip-gift {
+    background: var(--gold);
+    color: #0a1428;
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 700;
+    display: inline-block;
+  }
+  .chip-gift.emerging {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+  }
+
+  /* === Big Claim === */
+  .big-claim-divider {
+    text-align: center;
+    margin: 36px 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .big-claim-divider::before,
+  .big-claim-divider::after {
+    content: ""; flex: 1; height: 1px;
+    background: rgba(201, 162, 75, 0.25);
+  }
+  .big-claim-divider .star {
+    color: var(--gold);
+    font-size: 16px;
+  }
+
+  .big-claim {
+    background: var(--bg-card-deeper);
+    border: 1px solid rgba(201, 162, 75, 0.3);
+    border-radius: 12px;
+    padding: 32px;
+  }
+  .big-claim .label {
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .big-claim .power {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--gold-bright);
+    font-size: 21px;
+    line-height: 1.55;
+    margin-bottom: 14px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .big-claim .shadow {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--burgundy);
+    font-size: 17px;
+    line-height: 1.55;
+    margin-bottom: 22px;
+    text-align: center;
+  }
+  .big-claim .final {
+    font-family: var(--serif);
+    color: var(--gold);
+    font-size: 22px;
+    line-height: 1.5;
+    font-weight: 600;
+    text-align: center;
+    padding-top: 8px;
+    border-top: 1px solid rgba(201, 162, 75, 0.15);
+  }
+
+  .own-it-button {
+    display: block;
+    margin: 36px auto 0;
+    background: var(--gold);
+    color: #0a1428;
+    border: none;
+    padding: 14px 42px;
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--sans);
+    letter-spacing: 0.02em;
+  }
+  .own-it-button::before { content: "★ "; }
+  .own-it-helper {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 12px;
+    font-style: italic;
+    margin-top: 12px;
+    font-family: var(--serif);
+  }
+
+  .diff-marker {
+    background: rgba(201, 162, 75, 0.1);
+    border-left: 3px solid var(--gold);
+    padding: 14px 18px;
+    margin: 0 auto 60px;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    color: var(--text-soft);
+    max-width: 720px;
+  }
+  .diff-marker strong {
+    color: var(--gold);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid rgba(201, 162, 75, 0.1);
+    margin: 60px auto;
+    max-width: 720px;
+  }
+
+  .variant-label {
+    text-align: center;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 60px 0 24px;
+  }
+
+  /* Reduced-density variant for showing 4+ creatures */
+  .demo-mini .cluster-block {
+    padding: 22px 26px;
+    margin-bottom: 14px;
+  }
+  .demo-mini .creature-name {
+    font-size: 22px;
+    margin-bottom: 2px;
+  }
+  .demo-mini .creature-sublabel {
+    margin-bottom: 18px;
+    font-size: 10px;
+  }
+  .demo-mini .sentence-card {
+    padding: 12px 18px;
+    margin-bottom: 18px;
+  }
+  .demo-mini .sentence-card.shadow {
+    margin-top: 18px;
+  }
+  .demo-mini .sentence-text {
+    font-size: 15px;
+  }
+  .demo-mini .pair-row-shadow,
+  .demo-mini .pair-row-arrow,
+  .demo-mini .pair-row-power {
+    padding: 4px 0;
+  }
+  .demo-mini .chip-shadow {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+  .demo-mini .chip-gift {
+    font-size: 14px;
+    padding: 6px 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+<div class="mockup-banner">
+  <div class="label">M3 · OWN IT · FINAL SEAL ARCHITECTURE</div>
+  <h2>Superpower sentence above · two-column gift/shadow pairing in middle · Shadow sentence below</h2>
+  <p>Full triptych per creature. Variable subhead handles 1-5 creatures. Big Claim closes the seal.</p>
+</div>
+
+<!-- ==================== -->
+<!-- MAIN MOCKUP — 3 creatures (most common) -->
+<!-- ==================== -->
+<div class="card-room">
+  <span class="crumb-x">×</span>
+  <div class="crumb">Identity <span class="sep">›</span> <span class="current">Own It</span></div>
+
+  <div class="eyebrow">MIRROR 3 OF 4 · SEAL</div>
+  <div class="head-star">★</div>
+  <div class="room-title">What lives in you</div>
+  <div class="room-subhead">Three creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch.</div>
+
+  <!-- CLUSTER 1 -->
+  <div class="cluster-block">
+    <div class="creature-name">Gracefully Wise Eagle</div>
+    <div class="creature-sublabel">THE STRATEGIST IN ME</div>
+
+    <!-- Superpower sentence ABOVE columns -->
+    <div class="sentence-card power">
+      <div class="sentence-label">THE EAGLE'S SUPERPOWER</div>
+      <div class="sentence-text">
+        In my power, the Eagle sees patterns others miss, gives me clarity at altitude, and gives others a path through the noise.
+      </div>
+    </div>
+
+    <!-- Two-column pairing -->
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in her shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HER POWER</div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Overthinks</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Strategic</span></div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Withholding</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Wise</span></div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Scattered</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift emerging">Curious ✦</span></div>
+    </div>
+
+    <!-- Shadow sentence BELOW columns -->
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">
+        When the Eagle goes shadow, I retreat into analysis, costing me connection, and costing others the feeling of being met.
+      </div>
+    </div>
+  </div>
+
+  <!-- CLUSTER 2 -->
+  <div class="cluster-block">
+    <div class="creature-name">Intuitively Connected Dolphin</div>
+    <div class="creature-sublabel">THE ANCHOR IN ME</div>
+
+    <div class="sentence-card power">
+      <div class="sentence-label">THE DOLPHIN'S SUPERPOWER</div>
+      <div class="sentence-text">
+        In my power, the Dolphin attunes to what's underneath, gives me felt resonance, and gives others the feeling of being met.
+      </div>
+    </div>
+
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in her shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HER POWER</div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">People-pleasing</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Warm</span></div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Self-abandoning</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Loyal</span></div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Over-extending</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Empathetic</span></div>
+    </div>
+
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">
+        When the Dolphin goes shadow, I lose track of what I want, costing me my own ground, and costing others the partner they need from me.
+      </div>
+    </div>
+  </div>
+
+  <!-- CLUSTER 3 -->
+  <div class="cluster-block">
+    <div class="creature-name">Fiercely Honest Lion</div>
+    <div class="creature-sublabel">THE WARRIOR IN ME</div>
+
+    <div class="sentence-card power">
+      <div class="sentence-label">THE LION'S SUPERPOWER</div>
+      <div class="sentence-text">
+        In my power, the Lion says the true thing, gives me unshakable ground, and gives others permission to be real.
+      </div>
+    </div>
+
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in his shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HIS POWER</div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Brutal</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Honest</span></div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Reckless</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Bold</span></div>
+
+      <div class="pair-row-shadow"><span class="chip-shadow">Aloof</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift emerging">Sovereign ✦</span></div>
+    </div>
+
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">
+        When the Lion goes shadow, I cut with words, costing me closeness, and costing others their ability to come to me.
+      </div>
+    </div>
+  </div>
+
+  <!-- BIG CLAIM -->
+  <div class="big-claim-divider"><span class="star">★</span></div>
+
+  <div class="big-claim">
+    <div class="label">THE BIG CLAIM</div>
+    <div class="power">In my power, I am the Gracefully Wise Eagle, the Intuitively Connected Dolphin, and the Fiercely Honest Lion.</div>
+    <div class="shadow">And when I go shadow, I retreat, I abandon myself, and I cut.</div>
+    <div class="final">Both are mine. Owning both is how I come home.</div>
+  </div>
+
+  <button class="own-it-button">Own it</button>
+  <div class="own-it-helper">Claiming saves to Map of Me + completes Mirror 3</div>
+</div>
+
+<div class="diff-marker">
+  <strong>Per-creature seal structure</strong>
+  Power above (gold card, brighter text) · Two-column pairing in the middle (visual gift→shadow relationship) · Shadow below (burgundy card). Both sentences pulled from the user's own writing — Superpower from Shape, Shadow from Under Pressure. Big Claim closes with the roll-up across all creatures, the user's primary shadows, and the binding line.
+</div>
+
+<hr class="divider">
+
+<!-- ==================== -->
+<!-- VARIANT: 2 creatures -->
+<!-- ==================== -->
+<div class="variant-label">VARIANT · 2 CREATURES</div>
+
+<div class="card-room demo-mini">
+  <span class="crumb-x">×</span>
+  <div class="crumb">Identity <span class="sep">›</span> <span class="current">Own It</span></div>
+
+  <div class="eyebrow">MIRROR 3 OF 4 · SEAL</div>
+  <div class="head-star">★</div>
+  <div class="room-title">What lives in you</div>
+  <div class="room-subhead"><strong style="font-weight: 600; font-style: normal; color: var(--gold);">Two creatures.</strong> Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch.</div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Gracefully Wise Eagle</div>
+    <div class="creature-sublabel">THE STRATEGIST IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE EAGLE'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Eagle sees patterns others miss, gives me clarity at altitude, and gives others a path through the noise.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in her shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HER POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Overthinks</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Strategic</span></div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Withholding</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Wise</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Eagle goes shadow, I retreat into analysis, costing me connection, and costing others the feeling of being met.</div>
+    </div>
+  </div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Intuitively Connected Dolphin</div>
+    <div class="creature-sublabel">THE ANCHOR IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE DOLPHIN'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Dolphin attunes to what's underneath, gives me felt resonance, and gives others the feeling of being met.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in her shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HER POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">People-pleasing</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Warm</span></div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Self-abandoning</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Loyal</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Dolphin goes shadow, I lose track of what I want, costing me my own ground, and costing others the partner they need from me.</div>
+    </div>
+  </div>
+
+  <div class="big-claim-divider"><span class="star">★</span></div>
+  <div class="big-claim">
+    <div class="label">THE BIG CLAIM</div>
+    <div class="power">In my power, I am the Gracefully Wise Eagle and the Intuitively Connected Dolphin.</div>
+    <div class="shadow">And when I go shadow, I retreat and I abandon myself.</div>
+    <div class="final">Both are mine. Owning both is how I come home.</div>
+  </div>
+  <button class="own-it-button">Own it</button>
+</div>
+
+<div class="diff-marker">
+  <strong>2-creature variant</strong>
+  Subhead reads <em>"Two creatures."</em> Big Claim Power roll-up uses <em>"the X and the Y"</em> (no Oxford comma needed). Shadow roll-up uses <em>"I X and I Y"</em>.
+</div>
+
+<hr class="divider">
+
+<!-- ==================== -->
+<!-- VARIANT: 1 creature -->
+<!-- ==================== -->
+<div class="variant-label">VARIANT · 1 CREATURE (edge case)</div>
+
+<div class="card-room demo-mini">
+  <span class="crumb-x">×</span>
+  <div class="crumb">Identity <span class="sep">›</span> <span class="current">Own It</span></div>
+
+  <div class="eyebrow">MIRROR 3 OF 4 · SEAL</div>
+  <div class="head-star">★</div>
+  <div class="room-title">What lives in you</div>
+  <div class="room-subhead"><strong style="font-weight: 600; font-style: normal; color: var(--gold);">One creature.</strong> It carries gifts in you. It has a shadow. Your gifts are who you are — your shadow is what to watch.</div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Fiercely Honest Lion</div>
+    <div class="creature-sublabel">THE WARRIOR IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE LION'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Lion says the true thing, gives me unshakable ground, and gives others permission to be real.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in his shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HIS POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Brutal</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Honest</span></div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Reckless</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Bold</span></div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Aloof</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift emerging">Sovereign ✦</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Lion goes shadow, I cut with words, costing me closeness, and costing others their ability to come to me.</div>
+    </div>
+  </div>
+
+  <div class="big-claim-divider"><span class="star">★</span></div>
+  <div class="big-claim">
+    <div class="label">THE CLAIM</div>
+    <div class="power">In my power, I am the Fiercely Honest Lion.</div>
+    <div class="shadow">And when I go shadow, I cut.</div>
+    <div class="final">Both are mine. Owning both is how I come home.</div>
+  </div>
+  <button class="own-it-button">Own it</button>
+</div>
+
+<div class="diff-marker">
+  <strong>1-creature variant</strong>
+  Subhead reads <em>"One creature. It carries gifts in you. It has a shadow."</em> (singular). The Big Claim header changes from <em>"THE BIG CLAIM"</em> to just <em>"THE CLAIM"</em> — it's not big with only one creature. Power line: <em>"In my power, I am the X."</em>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== -->
+<!-- VARIANT: 5 creatures -->
+<!-- ==================== -->
+<div class="variant-label">VARIANT · 5 CREATURES (max)</div>
+
+<div class="card-room demo-mini">
+  <span class="crumb-x">×</span>
+  <div class="crumb">Identity <span class="sep">›</span> <span class="current">Own It</span></div>
+
+  <div class="eyebrow">MIRROR 3 OF 4 · SEAL</div>
+  <div class="head-star">★</div>
+  <div class="room-title">What lives in you</div>
+  <div class="room-subhead"><strong style="font-weight: 600; font-style: normal; color: var(--gold);">Five creatures.</strong> Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch.</div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Gracefully Wise Eagle</div>
+    <div class="creature-sublabel">THE STRATEGIST IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE EAGLE'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Eagle sees patterns others miss, gives me clarity at altitude, and gives others a path through the noise.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in her shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HER POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Overthinks</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Strategic</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Eagle goes shadow, I retreat into analysis, costing me connection, and costing others the feeling of being met.</div>
+    </div>
+  </div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Intuitively Connected Dolphin</div>
+    <div class="creature-sublabel">THE ANCHOR IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE DOLPHIN'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Dolphin attunes deeply, gives me resonance, and gives others felt presence.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in her shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HER POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">People-pleasing</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Warm</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Dolphin goes shadow, I lose myself in others, costing me ground, and costing others the partner they need.</div>
+    </div>
+  </div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Fiercely Honest Lion</div>
+    <div class="creature-sublabel">THE WARRIOR IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE LION'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Lion says the true thing, gives me unshakable ground, and gives others permission to be real.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in his shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HIS POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Brutal</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Honest</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Lion goes shadow, I cut with words, costing me closeness, and costing others their ability to come to me.</div>
+    </div>
+  </div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Brightly Playful Otter</div>
+    <div class="creature-sublabel">THE SPARK IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE OTTER'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Otter brings lightness, gives me joy in the work, and gives others permission to play.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in her shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HER POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Avoidant</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Playful</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Otter goes shadow, I dodge the hard thing, costing me growth, and costing others the depth I could bring.</div>
+    </div>
+  </div>
+
+  <div class="cluster-block">
+    <div class="creature-name">Steadily Hands-On Beaver</div>
+    <div class="creature-sublabel">THE BUILDER IN ME</div>
+    <div class="sentence-card power">
+      <div class="sentence-label">THE BEAVER'S SUPERPOWER</div>
+      <div class="sentence-text">In my power, the Beaver makes things real, gives me visible progress, and gives others something to stand on.</div>
+    </div>
+    <div class="pairing-grid">
+      <div class="pairing-header shadow-h">in his shadow</div>
+      <div></div>
+      <div class="pairing-header power-h">IN HIS POWER</div>
+      <div class="pair-row-shadow"><span class="chip-shadow">Over-burdened</span></div>
+      <div class="pair-row-arrow">→</div>
+      <div class="pair-row-power"><span class="chip-gift">Reliable</span></div>
+    </div>
+    <div class="sentence-card shadow">
+      <div class="sentence-label">UNDER PRESSURE</div>
+      <div class="sentence-text">When the Beaver goes shadow, I take on everything, costing me energy, and costing others the chance to step up.</div>
+    </div>
+  </div>
+
+  <div class="big-claim-divider"><span class="star">★</span></div>
+  <div class="big-claim">
+    <div class="label">THE BIG CLAIM</div>
+    <div class="power">In my power, I am the Gracefully Wise Eagle, the Intuitively Connected Dolphin, the Fiercely Honest Lion, the Brightly Playful Otter, and the Steadily Hands-On Beaver.</div>
+    <div class="shadow">And when I go shadow, I retreat, I lose myself, I cut, I dodge, and I over-give.</div>
+    <div class="final">Both are mine. Owning both is how I come home.</div>
+  </div>
+  <button class="own-it-button">Own it</button>
+</div>
+
+<div class="diff-marker">
+  <strong>5-creature variant</strong>
+  Page gets long but holds together visually because each creature has consistent architecture. Subhead: <em>"Five creatures."</em> Big Claim Power roll-up uses Oxford comma: <em>"the X, the Y, the Z, the W, and the V."</em> Shadow roll-up same: <em>"I X, I Y, I Z, I W, and I V."</em> This is the dense edge case — 5 sentences from Shape, 5 sentences from Under Pressure, 5 two-column pairings. The user who picks 5 creatures is signing up for the depth.
+</div>
+
+</div>
+
+</body>
+</html>

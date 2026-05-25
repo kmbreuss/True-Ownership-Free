@@ -1,0 +1,18 @@
+Plan approved with five small clarifications before you start. Most are minor — none should block the start of Ship 5.5a coding.1. Picker for single-cluster case. When the user has only one cluster, the "Which creature?" picker is degenerate. Auto-place the gift into the only cluster and show a small toast: "Added to {creature name}" with no picker shown. Skip the modal entirely. When the user adds a second cluster later and adds another gift, the picker appears as designed.2. Custom creatures — explicit downstream parity. Confirm in your build that custom creatures (user-named, custom emoji) get:
+
+Stored with same schema as library animals (animal name, emoji, descriptors, gift list, Superpower sentence)
+Render correctly in the Under Pressure room (animal name appears in pip subbar + shadow sentence stem)
+Render correctly on the Own It seal (animal name appears in Power roll-up, Big Claim, Map of Me)
+Support primary shadow markers per gift same as library animals
+If any of these need extra work beyond the modal change, flag it now before you code.3. Mobile / 375px layout. Confirm:
+
+Inventory bar theme rows wrap cleanly at 375px (theme label may need to sit above chips, not beside)
+"Which creature?" picker anchors usable on touch (consider bottom-sheet treatment if popover doesn't fit)
+Superpower sentence blanks stack vertically below the stem on narrow widths
+"+ add" buttons remain tappable (44px minimum touch target)
+If any of these need design judgment, surface a mobile mockup before coding. Otherwise proceed with your default mobile pattern.4. Migration behavior on existing test state. Confirm: when this ship lands, existing users with mid-flow M3 state will see their clusters with empty Superpower sentences and the Continue button disabled. They'll need to fill 3 blanks per cluster they didn't have before. That's correct expected behavior, but document it in the commit message so owner doesn't think it's a bug at demo.5. The manual-placement flag. Smart catch on the flag. Confirm:
+
+Flag name and location (e.g. state.mirror3.pickedGifts[i].manuallyPlaced: true)
+Flag persists across re-entry
+m3SyncStateToPicks honors the flag and never relocates flagged gifts
+These five clarifications are confirmation-only — no plan revision needed. Once you confirm, leave plan mode and start Ship 5.5a with Step 1 (rename). Stop at Gate 5.5a for owner demo per the cadence in the handoff doc.

@@ -1229,7 +1229,7 @@ html[data-theme="light"]{
 .m3-pick.is-embedded{ padding:0; max-width:none; margin:0; }
 .m3-pick.is-embedded .m3-pick-counter-bar{ margin:32px -24px -40px; background:linear-gradient(180deg, transparent 0%, var(--na1-bg-card) 30%); }
 @media (max-width:600px){ .m3-pick.is-embedded .m3-pick-counter-bar{ margin:24px -16px -24px; } }
-/* ─── M3 · Step 1b · Shape · Animals as Anchors ─── */
+/* ─── M3 · Step 1b · Shape · Superpowers (renamed Ship 5.5a from "Animals as Anchors") ─── */
 .m3-shape{ display:flex; flex-direction:column; gap:24px; }
 .m3-shape-eyebrow{ display:block; font-family:var(--na1-sans); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); text-align:center; margin:0 0 12px; }
 .m3-shape-title{ font-family:var(--na1-serif); font-size:30px; line-height:1.15; color:var(--na1-text); text-align:center; margin:0 0 10px; font-weight:500; }
@@ -32122,8 +32122,9 @@ type M3Room = (typeof M3_ROOMS)[number];
 // ─── M3 Hub · Identity · Your Gifts & Shadows ───
 // Modeled on NewA2Explore (Vision hub). Renders breadcrumb → eyebrow →
 // serif H1 → italic subhead → intro video stub → four stacked room rows.
-// Owner-named rooms in fixed order: Your Gifts · Animals as Anchors ·
-// Under Pressure · Own It. Step 2 Superpowers intentionally absent.
+// Owner-named rooms in fixed order: Your Gifts · Superpowers ·
+// Under Pressure · Own It. (Room 2 internal key "animals" kept for
+// state stability; user-visible name renamed Ship 5.5a.)
 function NewA1M3HubView({
   doneArr,
   onBackToGrid,
@@ -32690,7 +32691,7 @@ function NewA1M3Container({
   const doneArr = useMemo(() => {
     const s = loadMirror3State();
     const yourGiftsDone = s.pickedGifts.length > 0;
-    // Animals as Anchors (Step 1b · Shape) complete when every cluster has
+    // Superpowers (Step 1b · Shape) complete when every cluster has
     // name + animal + 2 descriptor words + ≥1 gift.
     const animalsDone =
       s.clusters.length > 0 &&
@@ -32974,7 +32975,7 @@ function m3AssembleClusters(picked: readonly PickedGift[]): Cluster[] {
 }
 
 // Ship 5 · Sync the existing cluster + shadow state to the current
-// pickedGifts set. Used on every entry to Animals as Anchors and Under
+// pickedGifts set. Used on every entry to Superpowers and Under
 // Pressure so that going back to Pick and changing selections rebuilds
 // the downstream rooms without wiping manual edits.
 //
@@ -33013,6 +33014,26 @@ function m3SyncStateToPicks(state: Mirror3State): Mirror3State {
       fullRebuild = true;
     } else {
       for (const g of addedGifts) {
+        // Ship 5.5a · manuallyPlaced gifts (added via Superpowers "+ add"
+        // or moved via the "Which creature?" picker) bypass archetype
+        // matching — the user's placement intent wins. If their original
+        // cluster vanished, drop into the smallest existing cluster
+        // without re-routing by gift label.
+        if (g.manuallyPlaced) {
+          let bestIdx = 0;
+          for (let i = 1; i < nextClusters.length; i++) {
+            if (
+              nextClusters[i].giftIds.length < nextClusters[bestIdx].giftIds.length
+            ) {
+              bestIdx = i;
+            }
+          }
+          nextClusters[bestIdx] = {
+            ...nextClusters[bestIdx],
+            giftIds: [...nextClusters[bestIdx].giftIds, g.id],
+          };
+          continue;
+        }
         // Archetypes whose criteria claim this gift's label.
         const claimingArchNames = new Set(
           CLUSTER_ARCHETYPES.filter((a) =>
@@ -33132,7 +33153,7 @@ function loadMirror3State(): Mirror3State {
   return EMPTY_MIRROR3;
 }
 
-// ─── M3 · Step 1b · Shape · Animals as Anchors ───
+// ─── M3 · Step 1b · Shape · Superpowers ───
 // Auto-assembles clusters from pickedGifts on first entry, then renders
 // editable cluster cards with archetype name + animal + 2 descriptor
 // words + chip bin of the cluster's gifts. Auto-saves debounced 500ms
@@ -33263,7 +33284,7 @@ function NewA1M3ShapeView({
   return (
     <div className={`m3-shape ${embedded ? "is-embedded" : ""}`}>
       <span className="m3-shape-eyebrow">
-        Mirror 3 of 4 · Step 1 · Shape your versions
+        Mirror 3 of 4 · Step 1 · Superpowers
       </span>
       <h1 className="m3-shape-title">Shape your versions</h1>
       <p className="m3-shape-subhead">
@@ -33669,7 +33690,7 @@ function NewA1M3UnderPressureView({
             padding: 40,
           }}
         >
-          Shape your clusters in Animals as Anchors first — then come back
+          Shape your clusters in Superpowers first — then come back
           here to meet them under pressure.
         </p>
       </div>
@@ -34415,14 +34436,14 @@ function NewA1M3View({
             disabled={pickedCount < 1 || anyThemeOver5}
             onClick={() => {
               if (pickedCount < 1 || anyThemeOver5) return;
-              // Persist and close back to the hub. Animals as Anchors picks
+              // Persist and close back to the hub. Superpowers picks
               // up the cluster assembly from state.mirror3.pickedGifts.
               const cur = (loadDataSync(KEYS.map) as any) || {};
               saveData(KEYS.map, { ...cur, mirror3: state });
               onBack();
             }}
           >
-            Continue to Animals →
+            Continue to Superpowers →
           </button>
         </div>
       </div>

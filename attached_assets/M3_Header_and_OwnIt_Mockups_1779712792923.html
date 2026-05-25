@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>M3 Header & Own It Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a1428;
+    --bg-card: #0f1a30;
+    --bg-card-deeper: #0a1428;
+    --gold: #C9A24B;
+    --gold-bright: #DCB860;
+    --gold-dim: rgba(201, 162, 75, 0.6);
+    --gold-bg: rgba(201, 162, 75, 0.08);
+    --gold-border: rgba(201, 162, 75, 0.3);
+    --burgundy: #A03B3B;
+    --burgundy-dim: rgba(160, 59, 59, 0.7);
+    --burgundy-bg: rgba(160, 59, 59, 0.08);
+    --burgundy-border: rgba(160, 59, 59, 0.3);
+    --text: #e8e2d3;
+    --text-soft: rgba(232, 226, 211, 0.85);
+    --text-muted: rgba(232, 226, 211, 0.55);
+    --text-faint: rgba(232, 226, 211, 0.35);
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.5;
+    padding: 40px 20px 80px;
+  }
+
+  .mockup-section {
+    max-width: 880px;
+    margin: 0 auto 80px;
+  }
+
+  .mockup-banner {
+    text-align: center;
+    margin-bottom: 24px;
+    padding: 18px;
+    background: rgba(201, 162, 75, 0.04);
+    border: 1px solid var(--gold-border);
+    border-radius: 8px;
+  }
+  .mockup-banner .label {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .mockup-banner h2 {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .mockup-banner p {
+    color: var(--text-muted);
+    font-style: italic;
+    font-family: var(--serif);
+    font-size: 13px;
+  }
+
+  /* === Card room shell (matches live Replit) === */
+  .card-room {
+    background: var(--bg-card);
+    border: 1px solid var(--gold-border);
+    border-radius: 14px;
+    padding: 48px 48px 56px;
+    position: relative;
+  }
+  .crumb {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+  .crumb .sep { color: var(--text-faint); margin: 0 6px; }
+  .crumb .current { color: var(--text); font-weight: 600; }
+  .crumb-x {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    color: var(--text-faint);
+    font-size: 22px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* === Header (matches live Replit M3 hub style) === */
+  .eyebrow {
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .eyebrow.burgundy { color: var(--burgundy); }
+  .room-title {
+    font-family: var(--serif);
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .room-subhead {
+    color: var(--text-soft);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.55;
+    margin-bottom: 12px;
+    max-width: 640px;
+  }
+  .room-helper {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+
+  /* === Pip subbar (Under Pressure) === */
+  .pip-bar {
+    display: flex;
+    gap: 10px;
+    margin: 8px 0 28px;
+  }
+  .pip {
+    background: var(--burgundy-bg);
+    border: 1px solid var(--burgundy-border);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 13px;
+    color: var(--burgundy-dim);
+    font-family: var(--serif);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .pip.current {
+    background: var(--burgundy);
+    color: white;
+    border-color: var(--burgundy);
+  }
+  .pip.done {
+    color: var(--gold);
+    border-color: var(--gold-border);
+    background: var(--gold-bg);
+  }
+  .pip .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+    display: inline-block;
+  }
+
+  /* === Help card === */
+  .help-card {
+    margin: 0 0 32px;
+    padding: 22px 28px;
+    background: var(--burgundy-bg);
+    border: 1px solid var(--burgundy-border);
+    border-radius: 10px;
+    color: var(--gold);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.7;
+    text-align: center;
+  }
+  .help-card .lead {
+    color: var(--text);
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+    display: block;
+    font-family: var(--sans);
+  }
+  .help-card.gold-help {
+    background: var(--gold-bg);
+    border-color: var(--gold-border);
+  }
+
+  /* === Cluster card (Under Pressure body) === */
+  .cluster-block {
+    background: var(--bg-card-deeper);
+    border: 1px solid rgba(201, 162, 75, 0.15);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+  .cluster-creature-name {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    color: var(--gold);
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .cluster-sublabel {
+    color: var(--text-faint);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  /* === OWN IT triptych block === */
+  .triptych {
+    background: var(--bg-card-deeper);
+    border: 1px solid rgba(201, 162, 75, 0.15);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 18px;
+  }
+  .triptych-head {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--text);
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+  .triptych-line {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+  .triptych-line.power {
+    color: var(--gold);
+    font-size: 19px;
+    font-weight: 500;
+  }
+  .triptych-line.power.bigger {
+    font-size: 22px;
+    color: var(--gold-bright);
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .triptych-line.superpower {
+    color: var(--gold);
+    font-size: 17px;
+    padding: 10px 14px;
+    background: var(--gold-bg);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 12px;
+  }
+  .triptych-line.shadow {
+    color: var(--burgundy);
+    font-size: 16px;
+  }
+  .triptych-line.both {
+    color: var(--gold);
+    font-size: 16px;
+    margin-top: 14px;
+  }
+
+  /* === Big claim block === */
+  .big-claim-divider {
+    text-align: center;
+    margin: 32px 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .big-claim-divider::before,
+  .big-claim-divider::after {
+    content: ""; flex: 1; height: 1px;
+    background: rgba(201, 162, 75, 0.2);
+  }
+  .big-claim-divider .star { color: var(--gold); font-size: 14px; }
+
+  .big-claim {
+    background: var(--bg-card-deeper);
+    border: 1px solid rgba(201, 162, 75, 0.25);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: left;
+  }
+  .big-claim .label {
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .big-claim .power {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--gold);
+    font-size: 19px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .big-claim .shadow {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--burgundy);
+    font-size: 17px;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .big-claim .final {
+    font-family: var(--serif);
+    color: var(--gold);
+    font-size: 22px;
+    line-height: 1.5;
+    font-weight: 600;
+    text-align: center;
+    padding-top: 6px;
+  }
+
+  .own-it-button {
+    display: block;
+    margin: 36px auto 0;
+    background: var(--gold);
+    color: #0a1428;
+    border: none;
+    padding: 14px 42px;
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--sans);
+    letter-spacing: 0.02em;
+  }
+  .own-it-button::before { content: "★ "; }
+  .own-it-helper {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 12px;
+    font-style: italic;
+    margin-top: 12px;
+    font-family: var(--serif);
+  }
+
+  /* === Difference markers (for mockup commentary) === */
+  .diff-marker {
+    background: rgba(201, 162, 75, 0.12);
+    border-left: 3px solid var(--gold);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+  .diff-marker strong {
+    color: var(--gold);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 11px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid rgba(201, 162, 75, 0.1);
+    margin: 80px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========================================== -->
+<!-- MOCKUP 1: NEW UNDER PRESSURE HEADER -->
+<!-- ========================================== -->
+<div class="mockup-section">
+  <div class="mockup-banner">
+    <div class="label">MOCKUP 1 · UNDER PRESSURE HEADER (just the top of the page)</div>
+    <h2>Adding contemplative header to Under Pressure</h2>
+    <p>Current live build skips straight to the pip subbar. This mockup adds the title + subhead + help card from the original M3 mockup.</p>
+  </div>
+
+  <div class="card-room">
+    <span class="crumb-x">×</span>
+    <div class="crumb">Identity <span class="sep">›</span> <span class="current">Under Pressure</span></div>
+
+    <div class="eyebrow burgundy">MIRROR 3 OF 4 · STEP 3 · UNDER PRESSURE</div>
+    <div class="room-title">The shadow of each gift</div>
+    <div class="room-subhead">Every gift has a shadow. The shadow isn't a different trait — it's your gift when it goes out of balance, gets hijacked, or runs the show alone.</div>
+
+    <div class="help-card">
+      <span class="lead">Character is not revealed when things are easy.</span>
+      Pick the shadow words that fit. Then flag the one that lands hardest — that's the one we'll work with.
+    </div>
+
+    <div class="pip-bar">
+      <span class="pip current">
+        <span class="dot"></span>
+        Owl · 1 of 2
+      </span>
+      <span class="pip">
+        <span class="dot"></span>
+        Bear · 2 of 2
+      </span>
+    </div>
+
+    <div style="text-align: center; color: var(--text-faint); font-size: 14px; font-style: italic; padding: 32px 0; font-family: var(--serif);">
+      ↓ Cluster body continues below (shadow chip rows + three-blank sentence) ↓
+    </div>
+  </div>
+
+  <div class="diff-marker">
+    <strong>What's new</strong>
+    Header section (eyebrow → title → subhead → help card) currently missing from live build. Restoring it before the pip subbar gives the room a contemplative entry instead of dropping the user straight into the work.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========================================== -->
+<!-- MOCKUP 2: OWN IT — HYBRID (live build + Superpower sentences) -->
+<!-- ========================================== -->
+<div class="mockup-section">
+  <div class="mockup-banner">
+    <div class="label">MOCKUP 2 · OWN IT · LIVE BUILD + SUPERPOWER SENTENCES</div>
+    <h2>Keep the live triptych structure. Add the Superpower sentence as a third gold line. Power bigger / brighter.</h2>
+    <p>The live Own It has three lines per cluster (Power · Shadow · Both are mine). This mockup adds the user's filled-in Superpower sentence from Shape as a fourth line, in brighter gold to make Power dominant.</p>
+  </div>
+
+  <div class="card-room">
+    <span class="crumb-x">×</span>
+    <div class="crumb">Identity <span class="sep">›</span> <span class="current">Own It</span></div>
+
+    <div class="eyebrow">MIRROR 3 OF 4 · SEAL</div>
+    <div class="room-title">What lives in you</div>
+    <div class="room-subhead">Three creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch.</div>
+
+    <div style="height: 28px;"></div>
+
+    <!-- TRIPTYCH 1 -->
+    <div class="triptych">
+      <div class="triptych-head">The seer in me</div>
+      <div class="triptych-line power bigger">In my power, I am the Cleverly Wise Owl.</div>
+      <div class="triptych-line superpower">
+        The Owl sees what others miss, gives me steady discernment, and gives others permission to slow down.
+      </div>
+      <div class="triptych-line shadow">Under pressure, I judge, costing me openness, and costing others opportunities with others.</div>
+      <div class="triptych-line both">Both are mine.</div>
+    </div>
+
+    <!-- TRIPTYCH 2 -->
+    <div class="triptych">
+      <div class="triptych-head">The anchor in me</div>
+      <div class="triptych-line power bigger">In my power, I am the Gracefully Strong Bear.</div>
+      <div class="triptych-line superpower">
+        The Bear holds steady when others can't, gives me unshakable ground, and gives others a place to come home to.
+      </div>
+      <div class="triptych-line shadow">Under pressure, I hide, costing me opportunities, and costing others lack of seeing me.</div>
+      <div class="triptych-line both">Both are mine.</div>
+    </div>
+
+    <!-- BIG CLAIM -->
+    <div class="big-claim-divider"><span class="star">★</span></div>
+
+    <div class="big-claim">
+      <div class="label">THE BIG CLAIM</div>
+      <div class="power">In my power, I am the Cleverly Wise Owl and the Gracefully Strong Bear.</div>
+      <div class="shadow">And when I go shadow, I judge and I hide.</div>
+      <div class="final">Both are mine. Owning both is how I come home.</div>
+    </div>
+
+    <button class="own-it-button">Own it</button>
+    <div class="own-it-helper">Claiming saves to Map of Me + completes Mirror 3</div>
+  </div>
+
+  <div class="diff-marker">
+    <strong>What's new in this mockup</strong>
+    The Superpower sentence (gold, in a gold-tinted card with gold left-border) sits between the Power line and the Shadow line for each creature. Power line bumped up in font size and uses brighter gold (#DCB860) to make it dominant. Shadow line stays slightly smaller — Power leads visually, shadow supports.
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========================================== -->
+<!-- MOCKUP 3: OWN IT — TWO-COLUMN HYBRID (mockup style + Superpower sentence) -->
+<!-- ========================================== -->
+<div class="mockup-section">
+  <div class="mockup-banner">
+    <div class="label">MOCKUP 3 · OWN IT · TWO-COLUMN HYBRID</div>
+    <h2>Combines the original M3 mockup's "in her shadow / IN HER POWER" two-column layout WITH the Superpower sentence above it.</h2>
+    <p>Power column is gold (bigger chips). Shadow column is burgundy. Superpower sentence sits as a gold prose line above the two columns. The Big Claim closes underneath.</p>
+  </div>
+
+  <div class="card-room">
+    <span class="crumb-x">×</span>
+    <div class="crumb">Identity <span class="sep">›</span> <span class="current">Own It</span></div>
+
+    <div class="eyebrow">MIRROR 3 OF 4 · SEAL</div>
+    <div style="text-align: center; color: var(--gold); font-size: 24px; margin: 14px 0 18px;">★</div>
+    <div class="room-title" style="text-align: center;">What lives in you</div>
+    <div class="room-subhead" style="text-align: center; margin: 0 auto 36px;">Three creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch.</div>
+
+    <!-- CLUSTER BLOCK 1 -->
+    <div class="cluster-block">
+      <div class="cluster-creature-name">Cleverly Wise Owl</div>
+      <div class="cluster-sublabel">THE SEER IN ME</div>
+
+      <!-- Superpower sentence (NEW addition) -->
+      <div style="background: var(--gold-bg); border: 1px solid var(--gold-border); border-radius: 8px; padding: 16px 22px; margin-bottom: 28px; text-align: center;">
+        <div style="color: var(--gold-dim); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px;">★ THE OWL'S SUPERPOWER</div>
+        <div style="color: var(--gold-bright); font-family: var(--serif); font-style: italic; font-size: 17px; line-height: 1.6;">
+          The Owl sees what others miss, gives me steady discernment, and gives others permission to slow down.
+        </div>
+      </div>
+
+      <!-- Two-column gift/shadow pairing -->
+      <div style="display: grid; grid-template-columns: 1fr 40px 1fr; gap: 0; align-items: center;">
+        <div style="text-align: right; color: var(--burgundy-dim); font-size: 11px; letter-spacing: 0.15em; text-transform: lowercase; padding-bottom: 14px;">in her shadow</div>
+        <div></div>
+        <div style="color: var(--gold); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; padding-bottom: 14px; font-weight: 600;">IN HER POWER</div>
+
+        <div style="text-align: right;"><span style="background: var(--burgundy-bg); color: var(--burgundy); border: 1px solid var(--burgundy-border); padding: 6px 14px; border-radius: 100px; font-size: 13px;">Judging</span></div>
+        <div style="text-align: center; color: var(--gold-dim); font-size: 18px;">→</div>
+        <div><span style="background: var(--gold); color: #0a1428; padding: 8px 18px; border-radius: 100px; font-size: 15px; font-weight: 600;">Discerning</span></div>
+
+        <div style="text-align: right; padding-top: 12px;"><span style="background: var(--burgundy-bg); color: var(--burgundy); border: 1px solid var(--burgundy-border); padding: 6px 14px; border-radius: 100px; font-size: 13px;">Withholding</span></div>
+        <div style="text-align: center; color: var(--gold-dim); font-size: 18px; padding-top: 12px;">→</div>
+        <div style="padding-top: 12px;"><span style="background: var(--gold); color: #0a1428; padding: 8px 18px; border-radius: 100px; font-size: 15px; font-weight: 600;">Wise</span></div>
+
+        <div style="text-align: right; padding-top: 12px;"><span style="background: var(--burgundy-bg); color: var(--burgundy); border: 1px solid var(--burgundy-border); padding: 6px 14px; border-radius: 100px; font-size: 13px;">Scattered</span></div>
+        <div style="text-align: center; color: var(--gold-dim); font-size: 18px; padding-top: 12px;">→</div>
+        <div style="padding-top: 12px;"><span style="background: transparent; color: var(--gold); border: 1px solid var(--gold); padding: 8px 18px; border-radius: 100px; font-size: 15px; font-weight: 600;">Curious ✦</span></div>
+      </div>
+    </div>
+
+    <!-- CLUSTER BLOCK 2 -->
+    <div class="cluster-block">
+      <div class="cluster-creature-name">Gracefully Strong Bear</div>
+      <div class="cluster-sublabel">THE ANCHOR IN ME</div>
+
+      <div style="background: var(--gold-bg); border: 1px solid var(--gold-border); border-radius: 8px; padding: 16px 22px; margin-bottom: 28px; text-align: center;">
+        <div style="color: var(--gold-dim); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px;">★ THE BEAR'S SUPERPOWER</div>
+        <div style="color: var(--gold-bright); font-family: var(--serif); font-style: italic; font-size: 17px; line-height: 1.6;">
+          The Bear holds steady when others can't, gives me unshakable ground, and gives others a place to come home to.
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 40px 1fr; gap: 0; align-items: center;">
+        <div style="text-align: right; color: var(--burgundy-dim); font-size: 11px; letter-spacing: 0.15em; text-transform: lowercase; padding-bottom: 14px;">in his shadow</div>
+        <div></div>
+        <div style="color: var(--gold); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; padding-bottom: 14px; font-weight: 600;">IN HIS POWER</div>
+
+        <div style="text-align: right;"><span style="background: var(--burgundy-bg); color: var(--burgundy); border: 1px solid var(--burgundy-border); padding: 6px 14px; border-radius: 100px; font-size: 13px;">Over-burdened</span></div>
+        <div style="text-align: center; color: var(--gold-dim); font-size: 18px;">→</div>
+        <div><span style="background: var(--gold); color: #0a1428; padding: 8px 18px; border-radius: 100px; font-size: 15px; font-weight: 600;">Reliable</span></div>
+
+        <div style="text-align: right; padding-top: 12px;"><span style="background: var(--burgundy-bg); color: var(--burgundy); border: 1px solid var(--burgundy-border); padding: 6px 14px; border-radius: 100px; font-size: 13px;">Trapped</span></div>
+        <div style="text-align: center; color: var(--gold-dim); font-size: 18px; padding-top: 12px;">→</div>
+        <div style="padding-top: 12px;"><span style="background: var(--gold); color: #0a1428; padding: 8px 18px; border-radius: 100px; font-size: 15px; font-weight: 600;">Loyal</span></div>
+      </div>
+    </div>
+
+    <!-- BIG CLAIM -->
+    <div class="big-claim-divider"><span class="star">★</span></div>
+
+    <div class="big-claim">
+      <div class="label">THE BIG CLAIM</div>
+      <div class="power">In my power, I am the Cleverly Wise Owl and the Gracefully Strong Bear.</div>
+      <div class="shadow">And when I go shadow, I judge and I hide.</div>
+      <div class="final">Both are mine. Owning both is how I come home.</div>
+    </div>
+
+    <button class="own-it-button">Own it</button>
+    <div class="own-it-helper">Claiming saves to Map of Me + completes Mirror 3</div>
+  </div>
+
+  <div class="diff-marker">
+    <strong>What's different from Mockup 2</strong>
+    Pure two-column layout per creature (matches the original M3 mockup you sent). Gift chips on the right are BIGGER and bolder than shadow chips on the left — Power visually dominates. Arrow makes the gift→shadow energy connection literal. Superpower sentence sits in a gold card above the columns. Big Claim still closes the page. This is more visual / structural than Mockup 2 which is more prose-driven.
+  </div>
+</div>
+
+<div style="max-width: 720px; margin: 80px auto 0; padding: 32px; background: rgba(201, 162, 75, 0.04); border: 1px solid var(--gold-border); border-radius: 12px;">
+  <div style="color: var(--gold); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px;">PICK FOR EACH MOCKUP</div>
+  <div style="font-family: var(--serif); font-size: 15px; line-height: 1.7; color: var(--text);">
+    <p style="margin-bottom: 12px;"><strong style="color: var(--gold);">Mockup 1 (Under Pressure header):</strong> approve as-is, or modify the copy?</p>
+    <p style="margin-bottom: 12px;"><strong style="color: var(--gold);">Mockup 2 (live triptych + Superpower):</strong> prose-driven, lighter visual surgery, keeps the existing seal structure. Power line bigger/brighter.</p>
+    <p style="margin-bottom: 0;"><strong style="color: var(--gold);">Mockup 3 (two-column hybrid):</strong> bigger visual change, two columns per creature with chips, Superpower in gold card above. Closer to the original M3 mockup architecture.</p>
+  </div>
+</div>
+
+</body>
+</html>

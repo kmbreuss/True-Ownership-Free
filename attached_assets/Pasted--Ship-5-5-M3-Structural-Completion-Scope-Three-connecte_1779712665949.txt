@@ -1,0 +1,346 @@
+# Ship 5.5 — M3 Structural Completion
+
+**Scope:** Three connected redesigns + personalization audit + standards doc update.
+
+**Why this is one ship not three:** The Superpower sentence on Shape, the Shadow sentence on Under Pressure (already shipped), and the Own It seal all share state. Shipping them together prevents the Own It seal from reading data that doesn't exist yet.
+
+**Ship gates (STOP at each for owner demo):**
+- **Gate 5.5a** — Rename + Superpowers room redesign (Shape becomes Superpowers with inventory bar, sentence, add creature)
+- **Gate 5.5b** — Under Pressure header restoration
+- **Gate 5.5c** — Own It seal (variable creature count, per-creature triptych)
+- **Gate 5.5d** — Personalization audit + standards doc
+
+---
+
+## Gate 5.5a — Rename + Superpowers redesign
+
+### 1. RENAME: Animals as Anchors → Superpowers
+
+Every reference across the app:
+
+- **Hub card on M3 Explore page:** "Animals as Anchors" → "Superpowers"
+- **Hub card subtitle:** Update to match new name (suggest: *"Group your gifts into the creatures that carry them"* — confirm with owner before locking)
+- **Breadcrumb inside the room:** *"Identity › Animals as Anchors"* → *"Identity › Superpowers"*
+- **Eyebrow inside the room:** `MIRROR 3 OF 4 · STEP 1 · SUPERPOWERS`
+- **Locked-state copy on Under Pressure card:** *"Unlocks after Animals as Anchors"* → *"Unlocks after Superpowers"*
+- **Veil text stays unchanged:** *"Giving them a shape…"*
+- **Continue button from Your Gifts:** Already reads `Continue to Animals →` — change to `Continue to Superpowers →`
+
+### 2. ADD: Gift Inventory bar (sticky at top)
+
+New component between the help card and the first cluster card.
+
+**Structure:**
+- Sticky position at top of the room body (under the room header but above cluster cards)
+- Background: `var(--bg-card)` with `var(--gold-border)` border
+- Header row: gold uppercase tracked label "YOUR GIFTS · N PICKED" on left, count summary on right ("all placed in creatures" / "N in creatures · M to place")
+- Body: 5 theme rows (Mind, Heart, Spine, Spark, Hands) with theme color label on left and chips on right
+- Legend at bottom: italic gold text "Tap any gift to move it to a different creature · + add on any theme to add a new gift (you'll pick which creature carries it)"
+
+**Theme colors:** Mind=`#6A9BD8`, Heart=`#D87A7A`, Spine=`#C9A24B`, Spark=`#C285D8`, Hands=`#7AC79B`
+
+**Chip states:**
+- **In-cluster** (gift is assigned to a creature): gold-filled chip, dark navy text
+- **In-cluster · emerging** (Emerging gift assigned): transparent with gold border, gold text, ✦ marker
+- **Unplaced** (gift is picked but no creature carries it): transparent with theme color border, theme color text, theme-tinted background at low opacity
+
+**"+ add" button at the end of EVERY theme row:**
+- Dashed gold border, gold text, small padding
+- On click: opens the Step 1a gift library filtered to that theme, showing gifts not yet picked (respecting the 5-per-theme cap)
+- User picks a gift → triggers the "Which creature?" picker (see #3 below)
+
+### 3. ADD: "Which creature?" picker (popover)
+
+Triggered by:
+- User adds a new gift via "+ add" (gift just got added to inventory, needs a home)
+- User taps any gift chip from the inventory bar (move action)
+- User taps any gift chip inside a cluster card's gift bin (move action)
+
+**Visual:**
+- Small floating panel, anchored near the tapped chip
+- Background: `rgba(15, 26, 48, 0.95)`, gold 1px border, 8-radius
+- Width: ~380px
+- Header: gold uppercase tracked label, then italic serif sentence
+  - For add: *"Which creature carries {giftName}?"*
+  - For move: *"Move {giftName} to which creature?"*
+- Body: vertical stack of creature buttons (one per existing cluster)
+  - Each button: emoji + full descriptor name (e.g. "🦅 Gracefully Wise Eagle")
+  - Current creature (if move action) appears grayed/disabled
+- Footer: italic helper text *"Tap the creature that carries this gift in its power"*
+
+**Behavior:**
+- User taps a creature → picker closes, gift moves to that cluster, inventory + cluster cards update instantly
+- Tap outside or Escape → picker closes, no action taken (move action only — add action requires placement)
+
+### 4. ADD: Superpower sentence at bottom of every cluster card
+
+**Position:** Below the gift chip bin, separated by a 1px dashed gold rule
+
+**Structure:**
+- Label (uppercase tracked gold, 10px): "★ THE {CREATURE NAME}'S SUPERPOWER" or "★ YOUR {CREATURE}'S SUPERPOWER"
+- Sentence stem (italic serif, 15px, gold): `"In my power, the {animal} [BLANK 1], [BLANK 2], and [BLANK 3]."`
+- Three inline blanks:
+  - Blank 1 placeholder: *"what I do well"*
+  - Blank 2 placeholder: *"what it gives me"*
+  - Blank 3 placeholder: *"what it gives others"*
+- Empty blanks: gold-tinted background, dashed gold border, muted italic placeholder
+- Filled blanks: transparent background, solid gold border, gold italic text with user's words
+
+**State:** Save to `state.mirror3.clusters[id].superpower = { blank1, blank2, blank3 }` with 500ms debounce
+
+**Validation:** All three blanks must be filled across ALL clusters for `Continue to Under Pressure →` to enable (disabled at 50% opacity until valid). Same hard validation pattern as Under Pressure's shadow sentence.
+
+### 5. ADD: "+ Add another creature" button
+
+**Position:** Below the cluster stack, above any other footer affordances
+
+**Visual:**
+- Full-width dashed gold border button, 22px padding
+- Italic serif copy: *"+ Add another creature"* with smaller helper text *"Up to 5 total"*
+
+**Counter above button:** Small text aligned right reads "N OF 5 CREATURES" (uppercase tracked)
+
+**On click:**
+- Creates a new empty cluster card at the bottom of the stack
+- Dashed border (vs solid for filled clusters)
+- Default ✨ emoji
+- Empty cluster name input with placeholder *"Name this creature… (or leave blank, we'll suggest)"*
+- Sub-label: "YOUR NEW CREATURE"
+- Empty descriptors, empty animal name
+- Drop zone in place of gift chips: *"Tap more gifts above to move them here."*
+- Superpower block dimmed at 40% opacity with helper text *"Pick a creature and add at least 1 gift to unlock this sentence."*
+
+**Cap behavior:**
+- At 5 clusters: button disables (50% opacity), helper text becomes *"5 creature maximum"*
+- The 5-cap matches the existing variable count (1-5) we locked for the Seal templates
+
+### 6. UPDATE: Animal browse modal with custom creature + emoji picker
+
+When user taps "browse →" on any animal row:
+
+**Modal structure (existing):**
+- 31 library animals shown 4-at-a-time, scored by gifts in the cluster
+- Each animal shows emoji + name + archetype description
+- Current animal highlighted with gold border + gold-tinted background
+
+**NEW: "OR · CREATE YOUR OWN" divider** between library animals and custom panel
+
+**NEW: Custom creature panel below divider:**
+- Dashed gold border, padding 18px
+- Label: gold uppercase "+ CUSTOM CREATURE"
+- Inputs row: emoji picker on left (44px square, ✨ default), name input on right (serif italic)
+- Emoji picker on click reveals **20-emoji curated grid** (animals + mythical + nature: 🐺 🐉 🦋 🕊️ 🦢 🐢 🦌 🐘 🦒 🐬 🐅 🐆 🐎 🦄 🌊 🔥 ⭐ 🌙 ☀️ ⚡)
+- Below the grid: gold italic link *"more emojis →"* opens the system emoji keyboard
+- Helper text below: italic muted *"Tap the emoji to swap. Your creature gets the same treatment as any library animal."*
+
+**On confirm:** Custom creature gets the same downstream treatment as library animals (descriptors, gifts, Superpower sentence, primary shadow markers).
+
+### 7. STATE LOGIC
+
+**Auto-assignment vs manual placement:**
+- Gifts that came from Step 1a (Your Gifts) → auto-assigned to clusters by the existing archetype-matching system (unchanged behavior)
+- Gifts added on Superpowers via "+ add" → manually placed via the "Which creature?" picker
+- Both kinds of gifts can be moved any time
+
+**State sync:**
+- New gifts added on Superpowers flow back into `state.mirror3.pickedGifts` so Step 1a stays in sync
+- Per-theme 5-cap from Step 1a still applies — "+ add" button on a theme that's already at 5 is disabled with tooltip *"5 max per theme — clear one in Your Gifts first"*
+- Moving a gift between clusters preserves the gift's state (Owned vs Emerging)
+
+**Re-entry preservation:** All edits (cluster names, animals, descriptors, Superpower sentences, gift placements) preserve across visits. Existing `m3SyncStateToPicks` helper handles this — verify it still works after the inventory bar is added.
+
+---
+
+## Gate 5.5b — Under Pressure header restoration
+
+**Bug:** The contemplative header section that should appear at the top of the Under Pressure room is missing from the live build. It currently jumps straight to the pip subbar + first cluster.
+
+**Restore:**
+- **Eyebrow** (burgundy uppercase tracked, 12px): `MIRROR 3 OF 4 · STEP 3 · UNDER PRESSURE`
+- **Title** (serif H1, 44px): *"The shadow of each gift"*
+- **Subhead** (italic serif, 19px, muted gold/text): *"Every gift has a shadow. The shadow isn't a different trait — it's your gift when it goes out of balance, gets hijacked, or runs the show alone."*
+- **Help card** (burgundy-tinted bordered card, italic gold serif body):
+  - Bold lead: *"Character is not revealed when things are easy."*
+  - Body: *"Pick the shadow words that fit. Then flag the one that lands hardest — that's the one we'll work with."*
+
+**Position:** Above the existing pip subbar. The pip subbar (`Owl · 1 of 2`, `Bear · 2 of 2`) and the cluster body below it stay as currently built.
+
+**Don't touch:** The three-blank shadow sentence at the bottom of each cluster (already shipped, working).
+
+---
+
+## Gate 5.5c — Own It seal (variable creature count, per-creature triptych)
+
+**Replace the current Own It body entirely.** The current build has a prose triptych pattern (Power line / Shadow line / "Both are mine" stacked per creature). Replace with the new per-creature triptych below.
+
+### Top of page
+
+- **Crumb:** Identity › Own It
+- **Eyebrow:** `MIRROR 3 OF 4 · SEAL` (gold, centered)
+- **Gold ★** centered, 24px
+- **Title** (serif H1, centered, 44px): *"What lives in you"*
+- **Subhead** (italic serif, centered, 18px) — VARIABLE by creature count:
+  - 1 creature: *"One creature. It carries gifts in you. It has a shadow. Your gifts are who you are — your shadow is what to watch."*
+  - 2 creatures: *"Two creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch."*
+  - 3 creatures: *"Three creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch."*
+  - 4 creatures: *"Four creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch."*
+  - 5 creatures: *"Five creatures. Each carries gifts in you. Each has a shadow. Your gifts are who you are — your shadow is what to watch."*
+
+(Spelled-out word, not numeral. Singular grammar for 1-creature case: "It carries / It has" not "Each carries / Each has".)
+
+### Per-creature block (one per cluster, stacked sequentially)
+
+**Container:** Dark navy card with gold-tinted border, 32px padding, 12px radius, 22px bottom margin
+
+**Inside the container:**
+
+**1. Creature header (centered):**
+- Creature name in italic serif gold, 26px, weight 500 (e.g. *"Gracefully Wise Eagle"*)
+- Sublabel below in uppercase tracked muted (e.g. "THE STRATEGIST IN ME")
+
+**2. Power sentence card (gold-tinted, above pairing):**
+- Gold-tinted background, gold border, 8px radius, 16px/22px padding, centered text
+- Label (uppercase tracked, 10px, gold-dim): "★ THE {CREATURE}'S SUPERPOWER" — pull creature first name (Eagle, Dolphin, Lion, etc.)
+- Sentence text (italic serif, 17px, gold-bright `#DCB860`): the user's filled-in Superpower sentence from Shape — composed: `"In my power, the {animal} {blank1}, {blank2}, and {blank3}."`
+
+**3. Two-column gift/shadow pairing (middle):**
+- CSS grid: `1fr 50px 1fr` — shadow column on left, arrow column in middle, gift column on right
+- Headers row:
+  - Left header: lowercase italic muted burgundy "in her shadow" / "in his shadow" (use creature's pronoun if known; default "her" or "its")
+  - Right header: uppercase tracked gold "IN HER POWER" / "IN HIS POWER"
+- One row per gift in the cluster:
+  - Left cell (right-aligned): shadow chip in burgundy (background burgundy-bg, border burgundy-border, color burgundy)
+    - **Show only the user's PRIMARY shadow** for that gift (the one flagged with burgundy dot in Under Pressure)
+    - If user hasn't flagged a primary, show the first picked shadow
+  - Middle cell (centered): gold arrow → (18px, gold-dim)
+  - Right cell: gift chip in gold (background gold, color navy, padding 8/18, 15px bold)
+    - Owned gifts: solid gold fill
+    - Emerging gifts: transparent with gold border + ✦ marker (matches Shape's emerging treatment)
+
+**4. Shadow sentence card (burgundy-tinted, below pairing):**
+- Burgundy-tinted background, burgundy border, 8px radius, 16px/22px padding, centered text
+- 24px top margin from pairing grid
+- Label (uppercase tracked, 10px, burgundy-dim): "● UNDER PRESSURE"
+- Sentence text (italic serif, 17px, burgundy): the user's filled-in Shadow sentence from Under Pressure — composed: `"When the {animal} goes shadow, {blank1}, {blank2}, and {blank3}."`
+
+### The Big Claim block (closes the seal)
+
+**Divider:** Gold horizontal rule with centered gold ★ (existing pattern)
+
+**Container:** Dark navy card with gold border (slightly stronger than per-creature containers — use `rgba(201, 162, 75, 0.3)`)
+
+**Label:** "THE BIG CLAIM" — but with **1 creature**, label changes to just "THE CLAIM" (it's not "big" with one)
+
+**Three lines:**
+1. **Power roll-up** (italic serif gold-bright, 21px, weight 600, centered):
+   - 1 creature: *"In my power, I am the {creature}."*
+   - 2 creatures: *"In my power, I am the {creature1} and the {creature2}."*
+   - 3 creatures: *"In my power, I am the {creature1}, the {creature2}, and the {creature3}."*
+   - 4-5 creatures: same pattern with Oxford comma
+
+2. **Shadow roll-up** (italic serif burgundy, 17px, centered):
+   - Composes from the user's primary shadow word per creature (or first picked if no primary): *"And when I go shadow, I {shadow1}, I {shadow2}, and I {shadow3}."*
+   - Same comma/Oxford rules as Power
+   - For 1 creature: *"And when I go shadow, I {shadow}."*
+   - For 2 creatures: *"And when I go shadow, I {shadow1} and I {shadow2}."*
+
+3. **Final line** (serif gold, 22px, weight 600, centered, with top border): *"Both are mine. Owning both is how I come home."*
+
+### "Own it" button
+
+- Centered, gold filled pill, 14/42 padding, 15px bold, "★ Own it" copy
+- Helper below in italic muted serif: *"Claiming saves to Map of Me + completes Mirror 3"*
+
+### Behavior
+
+**First-claim state:** Button reads "★ Own it". On click: write `state.mirror3.claimed = true` + `state.mirror3.claimedAt = timestamp`, populate Map of Me Identity row, transition Mirror 3 card on A1 grid to Complete, unlock Mirror 4 (Values).
+
+**Revisit state (after first claim):** Button transforms to "Continue to Values →" (gold filled pill). Add a quieter banner above the Big Claim: *"You've claimed your Identity. The seal stays."* in italic gold. All fields stay read-only — no edit mode on the seal itself (edits happen back in Shape / Superpowers / Under Pressure).
+
+**Map of Me handoff:** When user claims, populate the Identity row in Map of Me with:
+- Per cluster: `{creature_name} · {primary_shadow_word_per_cluster}`
+- The held line: *"Both are mine. Owning both is how I come home."*
+
+---
+
+## Gate 5.5d — Personalization audit + standards doc
+
+### Personalization audit
+
+**Phase 1 — Grep:** Find every literal `"User"` string in the codebase (case-sensitive, whole word). Surface a list to the owner with file path + line number + surrounding context for each occurrence.
+
+**Phase 2 — Classify each occurrence:** Owner reviews the list with Claude and marks each as:
+- **Replace with user's name** (most common — e.g. greetings, claims, "User's Map of Me")
+- **Replace with "you/your"** (where second-person makes more sense than name)
+- **Leave as-is** (genuine UI labels like form placeholders, dev artifacts, schema field names)
+
+**Phase 3 — Implement:** Update the marked occurrences. Wire `state.user.displayName` lookup. For pages where personalization is currently absent but should be present (owner will identify these on review), add the name wiring.
+
+**Where to source the name:** Existing `/api/me/profile` endpoint returns user profile. The `users.display_name` column is the source of truth (per S23 work).
+
+**No-name fallback:** If a user hasn't set a display name yet, fall back to "you" / "your" (second-person voice). Never display literal "User" or empty placeholder.
+
+### Standards doc update
+
+Update `AG45_App_Standards.md` (in `/docs/` or wherever it lives in the repo) with:
+
+**Section 1 update:** Add veil text for Superpowers room rename — *"Giving them a shape…"* line stays unchanged but Section 1's room mapping changes Animals as Anchors → Superpowers.
+
+**Section 2 update:** Add the new Continue button: `Continue to Superpowers →` (rename from `Continue to Animals →`).
+
+**Section 5 update — Room architecture:** Add the new Gift Inventory bar pattern. Sticky at top of Superpowers room. Theme color-coded. Add/move via "Which creature?" picker. New section.
+
+**Section 6 update — Sentence completion grammar:** Add the M3 Superpower sentence stem: `"In my power, the {animal} [what I do well], [what it gives me], and [what it gives others]."` Note that it mirrors the Shadow sentence's three-blank architecture, opposite tone.
+
+**New Section 11 — Personalization:**
+- Source of truth: `users.display_name` via `/api/me/profile`
+- Fallback when no name set: "you" / "your" (second person)
+- Never display literal "User" string anywhere user-facing
+- Standard greeting pattern: *"Welcome back, {name}"* or *"Welcome back"* if no name
+
+**New Section 12 — Variable count templates:** Document the Power roll-up / Shadow roll-up / Subhead templates for 1-5 creature counts on Own It. Same pattern applies to any future variable-count surfaces.
+
+**Bump version** to 1.1 and add change log entry.
+
+---
+
+## Ship sequence
+
+Walk these in order, stopping at each gate:
+
+1. **Gate 5.5a:** Rename + Superpowers redesign (inventory bar, picker, sentence, add creature, custom emoji)
+2. **Gate 5.5b:** Under Pressure header restore (small fix, can ship right after 5.5a or bundled)
+3. **Gate 5.5c:** Own It seal (variable creature count, triptych blocks)
+4. **Gate 5.5d:** Personalization audit (Phase 1 grep + classification list) → owner review → Phase 3 implementation + standards doc
+
+Don't ship 5.5c before 5.5a — Own It pulls Superpower sentences from state.mirror3.clusters[].superpower, which 5.5a creates.
+
+5.5b can ship at any time (no dependencies).
+
+5.5d Phase 1 (the grep) can run in parallel — owner needs to see the list before deciding the swaps.
+
+---
+
+## Demo cadence (each gate)
+
+Clean localStorage. Fresh load with `?newA1=1&newM3=1`. Walk:
+
+**5.5a demo:** Vision → Continue to Identity → hub → Your Gifts (pick 5-15 across themes) → `Continue to Superpowers →` → land on renamed room. Verify:
+- Inventory bar visible at top with all picked gifts color-coded by theme
+- Auto-clustered creatures below with Superpower sentence blocks at bottom
+- "+ add" on each theme row works → opens library → pick a gift → "Which creature?" picker → place it → updates everywhere
+- Tap a gift chip in inventory OR in cluster card → picker → move it → updates
+- "+ Add another creature" → creates empty card with ✨ default emoji → user fills it
+- Browse modal → custom creature panel with emoji grid + "more emojis →"
+- Continue button disabled until all Superpower sentences filled
+- Walk back to Your Gifts → verify per-theme 5-cap honors gifts added on Superpowers (state synced)
+
+**5.5b demo:** Walk to Under Pressure. Verify the header (eyebrow + title + subhead + help card) appears above the pip subbar.
+
+**5.5c demo:** Walk Under Pressure to completion → Continue to Own It → veil → seal loads. Verify per-creature blocks: Power sentence in gold above, two-column pairing in middle, Shadow sentence in burgundy below. Verify Big Claim composes correctly from user data. Test with different creature counts (1, 2, 3, 5) — verify subhead and roll-up grammar adapt.
+
+**5.5d demo:** Owner reviews grep output with Claude → marks swaps → Agent ships swaps → walk the app end-to-end and confirm no literal "User" appears anywhere user-facing.
+
+---
+
+That's Ship 5.5 complete.
