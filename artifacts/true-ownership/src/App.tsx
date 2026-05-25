@@ -48,6 +48,8 @@ import {
   THEME_TAGLINE,
   THEME_COLOR,
   THEME_OF_GIFT,
+  M3_ROOMS,
+  type M3RoomKey,
   type Theme,
   type PickedGift,
   type Mirror3State,
@@ -1184,6 +1186,12 @@ html[data-theme="light"]{
 .m3-pick-add-cancel{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:13px; cursor:pointer; padding:0 6px; }
 .m3-pick-counter-bar{ position:sticky; bottom:0; margin:40px -24px -120px; padding:18px 24px 28px; background:linear-gradient(180deg, transparent 0%, var(--na1-bg) 30%); display:flex; flex-direction:column; gap:6px; align-items:center; }
 @media (max-width:600px){ .m3-pick-counter-bar{ margin:32px -16px -100px; padding:16px 16px 24px; } }
+/* Embedded mode: Pick view rendered inside an na1-room-card overlay (M3 hub
+   launches Your Gifts as a room). Drop the page-level max-width + padding
+   so the room-card's chrome owns the outer frame. */
+.m3-pick.is-embedded{ padding:0; max-width:none; margin:0; }
+.m3-pick.is-embedded .m3-pick-counter-bar{ margin:32px -24px -40px; background:linear-gradient(180deg, transparent 0%, var(--na1-bg-card) 30%); }
+@media (max-width:600px){ .m3-pick.is-embedded .m3-pick-counter-bar{ margin:24px -16px -24px; } }
 .m3-pick-counter{ font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); font-variant-numeric:tabular-nums; }
 .m3-pick-counter strong{ color:var(--na1-text); font-weight:700; }
 .m3-pick-hint{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); font-style:italic; margin:0 0 12px; }
@@ -31924,7 +31932,7 @@ function NewA1View({ name }: { name?: string }) {
     );
   }
   if (view === "m3") {
-    return <NewA1M3View onBack={() => setView("grid")} />;
+    return <NewA1M3Container onBackToGrid={() => setView("grid")} />;
   }
   return (
     <NewA1Grid
@@ -31954,6 +31962,323 @@ function NewA1View({ name }: { name?: string }) {
 
 const M3_THEME_ORDER: Theme[] = ["mind", "heart", "spine", "spark", "hands"];
 
+type M3Room = (typeof M3_ROOMS)[number];
+
+// ─── M3 Hub · Identity · Your Gifts & Shadows ───
+// Modeled on NewA2Explore (Vision hub). Renders breadcrumb → eyebrow →
+// serif H1 → italic subhead → intro video stub → four stacked room rows.
+// Owner-named rooms in fixed order: Your Gifts · Animals as Anchors ·
+// Under Pressure · Own It. Step 2 Superpowers intentionally absent.
+function NewA1M3HubView({
+  doneArr,
+  onBackToGrid,
+  onLaunchRoom,
+  dimmed,
+}: {
+  doneArr: boolean[];
+  onBackToGrid: () => void;
+  onLaunchRoom: (room: M3Room) => void;
+  dimmed: boolean;
+}) {
+  const [videoOpen, setVideoOpen] = useState(false);
+  const firstIncomplete = doneArr.findIndex((d) => !d);
+  const currentIdx = firstIncomplete === -1 ? M3_ROOMS.length - 1 : firstIncomplete;
+  return (
+    <div
+      className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
+      aria-hidden={dimmed || undefined}
+    >
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <a onClick={onBackToGrid}>Entry Hall</a>
+          <span className="sep">›</span>
+          <a onClick={onBackToGrid}>A1 · All In It</a>
+          <span className="sep">›</span>
+          <span className="current">Identity</span>
+        </div>
+        <div className="na1-ex-eyebrow">
+          A1 · Mirror 3 · Explore with Katherine
+        </div>
+        <h1 className="na1-ex-title">Identity · Your Gifts &amp; Shadows</h1>
+        <p
+          className="na1-ex-sub"
+          style={{ fontStyle: "italic", fontFamily: "var(--na1-serif)" }}
+        >
+          Five themes. Three creatures. One claimed self.
+        </p>
+        <p className="na1-ex-foot-sub">
+          You can return any time to edit anything you've written.
+        </p>
+        <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
+          <div
+            className="na1-intro-video-head"
+            onClick={() => setVideoOpen((v) => !v)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setVideoOpen((v) => !v);
+              }
+            }}
+            aria-expanded={videoOpen}
+          >
+            <div className="na1-intro-video-left">
+              <div className="na1-intro-video-play-mini" aria-hidden>
+                ▶
+              </div>
+              <div className="na1-intro-video-title-row">
+                <span className="na1-intro-video-eyebrow">
+                  Start here · Katherine introduces Identity
+                </span>
+                <span className="na1-intro-video-title">
+                  Identity · Your Gifts &amp; Shadows
+                </span>
+              </div>
+            </div>
+            <span className="na1-intro-video-chev" aria-hidden>
+              ▾
+            </span>
+          </div>
+          <div className="na1-intro-video-body">
+            <div className="na1-video-stub">
+              <button
+                type="button"
+                className="na1-video-stub-play"
+                aria-label="Play intro video"
+              >
+                ▶
+              </button>
+              <div className="na1-video-stub-caption">
+                Katherine's Identity intro · placeholder
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="na1-ex-list">
+          {M3_ROOMS.map((room, idx) => {
+            const isDone = doneArr[idx];
+            const isUnlocked = idx === 0 || doneArr[idx - 1];
+            const isCurrent = isUnlocked && !isDone && idx === currentIdx;
+            const isLocked = !isUnlocked;
+            const cls = [
+              "na1-ex-row",
+              `tone-${room.tone}`,
+              isDone ? "is-complete" : "",
+              isCurrent ? "is-current" : "",
+              isLocked ? "is-locked" : "is-unlocked",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            const statusLabel = isDone
+              ? "Complete"
+              : isCurrent
+                ? "Up next · tap to begin"
+                : isLocked
+                  ? `Unlocks after ${M3_ROOMS[idx - 1].name}`
+                  : "Available";
+            const iconChar = isDone ? "✓" : isLocked ? "🔒" : String(room.n);
+            return (
+              <button
+                type="button"
+                key={room.key}
+                className={cls}
+                disabled={isLocked}
+                onClick={() => {
+                  if (!isLocked) onLaunchRoom(room);
+                }}
+                aria-label={`${room.name} — ${statusLabel}`}
+              >
+                <span className="na1-ex-icon" aria-hidden>
+                  {iconChar}
+                </span>
+                <span className="na1-ex-text">
+                  <span className="na1-ex-name" style={{ display: "block" }}>
+                    {room.name}
+                  </span>
+                  <span className="na1-ex-status" style={{ display: "block" }}>
+                    {statusLabel}
+                  </span>
+                </span>
+                {!isLocked && (
+                  <span className="na1-ex-arrow" aria-hidden>
+                    ›
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            marginTop: 8,
+          }}
+        >
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onBackToGrid}
+          >
+            ← Back to A1
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Generic M3 room overlay shell — same chrome as NewA2RoomShell but scoped
+// to Identity. Used for Your Gifts (the only shipped body so far).
+function NewA1M3RoomShell({
+  room,
+  open,
+  onClose,
+  children,
+}: {
+  room: M3Room;
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+  return (
+    <div
+      className={`na1-room-overlay ${open ? "is-open" : ""}`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={room.name}
+    >
+      <div className="na1-room-card">
+        <div className="na1-room-crumb">
+          <a onClick={onClose}>Identity</a>
+          <span className="sep">›</span>
+          <span className="current">{room.name}</span>
+        </div>
+        <button
+          type="button"
+          className="na1-room-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ×
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Container: holds the hub state + room overlay + veil transition. The
+// hub is the default landing for `view === "m3"`; rooms open inside an
+// na1-room-card overlay after the M2 veil plays. Locked rooms play the
+// veil then dismiss back to the hub (no body mounts).
+function NewA1M3Container({
+  onBackToGrid,
+}: {
+  onBackToGrid: () => void;
+}) {
+  const [openRoom, setOpenRoom] = useState<M3Room | null>(null);
+  const [roomOpen, setRoomOpen] = useState(false);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
+  const timeoutsRef = useRef<number[]>([]);
+  // Bump on each room close so the hub re-reads mirror3 state and
+  // refreshes the Complete/Up-next labels (mirrors the M2 hub pattern).
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  const doneArr = useMemo(() => {
+    const s = loadMirror3State();
+    const yourGiftsDone = s.pickedGifts.length > 0;
+    // Subsequent rooms haven't shipped — they stay locked until upstream
+    // bodies land. Surface them as not-done so the lock state holds.
+    return [yourGiftsDone, false, false, false];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTick]);
+
+  const clearTimers = () => {
+    timeoutsRef.current.forEach((t) => window.clearTimeout(t));
+    timeoutsRef.current = [];
+  };
+  useEffect(() => () => clearTimers(), []);
+
+  const launchRoom = (room: M3Room) => {
+    clearTimers();
+    setOpenRoom(room);
+    setVeilPhase("rising");
+    // Veil timing mirrors launchRoomM2: ~2.4s total with a 1.1s hold.
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        if (room.bodyShipped) setRoomOpen(true);
+      }, 900),
+    );
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, 2000),
+    );
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+        // For locked rooms (no body shipped) the veil falls back to the
+        // hub — clear the room reference so the veil unmounts cleanly.
+        if (!room.bodyShipped) setOpenRoom(null);
+      }, 3000),
+    );
+  };
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setOpenRoom((cur) => (roomOpen ? null : cur));
+        setRefreshTick((t) => t + 1);
+      }, 520),
+    );
+  };
+
+  return (
+    <>
+      <NewA1M3HubView
+        doneArr={doneArr}
+        onBackToGrid={onBackToGrid}
+        onLaunchRoom={launchRoom}
+        dimmed={roomOpen}
+      />
+      {openRoom && openRoom.bodyShipped && (
+        <NewA1M3RoomShell
+          room={openRoom}
+          open={roomOpen}
+          onClose={closeRoom}
+        >
+          {openRoom.key === "yourGifts" ? (
+            <NewA1M3View embedded onBack={closeRoom} />
+          ) : null}
+        </NewA1M3RoomShell>
+      )}
+      {veilPhase !== "idle" && openRoom && (
+        <NewA1Veil phase={veilPhase} text={openRoom.threshold} />
+      )}
+    </>
+  );
+}
+
 function m3Slug(s: string): string {
   return s
     .toLowerCase()
@@ -31973,7 +32298,13 @@ function loadMirror3State(): Mirror3State {
   return EMPTY_MIRROR3;
 }
 
-function NewA1M3View({ onBack }: { onBack: () => void }) {
+function NewA1M3View({
+  onBack,
+  embedded = false,
+}: {
+  onBack: () => void;
+  embedded?: boolean;
+}) {
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
   // Map: gift id → PickedGift, for O(1) cycle lookup.
   const pickedById = useMemo(() => {
@@ -32237,10 +32568,12 @@ function NewA1M3View({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="m3-pick">
-      <button type="button" className="m3-pick-back" onClick={onBack}>
-        ← Mirror grid
-      </button>
+    <div className={`m3-pick ${embedded ? "is-embedded" : ""}`}>
+      {!embedded && (
+        <button type="button" className="m3-pick-back" onClick={onBack}>
+          ← Mirror grid
+        </button>
+      )}
       <div className="m3-pick-eyebrow">Mirror 3 · Step 1 of 5 · Pick</div>
       <h1 className="m3-pick-title">What gifts do you carry?</h1>
       <p className="m3-pick-sub">
@@ -32270,10 +32603,10 @@ function NewA1M3View({ onBack }: { onBack: () => void }) {
             type="button"
             className="na1-btn-gold"
             onClick={() => {
-              // Shape (Step 1b) lands in Ship 3. For now the button is wired
-              // and visible — clicking acknowledges the pick set is saved
-              // and bumps back to the grid so the owner can verify
-              // persistence on reload.
+              // Persist and close back to the hub. Shape (Step 1b · Animals
+              // as Anchors) lands in a later ship; for now the button
+              // acknowledges the pick set and returns to the hub where the
+              // Your Gifts card will read as Complete (pickedGifts > 0).
               const cur = (loadDataSync(KEYS.map) as any) || {};
               saveData(KEYS.map, { ...cur, mirror3: state });
               onBack();

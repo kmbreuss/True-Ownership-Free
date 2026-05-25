@@ -233,6 +233,36 @@ export const SHADOW_LIBRARY: Record<string, readonly string[]> = {
 export const SEAL_CLOSING_LINE = "Both are mine. Owning both is how I come home.";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// M3 hub room metadata · veil text + ordering
+// Owner-named rooms (NOT spec labels): Your Gifts (=1a Pick),
+// Animals as Anchors (=1b Shape), Under Pressure (=Step 3), Own It (=Seal).
+// Step 2 Superpowers intentionally absent — deferred per spec.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const M3_VEIL_TEXT = {
+  yourGifts:     "Looking at what you carry…",
+  animals:       "Giving them a shape…",
+  underPressure: "Where the gifts go shadow…",
+  ownIt:         "The moment of claiming…",
+} as const;
+
+export type M3RoomKey = "yourGifts" | "animals" | "underPressure" | "ownIt";
+
+export const M3_ROOMS: ReadonlyArray<{
+  n: number;
+  key: M3RoomKey;
+  name: string;
+  tone: "burgundy" | "yellow" | "green" | "purple" | "silver" | "gold";
+  threshold: string;
+  bodyShipped: boolean;
+}> = [
+  { n: 1, key: "yourGifts",     name: "Your Gifts",          tone: "burgundy", threshold: M3_VEIL_TEXT.yourGifts,     bodyShipped: true  },
+  { n: 2, key: "animals",       name: "Animals as Anchors",  tone: "gold",     threshold: M3_VEIL_TEXT.animals,       bodyShipped: false },
+  { n: 3, key: "underPressure", name: "Under Pressure",      tone: "burgundy", threshold: M3_VEIL_TEXT.underPressure, bodyShipped: false },
+  { n: 4, key: "ownIt",         name: "Own It",              tone: "silver",   threshold: M3_VEIL_TEXT.ownIt,         bodyShipped: false },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 // State shape · `state.mirror3`
 // ─────────────────────────────────────────────────────────────────────────────
 
