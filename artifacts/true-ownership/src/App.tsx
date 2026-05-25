@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "./lib/auth-context";
+import { resolveDisplayName } from "./lib/displayName";
 import { Footer } from "./components/Footer";
 import {
   synthesize,
@@ -35619,7 +35620,14 @@ function A1({ intake, onDone, phase, setPhase }) {
   const [dragOver, setDragOver] = useState(null);
   const [spineHoverRow, setSpineHoverRow] = useState(null);
   const saveTimer = useRef(null);
-  const { name } = intake;
+  // Ship 5.5d · Personalization · resolved display name. Prefer the name
+  // the user typed in intake; otherwise fall back to /api/auth/me firstName
+  // (then lastName). When nothing is set, `name` is the empty string and
+  // downstream call sites must use a tasteful fallback ("you" / "My") —
+  // never render the literal word "User".
+  const { name: intakeName } = intake;
+  const { user: authUser } = useAuth();
+  const name = resolveDisplayName(intakeName, authUser) ?? "";
   useEffect(() => {
     Promise.all([
       loadData(KEYS.map),
@@ -41514,12 +41522,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                                     map?.[`val_${i}_summary`] || ""
                                   ).trim();
                                   if (!existing) {
-                                    const prompt = `You are Katherine Breuss. ${name || "The user"} did the values peeling exercise and arrived at the value "${fName}". Their answers:\nIrk: ${fIrk}\nStomp chain (what's being violated, deepest last):\n${stompList}\nGives chain (what it gives them, highest last):\n${givesList}\n\nWrite ONE sentence (max 25 words) in their voice that captures what "${fName}" means to them as a personal value. No fluff, no quotes, no preamble. Return JSON: {"summary":"..."}`;
+                                    const prompt = `You are Katherine Breuss. ${name || "The person"} did the values peeling exercise and arrived at the value "${fName}". Their answers:\nIrk: ${fIrk}\nStomp chain (what's being violated, deepest last):\n${stompList}\nGives chain (what it gives them, highest last):\n${givesList}\n\nWrite ONE sentence (max 25 words) in their voice that captures what "${fName}" means to them as a personal value. No fluff, no quotes, no preamble. Return JSON: {"summary":"..."}`;
                                     const r = await callStructured(prompt);
                                     if (r && r.summary)
                                       set(`val_${i}_summary`, r.summary);
                                   } else {
-                                    const prompt = `You are Katherine Breuss. The user peeled to find their value. Irk: ${fIrk}. Stomps: ${stomps.join(" → ")}. Gives: ${gives.join(" → ")}. They named it "${fName}" and wrote: "${existing}". Give 2-3 sentences of warm feedback — does this capture their root? Is it strong and specific? Speak directly to them in second person. No preamble. Return JSON: {"feedback":"..."}`;
+                                    const prompt = `You are Katherine Breuss. ${name || "The person"} peeled to find their value. Irk: ${fIrk}. Stomps: ${stomps.join(" → ")}. Gives: ${gives.join(" → ")}. They named it "${fName}" and wrote: "${existing}". Give 2-3 sentences of warm feedback — does this capture their root? Is it strong and specific? Speak directly to them in second person. No preamble. Return JSON: {"feedback":"..."}`;
                                     const r = await callStructured(prompt);
                                     if (r && r.feedback)
                                       set(`val_${i}_feedback`, r.feedback);
@@ -42060,7 +42068,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                           <button
                             onClick={async () => {
                               setBusy((b) => ({ ...b, [busyKey]: true }));
-                              const prompt = `You are Katherine Breuss. ${name || "The user"} holds the value "${vName}"${vSummary ? ` (which means: "${vSummary}")` : ""}. They are defining a concrete behavior that brings this value to life${bName ? `, called "${bName}"` : ""}${bDetail ? ` (detail: "${bDetail}")` : ""}. Their existing bullets: ${bBullets.length ? bBullets.map((x) => `"${x}"`).join(", ") : "(none)"}. Suggest 3-5 specific, concrete new bullet points — each one a small, observable action in daily life. Keep each under 12 words. No duplicates of existing bullets. Return JSON: {"bullets":["...","...","..."]}`;
+                              const prompt = `You are Katherine Breuss. ${name || "The person"} holds the value "${vName}"${vSummary ? ` (which means: "${vSummary}")` : ""}. They are defining a concrete behavior that brings this value to life${bName ? `, called "${bName}"` : ""}${bDetail ? ` (detail: "${bDetail}")` : ""}. Their existing bullets: ${bBullets.length ? bBullets.map((x) => `"${x}"`).join(", ") : "(none)"}. Suggest 3-5 specific, concrete new bullet points — each one a small, observable action in daily life. Keep each under 12 words. No duplicates of existing bullets. Return JSON: {"bullets":["...","...","..."]}`;
                               const r = await callStructured(prompt);
                               if (r && Array.isArray(r.bullets))
                                 setBullets([...bBullets, ...r.bullets]);
@@ -44566,7 +44574,16 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       const ph = doc.internal.pageSize.getHeight();
       const marginX = 40;
       const maxW = pw - marginX * 2;
-      const safeName = (name || "User").toString();
+      // Ship 5.5d · Personalization · PDF header + filename use the
+      // resolved display name when present. When no name is set we fall
+      // back to "My" for the filename (e.g. My-map-of-me.pdf) and use
+      // the non-possessive title "My Map of Me™" — never the literal
+      // word "User".
+      const rawName = (name ?? "").toString().trim();
+      const safeName = rawName || "My";
+      const titleText = rawName
+        ? `${rawName}'s Map of Me™`
+        : "My Map of Me™";
       const NAVY: [number, number, number] = [27, 42, 75];
       const GOLD: [number, number, number] = [201, 168, 76];
       const TEXT: [number, number, number] = [50, 50, 50];
@@ -44716,7 +44733,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(mode === "snapshot" ? 17 : 20);
       doc.setTextColor(...NAVY);
-      doc.text(`${safeName}'s Map of Me™`, marginX, y);
+      doc.text(titleText, marginX, y);
       y += mode === "snapshot" ? 22 : 28;
       if (mode === "snapshot") {
         if (purpose) {
