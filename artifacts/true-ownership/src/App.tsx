@@ -566,8 +566,8 @@ html[data-theme="light"]{
 .na1-status-value.is-empty{ color:var(--na1-text-mute); font-style:italic; }
 .na1-status-value.is-declaration{ font-family:var(--na1-serif); font-style:italic; color:var(--gold); font-size:14.5px; }
 /* ── Veil (entry transition) ── */
-.na1-veil{ position:fixed; inset:0; z-index:100; pointer-events:none; background:radial-gradient(ellipse at center, rgba(212,175,80,0.92) 0%, rgba(13,27,46,0.98) 70%); transform:translateY(100%); transition:transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
-[data-theme="light"] .na1-veil{ background:radial-gradient(ellipse at center, rgba(212,175,80,0.95) 0%, rgba(245,243,239,0.98) 70%); }
+.na1-veil{ position:fixed; inset:0; z-index:100; pointer-events:none; background:rgba(13,27,46,0.55); backdrop-filter:blur(8px) saturate(120%); -webkit-backdrop-filter:blur(8px) saturate(120%); transform:translateY(100%); transition:transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+[data-theme="light"] .na1-veil{ background:rgba(245,243,239,0.55); }
 .na1-veil.is-rising, .na1-veil.is-hold{ transform:translateY(0); }
 .na1-veil.is-falling{ transform:translateY(-100%); transition:transform 700ms cubic-bezier(0.65, 0, 0.35, 1); }
 .na1-veil-text{ position:absolute; top:50%; left:50%; transform:translate(-50%, calc(-50% + 14px)); font-family:var(--na1-serif); font-style:italic; color:var(--gold); font-size:22px; line-height:1.4; text-align:center; padding:0 24px; max-width:540px; opacity:0; transition:opacity 500ms ease 400ms, transform 500ms ease 400ms; text-shadow:0 0 24px rgba(212,175,80,0.4); }
@@ -1199,15 +1199,12 @@ html[data-theme="light"]{
 @media (max-width:600px){ .m3-pick.is-embedded .m3-pick-counter-bar{ margin:24px -16px -24px; } }
 /* ─── M3 · Step 1b · Shape · Animals as Anchors ─── */
 .m3-shape{ display:flex; flex-direction:column; gap:24px; }
-.m3-shape-subbar{ display:flex; align-items:center; justify-content:center; gap:10px; margin:0 0 4px; }
-.m3-shape-pip{ display:inline-flex; align-items:center; gap:8px; font-family:var(--na1-sans); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--na1-text-mute); padding:6px 14px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; cursor:default; }
-.m3-shape-pip-dot{ width:8px; height:8px; border-radius:50%; background:var(--na1-text-mute); }
-.m3-shape-pip.is-filled{ color:var(--na1-text-sec); border-color:var(--gold-line); }
-.m3-shape-pip.is-filled .m3-shape-pip-dot{ background:var(--gold); }
-.m3-shape-pip.is-active{ color:var(--na1-text); border-color:var(--gold); background:var(--na1-bg-card); box-shadow:0 0 0 1px var(--gold-glow), 0 0 18px var(--gold-glow); }
-.m3-shape-pip.is-active .m3-shape-pip-dot{ background:var(--gold); }
-.m3-shape-sep{ width:18px; height:1px; background:var(--na1-border); }
-.m3-shape-intro{ font-family:var(--na1-serif); font-size:15px; color:var(--na1-text-sec); text-align:center; margin:0 0 4px; line-height:1.55; font-style:italic; }
+.m3-shape-eyebrow{ display:block; font-family:var(--na1-sans); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); text-align:center; margin:0 0 12px; }
+.m3-shape-title{ font-family:var(--na1-serif); font-size:30px; line-height:1.15; color:var(--na1-text); text-align:center; margin:0 0 10px; font-weight:500; }
+.m3-shape-subhead{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; line-height:1.55; color:var(--gold); text-align:center; margin:0 auto 18px; max-width:620px; padding:0 12px; }
+.m3-shape-help{ border:1px solid var(--gold-line); border-radius:14px; background:var(--na1-bg-card); padding:14px 18px; margin:0 auto 22px; max-width:680px; font-family:var(--na1-sans); font-size:13.5px; line-height:1.55; color:var(--na1-text-sec); display:flex; gap:12px; align-items:flex-start; }
+.m3-shape-help-star{ color:var(--gold); font-size:16px; line-height:1; padding-top:1px; flex:0 0 auto; }
+@media (max-width:600px){ .m3-shape-title{ font-size:24px; } .m3-shape-subhead{ font-size:14px; } .m3-shape-help{ font-size:12.5px; padding:12px 14px; } }
 .m3-shape-list{ display:flex; flex-direction:column; gap:18px; }
 .m3-cluster-card{ background:var(--na1-bg-card); border:1.5px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; display:flex; flex-direction:column; gap:14px; position:relative; }
 .m3-cluster-head{ display:flex; align-items:flex-start; gap:10px; }
@@ -32607,21 +32604,23 @@ function NewA1M3ShapeView({
 
   return (
     <div className={`m3-shape ${embedded ? "is-embedded" : ""}`}>
-      <div className="m3-shape-subbar" role="tablist" aria-label="Step 1 progress">
-        <span className="m3-shape-pip is-filled" role="tab" aria-selected="false">
-          <span className="m3-shape-pip-dot" aria-hidden />
-          Pick
-        </span>
-        <span className="m3-shape-sep" aria-hidden />
-        <span className="m3-shape-pip is-active" role="tab" aria-selected="true">
-          <span className="m3-shape-pip-dot" aria-hidden />
-          Shape
+      <span className="m3-shape-eyebrow">
+        Mirror 3 of 4 · Step 1 · Shape your versions
+      </span>
+      <h1 className="m3-shape-title">Shape your versions</h1>
+      <p className="m3-shape-subhead">
+        Your gifts don&rsquo;t all act the same. Some lead. Some hold. Some
+        create. We grouped your gifts and matched each one with a creature that
+        carries them.
+      </p>
+      <div className="m3-shape-help" role="note">
+        <span className="m3-shape-help-star" aria-hidden>✦</span>
+        <span>
+          Cluster names and animals are suggestions — change any of them. Add
+          two words in front of each creature — they name your version of it in
+          its power (e.g. Gracefully Wise Eagle).
         </span>
       </div>
-      <p className="m3-shape-intro">
-        Your gifts gather into shapes. Name each one. Give it an animal that
-        carries it in its power.
-      </p>
       <div className="m3-shape-list">
         {state.clusters.map((c) => {
           const giftLabels = c.giftIds

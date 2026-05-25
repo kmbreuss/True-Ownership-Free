@@ -1,0 +1,26 @@
+Ship 3 demo found three issues. Fix all three before re-demo:
+Issue 1: Wrong room copy on the Shape screen.
+The mockup has the correct copy. The live build is showing different copy. Replace what's currently rendering with this exact text:
+
+Eyebrow (uppercase tracked gold, replacing the PICK/SHAPE pip subbar):
+"MIRROR 3 OF 4 · STEP 1 · SHAPE YOUR VERSIONS"
+Title (serif H1):
+"Shape your versions"
+Subhead (italic gold serif, centered):
+"Your gifts don't all act the same. Some lead. Some hold. Some create. We grouped your gifts and matched each one with a creature that carries them."
+Help block (gold-bordered card below subhead, before cluster cards):
+"✦ Cluster names and animals are suggestions — change any of them. Add two words in front of each creature — they name your version of it in its power (e.g. Gracefully Wise Eagle)."
+
+The previous copy ("Your gifts gather into shapes…") is decommissioned. Use the mockup copy verbatim.
+Issue 2: Remove the PICK / SHAPE pip subbar.
+That subbar was leftover from when Step 1 was a single room with two internal screens. Now that Your Gifts and Animals as Anchors are two separate rooms on the M3 hub, the subbar contradicts the architecture and confuses the user. Replace it with the eyebrow above ("MIRROR 3 OF 4 · STEP 1 · SHAPE YOUR VERSIONS") — same pattern M1 and M2 use to label their rooms. The pips come out entirely.
+Issue 3: Veil background too bold — doesn't match M1 Purpose or M2 Vision.
+The veil currently has a darker / more solid background underneath the gold text than M1's Purpose veil or M2's Vision veil. Compare side-by-side on dev:
+
+M1 Purpose veil (working correctly — "Stepping into the room with Katherine…")
+M2 Vision veil (also too bold per owner — check this against M1 as the reference)
+M3 Animals as Anchors veil (currently too bold)
+
+The veil should dim and blur the page beneath, not replace it with a solid panel. M1's veil is the reference — match that exactly. If M2's veil is also rendering too solid, fix M2 to match M1 as part of this ship. Veil shell, dim opacity, blur radius, background color underneath the gold text — all should be inherited from M1's working veil component, no fork.
+Re-demo path: Clean localStorage, fresh load with ?newA1=1&newM3=1, walk Vision → Continue to Identity → hub → Your Gifts (pick 12-20) → back to hub → Animals as Anchors → veil should dim+blur identical to M1 Purpose → Shape room loads with the correct copy from Issue 1, no pip subbar.
+Stop at re-demo gate.
