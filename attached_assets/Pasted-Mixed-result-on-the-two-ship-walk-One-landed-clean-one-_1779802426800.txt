@@ -1,0 +1,26 @@
+Mixed result on the two-ship walk. One landed clean, one did not.
+✅ Ship 5.5e A1 — Entry Hall greeting WORKS. "Welcome back, Katherine." renders in italic serif muted, just under the H1. Placement, style, copy all per spec.
+⚠️ Ship 5.5e A2 + A3 — Couldn't walk Own It ceremony or Map of Me title from current state. Both reuse the helper from 5.5d which is verified working, so probably fine, but please confirm at sign-off.
+❌ Ship 5.5f — Mirror 3 gating fix DID NOT LAND.
+Walked A1 hub at /?newA1=1 (no ?newM3=1 flag). Result:
+
+Purpose at 0 of 4 (Not yet explored)
+Vision correctly LOCKED with "Unlocks after Purpose"
+Mirror 3 still shows "UP NEXT" with active gold "Begin Identity →" button
+Mirror 4 correctly LOCKED with "Unlocks after Identity"
+
+Tapped "Begin Identity →" — the click handler is NOT guarded. The full M3 Identity hub overlay opened. Gate completely bypassed. Your commit message claimed M3 unlocks the moment Vision is complete and stays tap-inert — both contradicted by the live app.
+Two likely diagnoses, worth checking before re-coding:
+(1) You may have edited the wrong file or stale function. You flagged at the start of this session that the file got shorter via a recent merge consolidating dead code. Possible the consolidation moved the live A1 hub render path and your edits landed on a stale or deprecated function. Verify by inspecting the live DOM's mirror card render output — find the actual component rendering the M3 card and confirm your edits live there.
+(2) The gate may be reading the wrong flag. If the gate function derives M3-unlocked from visionComplete === true, current state should fail that check (Purpose 0/4, Vision locked, so visionComplete is false). But M3 is unlocked. Either: gate isn't being called for M3 card, OR it's reading a different flag, OR there's a default-true fallback firing when the flag is undefined. Audit the conditional and confirm what visionComplete actually resolves to at render time.
+Re-fix and walk again. Same demo path:
+
+Fresh state · /?newA1=1 (no M3 override flag)
+M1 = UP NEXT, M2 = LOCKED, M3 = LOCKED, M4 = LOCKED
+M3 card shows "Unlocks after Vision" / "Complete Vision to unlock" (constant copy per spec)
+Tapping M3 card does nothing — no click handler fires, no veil, no overlay
+After completing M1 → M2 = UP NEXT, M3 stays LOCKED
+After completing M2 → M3 = UP NEXT, "Begin Identity →" becomes active
+
+Don't sign off 5.5f until that walk passes.
+Stop discipline holds. Don't start any other work until 5.5f is genuinely fixed and walked.

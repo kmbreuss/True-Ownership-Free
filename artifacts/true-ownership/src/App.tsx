@@ -27639,8 +27639,14 @@ function NewA1Grid({
               entering the M3 view, but it no longer bypasses the chained
               gate here. Locked card below uses the same copy pattern as
               M2 and M4: "Unlocks after Vision" / "Complete Vision to
-              unlock", tap-inert per §1 of the standards doc. */}
-          {visionComplete && onOpenM3 ? (
+              unlock", tap-inert per §1 of the standards doc.
+
+              IMPORTANT: gate must include `visionUnlocked` so the chain
+              re-locks transitively when Purpose is reset. `m2Progress.
+              complete` is a persisted absolute flag — a user who finished
+              Vision once and later cleared Purpose would otherwise leak
+              an active M3 card while Vision itself is visibly locked. */}
+          {visionUnlocked && visionComplete && onOpenM3 ? (
             <article
               className="na1-mirror-card is-vision-up-next"
               role="button"
