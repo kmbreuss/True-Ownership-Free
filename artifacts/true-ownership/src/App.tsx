@@ -74,6 +74,14 @@ import {
   getAnimalPronoun,
   type Pronoun,
 } from "./mirror3Constants";
+// Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
+import {
+  M4_ROOMS,
+  EMPTY_MIRROR4,
+  hasMirror4State,
+  saveMirror4State,
+  type M4RoomKey,
+} from "./mirror4Constants";
 const KEYS = {
   map: "to_map",
   done: "to_done",
@@ -570,6 +578,15 @@ html[data-theme="light"]{
 .na1-ex-row.is-current.tone-gold .na1-ex-arrow{ color:var(--gold); }
 .na1-ex-row.is-current.tone-cyan .na1-ex-arrow{ color:var(--cyan); }
 .na1-ex-row.is-complete .na1-ex-arrow{ color:var(--gold); }
+/* Ship 5.6a · Mirror 4 · Values · Claim row accent
+   Claim is "the seal" — keeps a 3px gold left bar + gold border + soft
+   gold-warm gradient even while locked, so it reads as the destination
+   not just another locked step. Layered on top of .is-locked so the
+   gold treatment overrides the locked dim+dashed defaults. */
+.na1-ex-row.is-m4-claim{ opacity:1; border-style:solid; border-color:var(--gold-line); border-left:3px solid var(--gold); background:linear-gradient(180deg, var(--na1-bg-card) 0%, var(--gold-soft) 100%); }
+.na1-ex-row.is-m4-claim .na1-ex-icon{ background:var(--gold-soft); border-color:var(--gold-line); color:var(--gold); }
+.na1-ex-row.is-m4-claim .na1-ex-name{ color:var(--gold); font-weight:600; }
+.na1-ex-row.is-m4-claim .na1-ex-status{ color:var(--na1-text-mute); }
 /* Status strip */
 .na1-status-strip{ position:sticky; top:80px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; font-family:var(--na1-sans); display:flex; flex-direction:column; gap:14px; }
 @media (max-width:900px){ .na1-status-strip{ position:static; } }
@@ -27372,6 +27389,37 @@ function shouldRouteToM3(mapState: any): boolean {
   return Array.isArray(picked) && picked.length > 0;
 }
 
+// ─── NEW M4 (?newM4=1) opt-in flag (Ship 5.6a · Section 1 scaffold) ───
+// Mirrors the NEW_M3_FLAG_* block above verbatim. Off by default; when on,
+// the A1 grid shows a Mirror 4 hub card immediately after the Identity
+// card (in place of the existing locked "04 · Values · Behaviors"
+// placeholder). When off, the grid renders identically to today.
+// Truthy URL value sticky-enables in localStorage so subsequent reloads
+// keep the opt-in without needing the query param. `?newM4=0` does not
+// sticky-enable (matches M3's coercion via shared isFlagTruthy).
+const NEW_M4_FLAG_URL = (() => {
+  try {
+    return isFlagTruthy(
+      new URLSearchParams(window.location.search).get("newM4"),
+    );
+  } catch {
+    return false;
+  }
+})();
+const NEW_M4_FLAG_LOCAL = (() => {
+  try {
+    return isFlagTruthy(window.localStorage.getItem("newM4"));
+  } catch {
+    return false;
+  }
+})();
+if (NEW_M4_FLAG_URL) {
+  try {
+    window.localStorage.setItem("newM4", "1");
+  } catch {}
+}
+const NEW_M4_ENABLED = NEW_M4_FLAG_URL || NEW_M4_FLAG_LOCAL;
+
 // ─── NEW A1: Mirror grid (4 cards · Purpose unlocked, BAG/Identity/Values locked) ───
 type NewA1GridM2Progress = {
   ex1: boolean;
@@ -27388,6 +27436,7 @@ function NewA1Grid({
   onOpenPurpose,
   onOpenVision,
   onOpenM3,
+  onOpenM4,
 }: {
   name?: string;
   progress: {
@@ -27403,6 +27452,7 @@ function NewA1Grid({
   // Optional: when present AND vision is complete, the Mirror 3 card
   // unlocks and routes here. Parent wires this only when the M3 flag is on.
   onOpenM3?: () => void;
+  onOpenM4?: () => void;
 }) {
   const doneCount = [
     progress.ex1,
@@ -27713,34 +27763,89 @@ function NewA1Grid({
               </div>
             </article>
           )}
-          {[
-            {
-              num: "04",
-              eyebrow: "Mirror 4",
-              name: "Values · Behaviors",
-              sub: "What you stand for.",
-              empty: "Unlocks after Identity",
-              meta: "Complete Mirror 3 to unlock",
-            },
-          ].map((c) => (
+          {/* Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
+              Flag-gated: when NEW_M4_ENABLED (?newM4=1 or sticky local),
+              render an unlocked Values hub card in place of the existing
+              locked placeholder below. The hub itself gates internal
+              progress; this card on the A1 grid is unconditionally
+              clickable while the flag is on so owner can walk the
+              scaffold immediately. When flag is off, the existing
+              "04 · Values · Behaviors" locked placeholder renders
+              verbatim — app looks identical to today. */}
+          {NEW_M4_ENABLED && onOpenM4 ? (
             <article
-              key={c.num}
-              className="na1-mirror-card is-locked"
-              aria-disabled="true"
+              className="na1-mirror-card is-vision-up-next"
+              role="button"
+              tabIndex={0}
+              onClick={onOpenM4}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onOpenM4();
+                }
+              }}
             >
               <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">{c.num}</span>
-                <span className="na1-mirror-card-status">Locked</span>
+                <span className="na1-mirror-card-num">04</span>
+                <span className="na1-mirror-card-status">Up next</span>
               </div>
-              <div className="na1-mirror-card-eyebrow">{c.eyebrow}</div>
-              <h2 className="na1-mirror-card-name">{c.name}</h2>
-              <p className="na1-mirror-card-sub">{c.sub}</p>
-              <div className="na1-mirror-card-empty">{c.empty}</div>
+              <div className="na1-mirror-card-eyebrow">Mirror 4</div>
+              <h2 className="na1-mirror-card-name">Values · The Order You Live By</h2>
+              <p className="na1-mirror-card-sub">
+                What you stand for, in order.
+              </p>
+              <div
+                className="na1-mirror-card-empty"
+                style={{ fontStyle: "normal", color: "var(--na1-text-sec)" }}
+              >
+                Three rooms. At least three values. One decision filter.
+              </div>
               <div className="na1-mirror-card-action">
-                <span className="na1-mirror-card-meta">{c.meta}</span>
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenM4();
+                  }}
+                >
+                  Begin Values →
+                </button>
+                <span className="na1-mirror-card-meta">
+                  4 rooms · discover · operationalize · rank · claim
+                </span>
               </div>
             </article>
-          ))}
+          ) : (
+            [
+              {
+                num: "04",
+                eyebrow: "Mirror 4",
+                name: "Values · Behaviors",
+                sub: "What you stand for.",
+                empty: "Unlocks after Identity",
+                meta: "Complete Mirror 3 to unlock",
+              },
+            ].map((c) => (
+              <article
+                key={c.num}
+                className="na1-mirror-card is-locked"
+                aria-disabled="true"
+              >
+                <div className="na1-mirror-card-head">
+                  <span className="na1-mirror-card-num">{c.num}</span>
+                  <span className="na1-mirror-card-status">Locked</span>
+                </div>
+                <div className="na1-mirror-card-eyebrow">{c.eyebrow}</div>
+                <h2 className="na1-mirror-card-name">{c.name}</h2>
+                <p className="na1-mirror-card-sub">{c.sub}</p>
+                <div className="na1-mirror-card-empty">{c.empty}</div>
+                <div className="na1-mirror-card-action">
+                  <span className="na1-mirror-card-meta">{c.meta}</span>
+                </div>
+              </article>
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -32111,7 +32216,7 @@ function NewA1View({ name }: { name?: string }) {
   // other downstream consumer of `name`) would skip the auth fallback.
   const { user: authUser } = useAuth();
   const resolvedName = resolveDisplayName(name, authUser) ?? "";
-  const [view, setView] = useState<"grid" | "explore" | "explore2" | "m3">(
+  const [view, setView] = useState<"grid" | "explore" | "explore2" | "m3" | "m4">(
     () => {
       // Auto-resume into M3 ONLY if the user has real M3 progress
       // (pickedGifts.length > 0). The ?newM3=1 / localStorage flag enables
@@ -32378,6 +32483,10 @@ function NewA1View({ name }: { name?: string }) {
   if (view === "m3") {
     return <NewA1M3Container onBackToGrid={() => setView("grid")} />;
   }
+  // Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
+  if (view === "m4") {
+    return <NewA1M4Container onBackToGrid={() => setView("grid")} />;
+  }
   return (
     <NewA1Grid
       // Ship 5.5e · Personalization · pass the canonically-resolved name
@@ -32390,6 +32499,7 @@ function NewA1View({ name }: { name?: string }) {
       onOpenPurpose={() => setView("explore")}
       onOpenVision={() => setView("explore2")}
       onOpenM3={() => setView("m3")}
+      onOpenM4={() => setView("m4")}
     />
   );
 }
@@ -33450,6 +33560,373 @@ function NewA1M3Container({
             />
           ) : null}
         </NewA1M3RoomShell>
+      )}
+      {veilPhase !== "idle" && openRoom && (
+        <NewA1Veil phase={veilPhase} text={openRoom.threshold} />
+      )}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
+// ─────────────────────────────────────────────────────────────────────────────
+// Hub + 4 room cards behind ?newM4=1. Discover opens a real overlay with
+// a "Coming in Section 2" placeholder body; Operationalize / Rank / Claim
+// are locked and play the veil-then-return pattern when clicked. Reuses
+// M3's NewA1M3RoomShell? No — M3's shell hardcodes "Identity" breadcrumb.
+// We use a sibling NewA1M4RoomShell that mirrors it but reads "Values".
+// All CSS classes are existing `na1-*` tokens — zero new tokens per
+// owner approval (0c). The Claim row gold accent is added via a single
+// scoped CSS rule in index.css (.na1-ex-row.is-m4-claim).
+// ─────────────────────────────────────────────────────────────────────────────
+
+type M4Room = (typeof M4_ROOMS)[number];
+
+function NewA1M4RoomShell({
+  room,
+  open,
+  onClose,
+  children,
+}: {
+  room: M4Room;
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose]);
+  return (
+    <div
+      className={`na1-room-overlay ${open ? "is-open" : ""}`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={room.name}
+    >
+      <div className="na1-room-card">
+        <div className="na1-room-crumb">
+          <a onClick={onClose}>Values</a>
+          <span className="sep">›</span>
+          <span className="current">{room.name}</span>
+        </div>
+        <button
+          type="button"
+          className="na1-room-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ×
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Section 1 placeholder body: "Coming in Section N" centered card.
+// Mirrors NewA1RoomPlaceholderBody's eyebrow + title pattern so the
+// visual rhythm matches the M1/M3 placeholders.
+function NewA1M4RoomPlaceholderBody({ room }: { room: M4Room }) {
+  // Discover → Section 2; Operationalize → Section 4; Rank → Section 6;
+  // Claim → Section 7. Section 1 only ships Discover's overlay; the
+  // others veil-and-return without mounting this body. Keeping the
+  // full map here so when later sections wire the same shell, the
+  // copy is already correct.
+  const sectionByKey: Record<M4RoomKey, number> = {
+    discover: 2,
+    operationalize: 4,
+    rank: 6,
+    claim: 7,
+  };
+  const n = sectionByKey[room.key];
+  return (
+    <>
+      <div className="na1-room-eyebrow tone-gold">
+        Mirror 4 · {room.name}
+      </div>
+      <h2 className="na1-room-title">{room.name}</h2>
+      <div
+        style={{
+          minHeight: "280px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          gap: "12px",
+          padding: "40px 16px",
+        }}
+      >
+        <div
+          style={{
+            fontFamily: "var(--na1-serif)",
+            fontStyle: "italic",
+            fontSize: "22px",
+            color: "var(--na1-text-sec)",
+          }}
+        >
+          Coming in Section {n}
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--na1-sans)",
+            fontSize: "13px",
+            color: "var(--na1-text-mute)",
+          }}
+        >
+          This room's body lands in the next Mirror 4 ship.
+        </div>
+      </div>
+    </>
+  );
+}
+
+function NewA1M4HubView({
+  onBackToGrid,
+  onLaunchRoom,
+  dimmed,
+}: {
+  onBackToGrid: () => void;
+  onLaunchRoom: (room: M4Room) => void;
+  dimmed: boolean;
+}) {
+  const [videoOpen, setVideoOpen] = useState(false);
+  // Section 1: room 1 (Discover) is always "Up next" since no Mirror 4
+  // progress can exist yet. Rooms 2-4 are locked. When Section 2+ ships,
+  // unlock logic will read loadMirror4State() to compute status.
+  return (
+    <div
+      className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
+      aria-hidden={dimmed || undefined}
+    >
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <a onClick={onBackToGrid}>Entry Hall</a>
+          <span className="sep">›</span>
+          <a onClick={onBackToGrid}>A1 · All In It</a>
+          <span className="sep">›</span>
+          <span className="current">Values</span>
+        </div>
+        <div className="na1-ex-eyebrow">
+          A1 · Mirror 4 · Explore with Katherine
+        </div>
+        <h1 className="na1-ex-title">Values · The Order You Live By</h1>
+        <p
+          className="na1-ex-sub"
+          style={{ fontStyle: "italic", fontFamily: "var(--na1-serif)" }}
+        >
+          Three rooms. At least three values. One decision filter.
+        </p>
+        <p className="na1-ex-foot-sub">
+          You can return any time to edit anything you've written.
+        </p>
+        <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
+          <div
+            className="na1-intro-video-head"
+            onClick={() => setVideoOpen((v) => !v)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setVideoOpen((v) => !v);
+              }
+            }}
+            aria-expanded={videoOpen}
+          >
+            <div className="na1-intro-video-left">
+              <div className="na1-intro-video-play-mini" aria-hidden>
+                ▶
+              </div>
+              <div className="na1-intro-video-title-row">
+                <span className="na1-intro-video-eyebrow">
+                  Start here · Katherine introduces Values
+                </span>
+                <span className="na1-intro-video-title">
+                  Values · What you actually stand for
+                </span>
+              </div>
+            </div>
+            <span className="na1-intro-video-chev" aria-hidden>
+              ▾
+            </span>
+          </div>
+          <div className="na1-intro-video-body">
+            <div className="na1-video-stub">
+              <button
+                type="button"
+                className="na1-video-stub-play"
+                aria-label="Play intro video"
+              >
+                ▶
+              </button>
+              <div className="na1-video-stub-caption">
+                Katherine's Values intro · placeholder
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="na1-ex-list">
+          {M4_ROOMS.map((room, idx) => {
+            // Section 1: Discover always unlocked, rest locked.
+            const isUnlocked = idx === 0;
+            const isCurrent = isUnlocked;
+            const isLocked = !isUnlocked;
+            const isClaim = room.key === "claim";
+            const cls = [
+              "na1-ex-row",
+              `tone-${room.tone}`,
+              isCurrent ? "is-current" : "",
+              isLocked ? "is-locked" : "is-unlocked",
+              isClaim ? "is-m4-claim" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            const statusLabel = isCurrent
+              ? "Up next · tap to begin"
+              : isClaim
+                ? "The seal — unlocks after Rank"
+                : `Unlocks after ${M4_ROOMS[idx - 1].name}`;
+            const iconChar = isLocked ? "🔒" : String(room.n);
+            // Locked rooms remain clickable in M4 so the veil-falls-back
+            // pattern (room.bodyShipped === false → setOpenRoom(null) in
+            // the container's launch timer) fires. This mirrors the spec
+            // requirement that locked rooms play the veil then return
+            // rather than being inert. M3's hub disables locked rooms
+            // entirely; M4 deviates intentionally here.
+            return (
+              <button
+                type="button"
+                key={room.key}
+                className={cls}
+                onClick={() => onLaunchRoom(room)}
+                aria-label={`${room.name} — ${statusLabel}`}
+              >
+                <span className="na1-ex-icon" aria-hidden>
+                  {iconChar}
+                </span>
+                <span className="na1-ex-text">
+                  <span className="na1-ex-name" style={{ display: "block" }}>
+                    {room.name}
+                  </span>
+                  <span className="na1-ex-status" style={{ display: "block" }}>
+                    {statusLabel}
+                  </span>
+                </span>
+                {!isLocked && (
+                  <span className="na1-ex-arrow" aria-hidden>
+                    ›
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            marginTop: 8,
+          }}
+        >
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onBackToGrid}
+          >
+            ← Back to A1
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewA1M4Container({
+  onBackToGrid,
+}: {
+  onBackToGrid: () => void;
+}) {
+  const [openRoom, setOpenRoom] = useState<M4Room | null>(null);
+  const [roomOpen, setRoomOpen] = useState(false);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
+  const timeoutsRef = useRef<number[]>([]);
+
+  // Ship 5.6a · seed EMPTY_MIRROR4 to localStorage on first-ever hub
+  // mount so state.mirror4 schema exists per spec ("Initialize empty
+  // state.mirror4 schema on first load"). Subsequent mounts read the
+  // existing blob unchanged.
+  useEffect(() => {
+    if (!hasMirror4State()) {
+      saveMirror4State(EMPTY_MIRROR4);
+    }
+  }, []);
+
+  const clearTimers = () => {
+    timeoutsRef.current.forEach((t) => window.clearTimeout(t));
+    timeoutsRef.current = [];
+  };
+  useEffect(() => () => clearTimers(), []);
+
+  const launchRoom = (room: M4Room) => {
+    clearTimers();
+    setOpenRoom(room);
+    setVeilPhase("rising");
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        if (room.bodyShipped) setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+        // Locked rooms (bodyShipped:false): clear openRoom so the veil
+        // falls cleanly back to the hub. Mirrors M3's launch pattern.
+        if (!room.bodyShipped) setOpenRoom(null);
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+  };
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setOpenRoom((cur) => (roomOpen ? null : cur));
+      }, 520),
+    );
+  };
+
+  return (
+    <>
+      <NewA1M4HubView
+        onBackToGrid={onBackToGrid}
+        onLaunchRoom={launchRoom}
+        dimmed={roomOpen}
+      />
+      {openRoom && openRoom.bodyShipped && (
+        <NewA1M4RoomShell room={openRoom} open={roomOpen} onClose={closeRoom}>
+          <NewA1M4RoomPlaceholderBody room={openRoom} />
+        </NewA1M4RoomShell>
       )}
       {veilPhase !== "idle" && openRoom && (
         <NewA1Veil phase={veilPhase} text={openRoom.threshold} />

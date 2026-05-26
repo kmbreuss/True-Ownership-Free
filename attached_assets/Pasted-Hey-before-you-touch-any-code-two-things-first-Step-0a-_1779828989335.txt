@@ -1,0 +1,66 @@
+Hey — before you touch any code, two things first:Step 0a — Create a backup checkpoint. Either use Replit's checkpoint feature to mark the current state, or create a backup branch / forked copy of the current True-Ownership project state so we have a known-good rollback point before Mirror 4 ships. Confirm the backup is in place before starting Step 1.Step 0b — Confirm the file. I'm assuming Mirror 4 lives in App.tsx (where Mirror 3 was built). If the project's primary file is different, tell me before proceeding.Once both confirmed, here's Section 1.Context: This is the first of 7 sections building Mirror 4 (Values) for True Ownership. Each section ships independently to dev. Test before next section ships. Mirror 4 is gated behind a ?newM4=1 URL flag — without the flag, the app behaves exactly as today. This section is plumbing only — the hub view, 4 room cards, locked states, and an empty state schema. No room interiors yet.Reference mockup: Values_Mirror4_LiveTokens.html — open it in a browser. Demo nav button at bottom: click "Hub". That's the screen this section builds.Pattern to copy: Mirror 3 (Identity). M4 reuses M3's hub layout, overlay open/close, fonts, tokens. Locate the M3 hub code first, copy its structure, swap content. Do not invent a new pattern.What to build (verbatim from the plan):
+Wire ?newM4=1 flag exactly like ?newM3=1 (find existing flag-check code).
+Add Mirror 4 hub card to A1 view, immediately after Mirror 3 (Identity) card.
+Hub card opens a full-screen Values hub view (same M3 hub pattern):
+
+Breadcrumb: Entry Hall › A1 · All In It › Values
+Eyebrow: A1 · MIRROR 4 · EXPLORE WITH KATHERINE (gold uppercase, letter-spaced)
+Title: Values · The Order You Live By
+Subtitle: Three rooms. At least three values. One decision filter.
+Return-anytime line: You can return any time to edit anything you've written.
+Katherine intro brief card (▶ icon, START HERE · KATHERINE INTRODUCES VALUES, Values · What you actually stand for) — opens existing video modal pattern from M3.
+4 room cards:
+
+Discover — badge 1, status Up next if no Mirror 4 progress
+Operationalize — locked, status Unlocks after Discover
+Rank — locked, status Unlocks after Operationalize
+Claim — gold-accented (3px gold left border on the card), locked, status The seal — unlocks after Rank
+
+
+← Back to A1 quiet pill at bottom
+
+
+Initialize empty state.mirror4 schema on first load:
+
+ts   state.mirror4 = {
+     status: "not_started",
+     currentStep: "admire",
+     admire: [],
+     irks: [],
+     portrait: { lights: [], warms: [], bothers: [], turns: [] },
+     clusters: [],
+     operationalize: {},
+     rank: [],
+     pressureTest: { complete: false, pairs: [], conflicts: 0, rankChanges: 0 },
+     claimed: false,
+     claimedAt: null
+   }
+
+Clicking any unlocked room shows placeholder content: a centered Coming in section N message — the room overlay opens but contains only this placeholder.
+Add navigation: clicking "Values" anywhere in app routes to this hub.
+Design tokens — already exist in the app. Do not redefine. Use existing CSS variables:
+Backgrounds: --bg, --bg2, --bg3, --bg4
+Text: --text, --text2, --text3
+Gold: --gold, --gold-warm, --gold-soft, --gold-line, --gold-text-dark
+Borders: --border, --border2
+Fonts: DM Sans (body/UI), Georgia (serif/italic). No new font loads.
+If any of these CSS variables don't exist in the current app, tell me — don't invent values. Pull them from the mockup file's :root block.Definition of done:
+Visit /?newM4=1 — Mirror 4 hub card visible on A1 grid.
+Without the flag, Mirror 4 is invisible — app looks identical to before.
+Click Mirror 4 card — Values hub loads with all 4 room cards visible.
+Discover room is unlocked (clickable). Other 3 show locked state with "Unlocks after [X]" status.
+Click Discover → overlay opens showing Coming in Section 2 placeholder.
+Click close × on overlay → returns to hub.
+Refresh page on hub → hub state unchanged, state.mirror4 schema initialized.
+DM Sans + Georgia render correctly.
+Visually matches M3 hub when compared side by side.
+DO NOT:
+Build any room interiors (Sections 2–7 cover those).
+Add new database tables. state.mirror4 lives in the existing state object.
+Modify Map of Me. (Section 7 will, if it exists.)
+Touch Mirror 1, 2, or 3 code in any way.
+Add new design tokens. If you need a value not in :root, ask before adding.
+Change DM Sans / Georgia font stack. No Cormorant Garamond, no Inter, no Geist.
+Build the Katherine video brief modal logic — just the card. The modal pattern already exists in M3; reuse on click.
+Add server endpoints, new resolvers, or new auth flows. This is client-only state work.
+Reference: mockup file Values_Mirror4_LiveTokens.html, demo nav button Hub.When you're done, deploy to dev, then reply with: (a) confirmation the backup is in place, (b) the dev URL to test, (c) anything you had to deviate from spec and why.

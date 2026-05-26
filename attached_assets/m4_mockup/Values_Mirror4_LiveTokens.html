@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Values · Mirror 4 · Live-Token Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1b2e;
+    --bg2:#112240;
+    --bg3:#1a2f4a;
+    --bg4:#1e3554;
+    --text:#f4f1eb;
+    --text2:#d4cfc5;
+    --text3:#7d8a98;
+    --gold:#c9a84b;
+    --gold-warm:rgba(201,168,75,.06);
+    --gold-soft:rgba(201,168,75,.14);
+    --gold-line:rgba(201,168,75,.32);
+    --gold-glow:rgba(201,168,75,.45);
+    --burgundy:#b34d52;
+    --burgundy-soft:rgba(179,77,82,.15);
+    --burgundy-line:rgba(179,77,82,.45);
+    --burgundy-glow:rgba(179,77,82,.25);
+    --cyan:#6aa9b8;
+    --cyan-soft:rgba(106,169,184,.12);
+    --cyan-line:rgba(106,169,184,.40);
+    --c1:#c9a84b;
+    --c2:#5C9A6B;
+    --c3:#9B7CC2;
+    --gold-text-dark:rgb(26,20,7);
+    --border:#1e3554;
+    --border2:#254060;
+    --sans:'DM Sans',system-ui,sans-serif;
+    --serif:Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:400;-webkit-font-smoothing:antialiased;font-size:16px}
+  body{min-height:100vh;padding:0 0 80px}
+
+  /* ================ TOP BAR ================ */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:50}
+  .brand{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text);letter-spacing:0.2px}
+  .brand small{font-family:var(--sans);font-size:12px;color:var(--text3);font-weight:400;margin-left:8px}
+  .user-area{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text3);letter-spacing:1.5px;font-weight:600;text-transform:uppercase}
+  .a-chips{display:flex;gap:4px}
+  .a-chip{display:inline-block;width:26px;height:26px;border-radius:50%;background:transparent;border:1px solid var(--border2);color:var(--text3);text-align:center;line-height:24px;font-size:11px;font-weight:600;letter-spacing:0}
+  .a-chip.active{background:var(--gold);color:var(--gold-text-dark);border-color:var(--gold)}
+
+  /* ================ HUB ================ */
+  .hub{max-width:760px;margin:0 auto;padding:40px 24px 60px}
+  .breadcrumb{font-size:13px;color:var(--text3);margin-bottom:24px;font-family:var(--sans)}
+  .breadcrumb a{color:var(--text3);text-decoration:none;cursor:pointer;font-weight:400}
+  .breadcrumb a:hover{color:var(--text2)}
+  .breadcrumb .sep{color:var(--border2);margin:0 8px}
+  .breadcrumb .here{color:var(--text)}
+  .hub-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:2.4px;color:var(--gold);margin-bottom:14px;text-transform:uppercase;font-weight:700}
+  .hub-title{font-family:var(--serif);font-size:40px;font-weight:600;line-height:1.15;margin:0 0 14px;color:var(--text)}
+  .hub-sub{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--text2);line-height:1.5;margin:0 0 12px;font-weight:400}
+  .hub-return{font-family:var(--sans);font-size:13px;color:var(--text3);margin-bottom:32px;font-weight:400}
+
+  /* Katherine intro */
+  .hub-intro{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;cursor:pointer;transition:border-color 150ms}
+  .hub-intro:hover{border-color:var(--gold-line)}
+  .hub-intro-play{width:36px;height:36px;border-radius:50%;background:transparent;border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:10px;flex-shrink:0}
+  .hub-intro-text{flex:1}
+  .hub-intro-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:4px;font-weight:700;text-transform:uppercase}
+  .hub-intro-title{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--text);line-height:1.2}
+  .hub-intro-chev{color:var(--text3);font-size:18px}
+
+  /* Room cards */
+  .room-card{display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--bg2);border:1px solid var(--gold-line);border-radius:14px;margin-bottom:10px;cursor:pointer;transition:all 200ms}
+  .room-card:hover{background:var(--bg3);border-color:var(--gold)}
+  .room-card.locked{opacity:0.42;cursor:not-allowed;border-color:var(--border)}
+  .room-card.locked:hover{background:var(--bg2);border-color:var(--border)}
+  .room-card .badge{width:40px;height:40px;border-radius:50%;background:var(--gold-soft);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:15px;flex-shrink:0;font-weight:600}
+  .room-card.done .badge{background:var(--cyan-soft);border-color:var(--cyan-line);color:var(--cyan)}
+  .room-card .body{flex:1}
+  .room-card .title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:3px}
+  .room-card .status{font-family:var(--sans);font-size:12px;color:var(--gold);letter-spacing:0.3px;font-weight:500}
+  .room-card.done .status{color:var(--cyan)}
+  .room-card.locked .status{color:var(--text3)}
+  .room-card .chev{color:var(--text3);font-size:18px}
+  .room-card.claim{border-color:var(--gold);background:linear-gradient(180deg,var(--bg2) 0%,var(--gold-warm) 100%);position:relative;overflow:hidden}
+  .room-card.claim::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold)}
+  .room-card.claim .badge{background:var(--gold-soft)}
+  .room-card.claim .title{color:var(--gold)}
+
+  .hub-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);background:transparent;border:1px solid var(--border2);padding:9px 18px;border-radius:100px;cursor:pointer;font-family:var(--sans);margin-top:24px;font-weight:500}
+  .hub-back:hover{color:var(--text);border-color:var(--gold-line)}
+
+  /* ================ OVERLAY ================ */
+  .overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(8,16,28,0.92);backdrop-filter:blur(4px);padding:24px;overflow-y:auto;animation:fadeIn 200ms ease-out}
+  .overlay.active{display:flex;justify-content:center;align-items:flex-start}
+  .overlay-card{width:100%;max-width:720px;background:var(--bg3);border:1px solid var(--gold);border-radius:18px;margin:24px 0;overflow:hidden;transition:filter 300ms ease-out, opacity 300ms ease-out}
+  .overlay.naming-open .overlay-card{filter:blur(2.5px);opacity:0.5;pointer-events:none}
+
+  .overlay-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+  .overlay-crumb{font-family:var(--sans);font-size:13px;color:var(--text2);font-weight:500}
+  .overlay-crumb .sep{color:var(--text3);margin:0 6px}
+  .overlay-crumb .here{color:var(--text);font-weight:600}
+  .overlay-close{width:32px;height:32px;border-radius:50%;background:transparent;border:1px solid var(--border2);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+  .overlay-close:hover{border-color:var(--gold-line);color:var(--text)}
+
+  .overlay-body{padding:44px 48px;text-align:center;min-height:480px;display:flex;flex-direction:column}
+  .overlay-foot{padding:18px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+
+  /* Eyebrow + Title + Sub patterns */
+  .step-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:2.4px;color:var(--gold);margin-bottom:18px;font-weight:700;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+  .step-eyebrow .cluster-marker{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .step-title{font-family:var(--serif);font-size:36px;font-weight:600;line-height:1.2;margin:0 0 12px;color:var(--text)}
+  .step-sub{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text2);line-height:1.6;margin:0 auto 22px;max-width:560px;font-weight:400}
+
+  /* Helper ribbon */
+  .helper-ribbon{display:inline-block;background:var(--bg2);border:1px solid var(--gold-line);border-radius:12px;padding:14px 18px;margin:0 auto 22px;font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--text2);max-width:560px;font-weight:400;line-height:1.5}
+  .warn-ribbon{display:block;background:rgba(160,59,59,0.08);border:1px solid var(--burgundy-line);border-radius:10px;padding:12px 16px;margin:0 0 20px;font-family:var(--serif);font-style:italic;font-size:14px;color:var(--burgundy);text-align:center}
+
+  .step-content{flex:1;text-align:left;margin-top:8px}
+
+  /* ============ PILLS ============ */
+  .continue-pill{background:var(--gold);color:var(--gold-text-dark);border:none;padding:10px 22px;border-radius:100px;font-size:14px;cursor:pointer;font-family:var(--sans);letter-spacing:0.28px;font-weight:600;transition:all 150ms;display:inline-flex;align-items:center;gap:6px}
+  .continue-pill:hover{background:#d4b558}
+  .continue-pill:disabled{opacity:0.4;cursor:not-allowed;background:var(--gold-soft);color:var(--gold)}
+  .back-link{font-family:var(--sans);font-size:13px;color:var(--text2);background:transparent;border:none;cursor:pointer;font-weight:500}
+  .back-link:hover{color:var(--text)}
+  .back-link:disabled{opacity:0.3;cursor:not-allowed}
+
+  /* ============ INPUT ROW (steps 1-2) ============ */
+  .input-row{display:flex;align-items:stretch;gap:8px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;margin-bottom:14px;transition:border-color 150ms}
+  .input-row:focus-within{border-color:var(--gold-line)}
+  .input-row input{flex:1;background:transparent;border:none;color:var(--text);font-size:14px;outline:none;font-family:var(--sans);font-weight:400}
+  .input-row input::placeholder{color:var(--text3);font-style:italic;font-family:var(--serif)}
+  .tag-person{font-family:var(--sans);font-size:11px;letter-spacing:0.3px;color:var(--text3);border:1px dashed var(--border2);padding:5px 10px;border-radius:100px;cursor:pointer;display:flex;align-items:center;white-space:nowrap;background:transparent;font-weight:400}
+  .tag-person:hover{color:var(--text2);border-color:var(--text3)}
+
+  .intensity{display:flex;gap:8px;margin-bottom:18px;padding-left:6px;align-items:center;flex-wrap:wrap}
+  .intensity-label{font-family:var(--serif);font-size:13px;color:var(--text3);font-style:italic;margin-right:4px}
+  .int-btn{background:transparent;border:1.5px solid var(--gold-line);color:var(--gold);padding:7px 14px;border-radius:100px;font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:600;letter-spacing:0.2px;display:inline-flex;align-items:center;gap:5px;transition:all 150ms}
+  .int-btn.deep{border-color:var(--gold);background:var(--gold);color:var(--gold-text-dark)}
+  .int-btn.deep:hover{background:#d4b558}
+  .int-btn.soft:hover{background:var(--gold-soft)}
+  .int-btn.b-deep{border-color:var(--burgundy);background:var(--burgundy);color:var(--text)}
+  .int-btn.b-deep:hover{background:#c25a60}
+  .int-btn.b-soft{border-color:var(--burgundy-line);color:var(--burgundy)}
+  .int-btn.b-soft:hover{background:var(--burgundy-soft)}
+
+  .live-legend{display:flex;justify-content:center;gap:18px;margin-bottom:22px;font-family:var(--sans);font-size:13px;color:var(--text2);flex-wrap:wrap;font-weight:500}
+  .legend-pill{display:inline-flex;align-items:center;gap:6px}
+  .legend-pill .pip{width:9px;height:9px;border-radius:50%}
+  .pip.lights{background:var(--gold)}
+  .pip.warms{background:var(--gold);opacity:0.55}
+  .pip.bothers{background:var(--burgundy);opacity:0.55}
+  .pip.turns{background:var(--burgundy)}
+
+  /* Behavior bullets in admire/irks lists */
+  .blist{margin-bottom:18px;min-height:30px}
+  .bul{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.4}
+  .bul .pip{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .bul .b-text{flex:1;font-weight:400}
+  .bul .b-person{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--text3)}
+  .bul .b-tag{font-family:var(--sans);font-size:10px;letter-spacing:1px;padding:3px 9px;border-radius:100px;text-transform:uppercase;font-weight:600}
+  .bul .b-tag.lights{background:var(--gold);color:var(--gold-text-dark)}
+  .bul .b-tag.warms{background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line)}
+  .bul .b-tag.bothers{background:var(--burgundy-soft);color:var(--burgundy);border:1px solid var(--burgundy-line)}
+  .bul .b-tag.turns{background:var(--burgundy);color:var(--text)}
+  .bul .b-x{color:var(--text3);font-size:16px;cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0 4px}
+  .bul .b-x:hover{color:var(--burgundy)}
+
+  .counter-line{text-align:center;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text3);margin-top:6px}
+
+  /* ============ PORTRAIT QUADRANT ============ */
+  .quad-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+  .quad{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;min-height:140px}
+  .quad.lights{border-color:var(--gold);background:var(--gold-warm)}
+  .quad.warms{border-color:var(--gold-line);background:var(--gold-soft)}
+  .quad.bothers{border-color:var(--burgundy-line);background:var(--burgundy-soft)}
+  .quad.turns{border-color:var(--burgundy);background:rgba(179,77,82,0.12)}
+  .quad-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase}
+  .quad.lights .quad-label, .quad.warms .quad-label{color:var(--gold)}
+  .quad.bothers .quad-label, .quad.turns .quad-label{color:var(--burgundy)}
+  .quad-add{font-family:var(--sans);font-size:10px;letter-spacing:0.5px;color:var(--text3);cursor:pointer;background:none;border:none;font-weight:500}
+  .quad-add:hover{color:var(--text2)}
+  .qbul{display:flex;align-items:center;gap:6px;font-family:var(--sans);font-size:12.5px;color:var(--text);padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:4px;cursor:grab;line-height:1.4}
+  .qbul .qb-text{flex:1}
+  .qbul .qb-person{font-family:var(--serif);font-style:italic;font-size:11px;color:var(--text3)}
+  .qbul .qb-x{color:var(--text3);font-size:12px;cursor:pointer;background:none;border:none;padding:0 4px}
+  .qbul .qb-x:hover{color:var(--burgundy)}
+  .reveal-hint{text-align:center;font-family:var(--serif);font-style:italic;font-size:12px;color:var(--text3);margin-bottom:8px}
+
+  /* ============ STEP 4: OVERVIEW ============ */
+  .k-intro{padding:18px 22px;background:var(--cyan-soft);border:1px solid var(--cyan-line);border-radius:12px;margin-bottom:22px;text-align:left}
+  .k-intro-label{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--cyan);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .k-intro-body{font-family:var(--serif);font-size:15px;color:var(--text);line-height:1.65;font-style:italic;font-weight:400}
+
+  .cluster-overview-card{padding:18px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+  .co-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+  .co-dot.c1{background:var(--c1)}
+  .co-dot.c2{background:var(--c2)}
+  .co-dot.c3{background:var(--c3)}
+  .co-body{flex:1}
+  .co-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--text3);margin-bottom:4px;font-weight:700;text-transform:uppercase}
+  .co-prop{font-family:var(--serif);font-size:15px;color:var(--text2);line-height:1.5;font-weight:400}
+  .co-prop strong{font-family:var(--sans);font-style:normal;color:var(--text);font-weight:600}
+  .co-prop em{color:var(--gold);font-style:italic}
+  .co-count{font-family:var(--sans);font-size:12px;color:var(--text3);white-space:nowrap;font-weight:500}
+
+  /* ============ PER-VALUE SCREEN ============ */
+  .pv-cluster-banner-slim{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding:10px 14px;border-left:3px solid var(--c1);background:var(--gold-warm);border-radius:0 8px 8px 0;font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text2);font-weight:400}
+  .pv-cluster-banner-slim.c1{border-left-color:var(--c1);background:var(--gold-warm)}
+  .pv-cluster-banner-slim.c2{border-left-color:var(--c2);background:rgba(92,154,107,0.05)}
+  .pv-cluster-banner-slim.c3{border-left-color:var(--c3);background:rgba(155,124,194,0.05)}
+  .pv-cluster-banner-slim strong{font-family:var(--sans);font-style:normal;color:var(--text);font-weight:600}
+
+  .pv-section-title{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .pv-section-helper{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.5}
+
+  .pv-bh-list{margin-bottom:10px}
+  .pv-bh-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-family:var(--sans);font-size:14px;color:var(--text);line-height:1.4;font-weight:400}
+  .pv-bh-item .bh-source{font-family:var(--sans);font-size:9.5px;letter-spacing:1px;padding:3px 9px;border-radius:100px;font-weight:600;text-transform:uppercase}
+  .pv-bh-item .bh-source.lights{background:var(--gold);color:var(--gold-text-dark)}
+  .pv-bh-item .bh-source.warms{background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-line)}
+  .pv-bh-item .bh-source.bothers{background:var(--burgundy-soft);color:var(--burgundy);border:1px solid var(--burgundy-line)}
+  .pv-bh-item .bh-source.turns{background:var(--burgundy);color:var(--text)}
+  .pv-bh-item .bh-source.flipped{background:var(--cyan-soft);color:var(--cyan);border:1px solid var(--cyan-line)}
+  .pv-bh-item .bh-x{color:var(--text3);font-size:16px;cursor:pointer;background:none;border:none;font-family:var(--sans);padding:0 4px}
+  .pv-bh-item .bh-x:hover{color:var(--burgundy)}
+  .pv-bh-item .bh-text{flex:1}
+
+  .pv-add-row{display:flex;gap:8px;margin-top:6px}
+  .pv-add-btn{flex:1;background:transparent;border:1.5px dashed var(--gold-line);color:var(--gold);padding:11px 14px;border-radius:100px;font-family:var(--sans);font-size:12.5px;cursor:pointer;letter-spacing:0.3px;font-weight:600;transition:all 150ms}
+  .pv-add-btn:hover{background:var(--gold-warm);border-color:var(--gold)}
+
+  .pv-portrait-panel{margin-top:8px;padding:14px;background:var(--bg2);border:1px solid var(--gold-line);border-radius:12px;display:none}
+  .pv-portrait-panel.open{display:block;animation:slideDown 200ms ease-out}
+  .pv-portrait-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:10px;text-transform:uppercase}
+  .pv-portrait-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .pv-portrait-chip{font-family:var(--sans);font-size:12px;padding:6px 12px;border-radius:100px;cursor:pointer;background:transparent;border:1.5px solid var(--gold-line);color:var(--gold);display:inline-flex;align-items:center;gap:5px;font-weight:500}
+  .pv-portrait-chip .pp-pip{width:6px;height:6px;border-radius:50%}
+  .pv-portrait-chip:hover{border-color:var(--gold);background:var(--gold-warm)}
+  .pv-portrait-chip.used{opacity:0.4;text-decoration:line-through;cursor:not-allowed}
+  .pv-portrait-close{font-family:var(--sans);font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:500}
+
+  /* Flip nested */
+  .pv-flip-nest{margin-top:18px;padding:16px 18px;background:var(--burgundy-soft);border-left:3px solid var(--burgundy-line);border-radius:0 10px 10px 0}
+  .pv-flip-title{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--burgundy);font-weight:700;margin-bottom:6px;text-transform:uppercase}
+  .pv-flip-helper{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5}
+  .flip-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:grid;grid-template-columns:1fr 24px 1fr 110px;gap:10px;align-items:center}
+  .flip-from{font-family:var(--serif);font-size:13.5px;color:var(--burgundy);font-style:italic;line-height:1.4}
+  .flip-arrow{text-align:center;color:var(--text3);font-size:16px}
+  .flip-to-input{font-family:var(--sans);font-size:13.5px;color:var(--text);background:transparent;border:none;border-bottom:1px dashed var(--gold-line);padding:5px 0;outline:none;width:100%;font-weight:500}
+  .flip-to-input:focus{border-bottom-color:var(--gold)}
+  .flip-actions{display:flex;gap:4px;justify-content:flex-end}
+  .flip-mini-btn{font-family:var(--sans);font-size:11px;padding:6px 11px;border-radius:100px;background:transparent;border:1px solid var(--border2);color:var(--text2);cursor:pointer;letter-spacing:0.2px;font-weight:600}
+  .flip-mini-btn.accept{background:var(--gold);color:var(--gold-text-dark);border-color:var(--gold)}
+  .flip-mini-btn.skip{color:var(--text3)}
+
+  /* Name CTA wrap */
+  .pv-name-cta-wrap{margin:32px 0 8px;text-align:center;padding:24px;background:var(--gold-warm);border:1px dashed var(--gold-line);border-radius:14px}
+  .pv-name-cta-helper{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text2);margin-bottom:14px;line-height:1.5;max-width:420px;margin-left:auto;margin-right:auto}
+  .pv-name-cta{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--gold-text-dark);border:none;padding:13px 28px;border-radius:100px;font-family:var(--sans);font-size:14px;cursor:pointer;letter-spacing:0.5px;font-weight:600}
+  .pv-name-cta:hover{background:#d4b558}
+
+  /* Named card (after modal closes) */
+  .pv-named-card{margin:28px 0 0;padding:24px 26px;background:var(--gold-warm);border:1px solid var(--gold-line);border-radius:14px;text-align:center}
+  .pv-named-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .pv-named-value{font-family:var(--serif);font-size:40px;font-weight:600;color:var(--gold);line-height:1;margin-bottom:8px}
+  .pv-named-rename{font-family:var(--sans);font-size:11px;color:var(--text3);text-decoration:underline;cursor:pointer;background:transparent;border:none;font-weight:500}
+
+  /* Define It card */
+  .pv-define-card{margin-top:16px;padding:24px 26px;background:var(--bg2);border:1px solid var(--gold-line);border-radius:14px}
+  .pv-define-prompt{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--text);line-height:1.5;margin-bottom:14px;font-weight:400}
+  .pv-define-prompt .gold{color:var(--gold);font-style:italic}
+  .pv-define-input{width:100%;font-family:var(--sans);font-size:14.5px;color:var(--text);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;outline:none;resize:vertical;min-height:92px;line-height:1.65;font-weight:400}
+  .pv-define-input:focus{border-color:var(--gold-line)}
+  .pv-define-foot{display:flex;justify-content:flex-end;margin-top:10px}
+  .feedback-chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--sans);font-size:12px;color:var(--cyan);background:var(--cyan-soft);border:1px solid var(--cyan-line);padding:7px 14px;border-radius:100px;cursor:pointer;letter-spacing:0.2px;font-weight:600}
+  .feedback-chip:hover{background:rgba(106,169,184,0.20)}
+  .pv-feedback-card{margin-top:12px;padding:14px 18px;background:var(--cyan-soft);border-left:2px solid var(--cyan);border-radius:0 10px 10px 0;font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.65;font-style:italic;display:none}
+  .pv-feedback-card.shown{display:block;animation:slideDown 200ms ease-out}
+  .pv-feedback-card strong{font-family:var(--sans);font-style:normal;font-weight:600;color:var(--cyan)}
+
+  /* Summary cards for finish screen */
+  .summary-card{padding:16px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;display:flex;align-items:center;gap:14px;text-align:left}
+  .summary-card .sc-num{font-family:var(--serif);font-size:24px;color:var(--gold);font-weight:600;min-width:24px;text-align:center}
+  .summary-card .sc-body{flex:1}
+  .summary-card .sc-name{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:3px}
+  .summary-card .sc-def{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text2);line-height:1.45}
+  .soft-min-card{padding:20px 22px;background:var(--gold-warm);border:1px solid var(--gold-line);border-radius:12px;margin-top:20px;text-align:left}
+  .soft-min-title{font-family:var(--serif);font-size:18px;color:var(--gold);font-weight:600;margin-bottom:6px}
+  .soft-min-body{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text2);line-height:1.6}
+
+  /* ============ ROOM 2 ============ */
+  .value-switcher{display:flex;gap:6px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+  .vs-chip{font-family:var(--sans);font-size:12px;padding:7px 16px;border-radius:100px;background:transparent;border:1.5px solid var(--border2);color:var(--text2);cursor:pointer;letter-spacing:0.2px;font-weight:500}
+  .vs-chip.active{background:var(--gold);border-color:var(--gold);color:var(--gold-text-dark);font-weight:600}
+  .vs-chip.done{border-color:var(--cyan-line);color:var(--cyan)}
+  .r2-val-name{font-family:var(--serif);font-size:32px;font-weight:600;color:var(--gold);margin:0 0 6px;text-align:left}
+  .r2-val-def{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.6;text-align:left}
+  .bh-card{background:var(--bg2);border:1px solid var(--gold-line);border-radius:12px;padding:18px 20px;margin-bottom:10px;position:relative;text-align:left}
+  .bh-card.keystone{border-color:var(--gold);background:var(--gold-warm)}
+  .bh-card-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .bh-num{font-family:var(--sans);font-size:10px;letter-spacing:1.8px;color:var(--text3);font-weight:700;text-transform:uppercase}
+  .bh-chip{font-family:var(--sans);font-size:9.5px;letter-spacing:1px;padding:3px 9px;border-radius:100px;font-weight:600;text-transform:uppercase}
+  .bh-chip.up{background:var(--gold);color:var(--gold-text-dark)}
+  .bh-chip.flip{background:var(--burgundy-soft);color:var(--burgundy);border:1px solid var(--burgundy-line)}
+  .bh-name{display:block;width:100%;background:transparent;border:none;color:var(--text);font-family:var(--sans);font-size:16.5px;font-weight:500;padding:4px 0;outline:none}
+  .bh-flip-meta{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--text3);margin-top:6px}
+  .bh-star{position:absolute;top:16px;right:16px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;color:var(--text3);font-size:18px;background:none;border:none;font-family:var(--sans)}
+  .bh-star.starred{color:var(--gold)}
+  .bh-body{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+  .bh-body-label{font-family:var(--sans);font-size:10px;letter-spacing:1.5px;color:var(--text3);margin-bottom:8px;font-weight:700;text-transform:uppercase}
+  .bh-bullet{display:flex;align-items:flex-start;gap:8px;font-family:var(--sans);font-size:13.5px;color:var(--text2);margin-bottom:5px;line-height:1.5}
+  .bh-bullet-dot{color:var(--gold)}
+  .bh-bullet-input{font-family:var(--serif);font-size:13.5px;color:var(--text3);font-style:italic;padding:4px 0;border:none;background:transparent;outline:none;width:100%;margin-top:4px}
+  .bh-add{display:block;width:100%;background:transparent;border:1.5px dashed var(--gold-line);color:var(--gold);padding:14px;border-radius:100px;font-family:var(--sans);font-size:13px;cursor:pointer;margin-top:6px;font-weight:600;letter-spacing:0.3px}
+  .bh-cap{font-family:var(--sans);font-size:11px;color:var(--text3);text-align:right;margin-top:6px;letter-spacing:0.5px;font-weight:500}
+  .keystone-prompt{margin-top:20px;padding:18px 20px;background:var(--gold-warm);border:1px solid var(--gold-line);border-radius:12px;display:flex;align-items:flex-start;gap:14px;text-align:left}
+  .keystone-icon{font-size:18px;color:var(--gold);margin-top:-1px}
+  .keystone-title{font-family:var(--sans);font-size:13px;color:var(--gold);font-weight:600;margin-bottom:5px;letter-spacing:0.2px}
+  .keystone-body{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+  .keystone-skip{font-family:var(--sans);font-size:11px;color:var(--text3);text-decoration:underline;cursor:pointer;font-weight:500}
+
+  /* ============ ROOM 3 ============ */
+  .phase-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--gold);margin-bottom:14px;font-weight:700;text-align:left;text-transform:uppercase}
+  .rank-stack{margin-bottom:28px;text-align:left}
+  .rank-row{display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg2);border:1px solid var(--gold-line);border-radius:12px;margin-bottom:8px;cursor:grab}
+  .rank-row.tested{border-color:var(--gold);background:var(--gold-warm)}
+  .rank-num{font-family:var(--serif);font-size:30px;color:var(--gold);font-weight:600;min-width:32px;text-align:center;line-height:1}
+  .rank-body{flex:1}
+  .rank-name{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:3px}
+  .rank-def{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--text3);line-height:1.4;margin-bottom:4px}
+  .rank-keystone{font-family:var(--sans);font-size:11px;color:var(--gold);font-weight:500;letter-spacing:0.2px}
+  .rank-handles{display:flex;flex-direction:column;gap:2px}
+  .rank-handle{width:18px;height:14px;color:var(--text3);cursor:pointer;text-align:center;font-size:11px;line-height:1;background:none;border:none}
+  .rank-handle:hover{color:var(--text2)}
+  .rank-divider{margin:24px 0;text-align:center;position:relative}
+  .rank-divider::before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
+  .rank-divider-label{position:relative;background:var(--bg3);padding:0 16px;font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--text3);font-weight:600;text-transform:uppercase}
+  .pressure-arena{background:var(--bg);border:1px solid var(--gold-line);border-radius:14px;padding:28px 24px;text-align:center}
+  .pressure-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:2.4px;color:var(--gold);margin-bottom:18px;font-weight:700;text-transform:uppercase}
+  .pressure-prompt{font-family:var(--serif);font-size:22px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:8px}
+  .pressure-helper{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text3);margin-bottom:22px}
+  .pressure-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+  .pair-card{padding:22px 18px;background:var(--bg2);border:1.5px solid var(--gold-line);border-radius:12px;cursor:pointer;text-align:center;transition:all 150ms}
+  .pair-card:hover{border-color:var(--gold);background:var(--gold-warm)}
+  .pair-name{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--gold);margin-bottom:6px}
+  .pair-def{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text2);line-height:1.45}
+  .pressure-meta{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--text3);margin-top:16px}
+  .pressure-skip{display:block;margin:8px auto 0;font-family:var(--sans);font-size:11px;color:var(--text3);text-decoration:underline;cursor:pointer;background:transparent;border:none;font-weight:500}
+
+  /* ============ CLAIM / SEAL ============ */
+  .seal-body{padding:64px 56px 36px;text-align:center}
+  .seal-star{font-size:32px;color:var(--gold);margin-bottom:32px;line-height:1}
+  .seal-beat{font-family:var(--serif);font-style:italic;font-size:19px;line-height:1.6;color:var(--text);margin:0 auto 22px;max-width:540px;font-weight:400}
+  .seal-beat .gold{color:var(--gold);font-style:italic}
+  .seal-beat .vocative{font-style:italic;color:var(--text)}
+  .seal-rule{width:60px;height:1px;background:var(--gold-line);margin:18px auto 28px}
+  .seal-cta{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--gold-text-dark);border:none;padding:13px 32px;border-radius:100px;font-family:var(--sans);font-size:14px;cursor:pointer;letter-spacing:0.5px;font-weight:600}
+  .seal-cta:hover{background:#d4b558}
+  .seal-foot{margin-top:14px;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text3)}
+  .seal-revise{margin-top:18px;font-family:var(--sans);font-size:13px;color:var(--text2);background:transparent;border:none;cursor:pointer;font-weight:500}
+  .seal-revise:hover{color:var(--text)}
+
+  /* ============ NAMING MODAL ============ */
+  .naming-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-start;justify-content:center;padding:50px 24px 24px;overflow-y:auto;animation:fadeIn 250ms ease-out}
+  .naming-modal.active{display:flex}
+  .naming-card{width:100%;max-width:580px;background:var(--bg3);border:1px solid var(--gold);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.6)}
+  .naming-head{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .naming-head-label{font-family:var(--sans);font-size:11px;letter-spacing:2.4px;color:var(--gold);font-weight:700;text-transform:uppercase}
+  .naming-close{width:30px;height:30px;border-radius:50%;background:transparent;border:1px solid var(--border2);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+  .naming-close:hover{border-color:var(--gold-line);color:var(--text)}
+
+  .naming-body{padding:30px 36px 28px;text-align:center}
+
+  .naming-anchor{margin-bottom:24px;padding:14px 16px;background:var(--bg2);border-radius:10px;text-align:left;border:1px solid var(--border)}
+  .naming-anchor-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--text3);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .naming-anchor-list{display:flex;flex-wrap:wrap;gap:6px}
+  .naming-anchor-chip{font-family:var(--sans);font-size:12px;padding:5px 11px;background:rgba(255,255,255,0.04);border-radius:100px;color:var(--text2);line-height:1.3;font-weight:400}
+
+  .peel-breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:28px;font-size:13px;color:var(--text3);line-height:1.5;min-height:24px}
+  .peel-breadcrumb .pc-item{padding:5px 11px;background:var(--bg2);border-radius:100px;color:var(--text2);border:1px solid var(--border);font-family:var(--serif);font-style:italic;font-size:13px;font-weight:400}
+  .peel-breadcrumb .pc-item.current{background:var(--gold-soft);border-color:var(--gold-line);color:var(--gold);font-family:var(--sans);font-style:normal;font-weight:600}
+  .peel-breadcrumb .pc-arrow{color:var(--text3);font-size:11px}
+
+  .peel-question{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--text);line-height:1.4;margin-bottom:8px;font-weight:400}
+  .peel-question .gold{color:var(--gold);font-style:italic}
+  .peel-helper{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text3);margin-bottom:20px}
+
+  .peel-input{display:block;width:100%;font-family:var(--serif);font-size:24px;color:var(--gold);background:transparent;border:none;border-bottom:1px solid var(--gold-line);padding:10px 0;outline:none;text-align:center;font-weight:600}
+  .peel-input:focus{border-bottom-color:var(--gold)}
+  .peel-input::placeholder{color:var(--text3);font-style:italic;font-family:var(--serif);font-weight:400}
+
+  .peel-cta-row{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+  .peel-cta{font-family:var(--sans);font-size:12.5px;padding:10px 20px;border-radius:100px;background:transparent;border:1.5px solid var(--gold-line);color:var(--gold);cursor:pointer;letter-spacing:0.3px;font-weight:600}
+  .peel-cta.primary{background:var(--gold);border-color:var(--gold);color:var(--gold-text-dark)}
+  .peel-cta.primary:hover{background:#d4b558}
+  .peel-cta:hover{border-color:var(--gold);background:var(--gold-warm)}
+
+  .ask-katherine-chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--sans);font-size:11.5px;color:var(--cyan);background:var(--cyan-soft);border:1px solid var(--cyan-line);padding:7px 14px;border-radius:100px;cursor:pointer;margin-top:18px;letter-spacing:0.2px;font-weight:600}
+  .ask-katherine-chip:hover{background:rgba(106,169,184,0.20)}
+
+  .katherine-suggestion{margin-top:18px;padding:16px 18px;background:var(--cyan-soft);border:1px solid var(--cyan-line);border-radius:12px;text-align:left;display:none}
+  .katherine-suggestion.shown{display:block;animation:slideDown 200ms ease-out}
+  .ks-label{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--cyan);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .ks-body{font-family:var(--serif);font-size:14px;color:var(--text);line-height:1.65;font-style:italic;margin-bottom:14px}
+  .ks-body strong{font-family:var(--sans);font-style:normal;font-weight:600;color:var(--cyan)}
+  .ks-suggestions{display:flex;flex-wrap:wrap;gap:8px}
+  .ks-pick{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--gold);background:transparent;border:1.5px solid var(--gold);padding:8px 18px;border-radius:100px;cursor:pointer}
+  .ks-pick:hover{background:var(--gold-warm)}
+
+  .final-name-block{display:none;margin-top:24px;padding-top:24px;border-top:1px solid var(--border)}
+  .final-name-block.shown{display:block;animation:slideDown 200ms ease-out}
+  .final-name-label{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:8px;text-align:center;text-transform:uppercase}
+  .final-name-helper{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text3);margin-bottom:14px;text-align:center}
+  .final-name-input{display:block;width:100%;font-family:var(--serif);font-size:34px;font-weight:600;color:var(--gold);background:transparent;border:none;border-bottom:1px solid var(--gold-line);padding:12px 0;outline:none;text-align:center;margin-bottom:18px}
+  .final-name-input:focus{border-bottom-color:var(--gold)}
+  .final-confirm{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--gold-text-dark);border:none;padding:12px 26px;border-radius:100px;font-family:var(--sans);font-size:13px;cursor:pointer;letter-spacing:0.4px;font-weight:600}
+  .final-confirm:hover{background:#d4b558}
+
+  /* Animations */
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideDown{from{opacity:0;max-height:0}to{opacity:1;max-height:600px}}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .pc-new{animation:slideIn 200ms ease-out}
+  .new-bullet{animation:slideIn 200ms ease-out}
+  .screen{display:none;animation:fadeIn 250ms ease-out}
+  .screen.active{display:block}
+
+  /* ============ V1 COMPLETED CARD (post both modals) ============ */
+  .pv-completed-card{margin:28px 0 0;padding:30px 28px;background:linear-gradient(180deg, var(--gold-warm) 0%, transparent 100%);border:1px solid var(--gold);border-radius:14px;text-align:center;position:relative;overflow:hidden}
+  .pv-completed-card::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold)}
+  .pv-completed-star{font-size:22px;color:var(--gold);margin-bottom:10px;line-height:1}
+  .pv-completed-name{font-family:var(--serif);font-size:42px;font-weight:600;color:var(--gold);line-height:1.05;margin-bottom:14px;letter-spacing:-0.2px}
+  .pv-completed-def{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text);line-height:1.55;max-width:480px;margin:0 auto 18px;font-weight:400}
+  .pv-completed-actions{display:inline-flex;align-items:center;gap:8px;font-family:var(--sans);font-size:11.5px;color:var(--text3)}
+  .pv-completed-edit{background:transparent;border:none;color:var(--text3);text-decoration:underline;cursor:pointer;font-family:var(--sans);font-size:11.5px;padding:0;font-weight:500}
+  .pv-completed-edit:hover{color:var(--text)}
+  .pv-completed-sep{color:var(--text3);opacity:0.5}
+
+  /* ============ NAMING MODAL — STATE TOGGLE ============ */
+  .nm-state{animation:fadeIn 200ms ease-out}
+
+  /* State A peel — Ready-to-name link (appears after first peel) */
+  .ready-to-name-link{display:none;margin:14px auto 0;background:transparent;border:none;color:var(--gold);font-family:var(--sans);font-size:12.5px;font-weight:600;letter-spacing:0.2px;cursor:pointer;padding:6px 0;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+  .ready-to-name-link:hover{color:var(--text)}
+
+  /* State B name */
+  .nm-name-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:14px;text-align:center}
+  .nm-name-input{display:block;width:100%;font-family:var(--serif);font-size:42px;font-weight:600;color:var(--gold);background:transparent;border:none;border-bottom:1px solid var(--gold-line);padding:14px 0;outline:none;text-align:center;margin-bottom:14px;letter-spacing:-0.3px}
+  .nm-name-input:focus{border-bottom-color:var(--gold)}
+  .nm-name-helper{font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--text3);text-align:center;margin-bottom:28px;line-height:1.5}
+  .nm-name-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .nm-back-link{background:transparent;border:none;color:var(--text2);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;padding:6px 0}
+  .nm-back-link:hover{color:var(--text)}
+  .nm-confirm-cta{background:var(--gold);color:var(--gold-text-dark);border:none;padding:12px 26px;border-radius:100px;font-family:var(--sans);font-size:13.5px;cursor:pointer;letter-spacing:0.4px;font-weight:600}
+  .nm-confirm-cta:hover{background:#d4b558}
+
+  /* ============ DEFINE-IT MODAL ============ */
+  .define-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-start;justify-content:center;padding:50px 24px 24px;overflow-y:auto;animation:fadeIn 250ms ease-out}
+  .define-modal.active{display:flex}
+  .def-named-anchor{text-align:center;margin-bottom:22px;padding:18px 20px 16px;background:linear-gradient(180deg, var(--gold-warm) 0%, transparent 100%);border:1px solid var(--gold-line);border-radius:12px}
+  .def-named-star{font-size:16px;color:var(--gold);margin-bottom:6px;line-height:1}
+  .def-named-name{font-family:var(--serif);font-size:34px;font-weight:600;color:var(--gold);line-height:1.05;letter-spacing:-0.3px}
+  .def-behaviors-anchor{margin-bottom:24px;padding:14px 16px;background:var(--bg2);border-radius:10px;text-align:left;border:1px solid var(--border)}
+
+  /* Rank room when define modal is open (mirrors naming-open) */
+  .overlay.define-open .overlay-card{filter:blur(2.5px);opacity:0.5;pointer-events:none}
+
+  /* ============ MINI-QUADRANT PANEL (Pick from portrait, redesigned) ============ */
+  .pv-portrait-mq{margin-top:8px;padding:16px;background:var(--bg2);border:1px solid var(--gold-line);border-radius:12px;display:none}
+  .pv-portrait-mq.open{display:block;animation:slideDown 220ms ease-out}
+  .pv-portrait-mq-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .pv-portrait-mq-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--gold);font-weight:700;text-transform:uppercase}
+  .pv-portrait-mq-helper{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--text3)}
+  .pv-portrait-mq-close{font-family:var(--sans);font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:500}
+  .mq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+  .mq-tier{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:90px}
+  .mq-tier.lights{border-color:var(--gold);background:var(--gold-warm)}
+  .mq-tier.warms{border-color:var(--gold-line);background:var(--gold-soft)}
+  .mq-tier.bothers{border-color:var(--burgundy-line);background:var(--burgundy-soft);opacity:0.65}
+  .mq-tier.turns{border-color:var(--burgundy);background:rgba(179,77,82,0.12);opacity:0.65}
+  .mq-tier-head{font-family:var(--sans);font-size:9.5px;letter-spacing:1.6px;font-weight:700;margin-bottom:8px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .mq-tier.lights .mq-tier-head, .mq-tier.warms .mq-tier-head{color:var(--gold)}
+  .mq-tier.bothers .mq-tier-head, .mq-tier.turns .mq-tier-head{color:var(--burgundy)}
+  .mq-tier-flipnote{font-family:var(--serif);font-style:italic;font-size:10px;color:var(--text3);font-weight:400;letter-spacing:0;text-transform:none}
+  .mq-chip{display:inline-flex;align-items:center;gap:5px;font-family:var(--sans);font-size:11.5px;padding:5px 10px;border-radius:100px;cursor:pointer;background:transparent;border:1px solid var(--gold-line);color:var(--gold);margin:2px 3px 2px 0;font-weight:500;line-height:1.3}
+  .mq-chip:hover{background:var(--gold);color:var(--gold-text-dark);border-color:var(--gold)}
+  .mq-chip.used{opacity:0.42;text-decoration:line-through;cursor:not-allowed;pointer-events:none;background:transparent;color:var(--gold)}
+  .mq-chip.locked{cursor:not-allowed;border-color:var(--burgundy-line);color:var(--burgundy);background:transparent;opacity:0.7}
+  .mq-chip.locked:hover{background:transparent;color:var(--burgundy);border-color:var(--burgundy-line)}
+
+  /* ============ PRESSURE-TEST START CTA (in Room 3) ============ */
+  .pressure-start{margin-top:24px;padding:28px 24px;text-align:center;background:var(--gold-warm);border:1px dashed var(--gold-line);border-radius:14px}
+  .pressure-start-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:2.4px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:10px}
+  .pressure-start-title{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--text);margin-bottom:8px}
+  .pressure-start-sub{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--text2);line-height:1.5;margin-bottom:18px;max-width:480px;margin-left:auto;margin-right:auto}
+  .pressure-start-cta{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--gold-text-dark);border:none;padding:13px 28px;border-radius:100px;font-family:var(--sans);font-size:14px;cursor:pointer;letter-spacing:0.5px;font-weight:600}
+  .pressure-start-cta:hover{background:#d4b558}
+  .pressure-status{margin-top:12px;font-family:var(--sans);font-size:11.5px;color:var(--gold);letter-spacing:0.3px;font-weight:500}
+
+  /* ============ PRESSURE-TEST MODAL ============ */
+  .pressure-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-start;justify-content:center;padding:50px 24px 24px;overflow-y:auto;animation:fadeIn 250ms ease-out}
+  .pressure-modal.active{display:flex}
+  .pressure-card{width:100%;max-width:680px;background:var(--bg3);border:1px solid var(--gold);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.6)}
+  .pressure-head{padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .pressure-head-label{font-family:var(--sans);font-size:11px;letter-spacing:2.4px;color:var(--gold);font-weight:700;text-transform:uppercase}
+  .pressure-close{width:30px;height:30px;border-radius:50%;background:transparent;border:1px solid var(--border2);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+  .pressure-close:hover{border-color:var(--gold-line);color:var(--text)}
+  .pressure-body{padding:36px 40px 28px;text-align:center;min-height:380px}
+
+  /* Pressure-test screens (intro, pair, conflict, done) */
+  .pt-screen{display:none;animation:fadeIn 250ms ease-out}
+  .pt-screen.active{display:block}
+
+  /* Intro screen */
+  .pt-intro-eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:2px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:14px}
+  .pt-intro-title{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:14px}
+  .pt-intro-sub{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--text2);line-height:1.6;margin-bottom:24px;max-width:520px;margin-left:auto;margin-right:auto}
+  .pt-example{padding:20px 24px;background:var(--bg2);border:1px solid var(--gold-line);border-radius:12px;text-align:left;margin-bottom:24px}
+  .pt-example-label{font-family:var(--sans);font-size:10px;letter-spacing:1.8px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:10px}
+  .pt-example-body{font-family:var(--serif);font-size:15px;color:var(--text);line-height:1.65;font-weight:400}
+  .pt-example-body .gold{color:var(--gold);font-weight:600}
+  .pt-example-body em{font-style:italic;color:var(--text2)}
+
+  /* Pair screen */
+  .pt-pair-counter{font-family:var(--sans);font-size:11px;letter-spacing:1.8px;color:var(--text3);font-weight:600;text-transform:uppercase;margin-bottom:18px}
+  .pt-pair-prompt{font-family:var(--serif);font-size:22px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:8px}
+  .pt-pair-prompt .gold{color:var(--gold);font-style:italic}
+  .pt-pair-helper{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text3);margin-bottom:24px}
+  .pt-pair-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .pt-pair-card{padding:24px 20px;background:var(--bg2);border:1.5px solid var(--gold-line);border-radius:12px;cursor:pointer;text-align:center;transition:all 180ms;display:flex;flex-direction:column;justify-content:space-between;min-height:170px}
+  .pt-pair-card:hover{border-color:var(--gold);background:var(--gold-warm);transform:translateY(-1px)}
+  .pt-pair-card.selected{border-color:var(--gold);background:var(--gold-soft)}
+  .pt-pair-name{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--gold);margin-bottom:8px;line-height:1.1}
+  .pt-pair-def{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px}
+  .pt-pair-keystone{font-family:var(--sans);font-size:11px;color:var(--text);font-weight:500;letter-spacing:0.2px;padding-top:10px;border-top:1px solid var(--border)}
+  .pt-pair-keystone-label{font-family:var(--sans);font-size:9px;color:var(--text3);letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-bottom:3px}
+  .pt-vs{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--text3);text-align:center;margin:6px 0}
+  .pt-skip{display:block;margin:14px auto 0;font-family:var(--sans);font-size:11px;color:var(--text3);text-decoration:underline;cursor:pointer;background:transparent;border:none;font-weight:500}
+
+  /* Conflict screen */
+  .pt-conflict{padding:20px 22px;background:var(--burgundy-soft);border:1px solid var(--burgundy-line);border-radius:12px;text-align:left;margin-top:14px;display:none}
+  .pt-conflict.shown{display:block;animation:slideDown 220ms ease-out}
+  .pt-conflict-label{font-family:var(--sans);font-size:10px;letter-spacing:2px;color:var(--burgundy);font-weight:700;text-transform:uppercase;margin-bottom:8px}
+  .pt-conflict-body{font-family:var(--serif);font-size:15px;color:var(--text);line-height:1.65;font-style:italic;margin-bottom:14px}
+  .pt-conflict-body strong{font-family:var(--sans);font-style:normal;font-weight:600;color:var(--text)}
+  .pt-conflict-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .pt-conflict-btn{font-family:var(--sans);font-size:12px;padding:9px 18px;border-radius:100px;cursor:pointer;letter-spacing:0.2px;font-weight:600}
+  .pt-conflict-btn.reorder{background:var(--gold);color:var(--gold-text-dark);border:1.5px solid var(--gold)}
+  .pt-conflict-btn.reorder:hover{background:#d4b558}
+  .pt-conflict-btn.stand{background:transparent;color:var(--text);border:1.5px solid var(--border2)}
+  .pt-conflict-btn.stand:hover{border-color:var(--gold-line)}
+
+  /* Done screen */
+  .pt-done-star{font-size:30px;color:var(--gold);margin-bottom:18px}
+  .pt-done-title{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--text);margin-bottom:10px}
+  .pt-done-sub{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text2);line-height:1.6;margin-bottom:22px;max-width:480px;margin-left:auto;margin-right:auto}
+  .pt-done-cta{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--gold-text-dark);border:none;padding:12px 26px;border-radius:100px;font-family:var(--sans);font-size:13px;cursor:pointer;letter-spacing:0.4px;font-weight:600}
+  .pt-done-cta:hover{background:#d4b558}
+
+  /* Pressure modal footer pill */
+  .pt-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .pt-foot-progress{font-family:var(--sans);font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.3px}
+  .pt-foot-cta{background:var(--gold);color:var(--gold-text-dark);border:none;padding:10px 22px;border-radius:100px;font-family:var(--sans);font-size:13px;cursor:pointer;letter-spacing:0.3px;font-weight:600}
+  .pt-foot-cta:hover{background:#d4b558}
+  .pt-foot-cta:disabled{opacity:0.4;cursor:not-allowed;background:var(--gold-soft);color:var(--gold)}
+
+  /* Rank room when pressure modal is open */
+  .overlay.pressure-open .overlay-card{filter:blur(2.5px);opacity:0.5;pointer-events:none}
+
+  /* Demo nav */
+  .demo-nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(13,27,46,0.96);border:1px solid var(--gold-line);border-radius:100px;padding:6px 10px;display:flex;gap:4px;font-size:11px;z-index:400;backdrop-filter:blur(8px);max-width:calc(100% - 28px);flex-wrap:wrap;justify-content:center}
+  .demo-nav button{background:transparent;border:none;color:var(--text2);padding:6px 11px;border-radius:100px;cursor:pointer;font-family:var(--sans);font-size:10.5px;font-weight:500;letter-spacing:0.2px;white-space:nowrap}
+  .demo-nav button:hover{background:var(--gold-warm);color:var(--text)}
+  .demo-nav button.active{background:var(--gold);color:var(--gold-text-dark);font-weight:600}
+  .demo-nav .demo-label{font-family:var(--sans);font-size:9px;letter-spacing:1.5px;color:var(--text3);padding:6px 4px;align-self:center;font-weight:700;text-transform:uppercase}
+  .demo-nav .sep{width:1px;background:var(--border);align-self:stretch;margin:4px 4px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">True Ownership™ <small>· Katherine</small></div>
+  <div class="user-area">
+    <div class="a-chips">
+      <span class="a-chip active">A1</span>
+      <span class="a-chip">A2</span>
+      <span class="a-chip">A3</span>
+      <span class="a-chip">A4</span>
+      <span class="a-chip">A5</span>
+    </div>
+    <span>· Katherine</span>
+  </div>
+</div>
+
+<!-- HUB -->
+<div class="hub" id="hub">
+  <div class="breadcrumb">
+    <a>Entry Hall</a>
+    <span class="sep">›</span>
+    <a>A1 · All In It</a>
+    <span class="sep">›</span>
+    <span class="here">Values</span>
+  </div>
+
+  <div class="hub-eyebrow">A1 · Mirror 4 · Explore with Katherine</div>
+  <h1 class="hub-title">Values · The Order You Live By</h1>
+  <p class="hub-sub">Three rooms. At least three values. One decision filter.</p>
+  <p class="hub-return">You can return any time to edit anything you've written.</p>
+
+  <div class="hub-intro" onclick="alert('In real app: opens Katherine video brief')">
+    <div class="hub-intro-play">▶</div>
+    <div class="hub-intro-text">
+      <div class="hub-intro-label">Start here · Katherine introduces Values</div>
+      <div class="hub-intro-title">Values · What you actually stand for</div>
+    </div>
+    <div class="hub-intro-chev">›</div>
+  </div>
+
+  <div class="room-card" onclick="openOverlay('r1');gotoScreen('r1-s1')">
+    <div class="badge">1</div>
+    <div class="body">
+      <div class="title">Discover</div>
+      <div class="status">Up next</div>
+    </div>
+    <div class="chev">›</div>
+  </div>
+  <div class="room-card locked">
+    <div class="badge">2</div>
+    <div class="body">
+      <div class="title">Operationalize</div>
+      <div class="status">Unlocks after Discover</div>
+    </div>
+    <div class="chev">›</div>
+  </div>
+  <div class="room-card locked">
+    <div class="badge">3</div>
+    <div class="body">
+      <div class="title">Rank</div>
+      <div class="status">Unlocks after Operationalize</div>
+    </div>
+    <div class="chev">›</div>
+  </div>
+  <div class="room-card claim locked">
+    <div class="badge">★</div>
+    <div class="body">
+      <div class="title">Claim</div>
+      <div class="status">The seal — unlocks after Rank</div>
+    </div>
+    <div class="chev">›</div>
+  </div>
+
+  <button class="hub-back">← Back to A1</button>
+</div>
+
+<!-- ROOM 1 -->
+<div class="overlay" id="overlay-r1">
+  <div class="overlay-card">
+    <div class="overlay-head">
+      <div class="overlay-crumb">Values <span class="sep">›</span><span class="here">Discover</span></div>
+      <button class="overlay-close" onclick="closeOverlay()">×</button>
+    </div>
+
+    <!-- S1 ADMIRE -->
+    <div class="screen active" id="r1-s1">
+      <div class="overlay-body">
+        <div class="step-eyebrow">Mirror 4 · Step 1 of 8 · Admire</div>
+        <h2 class="step-title">What behaviors do you admire?</h2>
+        <p class="step-sub">In yourself or in others. Don't overthink — the first thing that comes up is usually the truest.</p>
+        <div class="live-legend">
+          <span class="legend-pill"><span class="pip lights"></span> ★ Lights me up — strong</span>
+          <span class="legend-pill"><span class="pip warms"></span> Warms me — softer</span>
+        </div>
+        <div class="step-content">
+          <div class="input-row">
+            <input id="admire-input" type="text" placeholder="A behavior comes to mind…" />
+            <button class="tag-person" onclick="togglePersonInput('admire')">
+              <span id="admire-person-label">+ tag a person</span>
+              <input id="admire-person-input" type="text" placeholder="who?" style="display:none;width:80px;border:none;background:transparent;color:var(--text);font-family:var(--sans);font-size:11px;margin-left:4px;outline:none" />
+            </button>
+          </div>
+          <div class="intensity" id="admire-intensity" style="display:none">
+            <span class="intensity-label">How strongly does this hit?</span>
+            <button class="int-btn deep" onclick="addAdmireBullet('lights')">★ Lights me up</button>
+            <button class="int-btn soft" onclick="addAdmireBullet('warms')">Warms me</button>
+          </div>
+          <div class="blist" id="admire-list">
+            <div class="bul"><span class="pip lights"></span><span class="b-text">Owning a mistake before being called on it</span><span class="b-tag lights">Lights me up</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip lights"></span><span class="b-text">Telling the hard truth gently</span><span class="b-person">· my sister</span><span class="b-tag lights">Lights me up</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip warms"></span><span class="b-text">Following through quietly without praise</span><span class="b-tag warms">Warms me</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip warms"></span><span class="b-text">Crediting others publicly</span><span class="b-tag warms">Warms me</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip warms"></span><span class="b-text">Asking before assuming</span><span class="b-tag warms">Warms me</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+          </div>
+          <div class="counter-line">5 behaviors so far</div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" disabled>← Back</button>
+        <button class="continue-pill" onclick="gotoScreen('r1-s2')">Continue to irks →</button>
+      </div>
+    </div>
+
+    <!-- S2 IRKS -->
+    <div class="screen" id="r1-s2">
+      <div class="overlay-body">
+        <div class="step-eyebrow">Mirror 4 · Step 2 of 8 · Irks</div>
+        <h2 class="step-title">What behaviors don't you admire?</h2>
+        <p class="step-sub">The blood-boil. In yourself or in others. What irritates you most often points to what you refuse to compromise on yourself.</p>
+        <div class="live-legend">
+          <span class="legend-pill"><span class="pip bothers"></span> Bothers me — daily friction</span>
+          <span class="legend-pill"><span class="pip turns"></span> ⚡ Turns my stomach — gut reaction</span>
+        </div>
+        <div class="step-content">
+          <div class="input-row">
+            <input id="irks-input" type="text" placeholder="A behavior that bothers you…" />
+            <button class="tag-person" onclick="togglePersonInput('irks')">
+              <span id="irks-person-label">+ tag a person</span>
+              <input id="irks-person-input" type="text" placeholder="who?" style="display:none;width:80px;border:none;background:transparent;color:var(--text);font-family:var(--sans);font-size:11px;margin-left:4px;outline:none" />
+            </button>
+          </div>
+          <div class="intensity" id="irks-intensity" style="display:none">
+            <span class="intensity-label">How strongly does this hit?</span>
+            <button class="int-btn b-soft" onclick="addIrksBullet('bothers')">Bothers me</button>
+            <button class="int-btn b-deep" onclick="addIrksBullet('turns')">⚡ Turns my stomach</button>
+          </div>
+          <div class="blist" id="irks-list">
+            <div class="bul"><span class="pip bothers"></span><span class="b-text">Showing up late without acknowledging it</span><span class="b-tag bothers">Bothers me</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip bothers"></span><span class="b-text">Vague non-answers in meetings</span><span class="b-tag bothers">Bothers me</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip bothers"></span><span class="b-text">Ghosting after asking for help</span><span class="b-tag bothers">Bothers me</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip turns"></span><span class="b-text">Blaming the team for your own miss</span><span class="b-tag turns">Turns my stomach</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip turns"></span><span class="b-text">Interrupting to redirect credit</span><span class="b-tag turns">Turns my stomach</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip turns"></span><span class="b-text">Pretending to listen while waiting to talk</span><span class="b-tag turns">Turns my stomach</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="bul"><span class="pip turns"></span><span class="b-text">Punishing someone for telling the truth</span><span class="b-tag turns">Turns my stomach</span><button class="b-x" onclick="this.parentElement.remove()">×</button></div>
+          </div>
+          <div class="counter-line">12 behaviors total</div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="gotoScreen('r1-s1')">← Back to admire</button>
+        <button class="continue-pill" onclick="gotoScreen('r1-s3')">See your portrait →</button>
+      </div>
+    </div>
+
+    <!-- S3 PORTRAIT -->
+    <div class="screen" id="r1-s3">
+      <div class="overlay-body">
+        <div class="step-eyebrow">Mirror 4 · Step 3 of 8 · Portrait</div>
+        <h2 class="step-title">Your behavior portrait</h2>
+        <p class="step-sub">Here's what you put down — sorted as you tagged it. Drag between tiers, delete, or add more before we look for values underneath.</p>
+        <div class="step-content">
+          <div class="quad-wrap">
+            <div class="quad lights">
+              <div class="quad-label">★ Lights me up <button class="quad-add">+ add</button></div>
+              <div class="qbul"><span class="qb-text">Owning a mistake before being called on it</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Telling the hard truth gently</span><span class="qb-person">· my sister</span><button class="qb-x">×</button></div>
+            </div>
+            <div class="quad warms">
+              <div class="quad-label">Warms me <button class="quad-add">+ add</button></div>
+              <div class="qbul"><span class="qb-text">Following through quietly without praise</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Crediting others publicly</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Asking before assuming</span><button class="qb-x">×</button></div>
+            </div>
+            <div class="quad bothers">
+              <div class="quad-label">Bothers me <button class="quad-add">+ add</button></div>
+              <div class="qbul"><span class="qb-text">Showing up late without acknowledging it</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Vague non-answers in meetings</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Ghosting after asking for help</span><button class="qb-x">×</button></div>
+            </div>
+            <div class="quad turns">
+              <div class="quad-label">⚡ Turns my stomach <button class="quad-add">+ add</button></div>
+              <div class="qbul"><span class="qb-text">Blaming the team for your own miss</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Interrupting to redirect credit</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Pretending to listen while waiting to talk</span><button class="qb-x">×</button></div>
+              <div class="qbul"><span class="qb-text">Punishing someone for telling the truth</span><button class="qb-x">×</button></div>
+            </div>
+          </div>
+          <div class="reveal-hint">↕ drag between tiers · × delete · + add more</div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="gotoScreen('r1-s2')">← Back to irks</button>
+        <button class="continue-pill" onclick="gotoScreen('r1-s4')">Find values underneath →</button>
+      </div>
+    </div>
+
+    <!-- S4 KATHERINE'S READ -->
+    <div class="screen" id="r1-s4">
+      <div class="overlay-body">
+        <div class="step-eyebrow">Mirror 4 · Step 4 of 8 · Katherine's read</div>
+        <h2 class="step-title">Katherine's read</h2>
+        <p class="step-sub">I see three clusters in your portrait. We'll work them one at a time, each in its own space.</p>
+        <div class="step-content">
+          <div class="k-intro">
+            <div class="k-intro-label">Katherine sees three patterns</div>
+            <div class="k-intro-body">"Looking at what you wrote — the behaviors that light you up, the ones that turn your stomach — three roots keep showing up. Accountability around mistakes and credit. Presence in how you show up for others. Honesty — how truth gets handled, given, and received. Each one deserves its own space."</div>
+          </div>
+          <div class="cluster-overview-card">
+            <div class="co-dot c1"></div>
+            <div class="co-body">
+              <div class="co-label">Cluster 1 · Accountability</div>
+              <div class="co-prop">Owning mistakes, refusing to deflect, following through without praise. Could be <em>Own It, Integrity, Honor.</em></div>
+            </div>
+            <div class="co-count">3 behaviors</div>
+          </div>
+          <div class="cluster-overview-card">
+            <div class="co-dot c2"></div>
+            <div class="co-body">
+              <div class="co-label">Cluster 2 · Presence</div>
+              <div class="co-prop">Crediting others, listening fully, not ghosting, not interrupting. Could be <em>Presence, Respect, Loyalty.</em></div>
+            </div>
+            <div class="co-count">4 behaviors</div>
+          </div>
+          <div class="cluster-overview-card">
+            <div class="co-dot c3"></div>
+            <div class="co-body">
+              <div class="co-label">Cluster 3 · Honesty</div>
+              <div class="co-prop">Telling the hard truth, asking before assuming, not punishing people who speak up. Could be <em>Honesty, Truth, Candor.</em></div>
+            </div>
+            <div class="co-count">3 behaviors</div>
+          </div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="gotoScreen('r1-s3')">← Back to portrait</button>
+        <button class="continue-pill" onclick="gotoScreen('r1-v1')">Work cluster 1 →</button>
+      </div>
+    </div>
+
+    <!-- V1 -->
+    <div class="screen" id="r1-v1">
+      <div class="overlay-body">
+        <div class="step-eyebrow"><span class="cluster-marker" style="background:var(--c1)"></span> Mirror 4 · Step 5 of 8 · Value 1</div>
+        <h2 class="step-title">Name the first value</h2>
+        <p class="step-sub">Review the behaviors. When you're ready, name what they point to.</p>
+        <div class="step-content">
+
+          <div class="pv-cluster-banner-slim c1">
+            Cluster 1 · Katherine sees <strong>accountability</strong> — owning mistakes, refusing to deflect.
+          </div>
+
+          <div class="pv-section-title">Behaviors</div>
+          <p class="pv-section-helper">These are the behaviors Katherine grouped into this value. Edit, add from your portrait, or type new ones.</p>
+
+          <div class="pv-bh-list">
+            <div class="pv-bh-item"><span class="bh-text">Owning a mistake before being called on it</span><span class="bh-source lights">Lights</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="pv-bh-item"><span class="bh-text">Following through quietly without praise</span><span class="bh-source warms">Warms</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="pv-bh-item"><span class="bh-text">Take the blame before deflecting</span><span class="bh-source flipped">Flipped</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+          </div>
+
+          <div class="pv-add-row">
+            <button class="pv-add-btn" onclick="togglePortraitPanel('v1')">+ Add from your portrait</button>
+            <button class="pv-add-btn">+ Add new behavior</button>
+          </div>
+
+          <div class="pv-portrait-mq" id="portrait-panel-v1">
+            <div class="pv-portrait-mq-head">
+              <span class="pv-portrait-mq-label">Pick from portrait</span>
+              <span class="pv-portrait-mq-helper">tap a chip to add it</span>
+            </div>
+            <div class="mq-grid">
+              <div class="mq-tier lights">
+                <div class="mq-tier-head"><span>★ Lights me up</span></div>
+                <button class="mq-chip used">Owning a mistake before being called on it</button>
+                <button class="mq-chip">Telling the hard truth gently</button>
+              </div>
+              <div class="mq-tier warms">
+                <div class="mq-tier-head"><span>Warms me</span></div>
+                <button class="mq-chip used">Following through quietly without praise</button>
+                <button class="mq-chip">Crediting others publicly</button>
+                <button class="mq-chip">Asking before assuming</button>
+              </div>
+              <div class="mq-tier bothers">
+                <div class="mq-tier-head"><span>Bothers me</span><span class="mq-tier-flipnote">flip below</span></div>
+                <button class="mq-chip locked" title="See the flip section below">Showing up late without acknowledging it</button>
+                <button class="mq-chip locked" title="See the flip section below">Vague non-answers in meetings</button>
+                <button class="mq-chip locked" title="See the flip section below">Ghosting after asking for help</button>
+              </div>
+              <div class="mq-tier turns">
+                <div class="mq-tier-head"><span>⚡ Turns my stomach</span><span class="mq-tier-flipnote">flip below</span></div>
+                <button class="mq-chip locked" title="See the flip section below">Blaming the team for your own miss</button>
+                <button class="mq-chip locked" title="See the flip section below">Interrupting to redirect credit</button>
+                <button class="mq-chip locked" title="See the flip section below">Pretending to listen while waiting to talk</button>
+                <button class="mq-chip locked" title="See the flip section below">Punishing someone for telling the truth</button>
+              </div>
+            </div>
+            <button class="pv-portrait-mq-close" onclick="togglePortraitPanel('v1')">close</button>
+          </div>
+
+          <div class="pv-flip-nest">
+            <div class="pv-flip-title">Irks → commitments</div>
+            <p class="pv-flip-helper">Your "bothers" bullets in this cluster — flipped into what you commit to doing instead. Edit, accept, or skip.</p>
+            <div class="flip-card">
+              <div class="flip-from">"Blaming the team for your own miss"</div>
+              <div class="flip-arrow">→</div>
+              <input class="flip-to-input" value="Take the blame before deflecting"/>
+              <div class="flip-actions">
+                <button class="flip-mini-btn accept">Accept</button>
+                <button class="flip-mini-btn skip">Skip</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pv-name-cta-wrap" id="name-cta-wrap-v1">
+            <p class="pv-name-cta-helper">When the behaviors feel right, we'll peel them together to find the value underneath.</p>
+            <button class="pv-name-cta" onclick="openNamingModal('v1')">Name this value ★</button>
+          </div>
+
+          <div class="pv-completed-card" id="completed-card-v1" style="display:none">
+            <div class="pv-completed-star">★</div>
+            <div class="pv-completed-name" id="completed-name-v1">Own It</div>
+            <div class="pv-completed-def" id="completed-def-v1">"Taking full responsibility for my actions and mistakes because that's how I grow and build real trust with others."</div>
+            <div class="pv-completed-actions">
+              <button class="pv-completed-edit" onclick="openNamingModal('v1')">edit name</button>
+              <span class="pv-completed-sep">·</span>
+              <button class="pv-completed-edit" onclick="openDefineModal('v1')">edit definition</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="gotoScreen('r1-s4')">← Back to Katherine's read</button>
+        <button class="continue-pill" id="continue-v1" onclick="gotoScreen('r1-v2')">Continue to value 2 →</button>
+      </div>
+    </div>
+
+    <!-- V2 -->
+    <div class="screen" id="r1-v2">
+      <div class="overlay-body">
+        <div class="step-eyebrow"><span class="cluster-marker" style="background:var(--c2)"></span> Mirror 4 · Step 6 of 8 · Value 2</div>
+        <h2 class="step-title">Name the second value</h2>
+        <p class="step-sub">Same shape — review, refine, then name.</p>
+        <div class="step-content">
+          <div class="pv-cluster-banner-slim c2">
+            Cluster 2 · Katherine sees <strong>presence and respect for others</strong> — listening, crediting, staying.
+          </div>
+          <div class="pv-section-title">Behaviors</div>
+          <p class="pv-section-helper">These are the behaviors Katherine grouped into this value.</p>
+          <div class="pv-bh-list">
+            <div class="pv-bh-item"><span class="bh-text">Crediting others publicly</span><span class="bh-source warms">Warms</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="pv-bh-item"><span class="bh-text">Circle back even when it's awkward</span><span class="bh-source flipped">Flipped</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="pv-bh-item"><span class="bh-text">Listen fully — then respond</span><span class="bh-source flipped">Flipped</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+          </div>
+          <div class="pv-add-row">
+            <button class="pv-add-btn">+ Add from your portrait</button>
+            <button class="pv-add-btn">+ Add new behavior</button>
+          </div>
+          <div class="pv-name-cta-wrap">
+            <p class="pv-name-cta-helper">When the behaviors feel right, we'll peel them together to find the value underneath.</p>
+            <button class="pv-name-cta" onclick="openNamingModal('v2')">Name this value ★</button>
+          </div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="gotoScreen('r1-v1')">← Back to value 1</button>
+        <button class="continue-pill" onclick="gotoScreen('r1-v3')">Continue to value 3 →</button>
+      </div>
+    </div>
+
+    <!-- V3 -->
+    <div class="screen" id="r1-v3">
+      <div class="overlay-body">
+        <div class="step-eyebrow"><span class="cluster-marker" style="background:var(--c3)"></span> Mirror 4 · Step 7 of 8 · Value 3</div>
+        <h2 class="step-title">Name the third value</h2>
+        <p class="step-sub">One more — review, refine, name.</p>
+        <div class="step-content">
+          <div class="pv-cluster-banner-slim c3">
+            Cluster 3 · Katherine sees <strong>honesty</strong> — telling truth, asking before assuming.
+          </div>
+          <div class="pv-section-title">Behaviors</div>
+          <div class="pv-bh-list">
+            <div class="pv-bh-item"><span class="bh-text">Telling the hard truth gently</span><span class="bh-source lights">Lights</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="pv-bh-item"><span class="bh-text">Asking before assuming</span><span class="bh-source warms">Warms</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+            <div class="pv-bh-item"><span class="bh-text">Thank people for the hard message</span><span class="bh-source flipped">Flipped</span><button class="bh-x" onclick="this.parentElement.remove()">×</button></div>
+          </div>
+          <div class="pv-add-row">
+            <button class="pv-add-btn">+ Add from your portrait</button>
+            <button class="pv-add-btn">+ Add new behavior</button>
+          </div>
+          <div class="pv-name-cta-wrap">
+            <button class="pv-name-cta" onclick="openNamingModal('v3')">Name this value ★</button>
+          </div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="gotoScreen('r1-v2')">← Back to value 2</button>
+        <button class="continue-pill" onclick="gotoScreen('r1-finish')">Continue →</button>
+      </div>
+    </div>
+
+    <!-- FINISH -->
+    <div class="screen" id="r1-finish">
+      <div class="overlay-body">
+        <div class="step-eyebrow">Mirror 4 · Step 8 of 8 · Confirm</div>
+        <h2 class="step-title">Your three values</h2>
+        <p class="step-sub">Stop here, or add another one if there's a value you haven't named yet.</p>
+        <div class="step-content">
+          <div class="summary-card">
+            <div class="sc-num">1</div>
+            <div class="sc-body">
+              <div class="sc-name">Own It</div>
+              <div class="sc-def">"Taking full responsibility for my actions and mistakes because that's how trust gets built."</div>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="sc-num">2</div>
+            <div class="sc-body">
+              <div class="sc-name">Presence</div>
+              <div class="sc-def">"Being fully with the person in front of me — listening before speaking, crediting before claiming."</div>
+            </div>
+          </div>
+          <div class="summary-card">
+            <div class="sc-num">3</div>
+            <div class="sc-body">
+              <div class="sc-name">Honesty</div>
+              <div class="sc-def">"Telling the truth even when it's uncomfortable — and making it safe for others to do the same."</div>
+            </div>
+          </div>
+          <div class="soft-min-card">
+            <div class="soft-min-title">Want to add another?</div>
+            <div class="soft-min-body">You've named three — that's the minimum that makes a hierarchy. Most people end up with four or five. If there's one Katherine missed, add it now. Or stop here and revisit later.</div>
+          </div>
+          <button class="pv-add-btn" style="margin-top:8px" onclick="alert('In real app: opens blank value flow')">+ Add another value</button>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="gotoScreen('r1-v3')">← Back to value 3</button>
+        <button class="continue-pill" onclick="closeOverlay();openOverlay('r2')">Continue to Operationalize →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ROOM 2 -->
+<div class="overlay" id="overlay-r2">
+  <div class="overlay-card">
+    <div class="overlay-head">
+      <div class="overlay-crumb">Values <span class="sep">›</span><span class="here">Operationalize</span></div>
+      <button class="overlay-close" onclick="closeOverlay()">×</button>
+    </div>
+    <div class="screen active">
+      <div class="overlay-body">
+        <div class="step-eyebrow">Mirror 4 · Step 1 of 1 · Behaviors</div>
+        <h2 class="step-title">Behaviors</h2>
+        <p class="step-sub">For each value, the behaviors that bring it to life. We started you with what surfaced in Discover — refine, replace, or add up to 5.</p>
+        <div class="helper-ribbon">A value without behaviors is just a word. Up to 5 per value. Mark one as the keystone — the one you'd defend first.</div>
+        <div class="step-content">
+          <div class="value-switcher">
+            <button class="vs-chip active">Own It</button>
+            <button class="vs-chip">Presence</button>
+            <button class="vs-chip">Honesty</button>
+          </div>
+          <h3 class="r2-val-name">Own It</h3>
+          <p class="r2-val-def">"Own It means taking full responsibility for my actions and mistakes because that's how I grow and build real trust with others."</p>
+          <div class="bh-card keystone">
+            <button class="bh-star starred">★</button>
+            <div class="bh-card-head">
+              <span class="bh-num">Behavior 1</span>
+              <span class="bh-chip up">From "Lights me up"</span>
+            </div>
+            <input class="bh-name" value="Acknowledge mistakes immediately"/>
+            <div class="bh-body">
+              <div class="bh-body-label">What this looks like in practice</div>
+              <div class="bh-bullet"><span class="bh-bullet-dot">•</span><span>Say "I made a mistake" within 24 hours</span></div>
+              <input class="bh-bullet-input" placeholder="Type a bullet and press Enter…"/>
+            </div>
+          </div>
+          <div class="bh-card">
+            <button class="bh-star">☆</button>
+            <div class="bh-card-head">
+              <span class="bh-num">Behavior 2</span>
+              <span class="bh-chip flip">Flipped from "Turns my stomach"</span>
+            </div>
+            <input class="bh-name" value="Take the blame before deflecting"/>
+            <div class="bh-flip-meta">Flipped from: "Blaming the team for your own miss"</div>
+            <div class="bh-body">
+              <div class="bh-body-label">What this looks like in practice</div>
+              <input class="bh-bullet-input" placeholder="Type a bullet and press Enter…"/>
+            </div>
+          </div>
+          <button class="bh-add">+ Add behavior</button>
+          <div class="bh-cap">2 of 5</div>
+          <div class="keystone-prompt">
+            <div class="keystone-icon">★</div>
+            <div>
+              <div class="keystone-title">Mark the keystone</div>
+              <div class="keystone-body">If you could only live one of these behaviors, which would you pick? That's the keystone — the one you'd defend first when everything else slips.</div>
+              <span class="keystone-skip">Skip — they're all equal to me</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="closeOverlay();openOverlay('r1');gotoScreen('r1-finish')">← Back to Discover</button>
+        <button class="continue-pill" onclick="closeOverlay();openOverlay('r3')">Continue to Rank →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROOM 3 -->
+<div class="overlay" id="overlay-r3">
+  <div class="overlay-card">
+    <div class="overlay-head">
+      <div class="overlay-crumb">Values <span class="sep">›</span><span class="here">Rank</span></div>
+      <button class="overlay-close" onclick="closeOverlay()">×</button>
+    </div>
+    <div class="screen active">
+      <div class="overlay-body">
+        <div class="step-eyebrow">Mirror 4 · Step 1 of 1 · Rank + Pressure-test</div>
+        <h2 class="step-title">The order you live by</h2>
+        <p class="step-sub">Drag your values into the order you'd defend them under pressure. Top = the one that wins when two collide. Then we'll pressure-test each pair.</p>
+        <div class="helper-ribbon">The rank is your decision filter. When two values collide in a real moment, the higher one wins. The pressure-test proves the order.</div>
+        <div class="step-content">
+          <div class="phase-eyebrow">Phase 1 · Rank</div>
+          <div class="rank-stack">
+            <div class="rank-row tested">
+              <div class="rank-num">1</div>
+              <div class="rank-body">
+                <div class="rank-name">Own It</div>
+                <div class="rank-def">"Taking full responsibility because that's how trust gets built."</div>
+                <div class="rank-keystone">★ Keystone: Acknowledge mistakes immediately</div>
+              </div>
+              <div class="rank-handles"><button class="rank-handle">▲</button><button class="rank-handle">▼</button></div>
+            </div>
+            <div class="rank-row tested">
+              <div class="rank-num">2</div>
+              <div class="rank-body">
+                <div class="rank-name">Honesty</div>
+                <div class="rank-def">"Telling the truth even when it's uncomfortable."</div>
+                <div class="rank-keystone">★ Keystone: Thank people for the hard message</div>
+              </div>
+              <div class="rank-handles"><button class="rank-handle">▲</button><button class="rank-handle">▼</button></div>
+            </div>
+            <div class="rank-row">
+              <div class="rank-num">3</div>
+              <div class="rank-body">
+                <div class="rank-name">Presence</div>
+                <div class="rank-def">"Being fully with the person in front of me."</div>
+                <div class="rank-keystone">★ Keystone: Listen fully, then respond</div>
+              </div>
+              <div class="rank-handles"><button class="rank-handle">▲</button><button class="rank-handle">▼</button></div>
+            </div>
+          </div>
+          <div class="pressure-start">
+            <div class="pressure-start-eyebrow">Phase 2 · Pressure-test</div>
+            <div class="pressure-start-title">Test the order under collision</div>
+            <div class="pressure-start-sub">Now we'll walk three pairs of your values and ask: when these two collide, which wins? Your gut answers — and we compare them to your stated rank.</div>
+            <button class="pressure-start-cta" onclick="openPressureModal()">Begin pressure-test →</button>
+            <div class="pressure-status">3 pairs · about 2 minutes</div>
+          </div>
+        </div>
+      </div>
+      <div class="overlay-foot">
+        <button class="back-link" onclick="closeOverlay();openOverlay('r2')">← Back to Behaviors</button>
+        <button class="continue-pill" onclick="closeOverlay();openOverlay('claim')">Continue to Claim →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLAIM -->
+<div class="overlay" id="overlay-claim">
+  <div class="overlay-card">
+    <div class="overlay-head">
+      <div class="overlay-crumb">Values <span class="sep">›</span><span class="here">Claim</span></div>
+      <button class="overlay-close" onclick="closeOverlay()">×</button>
+    </div>
+    <div class="seal-body">
+      <div class="seal-star">★</div>
+      <p class="seal-beat"><span class="vocative">Katherine,</span> <span class="gold">this is the order you live by.</span></p>
+      <p class="seal-beat">Not what sounds good. Not what you wish were true. The order you actually defend when two of them pull on each other at the same time.</p>
+      <p class="seal-beat">These values are <span class="gold">what you stand for.</span> These behaviors are <span class="gold">how you live them.</span></p>
+      <p class="seal-beat">When you live by them, your self-worth holds.<br>When you don't, or when you're with people who don't — <span class="gold">it chips.</span></p>
+      <p class="seal-beat">This is your <span class="gold">decision filter.</span><br>Use it when something feels off. Use it when you're choosing who to be with. Use it when you're choosing who to become.</p>
+      <div class="seal-rule"></div>
+      <button class="seal-cta">Claim it · go to Map of Me →</button>
+      <div class="seal-foot">You've claimed your Values. The seal stays.</div>
+      <button class="seal-revise">← Revise my Values readback</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAMING MODAL -->
+<div class="naming-modal" id="naming-modal">
+  <div class="naming-card">
+    <div class="naming-head">
+      <div class="naming-head-label" id="naming-head-label">★ Name your value · peel to the root</div>
+      <button class="naming-close" onclick="closeNamingModal()">×</button>
+    </div>
+    <div class="naming-body">
+      <div class="naming-anchor">
+        <div class="naming-anchor-label">You're naming the value behind</div>
+        <div class="naming-anchor-list" id="naming-anchor-list">
+          <span class="naming-anchor-chip">Owning a mistake before being called on it</span>
+          <span class="naming-anchor-chip">Following through quietly without praise</span>
+          <span class="naming-anchor-chip">Take the blame before deflecting</span>
+        </div>
+      </div>
+
+      <!-- STATE A: PEEL -->
+      <div class="nm-state" id="nm-state-peel">
+        <div class="peel-breadcrumb" id="peel-breadcrumb"></div>
+
+        <p class="peel-question" id="peel-question">What do these behaviors <span class="gold">give you</span>?</p>
+        <p class="peel-helper">One word or short phrase. We'll keep peeling until you hit the root.</p>
+        <input class="peel-input" id="peel-input" placeholder="…" />
+
+        <div class="peel-cta-row">
+          <button class="peel-cta primary" onclick="addPeel()">Keep peeling →</button>
+        </div>
+
+        <button class="ready-to-name-link" id="ready-to-name-link" onclick="goToNameState()" style="display:none">I'm ready to name this →</button>
+
+        <div>
+          <button class="ask-katherine-chip" onclick="askKatherine()">✦ Ask Katherine for a name suggestion</button>
+        </div>
+
+        <div class="katherine-suggestion" id="katherine-suggestion">
+          <div class="ks-label">Katherine's read</div>
+          <div class="ks-body">"Walking your chain — these behaviors give you accountability, which gives you honor, which gives you integrity. The root feels like <strong>Own It</strong> or <strong>Integrity</strong>. Both root-shaped. Pick the one that feels like yours, or write your own."</div>
+          <div class="ks-suggestions">
+            <button class="ks-pick" onclick="pickSuggestion('Own It')">Own It</button>
+            <button class="ks-pick" onclick="pickSuggestion('Integrity')">Integrity</button>
+            <button class="ks-pick" onclick="pickSuggestion('Honor')">Honor</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATE B: NAME -->
+      <div class="nm-state" id="nm-state-name" style="display:none">
+        <div class="nm-name-eyebrow">This is the value you're naming</div>
+        <input class="nm-name-input" id="nm-name-input" value="Own It"/>
+        <p class="nm-name-helper">One or two words. Make it yours. You can come back and rename anytime.</p>
+        <div class="nm-name-actions">
+          <button class="nm-back-link" onclick="goToPeelState()">← Keep peeling</button>
+          <button class="nm-confirm-cta" onclick="confirmName()">Confirm name ★</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEFINE-IT MODAL -->
+<div class="define-modal" id="define-modal">
+  <div class="naming-card">
+    <div class="naming-head">
+      <div class="naming-head-label">★ Define your value · what does this mean to you?</div>
+      <button class="naming-close" onclick="closeDefineModal()">×</button>
+    </div>
+    <div class="naming-body">
+
+      <div class="def-named-anchor">
+        <div class="def-named-star">★</div>
+        <div class="def-named-name" id="def-modal-name">Own It</div>
+      </div>
+
+      <div class="def-behaviors-anchor">
+        <div class="naming-anchor-label">The behaviors behind it</div>
+        <div class="naming-anchor-list" id="def-behaviors-list">
+          <span class="naming-anchor-chip">Owning a mistake before being called on it</span>
+          <span class="naming-anchor-chip">Following through quietly without praise</span>
+          <span class="naming-anchor-chip">Take the blame before deflecting</span>
+        </div>
+      </div>
+
+      <p class="pv-define-prompt"><em>Katherine,</em> what does <span class="gold" id="def-prompt-name">Own It</span> mean to you? This is what shows when you're using it as your decision filter — <em>make it real.</em></p>
+      <textarea class="pv-define-input" id="def-modal-input" placeholder="Write one sentence — yours, in your voice, not how it should sound."></textarea>
+
+      <div class="pv-define-foot">
+        <button class="feedback-chip" onclick="document.getElementById('def-feedback-card').classList.add('shown')">+ Ask Katherine for feedback</button>
+      </div>
+      <div class="pv-feedback-card" id="def-feedback-card">
+        <strong>Katherine:</strong> "This lands. The phrase 'real trust with others' grounds it in relationships — that's the proof of accountability, not the feeling of it. If you wanted to sharpen, the words 'because that's how I grow' carry the most weight."
+      </div>
+
+      <div class="nm-name-actions" style="margin-top:24px">
+        <button class="nm-back-link" onclick="backToNameFromDefine()">← Edit name</button>
+        <button class="nm-confirm-cta" onclick="confirmDefinition()">Confirm definition ★</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRESSURE-TEST MODAL -->
+<div class="pressure-modal" id="pressure-modal">
+  <div class="pressure-card">
+    <div class="pressure-head">
+      <div class="pressure-head-label" id="pressure-head-label">★ Pressure-test · the collision walk</div>
+      <button class="pressure-close" onclick="closePressureModal()">×</button>
+    </div>
+
+    <div class="pressure-body">
+
+      <!-- Intro screen with mini example -->
+      <div class="pt-screen active" id="pt-intro">
+        <div class="pt-intro-eyebrow">What we're doing</div>
+        <div class="pt-intro-title">When two values collide, one wins.</div>
+        <div class="pt-intro-sub">Real life forces choices. Pressure-test means: imagine the two values pulling on each other at the same time — gut-pick which one you'd actually defend.</div>
+
+        <div class="pt-example">
+          <div class="pt-example-label">For example</div>
+          <div class="pt-example-body">A friend asks you to keep a secret that goes against what you stand for. <em>Loyalty</em> says <span class="gold">hold the confidence — the friendship comes first.</span> <em>Honesty</em> says <span class="gold">say something — even if it costs the friendship.</span> Both are true. Only one can win. That's a collision. <br><br>You're about to walk three pairs of yours.</div>
+        </div>
+      </div>
+
+      <!-- Pair screen (one shown at a time, dynamically swapped) -->
+      <div class="pt-screen" id="pt-pair">
+        <div class="pt-pair-counter" id="pt-pair-counter">Pair 1 of 3</div>
+        <div class="pt-pair-prompt">When <span class="gold" id="pt-pair-a">Own It</span> and <span class="gold" id="pt-pair-b">Honesty</span> <em>collide</em> — which wins?</div>
+        <div class="pt-pair-helper" id="pt-pair-helper">Gut-pick. No overthinking.</div>
+
+        <div class="pt-pair-grid">
+          <div class="pt-pair-card" id="pt-card-a" onclick="pickPressure('a')">
+            <div>
+              <div class="pt-pair-name" id="pt-card-a-name">Own It</div>
+              <div class="pt-pair-def" id="pt-card-a-def">"Taking full responsibility because that's how trust gets built."</div>
+            </div>
+            <div class="pt-pair-keystone">
+              <div class="pt-pair-keystone-label">Keystone</div>
+              <span id="pt-card-a-keystone">Acknowledge mistakes immediately</span>
+            </div>
+          </div>
+          <div class="pt-pair-card" id="pt-card-b" onclick="pickPressure('b')">
+            <div>
+              <div class="pt-pair-name" id="pt-card-b-name">Honesty</div>
+              <div class="pt-pair-def" id="pt-card-b-def">"Telling the truth even when it's uncomfortable."</div>
+            </div>
+            <div class="pt-pair-keystone">
+              <div class="pt-pair-keystone-label">Keystone</div>
+              <span id="pt-card-b-keystone">Thank people for the hard message</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conflict prompt (inline, appears after a conflicting pick) -->
+        <div class="pt-conflict" id="pt-conflict">
+          <div class="pt-conflict-label">Your gut said something different</div>
+          <div class="pt-conflict-body" id="pt-conflict-body">You picked <strong>Honesty</strong> — but you ranked <strong>Own It</strong> higher. Want to re-order, or stand by your stated rank?</div>
+          <div class="pt-conflict-actions">
+            <button class="pt-conflict-btn reorder" onclick="acceptReorder()">Re-order — gut wins →</button>
+            <button class="pt-conflict-btn stand" onclick="standByRank()">Stand by my rank</button>
+          </div>
+        </div>
+
+        <button class="pt-skip" onclick="skipPair()">Skip — they don't actually compete for me</button>
+      </div>
+
+      <!-- Done screen -->
+      <div class="pt-screen" id="pt-done">
+        <div class="pt-done-star">★</div>
+        <div class="pt-done-title">Order tested.</div>
+        <div class="pt-done-sub" id="pt-done-sub">All three pairs walked. Your rank held up — what you said is what you actually defend. Ready to claim it?</div>
+        <button class="pt-done-cta" onclick="closePressureModal();closeOverlay();openOverlay('claim')">Continue to Claim →</button>
+      </div>
+
+    </div>
+
+    <div class="pt-foot" id="pt-foot">
+      <div class="pt-foot-progress" id="pt-foot-progress">Read the example first</div>
+      <button class="pt-foot-cta" id="pt-foot-cta" onclick="ptIntroToFirstPair()">Got it — start →</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEMO NAV -->
+<div class="demo-nav">
+  <span class="demo-label">Demo →</span>
+  <button onclick="closeOverlay()" id="nav-hub" class="active">Hub</button>
+  <span class="sep"></span>
+  <button onclick="openOverlay('r1');gotoScreen('r1-s1')">1·Admire</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-s2')">2·Irks</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-s3')">3·Portrait</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-s4')">4·Read</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-v1')">5·V1</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-v1');setTimeout(()=>openNamingModal('v1'),300)" style="font-size:9.5px">↳ Name modal</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-v1');setTimeout(()=>openDefineModal('v1'),300)" style="font-size:9.5px">↳ Define modal</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-v2')">6·V2</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-v3')">7·V3</button>
+  <button onclick="openOverlay('r1');gotoScreen('r1-finish')">8·Done</button>
+  <span class="sep"></span>
+  <button onclick="openOverlay('r2')">R2·Behaviors</button>
+  <button onclick="openOverlay('r3')">R3·Rank</button>
+  <button onclick="openOverlay('r3');setTimeout(openPressureModal,300)">R3·Pressure</button>
+  <span class="sep"></span>
+  <button onclick="openOverlay('claim')">★ Claim</button>
+</div>
+
+<script>
+  let peelChain = [];
+  let currentValue = 'v1';
+
+  function openOverlay(id){
+    document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'));
+    document.getElementById('overlay-'+id).classList.add('active');
+    document.body.style.overflow='hidden';
+    document.querySelectorAll('.demo-nav button').forEach(b=>b.classList.remove('active'));
+  }
+  function closeOverlay(){
+    document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'));
+    document.body.style.overflow='';
+    document.querySelectorAll('.demo-nav button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('nav-hub').classList.add('active');
+  }
+  function gotoScreen(id){
+    const overlay = document.getElementById(id).closest('.overlay');
+    overlay.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    overlay.scrollTop = 0;
+  }
+
+  function openNamingModal(vid){
+    currentValue = vid;
+    document.getElementById('overlay-r1').classList.add('naming-open');
+    document.getElementById('naming-modal').classList.add('active');
+    document.body.style.overflow='hidden';
+    resetPeel();
+    goToPeelState();
+    setTimeout(()=>document.getElementById('peel-input').focus(), 300);
+  }
+  function closeNamingModal(){
+    document.getElementById('overlay-r1').classList.remove('naming-open');
+    document.getElementById('naming-modal').classList.remove('active');
+    document.body.style.overflow='';
+  }
+  function goToPeelState(){
+    document.getElementById('nm-state-peel').style.display = 'block';
+    document.getElementById('nm-state-name').style.display = 'none';
+    document.getElementById('naming-head-label').textContent = '★ Name your value · peel to the root';
+  }
+  function goToNameState(){
+    document.getElementById('nm-state-peel').style.display = 'none';
+    document.getElementById('nm-state-name').style.display = 'block';
+    document.getElementById('naming-head-label').textContent = '★ Name your value · lock it in';
+    setTimeout(()=>{
+      const input = document.getElementById('nm-name-input');
+      input.focus();
+      input.select();
+    }, 200);
+  }
+  function resetPeel(){
+    peelChain = [{label:'these behaviors'},{label:'what do they give you?', isCurrent:true}];
+    renderBreadcrumb();
+    document.getElementById('peel-question').innerHTML = 'What do these behaviors <span class="gold">give you</span>?';
+    document.getElementById('peel-input').value = '';
+    document.getElementById('katherine-suggestion').classList.remove('shown');
+    document.getElementById('ready-to-name-link').style.display = 'none';
+  }
+  function renderBreadcrumb(){
+    const wrap = document.getElementById('peel-breadcrumb');
+    wrap.innerHTML = '';
+    peelChain.forEach((item, i) => {
+      if(i > 0){
+        const arrow = document.createElement('span');
+        arrow.className = 'pc-arrow';
+        arrow.textContent = '→';
+        wrap.appendChild(arrow);
+      }
+      const chip = document.createElement('span');
+      chip.className = 'pc-item' + (item.isCurrent ? ' current pc-new' : '');
+      chip.textContent = item.label;
+      wrap.appendChild(chip);
+    });
+  }
+  function addPeel(){
+    const input = document.getElementById('peel-input');
+    const val = input.value.trim();
+    if(!val){ input.focus(); return; }
+    peelChain[peelChain.length-1].label = val;
+    peelChain[peelChain.length-1].isCurrent = false;
+    peelChain.push({label: `what does ${val} give you?`, isCurrent: true});
+    renderBreadcrumb();
+    document.getElementById('peel-question').innerHTML = `What does <span class="gold">${val}</span> give you?`;
+    input.value = '';
+    input.focus();
+    // After first peel, show "I'm ready to name this" link
+    document.getElementById('ready-to-name-link').style.display = 'block';
+  }
+  function askKatherine(){
+    document.getElementById('katherine-suggestion').classList.add('shown');
+  }
+  function pickSuggestion(name){
+    document.getElementById('nm-name-input').value = name;
+    goToNameState();
+  }
+  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+  function confirmName(){
+    const name = document.getElementById('nm-name-input').value.trim() || 'Own It';
+    if(currentValue === 'v1'){
+      // Update completed card name
+      document.getElementById('completed-name-v1').textContent = name;
+      // Update define modal anchor
+      document.getElementById('def-modal-name').textContent = name;
+      document.getElementById('def-prompt-name').textContent = name;
+    }
+    closeNamingModal();
+    // open define modal automatically
+    setTimeout(()=>openDefineModal(currentValue), 280);
+  }
+  function openDefineModal(vid){
+    currentValue = vid;
+    document.getElementById('overlay-r1').classList.add('define-open');
+    document.getElementById('define-modal').classList.add('active');
+    document.body.style.overflow='hidden';
+    // sync name into modal
+    if(vid === 'v1'){
+      const name = document.getElementById('completed-name-v1').textContent;
+      document.getElementById('def-modal-name').textContent = name;
+      document.getElementById('def-prompt-name').textContent = name;
+      // also pre-fill if there's an existing definition
+      const existingDef = document.getElementById('completed-def-v1').textContent.replace(/^"|"$/g, '');
+      const ta = document.getElementById('def-modal-input');
+      if(existingDef && existingDef.trim().length > 0) ta.value = existingDef;
+    }
+    setTimeout(()=>document.getElementById('def-modal-input').focus(), 300);
+  }
+  function closeDefineModal(){
+    document.getElementById('overlay-r1').classList.remove('define-open');
+    document.getElementById('define-modal').classList.remove('active');
+    document.body.style.overflow='';
+  }
+  function backToNameFromDefine(){
+    closeDefineModal();
+    setTimeout(()=>{
+      document.getElementById('overlay-r1').classList.add('naming-open');
+      document.getElementById('naming-modal').classList.add('active');
+      document.body.style.overflow='hidden';
+      goToNameState();
+    }, 220);
+  }
+  function confirmDefinition(){
+    const def = document.getElementById('def-modal-input').value.trim();
+    const finalDef = def || "Taking full responsibility for my actions and mistakes because that's how I grow and build real trust with others.";
+    if(currentValue === 'v1'){
+      document.getElementById('completed-def-v1').textContent = '"' + finalDef + '"';
+      document.getElementById('name-cta-wrap-v1').style.display = 'none';
+      document.getElementById('completed-card-v1').style.display = 'block';
+    }
+    closeDefineModal();
+    setTimeout(()=>{
+      const card = document.getElementById('completed-card-' + currentValue);
+      if(card) card.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 200);
+  }
+  function togglePortraitPanel(vid){
+    document.getElementById('portrait-panel-'+vid).classList.toggle('open');
+  }
+
+  /* ============ PRESSURE-TEST MODAL LOGIC ============ */
+  const userRank = ['Own It', 'Honesty', 'Presence']; // current rank order, top = highest
+  const pairs = [
+    {
+      a: {name:'Own It', def:'"Taking full responsibility because that\'s how trust gets built."', keystone:'Acknowledge mistakes immediately'},
+      b: {name:'Honesty', def:'"Telling the truth even when it\'s uncomfortable."', keystone:'Thank people for the hard message'}
+    },
+    {
+      a: {name:'Own It', def:'"Taking full responsibility because that\'s how trust gets built."', keystone:'Acknowledge mistakes immediately'},
+      b: {name:'Presence', def:'"Being fully with the person in front of me."', keystone:'Listen fully, then respond'}
+    },
+    {
+      a: {name:'Honesty', def:'"Telling the truth even when it\'s uncomfortable."', keystone:'Thank people for the hard message'},
+      b: {name:'Presence', def:'"Being fully with the person in front of me."', keystone:'Listen fully, then respond'}
+    }
+  ];
+  let currentPairIdx = 0;
+  let lastPickedSide = null;
+
+  function openPressureModal(){
+    document.getElementById('overlay-r3').classList.add('pressure-open');
+    document.getElementById('pressure-modal').classList.add('active');
+    document.body.style.overflow='hidden';
+    showPtScreen('pt-intro');
+    document.getElementById('pt-foot').style.display = 'flex';
+    document.getElementById('pt-foot-progress').textContent = 'Read the example first';
+    document.getElementById('pt-foot-cta').textContent = 'Got it — start →';
+    document.getElementById('pt-foot-cta').setAttribute('onclick', 'ptIntroToFirstPair()');
+    document.getElementById('pt-foot-cta').disabled = false;
+    currentPairIdx = 0;
+  }
+  function closePressureModal(){
+    document.getElementById('overlay-r3').classList.remove('pressure-open');
+    document.getElementById('pressure-modal').classList.remove('active');
+    document.body.style.overflow='';
+  }
+  function showPtScreen(id){
+    document.querySelectorAll('.pt-screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+  function ptIntroToFirstPair(){
+    currentPairIdx = 0;
+    renderPair();
+    showPtScreen('pt-pair');
+    document.getElementById('pt-foot').style.display = 'none';
+  }
+  function renderPair(){
+    const p = pairs[currentPairIdx];
+    document.getElementById('pt-pair-counter').textContent = 'Pair ' + (currentPairIdx+1) + ' of ' + pairs.length;
+    document.getElementById('pt-pair-a').textContent = p.a.name;
+    document.getElementById('pt-pair-b').textContent = p.b.name;
+    document.getElementById('pt-card-a-name').textContent = p.a.name;
+    document.getElementById('pt-card-a-def').textContent = p.a.def;
+    document.getElementById('pt-card-a-keystone').textContent = p.a.keystone;
+    document.getElementById('pt-card-b-name').textContent = p.b.name;
+    document.getElementById('pt-card-b-def').textContent = p.b.def;
+    document.getElementById('pt-card-b-keystone').textContent = p.b.keystone;
+    document.getElementById('pt-card-a').classList.remove('selected');
+    document.getElementById('pt-card-b').classList.remove('selected');
+    document.getElementById('pt-conflict').classList.remove('shown');
+    lastPickedSide = null;
+  }
+  function pickPressure(side){
+    const p = pairs[currentPairIdx];
+    const picked = side === 'a' ? p.a.name : p.b.name;
+    const other = side === 'a' ? p.b.name : p.a.name;
+    lastPickedSide = side;
+    document.getElementById('pt-card-'+side).classList.add('selected');
+    document.getElementById('pt-card-' + (side==='a'?'b':'a')).classList.remove('selected');
+    // check rank
+    const pickedRank = userRank.indexOf(picked);
+    const otherRank = userRank.indexOf(other);
+    if(pickedRank > otherRank){
+      // conflict — picked one is ranked LOWER than the one they didn't pick
+      const body = `You picked <strong>${picked}</strong> — but you ranked <strong>${other}</strong> higher. Want to re-order, or stand by your stated rank?`;
+      document.getElementById('pt-conflict-body').innerHTML = body;
+      document.getElementById('pt-conflict').classList.add('shown');
+    } else {
+      // matched rank — advance after a brief beat
+      setTimeout(()=>advancePair(), 600);
+    }
+  }
+  function acceptReorder(){
+    // demo: just advance, in real app would swap rank positions
+    document.getElementById('pt-conflict').classList.remove('shown');
+    setTimeout(()=>advancePair(), 300);
+  }
+  function standByRank(){
+    document.getElementById('pt-conflict').classList.remove('shown');
+    setTimeout(()=>advancePair(), 300);
+  }
+  function skipPair(){
+    setTimeout(()=>advancePair(), 200);
+  }
+  function advancePair(){
+    currentPairIdx++;
+    if(currentPairIdx >= pairs.length){
+      showPtScreen('pt-done');
+      document.getElementById('pt-foot').style.display = 'none';
+    } else {
+      renderPair();
+    }
+  }
+  function togglePersonInput(prefix){
+    const label = document.getElementById(prefix+'-person-label');
+    const input = document.getElementById(prefix+'-person-input');
+    if(input.style.display==='none'){
+      label.style.display='none';
+      input.style.display='inline-block';
+      input.focus();
+    }
+  }
+
+  const admireInput = document.getElementById('admire-input');
+  const admireIntensity = document.getElementById('admire-intensity');
+  admireInput.addEventListener('input', () => {
+    admireIntensity.style.display = admireInput.value.trim() ? 'flex' : 'none';
+  });
+  admireInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && admireInput.value.trim()){
+      e.preventDefault();
+      addAdmireBullet('lights');
+    }
+  });
+  function addAdmireBullet(tier){
+    const text = admireInput.value.trim();
+    if(!text) return;
+    const personInput = document.getElementById('admire-person-input');
+    const personText = personInput.value.trim();
+    const tagLabel = tier === 'lights' ? 'Lights me up' : 'Warms me';
+    const list = document.getElementById('admire-list');
+    const bul = document.createElement('div');
+    bul.className = 'bul new-bullet';
+    bul.innerHTML = `<span class="pip ${tier}"></span><span class="b-text">${text}</span>${personText ? `<span class="b-person">· ${personText}</span>` : ''}<span class="b-tag ${tier}">${tagLabel}</span><button class="b-x">×</button>`;
+    bul.querySelector('.b-x').onclick = () => bul.remove();
+    list.appendChild(bul);
+    admireInput.value = '';
+    personInput.value = '';
+    document.getElementById('admire-person-label').style.display='inline-block';
+    personInput.style.display='none';
+    admireIntensity.style.display = 'none';
+    admireInput.focus();
+  }
+
+  const irksInput = document.getElementById('irks-input');
+  const irksIntensity = document.getElementById('irks-intensity');
+  irksInput.addEventListener('input', () => {
+    irksIntensity.style.display = irksInput.value.trim() ? 'flex' : 'none';
+  });
+  irksInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && irksInput.value.trim()){
+      e.preventDefault();
+      addIrksBullet('bothers');
+    }
+  });
+  function addIrksBullet(tier){
+    const text = irksInput.value.trim();
+    if(!text) return;
+    const personInput = document.getElementById('irks-person-input');
+    const personText = personInput.value.trim();
+    const tagLabel = tier === 'bothers' ? 'Bothers me' : 'Turns my stomach';
+    const list = document.getElementById('irks-list');
+    const bul = document.createElement('div');
+    bul.className = 'bul new-bullet';
+    bul.innerHTML = `<span class="pip ${tier}"></span><span class="b-text">${text}</span>${personText ? `<span class="b-person">· ${personText}</span>` : ''}<span class="b-tag ${tier}">${tagLabel}</span><button class="b-x">×</button>`;
+    bul.querySelector('.b-x').onclick = () => bul.remove();
+    list.appendChild(bul);
+    irksInput.value = '';
+    personInput.value = '';
+    document.getElementById('irks-person-label').style.display='inline-block';
+    personInput.style.display='none';
+    irksIntensity.style.display = 'none';
+    irksInput.focus();
+  }
+
+  document.getElementById('peel-input').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' && e.target.value.trim()){
+      e.preventDefault();
+      addPeel();
+    }
+  });
+  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeNamingModal(); closeDefineModal(); closePressureModal(); } });
+
+  resetPeel();
+</script>
+
+</body>
+</html>
