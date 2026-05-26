@@ -1,0 +1,22 @@
+Gate 5.5f signed off. ✅
+Walked at /?newA1=1 (no override). Confirmed:
+
+M1 = UP NEXT (Purpose 0 of 4)
+M2 = LOCKED ("Unlocks after Purpose")
+M3 = LOCKED ("Unlocks after Vision") ← the fix
+M4 = LOCKED ("Unlocks after Identity")
+Tapping M3 card does nothing — tap-inert confirmed
+
+Your transitive-lock diagnosis was sharp. The compound visionUnlocked && visionComplete chain is the right structural fix.
+Ship 5.5e A1 (Entry Hall greeting) — still confirmed working. "Welcome back, Katherine."
+Ship 5.5e A2 + A3 — owner walk pending. Couldn't easily navigate to Own It ceremony or Map of Me page from current state. Owner will verify those at next session.
+
+New task — Ship 5.5g · Purpose personalization (mirror the Own It pattern with Purpose-specific voice).
+The Own It seal opens with "Katherine, this is who you are." — vocative + identity register. Purpose has a different register: it's the user's WHY, their bigger movement in the world. Not who they are, what they're FOR.
+Three personalization adds on Purpose room:
+5.5g-A1. Purpose declaration prompt — when the user is being asked to declare their purpose, prepend the vocative when name is set. Current prompt copy stays the same; just add "Katherine, " (or fallback to current prompt with no name).
+5.5g-A2. Purpose seal/claim moment — after the user declares their purpose, render the vocative claim line: "Katherine, this is your why." (italic gold, contemplative weight, mirror the Own It ceremony pattern). Fallback to "This is your why." when no name. The "your why" phrasing intentionally echoes the existing Purpose subhead ("Your internal why — independent of role") so the personalization speaks back the user's own framing.
+5.5g-A3. Map of Me Purpose row label — if the Map of Me dashboard shows a Purpose summary, use the same vocative pattern. "Katherine's why" or similar. Owner's call on exact phrasing at design time.
+Voice constraint: Purpose is the WHY register, not the identity register. Don't reuse "this is who you are" verbatim. "This is your why" is the recommended phrasing per owner.
+Reuse the resolveDisplayName helper. No new lookup wiring.
+Same stop discipline. Demo with name set + name unset.

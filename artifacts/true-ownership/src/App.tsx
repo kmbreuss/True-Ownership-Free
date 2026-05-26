@@ -29150,6 +29150,20 @@ function NewA1DeclareBody({
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const peelLayers = normalizePeelLayers(initialMap.purpose_layers);
   const existingFinal = String(initialMap.purpose_final || "").trim();
+  // Ship 5.5g · Purpose personalization · resolve the user's display name
+  // (intake → auth fallback) once at body mount. Used both for the vocative
+  // prompt prefix (5.5g-A1) and the ceremony "this is your why." claim line
+  // (5.5g-A2). When neither intake nor auth yields a name, both surfaces
+  // gracefully fall back to the un-personalized copy.
+  const { user: authUser } = useAuth();
+  const intakeName = (() => {
+    const raw = loadDataSync(KEYS.intake);
+    if (raw && typeof raw === "object" && typeof (raw as any).name === "string") {
+      return (raw as any).name as string;
+    }
+    return null;
+  })();
+  const declareDisplayName = resolveDisplayName(intakeName, authUser);
   // Pick the last NON-EMPTY peel layer (normalizePeelLayers already strips
   // empties, but be defensive in case future refactors change that).
   const lastPeelLayer = (() => {
@@ -29292,7 +29306,13 @@ function NewA1DeclareBody({
           Mirror 1 · Exercise 4 · Declare
         </div>
         <h2 className="na1-room-title">
-          In one phrase — your Purpose, claimed.
+          {/* Ship 5.5g-A1 · prepend vocative when name resolves. Drops the
+              capital "I" so the result reads naturally:
+                "Katherine, in one phrase — your Purpose, claimed."
+              Fallback (no name) renders the original prompt verbatim. */}
+          {declareDisplayName
+            ? `${declareDisplayName}, in one phrase — your Purpose, claimed.`
+            : "In one phrase — your Purpose, claimed."}
         </h2>
         <p className="na1-room-context">
           {wasDone ? (
@@ -29376,6 +29396,36 @@ function NewA1DeclareBody({
           ★
         </div>
         <div className="na1-decl-cer-body">
+          {/* Ship 5.5g-A2 · Purpose claim line · mirrors the M3 Own It
+              ceremony pattern (vocative + identity-register seal) but uses
+              the WHY register per owner: "this is your why." — echoes the
+              Purpose room subhead "Your internal why — independent of role".
+              Renders as italic gold above the existing seal paragraphs.
+              Fallback (no name) renders "This is your why." without
+              the vocative. */}
+          {declareDisplayName ? (
+            <p
+              className="na1-decl-cer-para"
+              style={{
+                color: "var(--warm)",
+                fontStyle: "italic",
+                fontFamily: "var(--serif)",
+              }}
+            >
+              {declareDisplayName}, this is your why.
+            </p>
+          ) : (
+            <p
+              className="na1-decl-cer-para"
+              style={{
+                color: "var(--warm)",
+                fontStyle: "italic",
+                fontFamily: "var(--serif)",
+              }}
+            >
+              This is your why.
+            </p>
+          )}
           {M1_SEAL_PARAGRAPHS.map((p, i) => {
             const substituted = p.split(M1_PURPOSE_TOKEN).join(ceremonyPurpose);
             return renderSealParagraph(
@@ -45585,7 +45635,19 @@ function MapOfMePage({ onBack }: any) {
 
     return (
       <>
-        <SubCard title="Purpose · the north star" phaseCode="A1">
+        {/* Ship 5.5g-A3 · Map of Me Purpose row · vocative label when name
+            resolves ("Katherine's why · the north star"). Same intake → auth
+            fallback as the page title; bare "Purpose · the north star" when
+            no name. Owner-approved phrasing: "<name>'s why" (WHY register,
+            matches the M1 ceremony claim line "this is your why."). */}
+        <SubCard
+          title={
+            mapOfMeTitle.endsWith("'s Map of Me™")
+              ? `${mapOfMeTitle.replace("'s Map of Me™", "")}'s why · the north star`
+              : "Purpose · the north star"
+          }
+          phaseCode="A1"
+        >
           <div
             style={{
               fontFamily: "var(--serif)",
