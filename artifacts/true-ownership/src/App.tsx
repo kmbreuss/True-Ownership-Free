@@ -93,6 +93,20 @@ import {
   type Mirror4State,
   type M4Behavior,
   type M4BehaviorTier,
+  // Ship 5.6d · Section 3a · cluster types + helpers
+  type M4Cluster,
+  type M4ClusterStatus,
+  createCluster as m4CreateCluster,
+  updateCluster as m4UpdateCluster,
+  clearAllClusters as m4ClearAllClusters,
+  addBehaviorToCluster as m4AddBehaviorToCluster,
+  removeBehaviorFromCluster as m4RemoveBehaviorFromCluster,
+  ruleBasedClusters as m4RuleBasedClusters,
+  behaviorChipLabel as m4BehaviorChipLabel,
+  defaultFlipText as m4DefaultFlipText,
+  clusterColorForIndex as m4ClusterColorForIndex,
+  nextBehaviorId as m4NextBehaviorId,
+  COUNT_WORD as M4_COUNT_WORD,
 } from "./mirror4Constants";
 const KEYS = {
   map: "to_map",
@@ -461,6 +475,9 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   --na1-bg:#0d1b2e; --na1-bg-soft:#112240; --na1-bg-card:#13243d; --na1-bg-input:#0f1c30; --na1-bg-video:#0a1626;
   --na1-text:#f4f1eb; --na1-text-sec:#cfc8b9; --na1-text-mute:#7d8a98;
   --na1-border:#1f3553;
+  /* Ship 5.6d · Section 3a · cluster color tokens. Locked at cluster
+     creation order (1→c1, 2→c2, 3→c3, 4→c1, 5→c2). --c1 mirrors --gold. */
+  --c1:#C9A24B; --c2:#5C9A6B; --c3:#9B7CC2;
   --na1-radius-sm:6px; --na1-radius:10px; --na1-radius-lg:14px; --na1-radius-xl:18px;
   --na1-serif:Georgia, 'Times New Roman', serif;
   --na1-sans:'DM Sans', system-ui, sans-serif;
@@ -473,6 +490,7 @@ html[data-theme="light"]{
   --na1-bg:#f5f3ef; --na1-bg-soft:#ece8df; --na1-bg-card:#fffdf8; --na1-bg-input:#fbf8f1; --na1-bg-video:#e8e3d6;
   --na1-text:#2a2620; --na1-text-sec:#534b3f; --na1-text-mute:#8a8170;
   --na1-border:#d8d1c2;
+  --c1:#b8892f; --c2:#4a8458; --c3:#7d63a8;
 }
 .na1-root{ background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); min-height:100vh; }
 .na1-root *{ -webkit-tap-highlight-color: transparent; }
@@ -1686,6 +1704,133 @@ html[data-theme="light"]{
 .na1-m4-confirm-actions{ display:flex; justify-content:flex-end; gap:8px; }
 .na1-m4-confirm-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 16px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; cursor:pointer; }
 .na1-m4-confirm-delete{ background:var(--burgundy); border:none; color:#fff; padding:8px 18px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; }
+
+/* ── Ship 5.6d · Section 3a · Discover Steps 4–8 ── */
+.na1-m4-katherine{ background:var(--cyan-soft); border:1px solid var(--cyan-line); border-left:3px solid var(--cyan); border-radius:var(--na1-radius-lg); padding:18px 20px; margin:14px 0 22px; }
+.na1-m4-katherine-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--cyan); margin-bottom:8px; }
+.na1-m4-katherine-body{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; line-height:1.6; color:var(--na1-text-sec); margin:0; }
+.na1-m4-katherine-loading{ font-family:var(--na1-serif); font-style:italic; color:var(--na1-text-mute); padding:14px 0; text-align:left; font-size:14px; }
+
+.na1-m4-cluster-list{ display:flex; flex-direction:column; gap:10px; margin:8px 0 16px; }
+.na1-m4-cluster-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; display:flex; align-items:center; gap:14px; }
+.na1-m4-cluster-dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+.na1-m4-cluster-body{ flex:1; min-width:0; }
+.na1-m4-cluster-label-row{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:4px; }
+.na1-m4-cluster-proposal{ font-family:var(--na1-serif); font-size:15px; font-style:italic; color:var(--na1-text); line-height:1.4; }
+.na1-m4-cluster-count{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); white-space:nowrap; }
+
+.na1-m4-recluster{ margin-top:18px; text-align:center; }
+.na1-m4-recluster-link{ background:none; border:none; padding:0; font-family:var(--na1-sans); font-size:11px; color:var(--gold); text-decoration:underline; cursor:pointer; opacity:.55; letter-spacing:.02em; }
+.na1-m4-recluster-link:hover{ opacity:1; }
+
+/* Per-value screen */
+.na1-m4-pv-eyebrow-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin:0 8px; vertical-align:middle; }
+.na1-m4-pv-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--na1-bg-soft); border-left:3px solid currentColor; border-radius:var(--na1-radius-sm); margin:6px 0 18px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); }
+.na1-m4-pv-banner strong{ color:var(--na1-text); font-weight:600; }
+
+.na1-m4-pv-section-title{ font-family:var(--na1-sans); font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--na1-text-sec); margin:18px 0 6px; }
+.na1-m4-pv-helper{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin:0 0 12px; line-height:1.5; }
+
+.na1-m4-pv-behaviors{ display:flex; flex-direction:column; gap:6px; }
+.na1-m4-pv-bitem{ display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); }
+.na1-m4-pv-bitem-text{ flex:1; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); line-height:1.4; }
+.na1-m4-pv-chip{ font-family:var(--na1-sans); font-size:9px; font-weight:700; letter-spacing:.1em; padding:3px 7px; border-radius:100px; flex-shrink:0; }
+.na1-m4-pv-chip.is-lights{ background:rgba(201,162,75,.20); color:var(--gold); }
+.na1-m4-pv-chip.is-warms{ background:rgba(201,162,75,.10); color:var(--gold); }
+.na1-m4-pv-chip.is-bothers{ background:rgba(179,77,82,.18); color:var(--burgundy); }
+.na1-m4-pv-chip.is-turns{ background:rgba(179,77,82,.28); color:var(--burgundy); }
+.na1-m4-pv-chip.is-flipped{ background:rgba(106,169,184,.18); color:var(--cyan); }
+.na1-m4-pv-chip.is-new{ background:rgba(92,154,107,.18); color:var(--c2); }
+.na1-m4-pv-bdel{ background:none; border:none; color:var(--na1-text-mute); font-size:14px; cursor:pointer; padding:4px 6px; border-radius:4px; line-height:1; }
+.na1-m4-pv-bdel:hover{ color:var(--burgundy); background:var(--burgundy-soft); }
+.na1-m4-pv-empty{ font-family:var(--na1-serif); font-style:italic; color:var(--na1-text-mute); font-size:13px; padding:12px 0; }
+
+.na1-m4-pv-addrow{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.na1-m4-pv-addbtn{ background:transparent; border:1px dashed var(--na1-border); border-radius:100px; padding:7px 14px; font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-sec); cursor:pointer; }
+.na1-m4-pv-addbtn:hover{ border-color:var(--gold-line); color:var(--gold); }
+.na1-m4-pv-newrow{ margin-top:10px; display:flex; gap:8px; }
+.na1-m4-pv-newinput{ flex:1; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:8px 12px; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); outline:none; }
+.na1-m4-pv-newinput:focus{ border-color:var(--gold-line); }
+.na1-m4-pv-newadd{ background:var(--gold); border:none; color:#fff; padding:8px 14px; border-radius:100px; font-family:var(--na1-sans); font-size:12px; font-weight:600; cursor:pointer; }
+.na1-m4-pv-newadd:disabled{ opacity:.4; cursor:not-allowed; }
+.na1-m4-pv-newcancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); padding:8px 12px; border-radius:100px; font-family:var(--na1-sans); font-size:12px; cursor:pointer; }
+
+/* Mini-quadrant */
+.na1-m4-mq{ margin-top:14px; border:1px solid var(--gold-line); border-radius:var(--na1-radius); background:var(--gold-warm); padding:14px; }
+.na1-m4-mq-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); }
+.na1-m4-mq-close{ background:none; border:none; color:var(--na1-text-mute); font-size:14px; cursor:pointer; padding:2px 6px; }
+.na1-m4-mq-close:hover{ color:var(--na1-text); }
+.na1-m4-mq-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.na1-m4-mq-quad{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:10px; min-height:80px; }
+.na1-m4-mq-tier-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:6px; }
+.na1-m4-mq-tier-note{ font-family:var(--na1-sans); font-size:9px; font-style:italic; text-transform:none; color:var(--burgundy); letter-spacing:0; font-weight:400; }
+.na1-m4-mq-chips{ display:flex; flex-wrap:wrap; gap:4px; }
+.na1-m4-mq-chip{ font-family:var(--na1-sans); font-size:11.5px; padding:4px 9px; border-radius:100px; background:var(--na1-bg-soft); color:var(--na1-text-sec); border:1px solid var(--na1-border); cursor:pointer; }
+.na1-m4-mq-chip:hover:not(.is-disabled):not(.is-used){ background:var(--gold-soft); color:var(--gold); border-color:var(--gold-line); }
+.na1-m4-mq-chip.is-disabled{ opacity:.45; cursor:not-allowed; }
+.na1-m4-mq-chip.is-used{ opacity:.4; text-decoration:line-through; cursor:not-allowed; }
+.na1-m4-mq-empty{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); font-style:italic; }
+
+/* Flips */
+.na1-m4-pv-flips{ margin-top:18px; padding:14px 16px; background:var(--burgundy-soft); border-left:3px solid var(--burgundy); border-radius:var(--na1-radius-sm); }
+.na1-m4-pv-flip-title{ font-family:var(--na1-sans); font-size:11.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--burgundy); margin-bottom:4px; }
+.na1-m4-pv-flip-helper{ font-family:var(--na1-serif); font-style:italic; font-size:12.5px; color:var(--na1-text-mute); margin-bottom:12px; line-height:1.5; }
+.na1-m4-pv-flip{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:10px 12px; margin-bottom:8px; }
+.na1-m4-pv-flip-from{ font-family:var(--na1-serif); font-style:italic; color:var(--burgundy); font-size:13px; margin-bottom:6px; line-height:1.5; }
+.na1-m4-pv-flip-arrow{ font-family:var(--na1-sans); font-size:14px; color:var(--na1-text-mute); margin:0 6px; }
+.na1-m4-pv-flip-to{ width:100%; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:8px 10px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text); margin-bottom:8px; resize:vertical; min-height:38px; outline:none; }
+.na1-m4-pv-flip-to:focus{ border-color:var(--gold-line); }
+.na1-m4-pv-flip-actions{ display:flex; gap:6px; justify-content:flex-end; }
+.na1-m4-pv-flip-accept{ background:var(--gold); border:none; color:#fff; padding:6px 14px; border-radius:100px; font-family:var(--na1-sans); font-size:11.5px; font-weight:600; cursor:pointer; }
+.na1-m4-pv-flip-skip{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); padding:6px 12px; border-radius:100px; font-family:var(--na1-sans); font-size:11.5px; cursor:pointer; }
+
+/* Name CTA wrap */
+.na1-m4-pv-namecta{ margin-top:22px; padding:22px 24px; border:1.5px dashed var(--gold-line); border-radius:var(--na1-radius); text-align:center; background:var(--gold-warm); }
+.na1-m4-pv-namecta-helper{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; color:var(--na1-text-sec); margin:0 0 14px; }
+.na1-m4-pv-namebtn{ background:var(--gold); border:none; color:#fff; padding:11px 26px; border-radius:100px; font-family:var(--na1-sans); font-size:14px; font-weight:600; cursor:pointer; letter-spacing:.02em; }
+
+/* Completed card */
+.na1-m4-completed{ margin-top:22px; padding:24px 28px; border-left:3px solid var(--gold); border-radius:var(--na1-radius); background:linear-gradient(90deg, var(--gold-warm) 0%, transparent 100%); text-align:center; }
+.na1-m4-completed-star{ font-size:14px; color:var(--gold); margin-bottom:4px; }
+.na1-m4-completed-name{ font-family:var(--na1-serif); font-size:42px; font-weight:400; color:var(--gold); line-height:1.1; margin:4px 0 10px; letter-spacing:.01em; }
+.na1-m4-completed-def{ font-family:var(--na1-serif); font-style:italic; font-size:16px; color:var(--na1-text-sec); line-height:1.5; max-width:480px; margin:0 auto 10px; }
+.na1-m4-completed-def.is-empty{ color:var(--na1-text-mute); }
+.na1-m4-completed-foot{ display:flex; justify-content:center; gap:16px; margin-top:10px; }
+.na1-m4-completed-edit{ background:none; border:none; padding:0; font-family:var(--na1-sans); font-size:10.5px; color:var(--na1-text-mute); text-decoration:underline; letter-spacing:.04em; cursor:pointer; }
+.na1-m4-completed-edit:hover{ color:var(--gold); }
+
+/* Modals — Naming + Define */
+.na1-m4-modal-back{ position:fixed; inset:0; background:rgba(13,27,46,.72); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:120; display:flex; align-items:center; justify-content:center; padding:20px; animation:na1-m4-fade 180ms ease-out; }
+html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,243,239,.78); }
+.na1-m4-modal{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:var(--na1-radius-lg); padding:30px 32px 26px; max-width:580px; width:100%; box-shadow:0 18px 60px rgba(0,0,0,.4); position:relative; }
+.na1-m4-modal-x{ position:absolute; top:10px; right:12px; background:none; border:none; color:var(--na1-text-mute); font-size:22px; cursor:pointer; padding:4px 10px; line-height:1; }
+.na1-m4-modal-x:hover{ color:var(--na1-text); }
+.na1-m4-modal-head{ font-family:var(--na1-sans); font-size:14px; font-weight:600; color:var(--gold); margin-bottom:18px; letter-spacing:.02em; text-align:center; }
+.na1-m4-modal-input{ width:100%; background:transparent; border:none; border-bottom:1.5px dotted var(--gold-line); padding:10px 4px; font-family:var(--na1-serif); font-size:32px; color:var(--gold); text-align:center; outline:none; }
+.na1-m4-modal-input:focus{ border-bottom-color:var(--gold); }
+.na1-m4-modal-input::placeholder{ color:var(--na1-text-mute); font-size:18px; font-style:italic; }
+.na1-m4-modal-textarea{ width:100%; min-height:120px; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:12px 14px; font-family:var(--na1-serif); font-size:15px; color:var(--na1-text); line-height:1.5; resize:vertical; outline:none; }
+.na1-m4-modal-textarea:focus{ border-color:var(--gold-line); }
+.na1-m4-modal-helper{ font-family:var(--na1-serif); font-style:italic; font-size:12px; color:var(--na1-text-mute); margin-top:8px; line-height:1.5; }
+.na1-m4-modal-actions{ display:flex; justify-content:center; margin-top:22px; }
+.na1-m4-modal-confirm{ background:var(--gold); border:none; color:#fff; padding:11px 28px; border-radius:100px; font-family:var(--na1-sans); font-size:14px; font-weight:600; cursor:pointer; letter-spacing:.02em; }
+.na1-m4-modal-confirm:disabled{ opacity:.4; cursor:not-allowed; }
+.na1-m4-modal-anchor{ background:linear-gradient(180deg, var(--gold-warm) 0%, transparent 100%); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:14px 16px; margin-bottom:16px; text-align:center; }
+.na1-m4-modal-anchor-star{ font-size:12px; color:var(--gold); }
+.na1-m4-modal-anchor-name{ font-family:var(--na1-serif); font-size:38px; color:var(--gold); font-weight:400; line-height:1.1; }
+
+/* Step 8 Confirm */
+.na1-m4-step8-list{ display:flex; flex-direction:column; gap:10px; margin:14px 0 18px; }
+.na1-m4-step8-card{ display:flex; align-items:flex-start; gap:14px; padding:14px 16px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-left:3px solid var(--gold); border-radius:var(--na1-radius); }
+.na1-m4-step8-num{ font-family:var(--na1-serif); font-size:24px; color:var(--gold); width:32px; flex-shrink:0; line-height:1.1; }
+.na1-m4-step8-body{ flex:1; min-width:0; }
+.na1-m4-step8-name{ font-family:var(--na1-serif); font-size:22px; color:var(--gold); font-weight:400; line-height:1.2; }
+.na1-m4-step8-def{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-sec); line-height:1.5; margin-top:4px; }
+.na1-m4-step8-def.is-empty{ color:var(--na1-text-mute); }
+.na1-m4-step8-soft{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:18px 20px; margin:10px 0 18px; text-align:center; }
+.na1-m4-step8-soft-title{ font-family:var(--na1-serif); font-size:18px; color:var(--gold); margin-bottom:6px; }
+.na1-m4-step8-soft-body{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; color:var(--na1-text-sec); margin:0 0 12px; line-height:1.5; }
+.na1-m4-step8-addbtn{ background:var(--gold); border:none; color:#fff; padding:10px 22px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -34202,25 +34347,94 @@ function NewA1M4HubView({
 // to move. Delete (×) honors inUseByCluster: if non-null, shows a
 // confirm modal (the field stays null until Section 3a wires clusters).
 
-type M4DiscoverStep = "admire" | "irks" | "portrait" | "section3";
+// Ship 5.6d · Section 3a · Discover sub-steps extended:
+// "read" (Step 4 · Katherine's read) → "v1"/"v2"/"v3" (Steps 5/6/7 ·
+// per-value screens) → "finish" (Step 8 · Confirm). "v4"/"v5" are
+// reachable only via the add-another flow on Step 8. "section3" is
+// kept in the union for backward compatibility with stored state
+// from Ship 5.6b/c — on load it remaps to "read".
+type M4DiscoverStep =
+  | "admire"
+  | "irks"
+  | "portrait"
+  | "read"
+  | "v1"
+  | "v2"
+  | "v3"
+  | "v4"
+  | "v5"
+  | "finish"
+  | "section3";
 
 const M4_ORDER: M4BehaviorTier[] = ["lights", "warms", "bothers", "turns"];
 
-function NewA1M4DiscoverBody() {
+// Ship 5.6d · Section 3a · Step-N → cluster-index helper.
+// "v1" → 0, "v2" → 1, "v3" → 2, "v4" → 3, "v5" → 4. Returns null
+// for non-value steps. Centralized so add-another / nav math stays
+// consistent across DiscoverBody and the per-value screen.
+function m4StepToValueIndex(step: M4DiscoverStep): number | null {
+  if (step === "v1") return 0;
+  if (step === "v2") return 1;
+  if (step === "v3") return 2;
+  if (step === "v4") return 3;
+  if (step === "v5") return 4;
+  return null;
+}
+function m4ValueIndexToStep(i: number): M4DiscoverStep {
+  return (`v${i + 1}`) as M4DiscoverStep;
+}
+
+function NewA1M4DiscoverBody({
+  onCloseRoom,
+}: {
+  // Ship 5.6d · Step 8 Continue closes the Discover overlay entirely.
+  // Optional so the existing prop-less call sites stay compatible.
+  onCloseRoom?: () => void;
+}) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
   );
-  // Restore step from currentStep. Only Section 2's steps are valid
-  // here; if the saved currentStep is from a later section (clusters
-  // / operationalize / rank / pressureTest / claim), we land on
-  // Portrait — the last Section 2 screen — since the user already
-  // got past it.
+  // Restore step from currentStep. Section 2 steps (admire/irks/
+  // portrait) and Section 3a sub-steps (read/v1…v5/finish) all
+  // restore directly. Legacy "section3" placeholder + the M4_ROOM
+  // top-level "clusters" marker both remap to "read" (Step 4). All
+  // other top-level M4Step values come from rooms past Discover, so
+  // we land on Portrait — the last Section 2 screen — since the user
+  // already got past it.
   const initStep: M4DiscoverStep = (() => {
-    const cs = state.currentStep;
-    if (cs === "admire" || cs === "irks" || cs === "portrait") return cs;
+    // currentStep is the wider M4Step union (includes top-level rooms
+    // like "clusters"/"operationalize"). Cast through string for the
+    // legacy "section3" + Section 3a sub-step checks since they live
+    // in M4DiscoverStep, not M4Step.
+    const cs = state.currentStep as string;
+    if (cs === "admire" || cs === "irks" || cs === "portrait")
+      return cs as M4DiscoverStep;
+    if (
+      cs === "read" ||
+      cs === "v1" ||
+      cs === "v2" ||
+      cs === "v3" ||
+      cs === "v4" ||
+      cs === "v5" ||
+      cs === "finish"
+    )
+      return cs as M4DiscoverStep;
+    if (cs === "section3" || cs === "clusters") return "read";
     return "portrait";
   })();
   const [step, setStep] = useState<M4DiscoverStep>(initStep);
+
+  // Ship 5.6d · Modal state hoisted to the body so the 280ms
+  // Name → Define handoff survives un-related re-renders, and so
+  // the Completed-card edit-links can reopen either modal without
+  // wiring callbacks through per-value props.
+  const [nameModal, setNameModal] = useState<{
+    clusterId: string;
+    isEdit: boolean;
+  } | null>(null);
+  const [defineModal, setDefineModal] = useState<{
+    clusterId: string;
+  } | null>(null);
 
   // Persist mutations. status auto-promotes from "not_started" on
   // first write so the hub card reflects in-progress. The state
@@ -34247,40 +34461,186 @@ function NewA1M4DiscoverBody() {
     saveMirror4State(state);
   }, [state]);
 
-  // Persist step changes. Skip "section3" — it's the placeholder, not
-  // a real progress marker; revisiting Discover should land on
-  // portrait, not section3. setState skips updates when shallow-equal,
+  // Persist step changes. setState skips updates when shallow-equal,
   // and we no-op via the functional updater when currentStep already
   // matches, so this doesn't cause a duplicate write.
   useEffect(() => {
+    // "section3" is legacy-only; never persist it back since the
+    // M4Step union (state.currentStep) no longer accepts it.
     if (step === "section3") return;
     setMirrorState((s) =>
-      s.currentStep === step ? s : { ...s, currentStep: step },
+      (s.currentStep as string) === step
+        ? s
+        : { ...s, currentStep: step as Mirror4State["currentStep"] },
     );
   }, [step]);
 
+  // ── Navigation ─────────────────────────────────────────────
+  // Per-value Continue from "vN" advances to "v{N+1}" if that
+  // cluster exists, otherwise to "finish". Continue from "read"
+  // jumps to "v1" when at least one cluster has been created.
   const goNext = () => {
     if (step === "admire") setStep("irks");
     else if (step === "irks") setStep("portrait");
-    else if (step === "portrait") setStep("section3");
+    else if (step === "portrait") setStep("read");
+    else if (step === "read") {
+      if (state.clusters.length > 0) setStep("v1");
+    } else {
+      const vi = m4StepToValueIndex(step);
+      if (vi != null) {
+        const nextI = vi + 1;
+        if (state.clusters[nextI]) setStep(m4ValueIndexToStep(nextI));
+        else setStep("finish");
+      }
+    }
+    // "finish" → handled by Step 8 itself (onContinue → onCloseRoom)
   };
   const goBack = () => {
     if (step === "irks") setStep("admire");
     else if (step === "portrait") setStep("irks");
-    else if (step === "section3") setStep("portrait");
+    else if (step === "read") setStep("portrait");
+    else if (step === "v1") setStep("read");
+    else {
+      const vi = m4StepToValueIndex(step);
+      if (vi != null && vi > 0) setStep(m4ValueIndexToStep(vi - 1));
+      else if (step === "finish") {
+        // Back from finish → last cluster's per-value screen.
+        const n = state.clusters.length;
+        if (n > 0) setStep(m4ValueIndexToStep(n - 1));
+        else setStep("read");
+      }
+    }
   };
 
-  const continueLabel =
-    step === "admire"
-      ? "Continue to irks →"
-      : step === "irks"
-        ? "See your portrait →"
-        : step === "portrait"
-          ? "Find values underneath →"
-          : "—";
+  // Per-value Continue is disabled until both userName AND
+  // userDefinition are present on the current cluster (spec). For
+  // other steps, the body's intrinsic Continue label/disable rules
+  // apply.
+  const currentValueCluster: M4Cluster | null = (() => {
+    const vi = m4StepToValueIndex(step);
+    if (vi == null) return null;
+    return state.clusters[vi] ?? null;
+  })();
+  const continueDisabled = (() => {
+    if (step === "admire" || step === "irks" || step === "portrait")
+      return false;
+    if (step === "read") return state.clusters.length === 0;
+    if (step === "finish") return false;
+    // Per-value: needs userName AND userDefinition non-empty
+    if (currentValueCluster) {
+      return (
+        !currentValueCluster.userName.trim() ||
+        !currentValueCluster.userDefinition.trim()
+      );
+    }
+    return true;
+  })();
+
+  const continueLabel = (() => {
+    if (step === "admire") return "Continue to irks →";
+    if (step === "irks") return "See your portrait →";
+    if (step === "portrait") return "Find values underneath →";
+    if (step === "read")
+      return state.clusters.length > 0 ? "Work cluster 1 →" : "—";
+    const vi = m4StepToValueIndex(step);
+    if (vi != null) {
+      const nextI = vi + 1;
+      if (state.clusters[nextI]) return `Work cluster ${nextI + 1} →`;
+      return "Confirm your values →";
+    }
+    if (step === "finish") return "Close Discover ✓";
+    return "—";
+  })();
+
+  // Footer renders Continue only when there is somewhere to go.
+  // For "finish", Continue's onClick is overridden to call onCloseRoom.
+  const handleContinue = () => {
+    if (step === "finish") {
+      if (onCloseRoom) onCloseRoom();
+      return;
+    }
+    goNext();
+  };
+
+  // Modal callbacks. Open Name modal (per-value Name CTA or
+  // Completed edit-link).
+  const openNameModal = (clusterId: string, isEdit: boolean) => {
+    setNameModal({ clusterId, isEdit });
+  };
+  const openDefineModal = (clusterId: string) => {
+    setDefineModal({ clusterId });
+  };
+
+  // Confirm Name: writes userName + status="named", then auto-opens
+  // Define after a 280ms beat ONLY when this was first-creation
+  // (isEdit=false). On edit, just close and return to the per-value
+  // screen (spec: 280ms beat is for first-creation flow only).
+  const confirmName = (clusterId: string, name: string, isEdit: boolean) => {
+    mutate((s) =>
+      m4UpdateCluster(s, clusterId, (c) => ({
+        ...c,
+        userName: name.trim(),
+        status:
+          c.status === "complete" ? c.status : ("named" as M4ClusterStatus),
+      })),
+    );
+    setNameModal(null);
+    if (!isEdit) {
+      window.setTimeout(() => {
+        setDefineModal({ clusterId });
+      }, 280);
+    }
+  };
+
+  // Confirm Define: writes userDefinition + status="complete", closes.
+  const confirmDefine = (clusterId: string, def: string) => {
+    mutate((s) =>
+      m4UpdateCluster(s, clusterId, (c) => ({
+        ...c,
+        userDefinition: def.trim(),
+        status: "complete" as M4ClusterStatus,
+      })),
+    );
+    setDefineModal(null);
+  };
+
+  // Add-another: create empty cluster + navigate to its per-value step.
+  const addAnotherValue = () => {
+    if (state.clusters.length >= 5) return;
+    mutate((s) => {
+      const result = m4CreateCluster(s, {
+        proposal: "",
+        proposedNames: [],
+        behaviorIds: [],
+      });
+      return result.state;
+    });
+    // Navigate after state settles. setStep is queued in next render
+    // when the new cluster will be at index = old length.
+    const newIndex = state.clusters.length;
+    window.setTimeout(() => setStep(m4ValueIndexToStep(newIndex)), 0);
+  };
+
+  // Lookups for modal rendering. Re-resolved from latest state so a
+  // mid-flight cluster delete (none in 3a but defensive) doesn't crash.
+  const nameModalCluster = nameModal
+    ? state.clusters.find((c) => c.id === nameModal.clusterId) ?? null
+    : null;
+  const defineModalCluster = defineModal
+    ? state.clusters.find((c) => c.id === defineModal.clusterId) ?? null
+    : null;
+
+  // Per-value screen color = locked cluster color from creation.
+  const rootClassName = (() => {
+    const base = "na1-m4-disc";
+    const cls: string[] = [base];
+    if (nameModal) cls.push("naming-open");
+    if (defineModal) cls.push("define-open");
+    return cls.join(" ");
+  })();
 
   return (
-    <div className="na1-m4-disc">
+    <div className={rootClassName}>
       <div className="na1-room-eyebrow tone-gold">Mirror 4 · Discover</div>
       <div className="na1-m4-disc-content" key={step}>
         {step === "admire" && (
@@ -34292,7 +34652,34 @@ function NewA1M4DiscoverBody() {
         {step === "portrait" && (
           <M4StepPortrait state={state} mutate={mutate} />
         )}
-        {step === "section3" && <M4StepSection3Placeholder />}
+        {step === "read" && (
+          <M4StepKatherinesRead state={state} mutate={mutate} />
+        )}
+        {(step === "v1" ||
+          step === "v2" ||
+          step === "v3" ||
+          step === "v4" ||
+          step === "v5") &&
+          currentValueCluster && (
+            <M4PerValueScreen
+              state={state}
+              mutate={mutate}
+              cluster={currentValueCluster}
+              valueIndex={m4StepToValueIndex(step)! + 1}
+              isAddAnother={(m4StepToValueIndex(step) ?? 0) >= 3}
+              onOpenName={(isEdit) =>
+                openNameModal(currentValueCluster.id, isEdit)
+              }
+              onOpenDefine={() => openDefineModal(currentValueCluster.id)}
+            />
+          )}
+        {step === "finish" && (
+          <M4Step8Confirm
+            state={state}
+            mutate={mutate}
+            onAddAnother={addAnotherValue}
+          />
+        )}
       </div>
       <div className="na1-m4-disc-foot">
         <button
@@ -34306,12 +34693,31 @@ function NewA1M4DiscoverBody() {
         <button
           type="button"
           className="na1-m4-continue"
-          disabled={step === "section3"}
-          onClick={goNext}
+          disabled={continueDisabled}
+          onClick={handleContinue}
         >
           {continueLabel}
         </button>
       </div>
+
+      {/* Modals: lifted over the per-value screen with blur. */}
+      {nameModalCluster && nameModal && (
+        <M4NameStubModal
+          cluster={nameModalCluster}
+          isEdit={nameModal.isEdit}
+          onClose={() => setNameModal(null)}
+          onConfirm={(name) =>
+            confirmName(nameModalCluster.id, name, nameModal.isEdit)
+          }
+        />
+      )}
+      {defineModalCluster && defineModal && (
+        <M4DefineStubModal
+          cluster={defineModalCluster}
+          onClose={() => setDefineModal(null)}
+          onConfirm={(def) => confirmDefine(defineModalCluster.id, def)}
+        />
+      )}
     </div>
   );
 }
@@ -34788,30 +35194,975 @@ function M4StepPortrait({
   );
 }
 
-function M4StepSection3Placeholder() {
+// ── Ship 5.6d · Section 3a · Step 4 · Katherine's Read ─────────
+// Reads the user's portrait, calls Anthropic /api/claude once to
+// cluster the behaviors, applies the result via m4CreateCluster.
+// On API failure or malformed JSON, falls back to the deterministic
+// rule-based clustering. Strict-Mode-safe via fetchingRef + the
+// idempotency check inside applyClusters.
+function M4StepKatherinesRead({
+  state,
+  mutate,
+}: {
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+}) {
+  const [loading, setLoading] = useState<boolean>(
+    state.clusters.length === 0,
+  );
+  const fetchingRef = useRef(false);
+
+  useEffect(() => {
+    // Only fetch when there are no clusters yet (handles re-cluster)
+    if (state.clusters.length > 0) {
+      setLoading(false);
+      return;
+    }
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+    setLoading(true);
+
+    const allBehaviors = [...state.admire, ...state.irks];
+    const behaviorList = allBehaviors
+      .map((b) => {
+        const tier = b.tier.toUpperCase();
+        const person = b.person ? ` — (${b.person})` : "";
+        return `- [${tier}] ${b.text}${person} (id: ${b.id})`;
+      })
+      .join("\n");
+
+    const prompt = `You are Katherine Breuss, a values-work coach, reading a user's portrait of behaviors that light them up (LIGHTS, WARMS) and that bother them (BOTHERS, TURNS).
+
+Portrait:
+${behaviorList}
+
+Group these behaviors into 2-4 thematic clusters. Each cluster names a value underneath. Do NOT include every behavior — only group the ones that share a clear theme. Use the exact behavior ids from the portrait.
+
+Respond with ONLY a JSON object (no preamble, no markdown fence):
+{
+  "narrative": "1-2 sentences in Katherine's voice, warm and direct, introducing what you see",
+  "clusters": [
+    {
+      "proposal": "lowercase phrase, e.g. 'accountability — owning your impact'",
+      "proposedNames": ["Integrity", "Honor", "Responsibility"],
+      "behaviorIds": ["ad-1", "ir-3"]
+    }
+  ]
+}`;
+
+    (async () => {
+      try {
+        // eslint-disable-next-line no-console
+        console.log("[M4 clustering] prompt:", prompt);
+        const res = await fetch("/api/claude", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1200,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+        if (!res.ok) throw new Error(`claude ${res.status}`);
+        const data = await res.json();
+        // eslint-disable-next-line no-console
+        console.log("[M4 clustering] response:", data);
+        const text: string = Array.isArray(data.content)
+          ? data.content
+              .map((b: { text?: string }) => b.text ?? "")
+              .join("")
+          : "";
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("no JSON in response");
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (
+          !Array.isArray(parsed.clusters) ||
+          parsed.clusters.length === 0
+        )
+          throw new Error("no clusters in response");
+        applyClusters(
+          typeof parsed.narrative === "string" ? parsed.narrative : "",
+          parsed.clusters,
+        );
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "[M4 clustering] failed, using rule-based fallback:",
+          err,
+        );
+        const fallback = m4RuleBasedClusters(state);
+        applyClusters(fallback.narrative, fallback.clusters);
+      } finally {
+        setLoading(false);
+        fetchingRef.current = false;
+      }
+    })();
+    // Re-run whenever the cluster list goes back to empty (e.g. dev
+    // re-cluster link). Reading the latest state.admire/irks each
+    // time keeps the prompt accurate if the portrait was edited.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.clusters.length]);
+
+  // Idempotency: if state already has clusters (Strict Mode double-
+  // fire of the success callback, or a stale fallback racing the
+  // real response), do nothing. Validate behaviorIds against the
+  // live portrait so a hallucinated id is silently dropped.
+  function applyClusters(
+    narrative: string,
+    rawClusters: Array<{
+      proposal?: string;
+      proposedNames?: string[];
+      behaviorIds?: string[];
+    }>,
+  ) {
+    mutate((s) => {
+      if (s.clusters.length > 0) return s; // already clustered
+      const validIds = new Set([
+        ...s.admire.map((b) => b.id),
+        ...s.irks.map((b) => b.id),
+      ]);
+      let next = s;
+      for (const r of rawClusters) {
+        const ids = Array.isArray(r.behaviorIds)
+          ? r.behaviorIds.filter((id) => validIds.has(id))
+          : [];
+        const result = m4CreateCluster(next, {
+          proposal: typeof r.proposal === "string" ? r.proposal : "",
+          proposedNames: Array.isArray(r.proposedNames)
+            ? r.proposedNames.filter((n) => typeof n === "string")
+            : [],
+          behaviorIds: ids,
+        });
+        next = result.state;
+      }
+      // 2-cluster soft prompt — prepended to Katherine's narrative
+      // so the user is gently nudged to consider a third without
+      // any UI gating (spec § Step 4 · "soft only").
+      const softNudge =
+        next.clusters.length === 2
+          ? "I see two — values usually run deeper than that. After we work these, look at what's left in your portrait. "
+          : "";
+      return {
+        ...next,
+        clustersNarrative: softNudge + (narrative || ""),
+      };
+    });
+  }
+
+  // Re-cluster: confirm, wipe clusters + narrative, reset fetchRef
+  // so the useEffect re-fires once state.clusters.length becomes 0.
+  const handleRecluster = () => {
+    if (
+      !window.confirm(
+        "Wipe all clusters and re-run clustering? Behaviors stay; named/defined values will be lost.",
+      )
+    )
+      return;
+    fetchingRef.current = false;
+    mutate((s) => m4ClearAllClusters(s));
+  };
+
   return (
     <>
       <div className="na1-m4-step-eyebrow">
         Mirror 4 · Step 4 of 8 · Katherine's read
       </div>
-      <h2 className="na1-m4-step-title">Coming in Section 3</h2>
+      <h2 className="na1-m4-step-title">Here's what I see</h2>
       <p className="na1-m4-step-sub">
-        Katherine will read your portrait and surface the clusters
-        underneath. Use Back to return to your portrait.
+        I read your portrait and grouped what fits together. Work each
+        cluster and see what value sits underneath.
       </p>
-      <div
-        style={{
-          minHeight: "180px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "var(--na1-sans)",
-          fontSize: "13px",
-          color: "var(--na1-text-mute)",
-        }}
-      >
-        This screen lands in the next Mirror 4 ship.
+
+      <div className="na1-m4-katherine">
+        <div className="na1-m4-katherine-label">Katherine's read</div>
+        {loading ? (
+          <div className="na1-m4-katherine-loading">
+            Reading your portrait…
+          </div>
+        ) : (
+          <p className="na1-m4-katherine-body">
+            {state.clustersNarrative || "—"}
+          </p>
+        )}
       </div>
+
+      {!loading && state.clusters.length > 0 && (
+        <>
+          <div className="na1-m4-pv-section-title">
+            {state.clusters.length}{" "}
+            {state.clusters.length === 1 ? "cluster" : "clusters"} to work
+          </div>
+          <div className="na1-m4-cluster-list">
+            {state.clusters.map((c, idx) => (
+              <div key={c.id} className="na1-m4-cluster-card">
+                <span
+                  className="na1-m4-cluster-dot"
+                  style={{ background: `var(--c${c.colorIndex})` }}
+                />
+                <div className="na1-m4-cluster-body">
+                  <div className="na1-m4-cluster-label-row">
+                    Cluster {idx + 1}
+                  </div>
+                  <div className="na1-m4-cluster-proposal">
+                    {c.proposal || "(unnamed cluster)"}
+                  </div>
+                </div>
+                <div className="na1-m4-cluster-count">
+                  {c.behaviorIds.length}{" "}
+                  {c.behaviorIds.length === 1 ? "behavior" : "behaviors"}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="na1-m4-recluster">
+            <button
+              type="button"
+              className="na1-m4-recluster-link"
+              onClick={handleRecluster}
+            >
+              Re-cluster from portrait
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+// ── Ship 5.6d · Section 3a · Per-value screen (Steps 5/6/7 + v4/v5)
+// One screen per cluster. Shows the locked color, behaviors with
+// inline +add/+pick from portrait, irk→flip rows, and either the
+// gold Name CTA or the Completed card. Add-another mode (v4/v5)
+// pre-opens the mini-quadrant since the cluster starts empty.
+function M4PerValueScreen({
+  state,
+  mutate,
+  cluster,
+  valueIndex,
+  isAddAnother,
+  onOpenName,
+  onOpenDefine,
+}: {
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+  cluster: M4Cluster;
+  valueIndex: number;
+  isAddAnother: boolean;
+  onOpenName: (isEdit: boolean) => void;
+  onOpenDefine: () => void;
+}) {
+  // Mini-quadrant open: defaults to true when the cluster is empty
+  // (add-another path lands here without any behaviors). Persists
+  // across re-renders via useState.
+  const [mqOpen, setMqOpen] = useState<boolean>(
+    isAddAnother || cluster.behaviorIds.length === 0,
+  );
+  // Inline "new behavior" composer (gold + button at bottom). When
+  // null, the +New button shows; when non-null, the input row shows.
+  const [newDraft, setNewDraft] = useState<string | null>(null);
+
+  const totalClusters = state.clusters.length;
+  const colorVar = `var(--c${cluster.colorIndex})`;
+  const isComplete = cluster.status === "complete";
+
+  // Resolve full behavior objects for the cluster (in order).
+  const allBehaviors = useMemo(
+    () => [...state.admire, ...state.irks],
+    [state.admire, state.irks],
+  );
+  const clusterBehaviors: M4Behavior[] = cluster.behaviorIds
+    .map((id) => allBehaviors.find((b) => b.id === id))
+    .filter((b): b is M4Behavior => !!b);
+  const irkBehaviors = clusterBehaviors.filter(
+    (b) => b.tier === "bothers" || b.tier === "turns",
+  );
+
+  // Eyebrow text: "Mirror 4 · Step N of 8 · Value M". For v4/v5,
+  // we keep "Step 8 of 8" since these are reached via add-another
+  // from the confirm screen.
+  const eyebrowStep =
+    valueIndex <= 3 ? `${4 + valueIndex} of 8` : `8 of 8`;
+  const eyebrowExtra =
+    isAddAnother && !cluster.proposal
+      ? " (additional)"
+      : "";
+
+  // Title + subtitle: default for clusters with a proposal; replaced
+  // for add-another empty clusters (spec § Step 8 · Add another).
+  const title = cluster.proposal
+    ? `Cluster ${valueIndex}`
+    : "Add another value";
+  const subtitle = cluster.proposal
+    ? `${cluster.proposal}`
+    : "Add behaviors from your portrait, then name what they point to.";
+
+  // Banner: shows count + cluster color block. Hidden for empty
+  // add-another clusters (no proposal yet).
+  const bannerVisible = !!cluster.proposal;
+
+  // Add behavior to cluster (from mini-quadrant pick).
+  const handlePick = (behaviorId: string) => {
+    mutate((s) => m4AddBehaviorToCluster(s, cluster.id, behaviorId));
+  };
+  // Remove behavior from cluster (× chip on each row).
+  const handleRemove = (behaviorId: string) => {
+    mutate((s) => m4RemoveBehaviorFromCluster(s, cluster.id, behaviorId));
+  };
+  // Create a new behavior (tier="lights" by default since cluster is
+  // value-driven) and immediately attach it to this cluster.
+  const handleAddNew = () => {
+    const t = (newDraft ?? "").trim();
+    if (!t) return;
+    mutate((s) => {
+      // m4AddBehavior signature: (state, kind, text, tier, person?)
+      // Returns the new state with the behavior already appended;
+      // we re-derive its id via m4NextBehaviorId on the PRE-add
+      // state since it's deterministic ("ad-{n+1}").
+      const newId = m4NextBehaviorId(s, "admire");
+      // Spec § "+ Add new behavior" — typed behaviors land in admire
+      // with tier "warms" and chip source "NEW" (intensity is a
+      // soft default; the user can re-tier later from the portrait).
+      const afterAdd = m4AddBehavior(s, "admire", t, "warms");
+      // Stamp source="new" so the chip shows "NEW" not "WARMS".
+      const withSource: Mirror4State = {
+        ...afterAdd,
+        admire: afterAdd.admire.map((b) =>
+          b.id === newId ? { ...b, source: "new" } : b,
+        ),
+      };
+      return m4AddBehaviorToCluster(withSource, cluster.id, newId);
+    });
+    setNewDraft(null);
+  };
+
+  // Flip edit + accept/skip handlers. Edits write through to
+  // cluster.flips immediately; accept marks accepted=true; skip
+  // marks accepted=false. Per spec, the value moves to "owned"
+  // regardless — accept/skip is informational for 3b.
+  const updateFlipText = (irkId: string, toText: string) => {
+    mutate((s) =>
+      m4UpdateCluster(s, cluster.id, (c) => ({
+        ...c,
+        flips: c.flips.map((f) =>
+          f.irkId === irkId ? { ...f, toText } : f,
+        ),
+      })),
+    );
+  };
+  // Spec § Flip Accept/Skip:
+  // - Accept → creates a new behavior in admire with source="flipped"
+  //   carrying the user-edited flip text, attaches it to this
+  //   cluster, then removes the flip row (consumed). The original
+  //   irk stays in the cluster (its inUseByCluster was already set
+  //   when it joined).
+  // - Skip → removes the flip row entirely. The original irk stays
+  //   in the cluster unflipped; nothing else changes.
+  const acceptFlip = (irkId: string) => {
+    const flip = cluster.flips.find((f) => f.irkId === irkId);
+    if (!flip || !flip.toText.trim()) return;
+    mutate((s) => {
+      const newId = m4NextBehaviorId(s, "admire");
+      const afterAdd = m4AddBehavior(
+        s,
+        "admire",
+        flip.toText.trim(),
+        "lights",
+      );
+      const withSource: Mirror4State = {
+        ...afterAdd,
+        admire: afterAdd.admire.map((b) =>
+          b.id === newId ? { ...b, source: "flipped" } : b,
+        ),
+      };
+      const linked = m4AddBehaviorToCluster(
+        withSource,
+        cluster.id,
+        newId,
+      );
+      return m4UpdateCluster(linked, cluster.id, (c) => ({
+        ...c,
+        flips: c.flips.filter((f) => f.irkId !== irkId),
+      }));
+    });
+  };
+  const skipFlip = (irkId: string) => {
+    mutate((s) =>
+      m4UpdateCluster(s, cluster.id, (c) => ({
+        ...c,
+        flips: c.flips.filter((f) => f.irkId !== irkId),
+      })),
+    );
+  };
+
+  return (
+    <>
+      <div className="na1-m4-step-eyebrow">
+        Mirror 4 · Step {eyebrowStep}
+        <span
+          className="na1-m4-pv-eyebrow-dot"
+          style={{ background: colorVar }}
+        />
+        Value {valueIndex} of {totalClusters}
+        {eyebrowExtra}
+      </div>
+      <h2 className="na1-m4-step-title" style={{ color: colorVar }}>
+        {title}
+      </h2>
+      <p className="na1-m4-step-sub">{subtitle}</p>
+
+      {bannerVisible && (
+        <div className="na1-m4-pv-banner" style={{ color: colorVar }}>
+          <strong style={{ color: colorVar }}>
+            {clusterBehaviors.length}{" "}
+            {clusterBehaviors.length === 1 ? "behavior" : "behaviors"}
+          </strong>{" "}
+          in this cluster · edit, add, or remove as you work it.
+        </div>
+      )}
+
+      <div className="na1-m4-pv-section-title">Behaviors</div>
+      <p className="na1-m4-pv-helper">
+        The shape of what you care about. Add what's missing; drop what
+        doesn't fit.
+      </p>
+      {clusterBehaviors.length > 0 ? (
+        <div className="na1-m4-pv-behaviors">
+          {clusterBehaviors.map((b) => {
+            const chipLabel = m4BehaviorChipLabel(b);
+            const chipKind = (b.source ?? b.tier).toLowerCase();
+            return (
+              <div key={b.id} className="na1-m4-pv-bitem">
+                <span
+                  className={`na1-m4-pv-chip is-${chipKind}`}
+                >
+                  {chipLabel}
+                </span>
+                <span className="na1-m4-pv-bitem-text">
+                  {b.text}
+                  {b.person ? (
+                    <span style={{ color: "var(--na1-text-mute)" }}>
+                      {" "}
+                      — {b.person}
+                    </span>
+                  ) : null}
+                </span>
+                <button
+                  type="button"
+                  className="na1-m4-pv-bdel"
+                  aria-label="Remove behavior from cluster"
+                  onClick={() => handleRemove(b.id)}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="na1-m4-pv-empty">
+          No behaviors in this cluster yet. Pick from your portrait below.
+        </div>
+      )}
+
+      <div className="na1-m4-pv-addrow">
+        <button
+          type="button"
+          className="na1-m4-pv-addbtn"
+          onClick={() => setMqOpen((v) => !v)}
+        >
+          {mqOpen ? "✕ Close picker" : "+ Pick from portrait"}
+        </button>
+        {newDraft === null && (
+          <button
+            type="button"
+            className="na1-m4-pv-addbtn"
+            onClick={() => setNewDraft("")}
+          >
+            + New behavior
+          </button>
+        )}
+      </div>
+      {newDraft !== null && (
+        <div className="na1-m4-pv-newrow">
+          <input
+            type="text"
+            className="na1-m4-pv-newinput"
+            placeholder="e.g. tells the truth when it costs them"
+            value={newDraft}
+            autoFocus
+            onChange={(e) => setNewDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAddNew();
+              if (e.key === "Escape") setNewDraft(null);
+            }}
+          />
+          <button
+            type="button"
+            className="na1-m4-pv-newadd"
+            disabled={!newDraft.trim()}
+            onClick={handleAddNew}
+          >
+            Add
+          </button>
+          <button
+            type="button"
+            className="na1-m4-pv-newcancel"
+            onClick={() => setNewDraft(null)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      {mqOpen && (
+        <M4MiniQuadrant
+          state={state}
+          currentClusterId={cluster.id}
+          onPick={(id) => handlePick(id)}
+          onClose={() => setMqOpen(false)}
+        />
+      )}
+
+      {cluster.flips.length > 0 && (
+        <div className="na1-m4-pv-flips">
+          <div className="na1-m4-pv-flip-title">Flips</div>
+          <div className="na1-m4-pv-flip-helper">
+            Each thing that bothers you points at a stand you'd take.
+            Edit the flip until it sounds like you, then Accept to add
+            it as a commitment — or Skip to leave the irk unflipped.
+          </div>
+          {cluster.flips.map((flip) => {
+            const b = allBehaviors.find((x) => x.id === flip.irkId);
+            if (!b) return null;
+            const canAccept = !!flip.toText.trim();
+            return (
+              <div key={flip.irkId} className="na1-m4-pv-flip">
+                <div className="na1-m4-pv-flip-from">
+                  <span className="na1-m4-pv-chip is-bothers">IRK</span>{" "}
+                  {b.text}
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-start" }}>
+                  <span className="na1-m4-pv-flip-arrow">→</span>
+                  <textarea
+                    className="na1-m4-pv-flip-to"
+                    value={flip.toText}
+                    onChange={(e) =>
+                      updateFlipText(flip.irkId, e.target.value)
+                    }
+                    placeholder="Write the flip…"
+                  />
+                </div>
+                <div className="na1-m4-pv-flip-actions">
+                  <button
+                    type="button"
+                    className="na1-m4-pv-flip-skip"
+                    onClick={() => skipFlip(flip.irkId)}
+                  >
+                    Skip
+                  </button>
+                  <button
+                    type="button"
+                    className="na1-m4-pv-flip-accept"
+                    disabled={!canAccept}
+                    onClick={() => acceptFlip(flip.irkId)}
+                  >
+                    Accept ✓
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Footer block: gold dashed Name CTA OR Completed card */}
+      {isComplete ? (
+        <M4CompletedCard
+          cluster={cluster}
+          onEditName={() => onOpenName(true)}
+          onEditDefinition={() => onOpenDefine()}
+        />
+      ) : (
+        <div className="na1-m4-pv-namecta">
+          <p className="na1-m4-pv-namecta-helper">
+            {cluster.userName
+              ? "Looks ready. Add the meaning underneath?"
+              : "When this cluster has its shape, name what it points to."}
+          </p>
+          <button
+            type="button"
+            className="na1-m4-pv-namebtn"
+            onClick={() =>
+              cluster.userName ? onOpenDefine() : onOpenName(false)
+            }
+          >
+            {cluster.userName
+              ? `Define "${cluster.userName}" →`
+              : "Name this value →"}
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Mini-quadrant: portrait picker for the per-value screen ──────
+// Shows all four tiers as quadrants. Behaviors already used by ANY
+// cluster show greyed/struck. Behaviors used by THIS cluster are
+// hidden (already in the list above). Bothers/Turns warn that adding
+// will trigger a flip row.
+function M4MiniQuadrant({
+  state,
+  currentClusterId,
+  onPick,
+  onClose,
+}: {
+  state: Mirror4State;
+  currentClusterId: string;
+  onPick: (id: string) => void;
+  onClose: () => void;
+}) {
+  const tiers: { key: M4BehaviorTier; label: string }[] = [
+    { key: "lights", label: M4_TIER_LABEL.lights },
+    { key: "warms", label: M4_TIER_LABEL.warms },
+    { key: "bothers", label: M4_TIER_LABEL.bothers },
+    { key: "turns", label: M4_TIER_LABEL.turns },
+  ];
+  const allBehaviors = [...state.admire, ...state.irks];
+
+  return (
+    <div className="na1-m4-mq">
+      <div className="na1-m4-mq-head">
+        <span>Pick from portrait</span>
+        <button
+          type="button"
+          className="na1-m4-mq-close"
+          onClick={onClose}
+          aria-label="Close picker"
+        >
+          ✕
+        </button>
+      </div>
+      <div className="na1-m4-mq-grid">
+        {tiers.map((t) => {
+          const items = allBehaviors.filter((b) => b.tier === t.key);
+          const isIrk = t.key === "bothers" || t.key === "turns";
+          return (
+            <div key={t.key} className="na1-m4-mq-quad">
+              <div className="na1-m4-mq-tier-label">
+                <span>
+                  {M4_TIER_ICON[t.key]}
+                  {t.label}
+                </span>
+                {isIrk && (
+                  <span className="na1-m4-mq-tier-note">+ flip row</span>
+                )}
+              </div>
+              {items.length === 0 ? (
+                <div className="na1-m4-mq-empty">none</div>
+              ) : (
+                <div className="na1-m4-mq-chips">
+                  {items.map((b) => {
+                    // In current cluster — hide (already in the list
+                    // above the picker).
+                    if (b.inUseByCluster === currentClusterId) return null;
+                    // In a different cluster — show struck/disabled.
+                    const inOther =
+                      b.inUseByCluster != null &&
+                      b.inUseByCluster !== currentClusterId;
+                    // Bothers/Turns chips are disabled per spec
+                    // (these become commitments via the Flip section,
+                    // not direct picks).
+                    const disabled = inOther || isIrk;
+                    const cls = inOther
+                      ? "na1-m4-mq-chip is-used"
+                      : disabled
+                        ? "na1-m4-mq-chip is-disabled"
+                        : "na1-m4-mq-chip";
+                    const titleText = inOther
+                      ? "Already in another cluster"
+                      : isIrk
+                        ? "Use the flip section below — these become commitments"
+                        : "";
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        className={cls}
+                        disabled={disabled}
+                        title={titleText}
+                        onClick={() => !disabled && onPick(b.id)}
+                      >
+                        {b.text.length > 28
+                          ? b.text.slice(0, 26) + "…"
+                          : b.text}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Naming stub modal · single text input ───────────────────────
+function M4NameStubModal({
+  cluster,
+  isEdit,
+  onClose,
+  onConfirm,
+}: {
+  cluster: M4Cluster;
+  isEdit: boolean;
+  onClose: () => void;
+  onConfirm: (name: string) => void;
+}) {
+  const [draft, setDraft] = useState<string>(cluster.userName);
+  const canConfirm = !!draft.trim();
+  return (
+    <div
+      className="na1-m4-modal-back"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="na1-m4-modal" role="dialog" aria-modal="true">
+        <button
+          type="button"
+          className="na1-m4-modal-x"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          ✕
+        </button>
+        <div className="na1-m4-modal-head">
+          {isEdit ? "Rename your value" : "Name this value"}
+        </div>
+        <input
+          type="text"
+          className="na1-m4-modal-input"
+          value={draft}
+          autoFocus
+          placeholder={cluster.proposedNames[0] || "your word"}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && canConfirm) onConfirm(draft);
+            if (e.key === "Escape") onClose();
+          }}
+        />
+        <p className="na1-m4-modal-helper">
+          {cluster.proposedNames.length > 0
+            ? `Suggestions: ${cluster.proposedNames.join(" · ")}`
+            : "One word usually carries it best."}
+        </p>
+        <div className="na1-m4-modal-actions">
+          <button
+            type="button"
+            className="na1-m4-modal-confirm"
+            disabled={!canConfirm}
+            onClick={() => onConfirm(draft)}
+          >
+            {isEdit ? "Save" : "Continue →"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Define stub modal · textarea ─────────────────────────────────
+// Anchored at the top with the just-named value to keep context.
+function M4DefineStubModal({
+  cluster,
+  onClose,
+  onConfirm,
+}: {
+  cluster: M4Cluster;
+  onClose: () => void;
+  onConfirm: (def: string) => void;
+}) {
+  const [draft, setDraft] = useState<string>(cluster.userDefinition);
+  const canConfirm = !!draft.trim();
+  return (
+    <div
+      className="na1-m4-modal-back"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="na1-m4-modal" role="dialog" aria-modal="true">
+        <button
+          type="button"
+          className="na1-m4-modal-x"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          ✕
+        </button>
+        <div className="na1-m4-modal-head">Define it</div>
+        <div className="na1-m4-modal-anchor">
+          <div className="na1-m4-modal-anchor-star">★</div>
+          <div className="na1-m4-modal-anchor-name">
+            {cluster.userName || "—"}
+          </div>
+        </div>
+        <textarea
+          className="na1-m4-modal-textarea"
+          value={draft}
+          autoFocus
+          placeholder="What does it mean to you? Write one or two sentences."
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") onClose();
+          }}
+        />
+        <p className="na1-m4-modal-helper">
+          In your own words — not a dictionary. What does this value
+          actually look like when you live it?
+        </p>
+        <div className="na1-m4-modal-actions">
+          <button
+            type="button"
+            className="na1-m4-modal-confirm"
+            disabled={!canConfirm}
+            onClick={() => onConfirm(draft)}
+          >
+            Save value ✓
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Completed card · replaces the gold Name CTA when status=complete
+function M4CompletedCard({
+  cluster,
+  onEditName,
+  onEditDefinition,
+}: {
+  cluster: M4Cluster;
+  onEditName: () => void;
+  onEditDefinition: () => void;
+}) {
+  return (
+    <div className="na1-m4-completed">
+      <div className="na1-m4-completed-star">★</div>
+      <div
+        className="na1-m4-completed-name"
+        style={{ color: `var(--c${cluster.colorIndex})` }}
+      >
+        {cluster.userName || "—"}
+      </div>
+      <p
+        className={`na1-m4-completed-def${
+          cluster.userDefinition ? "" : " is-empty"
+        }`}
+      >
+        {cluster.userDefinition || "(no definition yet)"}
+      </p>
+      <div className="na1-m4-completed-foot">
+        <button
+          type="button"
+          className="na1-m4-completed-edit"
+          onClick={onEditName}
+        >
+          Rename
+        </button>
+        <button
+          type="button"
+          className="na1-m4-completed-edit"
+          onClick={onEditDefinition}
+        >
+          Edit definition
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Step 8 · Confirm your values ─────────────────────────────────
+// Lists every completed cluster as a card; offers Add Another (up
+// to 5 total) via the parent's addAnotherValue callback. Continue
+// (in the footer) closes the Discover overlay.
+function M4Step8Confirm({
+  state,
+  mutate: _mutate,
+  onAddAnother,
+}: {
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+  onAddAnother: () => void;
+}) {
+  void _mutate; // not used in 3a; reserved for 3b operations
+  const n = state.clusters.length;
+  const word = M4_COUNT_WORD[n] || `${n}`;
+  const canAddMore = n < 5;
+  return (
+    <>
+      <div className="na1-m4-step-eyebrow">
+        Mirror 4 · Step 8 of 8 · Confirm
+      </div>
+      <h2 className="na1-m4-step-title">
+        Your {word} {n === 1 ? "value" : "values"}
+      </h2>
+      <p className="na1-m4-step-sub">
+        These are what you stand for. Add another if something's missing —
+        otherwise carry them into Behaviors.
+      </p>
+
+      <div className="na1-m4-step8-list">
+        {state.clusters.map((c, idx) => (
+          <div
+            key={c.id}
+            className="na1-m4-step8-card"
+            style={{ borderLeftColor: `var(--c${c.colorIndex})` }}
+          >
+            <div
+              className="na1-m4-step8-num"
+              style={{ color: `var(--c${c.colorIndex})` }}
+            >
+              {idx + 1}
+            </div>
+            <div className="na1-m4-step8-body">
+              <div
+                className="na1-m4-step8-name"
+                style={{ color: `var(--c${c.colorIndex})` }}
+              >
+                {c.userName || "(unnamed)"}
+              </div>
+              <div
+                className={`na1-m4-step8-def${
+                  c.userDefinition ? "" : " is-empty"
+                }`}
+              >
+                {c.userDefinition || "(no definition)"}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {canAddMore && (
+        <div className="na1-m4-step8-soft">
+          <div className="na1-m4-step8-soft-title">Anything missing?</div>
+          <p className="na1-m4-step8-soft-body">
+            Values usually run a little deeper than the first read.
+            Worth one more pass?
+          </p>
+          <button
+            type="button"
+            className="na1-m4-step8-addbtn"
+            onClick={onAddAnother}
+          >
+            + Add another value
+          </button>
+        </div>
+      )}
     </>
   );
 }
@@ -34909,7 +36260,7 @@ function NewA1M4Container({
       {openRoom && openRoom.bodyShipped && (
         <NewA1M4RoomShell room={openRoom} open={roomOpen} onClose={closeRoom}>
           {openRoom.key === "discover" ? (
-            <NewA1M4DiscoverBody />
+            <NewA1M4DiscoverBody onCloseRoom={closeRoom} />
           ) : (
             <NewA1M4RoomPlaceholderBody room={openRoom} />
           )}

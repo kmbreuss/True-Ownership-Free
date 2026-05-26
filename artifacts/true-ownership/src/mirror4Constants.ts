@@ -17,6 +17,15 @@ export type M4Step =
   | "admire"
   | "irks"
   | "portrait"
+  // Ship 5.6d · Section 3a · Discover sub-steps
+  | "read"
+  | "v1"
+  | "v2"
+  | "v3"
+  | "v4"
+  | "v5"
+  | "finish"
+  // Section 1+ legacy + future
   | "clusters"
   | "operationalize"
   | "rank"
@@ -35,11 +44,24 @@ export type M4Status = "not_started" | "in_progress" | "complete";
 // non-null.
 export type M4BehaviorTier = "lights" | "warms" | "bothers" | "turns";
 
+// Ship 5.6d · provenance chip label. When undefined, the chip is
+// derived from `tier`. "flipped"/"new" are explicit overrides set
+// by Section 3a flow when the user accepts a flip or types a new
+// behavior — those keep tier:"warms" but render with their own chip.
+export type M4BehaviorSource =
+  | "lights"
+  | "warms"
+  | "bothers"
+  | "turns"
+  | "flipped"
+  | "new";
+
 export type M4Behavior = {
   id: string;
   text: string;
   person?: string;
   tier: M4BehaviorTier;
+  source?: M4BehaviorSource;
   inUseByCluster: string | null;
 };
 
@@ -57,13 +79,40 @@ export type M4PressureTest = {
   rankChanges: number;
 };
 
+// Ship 5.6d · Section 3a · Cluster schema
+export type M4Flip = {
+  irkId: string;
+  toText: string;
+  // null = unanswered, true = accepted (a flipped behavior was added),
+  // false = skipped (row hidden until refresh; no behavior added).
+  accepted: boolean | null;
+};
+
+export type M4ClusterStatus = "proposed" | "named" | "complete";
+
+export type M4Cluster = {
+  id: string;
+  proposal: string;
+  proposedNames: string[];
+  behaviorIds: string[];
+  flips: M4Flip[];
+  userName: string;
+  userDefinition: string;
+  status: M4ClusterStatus;
+  colorIndex: 1 | 2 | 3;
+};
+
 export type Mirror4State = {
   status: M4Status;
   currentStep: M4Step;
   admire: M4Behavior[];
   irks: M4Behavior[];
   portrait: M4Portrait;
-  clusters: unknown[];
+  clusters: M4Cluster[];
+  // Ship 5.6d · Katherine's one-paragraph intro for Step 4. Empty
+  // until clustering runs. The 2-cluster soft prompt is prepended
+  // here at cluster-creation time so it survives refresh.
+  clustersNarrative: string;
   operationalize: Record<string, unknown>;
   rank: unknown[];
   pressureTest: M4PressureTest;
@@ -78,6 +127,7 @@ export const EMPTY_MIRROR4: Mirror4State = {
   irks: [],
   portrait: { lights: [], warms: [], bothers: [], turns: [] },
   clusters: [],
+  clustersNarrative: "",
   operationalize: {},
   rank: [],
   pressureTest: { complete: false, pairs: [], conflicts: 0, rankChanges: 0 },
@@ -309,3 +359,250 @@ export const M4_TIER_ICON: Record<M4BehaviorTier, string> = {
   bothers: "",
   turns: "⚡ ",
 };
+
+// ─── Ship 5.6d · Section 3a · Cluster helpers ───
+// Cluster IDs are stable: walk existing clusters for highest cl-N
+// suffix and return `cl-${max+1}`. Tolerates malformed legacy IDs.
+export function nextClusterId(state: Mirror4State): string {
+  let max = 0;
+  for (const c of state.clusters) {
+    if (!c.id.startsWith("cl-")) continue;
+    const n = parseInt(c.id.slice(3), 10);
+    if (!Number.isNaN(n) && n > max) max = n;
+  }
+  return `cl-${max + 1}`;
+}
+
+// Color is locked at creation order — 1→c1, 2→c2, 3→c3, 4→c1, 5→c2.
+// Rank reorders later in M4 do NOT change color (spec).
+export function clusterColorForIndex(creationIndex: number): 1 | 2 | 3 {
+  const mod = ((creationIndex - 1) % 3) + 1;
+  return mod as 1 | 2 | 3;
+}
+
+// Map a behavior to the provenance chip label shown on per-value
+// screens. Explicit `source` overrides (flipped/new) win; otherwise
+// the chip mirrors the behavior's tier.
+export function behaviorChipLabel(b: M4Behavior): string {
+  const s = b.source ?? b.tier;
+  return s.toUpperCase();
+}
+
+// Rule-based default flip text for an irk behavior — pure-syntactic,
+// good enough as a starting point. The textarea is fully editable
+// so Katherine (or 3b's Anthropic suggestion) will refine it.
+export function defaultFlipText(irkText: string): string {
+  const t = irkText.trim();
+  if (!t) return "";
+  // Heuristic: if it starts with a gerund ("Blaming…"), invert as
+  // "Own my own… before…"; otherwise prepend "Instead, …".
+  const first = t.split(/\s+/)[0]?.toLowerCase() ?? "";
+  if (first.endsWith("ing")) {
+    return `Don't ${first.slice(0, -3)} — own it first.`;
+  }
+  return `Instead, do the opposite of: ${t}`;
+}
+
+// Rule-based fallback used when the Anthropic clustering call
+// fails or returns malformed JSON. Per spec: group all lights+warms
+// into cl-1 "From what lights you up" + all bothers+turns into cl-2
+// "What you refuse to tolerate".
+export function ruleBasedClusters(state: Mirror4State): {
+  narrative: string;
+  clusters: Array<{
+    proposal: string;
+    proposedNames: string[];
+    behaviorIds: string[];
+  }>;
+} {
+  const lightsWarmsIds = [
+    ...state.portrait.lights,
+    ...state.portrait.warms,
+  ];
+  const bothersTurnsIds = [
+    ...state.portrait.bothers,
+    ...state.portrait.turns,
+  ];
+  const out: ReturnType<typeof ruleBasedClusters>["clusters"] = [];
+  if (lightsWarmsIds.length > 0) {
+    out.push({
+      proposal: "From what lights you up",
+      proposedNames: ["Integrity", "Honor", "Self-Trust"],
+      behaviorIds: lightsWarmsIds,
+    });
+  }
+  if (bothersTurnsIds.length > 0) {
+    out.push({
+      proposal: "What you refuse to tolerate",
+      proposedNames: ["Respect", "Honesty", "Standards"],
+      behaviorIds: bothersTurnsIds,
+    });
+  }
+  return {
+    narrative:
+      "Here's how I'd group your portrait — work each one and see what value sits underneath.",
+    clusters: out,
+  };
+}
+
+// Create a cluster from a raw proposal (Anthropic or rule-based),
+// assigning a stable ID + locked color index. Initializes flips
+// from the irk behaviors in the cluster's behaviorIds list using
+// defaultFlipText. Returns the new state and the created cluster.
+export function createCluster(
+  state: Mirror4State,
+  raw: {
+    proposal: string;
+    proposedNames: string[];
+    behaviorIds: string[];
+  },
+): { state: Mirror4State; cluster: M4Cluster } {
+  const id = nextClusterId(state);
+  const creationIndex = state.clusters.length + 1;
+  const colorIndex = clusterColorForIndex(creationIndex);
+  const allBehaviors = [...state.admire, ...state.irks];
+  // Ownership integrity: silently drop ids already claimed by an
+  // earlier cluster. Prevents stale cross-references when Anthropic
+  // returns the same behavior in two clusters.
+  const ownedIds = new Set(
+    allBehaviors
+      .filter((b) => b.inUseByCluster != null)
+      .map((b) => b.id),
+  );
+  const filteredIds = raw.behaviorIds.filter((id) => !ownedIds.has(id));
+  const flips: M4Flip[] = filteredIds
+    .map((bid) => allBehaviors.find((b) => b.id === bid))
+    .filter((b): b is M4Behavior => !!b && (b.tier === "bothers" || b.tier === "turns"))
+    .map((b) => ({
+      irkId: b.id,
+      toText: defaultFlipText(b.text),
+      accepted: null,
+    }));
+  const cluster: M4Cluster = {
+    id,
+    proposal: raw.proposal,
+    proposedNames: raw.proposedNames,
+    behaviorIds: [...filteredIds],
+    flips,
+    userName: "",
+    userDefinition: "",
+    status: "proposed",
+    colorIndex,
+  };
+  // Mark all referenced behaviors as in-use by this cluster.
+  const setIds = new Set(filteredIds);
+  const mark = (arr: M4Behavior[]): M4Behavior[] =>
+    arr.map((b) =>
+      setIds.has(b.id) && b.inUseByCluster == null
+        ? { ...b, inUseByCluster: id }
+        : b,
+    );
+  const next: Mirror4State = {
+    ...state,
+    admire: mark(state.admire),
+    irks: mark(state.irks),
+    clusters: [...state.clusters, cluster],
+  };
+  return { state: next, cluster };
+}
+
+export function updateCluster(
+  state: Mirror4State,
+  id: string,
+  fn: (c: M4Cluster) => M4Cluster,
+): Mirror4State {
+  return {
+    ...state,
+    clusters: state.clusters.map((c) => (c.id === id ? fn(c) : c)),
+  };
+}
+
+// Wipe all clusters + the narrative + clear inUseByCluster on every
+// behavior. Used by the dev "Re-cluster from portrait" link.
+export function clearAllClusters(state: Mirror4State): Mirror4State {
+  const clearMark = (arr: M4Behavior[]): M4Behavior[] =>
+    arr.map((b) =>
+      b.inUseByCluster == null ? b : { ...b, inUseByCluster: null },
+    );
+  return {
+    ...state,
+    clusters: [],
+    clustersNarrative: "",
+    admire: clearMark(state.admire),
+    irks: clearMark(state.irks),
+  };
+}
+
+// Add a behavior to a cluster's behaviorIds (no-op if already present)
+// and mark the behavior's inUseByCluster. Both must update together.
+export function addBehaviorToCluster(
+  state: Mirror4State,
+  clusterId: string,
+  behaviorId: string,
+): Mirror4State {
+  // Ownership integrity: reject (no-op) when the behavior is already
+  // claimed by a DIFFERENT cluster. UI guards (mini-quadrant greys
+  // out used chips) should make this unreachable, but the helper
+  // stays defensive so a stale UI click can't corrupt state.
+  const all = [...state.admire, ...state.irks];
+  const found = all.find((b) => b.id === behaviorId);
+  if (
+    found &&
+    found.inUseByCluster != null &&
+    found.inUseByCluster !== clusterId
+  ) {
+    return state;
+  }
+  const mark = (arr: M4Behavior[]): M4Behavior[] =>
+    arr.map((b) =>
+      b.id === behaviorId && b.inUseByCluster == null
+        ? { ...b, inUseByCluster: clusterId }
+        : b,
+    );
+  return updateCluster(
+    { ...state, admire: mark(state.admire), irks: mark(state.irks) },
+    clusterId,
+    (c) =>
+      c.behaviorIds.includes(behaviorId)
+        ? c
+        : { ...c, behaviorIds: [...c.behaviorIds, behaviorId] },
+  );
+}
+
+// Remove a behavior from a cluster's behaviorIds. If the behavior
+// is no longer used by ANY cluster after removal, clear its
+// inUseByCluster so it re-becomes pickable in the mini-quadrant.
+export function removeBehaviorFromCluster(
+  state: Mirror4State,
+  clusterId: string,
+  behaviorId: string,
+): Mirror4State {
+  const stripped = updateCluster(state, clusterId, (c) => ({
+    ...c,
+    behaviorIds: c.behaviorIds.filter((id) => id !== behaviorId),
+    flips: c.flips.filter((f) => f.irkId !== behaviorId),
+  }));
+  const stillUsed = stripped.clusters.some((c) =>
+    c.behaviorIds.includes(behaviorId),
+  );
+  if (stillUsed) return stripped;
+  const clear = (arr: M4Behavior[]): M4Behavior[] =>
+    arr.map((b) =>
+      b.id === behaviorId ? { ...b, inUseByCluster: null } : b,
+    );
+  return { ...stripped, admire: clear(stripped.admire), irks: clear(stripped.irks) };
+}
+
+// Spelled-out count words for Step 8 title grammar.
+export const COUNT_WORD: Record<number, string> = {
+  1: "one",
+  2: "two",
+  3: "three",
+  4: "four",
+  5: "five",
+};
+
+// Cluster color CSS variable name for inline style usage.
+export function clusterColorVar(c: M4Cluster | { colorIndex: number }): string {
+  return `var(--c${c.colorIndex})`;
+}

@@ -1,0 +1,300 @@
+Copy everything between the two horizontal lines below and paste it to Replit Agent.
+
+Ship 5.6d · Mirror 4 Section 3a · Discover Room Steps 4–8 with stub modals
+Hi — Section 2 (Discover Steps 1–3) and Ship 5.6c (refresh-resume routing) are both approved on dev. This is the biggest M4 ship: the per-value flow inside the Discover room.
+Important context up front: This section ships the structure of the per-value work end-to-end, but the Naming and Define modals are deliberately simple single-input stubs in this ship. The real peel mechanic + Katherine voice in those modals lands in the next ship (Section 3b). The split exists so we can verify the per-value flow works correctly before tuning modal copy and mechanics on top of it.
+Stub now, real flow next ship. Do not build the peel/Katherine modals in this ship even if it feels like a natural extension.
+
+What gets built in this ship (high level)
+
+Step 4 · Katherine's Read (overview screen showing clusters)
+Steps 5, 6, 7 · Three per-value screens (behaviors list + flips + Name CTA)
+Step 8 · Confirm summary screen
+Naming stub modal (single text input)
+Define stub modal (single textarea)
+Completed card pattern (replaces Name CTA after naming + defining)
+Mini-quadrant pick-from-portrait panel (inline, inside per-value screens)
+Add-another value flow (from Step 8)
+Anthropic clustering call (reuses existing M1/M3 fetch pattern)
+
+Reference mockup: Values_Mirror4_LiveTokens.html — demo nav buttons 4·Read, 5·V1, 6·V2, 7·V3, 8·Done. Walk those screens in the mockup before you start coding. Note: the mockup's Naming and Define modals show the real (peel + Katherine) versions. Use them as visual reference for the Completed card and per-value screen layout only. The modals you build in this ship are simpler stubs — single field, no peel, no Katherine.
+
+Step 4 · Katherine's Read (overview only)
+
+Eyebrow: Mirror 4 · Step 4 of 8 · Katherine's read (visual styling is uppercase via CSS, same as Steps 1–3)
+Title: Katherine's read
+Subtitle: I see [N] clusters in your portrait. We'll work them one at a time, each in its own space. — substitute actual cluster count for [N]
+Katherine intro block (cyan/teal-bordered card, matching M3 Katherine-voice styling): label KATHERINE SEES [N] PATTERNS (uppercase) + italic Georgia paragraph of narrative. The narrative is returned by the Anthropic call (see clustering logic below).
+Cluster overview cards — one per cluster. Each card has:
+
+Color dot (using new tokens --c1 / --c2 / --c3 — see Design tokens below)
+Cluster label (auto-generated, e.g. Cluster 1)
+Katherine's proposal text (e.g. "accountability — owning your impact")
+Behavior count (e.g. 5 behaviors)
+
+
+Continue button: Work cluster 1 → (advances to Step 5 / Value 1)
+Back → Step 3 Portrait (preserves all data)
+
+Clustering logic (this is the load-bearing part — please read carefully):
+
+Trigger: clustering runs once, the first time the user reaches Step 4. After that, state.mirror4.clusters is the source of truth and never re-runs automatically.
+Implementation: single client-side fetch to the Anthropic API, reusing the existing pattern from M1's peel summary and M3's behavior bullets. Locate the existing fetch code (likely around App.tsx lines 41517, 41522, 42063 — the ones used for userId || "The user" summary prompts). Do not add a new server endpoint, do not call from the backend, do not add new auth/credential wiring. Use the same fetch shape that's already working in M1/M3.
+Prompt: send the full state.mirror4.portrait (all behaviors with their tier tags) and ask for 2–4 thematic clusters returned as JSON:
+
+json  {
+    "narrative": "string — Katherine's one-paragraph intro for the Step 4 cyan card",
+    "clusters": [
+      {
+        "proposal": "string — short phrase like 'accountability — owning your impact'",
+        "proposedNames": ["string", "string", "string"],
+        "behaviorIds": ["ad-1", "ir-3", "ad-4"]
+      }
+    ]
+  }
+
+On success: write to state.mirror4.clusters[] with stable IDs (cl-1, cl-2, …) and assign color by creation order — first cluster = c1, second = c2, third = c3. Fourth and fifth (which only arise via add-another in Step 8) cycle back to c1, c2. Color is locked at creation; rank order changes do NOT change color.
+On fetch failure or malformed JSON: fall back to a rule-based cluster. Group all lights + warms portrait behaviors into one cluster (cl-1) with proposal: "From what lights you up" and proposedNames: ["Integrity", "Honor", "Self-Trust"]. Group all bothers + turns behaviors into a second cluster (cl-2) with proposal: "What you refuse to tolerate" and proposedNames: ["Respect", "Honesty", "Standards"]. Set narrative: "Here's how I'd group your portrait — work each one and see what value lives underneath.". Log a console warning so we can spot it during dev walks.
+2-cluster soft prompt: if the Anthropic call returns only 2 clusters, prepend to the narrative: "I see two — values usually run deeper than that. After we work these, look at what's left in your portrait." This is a soft hint for the user to use add-another in Step 8.
+Dev-only re-cluster link: add a small underlined gold text link in the Step 4 footer reading "Re-cluster from portrait" (faint, easy to miss). Click → wipes state.mirror4.clusters, re-runs the Anthropic call. Useful during dev walks. Wrap in a DEV_MODE check if one exists, or just leave it discreet — Katherine can ignore it.
+
+
+Steps 5, 6, 7 · Value 1, 2, 3 screens
+Each per-value screen has identical structure; only the cluster color and content vary. Build it as a parameterized component.
+
+Eyebrow: Mirror 4 · Step [5/6/7] of 8 · Value [1/2/3] with a colored marker dot using the cluster's color (--c1 / --c2 / --c3)
+Title: Name the [first/second/third] value
+Subtitle: Review the behaviors. When you're ready, name what they point to.
+Slim cluster banner (left border in cluster color): Cluster [N] · Katherine sees [proposal]
+
+Behaviors section (the main content block):
+
+Section title: Behaviors
+Helper line (italic Georgia, like the Step 1 subtitle but smaller): These are the behaviors Katherine grouped into this value. Edit, add from your portrait, or type new ones.
+List of pre-filled behavior items — one per behaviorId in this cluster. Each item shows:
+
+Behavior text
+Provenance chip showing source tier — labels: LIGHTS, WARMS, BOTHERS, TURNS, FLIPPED, NEW. (Match the chip-with-provenance pattern from M3 Superpowers room gifts.)
+× delete button
+
+
+Two add buttons at the bottom of the list:
+
++ Add from your portrait → opens the mini-quadrant panel (see below)
++ Add new behavior → opens an inline text input that adds a new behavior with source NEW. When user submits, also creates a new entry in state.mirror4.admire (intensity defaulted to warms) or irks — depending on user choice? Actually keep it simple: typed behaviors land in admire with tier: "warms" and source chip NEW. They become part of the user's behavior pool for use across values.
+
+
+
+Flip nested section (burgundy left border, nested under behaviors — visually a sub-block):
+
+Title: Irks → commitments
+Helper: Your "bothers" bullets in this cluster — flipped into what you commit to doing instead. Edit, accept, or skip.
+For each bothers or turns behavior in the cluster's behaviorIds, render a flip row:
+
+From-text in burgundy italic Georgia (the original irk text)
+→ arrow
+Editable to-text (default suggestion: rule-based flip — see below)
+Two buttons: Accept (filled gold) and Skip (outlined)
+Accept → adds the flip text as a new behavior to this value's behavior list with source chip FLIPPED, marks the original irk's inUseByCluster field
+Skip → removes this flip row from the screen, irk stays unflipped
+
+
+
+Rule-based flip default: until 3b's Anthropic flip suggestions land, use a simple inversion. For each irk:
+
+Prepend "Don't " or "Avoid " if the irk starts with an action verb
+Or rephrase as "Instead, " + opposite
+Honestly, just do something reasonable — Katherine will edit them anyway. The text is fully editable in the textarea.
+
+Example: irk "Blaming the team for your own miss" → flip default "Own my own miss before pointing anywhere else".
+Name CTA wrap (at the bottom of the per-value screen, gold dashed border, centered):
+
+Helper: When the behaviors feel right, name what they point to. (Note: this is simplified for 3a — 3b changes it to "we'll peel them together to find the value underneath.")
+Big filled gold button: Name this value ★
+Click → opens Naming stub modal
+
+After both stub modals complete: Name CTA wrap is hidden, Completed card is shown instead (see below).
+Footer:
+
+Back → previous per-value screen, or Step 4 if on Value 1
+Continue → next per-value screen, or Step 8 from Value 3. Continue is disabled until both stub modals complete for this value (i.e. cluster.userName AND cluster.userDefinition are both non-empty).
+
+
+Mini-quadrant pick-from-portrait panel
+Inline expandable panel below the add-row buttons (not a modal — slides open beneath them).
+
+Header: From your portrait + close link ×
+2×2 grid mirroring the Step 3 Portrait layout (Lights · Warms · Bothers · Turns)
+Each quadrant: tier label + chips for each behavior in that tier
+Lights / Warms quadrants: chips are pickable. Click adds the behavior to the current value's behavior list (with provenance chip matching the source tier) and sets that behavior's inUseByCluster field to the current cluster's ID.
+Bothers / Turns quadrants: chips are disabled. Show small note in tier header: flip below — these become commitments. Hover tooltip: Use the Irks → commitments section below to add these as flipped behaviors.
+Behaviors already in any value (any behavior where inUseByCluster !== null): render with .used styling — faded with strikethrough — and clicking them is a no-op. This is the Section 2 plant being activated.
+Close link at the bottom of the panel closes the inline expand.
+
+
+Naming stub modal (3a — replaces with real modal in 3b)
+Lifts over the per-value screen with blur. Class on parent overlay: .naming-open. Max-width 580px, gold-bordered card.
+
+Header: ★ Name your value
+One text input (gold serif font, centered, dotted underline like the Step 1 input — reuse that input pattern)
+Placeholder: One or two words…
+One button: Confirm name ★ (filled gold) — disabled when input is empty or whitespace only
+Cancel: close × in the top-right corner
+
+On confirm:
+
+Write cluster.userName = trimmed input value
+Set cluster.status = "named"
+Close this modal
+Auto-open Define stub modal after 280ms beat (the timing matters — it's a deliberate pause that 3b will replicate)
+
+
+Define stub modal (3a — replaces with real modal in 3b)
+Same lift-over pattern as Naming. Class: .define-open. Max-width 580px.
+
+Header: ★ Define your value
+Named value anchor at top: gradient gold-warm card with small ★ + big serif gold name (~42px) showing cluster.userName
+One textarea below the anchor
+Placeholder: What does this value mean to you?
+Helper line below textarea (italic Georgia, faint): One or two sentences. Make it real — this is what shows when you're using it as a decision filter.
+One button: Confirm definition ★ (filled gold) — disabled when textarea is empty or whitespace only
+Cancel: close × in top-right. If user closes without confirming, modal closes but Name CTA wrap stays hidden because the Naming modal already wrote userName. The per-value screen shows the completed card with name filled but definition placeholder italic gray text (no definition yet) until user completes Define.
+
+On confirm:
+
+Write cluster.userDefinition = trimmed textarea value
+Set cluster.status = "complete"
+Close this modal
+Per-value screen now shows the Completed card in place of the Name CTA wrap
+
+
+Completed card (3a — replaces Name CTA wrap on per-value screen)
+
+Gradient gold-warm to transparent background
+3px gold left border
+Centered ★ star icon (small, gold)
+Big serif gold name (42px) — cluster.userName
+Italic serif definition (centered, 16px, max-width 480px) — cluster.userDefinition
+Footer with two tiny underlined edit links:
+
+edit name → reopens Naming stub modal with cluster.userName pre-filled in the input
+edit definition → reopens Define stub modal with cluster.userDefinition pre-filled in the textarea
+
+
+Important behavior: when edit name confirm is clicked, do NOT auto-open Define modal (the 280ms beat is only for first-creation flow, not edits). Just close and return to per-value screen.
+
+
+Step 8 · Confirm
+
+Eyebrow: Mirror 4 · Step 8 of 8 · Confirm
+Title: Your [number-word] values — use spelled-out count word based on total values:
+
+2 values: Your two values
+3 values: Your three values
+4 values: Your four values
+5 values: Your five values
+
+
+Subtitle: Stop here, or add another one if there's a value you haven't named yet.
+Numbered summary cards — one per cluster in order. Each card shows: number (1, 2, 3...) + serif gold name + italic definition (small). No edit affordances here (edits happen back on per-value screens).
+Soft-min-3 prompt card — shown only if user has fewer than 3 values. Gold-warm background. Title: Want to add another? Body: Most people end up with three or four. You can stop here if these feel right.
++ Add another value button (filled gold) — opens the add-another flow (see below)
+Footer:
+
+Back → Step 7 (Value 3) or whichever was the last per-value screen
+Continue → closes Discover overlay entirely and opens Behaviors room (which still has the "Coming in Section 4" placeholder from earlier ships — that's expected, Section 4 hasn't shipped yet)
+
+
+
+
+Add-another value flow
+Triggered by + Add another value on Step 8.
+
+Opens a new per-value screen with an empty cluster:
+
+No katherineProposal, no proposedNames, no pre-filled behaviorIds, no flips
+Cluster gets a new ID (cl-4, cl-5, etc.) and color cycles: 4th cluster = c1, 5th = c2
+
+
+Subtitle replaced with: Add behaviors from your portrait, then name what they point to.
+Behaviors list starts empty
+Mini-quadrant panel is open by default (since there's nothing else to display)
+Same Name CTA wrap, same modals, same Completed card pattern
+After naming + defining, Continue returns the user to Step 8 (updated summary)
+
+
+Design tokens
+This section needs the cluster color tokens (new — flag them in your reply before adding):
+css--c1: #C9A24B;   /* cluster 1 = gold, same value as --gold */
+--c2: #5C9A6B;   /* cluster 2 = M2 green */
+--c3: #9B7CC2;   /* cluster 3 = M2 purple */
+Also likely needs (only add if no --na1-* equivalent exists):
+
+--gold-warm (gradient background tint for Completed card / Named anchor)
+--gold-soft (slightly stronger gold background tint)
+--gold-line (lighter gold border for non-keystone elements)
+--cyan / --cyan-soft / --cyan-line (Katherine voice card on Step 4)
+
+Same rule as before: flag any new token in your reply with name + value + reason before adding. Use existing --na1-* + --gold* first.
+Fonts: DM Sans (--na1-sans) for UI, Georgia (--na1-serif) for headings and italics. No Cormorant Garamond, no Inter, no Geist.
+
+State schema (extending what Section 2 shipped)
+state.mirror4 already has admire, irks, portrait from Section 2. This ship populates:
+
+state.mirror4.clusters — array of cluster objects (see Mirror4State type from Section 1's mirror4Constants.ts)
+Per-behavior inUseByCluster field gets activated (Section 2 planted it; this ship actually writes to it)
+state.mirror4.currentStep extends to values "read" | "v1" | "v2" | "v3" | "finish"
+
+All writes go through saveMirror4State(). Persistence inherits Section 2's architect fix (useEffect on state change, ref guard).
+
+Definition of done
+
+User completes Steps 1–3 from Section 2, advances to Step 4.
+Step 4 fires the Anthropic clustering call once. Console logs the request and response (for dev visibility).
+Step 4 renders Katherine's intro + cluster overview cards correctly.
+If Anthropic call fails (manually break it for testing — e.g. revoke a token temporarily), Step 4 still renders using the rule-based fallback. Console shows the warning.
+"Re-cluster from portrait" dev link wipes clusters and re-runs the call.
+Steps 5, 6, 7 render with correct cluster colors (V1=gold/c1, V2=green/c2, V3=purple/c3).
+Each per-value screen shows pre-filled behaviors with correct provenance chips.
++ Add from your portrait opens mini-quadrant; clicking a Lights or Warms chip adds the behavior and marks it .used.
+Switching to next value, previously-used chips appear .used (faded, strikethrough).
++ Add new behavior works — typed behavior added with NEW chip.
+Flips render with rule-based defaults. Accept adds to behaviors with FLIPPED chip. Skip removes the flip row.
+Naming stub modal opens, empty input disables Confirm, valid input enables Confirm, confirm closes modal.
+280ms beat, then Define stub modal auto-opens with the named value anchor at top.
+Define stub modal: empty textarea disables Confirm, valid input enables it, confirm closes modal and shows Completed card.
+Completed card shows name + definition + edit links. Click edit name reopens Naming stub with pre-filled value, confirming returns to per-value screen without re-opening Define. Click edit definition reopens Define stub with pre-filled value.
+Per-value Continue is disabled until both userName and userDefinition are non-empty.
+Step 8 summary shows all values with correct number-word grammar.
+Soft-min-3 prompt appears for <3 values, hidden for ≥3.
++ Add another value opens an empty per-value screen with mini-quadrant pre-opened. Cluster color cycles correctly (c1 → c2 → c3 → c1 → c2).
+Step 8 Continue closes the Discover overlay and opens the Behaviors room with its existing placeholder.
+All state persists on refresh. Refresh during per-value flow resumes at the same step (Ship 5.6c routing handles this).
+Anthropic clustering only runs once per user. Subsequent Step 4 visits show stored data, no fresh API call.
+
+
+DO NOT
+
+Build the real peel/Katherine modals. Stubs only. Section 3b replaces them.
+Add a new server endpoint for clustering. Client-side fetch only, reusing existing M1/M3 pattern.
+Add new database tables. State lives in state.mirror4.clusters in localStorage.
+Re-cluster on every Step 4 visit. One call per user, stored. Dev link is the only manual trigger.
+Auto-cycle cluster colors based on rank. Color is locked at creation order.
+Allow Continue from per-value screens without both userName and userDefinition set.
+Allow Confirm in stub modals with empty/whitespace input.
+Auto-open Define stub modal when reopening Naming via edit name from the Completed card. The 280ms auto-open is for first-creation flow only.
+Make the Anthropic "Katherine voice" cards auto-fetch beyond the single Step 4 call. There is no Ask Katherine chip in 3a — that's a 3b feature.
+Bundle in Operationalize / Rank / Claim work. Stop at Step 8 Continue → Behaviors room placeholder.
+Use Cormorant Garamond, Inter, or Geist anywhere.
+Modify Section 2's portrait UI. The inUseByCluster styling already works there from Section 2 — just write to the field from this ship.
+Add a hard maximum on values. Soft-min is 3, soft-max is 5 (mentioned in copy), but no enforcement gate — users can claim with 2 or 6.
+
+
+Reference: mockup Values_Mirror4_LiveTokens.html, demo nav buttons 4·Read, 5·V1, ↳ Name modal (visual reference only — real modal is for 3b), ↳ Define modal (same caveat), 6·V2, 7·V3, 8·Done.
+When you're done, deploy to dev, then reply with:
+
+(a) the dev URL,
+(b) any new design tokens added to :root with name + value + reason,
+(c) the line numbers in App.tsx where the Anthropic clustering call lives + which existing pattern you reused,
+(d) any deviations from spec and why,
+(e) confirmation that Sections 1, 2, and Ship 5.6c routing still work unchanged.
