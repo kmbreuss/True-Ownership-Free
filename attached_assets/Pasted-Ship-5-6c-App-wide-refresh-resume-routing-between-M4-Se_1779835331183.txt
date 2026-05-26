@@ -1,0 +1,109 @@
+Ship 5.6c · App-wide refresh-resume routing (between M4 Section 2 and Section 3a)
+Hi — Section 2 (Discover Room) is approved on dev. Before we move into Section 3a, we're shipping a small standalone routing fix: when a user refreshes the page anywhere in the app, they should land back exactly where they left off, not at a default view.
+This ship is routing only. No UI changes, no copy changes, no new components, no schema changes. The work is at the top-level view-routing layer.
+
+The problem (observed today)
+The app currently restores per-mirror sub-state on refresh (M4's currentStep is saved, M3 has its own persisted state, etc.) — but the top-level view state is not persisted. So a user who is mid-flow in M4 Discover Step 3, refreshes the page, ends up landed on whichever view the app's internal useState defaults to — typically the legacy grid or whatever view was first mounted in the session.
+The per-mirror state is preserved correctly. The user's data is not lost. But their place is lost — they have to navigate manually back to where they were.
+
+The rule
+On any refresh of the app:
+
+The user lands back at the same top-level view they were on (grid, m1, m2, m3, m4, etc.)
+If they were inside an open room overlay (e.g. M4 Discover overlay open at Step 3), the overlay re-opens to the same room
+If they were on a specific sub-step within an overlay (e.g. Step 3 Portrait inside Discover), the overlay opens to that step
+
+What we do NOT persist (out of scope):
+
+Mid-typed input text (the user re-types if they were typing when they refreshed)
+Modal-on-top-of-overlay state (e.g. Naming modal open inside Discover overlay) — modals always reopen closed
+Scroll position within a long screen — let the browser handle its own scroll restoration
+Veil/transition animation state — refreshing during a transition lands the user at the destination view, no replay
+
+
+What to build
+
+Add a top-level routing key to localStorage. Suggested key: to_app_route_v1. Schema:
+
+typescript   type AppRoute = {
+     view: "grid" | "m1" | "m2" | "m3" | "m4" | string;  // any value present in the view union
+     overlay: {
+       hubId: "m1" | "m2" | "m3" | "m4" | null;          // which mirror's hub owns the open overlay
+       roomId: string | null;                            // e.g. "discover", "behaviors", "rank", "claim" for m4
+     } | null;
+   };
+view records the current top-level view. overlay records which room overlay is open inside that view, if any. When no overlay is open, overlay: null.
+
+Persist on every change. Anywhere the app currently calls setView(...), also write the new view to to_app_route_v1. Anywhere a room overlay opens or closes, update the overlay field. Use the same useEffect-on-state-change pattern the architect applied to saveMirror4State (no synchronous writes during render). First-render ref guard to skip the initial mount write.
+Restore on mount. On app first load:
+
+Read to_app_route_v1.
+If absent or invalid JSON → fall back to current default behavior (no change).
+If valid:
+
+Set the top-level view to the saved view.
+If overlay is non-null, after the view mounts, open the matching room overlay programmatically. Suppress the veil animation on restore (the user expects to land somewhere, not watch a transition replay).
+
+
+Sub-step within an overlay is handled by the per-mirror state that already persists (e.g. state.mirror4.currentStep) — no new work needed there.
+
+
+Edge cases:
+
+If the saved view references a mirror that is now locked or completed-out (e.g. saved view is m4 but the user's M3 was reset and M4 should be locked again), fall back to the grid view. Don't crash.
+If the saved overlay.roomId references a room that no longer exists in that mirror's M*_ROOMS array, drop the overlay restore but keep the view restore.
+If the user is on the legacy (non-?newA1=1) grid, this routing should not interfere — only apply route restore when the user is in the new A1 flag environment.
+
+
+One small UX detail: when restoring an overlay on mount, skip the veil animation. The veil is meant to be a "ceremonial entry" beat — it's wrong to replay it on a passive refresh. Add a flag like suppressVeil to the overlay-open handler when called from restore.
+
+
+Definition of done
+
+Walk this scenario: visit /?newA1=1&newM4=1, click Begin Values, click Discover, advance to Step 3 Portrait. Refresh the page (Cmd+R or hard refresh).
+
+Expected: lands back on M4 Discover overlay at Step 3 Portrait. No veil replay. All previously entered behaviors still visible in the portrait quadrants.
+
+
+Walk this scenario: visit the M3 Identity hub (completed). Refresh.
+
+Expected: lands back on M3 Identity hub. (Existing M3 behavior should keep working — this fix should not regress M3.)
+
+
+Walk this scenario: visit the A1 grid (no overlay open, no mirror selected). Refresh.
+
+Expected: lands back on the A1 grid.
+
+
+Walk this scenario: visit M4 hub (no room overlay open). Refresh.
+
+Expected: lands back on M4 hub, no overlay open.
+
+
+Open dev tools → Application → Local Storage. Confirm to_app_route_v1 exists and updates as the user navigates.
+Strict Mode double-mount in dev does NOT cause double writes (the useEffect ref-guard pattern is in place).
+Manually clear to_app_route_v1 from localStorage and refresh. Expected: falls back gracefully to default view, no crash, no console errors.
+Manually corrupt to_app_route_v1 (set it to "not valid json") and refresh. Expected: falls back gracefully, no crash.
+
+
+DO NOT
+
+Add new database tables or server routes. This is purely client-side localStorage work.
+Modify any UI component except where strictly needed for the open-overlay-on-mount mechanic.
+Persist mid-typed input text, scroll position, or modal state. Out of scope.
+Change any copy, any visual styling, or any behavior other than mount-time restoration.
+Modify the per-mirror state modules (mirror3Constants.ts, mirror4Constants.ts, etc.) — those persist their own state already and are working. Don't refactor them.
+Build anything for M1 or M2 specifically. They use the same top-level view routing this fix touches; they get refresh-resume for free as a side-effect. Don't expand scope to "polish M1/M2 also."
+Replay veil animations on mount restoration. The user expects to land, not watch.
+Apply this when the legacy grid is in use (?newA1=1 not set). The legacy grid has its own behavior — leave it alone.
+Bundle in any Section 3a work, even if it looks like a natural extension. Next ship is 3a in its own brief.
+
+
+Reference
+No mockup for this — it's invisible infrastructure. The user experience after this ships should be: refresh anywhere, end up exactly where they were.
+When you're done, deploy to dev, then reply with:
+
+(a) the dev URL,
+(b) the localStorage key name you used (if you chose differently from to_app_route_v1),
+(c) any deviations from spec and why,
+(d) confirmation that M3 and the legacy grid still work unchanged.

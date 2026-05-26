@@ -32330,6 +32330,87 @@ function NewA2RoomPlaceholderBody({
   );
 }
 
+// ─── Ship 5.6c · App-wide refresh-resume routing ──────────────────────
+// Persists the top-level NewA1View `view` plus any open M3/M4 room
+// overlay to localStorage. On mount, restores both so a refresh lands
+// the user back at their last place (no veil replay).
+//
+// Scope (per spec):
+//   • Only applies inside the NEW_A1_FLAG surface (NewA1View is only
+//     mounted when ?newA1=1, so the persistence/restore is automatically
+//     gated by mount site).
+//   • Persists view + M3/M4 overlay roomId. M1/M2 exercise overlays
+//     get refresh-resume "for free" at the view level (explore /
+//     explore2) — specific exercise overlays inside them are
+//     intentionally NOT restored (spec: "don't expand scope to M1/M2").
+//   • No server changes, no schema changes to per-mirror state,
+//     no UI/copy changes.
+//
+// Failure modes: missing key, invalid JSON, unknown view, unknown
+// roomId — all fall back gracefully (overlay drops, view drops to
+// "grid", no throw).
+
+type AppRouteView = "grid" | "explore" | "explore2" | "m3" | "m4";
+type AppRouteOverlay = {
+  hubId: "m1" | "m2" | "m3" | "m4";
+  roomId: string;
+} | null;
+type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
+
+const APP_ROUTE_KEY = "to_app_route_v1";
+const APP_ROUTE_VIEWS: AppRouteView[] = [
+  "grid",
+  "explore",
+  "explore2",
+  "m3",
+  "m4",
+];
+
+function loadAppRoute(): AppRoute | null {
+  try {
+    const raw =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(APP_ROUTE_KEY)
+        : null;
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    const p = parsed as { view?: unknown; overlay?: unknown };
+    const view = p.view;
+    if (typeof view !== "string") return null;
+    if (!APP_ROUTE_VIEWS.includes(view as AppRouteView)) return null;
+    let overlay: AppRouteOverlay = null;
+    if (p.overlay && typeof p.overlay === "object") {
+      const ov = p.overlay as { hubId?: unknown; roomId?: unknown };
+      const hubId = ov.hubId;
+      const roomId = ov.roomId;
+      if (
+        (hubId === "m1" ||
+          hubId === "m2" ||
+          hubId === "m3" ||
+          hubId === "m4") &&
+        typeof roomId === "string" &&
+        roomId.length > 0
+      ) {
+        overlay = { hubId, roomId };
+      }
+    }
+    return { view: view as AppRouteView, overlay };
+  } catch {
+    return null;
+  }
+}
+
+function saveAppRoute(route: AppRoute): void {
+  try {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(APP_ROUTE_KEY, JSON.stringify(route));
+  } catch {
+    // localStorage may be unavailable (private mode, quota); failing
+    // silently is fine — restore just won't work next refresh.
+  }
+}
+
 function NewA1View({ name }: { name?: string }) {
   // Ship 5.5e · Personalization · resolve the display name with the
   // canonical intake → auth fallback. The legacy A1 wrapper only forwards
@@ -32337,21 +32418,109 @@ function NewA1View({ name }: { name?: string }) {
   // other downstream consumer of `name`) would skip the auth fallback.
   const { user: authUser } = useAuth();
   const resolvedName = resolveDisplayName(name, authUser) ?? "";
-  const [view, setView] = useState<"grid" | "explore" | "explore2" | "m3" | "m4">(
+  // Ship 5.6c · refresh-resume routing. Read the saved route once
+  // synchronously so the initial render lands on the right view.
+  // The overlay portion is held in a ref and consumed by the M3/M4
+  // containers via `initialRoomKey`.
+  const savedRouteRef = useRef<AppRoute | null>(loadAppRoute());
+  const [view, setView] = useState<AppRouteView>(
     () => {
+      const saved = savedRouteRef.current;
+      // Eligibility check for restoring m3/m4 — per spec, fall back to
+      // "grid" when the saved view references a mirror that's no longer
+      // valid (e.g., M3 was reset → no pickedGifts, M4 has no state blob).
+      const hasM3Progress = (() => {
+        try {
+          const m = (loadDataSync(KEYS.map) as any) || {};
+          const picked = m?.mirror3?.pickedGifts;
+          return Array.isArray(picked) && picked.length > 0;
+        } catch {
+          return false;
+        }
+      })();
+      const hasM4State = (() => {
+        try {
+          return hasMirror4State();
+        } catch {
+          return false;
+        }
+      })();
+      if (saved) {
+        if (saved.view === "m3" && !hasM3Progress) return "grid";
+        if (saved.view === "m4" && !hasM4State) return "grid";
+        return saved.view;
+      }
       // Auto-resume into M3 ONLY if the user has real M3 progress
       // (pickedGifts.length > 0). The ?newM3=1 / localStorage flag enables
       // M3 (unlocks the grid card + wires the Vision-seal Continue button)
       // but must NOT force-route past the mirror grid on every page load —
       // otherwise a flagged user can never see Mirrors 1/2 or the grid.
-      try {
-        const m = (loadDataSync(KEYS.map) as any) || {};
-        const picked = m?.mirror3?.pickedGifts;
-        if (Array.isArray(picked) && picked.length > 0) return "m3";
-      } catch {}
+      if (hasM3Progress) return "m3";
       return "grid";
     },
   );
+  // Tracks the currently open M3/M4 room overlay for persistence.
+  // M1/M2 (explore/explore2) overlay restoration is out of scope —
+  // their per-view restoration falls out naturally from `view` alone.
+  const [overlayRoute, setOverlayRoute] = useState<AppRouteOverlay>(() => {
+    const saved = savedRouteRef.current;
+    if (!saved || !saved.overlay) return null;
+    if (saved.overlay.hubId === "m3" || saved.overlay.hubId === "m4") {
+      // Only restore the overlay if the saved hub matches the saved view.
+      if (saved.view === saved.overlay.hubId) return saved.overlay;
+    }
+    return null;
+  });
+  // One-shot consumption of the saved overlay roomId — handed to the
+  // M3/M4 container on its first mount, then nulled so subsequent
+  // remounts (after going back to grid and re-entering) start fresh.
+  const initialM3RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "m3" ? overlayRoute.roomId : null,
+  );
+  const initialM4RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "m4" ? overlayRoute.roomId : null,
+  );
+  // Persist route changes. useEffect (not in setter) avoids Strict
+  // Mode double-writes per the pattern established in Ship 5.6b.
+  const firstRoutePersistRef = useRef(true);
+  useEffect(() => {
+    if (firstRoutePersistRef.current) {
+      firstRoutePersistRef.current = false;
+      return;
+    }
+    saveAppRoute({ view, overlay: overlayRoute });
+  }, [view, overlayRoute]);
+  // When the user leaves m3/m4, the overlay no longer applies.
+  useEffect(() => {
+    if (view !== "m3" && view !== "m4" && overlayRoute != null) {
+      setOverlayRoute(null);
+    }
+  }, [view, overlayRoute]);
+  // Handlers passed to M3/M4 containers — they report their open
+  // room as it changes; we record it as the overlay portion of the
+  // route. `null` means no overlay is open. Uses functional setter
+  // with structural equality so mount-time callbacks (and Strict
+  // Mode double-mount) don't trigger redundant persists.
+  const onM3RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "m3", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  const onM4RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "m4", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
   const [openEx, setOpenEx] = useState<NA1Exercise | null>(null);
   const [openM2Ex, setOpenM2Ex] = useState<M2Exercise | null>(null);
   const [roomOpen, setRoomOpen] = useState(false);
@@ -32602,11 +32771,29 @@ function NewA1View({ name }: { name?: string }) {
     );
   }
   if (view === "m3") {
-    return <NewA1M3Container onBackToGrid={() => setView("grid")} />;
+    // True one-shot: capture, then null the ref so re-entering M3
+    // later in the session (after going back to grid) starts fresh.
+    const initialKey = initialM3RoomKeyRef.current;
+    initialM3RoomKeyRef.current = null;
+    return (
+      <NewA1M3Container
+        onBackToGrid={() => setView("grid")}
+        initialRoomKey={initialKey}
+        onRoomChange={onM3RoomChange}
+      />
+    );
   }
   // Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
   if (view === "m4") {
-    return <NewA1M4Container onBackToGrid={() => setView("grid")} />;
+    const initialKey = initialM4RoomKeyRef.current;
+    initialM4RoomKeyRef.current = null;
+    return (
+      <NewA1M4Container
+        onBackToGrid={() => setView("grid")}
+        initialRoomKey={initialKey}
+        onRoomChange={onM4RoomChange}
+      />
+    );
   }
   return (
     <NewA1Grid
@@ -33512,12 +33699,31 @@ function NewA1M3OwnItView({
 // veil then dismiss back to the hub (no body mounts).
 function NewA1M3Container({
   onBackToGrid,
+  initialRoomKey,
+  onRoomChange,
 }: {
   onBackToGrid: () => void;
+  initialRoomKey?: string | null;
+  onRoomChange?: (roomId: string | null) => void;
 }) {
-  const [openRoom, setOpenRoom] = useState<M3Room | null>(null);
-  const [roomOpen, setRoomOpen] = useState(false);
+  // Ship 5.6c · refresh-resume. Mirror the M4 container pattern: if
+  // an initialRoomKey is handed in, open that room directly with no
+  // veil. Rooms whose body isn't shipped are skipped.
+  const initialRoom: M3Room | null = (() => {
+    if (!initialRoomKey) return null;
+    const r = M3_ROOMS.find((r) => r.key === initialRoomKey);
+    return r && r.bodyShipped ? r : null;
+  })();
+  const [openRoom, setOpenRoom] = useState<M3Room | null>(initialRoom);
+  const [roomOpen, setRoomOpen] = useState<boolean>(initialRoom != null);
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
+
+  // Report overlay open/close to the parent (Ship 5.6c).
+  useEffect(() => {
+    if (onRoomChange) {
+      onRoomChange(roomOpen && openRoom ? openRoom.key : null);
+    }
+  }, [roomOpen, openRoom, onRoomChange]);
   const timeoutsRef = useRef<number[]>([]);
   // Bump on each room close so the hub re-reads mirror3 state and
   // refreshes the Complete/Up-next labels (mirrors the M2 hub pattern).
@@ -34612,13 +34818,36 @@ function M4StepSection3Placeholder() {
 
 function NewA1M4Container({
   onBackToGrid,
+  initialRoomKey,
+  onRoomChange,
 }: {
   onBackToGrid: () => void;
+  initialRoomKey?: string | null;
+  onRoomChange?: (roomId: string | null) => void;
 }) {
-  const [openRoom, setOpenRoom] = useState<M4Room | null>(null);
-  const [roomOpen, setRoomOpen] = useState(false);
+  // Ship 5.6c · refresh-resume. If an initialRoomKey is handed in,
+  // resolve it against M4_ROOMS and open the room directly (no veil,
+  // no transition). bodyShipped:false rooms are skipped — restoring
+  // into a locked room would leave the hub dimmed with no shell.
+  const initialRoom: M4Room | null = (() => {
+    if (!initialRoomKey) return null;
+    const r = M4_ROOMS.find((r) => r.key === initialRoomKey);
+    return r && r.bodyShipped ? r : null;
+  })();
+  const [openRoom, setOpenRoom] = useState<M4Room | null>(initialRoom);
+  const [roomOpen, setRoomOpen] = useState<boolean>(initialRoom != null);
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
+
+  // Report overlay open/close to the parent so the route can persist.
+  // Only fires when the room is actually open (roomOpen=true), so the
+  // brief launchRoom window where openRoom is set but roomOpen is still
+  // false doesn't get persisted.
+  useEffect(() => {
+    if (onRoomChange) {
+      onRoomChange(roomOpen && openRoom ? openRoom.key : null);
+    }
+  }, [roomOpen, openRoom, onRoomChange]);
 
   // Ship 5.6a · seed EMPTY_MIRROR4 to localStorage on first-ever hub
   // mount so state.mirror4 schema exists per spec ("Initialize empty
