@@ -1,0 +1,122 @@
+Here's the Section 2 brief. Two parts — Part A is the polish (the three copy fixes), Part B is the actual Section 2 build. One ship, two visible deliverables. Copy the entire block below (everything between the bold separators) into Replit Agent.
+
+Ship 5.6b · Mirror 4 Section 2 · Room 1 Steps 1–3 (Admire / Irks / Portrait) + Section 1 polish
+Hi — Section 1 is approved on dev. This ship has two parts: three small copy fixes from Section 1 (bundled here so we don't burn a separate ship on them), then the real Section 2 work.
+
+Part A · Section 1 polish (do these first, ~5 minutes)
+Three copy/label changes in NewA1M4Container and M4_ROOMS:
+
+Room rename: "Operationalize" → "Behaviors" everywhere user-facing.
+
+Hub room card label (currently "Operationalize") → "Behaviors"
+Locked-status string on the Rank room (currently "Unlocks after Operationalize") → "Unlocks after Behaviors"
+Any breadcrumb / status string elsewhere that references "Operationalize" → "Behaviors"
+DO NOT rename the internal state key state.mirror4.operationalize. Internal keys stay as shipped in Section 1 — the schema is in production, no migration. Only display strings change.
+
+
+Hub subtitle fix. Currently reads Three rooms. At least three values. One decision filter. — both numbers are wrong (there are four rooms, and 3–5 values is the rule). Change to:
+Four rooms. Three to five values. One decision filter.
+Verify the renames don't break the hub card on A1 grid or the locked-room veil-fallback behavior. The Behaviors / Rank / Claim rooms should still veil-fallback to hub on click (their bodyShipped: false flag stays false until their respective ship).
+
+Deploy and verify Part A works (hub renders with "Behaviors" label and the new subtitle) before starting Part B.
+
+Part B · Section 2 · Room 1 Steps 1–3 (Admire / Irks / Portrait)
+This is the data-collection part of Discover. The user enters behaviors they admire and behaviors that irritate them, then sees them sorted into a 2×2 portrait. No clustering yet, no values yet — just raw behavior collection. Step 4 (Katherine's Read + clustering) is the next ship, not this one.
+Reference mockup: Values_Mirror4_LiveTokens.html — demo nav buttons 1·Admire, 2·Irks, 3·Portrait. Open the mockup and walk those three screens before you start coding so the layout, intensity buttons, and quadrant grid are clear.
+
+What to build (verbatim from the plan):
+
+Discover room overlay — replaces the "Coming in Section 2" placeholder Section 1 shipped.
+Overlay shell: breadcrumb top-left (Values › Discover), close × top-right, gold-bordered card, max-width 720px. Reuse the M3 overlay open/close pattern + veil sequence. Discover's bodyShipped flag flips to true.
+Three sequential sub-screens inside the overlay, navigated via Continue / Back buttons in the foot.
+
+Step 1 · Admire:
+
+Eyebrow: Mirror 4 · Step 1 of 8 · Admire
+Title: What behaviors do you admire?
+Subtitle: In yourself or in others. Don't overthink — the first thing that comes up is usually the truest.
+Live legend at top: two intensity pips (★ Lights me up — strong / Warms me — softer)
+Input row: placeholder A behavior comes to mind… + optional + tag a person chip
+After user types, two intensity buttons appear: ★ Lights me up (deep gold) and Warms me (soft gold)
+Click intensity → behavior added to list below with proper pip + tag chip + × delete
+Counter line: N behaviors so far
+Continue → Step 2. Back is disabled on Step 1 (it's the first step).
+
+Step 2 · Irks:
+
+Eyebrow: Mirror 4 · Step 2 of 8 · Irks
+Title: What behaviors don't you admire?
+Subtitle: The blood-boil. In yourself or in others. What irritates you most often points to what you refuse to compromise on yourself.
+Live legend with burgundy pips (Bothers me — daily friction / ⚡ Turns my stomach — gut reaction)
+Same input mechanics as Step 1, burgundy intensity buttons
+Back → Step 1 (preserves admire data)
+Continue → Step 3
+
+Step 3 · Portrait:
+
+Eyebrow: Mirror 4 · Step 3 of 8 · Portrait
+Title: Your behavior portrait
+Subtitle: Here's what you put down — sorted as you tagged it. Drag between tiers, delete, or add more before we look for values underneath.
+2×2 quadrant grid showing all behaviors organized by tier (Lights · Warms · Bothers · Turns)
+Each quadrant: tier label + + add link + list of behaviors as chips
+Each chip carries an inUseByCluster field (default null). When non-null, chip renders with .used styling (faded, strikethrough). The field exists now even though nothing assigns to it yet — Section 3a will use it.
+Drag between tiers reassigns intensity (updates the source behavior's intensity field).
+× delete removes behavior. If the behavior is inUseByCluster !== null, show a confirm: This behavior is being used in [Value Name]. Delete anyway? (Won't fire yet since nothing assigns the flag — but build the guard now since the data field is here.)
+Hint line at bottom: ↕ drag between tiers · × delete · + add more
+Continue → Step 4 placeholder (Coming in Section 3 — same pattern as Section 1's Discover placeholder, but for step 4 inside the Discover overlay)
+
+State persistence:
+
+All state writes to state.mirror4.admire, .irks, .portrait via the existing saveMirror4State() helper (the one from Section 1's mirror4Constants.ts).
+ID prefixes: ad- for admire behaviors, ir- for irks behaviors. IDs are stable (use a counter or short hash).
+The portrait object stores arrays of behavior IDs per tier, not the behavior data itself — behaviors live once in admire / irks and are referenced by ID.
+
+Transitions:
+
+Step transitions animate (fadeIn 250ms ease-out for .screen.active)
+
+
+Design tokens — same rule as Section 1.
+Use the existing --na1-* system + --gold / --gold-glow / --warm. If a mockup color genuinely has no --na1-* equivalent, flag it in your reply with the new token name + value + the place you're adding it to :root before adding. Don't silently introduce tokens.
+Section 2 likely needs these (just my best guess — you'll find the real list as you build):
+
+Burgundy family for the Irks intensity buttons and pips — possibly --burgundy, --burgundy-soft, --burgundy-line. Use existing burgundy tokens if any exist; flag new ones if not.
+The Portrait quadrant tile styling probably reuses existing --na1-bg-soft + gold/burgundy accents. Same rule.
+
+
+Definition of done:
+
+User clicks Discover on the M4 hub → real overlay opens (no placeholder).
+Step 1: enter at least 1 admire behavior, tag intensity, see it persist when refreshing.
+Step 2: enter at least 1 irks behavior, tag intensity, see it persist.
+Step 3 portrait: all entered behaviors render in correct quadrants.
+Drag between tiers works (touch on mobile, drag on desktop).
+× delete works.
++ add per quadrant lets user add a behavior without going back to Step 1/2.
+Refresh page mid-flow — all behaviors persist, user lands back where they were (Step 1, 2, or 3).
+Step 4 click shows Coming in Section 3 placeholder.
+Portrait chips render with .used styling when their inUseByCluster field is non-null (smoke-test: in dev console, set the field manually on one behavior ID, verify the chip styles correctly).
+Part A polish still works: hub shows "Behaviors" room label, subtitle reads "Four rooms. Three to five values. One decision filter."
+
+
+DO NOT:
+
+Build Step 4 cluster overview (Section 3a).
+Build per-value screens or modals (Section 3a/3b).
+Allow Continue to advance past Step 4 placeholder.
+Auto-cluster behaviors at the end of Step 3. The clustering call is Step 4's job, which lands in Section 3a.
+Add a hard minimum behavior count. Katherine doesn't gatekeep behavior entry — Continue works at zero behaviors if the user really wants. The flow should encourage but not block.
+Rename the internal state key state.mirror4.operationalize. Display label changed in Part A; internal schema is locked.
+Add new server endpoints, new database tables, new auth flows. Section 2 is purely client-side state work.
+Add new font loads. Use --na1-sans (DM Sans) and --na1-serif (Georgia) only.
+Use Cormorant Garamond, Inter, or Geist anywhere.
+Bundle in any Section 3a work, even if it looks like a small addition. The next ship is 3a in its own brief.
+
+
+Reference: mockup file Values_Mirror4_LiveTokens.html, demo nav buttons 1·Admire, 2·Irks, 3·Portrait.
+When you're done, deploy to dev, then reply with:
+
+(a) confirmation Part A polish landed (hub now shows "Behaviors" + new subtitle),
+(b) the dev URL to walk Section 2,
+(c) any deviations from spec and why,
+(d) any new design tokens added to :root, with name + value + reason.

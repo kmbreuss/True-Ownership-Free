@@ -25,6 +25,24 @@ export type M4Step =
 
 export type M4Status = "not_started" | "in_progress" | "complete";
 
+// Ship 5.6b · Section 2 · Behavior schema
+// Each admire / irks entry is a stable-ID record. IDs use prefix
+// "ad-" / "ir-" to mark origin; once dragged across tier they keep
+// their original ID even if they move from admire→irks (spec: IDs
+// are stable). `inUseByCluster` is reserved for Section 3a — until
+// then the field is always null. Section 3a guards against deleting
+// an in-use behavior; portrait chips render with .used styling when
+// non-null.
+export type M4BehaviorTier = "lights" | "warms" | "bothers" | "turns";
+
+export type M4Behavior = {
+  id: string;
+  text: string;
+  person?: string;
+  tier: M4BehaviorTier;
+  inUseByCluster: string | null;
+};
+
 export type M4Portrait = {
   lights: string[];
   warms: string[];
@@ -42,8 +60,8 @@ export type M4PressureTest = {
 export type Mirror4State = {
   status: M4Status;
   currentStep: M4Step;
-  admire: unknown[];
-  irks: unknown[];
+  admire: M4Behavior[];
+  irks: M4Behavior[];
   portrait: M4Portrait;
   clusters: unknown[];
   operationalize: Record<string, unknown>;
@@ -92,9 +110,12 @@ export const M4_ROOMS: ReadonlyArray<{
     bodyShipped: true,
   },
   {
+    // Ship 5.6b · Part A polish: user-facing label is "Behaviors".
+    // Internal key stays "operationalize" so state.mirror4.operationalize
+    // remains stable (schema in production, no migration).
     n: 2,
     key: "operationalize",
-    name: "Operationalize",
+    name: "Behaviors",
     tone: "yellow",
     threshold: "Naming the behaviors…",
     bodyShipped: false,
@@ -152,3 +173,139 @@ export function hasMirror4State(): boolean {
     return false;
   }
 }
+
+// ─── Ship 5.6b · Section 2 · Behavior helpers ───
+// Tier → which array (admire vs irks) it lives in. Light/warm tiers
+// live in `admire`; bothers/turns in `irks`. Used by addBehavior and
+// changeBehaviorTier to keep arrays consistent when the user drags a
+// chip between quadrants.
+export function tierKind(tier: M4BehaviorTier): "admire" | "irks" {
+  return tier === "lights" || tier === "warms" ? "admire" : "irks";
+}
+
+// Stable next ID. Walks ALL existing behaviors (both arrays) to find
+// the highest numeric suffix for the requested prefix and returns
+// `${prefix}${max+1}`. Tolerates malformed legacy IDs (skips them).
+export function nextBehaviorId(
+  state: Mirror4State,
+  kind: "admire" | "irks",
+): string {
+  const prefix = kind === "admire" ? "ad-" : "ir-";
+  const all = [...state.admire, ...state.irks];
+  let max = 0;
+  for (const b of all) {
+    if (!b.id.startsWith(prefix)) continue;
+    const n = parseInt(b.id.slice(prefix.length), 10);
+    if (!Number.isNaN(n) && n > max) max = n;
+  }
+  return `${prefix}${max + 1}`;
+}
+
+// Rebuild the portrait index from the canonical behavior arrays.
+// Source of truth is `behavior.tier` on each entry in admire/irks;
+// portrait is a derived index of IDs grouped by tier (spec: portrait
+// stores arrays of behavior IDs per tier, behaviors live once and
+// are referenced by ID). Called after every mutation.
+export function rebuildPortrait(state: Mirror4State): M4Portrait {
+  const portrait: M4Portrait = {
+    lights: [],
+    warms: [],
+    bothers: [],
+    turns: [],
+  };
+  for (const b of [...state.admire, ...state.irks]) {
+    portrait[b.tier].push(b.id);
+  }
+  return portrait;
+}
+
+export function addBehavior(
+  state: Mirror4State,
+  kind: "admire" | "irks",
+  text: string,
+  tier: M4BehaviorTier,
+  person?: string,
+): Mirror4State {
+  const id = nextBehaviorId(state, kind);
+  const b: M4Behavior = {
+    id,
+    text: text.trim(),
+    tier,
+    inUseByCluster: null,
+  };
+  const p = person?.trim();
+  if (p) b.person = p;
+  const next: Mirror4State = {
+    ...state,
+    admire: kind === "admire" ? [...state.admire, b] : state.admire,
+    irks: kind === "irks" ? [...state.irks, b] : state.irks,
+  };
+  next.portrait = rebuildPortrait(next);
+  return next;
+}
+
+export function deleteBehavior(
+  state: Mirror4State,
+  id: string,
+): Mirror4State {
+  const next: Mirror4State = {
+    ...state,
+    admire: state.admire.filter((b) => b.id !== id),
+    irks: state.irks.filter((b) => b.id !== id),
+  };
+  next.portrait = rebuildPortrait(next);
+  return next;
+}
+
+// Move a behavior to a new tier. If the tier change crosses the
+// admire/irks boundary (e.g. lights → bothers), the behavior moves
+// to the other array while keeping its original ID (spec: IDs are
+// stable). Same-tier calls are no-ops.
+export function changeBehaviorTier(
+  state: Mirror4State,
+  id: string,
+  newTier: M4BehaviorTier,
+): Mirror4State {
+  const existing =
+    state.admire.find((b) => b.id === id) ??
+    state.irks.find((b) => b.id === id);
+  if (!existing || existing.tier === newTier) return state;
+  const updated: M4Behavior = { ...existing, tier: newTier };
+  const stripped: Mirror4State = {
+    ...state,
+    admire: state.admire.filter((b) => b.id !== id),
+    irks: state.irks.filter((b) => b.id !== id),
+  };
+  const newKind = tierKind(newTier);
+  const next: Mirror4State = {
+    ...stripped,
+    admire: newKind === "admire" ? [...stripped.admire, updated] : stripped.admire,
+    irks: newKind === "irks" ? [...stripped.irks, updated] : stripped.irks,
+  };
+  next.portrait = rebuildPortrait(next);
+  return next;
+}
+
+export function findBehavior(
+  state: Mirror4State,
+  id: string,
+): M4Behavior | undefined {
+  return (
+    state.admire.find((b) => b.id === id) ??
+    state.irks.find((b) => b.id === id)
+  );
+}
+
+export const M4_TIER_LABEL: Record<M4BehaviorTier, string> = {
+  lights: "Lights me up",
+  warms: "Warms me",
+  bothers: "Bothers me",
+  turns: "Turns my stomach",
+};
+
+export const M4_TIER_ICON: Record<M4BehaviorTier, string> = {
+  lights: "★ ",
+  warms: "",
+  bothers: "",
+  turns: "⚡ ",
+};

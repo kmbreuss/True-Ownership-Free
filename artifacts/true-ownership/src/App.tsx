@@ -75,12 +75,24 @@ import {
   type Pronoun,
 } from "./mirror3Constants";
 // Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
+// Ship 5.6b · Mirror 4 · Values · Section 2 (Discover Room 1) adds the
+// behavior helpers + types.
 import {
   M4_ROOMS,
   EMPTY_MIRROR4,
   hasMirror4State,
+  loadMirror4State,
   saveMirror4State,
+  addBehavior as m4AddBehavior,
+  deleteBehavior as m4DeleteBehavior,
+  changeBehaviorTier as m4ChangeBehaviorTier,
+  findBehavior as m4FindBehavior,
+  M4_TIER_LABEL,
+  M4_TIER_ICON,
   type M4RoomKey,
+  type Mirror4State,
+  type M4Behavior,
+  type M4BehaviorTier,
 } from "./mirror4Constants";
 const KEYS = {
   map: "to_map",
@@ -1565,6 +1577,115 @@ html[data-theme="light"]{
   .m3-under-arrow{ transform:rotate(90deg); }
   .m3-under-shadow-bin{ justify-content:center; }
 }
+
+/* ─── Ship 5.6b · Mirror 4 · Discover (Room 1) · Steps 1–3 ──────────────
+ * Admire / Irks / Portrait sub-screens. All tokens are existing
+ * --na1-* + --gold*/--burgundy* per owner approval (zero new tokens).
+ * Layout: body content + sticky foot inside .na1-room-card scroll.
+ * Foot uses negative margin to absorb the card's bottom padding.
+ * ──────────────────────────────────────────────────────────────────── */
+.na1-m4-disc{ display:flex; flex-direction:column; min-height:420px; }
+.na1-m4-disc-content{ flex:1; padding:8px 6px 20px; animation:na1-m4-fade 250ms ease-out; }
+@keyframes na1-m4-fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+.na1-m4-disc-foot{ position:sticky; bottom:-40px; margin:24px -24px -40px; padding:18px 24px 28px; background:var(--na1-bg-card); border-top:1px solid var(--na1-border); display:flex; align-items:center; justify-content:space-between; gap:12px; }
+@media (max-width:600px){ .na1-m4-disc-foot{ margin:20px -16px -24px; padding:14px 16px 20px; } }
+.na1-m4-back{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:13px; font-weight:500; cursor:pointer; padding:8px 4px; }
+.na1-m4-back:hover{ color:var(--na1-text); }
+.na1-m4-back:disabled{ opacity:.3; cursor:not-allowed; }
+.na1-m4-continue{ background:var(--gold); color:#1a1407; border:none; padding:11px 22px; border-radius:100px; font-size:14px; cursor:pointer; font-family:var(--na1-sans); letter-spacing:.02em; font-weight:600; transition:filter .15s; }
+.na1-m4-continue:hover:not(:disabled){ filter:brightness(1.08); }
+.na1-m4-continue:disabled{ opacity:.4; cursor:not-allowed; background:var(--gold-soft); color:var(--gold); }
+
+.na1-m4-step-eyebrow{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.2em; color:var(--gold); margin:0 0 14px; font-weight:700; text-transform:uppercase; text-align:center; }
+.na1-m4-step-title{ font-family:var(--na1-serif); font-size:30px; font-weight:600; line-height:1.2; margin:0 0 10px; color:var(--na1-text); text-align:center; }
+.na1-m4-step-sub{ font-family:var(--na1-serif); font-style:italic; font-size:16px; color:var(--na1-text-sec); line-height:1.55; margin:0 auto 22px; max-width:560px; font-weight:400; text-align:center; }
+
+.na1-m4-legend{ display:flex; justify-content:center; gap:18px; margin-bottom:22px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); flex-wrap:wrap; font-weight:500; }
+.na1-m4-legend-pill{ display:inline-flex; align-items:center; gap:6px; }
+.na1-m4-pip{ width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0; }
+.na1-m4-pip.lights{ background:var(--gold); }
+.na1-m4-pip.warms{ background:var(--gold); opacity:.55; }
+.na1-m4-pip.bothers{ background:var(--burgundy); opacity:.55; }
+.na1-m4-pip.turns{ background:var(--burgundy); }
+
+.na1-m4-input-row{ display:flex; align-items:stretch; gap:8px; background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:10px; padding:11px 14px; margin-bottom:14px; transition:border-color .15s; }
+.na1-m4-input-row:focus-within{ border-color:var(--gold-line); }
+.na1-m4-input{ flex:1; background:transparent; border:none; color:var(--na1-text); font-size:14px; outline:none; font-family:var(--na1-sans); font-weight:400; }
+.na1-m4-input::placeholder{ color:var(--na1-text-mute); font-style:italic; font-family:var(--na1-serif); }
+.na1-m4-tag-person{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.04em; color:var(--na1-text-mute); border:1px dashed var(--na1-border); padding:5px 10px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; background:transparent; font-weight:400; }
+.na1-m4-tag-person:hover{ color:var(--na1-text-sec); border-color:var(--na1-text-mute); }
+.na1-m4-tag-person-input{ width:80px; border:none; background:transparent; color:var(--na1-text); font-family:var(--na1-sans); font-size:11px; margin-left:4px; outline:none; }
+
+.na1-m4-intensity{ display:flex; gap:8px; margin-bottom:18px; padding-left:4px; align-items:center; flex-wrap:wrap; animation:na1-m4-fade 180ms ease-out; }
+.na1-m4-intensity-label{ font-family:var(--na1-serif); font-size:13px; color:var(--na1-text-mute); font-style:italic; margin-right:4px; }
+.na1-m4-int-btn{ background:transparent; border:1.5px solid var(--gold-line); color:var(--gold); padding:7px 14px; border-radius:100px; font-size:13px; cursor:pointer; font-family:var(--na1-sans); font-weight:600; letter-spacing:.02em; display:inline-flex; align-items:center; gap:5px; transition:filter .15s, background .15s; }
+.na1-m4-int-btn.deep{ border-color:var(--gold); background:var(--gold); color:#1a1407; }
+.na1-m4-int-btn.deep:hover{ filter:brightness(1.08); }
+.na1-m4-int-btn.soft:hover{ background:var(--gold-soft); }
+.na1-m4-int-btn.b-deep{ border-color:var(--burgundy); background:var(--burgundy); color:#fff; }
+.na1-m4-int-btn.b-deep:hover{ filter:brightness(1.08); }
+.na1-m4-int-btn.b-soft{ border-color:var(--burgundy-line); color:var(--burgundy); }
+.na1-m4-int-btn.b-soft:hover{ background:var(--burgundy-soft); }
+
+.na1-m4-blist{ margin-bottom:18px; min-height:30px; display:flex; flex-direction:column; gap:6px; }
+.na1-m4-bul{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:8px; font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text); line-height:1.4; }
+.na1-m4-bul .na1-m4-pip{ width:8px; height:8px; flex-shrink:0; }
+.na1-m4-bul-text{ flex:1; font-weight:400; }
+.na1-m4-bul-person{ font-family:var(--na1-serif); font-style:italic; font-size:12px; color:var(--na1-text-mute); }
+.na1-m4-bul-tag{ font-family:var(--na1-sans); font-size:9.5px; letter-spacing:.1em; padding:3px 9px; border-radius:100px; text-transform:uppercase; font-weight:600; white-space:nowrap; }
+.na1-m4-bul-tag.lights{ background:var(--gold); color:#1a1407; }
+.na1-m4-bul-tag.warms{ background:var(--gold-soft); color:var(--gold); border:1px solid var(--gold-line); }
+.na1-m4-bul-tag.bothers{ background:var(--burgundy-soft); color:var(--burgundy); border:1px solid var(--burgundy-line); }
+.na1-m4-bul-tag.turns{ background:var(--burgundy); color:#fff; }
+.na1-m4-bul-x{ color:var(--na1-text-mute); font-size:16px; cursor:pointer; background:none; border:none; font-family:var(--na1-sans); padding:0 4px; line-height:1; }
+.na1-m4-bul-x:hover{ color:var(--burgundy); }
+
+.na1-m4-counter{ text-align:center; font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin-top:6px; }
+
+.na1-m4-quad-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+@media (max-width:600px){ .na1-m4-quad-wrap{ grid-template-columns:1fr; } }
+.na1-m4-quad{ background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:12px; padding:14px; min-height:140px; transition:border-color .15s, background .15s; }
+.na1-m4-quad.lights{ border-color:var(--gold); background:var(--gold-warm); }
+.na1-m4-quad.warms{ border-color:var(--gold-line); background:var(--gold-soft); }
+.na1-m4-quad.bothers{ border-color:var(--burgundy-line); background:var(--burgundy-soft); }
+.na1-m4-quad.turns{ border-color:var(--burgundy); background:rgba(179,77,82,0.12); }
+.na1-m4-quad.is-drop-target{ outline:2px dashed var(--gold); outline-offset:-2px; }
+.na1-m4-quad-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.na1-m4-quad-label{ font-family:var(--na1-sans); font-size:10px; letter-spacing:.16em; font-weight:700; text-transform:uppercase; }
+.na1-m4-quad.lights .na1-m4-quad-label, .na1-m4-quad.warms .na1-m4-quad-label{ color:var(--gold); }
+.na1-m4-quad.bothers .na1-m4-quad-label, .na1-m4-quad.turns .na1-m4-quad-label{ color:var(--burgundy); }
+.na1-m4-quad-add{ font-family:var(--na1-sans); font-size:10px; letter-spacing:.04em; color:var(--na1-text-mute); cursor:pointer; background:none; border:none; font-weight:500; padding:2px 6px; }
+.na1-m4-quad-add:hover{ color:var(--na1-text-sec); }
+.na1-m4-qbul-list{ display:flex; flex-direction:column; gap:4px; }
+.na1-m4-qbul{ display:flex; align-items:center; gap:6px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text); padding:6px 10px; background:rgba(255,255,255,0.04); border-radius:6px; line-height:1.4; cursor:grab; user-select:none; touch-action:none; }
+.na1-m4-qbul:active{ cursor:grabbing; }
+.na1-m4-qbul.is-dragging{ opacity:.45; }
+.na1-m4-qbul.is-used{ opacity:.45; text-decoration:line-through; cursor:not-allowed; }
+.na1-m4-qb-text{ flex:1; }
+.na1-m4-qb-person{ font-family:var(--na1-serif); font-style:italic; font-size:11px; color:var(--na1-text-mute); }
+.na1-m4-qb-move{ background:none; border:none; color:var(--na1-text-mute); font-size:13px; cursor:pointer; padding:0 4px; line-height:1; }
+.na1-m4-qb-move:hover{ color:var(--na1-text); }
+.na1-m4-qb-x{ color:var(--na1-text-mute); font-size:13px; cursor:pointer; background:none; border:none; padding:0 4px; line-height:1; }
+.na1-m4-qb-x:hover{ color:var(--burgundy); }
+.na1-m4-quad-empty{ font-family:var(--na1-serif); font-style:italic; font-size:12px; color:var(--na1-text-mute); padding:6px 4px; }
+.na1-m4-quad-inline-add{ display:flex; gap:6px; margin-top:6px; }
+.na1-m4-quad-inline-input{ flex:1; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:6px; padding:6px 10px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text); outline:none; }
+.na1-m4-quad-inline-input:focus{ border-color:var(--gold-line); }
+.na1-m4-quad-inline-go{ background:var(--gold); color:#1a1407; border:none; border-radius:6px; padding:4px 10px; font-family:var(--na1-sans); font-size:11px; font-weight:600; cursor:pointer; }
+
+.na1-m4-quad-move-menu{ position:absolute; z-index:50; background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:10px; padding:6px; box-shadow:0 8px 24px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:2px; min-width:160px; }
+.na1-m4-quad-move-item{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:12px; padding:6px 10px; cursor:pointer; text-align:left; border-radius:6px; display:flex; align-items:center; gap:8px; }
+.na1-m4-quad-move-item:hover{ background:var(--na1-bg); color:var(--na1-text); }
+
+.na1-m4-hint{ text-align:center; font-family:var(--na1-serif); font-style:italic; font-size:12px; color:var(--na1-text-mute); margin:4px 0 8px; }
+
+.na1-m4-confirm-backdrop{ position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; padding:20px; }
+.na1-m4-confirm-card{ background:var(--na1-bg-card); border:1px solid var(--burgundy-line); border-radius:12px; padding:24px; max-width:380px; width:100%; }
+.na1-m4-confirm-title{ font-family:var(--na1-serif); font-size:18px; color:var(--na1-text); margin:0 0 10px; }
+.na1-m4-confirm-body{ font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text-sec); line-height:1.5; margin:0 0 18px; }
+.na1-m4-confirm-actions{ display:flex; justify-content:flex-end; gap:8px; }
+.na1-m4-confirm-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 16px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; cursor:pointer; }
+.na1-m4-confirm-delete{ background:var(--burgundy); border:none; color:#fff; padding:8px 18px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -27798,7 +27919,7 @@ function NewA1Grid({
                 className="na1-mirror-card-empty"
                 style={{ fontStyle: "normal", color: "var(--na1-text-sec)" }}
               >
-                Three rooms. At least three values. One decision filter.
+                Four rooms. Three to five values. One decision filter.
               </div>
               <div className="na1-mirror-card-action">
                 <button
@@ -27812,7 +27933,7 @@ function NewA1Grid({
                   Begin Values →
                 </button>
                 <span className="na1-mirror-card-meta">
-                  4 rooms · discover · operationalize · rank · claim
+                  4 rooms · discover · behaviors · rank · claim
                 </span>
               </div>
             </article>
@@ -33729,7 +33850,7 @@ function NewA1M4HubView({
           className="na1-ex-sub"
           style={{ fontStyle: "italic", fontFamily: "var(--na1-serif)" }}
         >
-          Three rooms. At least three values. One decision filter.
+          Four rooms. Three to five values. One decision filter.
         </p>
         <p className="na1-ex-foot-sub">
           You can return any time to edit anything you've written.
@@ -33856,6 +33977,639 @@ function NewA1M4HubView({
   );
 }
 
+// ─── Ship 5.6b · Mirror 4 · Discover Room body (Section 2 · Steps 1–3) ───
+// Replaces the "Coming in Section 2" placeholder for the Discover room
+// only. Manages internal step state ("admire" | "irks" | "portrait"
+// | "section3"), restored from state.mirror4.currentStep on mount,
+// persisted on every transition via saveMirror4State(). Step 4 is the
+// "Coming in Section 3" placeholder per spec — clustering lands in 3a.
+//
+// State writes go through the m4* helper functions in mirror4Constants:
+// admire/irks arrays are the canonical store, portrait is a derived
+// index of behavior IDs rebuilt after every mutation. IDs use prefixes
+// "ad-" / "ir-" and are stable across tier changes (so a "lights"
+// behavior dragged to "bothers" keeps its "ad-" prefix but moves into
+// the irks array via tierKind()).
+//
+// Drag-and-drop: HTML5 native DnD for desktop. For touch / a11y, every
+// chip also exposes a "⋮" menu that lists the three other tiers — tap
+// to move. Delete (×) honors inUseByCluster: if non-null, shows a
+// confirm modal (the field stays null until Section 3a wires clusters).
+
+type M4DiscoverStep = "admire" | "irks" | "portrait" | "section3";
+
+const M4_ORDER: M4BehaviorTier[] = ["lights", "warms", "bothers", "turns"];
+
+function NewA1M4DiscoverBody() {
+  const [state, setMirrorState] = useState<Mirror4State>(() =>
+    loadMirror4State(),
+  );
+  // Restore step from currentStep. Only Section 2's steps are valid
+  // here; if the saved currentStep is from a later section (clusters
+  // / operationalize / rank / pressureTest / claim), we land on
+  // Portrait — the last Section 2 screen — since the user already
+  // got past it.
+  const initStep: M4DiscoverStep = (() => {
+    const cs = state.currentStep;
+    if (cs === "admire" || cs === "irks" || cs === "portrait") return cs;
+    return "portrait";
+  })();
+  const [step, setStep] = useState<M4DiscoverStep>(initStep);
+
+  // Persist mutations. status auto-promotes from "not_started" on
+  // first write so the hub card reflects in-progress. The state
+  // updater stays pure — saveMirror4State runs in a useEffect on
+  // [state] so React Strict Mode's double-invoked setter doesn't
+  // cause duplicate localStorage writes.
+  const mutate = (fn: (s: Mirror4State) => Mirror4State) => {
+    setMirrorState((prev) => {
+      const next = fn(prev);
+      return next.status === "not_started"
+        ? { ...next, status: "in_progress" }
+        : next;
+    });
+  };
+
+  // Skip persistence on first render (we just loaded from storage) to
+  // avoid a redundant write-back, then persist on every change.
+  const firstPersistRef = useRef(true);
+  useEffect(() => {
+    if (firstPersistRef.current) {
+      firstPersistRef.current = false;
+      return;
+    }
+    saveMirror4State(state);
+  }, [state]);
+
+  // Persist step changes. Skip "section3" — it's the placeholder, not
+  // a real progress marker; revisiting Discover should land on
+  // portrait, not section3. setState skips updates when shallow-equal,
+  // and we no-op via the functional updater when currentStep already
+  // matches, so this doesn't cause a duplicate write.
+  useEffect(() => {
+    if (step === "section3") return;
+    setMirrorState((s) =>
+      s.currentStep === step ? s : { ...s, currentStep: step },
+    );
+  }, [step]);
+
+  const goNext = () => {
+    if (step === "admire") setStep("irks");
+    else if (step === "irks") setStep("portrait");
+    else if (step === "portrait") setStep("section3");
+  };
+  const goBack = () => {
+    if (step === "irks") setStep("admire");
+    else if (step === "portrait") setStep("irks");
+    else if (step === "section3") setStep("portrait");
+  };
+
+  const continueLabel =
+    step === "admire"
+      ? "Continue to irks →"
+      : step === "irks"
+        ? "See your portrait →"
+        : step === "portrait"
+          ? "Find values underneath →"
+          : "—";
+
+  return (
+    <div className="na1-m4-disc">
+      <div className="na1-room-eyebrow tone-gold">Mirror 4 · Discover</div>
+      <div className="na1-m4-disc-content" key={step}>
+        {step === "admire" && (
+          <M4StepAdmireIrks kind="admire" state={state} mutate={mutate} />
+        )}
+        {step === "irks" && (
+          <M4StepAdmireIrks kind="irks" state={state} mutate={mutate} />
+        )}
+        {step === "portrait" && (
+          <M4StepPortrait state={state} mutate={mutate} />
+        )}
+        {step === "section3" && <M4StepSection3Placeholder />}
+      </div>
+      <div className="na1-m4-disc-foot">
+        <button
+          type="button"
+          className="na1-m4-back"
+          disabled={step === "admire"}
+          onClick={goBack}
+        >
+          ← Back
+        </button>
+        <button
+          type="button"
+          className="na1-m4-continue"
+          disabled={step === "section3"}
+          onClick={goNext}
+        >
+          {continueLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function M4StepAdmireIrks({
+  kind,
+  state,
+  mutate,
+}: {
+  kind: "admire" | "irks";
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+}) {
+  const list = kind === "admire" ? state.admire : state.irks;
+  const total = state.admire.length + state.irks.length;
+  return (
+    <>
+      <div className="na1-m4-step-eyebrow">
+        Mirror 4 · Step {kind === "admire" ? 1 : 2} of 8 ·{" "}
+        {kind === "admire" ? "Admire" : "Irks"}
+      </div>
+      <h2 className="na1-m4-step-title">
+        {kind === "admire"
+          ? "What behaviors do you admire?"
+          : "What behaviors don't you admire?"}
+      </h2>
+      <p className="na1-m4-step-sub">
+        {kind === "admire"
+          ? "In yourself or in others. Don't overthink — the first thing that comes up is usually the truest."
+          : "The blood-boil. In yourself or in others. What irritates you most often points to what you refuse to compromise on yourself."}
+      </p>
+      <div className="na1-m4-legend">
+        {kind === "admire" ? (
+          <>
+            <span className="na1-m4-legend-pill">
+              <span className="na1-m4-pip lights"></span> ★ Lights me up —
+              strong
+            </span>
+            <span className="na1-m4-legend-pill">
+              <span className="na1-m4-pip warms"></span> Warms me — softer
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="na1-m4-legend-pill">
+              <span className="na1-m4-pip bothers"></span> Bothers me —
+              daily friction
+            </span>
+            <span className="na1-m4-legend-pill">
+              <span className="na1-m4-pip turns"></span> ⚡ Turns my
+              stomach — gut reaction
+            </span>
+          </>
+        )}
+      </div>
+      <M4InputRow kind={kind} mutate={mutate} />
+      <div className="na1-m4-blist">
+        {list.map((b) => (
+          <div className="na1-m4-bul" key={b.id}>
+            <span className={`na1-m4-pip ${b.tier}`}></span>
+            <span className="na1-m4-bul-text">{b.text}</span>
+            {b.person && (
+              <span className="na1-m4-bul-person">· {b.person}</span>
+            )}
+            <span className={`na1-m4-bul-tag ${b.tier}`}>
+              {M4_TIER_ICON[b.tier]}
+              {M4_TIER_LABEL[b.tier]}
+            </span>
+            <button
+              type="button"
+              className="na1-m4-bul-x"
+              onClick={() => mutate((s) => m4DeleteBehavior(s, b.id))}
+              aria-label="Delete behavior"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="na1-m4-counter">
+        {kind === "admire"
+          ? `${list.length} ${list.length === 1 ? "behavior" : "behaviors"} so far`
+          : `${total} ${total === 1 ? "behavior" : "behaviors"} total`}
+      </div>
+    </>
+  );
+}
+
+function M4InputRow({
+  kind,
+  mutate,
+}: {
+  kind: "admire" | "irks";
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+}) {
+  const [text, setText] = useState("");
+  const [person, setPerson] = useState("");
+  const [personOpen, setPersonOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const personRef = useRef<HTMLInputElement>(null);
+
+  const submit = (tier: M4BehaviorTier) => {
+    if (!text.trim()) return;
+    mutate((s) => m4AddBehavior(s, kind, text, tier, person));
+    setText("");
+    setPerson("");
+    setPersonOpen(false);
+    inputRef.current?.focus();
+  };
+  const defaultTier: M4BehaviorTier =
+    kind === "admire" ? "lights" : "bothers";
+
+  const placeholder =
+    kind === "admire"
+      ? "A behavior comes to mind…"
+      : "A behavior that bothers you…";
+
+  return (
+    <>
+      <div className="na1-m4-input-row">
+        <input
+          ref={inputRef}
+          type="text"
+          className="na1-m4-input"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && text.trim()) {
+              e.preventDefault();
+              submit(defaultTier);
+            }
+          }}
+          placeholder={placeholder}
+        />
+        {personOpen ? (
+          <div className="na1-m4-tag-person" style={{ borderStyle: "solid" }}>
+            <span style={{ color: "var(--na1-text-mute)" }}>·</span>
+            <input
+              ref={personRef}
+              autoFocus
+              type="text"
+              className="na1-m4-tag-person-input"
+              value={person}
+              onChange={(e) => setPerson(e.target.value)}
+              placeholder="who?"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  setPersonOpen(false);
+                  inputRef.current?.focus();
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="na1-m4-tag-person"
+            onClick={() => {
+              setPersonOpen(true);
+              setTimeout(() => personRef.current?.focus(), 0);
+            }}
+          >
+            {person ? `· ${person}` : "+ tag a person"}
+          </button>
+        )}
+      </div>
+      {text.trim() && (
+        <div className="na1-m4-intensity">
+          <span className="na1-m4-intensity-label">
+            How strongly does this hit?
+          </span>
+          {kind === "admire" ? (
+            <>
+              <button
+                type="button"
+                className="na1-m4-int-btn deep"
+                onClick={() => submit("lights")}
+              >
+                ★ Lights me up
+              </button>
+              <button
+                type="button"
+                className="na1-m4-int-btn soft"
+                onClick={() => submit("warms")}
+              >
+                Warms me
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="na1-m4-int-btn b-soft"
+                onClick={() => submit("bothers")}
+              >
+                Bothers me
+              </button>
+              <button
+                type="button"
+                className="na1-m4-int-btn b-deep"
+                onClick={() => submit("turns")}
+              >
+                ⚡ Turns my stomach
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+function M4StepPortrait({
+  state,
+  mutate,
+}: {
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+}) {
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<M4BehaviorTier | null>(null);
+  const [moveMenu, setMoveMenu] = useState<string | null>(null);
+  const [addingIn, setAddingIn] = useState<M4BehaviorTier | null>(null);
+  const [addText, setAddText] = useState("");
+  const [confirm, setConfirm] = useState<{
+    id: string;
+    text: string;
+    cluster: string;
+  } | null>(null);
+
+  const onDeleteClick = (id: string) => {
+    const b = m4FindBehavior(state, id);
+    if (!b) return;
+    if (b.inUseByCluster) {
+      setConfirm({ id, text: b.text, cluster: b.inUseByCluster });
+      return;
+    }
+    mutate((s) => m4DeleteBehavior(s, id));
+  };
+
+  const confirmDelete = () => {
+    if (!confirm) return;
+    mutate((s) => m4DeleteBehavior(s, confirm.id));
+    setConfirm(null);
+  };
+
+  const moveTo = (id: string, tier: M4BehaviorTier) => {
+    mutate((s) => m4ChangeBehaviorTier(s, id, tier));
+    setMoveMenu(null);
+  };
+
+  const submitAdd = (tier: M4BehaviorTier) => {
+    const t = addText.trim();
+    if (!t) {
+      setAddingIn(null);
+      return;
+    }
+    mutate((s) => {
+      const kind = tier === "lights" || tier === "warms" ? "admire" : "irks";
+      return m4AddBehavior(s, kind, t, tier);
+    });
+    setAddText("");
+    setAddingIn(null);
+  };
+
+  const byId = new Map<string, M4Behavior>();
+  for (const b of state.admire) byId.set(b.id, b);
+  for (const b of state.irks) byId.set(b.id, b);
+
+  const renderQuad = (tier: M4BehaviorTier, label: string) => {
+    const ids = state.portrait[tier];
+    return (
+      <div
+        className={`na1-m4-quad ${tier} ${dropTarget === tier ? "is-drop-target" : ""}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (dropTarget !== tier) setDropTarget(tier);
+        }}
+        onDragLeave={() => {
+          if (dropTarget === tier) setDropTarget(null);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          const id = e.dataTransfer.getData("text/plain") || dragId;
+          if (id) mutate((s) => m4ChangeBehaviorTier(s, id, tier));
+          setDragId(null);
+          setDropTarget(null);
+        }}
+      >
+        <div className="na1-m4-quad-head">
+          <span className="na1-m4-quad-label">{label}</span>
+          <button
+            type="button"
+            className="na1-m4-quad-add"
+            onClick={() => {
+              setAddingIn(tier);
+              setAddText("");
+            }}
+          >
+            + add
+          </button>
+        </div>
+        <div className="na1-m4-qbul-list">
+          {ids.length === 0 && addingIn !== tier && (
+            <div className="na1-m4-quad-empty">No behaviors yet.</div>
+          )}
+          {ids.map((id) => {
+            const b = byId.get(id);
+            if (!b) return null;
+            const used = b.inUseByCluster != null;
+            return (
+              <div
+                key={id}
+                className={`na1-m4-qbul ${dragId === id ? "is-dragging" : ""} ${used ? "is-used" : ""}`}
+                draggable={!used}
+                onDragStart={(e) => {
+                  if (used) {
+                    e.preventDefault();
+                    return;
+                  }
+                  setDragId(id);
+                  e.dataTransfer.setData("text/plain", id);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragEnd={() => {
+                  setDragId(null);
+                  setDropTarget(null);
+                }}
+                style={{ position: "relative" }}
+              >
+                <span className="na1-m4-qb-text">{b.text}</span>
+                {b.person && (
+                  <span className="na1-m4-qb-person">· {b.person}</span>
+                )}
+                <button
+                  type="button"
+                  className="na1-m4-qb-move"
+                  aria-label="Move to another tier"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMoveMenu(moveMenu === id ? null : id);
+                  }}
+                  disabled={used}
+                >
+                  ⋮
+                </button>
+                <button
+                  type="button"
+                  className="na1-m4-qb-x"
+                  onClick={() => onDeleteClick(id)}
+                  aria-label="Delete behavior"
+                >
+                  ×
+                </button>
+                {moveMenu === id && (
+                  <div
+                    className="na1-m4-quad-move-menu"
+                    style={{ top: "calc(100% + 4px)", right: 0 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {M4_ORDER.filter((t) => t !== b.tier).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        className="na1-m4-quad-move-item"
+                        onClick={() => moveTo(id, t)}
+                      >
+                        <span className={`na1-m4-pip ${t}`}></span>
+                        Move to {M4_TIER_LABEL[t]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {addingIn === tier && (
+          <div className="na1-m4-quad-inline-add">
+            <input
+              autoFocus
+              type="text"
+              className="na1-m4-quad-inline-input"
+              value={addText}
+              onChange={(e) => setAddText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  submitAdd(tier);
+                } else if (e.key === "Escape") {
+                  setAddingIn(null);
+                  setAddText("");
+                }
+              }}
+              onBlur={() => submitAdd(tier)}
+              placeholder="A behavior…"
+            />
+            <button
+              type="button"
+              className="na1-m4-quad-inline-go"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => submitAdd(tier)}
+            >
+              Add
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Close move menu on outside click
+  useEffect(() => {
+    if (!moveMenu) return;
+    const onDoc = () => setMoveMenu(null);
+    document.addEventListener("click", onDoc);
+    return () => document.removeEventListener("click", onDoc);
+  }, [moveMenu]);
+
+  return (
+    <>
+      <div className="na1-m4-step-eyebrow">
+        Mirror 4 · Step 3 of 8 · Portrait
+      </div>
+      <h2 className="na1-m4-step-title">Your behavior portrait</h2>
+      <p className="na1-m4-step-sub">
+        Here's what you put down — sorted as you tagged it. Drag between
+        tiers, delete, or add more before we look for values underneath.
+      </p>
+      <div className="na1-m4-quad-wrap">
+        {renderQuad("lights", "★ Lights me up")}
+        {renderQuad("warms", "Warms me")}
+        {renderQuad("bothers", "Bothers me")}
+        {renderQuad("turns", "⚡ Turns my stomach")}
+      </div>
+      <div className="na1-m4-hint">
+        ↕ drag between tiers · ⋮ move · × delete · + add more
+      </div>
+      {confirm && (
+        <div
+          className="na1-m4-confirm-backdrop"
+          onClick={() => setConfirm(null)}
+        >
+          <div
+            className="na1-m4-confirm-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="na1-m4-confirm-title">Delete behavior?</h3>
+            <p className="na1-m4-confirm-body">
+              "{confirm.text}" is being used in{" "}
+              <strong>{confirm.cluster}</strong>. Delete anyway?
+            </p>
+            <div className="na1-m4-confirm-actions">
+              <button
+                type="button"
+                className="na1-m4-confirm-cancel"
+                onClick={() => setConfirm(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="na1-m4-confirm-delete"
+                onClick={confirmDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function M4StepSection3Placeholder() {
+  return (
+    <>
+      <div className="na1-m4-step-eyebrow">
+        Mirror 4 · Step 4 of 8 · Katherine's read
+      </div>
+      <h2 className="na1-m4-step-title">Coming in Section 3</h2>
+      <p className="na1-m4-step-sub">
+        Katherine will read your portrait and surface the clusters
+        underneath. Use Back to return to your portrait.
+      </p>
+      <div
+        style={{
+          minHeight: "180px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: "var(--na1-sans)",
+          fontSize: "13px",
+          color: "var(--na1-text-mute)",
+        }}
+      >
+        This screen lands in the next Mirror 4 ship.
+      </div>
+    </>
+  );
+}
+
 function NewA1M4Container({
   onBackToGrid,
 }: {
@@ -33925,7 +34679,11 @@ function NewA1M4Container({
       />
       {openRoom && openRoom.bodyShipped && (
         <NewA1M4RoomShell room={openRoom} open={roomOpen} onClose={closeRoom}>
-          <NewA1M4RoomPlaceholderBody room={openRoom} />
+          {openRoom.key === "discover" ? (
+            <NewA1M4DiscoverBody />
+          ) : (
+            <NewA1M4RoomPlaceholderBody room={openRoom} />
+          )}
         </NewA1M4RoomShell>
       )}
       {veilPhase !== "idle" && openRoom && (
