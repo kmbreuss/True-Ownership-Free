@@ -1,0 +1,17 @@
+Task A — Add three personalization surfaces.
+The 5.5d helper resolveDisplayName is wired into the PDF export (filename + internal title) and the three Claude system prompts, but nothing user-visible in the UI currently uses the name. Three high-value adds:
+A1. Entry Hall greeting on session arrival.
+Add a warm hello near the Entry Hall header using resolveDisplayName(state.user). When name set: "Welcome back, Katherine". Fallback (no name): "Welcome back". Style: italic serif muted, smaller than header weight — a warm hello, not a banner. Position: above or just under the Entry Hall page header.
+A2. Own It ceremony opening line.
+Currently the ceremony's first paragraph reads "This is who you are." (gold italic). When name set, render as "Katherine, this is who you are." Fallback to current text when no name. Single string swap inside the ceremony view first paragraph. Applies to both first-claim and revisit display since it's the same paragraph in either mode.
+A3. Map of Me page title.
+Match the PDF title pattern shipped in 5.5d. When name set: "Katherine's Map of Me". Fallback: "My Map of Me". The titleText variable from the safeName code in App.tsx already follows this exact pattern — reuse the same compose logic for the page title.
+Reuse resolveDisplayName from /src/lib/displayName.ts. Three render surfaces, three string swaps. No new lookups.
+Demo: with name set, verify all three render with "Katherine"; with name cleared, verify all three fall back gracefully (greeting → "Welcome back", ceremony → "This is who you are.", Map title → "My Map of Me").
+
+Task B — Gating bug: Identity (Mirror 3) is accessible before Vision (Mirror 2) is complete.
+Verified live on dev: A1 (All In It) hub renders both Mirror 1 (Purpose) AND Mirror 3 (Identity · Superpowers) as "UP NEXT" simultaneously, even when Purpose shows 0 of 4 (not yet explored). Mirror 2 (Vision) correctly locks behind Mirror 1 ("Complete Purpose to unlock"), and Mirror 4 (Values) correctly locks behind Mirror 3 ("Unlocks after Identity"). But the M2 → M3 chain is broken — Identity opens regardless of Vision state.
+Expected chain: M1 Purpose → M2 Vision → M3 Identity → M4 Values. Each mirror locked behind the prior. Same gating treatment Mirror 2 and Mirror 4 already have.
+Mirror 3 card should show LOCKED status with helper "Unlocks after Vision" (or whatever copy matches Mirror 2's lock pattern) until Mirror 2's completion flag is set. Tapping the locked card shouldn't open the Identity hub.
+Check: gating logic probably lives on the A1 hub render where mirror card status is computed. M2 and M4 have it; M3 doesn't. Audit whether the gating function is properly chained for all 4 mirrors or whether M3 is hardcoded to "UP NEXT".
+Same stop discipline on both — demo each before signing off. Task A is voice-sensitive (read the fallback states out loud to make sure they sound right). Task B is verifiable by walking the hub with fresh state.

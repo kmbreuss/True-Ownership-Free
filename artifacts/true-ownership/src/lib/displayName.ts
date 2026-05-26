@@ -35,3 +35,18 @@ export function resolveDisplayName(
   }
   return getDisplayName(user);
 }
+
+/**
+ * Ship 5.5e · Personalization · whole-phrase swap for the Map of Me title.
+ * Matches the PDF title pattern shipped in 5.5d: when a name is present we
+ * render "<Name>'s Map of Me™"; when not, we render the non-possessive
+ * "My Map of Me™". This is a phrase-level swap, not a substring rewrite —
+ * callers MUST NOT do their own string concatenation against the literal
+ * "My Map of Me™".
+ */
+export function composeMapOfMeTitle(
+  name: string | null | undefined,
+): string {
+  const trimmed = typeof name === "string" ? name.trim() : "";
+  return trimmed ? `${trimmed}'s Map of Me™` : "My Map of Me™";
+}

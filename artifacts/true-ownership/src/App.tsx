@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "./lib/auth-context";
-import { resolveDisplayName } from "./lib/displayName";
+import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
 import {
   synthesize,
@@ -27480,6 +27480,23 @@ function NewA1Grid({
             <h1 className="na1-hero-title">
               Commit to the life you want to live.
             </h1>
+            {/* Ship 5.5e · Entry Hall greeting · italic serif muted caption
+                just under the page header. Falls back to a bare "Welcome
+                back" when no display name resolves — never renders the
+                literal word "User". */}
+            <p
+              className="na1-hero-greeting"
+              style={{
+                fontFamily: "var(--na1-serif)",
+                fontStyle: "italic",
+                fontSize: 14,
+                lineHeight: 1.5,
+                color: "var(--na1-text-sec, var(--text2))",
+                margin: "0 0 10px",
+              }}
+            >
+              {name ? `Welcome back, ${name}.` : "Welcome back."}
+            </p>
             <p className="na1-hero-sub">
               Four mirrors. Name your purpose, dream your 10 years, claim your
               gifts, declare what you stand for.
@@ -27616,10 +27633,14 @@ function NewA1Grid({
               </div>
             </article>
           )}
-          {/* Mirror 3 · Identity — unlocks early when the M3 flag is on and
-              Vision is complete (Ship 1 routes to the foundations placeholder;
-              real Step 1a UI lands in Ship 2). Otherwise renders locked. */}
-          {onOpenM3 && visionComplete ? (
+          {/* Ship 5.5f · Mirror 3 · Identity — chained gate. Unlocks the
+              moment Vision is complete (matches M1→M2 and M3→M4 patterns).
+              The dev-only ?newM3=1 / localStorage override still works for
+              entering the M3 view, but it no longer bypasses the chained
+              gate here. Locked card below uses the same copy pattern as
+              M2 and M4: "Unlocks after Vision" / "Complete Vision to
+              unlock", tap-inert per §1 of the standards doc. */}
+          {visionComplete && onOpenM3 ? (
             <article
               className="na1-mirror-card is-vision-up-next"
               role="button"
@@ -27677,13 +27698,11 @@ function NewA1Grid({
                 What you carry that others don't.
               </p>
               <div className="na1-mirror-card-empty">
-                {visionComplete ? "Coming soon" : "Unlocks after Vision"}
+                Unlocks after Vision
               </div>
               <div className="na1-mirror-card-action">
                 <span className="na1-mirror-card-meta">
-                  {visionComplete
-                    ? "Coming soon"
-                    : "Complete Vision to unlock"}
+                  Complete Vision to unlock
                 </span>
               </div>
             </article>
@@ -32030,6 +32049,12 @@ function NewA2RoomPlaceholderBody({
 }
 
 function NewA1View({ name }: { name?: string }) {
+  // Ship 5.5e · Personalization · resolve the display name with the
+  // canonical intake → auth fallback. The legacy A1 wrapper only forwards
+  // `intake?.name`, so without this layer the Entry Hall greeting (and any
+  // other downstream consumer of `name`) would skip the auth fallback.
+  const { user: authUser } = useAuth();
+  const resolvedName = resolveDisplayName(name, authUser) ?? "";
   const [view, setView] = useState<"grid" | "explore" | "explore2" | "m3">(
     () => {
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -32299,19 +32324,16 @@ function NewA1View({ name }: { name?: string }) {
   }
   return (
     <NewA1Grid
-      name={name}
+      // Ship 5.5e · Personalization · pass the canonically-resolved name
+      // (intake → auth fallback) so the Entry Hall greeting in NewA1Grid
+      // is correct even when the legacy A1 wrapper only forwarded
+      // `intake?.name` (empty when the user signed in via auth alone).
+      name={resolvedName}
       progress={progress}
       m2Progress={m2Progress}
       onOpenPurpose={() => setView("explore")}
       onOpenVision={() => setView("explore2")}
-      onOpenM3={
-        // Only expose the M3 entry on the grid when the flag is on.
-        // shouldRouteToM3() also accepts pickedGifts>0 as evidence of
-        // an opt-in once Ship 2 lands; both paths route to the same view.
-        NEW_M3_FLAG_URL || NEW_M3_FLAG_LOCAL || shouldRouteToM3(loadDataSync(KEYS.map) || {})
-          ? () => setView("m3")
-          : undefined
-      }
+      onOpenM3={() => setView("m3")}
     />
   );
 }
@@ -32700,6 +32722,20 @@ function NewA1M3OwnItView({
   embedded?: boolean;
   onContinueToValues: () => void;
 }) {
+  // Ship 5.5e · Personalization · resolve the display name for the
+  // ceremony opener. Intake takes precedence over auth (matches the
+  // canonical order in resolveDisplayName); when neither is set we
+  // leave the seal copy verbatim ("This is who you are.") so the
+  // fallback never renders the literal word "User".
+  const { user: authUser } = useAuth();
+  const intakeName = (() => {
+    const raw = loadDataSync(KEYS.intake);
+    if (raw && typeof raw === "object" && typeof (raw as any).name === "string") {
+      return (raw as any).name as string;
+    }
+    return null;
+  })();
+  const displayName = resolveDisplayName(intakeName, authUser);
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
   const initialSealCompleted = useRef<boolean>(state.sealCompleted);
   const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">(
@@ -32781,13 +32817,28 @@ function NewA1M3OwnItView({
     },
     [enqueueM3Write],
   );
-  const sealParagraphs = useMemo<ReadonlyArray<string>>(
-    () => M3_SEAL_PARAGRAPHS,
-    [],
-  );
+  // Ship 5.5e · Personalization · prepend a vocative greeting to the
+  // first ceremony paragraph when a display name resolves. The gold-
+  // phrase splitter is case-sensitive, so we also register the lower-
+  // case variant ("this is who you are.") in the per-render phrase list
+  // — paragraph index 2 still uses the capitalized canonical form, so
+  // both stay gold. When no name resolves we fall back to the verbatim
+  // M3_SEAL_PARAGRAPHS so the literal word "User" never appears.
+  const sealParagraphs = useMemo<ReadonlyArray<string>>(() => {
+    if (!displayName) return M3_SEAL_PARAGRAPHS;
+    const opener = M3_SEAL_PARAGRAPHS[0] ?? "";
+    const rewritten = opener.replace(
+      /^This is who you are\./,
+      `${displayName}, this is who you are.`,
+    );
+    return [rewritten, ...M3_SEAL_PARAGRAPHS.slice(1)];
+  }, [displayName]);
   const sealPhrases = useMemo<ReadonlyArray<string>>(
-    () => M3_SEAL_GOLD_PHRASES,
-    [],
+    () =>
+      displayName
+        ? ["this is who you are.", ...M3_SEAL_GOLD_PHRASES]
+        : M3_SEAL_GOLD_PHRASES,
+    [displayName],
   );
 
   // Re-scroll to top when ceremony fades in (matches M2 pattern).
@@ -44581,9 +44632,9 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       // word "User".
       const rawName = (name ?? "").toString().trim();
       const safeName = rawName || "My";
-      const titleText = rawName
-        ? `${rawName}'s Map of Me™`
-        : "My Map of Me™";
+      // Ship 5.5e · Personalization · single source of truth for the
+      // whole-phrase title swap — shared with the in-app Map of Me page.
+      const titleText = composeMapOfMeTitle(rawName);
       const NAVY: [number, number, number] = [27, 42, 75];
       const GOLD: [number, number, number] = [201, 168, 76];
       const TEXT: [number, number, number] = [50, 50, 50];
@@ -44616,8 +44667,11 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.setTextColor(...GOLD);
+        // Ship 5.5e · Personalization · header subline reuses the
+        // whole-phrase title swap so an empty name renders the bare
+        // "True Ownership™ · My Map of Me™" — never "My's Map of Me™".
         doc.text(
-          `True Ownership™  ·  ${safeName}'s Map of Me™`,
+          `True Ownership™  ·  ${titleText}`,
           textX,
           HEADER_H / 2 + 12,
         );
@@ -45042,6 +45096,22 @@ function MapOfMePage({ onBack }: any) {
       if (m) setMap(m);
     })();
   }, []);
+  // Ship 5.5e · Personalization · Map of Me page title uses the same
+  // whole-phrase swap as the PDF (composeMapOfMeTitle). Intake name takes
+  // precedence; when neither intake nor auth resolve a name we render the
+  // non-possessive "My Map of Me™" — never an "'s Map of Me" artifact
+  // and never the literal word "User".
+  const { user: authUser } = useAuth();
+  const intakeName = (() => {
+    const raw = loadDataSync(KEYS.intake);
+    if (raw && typeof raw === "object" && typeof (raw as any).name === "string") {
+      return (raw as any).name as string;
+    }
+    return null;
+  })();
+  const mapOfMeTitle = composeMapOfMeTitle(
+    resolveDisplayName(intakeName, authUser),
+  );
   const [voice, setVoice] = useState("coach");
   useEffect(() => {
     (async () => {
@@ -46478,6 +46548,10 @@ function MapOfMePage({ onBack }: any) {
           >
             ← Back to {origin.toUpperCase()}
           </button>
+          {/* Ship 5.5e · Personalization · main page title eyebrow uses
+              composeMapOfMeTitle — whole-phrase swap, identical to the
+              PDF title. Sidebar nav entries above remain the generic
+              "My Map of Me™" label (they are navigation, not the title). */}
           <div
             style={{
               fontSize: 11,
@@ -46488,7 +46562,7 @@ function MapOfMePage({ onBack }: any) {
               marginBottom: 11,
             }}
           >
-            My Map of Me™
+            {mapOfMeTitle}
           </div>
           <h1
             style={{
