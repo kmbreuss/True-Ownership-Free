@@ -1822,6 +1822,36 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,243,239,.78); }
 .na1-m4-modal-anchor{ background:linear-gradient(180deg, var(--gold-warm) 0%, transparent 100%); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:14px 16px; margin-bottom:16px; text-align:center; }
 .na1-m4-modal-anchor-star{ font-size:12px; color:var(--gold); }
 .na1-m4-modal-anchor-name{ font-family:var(--na1-serif); font-size:38px; color:var(--gold); font-weight:400; line-height:1.1; }
+/* Ship 5.6f · Section 3b — Real Naming + Define modals */
+.na1-m4-mbeh-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin:0 0 8px; text-align:center; }
+.na1-m4-mbeh{ display:flex; flex-wrap:wrap; gap:6px 8px; justify-content:center; padding:10px 12px; border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); background:var(--na1-bg-soft); margin-bottom:18px; max-height:120px; overflow-y:auto; }
+.na1-m4-mbeh-item{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border:1px solid var(--na1-border); border-radius:100px; background:var(--na1-bg-card); font-family:var(--na1-sans); font-size:11px; color:var(--na1-text); max-width:100%; }
+.na1-m4-mbeh-item .na1-m4-pv-chip{ font-size:8px; padding:2px 5px; }
+.na1-m4-mbeh-text{ font-family:var(--na1-serif); font-size:12px; color:var(--na1-text); line-height:1.3; max-height:3.9em; overflow:hidden; text-overflow:ellipsis; }
+.na1-m4-mbreadcrumb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; padding:2px 0 6px; margin-bottom:10px; }
+.na1-m4-mbreadcrumb{ display:flex; align-items:center; gap:6px; flex-wrap:nowrap; min-width:max-content; padding:0 2px; }
+.na1-m4-mbc-chip{ display:inline-flex; align-items:center; padding:6px 12px; border-radius:100px; border:1px solid var(--na1-border); background:var(--na1-bg-soft); font-family:var(--na1-serif); font-style:italic; font-size:12px; color:var(--na1-text-mute); white-space:nowrap; max-width:280px; overflow:hidden; text-overflow:ellipsis; }
+.na1-m4-mbc-chip.is-active{ border-color:var(--gold); color:var(--gold); background:var(--gold-warm); }
+.na1-m4-mbc-chip.is-user{ border-color:var(--gold-line); color:var(--gold); background:transparent; }
+.na1-m4-mbc-chip .na1-m4-mbc-accent{ color:var(--gold); font-weight:600; font-style:normal; margin:0 2px; }
+.na1-m4-mbc-arrow{ color:var(--na1-text-mute); font-size:12px; flex-shrink:0; }
+.na1-m4-mprompt{ font-family:var(--na1-serif); font-style:italic; font-size:22px; line-height:1.35; color:var(--na1-text); text-align:center; max-width:480px; margin:18px auto 14px; }
+.na1-m4-mprompt .na1-m4-mprompt-accent{ color:var(--gold); font-style:normal; font-weight:500; }
+.na1-m4-modal-actions.is-split{ flex-direction:column; gap:14px; align-items:center; }
+.na1-m4-mchip-secondary{ display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border:1px solid var(--cyan-line); border-radius:100px; background:transparent; color:var(--cyan); font-family:var(--na1-sans); font-size:12px; font-weight:600; cursor:pointer; transition:background .18s; }
+.na1-m4-mchip-secondary:hover:not(:disabled){ background:var(--cyan-soft); }
+.na1-m4-mchip-secondary:disabled{ opacity:.55; cursor:not-allowed; }
+.na1-m4-mreadylink{ display:inline-block; margin:8px auto 0; padding:6px 4px; background:none; border:none; color:var(--gold); font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:.02em; cursor:pointer; }
+.na1-m4-mreadylink:hover{ text-decoration:underline; }
+.na1-m4-mkpanel{ margin:14px 0 4px; padding:14px 16px; background:var(--cyan-soft); border:1px solid var(--cyan-line); border-left:3px solid var(--cyan); border-radius:var(--na1-radius); }
+.na1-m4-mkpanel-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--cyan); margin-bottom:6px; }
+.na1-m4-mkpanel-body{ font-family:var(--na1-serif); font-style:italic; font-size:14px; line-height:1.5; color:var(--na1-text); }
+.na1-m4-msuggest{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:10px 0 4px; }
+.na1-m4-msuggest-pill{ padding:6px 14px; border:1px solid var(--gold-line); border-radius:100px; background:transparent; color:var(--gold); font-family:var(--na1-sans); font-size:12px; font-weight:600; cursor:pointer; transition:background .18s; }
+.na1-m4-msuggest-pill:hover{ background:var(--gold-warm); }
+.na1-m4-merror{ font-family:var(--na1-sans); font-size:11px; color:var(--burgundy); margin-top:8px; text-align:center; }
+.na1-m4-mback{ background:none; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:12px; font-weight:500; cursor:pointer; padding:4px 8px; }
+.na1-m4-mback:hover{ color:var(--gold); }
 
 /* Step 8 Confirm */
 .na1-m4-step8-list{ display:flex; flex-direction:column; gap:10px; margin:14px 0 18px; }
@@ -34709,20 +34739,38 @@ function NewA1M4DiscoverBody({
 
       {/* Modals: lifted over the per-value screen with blur. */}
       {nameModalCluster && nameModal && (
-        <M4NameStubModal
+        <M4NamingModal
           cluster={nameModalCluster}
+          state={state}
           isEdit={nameModal.isEdit}
           onClose={() => setNameModal(null)}
           onConfirm={(name) =>
             confirmName(nameModalCluster.id, name, nameModal.isEdit)
           }
+          onPersistPeelChain={(chain) =>
+            mutate((s) =>
+              m4UpdateCluster(s, nameModalCluster.id, (c) => ({
+                ...c,
+                peelChain: chain,
+              })),
+            )
+          }
         />
       )}
       {defineModalCluster && defineModal && (
-        <M4DefineStubModal
+        <M4DefineModal
           cluster={defineModalCluster}
+          state={state}
           onClose={() => setDefineModal(null)}
           onConfirm={(def) => confirmDefine(defineModalCluster.id, def)}
+          onEditName={() => {
+            // ← Edit name from Define modal: close Define, reopen
+            // Naming in State B (isEdit=true so peel UI is hidden
+            // AND so confirmName won't auto-reopen Define after).
+            const id = defineModalCluster.id;
+            setDefineModal(null);
+            setNameModal({ clusterId: id, isEdit: true });
+          }}
         />
       )}
     </div>
@@ -35989,20 +36037,177 @@ function M4MiniQuadrant({
   );
 }
 
-// ── Naming stub modal · single text input ───────────────────────
-function M4NameStubModal({
+// ── Ship 5.6f · Section 3b — Behaviors anchor (shared) ───────────
+// Compact chip row used at the top of both Naming and Define modals.
+// Re-resolves behavior text from state so renames upstream stay live.
+function M4ModalBehaviorsAnchor({
   cluster,
+  state,
+}: {
+  cluster: M4Cluster;
+  state: Mirror4State;
+}) {
+  const lookup = new Map<string, M4Behavior>();
+  for (const b of [...state.admire, ...state.irks]) lookup.set(b.id, b);
+  const items = cluster.behaviorIds
+    .map((id) => lookup.get(id))
+    .filter((b): b is M4Behavior => !!b);
+  if (items.length === 0) return null;
+  return (
+    <>
+      <div className="na1-m4-mbeh-label">The behaviors behind it</div>
+      <div className="na1-m4-mbeh">
+        {items.map((b) => {
+          const chipKind = (b.source ?? b.tier).toLowerCase();
+          return (
+            <div key={b.id} className="na1-m4-mbeh-item">
+              <span className={`na1-m4-pv-chip is-${chipKind}`}>
+                {m4BehaviorChipLabel(b)}
+              </span>
+              <span className="na1-m4-mbeh-text">{b.text}</span>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+// ── Real Naming modal · State A (peel) + State B (name) ──────────
+// Edit-mode opens directly in State B with `← Keep peeling` hidden.
+// peelChain persists on every Keep peeling → so it survives close/refresh.
+function M4NamingModal({
+  cluster,
+  state,
   isEdit,
   onClose,
   onConfirm,
+  onPersistPeelChain,
 }: {
   cluster: M4Cluster;
+  state: Mirror4State;
   isEdit: boolean;
   onClose: () => void;
   onConfirm: (name: string) => void;
+  onPersistPeelChain: (chain: string[]) => void;
 }) {
-  const [draft, setDraft] = useState<string>(cluster.userName);
-  const canConfirm = !!draft.trim();
+  type Phase = "peel" | "name";
+  const [phase, setPhase] = useState<Phase>(isEdit ? "name" : "peel");
+  const [peelChain, setPeelChain] = useState<string[]>(cluster.peelChain);
+  const [peelInput, setPeelInput] = useState<string>("");
+  const [nameDraft, setNameDraft] = useState<string>(cluster.userName);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [askLoading, setAskLoading] = useState(false);
+  const [askError, setAskError] = useState<string | null>(null);
+
+  const canPeel = !!peelInput.trim();
+  const canConfirmName = !!nameDraft.trim();
+
+  // Behavior text snapshot for prompts.
+  const behaviorsText = (() => {
+    const lookup = new Map<string, M4Behavior>();
+    for (const b of [...state.admire, ...state.irks]) lookup.set(b.id, b);
+    return cluster.behaviorIds
+      .map((id) => lookup.get(id))
+      .filter((b): b is M4Behavior => !!b)
+      .map((b) => `- (${(b.source ?? b.tier).toLowerCase()}) ${b.text}`)
+      .join("\n");
+  })();
+
+  const handleKeepPeeling = () => {
+    const word = peelInput.trim();
+    if (!word) return;
+    const next = [...peelChain, word];
+    setPeelChain(next);
+    setPeelInput("");
+    onPersistPeelChain(next);
+  };
+
+  const handleReady = () => {
+    setPhase("name");
+    // Pre-fill name with last peel word if no name yet.
+    if (!nameDraft.trim() && peelChain.length > 0) {
+      setNameDraft(peelChain[peelChain.length - 1]);
+    }
+  };
+
+  const handleAskSuggestion = async () => {
+    if (askLoading) return;
+    setAskLoading(true);
+    setAskError(null);
+    const proposedHint =
+      cluster.proposedNames.length > 0
+        ? `Earlier rough proposals (low signal): ${cluster.proposedNames.join(", ")}.`
+        : "";
+    const peelHint =
+      peelChain.length > 0
+        ? `The user has already peeled through: ${peelChain
+            .map((w, i) => `${i + 1}. ${w}`)
+            .join(" → ")}.`
+        : "The user has not peeled yet.";
+    const prompt = `You are Katherine, the warm and direct values coach inside True Ownership's Mirror 4. The user is naming a value they hold. They've described the behaviors below and started peeling toward the root.
+
+Behaviors clustered together:
+${behaviorsText}
+
+${peelHint}
+${proposedHint}
+
+Suggest 1–3 single-word (or two-word max) value names that best capture this cluster, given the behaviors AND the direction the peel is going. Respond ONLY with strict JSON of the form:
+{"suggestions": ["Name1", "Name2"]}`;
+    try {
+      // eslint-disable-next-line no-console
+      console.log("[M4 naming suggest] prompt:", prompt);
+      const res = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1200,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (!res.ok) throw new Error(`claude ${res.status}`);
+      const data = await res.json();
+      // eslint-disable-next-line no-console
+      console.log("[M4 naming suggest] response:", data);
+      const text: string = Array.isArray(data.content)
+        ? data.content.map((b: { text?: string }) => b.text ?? "").join("")
+        : "";
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("no JSON in response");
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (!Array.isArray(parsed.suggestions) || parsed.suggestions.length === 0)
+        throw new Error("no suggestions");
+      const clean = parsed.suggestions
+        .filter((s: unknown): s is string => typeof s === "string" && !!s.trim())
+        .slice(0, 3);
+      if (clean.length === 0) throw new Error("no usable suggestions");
+      setSuggestions(clean);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[M4 naming suggest] failed:", err);
+      setAskError("Couldn't reach Katherine. Try again, or name it yourself.");
+    } finally {
+      setAskLoading(false);
+    }
+  };
+
+  // Active peel question copy.
+  const lastWord = peelChain[peelChain.length - 1] || "";
+  const promptNode =
+    peelChain.length === 0 ? (
+      <div className="na1-m4-mprompt">
+        What do <span className="na1-m4-mprompt-accent">these behaviors</span>{" "}
+        give you?
+      </div>
+    ) : (
+      <div className="na1-m4-mprompt">
+        What does{" "}
+        <span className="na1-m4-mprompt-accent">{lastWord}</span> give you?
+      </div>
+    );
+
   return (
     <div
       className="na1-m4-modal-back"
@@ -36020,53 +36225,246 @@ function M4NameStubModal({
           ✕
         </button>
         <div className="na1-m4-modal-head">
-          {isEdit ? "Rename your value" : "Name this value"}
+          {phase === "peel"
+            ? "★ Name your value · peel to the root"
+            : isEdit
+              ? "Rename your value"
+              : "★ Name your value · lock it in"}
         </div>
-        <input
-          type="text"
-          className="na1-m4-modal-input"
-          value={draft}
-          autoFocus
-          placeholder={cluster.proposedNames[0] || "your word"}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && canConfirm) onConfirm(draft);
-            if (e.key === "Escape") onClose();
-          }}
-        />
-        <p className="na1-m4-modal-helper">
-          {cluster.proposedNames.length > 0
-            ? `Suggestions: ${cluster.proposedNames.join(" · ")}`
-            : "One word usually carries it best."}
-        </p>
-        <div className="na1-m4-modal-actions">
-          <button
-            type="button"
-            className="na1-m4-modal-confirm"
-            disabled={!canConfirm}
-            onClick={() => onConfirm(draft)}
-          >
-            {isEdit ? "Save" : "Continue →"}
-          </button>
-        </div>
+
+        <M4ModalBehaviorsAnchor cluster={cluster} state={state} />
+
+        {phase === "peel" ? (
+          <>
+            {/* Breadcrumb: anchor + each peel word + current question */}
+            <div className="na1-m4-mbreadcrumb-wrap">
+              <div className="na1-m4-mbreadcrumb">
+                <span
+                  className={`na1-m4-mbc-chip${peelChain.length === 0 ? " is-active" : ""}`}
+                >
+                  these behaviors{" "}
+                  <span className="na1-m4-mbc-accent">→</span> what do they
+                  give you?
+                </span>
+                {peelChain.map((word, i) => (
+                  <span key={i} style={{ display: "contents" }}>
+                    <span className="na1-m4-mbc-arrow">→</span>
+                    <span
+                      className={`na1-m4-mbc-chip is-user${
+                        i === peelChain.length - 1 ? " is-active" : ""
+                      }`}
+                    >
+                      <span className="na1-m4-mbc-accent">{word}</span>
+                      {i === peelChain.length - 1
+                        ? " → what does that give you?"
+                        : ""}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {promptNode}
+
+            <input
+              type="text"
+              className="na1-m4-modal-input"
+              value={peelInput}
+              autoFocus
+              placeholder="One word, or a short phrase…"
+              onChange={(e) => setPeelInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canPeel) handleKeepPeeling();
+                if (e.key === "Escape") onClose();
+              }}
+            />
+
+            {suggestions.length > 0 && (
+              <div className="na1-m4-msuggest">
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className="na1-m4-msuggest-pill"
+                    onClick={() => {
+                      setNameDraft(s);
+                      setSuggestions([]);
+                      setPhase("name");
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+            {askError && <div className="na1-m4-merror">{askError}</div>}
+
+            <div className="na1-m4-modal-actions is-split">
+              <button
+                type="button"
+                className="na1-m4-modal-confirm"
+                disabled={!canPeel}
+                onClick={handleKeepPeeling}
+              >
+                Keep peeling →
+              </button>
+              <button
+                type="button"
+                className="na1-m4-mchip-secondary"
+                disabled={askLoading}
+                onClick={handleAskSuggestion}
+              >
+                {askLoading ? "Asking Katherine…" : "Ask Katherine for a name suggestion"}
+              </button>
+              <button
+                type="button"
+                className="na1-m4-mreadylink"
+                onClick={handleReady}
+              >
+                I'm ready to name this →
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <input
+              type="text"
+              className="na1-m4-modal-input"
+              value={nameDraft}
+              autoFocus
+              placeholder={
+                cluster.proposedNames[0] ||
+                peelChain[peelChain.length - 1] ||
+                "your word"
+              }
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canConfirmName)
+                  onConfirm(nameDraft);
+                if (e.key === "Escape") onClose();
+              }}
+            />
+            <p className="na1-m4-modal-helper">
+              One word usually carries it best.
+            </p>
+            <div className="na1-m4-modal-actions is-split">
+              <button
+                type="button"
+                className="na1-m4-modal-confirm"
+                disabled={!canConfirmName}
+                onClick={() => onConfirm(nameDraft)}
+              >
+                {isEdit ? "Save name ★" : "Confirm name ★"}
+              </button>
+              {!isEdit && (
+                <button
+                  type="button"
+                  className="na1-m4-mback"
+                  onClick={() => setPhase("peel")}
+                >
+                  ← Keep peeling
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-// ── Define stub modal · textarea ─────────────────────────────────
-// Anchored at the top with the just-named value to keep context.
-function M4DefineStubModal({
+// ── Real Define modal · named anchor + Katherine prompt + ask ────
+// `onEditName` closes Define and reopens Naming in State B (edit-mode).
+function M4DefineModal({
   cluster,
+  state,
   onClose,
   onConfirm,
+  onEditName,
 }: {
   cluster: M4Cluster;
+  state: Mirror4State;
   onClose: () => void;
   onConfirm: (def: string) => void;
+  onEditName: () => void;
 }) {
   const [draft, setDraft] = useState<string>(cluster.userDefinition);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [askLoading, setAskLoading] = useState(false);
+  const [askError, setAskError] = useState<string | null>(null);
   const canConfirm = !!draft.trim();
+
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const greet = displayName ? `${displayName}, ` : "";
+
+  const behaviorsText = (() => {
+    const lookup = new Map<string, M4Behavior>();
+    for (const b of [...state.admire, ...state.irks]) lookup.set(b.id, b);
+    return cluster.behaviorIds
+      .map((id) => lookup.get(id))
+      .filter((b): b is M4Behavior => !!b)
+      .map((b) => `- (${(b.source ?? b.tier).toLowerCase()}) ${b.text}`)
+      .join("\n");
+  })();
+
+  const handleAskFeedback = async () => {
+    if (askLoading) return;
+    if (!draft.trim()) {
+      setAskError("Write a draft definition first — then I can react to it.");
+      return;
+    }
+    setAskLoading(true);
+    setAskError(null);
+    const peelHint =
+      cluster.peelChain.length > 0
+        ? `Their peel chain on this value: ${cluster.peelChain.join(" → ")}.`
+        : "They did not peel.";
+    const prompt = `You are Katherine, the warm and direct values coach inside True Ownership's Mirror 4. The user has named a value "${cluster.userName}" and written a draft definition. Give 2–3 sentences of feedback in plain prose, in your voice — warm, specific, never preachy. Notice what's strong and gently point at what could be sharper. Do NOT rewrite the definition. Do NOT add bullet points. Just speak.
+
+Value: ${cluster.userName}
+Their draft definition:
+"""
+${draft.trim()}
+"""
+
+Behaviors clustered under this value:
+${behaviorsText}
+
+${peelHint}
+
+Respond with the feedback paragraph only — no preamble, no headers, no JSON.`;
+    try {
+      // eslint-disable-next-line no-console
+      console.log("[M4 define feedback] prompt:", prompt);
+      const res = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1200,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (!res.ok) throw new Error(`claude ${res.status}`);
+      const data = await res.json();
+      // eslint-disable-next-line no-console
+      console.log("[M4 define feedback] response:", data);
+      const text: string = Array.isArray(data.content)
+        ? data.content.map((b: { text?: string }) => b.text ?? "").join("")
+        : "";
+      const clean = text.trim();
+      if (!clean) throw new Error("empty feedback");
+      setFeedback(clean);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[M4 define feedback] failed:", err);
+      setAskError("Couldn't reach Katherine. Your draft is still saved here.");
+    } finally {
+      setAskLoading(false);
+    }
+  };
+
   return (
     <div
       className="na1-m4-modal-back"
@@ -36083,13 +36481,23 @@ function M4DefineStubModal({
         >
           ✕
         </button>
-        <div className="na1-m4-modal-head">Define it</div>
+        <div className="na1-m4-modal-head">Define it · in your own words</div>
+
         <div className="na1-m4-modal-anchor">
           <div className="na1-m4-modal-anchor-star">★</div>
           <div className="na1-m4-modal-anchor-name">
             {cluster.userName || "—"}
           </div>
         </div>
+
+        <M4ModalBehaviorsAnchor cluster={cluster} state={state} />
+
+        <div className="na1-m4-mprompt">
+          {greet}what does{" "}
+          <span className="na1-m4-mprompt-accent">{cluster.userName || "this"}</span>{" "}
+          actually look like when you're living it?
+        </div>
+
         <textarea
           className="na1-m4-modal-textarea"
           value={draft}
@@ -36101,17 +36509,40 @@ function M4DefineStubModal({
           }}
         />
         <p className="na1-m4-modal-helper">
-          In your own words — not a dictionary. What does this value
-          actually look like when you live it?
+          In your own words — not a dictionary.
         </p>
-        <div className="na1-m4-modal-actions">
+
+        {feedback && (
+          <div className="na1-m4-mkpanel">
+            <div className="na1-m4-mkpanel-label">Katherine</div>
+            <div className="na1-m4-mkpanel-body">{feedback}</div>
+          </div>
+        )}
+        {askError && <div className="na1-m4-merror">{askError}</div>}
+
+        <div className="na1-m4-modal-actions is-split">
           <button
             type="button"
             className="na1-m4-modal-confirm"
             disabled={!canConfirm}
             onClick={() => onConfirm(draft)}
           >
-            Save value ✓
+            Confirm definition ★
+          </button>
+          <button
+            type="button"
+            className="na1-m4-mchip-secondary"
+            disabled={askLoading}
+            onClick={handleAskFeedback}
+          >
+            {askLoading ? "Asking Katherine…" : "+ Ask Katherine for feedback"}
+          </button>
+          <button
+            type="button"
+            className="na1-m4-mback"
+            onClick={onEditName}
+          >
+            ← Edit name
           </button>
         </div>
       </div>

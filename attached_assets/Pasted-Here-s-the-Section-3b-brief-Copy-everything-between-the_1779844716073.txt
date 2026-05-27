@@ -1,0 +1,266 @@
+Here's the Section 3b brief. Copy everything between the two horizontal lines below, paste to Replit Agent.
+
+Ship 5.6f · Mirror 4 Section 3b · Real Naming + Define modals (replace 3a stubs)
+Hi — Section 3a (Ship 5.6d) and polish (5.6e) are approved on dev. This ship replaces the stub Naming + Define modals from 3a with their real versions: the peel mechanic, Katherine on-demand, behaviors anchor, state-aware modals, and rewired Completed card edit links.
+Critical scope note: This ship ONLY touches the Naming and Define modals plus the Completed card's Rename / Edit definition link wiring. Do not modify the per-value screens, behavior lists, mini-quadrant panel, flip section, Step 4 Katherine's Read, Step 8 Confirm, or anything else. Those are all shipped and approved. The 3a stub modals get fully replaced; nothing else changes.
+Stub-out → real-in. Everything around the modals stays as it is.
+
+Reference mockup: Values_Mirror4_LiveTokens.html — demo nav buttons ↳ Name modal and ↳ Define modal. These show the real peel + Katherine versions. Use these as the visual source of truth. Walk both mockup screens before writing code — the peel breadcrumb, behaviors anchor styling, "Ask Katherine" chip, suggestion pills, named anchor card are all spec'd visually in the mockup.
+
+What gets built
+
+Real Naming modal — replaces the 3a stub. State-aware (State A peel + State B name) with breadcrumb, behaviors anchor, on-demand Katherine, and the always-visible I'm ready to name this → link.
+Real Define modal — replaces the 3a stub. Adds the named value anchor + behaviors anchor + Katherine-voice prompt + on-demand "Ask Katherine for feedback" chip + ← Edit name link back to Naming State B.
+Completed card edit links rewired:
+
+Rename → opens real Naming modal in State B (skips peel, name pre-filled)
+Edit definition → opens real Define modal (definition pre-filled in textarea)
+Edit-mode does NOT auto-open Define after Rename confirm (already correct in 3a — preserve this behavior).
+
+
+Two new Anthropic API calls (both client-side, reusing existing M1/M3 pattern):
+
+"Ask Katherine for a name suggestion" inside Naming modal State A
+"Ask Katherine for feedback" inside Define modal
+
+
+
+
+Naming modal · State A (Peel)
+This is the entry state when the user first opens the Naming modal (from clicking Name this value ★ on the per-value screen).
+Header label: ★ Name your value · peel to the root (the second clause hints at the mechanic without explaining it)
+Behaviors anchor (top of modal):
+
+Compact chip row showing the value's current behaviors (from cluster.behaviorIds mapped through state.mirror4.admire + irks to get text)
+Each chip: behavior text, provenance pip (LIGHTS / WARMS / BOTHERS / TURNS / FLIPPED / NEW), max 3-line wrap, faint border
+Helper label above: THE BEHAVIORS BEHIND IT (uppercase, gold, letter-spaced — matches the existing Step 4 Katherine label style)
+
+Peel breadcrumb:
+
+Horizontal chip row, scrollable if it overflows
+First chip (always present): these behaviors → what do they give you? (current/active state, gold border + gold text when this is the current peel question)
+As user peels, each peel adds a chip: e.g. [user's first peel word] → next chip becomes → what does that give you? (active state)
+Each user-input chip styled like Katherine voice — italic Georgia, gold accent on the user word
+Chips remain visible as user peels deeper
+
+Current peel question:
+
+Italic Georgia, ~22px, centered, max-width 480px
+Format: What does {gold-tinted user word} give you?
+For the first peel: What do these behaviors give you? (no user word yet, "these behaviors" gets the gold tint)
+
+Peel input:
+
+Big serif gold input (centered, dotted underline — reuse Step 1 Admire input pattern)
+Placeholder: One word, or a short phrase…
+
+Two CTAs (footer):
+
+Primary: Keep peeling → (filled gold pill, disabled when input empty)
+Secondary chip: Ask Katherine for a name suggestion (small, teal/cyan-bordered pill — on-demand)
+Tertiary link: I'm ready to name this → (underlined gold text, small) — visible from State A first paint, NOT gated on peeling
+
+Behavior on Keep peeling →:
+
+Push current input to cluster.peelChain array
+Add a new chip to the breadcrumb showing the user's word
+Update the current peel question to use that word with gold tint
+Clear input, ready for next peel
+Stay in State A
+
+Behavior on Ask Katherine for a name suggestion chip:
+
+Reveal a panel below the chip (teal-bordered card)
+While panel loads: show shimmer or "Katherine is thinking…" placeholder
+Fire Anthropic client-side fetch (reuse M1/M3 pattern, same as Step 4 clustering call — locate around App.tsx lines 41517, 41522, 42063 or wherever 5.6d wired the clustering fetch)
+Prompt: send cluster.peelChain (the user's peel history) + the behaviors anchor data + cluster.proposedNames (the original 3 candidates from Step 4). Ask for 1-3 short value-word candidates as JSON: { suggestions: string[] }
+On response: render the suggestions as gold serif pill buttons inside the teal panel, plus a one-line italic Katherine voice intro above them like "Here's what I'd offer based on where you've gone:"
+Clicking a suggestion pill → advance to State B with that name pre-filled in the State B input
+Failure: show small inline message "Katherine couldn't connect right now. Keep going — you've got this." Don't crash, don't hide the existing peel mechanic.
+The chip itself can be re-clicked to re-fetch (e.g. after the user peeled deeper)
+
+Behavior on I'm ready to name this →:
+
+Advance to State B (with whatever's currently in the peel input pre-filled in State B's input if non-empty; otherwise State B opens with empty input)
+peelChain is preserved — user can return to State A via State B's back link
+
+
+Naming modal · State B (Name)
+Reached either via I'm ready to name this →, a Katherine suggestion pill click, OR (in edit-mode) directly from the Completed card's Rename link.
+Header label changes to: ★ Name your value · lock it in
+Behaviors anchor: stays visible at top (same as State A — preserves context)
+THIS IS THE VALUE YOU'RE NAMING eyebrow (uppercase, gold, letter-spaced)
+Name input:
+
+Big serif gold input, centered, dotted underline (matches State A peel input style but bigger — this is the moment)
+Pre-filled value depends on how user got here:
+
+From I'm ready to name this → with peel input non-empty: pre-fill with that text
+From I'm ready to name this → with peel input empty: empty, user types fresh
+From Katherine suggestion pill click: pre-fill with the suggested name
+From Completed card Rename link (edit mode): pre-fill with cluster.userName
+
+
+
+Helper line below input: One or two words. Make it yours. You can come back and rename anytime. (italic Georgia, faint)
+Two CTAs (footer):
+
+Secondary text link: ← Keep peeling (returns to State A, peelChain preserved) — hidden in edit-mode (when user came from Completed card Rename, there's nothing to "keep" peeling toward — they're just editing the name)
+Primary: Confirm name ★ (filled gold pill, disabled when input is empty/whitespace)
+
+Behavior on Confirm name ★:
+
+Trim and write cluster.userName
+Write cluster.peelChain to state (whatever's been collected)
+Set cluster.status = "named" (unless already "complete" from a previous full pass — don't downgrade status on rename)
+Close Naming modal
+First-creation flow (cluster wasn't previously complete): auto-open real Define modal after 280ms beat
+Edit mode (user came from Completed card Rename, cluster was already "complete"): close Naming modal, do NOT auto-open Define. Return to per-value screen with updated Completed card name. (This is the existing 3a behavior — preserve it.)
+
+
+Define modal (real)
+Replaces the 3a stub. Opens automatically 280ms after Naming State B confirm (first-creation), OR directly from Completed card Edit definition link (edit-mode).
+Header label: ★ Define your value · what does this mean to you?
+Named value anchor (top of modal):
+
+Gradient gold-warm card, padding 24px
+Small ★ icon centered
+Big serif gold value name (~34px), cluster.userName
+This anchors the user in what they're defining — same visual style as the Completed card's name treatment
+
+Behaviors anchor (below named value):
+
+THE BEHAVIORS BEHIND IT eyebrow (uppercase gold, letter-spaced)
+Chip list of the value's behaviors (same chip style as Naming modal's behaviors anchor)
+
+Katherine-voice prompt (italic Georgia, ~17px, centered, max-width 480px):
+
+Use the existing resolveDisplayName() helper (M1/M3 pattern)
+Format: ${displayName ? displayName + "," : ""} what does **${cluster.userName}** mean to you? This is what shows when you're using it as your decision filter — *make it real.*
+The user's name {cluster.userName} gets gold-tinted via inline span; "make it real" gets gold italic
+If resolveDisplayName() returns empty, omit the leading vocative entirely (no orphan comma): what does **Accountability** mean to you? …
+
+Textarea:
+
+Min-height ~120px
+Placeholder: One or two sentences. Make it real.
+Pre-fills with cluster.userDefinition if non-empty (edit-mode preserves the user's text rather than restarting)
+
+Optional + Ask Katherine for feedback chip:
+
+Small teal/cyan-bordered pill, below the textarea
+On-demand — reveals a panel above the chip with Katherine's feedback
+Fires Anthropic client-side fetch, same pattern as Naming
+Prompt: send cluster.userName + draftDefinition + cluster.behaviorIds (mapped to text) + cluster.peelChain. Ask for a 2-3 sentence feedback paragraph: is the definition concrete? does it match the behaviors? what would sharpen it?
+Response: render in a teal-bordered card as italic Georgia paragraph, plus a closing "— Katherine" attribution
+Failure: same inline failure message pattern as Naming
+Chip can be re-clicked to re-fetch after edits
+
+Two CTAs (footer):
+
+Secondary text link: ← Edit name (closes Define, reopens Naming in State B with current name pre-filled, edit-mode — no auto-open back to Define after)
+Primary: Confirm definition ★ (filled gold pill, disabled when textarea is empty/whitespace)
+
+Behavior on Confirm definition ★:
+
+Trim and write cluster.userDefinition
+Set cluster.status = "complete"
+Close Define modal
+Per-value screen now shows the Completed card (or remains showing it, if edit-mode)
+
+
+Completed card · edit links rewired
+The Completed card itself stays as-is (3a + 5.6e shipped it). Only the click handlers on the two edit links change:
+
+Rename button: opens real Naming modal in State B, pre-fills with cluster.userName. Skip peel entirely — the user is editing, not re-deriving. The ← Keep peeling link is hidden in this mode (no peel to keep).
+Edit definition button: opens real Define modal, pre-fills with cluster.userDefinition in textarea. The named value anchor and behaviors anchor render as usual.
+
+In both edit-mode entries, the 280ms auto-open chain does NOT fire after confirm. User edits one thing, returns to per-value screen.
+
+State schema additions
+The cluster.peelChain field already exists in the Mirror4State type from Section 1's mirror4Constants.ts. This ship is the first one to actually write to it.
+No new fields needed. Just exercise the existing peelChain: string[].
+
+Anthropic API calls (locating the pattern)
+5.6d wired up the Step 4 clustering call by reusing the existing M1/M3 fetch pattern. Find that 5.6d code in App.tsx and reuse it directly for both new calls in this ship. Both calls:
+
+Client-side fetch to the Anthropic endpoint, same auth/key setup as Step 4
+Return JSON, parse on the client
+No new server endpoints
+No new auth flows
+Inline failure messaging on fetch error (don't crash the modal)
+
+The prompts are the only new content; the wiring is identical.
+
+Design tokens
+Use existing --na1-* + --gold* tokens. The cluster/cyan tokens for Katherine voice cards already exist from 5.6d (Step 4 Katherine intro card). Reuse those.
+Possible new token candidates (flag and ask before adding if needed):
+
+A --gold-line-strong or similar if the existing --gold-line doesn't have enough contrast for the suggestion pills — but try existing tokens first.
+
+Same rule: flag any new token in your reply with name + value + reason before adding.
+Fonts: DM Sans (--na1-sans) for UI, Georgia (--na1-serif) for headings, italics, and the peel question. No Cormorant Garamond, no Inter, no Geist.
+
+Definition of done
+
+User completes Steps 1–3 (if not already), arrives at per-value screen (Step 5/6/7), clicks Name this value ★.
+
+Expected: Naming modal opens in State A. Behaviors anchor visible at top. Peel breadcrumb shows the first chip. Peel input present with placeholder. Keep peeling → button visible but disabled. Ask Katherine for a name suggestion chip visible. I'm ready to name this → link visible from first paint.
+
+
+Type a word into peel input → Keep peeling → enables.
+Click Keep peeling → → input clears, breadcrumb adds a chip with the user's word, current peel question updates to use that word with gold tint, modal still in State A.
+Peel two more times (so peelChain length = 3).
+
+Expected: breadcrumb shows three chips with user words plus the next active question chip.
+
+
+Click Ask Katherine for a name suggestion chip.
+
+Expected: teal panel reveals, brief loading state, then suggestions render as 1-3 gold serif pill buttons with a Katherine voice intro above. peelChain is sent in the prompt.
+
+
+Click a suggestion pill.
+
+Expected: modal advances to State B with that name pre-filled in the State B input. State B has ← Keep peeling link + Confirm name ★ button.
+
+
+Click ← Keep peeling → returns to State A with peelChain intact and previous breadcrumb chips visible.
+Click I'm ready to name this → from State A → advances to State B. peelChain preserved.
+Type a name in State B input → Confirm name ★ enables. Click → modal closes. 280ms beat → Define modal opens automatically.
+Define modal: named value anchor at top showing user's name. Behaviors anchor below. Katherine-voice prompt with user's display name (if available). Textarea with placeholder. + Ask Katherine for feedback chip. ← Edit name link + Confirm definition ★ button.
+Click + Ask Katherine for feedback → teal panel reveals, brief loading state, then feedback paragraph renders in italic Georgia.
+Click ← Edit name → Define modal closes, Naming modal reopens in State B with current name pre-filled. No auto-open back to Define on confirm here — user is editing.
+Confirm definition → modal closes, per-value screen shows Completed card with name + definition.
+Click Rename on Completed card → Naming modal opens directly in State B with current name pre-filled. ← Keep peeling link is hidden (edit-mode). Confirm closes modal, no Define auto-open.
+Click Edit definition on Completed card → Define modal opens with definition pre-filled. Confirm closes modal, returns to Completed card with updated definition.
+Anthropic failures handled gracefully: revoke API key briefly, click Ask Katherine for name suggestion → small inline failure message, modal stays usable, user can still type name manually.
+cluster.peelChain persists in state and survives refresh. Refresh inside Naming modal closes the modal (modals don't restore on refresh per the 5.6c scope), but peelChain is preserved so re-opening Naming after refresh in State A shows the saved breadcrumb chips.
+5.6d, 5.6e behaviors still intact: named values show on per-value title, on Step 4 cards, Step 8 Continue copy unchanged.
+
+
+DO NOT
+
+Modify per-value screen layout, behaviors list, mini-quadrant panel, or flip section. All shipped in 3a.
+Modify the Completed card itself. Only the click handlers on Rename and Edit definition rewire to the real modals.
+Modify Step 4 Katherine's Read, Step 8 Confirm, or Sections 1, 2.
+Auto-trigger Ask Katherine. Both calls are on-demand only — user must click the chip.
+Auto-open Define modal in edit-mode (when reopening Naming via Completed card Rename, OR when user clicks ← Edit name from Define). The 280ms auto-open is for first-creation flow only. The 3a stubs got this right — preserve it.
+Hide the I'm ready to name this → link until first peel. It must be visible from State A's first paint — user should be able to skip peeling entirely if they want.
+Hard-block on empty peelChain. User can confirm a name without ever peeling.
+Add a new server endpoint for Anthropic calls. Reuse the existing M1/M3/5.6d client-side fetch pattern.
+Add new database tables or auth flows. Client-side state only.
+Persist modal-open state across refresh. Modals always reopen closed (per 5.6c spec). The cluster state (peelChain, userName, userDefinition) persists — the modal-open flag does not.
+Use Cormorant Garamond, Inter, or Geist anywhere.
+Bundle in any Section 4 (Behaviors room) work. Next ship is Section 4 in its own brief.
+
+
+Reference: mockup Values_Mirror4_LiveTokens.html, demo nav buttons ↳ Name modal (the real peel + Katherine version — this IS the source of truth now, not the 3a stub) and ↳ Define modal (the real version with named anchor + behaviors anchor + Katherine prompt + Ask Katherine feedback).
+When you're done, deploy to dev, then reply with:
+
+(a) the dev URL,
+(b) any new design tokens added to :root with name + value + reason,
+(c) confirmation that you reused 5.6d's Anthropic fetch pattern (and ideally the line numbers in App.tsx for both new calls),
+(d) any deviations from spec and why,
+(e) confirmation that Sections 1, 2, 3a (including 5.6e polish), 5.6c routing, and Step 4/8 behavior still work unchanged.
+

@@ -100,6 +100,11 @@ export type M4Cluster = {
   userDefinition: string;
   status: M4ClusterStatus;
   colorIndex: 1 | 2 | 3;
+  // Ship 5.6f · Section 3b — ordered list of peel words/phrases the
+  // user produced inside the Naming modal's State A. Persisted so the
+  // modal can resume the breadcrumb after refresh and so the Ask-
+  // Katherine prompts can include it as context.
+  peelChain: string[];
 };
 
 export type Mirror4State = {
@@ -200,7 +205,18 @@ export function loadMirror4State(): Mirror4State {
     if (parsed && typeof parsed === "object") {
       // Shallow-merge over EMPTY_MIRROR4 so any future schema additions
       // get sensible defaults on older stored blobs.
-      return { ...EMPTY_MIRROR4, ...parsed } as Mirror4State;
+      const merged = { ...EMPTY_MIRROR4, ...parsed } as Mirror4State;
+      // Ship 5.6f · per-cluster migration — older blobs (pre-3b)
+      // don't carry peelChain. Default to [] without dropping any
+      // other fields the cluster might have.
+      if (Array.isArray(merged.clusters)) {
+        merged.clusters = merged.clusters.map((c) =>
+          Array.isArray((c as M4Cluster).peelChain)
+            ? c
+            : { ...c, peelChain: [] as string[] },
+        );
+      }
+      return merged;
     }
   } catch {}
   return EMPTY_MIRROR4;
@@ -488,6 +504,7 @@ export function createCluster(
     userDefinition: "",
     status: "proposed",
     colorIndex,
+    peelChain: [],
   };
   // Mark all referenced behaviors as in-use by this cluster.
   const setIds = new Set(filteredIds);
