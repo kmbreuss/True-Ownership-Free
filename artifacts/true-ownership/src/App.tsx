@@ -34495,6 +34495,7 @@ function NewA1M4HubView({
             // has yet to finish. Cheap approximation: the last room
             // that's unlocked. Claim is "current" when reachable but
             // not yet claimed (claim body ships in Section 6).
+            const isClaimed = m4State.claimed === true;
             const isCurrent =
               isUnlocked &&
               (idx === 0
@@ -34503,7 +34504,10 @@ function NewA1M4HubView({
                   ? !hasAnyBehavior
                   : room.key === "rank"
                     ? !isPressureTestDone
-                    : room.key === "claim");
+                    : // Ship 5.6l — Claim is "current" only until
+                      // sealed. After claimed=true the hub row
+                      // becomes a calm revisit affordance.
+                      room.key === "claim" && !isClaimed);
             const isClaim = room.key === "claim";
             const cls = [
               "na1-ex-row",
@@ -34514,13 +34518,15 @@ function NewA1M4HubView({
             ]
               .filter(Boolean)
               .join(" ");
-            const statusLabel = isCurrent
-              ? "Up next · tap to begin"
-              : isClaim
-                ? "The seal — unlocks after Rank"
-                : isUnlocked
-                  ? "Open · tap to revisit"
-                  : `Unlocks after ${M4_ROOMS[idx - 1]?.name ?? "the previous room"}`;
+            const statusLabel = isClaim && isClaimed && isUnlocked
+              ? "Sealed · tap to revisit"
+              : isCurrent
+                ? "Up next · tap to begin"
+                : isClaim
+                  ? "The seal — unlocks after Rank"
+                  : isUnlocked
+                    ? "Open · tap to revisit"
+                    : `Unlocks after ${M4_ROOMS[idx - 1]?.name ?? "the previous room"}`;
             const iconChar = isLocked ? "🔒" : String(room.n);
             // Locked rooms remain clickable in M4 so the veil-falls-back
             // pattern (room.bodyShipped === false → setOpenRoom(null) in
@@ -34533,8 +34539,17 @@ function NewA1M4HubView({
                 type="button"
                 key={room.key}
                 className={cls}
-                onClick={() => onLaunchRoom(room)}
+                onClick={() => {
+                  // Ship 5.6l — Claim is now bodyShipped:true, so the
+                  // veil-bounce safety net no longer covers a locked
+                  // click. Gate Claim launch on its unlock predicate
+                  // (pressureTest.complete). Other rooms keep the
+                  // existing veil-bounce-for-locked behavior.
+                  if (room.key === "claim" && isLocked) return;
+                  onLaunchRoom(room);
+                }}
                 aria-label={`${room.name} — ${statusLabel}`}
+                aria-disabled={room.key === "claim" && isLocked ? true : undefined}
               >
                 <span className="na1-ex-icon" aria-hidden>
                   {iconChar}
@@ -37493,6 +37508,310 @@ function NewA1M4BehaviorsBody({
 // ─── Ship 5.6i · Section 5 · Rank room body + Pressure-Test modal ─
 // Single-screen room (Phase 1 rank stack + Phase 2 begin-pressure-
 // test card) with a modal that lifts over it for the pair walk.
+// Ship 5.6l · Section 6 — Claim seal body.
+// Single screen, no modals, one state write (claimed + claimedAt).
+// Beats render live from state every time (per spec clarification:
+// claimed is a one-way flag; if user edits values later the beats
+// update but the CTA stays "Claim updated ✓" disabled).
+// Map of Me check: in True Ownership there is no Map of Me view, so
+// the conditional always falls through to "close + return to hub".
+function NewA1M4ClaimBody({
+  onCloseRoom,
+}: {
+  onCloseRoom: () => void;
+}) {
+  const [state, setMirrorState] = useState<Mirror4State>(() =>
+    loadMirror4State(),
+  );
+  const mutate = (fn: (s: Mirror4State) => Mirror4State) => {
+    setMirrorState((prev) => {
+      const next = fn(prev);
+      saveMirror4State(next);
+      return next;
+    });
+  };
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+
+  // Resolve ranked named values. If rank is empty (defensive — Claim
+  // is gated on pressure-test completion which requires rank), fall
+  // back to cluster creation order over named clusters.
+  const namedClusters = state.clusters.filter(
+    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
+  );
+  const rankIds = state.rank.length > 0
+    ? state.rank.filter((id) => namedClusters.some((c) => c.id === id))
+    : namedClusters.map((c) => c.id);
+  const rankedClusters = rankIds
+    .map((id) => namedClusters.find((c) => c.id === id))
+    .filter((c): c is NonNullable<typeof c> => !!c);
+
+  // Truncate to first ~6 words + ellipsis. Trim trailing punctuation
+  // on the last kept word so "truth," + "…" doesn't become "truth,…".
+  const truncDef = (text: string): string => {
+    const words = text.trim().split(/\s+/);
+    if (words.length <= 6) return text.trim();
+    return words.slice(0, 6).join(" ").replace(/[,.;:!?]+$/, "") + "…";
+  };
+
+  // Keystone behavior name per cluster id. Null = none chosen (skip
+  // from Beat 4 rather than render an empty span).
+  const keystoneName = (clusterId: string): string | null => {
+    const op = state.operationalize[clusterId];
+    if (!op || !op.keystoneId) return null;
+    const b = op.behaviors.find((b) => b.id === op.keystoneId);
+    return b?.name.trim() || null;
+  };
+
+  // Format claimedAt as e.g. "May 27, 2026". Falls back to raw ISO
+  // if Intl/Date parsing fails (shouldn't, but defensive).
+  const formattedClaimedAt = (() => {
+    if (!state.claimedAt) return null;
+    try {
+      const d = new Date(state.claimedAt);
+      if (isNaN(d.getTime())) return state.claimedAt;
+      return d.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return state.claimedAt;
+    }
+  })();
+
+  const goldSpan: React.CSSProperties = { color: "var(--gold)" };
+  const goldSerif: React.CSSProperties = {
+    color: "var(--gold)",
+    fontFamily: "var(--na1-serif)",
+  };
+  const goldItalic: React.CSSProperties = {
+    color: "var(--gold)",
+    fontStyle: "italic",
+  };
+  const beatP: React.CSSProperties = {
+    fontFamily: "var(--na1-serif)",
+    fontStyle: "italic",
+    fontSize: "20px",
+    lineHeight: 1.7,
+    maxWidth: "540px",
+    margin: "0 auto 20px",
+    textAlign: "center",
+    color: "var(--na1-text)",
+  };
+
+  // Map of Me detection — see spec. In True Ownership today there is
+  // no "mapofme" view, no #view-mapofme, no .MapOfMeContainer. This
+  // function exists so the conditional is wired correctly for when
+  // this code lands in an app that does have Map of Me (e.g.
+  // Boardroom). Today it always returns false.
+  const mapOfMeExists = (): boolean => {
+    if (typeof document === "undefined") return false;
+    return !!(
+      document.getElementById("view-mapofme") ||
+      document.querySelector(".MapOfMeContainer")
+    );
+  };
+
+  const handleClaim = () => {
+    if (state.claimed) return;
+    mutate((s) => ({
+      ...s,
+      claimed: true,
+      claimedAt: s.claimedAt ?? new Date().toISOString(),
+    }));
+    // If Map of Me exists, navigate there (Boardroom case). Today in
+    // True Ownership this is always false → fall through to close +
+    // return to hub.
+    if (mapOfMeExists()) {
+      // Reserved for future Map of Me wiring. For now, close to
+      // avoid orphaning the user inside the Claim overlay.
+      onCloseRoom();
+      return;
+    }
+    onCloseRoom();
+  };
+
+  return (
+    <>
+      <div className="na1-room-eyebrow tone-gold">
+        Mirror 4 · Claim
+      </div>
+
+      <div
+        style={{
+          textAlign: "center",
+          fontSize: "56px",
+          color: "var(--gold)",
+          lineHeight: 1,
+          margin: "40px 0 32px",
+        }}
+        aria-hidden
+      >
+        ★
+      </div>
+
+      {/* Beat 1 — The naming. */}
+      <p style={beatP}>
+        {displayName ? (
+          <>
+            <span style={goldItalic}>{displayName}</span>,{" "}
+            this is <span style={goldSpan}>the order you live by</span>.
+          </>
+        ) : (
+          <>
+            This is <span style={goldSpan}>the order you live by</span>.
+          </>
+        )}
+      </p>
+
+      {/* Beat 2 — The values, in rank order. */}
+      {rankedClusters.length > 0 && (
+        <p style={beatP}>
+          {rankedClusters.map((c, i) => (
+            <React.Fragment key={c.id}>
+              {i === 0 ? "" : ", then "}
+              <span style={goldSerif}>{c.userName}</span>
+            </React.Fragment>
+          ))}
+          .
+        </p>
+      )}
+
+      {/* Beat 3 — The definitions, summarized. */}
+      {rankedClusters.length > 0 && (
+        <p style={beatP}>
+          You named what each one means:{" "}
+          {rankedClusters.map((c, i) => (
+            <React.Fragment key={c.id}>
+              {i === 0 ? "" : ", "}
+              <span style={goldItalic}>
+                “{truncDef(c.userDefinition)}”
+              </span>
+            </React.Fragment>
+          ))}
+          .
+        </p>
+      )}
+
+      {/* Beat 4 — The keystone behaviors. */}
+      {(() => {
+        const keystones = rankedClusters
+          .map((c) => keystoneName(c.id))
+          .filter((n): n is string => !!n);
+        if (keystones.length === 0) return null;
+        return (
+          <p style={beatP}>
+            And you marked the one behavior you'd defend first for each:{" "}
+            {keystones.map((k, i) => (
+              <React.Fragment key={i}>
+                {i === 0 ? "" : ", "}
+                <span style={goldSpan}>{k}</span>
+              </React.Fragment>
+            ))}
+            .
+          </p>
+        );
+      })()}
+
+      {/* Beat 5 — The decision filter (the close). Heaviest beat: extra
+          vertical breathing room before/after. */}
+      <div style={{ margin: "36px auto 36px", maxWidth: "540px" }}>
+        <p style={{ ...beatP, margin: "0 auto 14px" }}>
+          This is your <span style={goldSpan}>decision filter</span>.
+        </p>
+        <p style={{ ...beatP, margin: "0 auto 10px" }}>
+          Use it when two values pull on the same moment.
+        </p>
+        <p style={{ ...beatP, margin: "0 auto 10px" }}>
+          Use it when the cost is real and you have to choose.
+        </p>
+        <p style={{ ...beatP, margin: "0 auto 0" }}>
+          Use it when you'd rather not — that's{" "}
+          <span style={goldItalic}>when it counts most</span>.
+        </p>
+      </div>
+
+      {/* Gold horizontal rule. */}
+      <hr
+        style={{
+          width: "200px",
+          maxWidth: "200px",
+          height: "1px",
+          border: "0",
+          backgroundColor: "var(--gold)",
+          opacity: 0.45,
+          margin: "48px auto 32px",
+        }}
+      />
+
+      {/* Primary CTA. */}
+      <div style={{ textAlign: "center" }}>
+        <button
+          type="button"
+          onClick={handleClaim}
+          disabled={state.claimed}
+          style={{
+            display: "inline-block",
+            padding: "16px 32px",
+            fontSize: "16px",
+            fontFamily: "var(--na1-sans)",
+            fontWeight: 500,
+            color: "#1a1206",
+            backgroundColor: "var(--gold)",
+            border: "0",
+            borderRadius: "999px",
+            cursor: state.claimed ? "default" : "pointer",
+            opacity: state.claimed ? 0.85 : 1,
+            transition: "transform .15s ease, opacity .15s ease",
+          }}
+        >
+          {state.claimed
+            ? "Claim updated ✓"
+            : "Claim it · go to Map of Me →"}
+        </button>
+      </div>
+
+      {/* Foot line. */}
+      <p
+        style={{
+          fontFamily: "var(--na1-serif)",
+          fontStyle: "italic",
+          fontSize: "13px",
+          color: "var(--na1-text-mute)",
+          textAlign: "center",
+          margin: "20px auto 14px",
+          maxWidth: "420px",
+        }}
+      >
+        {state.claimed && formattedClaimedAt
+          ? `Sealed on ${formattedClaimedAt}.`
+          : "You've claimed your Values. The seal stays."}
+      </p>
+
+      {/* Escape link. */}
+      <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <button
+          type="button"
+          onClick={onCloseRoom}
+          style={{
+            background: "transparent",
+            border: "0",
+            padding: 0,
+            fontFamily: "var(--na1-sans)",
+            fontSize: "13px",
+            color: "var(--gold)",
+            textDecoration: "underline",
+            cursor: "pointer",
+          }}
+        >
+          ← Revise my Values readback
+        </button>
+      </div>
+    </>
+  );
+}
+
 // All writes go through saveMirror4State via mutate; pair generation
 // is deterministic (mirror4Constants.m4PressureTestPairs); rank
 // seeding defaults to cluster creation order on first entry.
@@ -38595,10 +38914,9 @@ function NewA1M4Container({
               onContinueToClaim={() => {
                 // Ship 5.6i · Section 5 hand-off — close Rank, then
                 // launch Claim after the overlay fade settles (540ms
-                // matches the Behaviors→Rank pattern). Claim's
-                // bodyShipped is still false (Section 6 not shipped),
-                // so the veil bounces back to the hub — that's the
-                // "placeholder" mentioned in the 5.6i spec.
+                // matches the Behaviors→Rank pattern). Ship 5.6l:
+                // Claim's bodyShipped is now true, so the veil lands
+                // on the Claim seal screen instead of bouncing back.
                 closeRoom();
                 const claim = M4_ROOMS.find((r) => r.key === "claim");
                 if (claim) {
@@ -38608,6 +38926,8 @@ function NewA1M4Container({
                 }
               }}
             />
+          ) : openRoom.key === "claim" ? (
+            <NewA1M4ClaimBody onCloseRoom={closeRoom} />
           ) : (
             <NewA1M4RoomPlaceholderBody room={openRoom} />
           )}

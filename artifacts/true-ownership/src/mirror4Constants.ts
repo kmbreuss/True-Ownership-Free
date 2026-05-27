@@ -258,7 +258,10 @@ export const M4_ROOMS: ReadonlyArray<{
     name: "Claim",
     tone: "gold",
     threshold: "The moment of claiming…",
-    bodyShipped: false,
+    // Ship 5.6l · Section 6 — Claim body is now shipped. The
+    // pressure-test gate (rooms whose key === "claim" requires
+    // pressureTest.complete) still controls unlock at the hub level.
+    bodyShipped: true,
   },
 ];
 
