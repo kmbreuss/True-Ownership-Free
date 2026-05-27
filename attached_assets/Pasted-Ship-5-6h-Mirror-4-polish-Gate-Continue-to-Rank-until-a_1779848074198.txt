@@ -1,0 +1,68 @@
+Ship 5.6h · Mirror 4 polish · Gate Continue to Rank until all values have behaviors
+Hi — Section 4 (Behaviors) is approved on dev. One focused fix to land before Section 5 (Rank + Pressure-test).
+The rule: The Continue to Rank → button on the Behaviors room must be disabled until every named value has at least one behavior. The Rank room asks the user to order their values for pressure-testing; ranking empty values is meaningless. The hard gate goes here.
+Keystone stays skippable — that's NOT part of this gate. Only the behavior count matters for unlocking Continue.
+
+What to build
+Update the Continue button in the Behaviors room footer:
+
+Enabled state (current behavior, no change): every named value (every cluster with status === "complete" AND userName non-empty) has at least one entry in state.mirror4.operationalize[clusterId].behaviors.
+
+Button is filled gold, clickable, copy reads Continue to Rank →.
+
+
+Disabled state (new): one or more named values have zero behaviors.
+
+Button is the same filled gold pill but visually muted — reduced opacity (~0.4–0.5), no hover effect, cursor: not-allowed, disabled attribute set.
+Copy reads Continue to Rank → (unchanged — don't switch to "Locked" or similar).
+Below the button, render a helper line in italic Georgia, faint color:
+
+One empty value: Add at least one behavior to "{value name}" first.
+Two empty values: Add at least one behavior to "{name 1}" and "{name 2}" first.
+Three or more empty values: Add at least one behavior to each of your values first. (don't enumerate all of them — gets unwieldy)
+
+
+The helper updates live as the user adds/deletes behaviors. As soon as the last empty value gets its first behavior, the helper disappears and the button enables.
+
+
+
+
+Visual states
+
+Use existing tokens — no new ones.
+Disabled button: reuse the same disabled pattern Agent already uses for other M4 disabled buttons (e.g. + Add behavior at 5/5, Confirm name ★ on empty input). Apply the same visual treatment for consistency.
+Helper line: italic Georgia, var(--na1-text-mute) or equivalent faint color, ~13-14px, centered or left-aligned to match the button.
+
+
+Definition of done
+
+Walk this scenario: enter Behaviors room with one named value (Honesty) that has 0 behaviors (delete all pre-filled behaviors to set this up). Continue button is disabled (muted gold pill). Helper line reads Add at least one behavior to "Honesty" first.
+Add one behavior to Honesty (via + Add behavior or any other path). Continue button enables, helper line disappears.
+Delete that behavior. Continue button disables again, helper reappears.
+With multiple named values: delete all behaviors for two values. Helper reads Add at least one behavior to "{name 1}" and "{name 2}" first. Add one behavior to one of them. Helper updates to single-value form. Add a behavior to the second. Helper disappears, button enables.
+With three or more empty values: helper reads Add at least one behavior to each of your values first. (no enumeration).
+Keystone NOT required — Continue enables based purely on behavior count, regardless of whether any keystone is marked.
+Refresh inside Behaviors with empty values → Continue still correctly disabled with correct helper.
+Existing flows (+ Add behavior cap at 5, keystone star, skip keystone, value switching, refresh-resume) all still work.
+
+
+DO NOT
+
+Gate on keystone. Keystone stays skippable, per spec.
+Gate on behavior counts above 1. The minimum is one behavior per value. (The spec encourages "up to 5" — that's the ceiling, not the floor.)
+Change the button copy when disabled. Stays Continue to Rank →.
+Show a modal or popup. Just disable the button + add the helper line.
+Add new design tokens. Reuse what Behaviors already uses for muted/disabled states.
+Block on values that aren't yet named (status not "complete"). Only check named values — incomplete/proposed clusters don't count toward the gate either way.
+Touch any other M4 surface. Behaviors room only, footer area only.
+Modify Rank room placeholder. (Side note: the placeholder currently reads "Coming in Section 6" — this is a separate copy issue; we'll fix when Rank actually ships. Don't change it in this ship.)
+
+
+Reference: No mockup for this — it's a small state-driven button change. The visual pattern reuses the existing M4 disabled-button styling.
+When you're done, deploy to dev, then reply with:
+
+(a) the dev URL,
+(b) confirmation that the helper line text matches the three cases (one, two, three+ empty values),
+(c) any deviations from spec and why,
+(d) confirmation that Sections 1, 2, 3a/3b, 5.6c routing, 5.6e polish, and Section 4 keystone/cap/refresh-resume still all work unchanged.
+

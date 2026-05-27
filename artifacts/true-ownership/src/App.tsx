@@ -1897,6 +1897,7 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,243,239,.78); }
 .na1-m4-beh-key.is-collapsed{ padding:9px 14px; text-align:left; }
 .na1-m4-beh-key-icon{ font-size:18px; color:var(--gold); margin:0 0 6px; }
 .na1-m4-beh-key-collapsed{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--gold); }
+.na1-m4-beh-gate-helper{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin:8px 0 0; text-align:right; }
 .na1-m4-beh-vhead{ border-left:3px solid var(--clusterColor, var(--gold)); padding:6px 0 6px 14px; margin:0 0 18px; }
 .na1-m4-beh-vname{ font-family:var(--na1-serif); font-size:24px; line-height:1.15; color:var(--clusterColor, var(--gold)); margin:0; }
 .na1-m4-beh-vdef{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; line-height:1.55; color:var(--na1-text-sec); margin:6px 0 0; }
@@ -37286,22 +37287,58 @@ function NewA1M4BehaviorsBody({
         </div>
       )}
 
-      <div className="na1-m4-disc-foot">
-        <button
-          type="button"
-          className="na1-m4-back"
-          onClick={onCloseRoom}
-        >
-          ← Back to Values
-        </button>
-        <button
-          type="button"
-          className="na1-m4-continue"
-          onClick={onContinueToRank}
-        >
-          Continue to Rank →
-        </button>
-      </div>
+      {(() => {
+        // Ship 5.6h · Continue→Rank gate. Rank pressure-tests an
+        // ordering of values; ranking values with no behaviors is
+        // meaningless. So Continue is hard-gated on every NAMED value
+        // having ≥1 behavior. Keystone is intentionally NOT part of
+        // this gate (spec: "Keystone stays skippable").
+        const emptyNamed = completeClusters.filter(
+          (c) =>
+            (state.operationalize[c.id]?.behaviors.length ?? 0) === 0,
+        );
+        const blocked = emptyNamed.length > 0;
+        let helper: string | null = null;
+        if (emptyNamed.length === 1) {
+          helper = `Add at least one behavior to "${
+            emptyNamed[0]!.userName
+          }" first.`;
+        } else if (emptyNamed.length === 2) {
+          helper = `Add at least one behavior to "${
+            emptyNamed[0]!.userName
+          }" and "${emptyNamed[1]!.userName}" first.`;
+        } else if (emptyNamed.length >= 3) {
+          helper =
+            "Add at least one behavior to each of your values first.";
+        }
+        return (
+          <>
+            <div className="na1-m4-disc-foot">
+              <button
+                type="button"
+                className="na1-m4-back"
+                onClick={onCloseRoom}
+              >
+                ← Back to Values
+              </button>
+              <button
+                type="button"
+                className="na1-m4-continue"
+                onClick={onContinueToRank}
+                disabled={blocked}
+                aria-disabled={blocked || undefined}
+              >
+                Continue to Rank →
+              </button>
+            </div>
+            {helper && (
+              <p className="na1-m4-beh-gate-helper" role="status">
+                {helper}
+              </p>
+            )}
+          </>
+        );
+      })()}
     </>
   );
 }
