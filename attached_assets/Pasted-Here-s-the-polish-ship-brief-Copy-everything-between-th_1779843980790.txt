@@ -1,0 +1,96 @@
+Here's the polish ship brief. Copy everything between the two horizontal lines below, paste to Replit Agent.
+
+Ship 5.6e · Mirror 4 polish · Named values show up everywhere after naming
+Hi — Section 3a (Ship 5.6d) is approved on dev. Two small polish fixes to land before we move into Section 3b (real peel/Katherine modals). Both fix UX issues where the cluster's userName doesn't surface where it should after the user names a value.
+This is a focused polish ship. Three small changes, no new components, no schema changes, no new tokens.
+
+Change 1 · Per-value screen title swaps to named value after naming
+Currently the per-value screen header reads Cluster 1 for the entire flow, even after the user has named and defined the value.
+After the user completes both Naming + Define stub modals for a cluster (i.e. cluster.status === "complete" AND cluster.userName is non-empty), the per-value screen header should swap.
+Behavior:
+
+Before naming (status: "proposed" or "named" without complete definition):
+
+Title: Cluster [N] (current behavior — no change)
+No additional eyebrow change
+
+
+After naming + defining (status: "complete" AND userName non-empty):
+
+Title: ★ {cluster.userName} (e.g. ★ Accountability) — big serif gold, exactly as currently styled for Cluster 1 but with the user's name and a small leading star
+Add a small eyebrow ABOVE the existing step eyebrow (or merged into it — your call on layout): faint italic Georgia, lowercase, text cluster {N} · named — e.g. cluster 1 · named. This preserves the cluster pedigree for orientation while the user's named value takes center stage.
+
+
+
+The cluster banner that sits below the title (the slim row with Cluster N · Katherine sees [proposal]) stays as-is when naming is incomplete. When naming is complete, replace its content with the named value's definition shown as italic Georgia, e.g.: "Owning my impact and following through, especially when it costs me something." — so the user sees their definition reflected back. Keep the cluster-color left border.
+
+Change 2 · Step 4 Katherine's Read cluster cards show named values once named
+Currently Step 4 shows cluster overview cards like:
+● CLUSTER 1
+accountability — owning your impact
+2 behaviors
+After a cluster is named + defined, those cards should show the user's named value instead.
+Behavior on each cluster overview card:
+
+Unnamed cluster (status: "proposed" or "named" without complete definition):
+
+Card content stays as-is (current behavior — no change)
+
+
+Named cluster (status: "complete" AND userName non-empty):
+
+Replace the CLUSTER N label with ★ {cluster.userName} (e.g. ★ Accountability) — gold serif, matching the per-value screen treatment
+Replace the Katherine proposal line (accountability — owning your impact) with the user's definition as italic Georgia, faint, max 2 lines with ellipsis if longer
+Keep the behavior count (2 behaviors)
+Keep the cluster color dot
+Visually mark this card as "done" — add a small ✓ in the top-right corner, or a faint gold border. Your choice on the polish, but the user should be able to glance at Step 4 and see which clusters are complete vs. still to work.
+
+
+
+This means Step 4 becomes a real progress board: as the user names more values, Step 4 reflects what's done.
+
+Change 3 · Step 8 Continue button copy
+Currently the Step 8 Continue button reads Close Discover ✓. Change to:
+Continue to Behaviors →
+Reasoning: Every other Continue in M4 names the destination (Continue to irks →, See your portrait →, Find values underneath →, Work cluster 1 →, Confirm your values →). Close Discover describes the mechanism (an overlay closes), not the journey. The user is going TO Behaviors next; that should be the verb. Behaviors is the next room in the M4 sequence — the user should hear it named.
+Use the same filled gold pill styling. Same behavior: closes Discover overlay, opens Behaviors room (still placeholder until Section 4 ships — that's expected).
+
+Definition of done
+
+Walk this scenario: enter Discover, complete Steps 1–3 (or use existing data), reach Step 5 Value 1. Per-value title shows Cluster 1. Click Name CTA → Naming modal → type name → Confirm. 280ms beat → Define modal → type definition → Confirm.
+
+Expected after the modals close: per-value screen title now shows ★ Accountability (or whatever name was typed). Tiny eyebrow above shows cluster 1 · named. The cluster banner below the title shows the user's definition in italic Georgia, with the gold left border preserved.
+
+
+Click ← Back to Step 4 Katherine's Read.
+
+Expected: the Cluster 1 overview card now shows ★ Accountability + the user's definition as italic, plus a visual done-marker (✓ or border). Other unnamed clusters (if any) still show their original Katherine proposal text.
+
+
+Advance to Step 8 Confirm.
+
+Expected: Continue button reads Continue to Behaviors → (not Close Discover ✓).
+
+
+Click Continue → Discover overlay closes, Behaviors room opens with its placeholder (no change from before).
+Refresh page mid-flow on a named per-value screen → title still shows ★ Accountability, eyebrow still shows cluster 1 · named. (Routing from 5.6c handles the resume; the named state is persisted in state.mirror4.clusters[].userName and .userDefinition — that already works.)
+Unnamed clusters render unchanged everywhere — only named clusters get the new treatment.
+
+
+DO NOT
+
+Change the Naming or Define modals. Those stay as 3a stubs until 3b replaces them.
+Add new design tokens. Use existing --na1-* + --gold*. The named-treatment styling reuses what's already on the Completed card.
+Modify the Completed card itself — that already shows the name + definition correctly. This ship just makes the per-value screen TITLE and the Step 4 cluster CARDS match.
+Change cluster IDs, color assignments, or colorIndex field. Those are stable.
+Change Step 1, 2, 3 in any way. They're shipped.
+Bundle in any 3b work (real peel/Katherine modals). Next ship is 3b in its own brief.
+
+
+Reference
+Mockup Values_Mirror4_LiveTokens.html — the Completed card pattern from demo nav ↳ Define modal is the visual reference for how a named value should look. The per-value title swap and Step 4 cluster card update extend that visual language to those two surfaces.
+When you're done, deploy to dev, then reply with:
+
+(a) the dev URL,
+(b) any deviations from spec and why,
+(c) confirmation that Sections 1, 2, 3a, and Ship 5.6c routing still work unchanged.

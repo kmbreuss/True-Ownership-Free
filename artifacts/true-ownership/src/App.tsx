@@ -1712,7 +1712,11 @@ html[data-theme="light"]{
 .na1-m4-katherine-loading{ font-family:var(--na1-serif); font-style:italic; color:var(--na1-text-mute); padding:14px 0; text-align:left; font-size:14px; }
 
 .na1-m4-cluster-list{ display:flex; flex-direction:column; gap:10px; margin:8px 0 16px; }
-.na1-m4-cluster-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; display:flex; align-items:center; gap:14px; }
+.na1-m4-cluster-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; display:flex; align-items:center; gap:14px; position:relative; }
+.na1-m4-cluster-card.is-named{ border-color:var(--gold-line); box-shadow:0 0 0 1px var(--gold-soft) inset; }
+.na1-m4-cluster-label-row.is-named{ font-family:var(--na1-serif); font-size:17px; font-weight:400; font-style:normal; letter-spacing:.01em; text-transform:none; color:var(--gold); margin-bottom:4px; }
+.na1-m4-cluster-definition{ font-family:var(--na1-serif); font-size:13.5px; font-style:italic; color:var(--na1-text-sec); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.na1-m4-cluster-done{ position:absolute; top:8px; right:10px; color:var(--gold); font-size:13px; line-height:1; opacity:.85; }
 .na1-m4-cluster-dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0; }
 .na1-m4-cluster-body{ flex:1; min-width:0; }
 .na1-m4-cluster-label-row{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:4px; }
@@ -34548,7 +34552,10 @@ function NewA1M4DiscoverBody({
       if (state.clusters[nextI]) return `Work cluster ${nextI + 1} →`;
       return "Confirm your values →";
     }
-    if (step === "finish") return "Close Discover ✓";
+    // Ship 5.6e · Continue copy names the destination (Behaviors
+     // room is next in M4) rather than the mechanism (overlay close).
+     // Matches the pattern of every other M4 Continue.
+     if (step === "finish") return "Continue to Behaviors →";
     return "—";
   })();
 
@@ -35393,26 +35400,65 @@ Respond with ONLY a JSON object (no preamble, no markdown fence):
             {state.clusters.length === 1 ? "cluster" : "clusters"} to work
           </div>
           <div className="na1-m4-cluster-list">
-            {state.clusters.map((c, idx) => (
-              <div key={c.id} className="na1-m4-cluster-card">
-                <span
-                  className="na1-m4-cluster-dot"
-                  style={{ background: `var(--c${c.colorIndex})` }}
-                />
-                <div className="na1-m4-cluster-body">
-                  <div className="na1-m4-cluster-label-row">
-                    Cluster {idx + 1}
+            {state.clusters.map((c, idx) => {
+              // Ship 5.6e · Named clusters turn the Step 4 card into
+              // a "done" marker: gold star + user name, definition in
+              // italic Georgia, faint gold border. Unnamed clusters
+              // render exactly as before (proposal text + count).
+              const isNamedCard =
+                c.status === "complete" && !!c.userName.trim();
+              return (
+                <div
+                  key={c.id}
+                  className={
+                    isNamedCard
+                      ? "na1-m4-cluster-card is-named"
+                      : "na1-m4-cluster-card"
+                  }
+                >
+                  <span
+                    className="na1-m4-cluster-dot"
+                    style={{ background: `var(--c${c.colorIndex})` }}
+                  />
+                  <div className="na1-m4-cluster-body">
+                    {isNamedCard ? (
+                      <>
+                        <div className="na1-m4-cluster-label-row is-named">
+                          ★ {c.userName.trim()}
+                        </div>
+                        <div className="na1-m4-cluster-definition">
+                          {c.userDefinition.trim()}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="na1-m4-cluster-label-row">
+                          Cluster {idx + 1}
+                        </div>
+                        <div className="na1-m4-cluster-proposal">
+                          {c.proposal || "(unnamed cluster)"}
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="na1-m4-cluster-proposal">
-                    {c.proposal || "(unnamed cluster)"}
+                  <div className="na1-m4-cluster-count">
+                    {c.behaviorIds.length}{" "}
+                    {c.behaviorIds.length === 1
+                      ? "behavior"
+                      : "behaviors"}
                   </div>
+                  {isNamedCard && (
+                    <span
+                      className="na1-m4-cluster-done"
+                      aria-label="Named"
+                      title="Named & defined"
+                    >
+                      ✓
+                    </span>
+                  )}
                 </div>
-                <div className="na1-m4-cluster-count">
-                  {c.behaviorIds.length}{" "}
-                  {c.behaviorIds.length === 1 ? "behavior" : "behaviors"}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="na1-m4-recluster">
             <button
@@ -35477,28 +35523,44 @@ function M4PerValueScreen({
     (b) => b.tier === "bothers" || b.tier === "turns",
   );
 
+  // Ship 5.6e · "Named" treatment swaps the per-value surface to
+  // reflect the user's value once both Naming + Define are complete
+  // (status === "complete" && userName non-empty). The cluster
+  // pedigree (Cluster N) becomes a faint eyebrow suffix so users
+  // still know which cluster they're in.
+  const isNamed =
+    cluster.status === "complete" && !!cluster.userName.trim();
+
   // Eyebrow text: "Mirror 4 · Step N of 8 · Value M". For v4/v5,
   // we keep "Step 8 of 8" since these are reached via add-another
   // from the confirm screen.
   const eyebrowStep =
     valueIndex <= 3 ? `${4 + valueIndex} of 8` : `8 of 8`;
-  const eyebrowExtra =
-    isAddAnother && !cluster.proposal
+  const eyebrowExtra = isNamed
+    ? ` · cluster ${valueIndex} · named`
+    : isAddAnother && !cluster.proposal
       ? " (additional)"
       : "";
 
   // Title + subtitle: default for clusters with a proposal; replaced
   // for add-another empty clusters (spec § Step 8 · Add another).
-  const title = cluster.proposal
-    ? `Cluster ${valueIndex}`
-    : "Add another value";
-  const subtitle = cluster.proposal
-    ? `${cluster.proposal}`
-    : "Add behaviors from your portrait, then name what they point to.";
+  // Once named, the title becomes "★ {userName}" — the cluster
+  // pedigree moves to the eyebrow above.
+  const title = isNamed
+    ? `★ ${cluster.userName.trim()}`
+    : cluster.proposal
+      ? `Cluster ${valueIndex}`
+      : "Add another value";
+  const subtitle =
+    isNamed || !cluster.proposal
+      ? ""
+      : `${cluster.proposal}`;
 
   // Banner: shows count + cluster color block. Hidden for empty
-  // add-another clusters (no proposal yet).
-  const bannerVisible = !!cluster.proposal;
+  // add-another clusters (no proposal yet). When named, the banner
+  // content is replaced with the user's definition shown as italic
+  // Georgia (reflects the named value back to the user).
+  const bannerVisible = !!cluster.proposal || isNamed;
 
   // Add behavior to cluster (from mini-quadrant pick).
   const handlePick = (behaviorId: string) => {
@@ -35612,11 +35674,29 @@ function M4PerValueScreen({
 
       {bannerVisible && (
         <div className="na1-m4-pv-banner" style={{ color: colorVar }}>
-          <strong style={{ color: colorVar }}>
-            {clusterBehaviors.length}{" "}
-            {clusterBehaviors.length === 1 ? "behavior" : "behaviors"}
-          </strong>{" "}
-          in this cluster · edit, add, or remove as you work it.
+          {isNamed ? (
+            <span
+              style={{
+                fontFamily: "var(--na1-serif)",
+                fontStyle: "italic",
+                fontSize: "14px",
+                lineHeight: 1.55,
+                color: "var(--na1-text-sec)",
+              }}
+            >
+              &ldquo;{cluster.userDefinition.trim()}&rdquo;
+            </span>
+          ) : (
+            <>
+              <strong style={{ color: colorVar }}>
+                {clusterBehaviors.length}{" "}
+                {clusterBehaviors.length === 1
+                  ? "behavior"
+                  : "behaviors"}
+              </strong>{" "}
+              in this cluster · edit, add, or remove as you work it.
+            </>
+          )}
         </div>
       )}
 
