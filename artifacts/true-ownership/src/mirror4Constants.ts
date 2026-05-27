@@ -91,7 +91,22 @@ export type M4PressureTest = {
   conflicts: number;
   rankChanges: number;
   activePairIdx: number;
+  // Ship 5.6k · Part B · AI-generated scenarios per pair.
+  // Key format: `${minClusterId}__${maxClusterId}` so either pair
+  // order resolves to the same key. Empty until the user clicks
+  // Got it — start → on the Intro screen (Anthropic call fires
+  // there and writes the full batch in one go). Walk-again wipes
+  // this back to {}; Re-order regenerates only the un-walked tail.
+  scenarios: Record<string, string>;
 };
+
+// Ship 5.6k · stable key for scenarios lookup. Pair order in
+// pressureTest.pairs is whatever m4PressureTestPairs produced; the
+// scenario response could come back in either order; sort by id
+// so both producer and consumer compute the same key.
+export function m4ScenarioKey(aId: string, bId: string): string {
+  return aId < bId ? `${aId}__${bId}` : `${bId}__${aId}`;
+}
 
 // Ship 5.6d · Section 3a · Cluster schema
 export type M4Flip = {
@@ -186,6 +201,7 @@ export const EMPTY_MIRROR4: Mirror4State = {
     conflicts: 0,
     rankChanges: 0,
     activePairIdx: 0,
+    scenarios: {},
   },
   claimed: false,
   claimedAt: null,
@@ -289,9 +305,22 @@ export function loadMirror4State(): Mirror4State {
           conflicts: 0,
           rankChanges: 0,
           activePairIdx: 0,
+          scenarios: {},
         };
       } else {
         const pt = merged.pressureTest as Partial<M4PressureTest>;
+        // Ship 5.6k · scenarios migration. Older blobs predate this
+        // field; default to {} and drop any malformed values so the
+        // render-time lookup never blows up.
+        const rawScenarios = (pt as { scenarios?: unknown }).scenarios;
+        const scenarios: Record<string, string> = {};
+        if (rawScenarios && typeof rawScenarios === "object") {
+          for (const [k, v] of Object.entries(
+            rawScenarios as Record<string, unknown>,
+          )) {
+            if (typeof v === "string") scenarios[k] = v;
+          }
+        }
         merged.pressureTest = {
           complete: typeof pt.complete === "boolean" ? pt.complete : false,
           pairs: Array.isArray(pt.pairs)
@@ -308,6 +337,7 @@ export function loadMirror4State(): Mirror4State {
             typeof pt.rankChanges === "number" ? pt.rankChanges : 0,
           activePairIdx:
             typeof pt.activePairIdx === "number" ? pt.activePairIdx : 0,
+          scenarios,
         };
       }
       return merged;

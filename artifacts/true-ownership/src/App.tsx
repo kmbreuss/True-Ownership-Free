@@ -117,6 +117,8 @@ import {
   m4PressureTestPairs,
   M4_PRESSURE_TEST_CAP,
   type M4PressureTestPair,
+  // Ship 5.6k · Part B — sorted-pair key for scenario lookup.
+  m4ScenarioKey,
 } from "./mirror4Constants";
 const KEYS = {
   map: "to_map",
@@ -1627,6 +1629,25 @@ html[data-theme="light"]{
 .na1-m4-step-eyebrow{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.2em; color:var(--gold); margin:0 0 14px; font-weight:700; text-transform:uppercase; text-align:center; }
 .na1-m4-step-title{ font-family:var(--na1-serif); font-size:30px; font-weight:600; line-height:1.2; margin:0 0 10px; color:var(--na1-text); text-align:center; }
 .na1-m4-step-sub{ font-family:var(--na1-serif); font-style:italic; font-size:16px; color:var(--na1-text-sec); line-height:1.55; margin:0 auto 22px; max-width:560px; font-weight:400; text-align:center; }
+/* Ship 5.6k · Part C — Rank room header used these unprefixed
+   classes (no step-screens). They were invisible in light mode
+   because the cream fallback color matched the cream card. Bind
+   to the same theme-aware tokens the step- versions use. */
+.na1-m4-eyebrow{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.2em; color:var(--gold); margin:0 0 14px; font-weight:700; text-transform:uppercase; text-align:center; }
+.na1-m4-title{ font-family:var(--na1-serif); font-size:30px; font-weight:600; line-height:1.2; margin:0 0 10px; color:var(--na1-text); text-align:center; }
+.na1-m4-subtitle{ font-family:var(--na1-serif); font-style:italic; font-size:16px; color:var(--na1-text-sec); line-height:1.55; margin:0 auto 22px; max-width:560px; font-weight:400; text-align:center; }
+/* Ship 5.6k · Part B — Scenario card + intro banner + cleared
+   banner styles. Border/typography reuse the existing pt-example
+   pattern; the cleared banner is a faint gold italic strip above
+   the Intro eyebrow that fades after 4s or on Got-it-start. */
+.na1-m4-pt-cleared{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--gold); text-align:center; padding:8px 12px; margin:0 auto 14px; opacity:.85; transition:opacity 600ms ease; }
+.na1-m4-pt-cleared.is-fading{ opacity:0; }
+.na1-m4-pt-scenario{ border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:18px 22px; margin:24px auto 16px; max-width:560px; background:transparent; }
+.na1-m4-pt-scenario-label{ font-family:var(--na1-sans); font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin:0 0 10px; }
+.na1-m4-pt-scenario-body{ font-family:var(--na1-serif); font-style:italic; font-size:16px; line-height:1.6; color:var(--na1-text-sec); margin:0; }
+.na1-m4-pt-scenario-attr{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin:10px 0 0; text-align:right; }
+.na1-m4-pt-walkagain{ display:inline-block; margin:14px auto 0; padding:6px 4px; font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--gold); background:transparent; border:0; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.na1-m4-pt-walkagain:hover{ opacity:.8; }
 
 .na1-m4-legend{ display:flex; justify-content:center; gap:18px; margin-bottom:22px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); flex-wrap:wrap; font-weight:500; }
 .na1-m4-legend-pill{ display:inline-flex; align-items:center; gap:6px; }
@@ -37609,6 +37630,19 @@ function NewA1M4RankBody({
   // intro screen does NOT re-show on resume.
   const [modalOpen, setModalOpen] = useState(false);
   const [introSeen, setIntroSeen] = useState(false);
+  // Ship 5.6k · Part A — Walk-again banner trigger. When the user
+  // clicks Walk it again from Phase 2 or from the Done screen, we
+  // wipe pressure-test state, set this flag, and open the modal at
+  // Intro. The modal reads the flag once, renders the cleared
+  // banner, then auto-clears it on Got-it-start or after 4s.
+  const [justCleared, setJustCleared] = useState(false);
+  // Ship 5.6k · Part A — walkSession bumps on every Walk-it-again
+  // click. Passed as React `key` on the modal so it remounts with
+  // fresh local state (`phase`, `currentIdx`, `activeSeq`). Without
+  // this, clicking Walk-again from the Done screen would leave the
+  // modal stuck on Done because state was already initialized at
+  // mount and parent prop changes don't re-derive `initialPhase`.
+  const [walkSession, setWalkSession] = useState(0);
 
   // First-time intro logic: show intro on Begin click only if no
   // pairs have been walked yet (resume case skips intro).
@@ -37618,6 +37652,29 @@ function NewA1M4RankBody({
     } else {
       setIntroSeen(true);
     }
+    setModalOpen(true);
+  };
+
+  // Ship 5.6k · Part A — Walk-again: wipe ephemeral pressure-test
+  // state but PRESERVE rank (the user's current source of truth,
+  // possibly adjusted by prior Re-orders). Scenarios wipe to {} so
+  // the next walk regenerates a fresh batch. Intro re-shows with
+  // the cleared banner.
+  const walkItAgain = () => {
+    mutate((s) => ({
+      ...s,
+      pressureTest: {
+        complete: false,
+        pairs: [],
+        conflicts: 0,
+        rankChanges: 0,
+        activePairIdx: 0,
+        scenarios: {},
+      },
+    }));
+    setIntroSeen(false);
+    setJustCleared(true);
+    setWalkSession((n) => n + 1);
     setModalOpen(true);
   };
 
@@ -37720,11 +37777,11 @@ function NewA1M4RankBody({
         <button
           type="button"
           className="na1-m4-rank-pt-btn"
-          onClick={openPressureTest}
+          onClick={ptComplete ? walkItAgain : openPressureTest}
           disabled={pairCount === 0}
         >
           {ptComplete
-            ? "Re-open pressure-test →"
+            ? "Walk it again →"
             : state.pressureTest.pairs.length > 0
               ? "Resume pressure-test →"
               : "Begin pressure-test →"}
@@ -37762,12 +37819,16 @@ function NewA1M4RankBody({
 
       {modalOpen && (
         <NewA1M4PressureTestModal
+          key={walkSession}
           state={state}
           mutate={mutate}
           pairSeq={pairSeq}
           rank={effectiveRank}
           introSeen={introSeen}
           markIntroSeen={() => setIntroSeen(true)}
+          justCleared={justCleared}
+          clearJustCleared={() => setJustCleared(false)}
+          onWalkAgain={walkItAgain}
           onClose={() => setModalOpen(false)}
           onContinueToClaim={() => {
             // 1. mark complete (already done by Done screen mutate
@@ -37806,6 +37867,9 @@ function NewA1M4PressureTestModal({
   rank,
   introSeen,
   markIntroSeen,
+  justCleared,
+  clearJustCleared,
+  onWalkAgain,
   onClose,
   onContinueToClaim,
   clusterById,
@@ -37817,6 +37881,9 @@ function NewA1M4PressureTestModal({
   rank: string[];
   introSeen: boolean;
   markIntroSeen: () => void;
+  justCleared: boolean;
+  clearJustCleared: () => void;
+  onWalkAgain: () => void;
   onClose: () => void;
   onContinueToClaim: () => void;
   clusterById: (id: string) => M4Cluster | undefined;
@@ -37852,6 +37919,153 @@ function NewA1M4PressureTestModal({
   // ★ animation) and whether the conflict prompt is showing.
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [conflictMode, setConflictMode] = useState(false);
+
+  // Ship 5.6k · Part B — Scenario generation. We batch-fetch one
+  // 1-2 sentence "Katherine voice" scenario per un-walked pair on
+  // Got-it-start (and on the un-walked tail after a Re-order),
+  // cache them on state.mirror4.pressureTest.scenarios keyed by
+  // m4ScenarioKey (sorted-id pair), and render a gold-bordered
+  // card above the cards on each Pair screen. Failure is graceful:
+  // a 6s timeout falls back to "no scenario" (the card simply
+  // doesn't render) so the walk is never blocked.
+  const [scenariosLoading, setScenariosLoading] = useState(false);
+  // Ship 5.6k · Part A — Cleared banner. When parent triggers a
+  // wipe via walkItAgain → justCleared=true, we show a banner on
+  // Intro that auto-fades after 4s. We mirror to a local "shown"
+  // flag and a "fading" flag so the parent state can be cleared
+  // immediately (avoids re-triggering on remounts) while the local
+  // CSS transition plays out.
+  const [bannerShown, setBannerShown] = useState(false);
+  const [bannerFading, setBannerFading] = useState(false);
+  useEffect(() => {
+    if (!justCleared) return;
+    setBannerShown(true);
+    setBannerFading(false);
+    clearJustCleared();
+    const fadeT = window.setTimeout(() => setBannerFading(true), 3200);
+    const hideT = window.setTimeout(() => {
+      setBannerShown(false);
+      setBannerFading(false);
+    }, 4000);
+    return () => {
+      window.clearTimeout(fadeT);
+      window.clearTimeout(hideT);
+    };
+  }, [justCleared, clearJustCleared]);
+
+  // Ship 5.6k · Part B — Batch-fetch scenarios for a given list of
+  // pairs. Only fetches missing keys. Hard 6s timeout per the
+  // graceful-degradation requirement; on timeout/error we resolve
+  // with what we have so the walk proceeds without scenarios.
+  const fetchScenariosForPairs = async (
+    pairs: Array<{ aId: string; bId: string }>,
+  ): Promise<Record<string, string>> => {
+    const existing = state.pressureTest.scenarios || {};
+    const missing = pairs.filter((p) => !existing[m4ScenarioKey(p.aId, p.bId)]);
+    if (missing.length === 0) return {};
+    const items = missing
+      .map((p) => {
+        const a = clusterById(p.aId);
+        const b = clusterById(p.bId);
+        if (!a || !b) return null;
+        return {
+          key: m4ScenarioKey(p.aId, p.bId),
+          aName: a.userName,
+          bName: b.userName,
+          aDef: a.userDefinition,
+          bDef: b.userDefinition,
+        };
+      })
+      .filter(
+        (
+          x,
+        ): x is {
+          key: string;
+          aName: string;
+          bName: string;
+          aDef: string;
+          bDef: string;
+        } => x !== null,
+      );
+    if (items.length === 0) return {};
+    const prompt =
+      "You are Katherine, a warm, direct guide helping someone pressure-test their values. " +
+      "For each value pair below, write ONE concrete real-life micro-scenario (1–2 short sentences, present tense) " +
+      "where these two values COLLIDE and the person must pick one. " +
+      "Use 'you' voice. Be specific (a meeting, a friend, a Tuesday night), not abstract. " +
+      "No moralizing, no setup, no 'imagine'. Just drop the reader into the moment.\n\n" +
+      "Return a JSON object: { \"scenarios\": { \"<key>\": \"<scenario text>\" } } — keys match exactly.\n\n" +
+      "Pairs:\n" +
+      items
+        .map(
+          (it) =>
+            `- key: ${it.key}\n  ${it.aName} (${it.aDef})\n  vs ${it.bName} (${it.bDef})`,
+        )
+        .join("\n");
+    const ctrl = new AbortController();
+    const timeoutId = window.setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const resp = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1500,
+          messages: [{ role: "user", content: prompt }],
+        }),
+        signal: ctrl.signal,
+      });
+      window.clearTimeout(timeoutId);
+      if (!resp.ok) return {};
+      const data = await resp.json();
+      const text: string =
+        Array.isArray(data?.content) && data.content[0]?.text
+          ? data.content[0].text
+          : typeof data?.text === "string"
+            ? data.text
+            : "";
+      if (!text) return {};
+      const m = text.match(/\{[\s\S]*\}/);
+      if (!m) return {};
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(m[0]);
+      } catch {
+        return {};
+      }
+      const out: Record<string, string> = {};
+      const scen =
+        parsed && typeof parsed === "object" && "scenarios" in parsed
+          ? (parsed as { scenarios: unknown }).scenarios
+          : parsed;
+      if (scen && typeof scen === "object") {
+        for (const it of items) {
+          const v = (scen as Record<string, unknown>)[it.key];
+          if (typeof v === "string" && v.trim().length > 0) {
+            out[it.key] = v.trim();
+          }
+        }
+      }
+      return out;
+    } catch {
+      window.clearTimeout(timeoutId);
+      return {};
+    }
+  };
+
+  const runScenarioBatch = async (
+    pairs: Array<{ aId: string; bId: string }>,
+  ) => {
+    const fresh = await fetchScenariosForPairs(pairs);
+    if (Object.keys(fresh).length === 0) return;
+    mutate((s) => ({
+      ...s,
+      pressureTest: {
+        ...s.pressureTest,
+        scenarios: { ...(s.pressureTest.scenarios || {}), ...fresh },
+      },
+    }));
+  };
 
   const advance = (delayMs: number) => {
     window.setTimeout(() => {
@@ -37949,6 +38163,13 @@ function NewA1M4PressureTestModal({
     const regenerated = m4PressureTestPairs(swappedRank);
     const tail = regenerated.filter((p) => !walkedKeys.has(pairKey(p)));
     setActiveSeq([...walked, ...tail]);
+    // Ship 5.6k · Part B — regenerate scenarios for any tail pairs
+    // that don't already have one cached. Fire-and-forget so the
+    // walk advances immediately; the next Pair render will pick up
+    // scenarios as they land.
+    if (tail.length > 0) {
+      void runScenarioBatch(tail);
+    }
     advance(300);
   };
 
@@ -38045,6 +38266,18 @@ function NewA1M4PressureTestModal({
         <div className="na1-m4-pt-body">
           {phase === "intro" && (
             <>
+              {bannerShown && (
+                <div
+                  className={
+                    "na1-m4-pt-cleared" +
+                    (bannerFading ? " is-fading" : "")
+                  }
+                  role="status"
+                  aria-live="polite"
+                >
+                  Previous walk cleared — fresh start.
+                </div>
+              )}
               <p className="na1-m4-pt-eyebrow">What we're doing</p>
               <h3 className="na1-m4-pt-title">
                 When two values collide, one wins.
@@ -38071,17 +38304,30 @@ function NewA1M4PressureTestModal({
               </div>
               <div className="na1-m4-pt-footer">
                 <span className="na1-m4-pt-footer-status">
-                  Read the example first
+                  {scenariosLoading ? "" : "Read the example first"}
                 </span>
                 <button
                   type="button"
                   className="na1-m4-rank-pt-btn"
-                  onClick={() => {
+                  disabled={scenariosLoading}
+                  onClick={async () => {
+                    // Ship 5.6k · Part B — kick off scenario batch
+                    // before transitioning to Pair. Bounded by the 6s
+                    // timeout inside fetchScenariosForPairs so the
+                    // walk is never blocked longer than that.
+                    setScenariosLoading(true);
+                    try {
+                      await runScenarioBatch(activeSeq);
+                    } finally {
+                      setScenariosLoading(false);
+                    }
                     markIntroSeen();
                     setPhase("pair");
                   }}
                 >
-                  Got it — start →
+                  {scenariosLoading
+                    ? "Setting up your scenarios…"
+                    : "Got it — start →"}
                 </button>
               </div>
             </>
@@ -38113,6 +38359,24 @@ function NewA1M4PressureTestModal({
                 <p className="na1-m4-pt-helper">
                   Gut-pick. No overthinking.
                 </p>
+                {(() => {
+                  // Ship 5.6k · Part B — gold-bordered scenario card
+                  // above the pair cards. Render only when a scenario
+                  // exists for this pair (graceful degradation: missing
+                  // = card simply doesn't render).
+                  const scen =
+                    state.pressureTest.scenarios?.[
+                      m4ScenarioKey(pair.aId, pair.bId)
+                    ];
+                  if (!scen) return null;
+                  return (
+                    <div className="na1-m4-pt-scenario">
+                      <p className="na1-m4-pt-scenario-label">A SCENARIO</p>
+                      <p className="na1-m4-pt-scenario-body">{scen}</p>
+                      <p className="na1-m4-pt-scenario-attr">— Katherine</p>
+                    </div>
+                  );
+                })()}
                 <div className="na1-m4-pt-cards">
                   {renderCard(pair, pair.aId)}
                   {renderCard(pair, pair.bId)}
@@ -38184,6 +38448,17 @@ function NewA1M4PressureTestModal({
                     Continue to Claim →
                   </button>
                 </div>
+                {/* Ship 5.6k · Part A — Walk it again from Done. Same
+                    wipe behavior as the Phase 2 button; closes the
+                    Done modal (parent re-opens at Intro with the
+                    cleared banner). */}
+                <button
+                  type="button"
+                  className="na1-m4-pt-walkagain"
+                  onClick={onWalkAgain}
+                >
+                  Or — walk it again →
+                </button>
               </>
             );
           })()}

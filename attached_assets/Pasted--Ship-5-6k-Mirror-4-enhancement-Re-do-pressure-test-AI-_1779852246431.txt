@@ -1,0 +1,270 @@
+**Ship 5.6k · Mirror 4 enhancement · Re-do pressure-test + AI scenarios per pair + light-mode Rank header fix**
+
+Hi — 5.6j is approved on dev. This ship has three parts that share the pressure-test/Rank surface, so they're bundled:
+
+**Part A:** Fix the "Re-open pressure-test" button so it actually lets the user **redo the walk** instead of just re-viewing the Done screen.
+
+**Part B:** Add AI-generated scenarios to each pressure-test pair. A short personalized situation, written in Katherine's voice, using the user's actual value names + behaviors + keystones, so the user can feel the collision as a moment rather than as an intellectual choice.
+
+**Part C:** Fix a light-mode color bug on Rank room — eyebrow, title, and subtitle render in cream/near-white text on the cream/light card background, making them invisible.
+
+Part A and Part C are bug fixes. Part B is a real enhancement. Read all three carefully — Part B has the most design surface in this ship and the prompt design matters a lot for the user's experience.
+
+---
+
+## Part A · Re-do pressure-test (bug fix)
+
+**Current behavior:**
+
+After pressure-test completes (`pressureTest.complete === true`), the Phase 2 card on Rank shows a button reading `Re-open pressure-test →`. Clicking it opens the modal — but lands on the Done screen, not at Intro/Pair 1. There's no way to actually walk through the pairs again. The user is stuck in "completion view."
+
+**What to build:**
+
+**Change 1 · Replace button copy.** Both occurrences of `Re-open pressure-test →` become `Walk it again →`.
+
+**Change 2 · Add the button to two locations:**
+
+1. **Phase 2 card on Rank** (replaces the existing Re-open button when `pressureTest.complete === true`). Same position, same styling.
+2. **Done screen inside the modal**, as a secondary text link BELOW the `Continue to Claim →` button. Format: `Or — walk it again →` (italic Georgia, gold underlined text). Small, secondary affordance — doesn't compete with the primary Continue.
+
+**Change 3 · Wire the click handler to truly reset.** When user clicks `Walk it again →` (from either location):
+
+1. Wipe state cleanly:
+   - `state.mirror4.pressureTest.pairs = []`
+   - `state.mirror4.pressureTest.conflicts = 0`
+   - `state.mirror4.pressureTest.rankChanges = 0`
+   - `state.mirror4.pressureTest.complete = false`
+   - **DO NOT wipe `state.mirror4.rank`** — the rank order (which may have been adjusted via Re-order in the previous walk) stays as the current source of truth. The redo runs against current rank.
+2. Open the modal to the **Intro screen** (the example screen).
+3. On the Intro screen, render a small banner ABOVE the eyebrow:
+   - Style: small italic Georgia, faint gold, centered, padding 8px
+   - Text: `Previous walk cleared — fresh start.`
+   - The banner auto-dismisses when the user clicks `Got it — start →` to move to Pair 1, OR auto-fades after ~4 seconds, whichever comes first
+4. Note: regenerated scenarios (see Part B) fire as a fresh batch — same flow as a first-time pressure-test.
+
+**Effect on the Continue gate:** when `pressureTest.complete` resets to `false`, the Rank footer Continue button correctly disables (5.6j's gate behavior already handles this). When user re-completes by walking through the new pairs, Continue re-enables.
+
+**Effect on Claim room:** when `pressureTest.complete` resets to `false`, the Claim hub card re-locks (5.6j's unlock behavior already handles this). When user re-completes, Claim unlocks again. The user can re-do the walk as many times as they want.
+
+---
+
+## Part B · AI-generated scenarios per pair
+
+This is the substantive enhancement. Currently the pressure-test pair screens show two value cards and ask "which wins?" — but the collision is abstract. Each card shows the value name, definition, and keystone behavior. The user picks between two abstractions they already endorse.
+
+Adding a personalized scenario gives the pair a concrete *moment*: "A close friend asks you to vouch for them on something you don't quite believe is true. Honesty says — name what you see. Loyalty says — show up for them, relationship comes first. What do you actually defend?"
+
+The scenario uses the user's actual values, definitions, behaviors, and keystones. It feels personally written.
+
+### Where the scenario sits
+
+On each Pair screen, AFTER the two pair cards and BEFORE the Skip link, add a **scenario card**:
+
+```
+PAIR 2 OF 6
+
+When Honesty and Loyalty collide — which wins?
+Gut-pick. No overthinking.
+
+[Honesty card]              [Loyalty card]
+  name + def + keystone        name + def + keystone
+
+————————————————————————————————————
+  A SCENARIO          ← gold uppercase label
+                      
+  "A close friend asks you to vouch for them on
+  something you don't quite believe is true.
+  Honesty says — name what you see. Loyalty says —
+  show up for them, the relationship comes first.
+  What do you actually defend?"
+                      
+                       — Katherine    ← attribution line, italic
+————————————————————————————————————
+
+Skip — they don't actually compete for me
+```
+
+**Scenario card spec:**
+- Gold-bordered card (`var(--gold-line)` border), padding 20px, margin 24px 0 16px 0
+- Label at top: `A SCENARIO` (uppercase gold, letter-spaced, ~11px, same eyebrow pattern used elsewhere)
+- Body: italic Georgia, ~16px, line-height 1.6, max-width ~520px, in curly quotes
+- Attribution: `— Katherine` (italic Georgia, faint, right-aligned below body)
+
+### When the scenarios get generated
+
+**Pre-generate all scenarios in one batch** when the user clicks `Got it — start →` on the Intro screen.
+
+- Show a loading state during generation: replace the `Got it — start →` button with a disabled state reading `Setting up your scenarios…` for the duration of the call
+- Once the response returns, advance to Pair 1 automatically (no extra click)
+- If generation takes longer than ~6 seconds, advance to Pair 1 anyway WITHOUT scenarios (graceful degradation — pair cards are still functional)
+- All scenarios for all N×(N−1)/2 pairs (capped per existing rules) are generated in one call
+
+**On Re-order re-roll** (existing mechanic from Section 5): when a Re-order swaps rank mid-walk, only un-walked pairs need new scenarios. Generate a smaller batch for just those. Same loading-state pattern (briefly disable the Re-order button while regenerating), then advance to next pair with scenarios ready.
+
+**On Walk-again re-do** (from Part A): treat as a fresh start — wipe scenarios from state, regenerate the full batch in the same `Got it — start →` flow.
+
+### The Anthropic API call
+
+**Reuse the existing client-side fetch pattern** from M1/M3/5.6d (cluster generation) and 5.6f (peel suggestions / define feedback). No new server endpoints. Same auth wiring.
+
+**Prompt design** (this matters — the scenarios are user-facing copy, written in Katherine's voice):
+
+Send the API a payload containing:
+- All N named values with: `userName`, `userDefinition`, list of `behaviors[].name`, and `keystone` (the behavior name marked as keystone, or null)
+- The list of pairs to generate scenarios for (each pair as `{aClusterName, bClusterName}`)
+- (Optional) The user's display name if available from `resolveDisplayName()` — this isn't surfaced in scenarios directly, but helps Katherine sound personal
+
+**Prompt instructions to the model** (paraphrase — put in your own words but preserve the constraints):
+
+> You are Katherine, an executive coach. The user has named their core values and described what each one means to them in their own words. They've identified specific behaviors that bring each value to life, with one keystone behavior per value that they would defend first.
+>
+> Now they're pressure-testing the order — for each pair, you'll write a short scenario where these two values genuinely collide. The user picks which one wins.
+>
+> For each pair, write a scenario of 3-4 sentences in Katherine's voice — warm but direct, like a wise friend. Use everyday-but-meaningful moments (a friend asks something hard, a work decision under pressure, a family ask that conflicts with another commitment). Do NOT use dramatic extremes (no house fires, no life-or-death). The scenario should feel like something that could actually happen in this person's life.
+>
+> Structure each scenario as:
+> 1. A specific situation (one sentence)
+> 2. What Value A says in that moment (one short clause)
+> 3. What Value B says in that moment (one short clause)
+> 4. A "which wins?" closing line
+>
+> Ground the scenarios in the user's actual definitions and behaviors. If Honesty is defined as "telling the truth even when it costs me" with keystone "owning a mistake immediately," make Honesty's voice in the scenario reflect THAT specific framing — not generic honesty.
+>
+> Avoid scenarios that repeat themes across pairs (don't have four pairs all about "a friend asks you to lie"). Vary the contexts: work, family, friends, personal commitments, money, time.
+>
+> Return JSON in this exact shape:
+> ```
+> {
+>   "scenarios": [
+>     { "aClusterId": "cl-1", "bClusterId": "cl-2", "scenario": "..." },
+>     { "aClusterId": "cl-2", "bClusterId": "cl-3", "scenario": "..." },
+>     ...
+>   ]
+> }
+> ```
+> Each `scenario` string is the full scenario body (3-4 sentences). Do NOT include the "Honesty vs Loyalty" header — just the body. Do NOT include the `— Katherine` attribution — the UI adds that.
+
+**Identifier pass-through:** the request must include the cluster IDs (`cl-1`, `cl-2`, etc.) for each pair so the response can match scenarios back to specific pairs without ambiguity. The cluster names alone aren't enough (duplicates possible across cohorts).
+
+### Storing scenarios in state
+
+Add a field to `state.mirror4.pressureTest`:
+
+```typescript
+scenarios: Record<string, string>;
+// key: `${sortedAClusterId}__${sortedBClusterId}` (sort to handle either pair order)
+// value: the scenario text
+```
+
+When rendering a Pair screen, look up the scenario by sorted pair key. If found, render the scenario card. If not (because generation failed or hasn't run), pair cards render without the scenario — the screen is still fully functional.
+
+### Failure handling
+
+If the Anthropic call fails or returns malformed JSON:
+1. Log a console warning
+2. Skip the scenario card on every pair screen this session (pair cards alone are still functional — that's the current shipped experience)
+3. Do NOT show a user-facing error
+4. Do NOT retry automatically (if user clicks Walk it again, that's a manual retry)
+
+If a single scenario in the response is missing (e.g. AI returned 5 scenarios for a 6-pair walk), only those pairs render without the scenario card. Others still get theirs.
+
+### What NOT to do with scenarios
+
+- **Do NOT make scenarios mandatory.** They're enhancement, not requirement. Pair cards work without them.
+- **Do NOT show scenarios on the Done screen.** Scenarios are per-pair only.
+- **Do NOT regenerate scenarios on every Pair screen render.** One batch per walk-session.
+- **Do NOT log scenarios to console at info level by default.** They're long. Warn-level on failure only.
+- **Do NOT cache scenarios across pressure-test sessions.** Walk-again wipes them; first walk generates fresh; rank changes regenerate the affected pairs only.
+
+---
+
+## Part C · Light-mode Rank header color fix (bug fix)
+
+**Current bug:**
+
+In light mode, the Rank room's eyebrow (`Mirror 4 · Rank + Pressure-test`), title (`The order you live by`), and subtitle (`Drag your values into the order...`) render in cream/near-white text (`rgb(244, 241, 235)`) on the cream/light card background (`rgb(255, 253, 248)`). The text is effectively invisible — same color as the surface behind it.
+
+**Root cause:**
+
+Ship 5.6i used class names `.na1-m4-eyebrow`, `.na1-m4-title`, `.na1-m4-subtitle` for the Rank room's header text (without the `step-` prefix that other rooms use, since Rank doesn't have step-based screens). Those new classes weren't bound to the theme-aware text color tokens — they pick up a fixed cream value that only works in dark mode.
+
+Other rooms (Discover, Behaviors) use `.na1-m4-step-eyebrow`, `.na1-m4-step-title`, `.na1-m4-step-sub` which ARE correctly theme-aware. Those rooms render fine in light mode.
+
+**Fix:**
+
+Make `.na1-m4-eyebrow`, `.na1-m4-title`, `.na1-m4-subtitle` use the same theme-aware color tokens as the step-versions:
+- `.na1-m4-eyebrow` should use `var(--gold)` (matches `.na1-m4-step-eyebrow`)
+- `.na1-m4-title` should use `var(--na1-text)` (matches `.na1-m4-step-title`)
+- `.na1-m4-subtitle` should use `var(--na1-text-sec)` or whatever `.na1-m4-step-sub` uses
+
+After the fix: light mode shows dark text on light card; dark mode shows cream text on dark card. Both readable.
+
+**Verification:**
+
+- Walk to Rank room in light mode → eyebrow, title, subtitle are clearly readable in dark text on the cream card.
+- Walk to Rank room in dark mode → eyebrow, title, subtitle render as before (cream text on dark card).
+- Helper ribbon, rank stack rows, Phase 2 card, Begin Pressure-Test button — all already render correctly in both modes (no change).
+
+**Quick check for the same bug elsewhere:** while you're in there, scan for any other M4 surface using `.na1-m4-eyebrow`, `.na1-m4-title`, `.na1-m4-subtitle` (without `-step-` prefix). If any exist, they have the same bug — fix them all in this ship. If they're ONLY on Rank, the fix is just the three CSS rules.
+
+---
+
+## Definition of done (combined)
+
+**Part A — Re-do:**
+- After pressure-test completes, Rank's Phase 2 card shows `Walk it again →` button (not `Re-open pressure-test →`).
+- Done screen inside modal shows secondary link `Or — walk it again →` below the `Continue to Claim →` button.
+- Click `Walk it again →` from either location → modal opens to Intro screen → small italic banner above eyebrow reads `Previous walk cleared — fresh start.` → banner fades after ~4s or on Got-it-start click.
+- State after wipe: `pairs = []`, `conflicts = 0`, `rankChanges = 0`, `complete = false`, `scenarios = {}`. Rank UNCHANGED.
+- After wipe: Rank footer Continue disables. Claim hub card re-locks. Both re-enable on completion of new walk.
+- User can walk-again any number of times.
+
+**Part B — Scenarios:**
+- Click `Got it — start →` on Intro → button briefly shows disabled `Setting up your scenarios…` while Anthropic call runs → advance to Pair 1 with scenario card visible.
+- Each Pair screen shows: pair cards (existing) + scenario card (new) + Skip link (existing).
+- Scenario card has `A SCENARIO` label, italic body in curly quotes, `— Katherine` attribution.
+- Scenario uses user's actual value names, references definitions/behaviors/keystones in a personalized way.
+- Scenarios vary across pairs (not all about "a friend asks you to lie").
+- Scenarios stored in `state.mirror4.pressureTest.scenarios` keyed by sorted cluster ID pair.
+- On Re-order: only un-walked pairs get new scenarios. Already-walked pairs keep their scenarios (though those are done so user doesn't see them again).
+- On Walk-again: full scenario batch regenerates fresh.
+- Anthropic failure handling: console warn, no scenario cards render, pair cards still functional, no user error.
+- Generation taking longer than 6 seconds: advance to Pair 1 without scenarios; if response arrives later, scenarios populate when subsequent pair screens render.
+
+**Part C — Light-mode Rank header colors:**
+- Walk to Rank room in light mode → eyebrow `Mirror 4 · Rank + Pressure-test` is gold and readable, title `The order you live by` is dark and readable, subtitle is readable.
+- Switch to dark mode while on Rank → all three render as before (cream on dark).
+- Switch back to light mode → all three render as readable dark/gold on cream.
+- No other room (Discover, Behaviors, Claim placeholder) regresses in either mode.
+
+---
+
+## DO NOT
+
+- Touch Section 6 (Claim seal) work. This ship makes pressure-test re-doable and adds scenarios — Claim is the next ship.
+- Add a new server endpoint for the Anthropic call. Use the existing client-side fetch pattern from 5.6d / 5.6f.
+- Add a new database table or auth flow. State stays in localStorage.
+- Add a confirmation modal before wipe on Walk-again. Silent wipe + banner.
+- Wipe `state.mirror4.rank` on Walk-again. Only pressure-test state wipes.
+- Render scenarios on Done screen.
+- Render scenarios on already-walked pair screens (they don't re-display once advanced).
+- Auto-trigger Walk-again. Always user-clicked.
+- Block user navigation while scenarios are loading. Loading state on Got-it button only; user can still close the modal.
+- Show scenarios with `--` em-dash separators or fancy formatting beyond the spec card. Keep it clean: label, body, attribution.
+- Send the user's display name as the recipient of the scenario ("Katherine, you might face..."). Scenarios are about the user but addressed to the reader (use second-person "you").
+- Use Cormorant Garamond, Inter, or Geist.
+- Add new design tokens silently. Flag any with name + value + reason before adding (probably none needed — gold/border/serif all exist).
+
+---
+
+## Reference
+
+The scenario card visual reuses the existing example card pattern from the Intro screen of the pressure-test modal (the Loyalty/Honesty example Katherine narrates). Same border style, same typography. Just personalized content per pair.
+
+When you're done, deploy to dev, then reply with:
+- (a) the dev URL,
+- (b) the line numbers in App.tsx where you wired the Anthropic scenario call (reusing 5.6d/5.6f pattern),
+- (c) a sample scenario from the dev walk (paste one as text so we can see the voice/length is right),
+- (d) confirmation that Walk-again wipes state correctly and re-enables Continue/Claim gates,
+- (e) any deviations from spec and why,
+- (f) confirmation that Sections 1-5, all polish ships, and 5.6j gate behavior still work unchanged.
