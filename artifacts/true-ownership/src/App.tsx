@@ -34380,6 +34380,13 @@ function NewA1M4HubView({
   const hasAnyBehavior = m4State.clusters.some(
     (c) => (m4State.operationalize[c.id]?.behaviors?.length ?? 0) > 0,
   );
+  // Ship 5.6j · Fix #1 — Claim hub card unlocks once the pressure-
+  // test completes. The Rank Continue gate already gates on this
+  // flag; the hub-card unlock was still using a placeholder check
+  // from Section 1, so Claim stayed locked even when pressureTest
+  // .complete was true. Body is still bodyShipped:false → click
+  // triggers the veil-bounce placeholder (Section 6 not shipped).
+  const isPressureTestDone = m4State.pressureTest.complete === true;
   return (
     <div
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
@@ -34458,18 +34465,24 @@ function NewA1M4HubView({
             const isUnlocked =
               idx === 0 ||
               (room.key === "operationalize" && hasCompleteCluster) ||
-              (room.key === "rank" && hasAnyBehavior);
+              (room.key === "rank" && hasAnyBehavior) ||
+              // Ship 5.6j · Fix #1 — Claim unlocks on pressure-test
+              // completion. Body still falls back to placeholder.
+              (room.key === "claim" && isPressureTestDone);
             const isLocked = !isUnlocked;
             // "Up next" highlights the deepest unlocked room the user
             // has yet to finish. Cheap approximation: the last room
-            // that's unlocked. Claim is never "current" until shipped.
+            // that's unlocked. Claim is "current" when reachable but
+            // not yet claimed (claim body ships in Section 6).
             const isCurrent =
               isUnlocked &&
               (idx === 0
                 ? !hasCompleteCluster
                 : room.key === "operationalize"
                   ? !hasAnyBehavior
-                  : room.key === "rank");
+                  : room.key === "rank"
+                    ? !isPressureTestDone
+                    : room.key === "claim");
             const isClaim = room.key === "claim";
             const cls = [
               "na1-ex-row",
@@ -37120,15 +37133,28 @@ function NewA1M4BehaviorsBody({
       practice: b.practice.filter((_, i) => i !== idx),
     }));
 
-  const skipKeystone = () => {
-    updateOpValue(activeCluster.id, (v) => ({ ...v, keystoneId: null }));
-    setSkippedFor((s) => new Set(s).add(activeCluster.id));
-  };
+  // Ship 5.6j · Fix #4 — skipKeystone() helper removed alongside the
+  // Skip link. setSkippedFor stays referenced via the legacy
+  // keystoneIsSkipped guard so previously-skipped sessions don't
+  // flash the prompt back open before they pick a real keystone.
+  void setSkippedFor;
 
   // Resolve keystone behavior name for the collapsed prompt.
   const keystoneBehavior =
     opValue.behaviors.find((b) => b.id === opValue.keystoneId) ?? null;
-  const showEmptyRibbon = opValue.behaviors.length === 0;
+  // Ship 5.6j · Fix #5(c) — empty-state ribbon now communicates the
+  // 3-behavior floor with three variants by count. At 3+ behaviors
+  // the ribbon disappears entirely. The 5.6i "0 → Add at least one"
+  // copy is replaced.
+  const behCount = opValue.behaviors.length;
+  const emptyRibbonText: string | null =
+    behCount === 0
+      ? "This value needs behaviors to live. Add three to five."
+      : behCount === 1
+        ? "Almost there — add at least two more behaviors to make this real."
+        : behCount === 2
+          ? "One more behavior and this value is grounded."
+          : null;
   const keystoneIsSkipped = skippedFor.has(activeCluster.id);
 
   const showTrimNotice = trimNoticeFor === activeCluster.id;
@@ -37140,10 +37166,10 @@ function NewA1M4BehaviorsBody({
       <p className="na1-m4-beh-prompt">
         For each value, the behaviors that bring it to life. We
         started you with what surfaced in Discover — refine, replace,
-        or add up to 5.
+        or add. Three to five per value.
       </p>
       <div className="na1-m4-beh-helper" role="note">
-        A value without behaviors is just a word. Up to 5 per value.
+        A value without behaviors is just a word. Three to five per value.
         Mark one as the keystone — the one you'd defend first.
       </div>
 
@@ -37217,9 +37243,9 @@ function NewA1M4BehaviorsBody({
         </div>
       )}
 
-      {showEmptyRibbon && (
+      {emptyRibbonText && (
         <div className="na1-m4-beh-empty-ribbon" role="note">
-          This value needs behaviors to live. Add at least one.
+          {emptyRibbonText}
         </div>
       )}
 
@@ -37332,8 +37358,16 @@ function NewA1M4BehaviorsBody({
         >
           + Add behavior
         </button>
-        <span className="na1-m4-beh-cap">
-          {opValue.behaviors.length}/5
+        <span
+          className="na1-m4-beh-cap"
+          style={{
+            color:
+              behCount >= 3
+                ? "var(--gold)"
+                : "var(--na1-text-mute)",
+          }}
+        >
+          {behCount} of 5
         </span>
       </div>
 
@@ -37356,39 +37390,52 @@ function NewA1M4BehaviorsBody({
             the value is real. Tap the star on whichever behavior
             carries it.
           </p>
-          <button
-            type="button"
-            className="na1-m4-beh-key-skip"
-            onClick={skipKeystone}
-          >
-            Skip — they're all equal to me
-          </button>
+          {/* Ship 5.6j · Fix #4 — Skip-keystone link removed. The
+              keystone is now required (Continue-to-Rank gate enforces
+              keystoneId !== null), so offering Skip would lie. */}
         </div>
       )}
 
       {(() => {
-        // Ship 5.6h · Continue→Rank gate. Rank pressure-tests an
-        // ordering of values; ranking values with no behaviors is
-        // meaningless. So Continue is hard-gated on every NAMED value
-        // having ≥1 behavior. Keystone is intentionally NOT part of
-        // this gate (spec: "Keystone stays skippable").
-        const emptyNamed = completeClusters.filter(
+        // Ship 5.6j · Fix #4 — Continue→Rank gate tightened. Each
+        // complete cluster must have ≥3 behaviors AND a keystone
+        // chosen. Skip-keystone is gone, so keystone is required.
+        // Helper variant order: missing-behaviors first (the deeper
+        // problem), then missing-keystone, then values-count guidance
+        // (need ≥3 values for a meaningful rank).
+        const missingBehaviors = completeClusters.filter(
           (c) =>
-            (state.operationalize[c.id]?.behaviors.length ?? 0) === 0,
+            (state.operationalize[c.id]?.behaviors.length ?? 0) < 3,
         );
-        const blocked = emptyNamed.length > 0;
+        const missingKeystone = completeClusters.filter(
+          (c) =>
+            (state.operationalize[c.id]?.behaviors.length ?? 0) >= 3 &&
+            !state.operationalize[c.id]?.keystoneId,
+        );
+        const tooFewValues = completeClusters.length < 3;
+        const blocked =
+          tooFewValues ||
+          missingBehaviors.length > 0 ||
+          missingKeystone.length > 0;
         let helper: string | null = null;
-        if (emptyNamed.length === 1) {
-          helper = `Add at least one behavior to "${
-            emptyNamed[0]!.userName
-          }" first.`;
-        } else if (emptyNamed.length === 2) {
-          helper = `Add at least one behavior to "${
-            emptyNamed[0]!.userName
-          }" and "${emptyNamed[1]!.userName}" first.`;
-        } else if (emptyNamed.length >= 3) {
+        if (missingBehaviors.length === 1) {
+          helper = `"${missingBehaviors[0]!.userName}" needs at least three behaviors.`;
+        } else if (missingBehaviors.length === 2) {
+          helper = `"${missingBehaviors[0]!.userName}" and "${missingBehaviors[1]!.userName}" each need at least three behaviors.`;
+        } else if (missingBehaviors.length >= 3) {
+          helper = "Each value needs at least three behaviors first.";
+        } else if (missingKeystone.length === 1) {
+          helper = `Mark a keystone for "${missingKeystone[0]!.userName}" before continuing.`;
+        } else if (missingKeystone.length === 2) {
+          helper = `Mark a keystone for "${missingKeystone[0]!.userName}" and "${missingKeystone[1]!.userName}" before continuing.`;
+        } else if (missingKeystone.length >= 3) {
+          helper = "Mark a keystone for each value before continuing.";
+        } else if (completeClusters.length === 2) {
           helper =
-            "Add at least one behavior to each of your values first.";
+            "Name one more value before ranking — Rank needs at least three.";
+        } else if (completeClusters.length < 2) {
+          helper =
+            "Name at least three values before ranking.";
         }
         return (
           <>
@@ -37703,7 +37750,7 @@ function NewA1M4RankBody({
             onClick={onContinueToClaim}
             disabled={!ptComplete}
           >
-            Continue →
+            Continue to Claim →
           </button>
           {!ptComplete && (
             <p className="na1-m4-beh-gate-helper" role="status">
@@ -37789,6 +37836,18 @@ function NewA1M4PressureTestModal({
         : "pair";
   const [phase, setPhase] = useState<Phase>(initialPhase);
   const [currentIdx, setCurrentIdx] = useState<number>(resumeIdx);
+  // Ship 5.6j · Fix #3 — Pair preservation on Re-order. The modal
+  // freezes the pair sequence at open and treats it as internal
+  // state. Without this, every Re-order triggers a rank mutate →
+  // parent re-renders → a fresh `pairSeq` prop comes in derived
+  // from the new rank, which can reshuffle indices the user has
+  // already walked. We keep walked pairs (slice 0..currentIdx)
+  // intact and only regenerate the un-walked tail after a swap.
+  const [activeSeq, setActiveSeq] = useState<
+    Array<{ aId: string; bId: string }>
+  >(() => pairSeq);
+  const pairKey = (p: { aId: string; bId: string }) =>
+    p.aId < p.bId ? `${p.aId}|${p.bId}` : `${p.bId}|${p.aId}`;
   // Pick state on the current pair: the picked cluster id (for the
   // ★ animation) and whether the conflict prompt is showing.
   const [pickedId, setPickedId] = useState<string | null>(null);
@@ -37804,7 +37863,7 @@ function NewA1M4PressureTestModal({
           ...s,
           pressureTest: { ...s.pressureTest, activePairIdx: nextIdx },
         }));
-        if (nextIdx >= pairSeq.length) {
+        if (nextIdx >= activeSeq.length) {
           setPhase("done");
         }
         return nextIdx;
@@ -37856,29 +37915,40 @@ function NewA1M4PressureTestModal({
   const handleReorder = (pair: { aId: string; bId: string }) => {
     if (!pickedId) return;
     const otherId = pickedId === pair.aId ? pair.bId : pair.aId;
-    mutate((s) => {
-      const next = [...s.rank];
-      const pickedAt = next.indexOf(pickedId);
-      const otherAt = next.indexOf(otherId);
-      if (pickedAt >= 0 && otherAt >= 0) {
-        next[pickedAt] = otherId;
-        next[otherAt] = pickedId;
-      }
-      return {
-        ...s,
-        rank: next,
-        pressureTest: {
-          ...s.pressureTest,
-          rankChanges: s.pressureTest.rankChanges + 1,
-        },
-      };
-    });
+    // Compute the swapped rank locally so we can regenerate the
+    // un-walked tail synchronously (parent mutate is async w.r.t.
+    // our local activeSeq state).
+    const swappedRank = [...rank];
+    const pickedAt = swappedRank.indexOf(pickedId);
+    const otherAt = swappedRank.indexOf(otherId);
+    if (pickedAt >= 0 && otherAt >= 0) {
+      swappedRank[pickedAt] = otherId;
+      swappedRank[otherAt] = pickedId;
+    }
+    mutate((s) => ({
+      ...s,
+      rank: swappedRank,
+      pressureTest: {
+        ...s.pressureTest,
+        rankChanges: s.pressureTest.rankChanges + 1,
+      },
+    }));
     writePair({
       aId: pair.aId,
       bId: pair.bId,
       pickedId,
       matchedRank: true,
     });
+    // Ship 5.6j · Fix #3 — Preserve walked pairs (slice 0..currentIdx)
+    // and regenerate only the un-walked tail from the new rank.
+    // walkedKeys includes the current pair (the one just resolved
+    // by Re-order). Any tail pair whose key matches a walked key
+    // is dropped so we never re-walk the same comparison.
+    const walked = activeSeq.slice(0, currentIdx + 1);
+    const walkedKeys = new Set(walked.map(pairKey));
+    const regenerated = m4PressureTestPairs(swappedRank);
+    const tail = regenerated.filter((p) => !walkedKeys.has(pairKey(p)));
+    setActiveSeq([...walked, ...tail]);
     advance(300);
   };
 
@@ -37995,8 +38065,8 @@ function NewA1M4PressureTestModal({
                   Both are true. Only one can win. That's a collision.
                 </p>
                 <p className="na1-m4-pt-example-close">
-                  You're about to walk {pairSeq.length} pair
-                  {pairSeq.length === 1 ? "" : "s"} of yours.
+                  You're about to walk {activeSeq.length} pair
+                  {activeSeq.length === 1 ? "" : "s"} of yours.
                 </p>
               </div>
               <div className="na1-m4-pt-footer">
@@ -38017,7 +38087,7 @@ function NewA1M4PressureTestModal({
             </>
           )}
           {phase === "pair" && (() => {
-            const pair = pairSeq[currentIdx];
+            const pair = activeSeq[currentIdx];
             if (!pair) return null;
             const a = clusterById(pair.aId);
             const b = clusterById(pair.bId);
@@ -38034,7 +38104,7 @@ function NewA1M4PressureTestModal({
             return (
               <>
                 <p className="na1-m4-pt-eyebrow">
-                  Pair {currentIdx + 1} of {pairSeq.length}
+                  Pair {currentIdx + 1} of {activeSeq.length}
                 </p>
                 <p className="na1-m4-pt-prompt">
                   When <b>{a.userName}</b> and <b>{b.userName}</b>{" "}
@@ -38091,7 +38161,7 @@ function NewA1M4PressureTestModal({
           {phase === "done" && (() => {
             const conflicts = state.pressureTest.conflicts;
             const rankChanges = state.pressureTest.rankChanges;
-            const N = pairSeq.length;
+            const N = activeSeq.length;
             let sub: string;
             if (conflicts === 0 && rankChanges === 0) {
               sub = `All ${N} pairs walked. Your rank held up — what you said is what you actually defend. Ready to claim it?`;

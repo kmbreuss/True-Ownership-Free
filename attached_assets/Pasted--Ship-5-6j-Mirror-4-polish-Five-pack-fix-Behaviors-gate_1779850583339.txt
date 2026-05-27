@@ -1,0 +1,174 @@
+**Ship 5.6j · Mirror 4 polish · Five-pack fix (Behaviors gate tightening, Rank/Claim fixes)**
+
+Hi — Section 5 (Rank + Pressure-test) is approved on dev. This is a focused polish ship with five fixes that need to land before Section 6 (Claim seal). All five are small individually; they're bundled here because they're all small enough that a separate ship per fix would burn Replit charges for no reason.
+
+**Critical:** Fix #4 (the Behaviors gate tightening) is a real rule change, not a cosmetic tweak. Read it carefully and ask if anything's unclear before building.
+
+---
+
+**Fix #1 · Claim room unlocks on pressure-test completion**
+
+**Current bug:** Pressure-test completes (`state.mirror4.pressureTest.complete === true`), modal closes, Rank closes, user lands on M4 hub. But the **Claim room card on the hub still shows 🔒 + className `is-locked` + status `The seal — unlocks after Rank`**. Claim won't open even when pressure-test is fully done.
+
+The Continue button gate inside Rank works (it enables on complete). But the Claim hub card's unlock check wasn't updated when Section 5 shipped — it's probably still using a placeholder check from Section 1.
+
+**Fix:** The Claim hub card's unlock condition should be `state.mirror4.pressureTest.complete === true`. When that's true:
+- Remove `is-locked` className
+- Remove the 🔒 icon
+- Update status from `The seal — unlocks after Rank` to `Up next · tap to begin` (or whatever the M4 unlocked-status pattern uses for other rooms)
+- Make the row clickable (`disabled=false`)
+- Clicking opens the Claim overlay (which still has its "Coming in Section 6" placeholder — that's expected, Section 6 hasn't shipped)
+
+When `pressureTest.complete === false`, Claim stays locked as it does today.
+
+---
+
+**Fix #2 · Rank footer Continue button copy**
+
+**Current:** Continue button in Rank footer reads `Continue →`.
+
+**Spec:** Should read `Continue to Claim →` to match the M4 pattern (every other Continue button names its destination: `Continue to irks →`, `See your portrait →`, `Find values underneath →`, `Confirm your values →`, `Continue to Behaviors →`, `Continue to Rank →`).
+
+The Done-screen button inside the pressure-test modal already reads `Continue to Claim →` correctly. Just the Rank footer button needs the rename. Same button, same gate behavior (disabled until pressure-test complete), just the copy changes.
+
+---
+
+**Fix #3 · Pressure-test pair preservation on Re-order**
+
+**Current behavior:** When user clicks `Re-order — gut wins →` during pressure-test, Agent's pair-regeneration logic wipes previously-walked pairs from `state.mirror4.pressureTest.pairs[]`. Walked from 3 of 3, but `pairs[]` only has 2 entries.
+
+**Spec said** (from Ship 5.6i brief):
+> Re-roll trigger: when the user's rank[] order changes during pressure-test (via the conflict prompt's Re-order — gut wins → button), pairs are re-generated for any pairs not yet walked. **Already-walked pairs stay in state with their picks.**
+
+**Fix:** When re-rolling after Re-order:
+- Keep all entries in `pairs[]` for already-walked pairs (the ones with `pickedId` set OR explicit skips)
+- Only regenerate pairs that haven't been walked yet (pairs in the upcoming queue that haven't been picked through)
+- The `pairs[]` array post-walk should equal the total count of pairs the user moved through
+
+This matters because Section 6 (Claim seal) and potentially future analytics may read `pairs[]` to summarize. Today the Done-screen subtitle uses the `conflicts` and `rankChanges` counters (which track correctly), so user-facing flow is fine. The fix is for data fidelity.
+
+---
+
+**Fix #4 · Behaviors gate tightens to "3+ behaviors AND keystone per value"**
+
+This is the meaningful one. Ship 5.6h set the Continue-to-Rank gate at "at least 1 behavior per value, keystone skippable." That's too soft — the pressure-test pair cards lean on the keystone as the centerpiece, and a value with only 1-2 behaviors is hand-wavy.
+
+**New rule:** Continue-to-Rank enables only when EVERY named value has:
+- (a) **At least 3 behaviors** in `state.mirror4.operationalize[clusterId].behaviors`
+- AND (b) **A keystone marked** (`state.mirror4.operationalize[clusterId].keystoneId !== null`)
+
+Both conditions must hold for every cluster where `cluster.status === "complete"`. Soft ceiling of 5 behaviors stays unchanged (the Add behavior button still disables at 5).
+
+**Helper line logic (single empty case):**
+
+For each value, identify the most pressing missing thing:
+- **< 3 behaviors:** `Add at least three behaviors to "{name}" first.`
+- **≥ 3 behaviors, no keystone:** `Mark a keystone for "{name}" first.`
+
+For multiple problem values:
+- **2 problem values:** `Finish behaviors and keystones for "{n1}" and "{n2}" first.`
+- **3+ problem values:** `Finish behaviors and keystones for all your values first.`
+
+Helper updates live as user makes progress. Adding a 3rd behavior to the last incomplete value switches the helper from "add behaviors" to "mark a keystone." Marking the last needed keystone enables the button and hides the helper.
+
+**Skip keystone link is REMOVED.** Currently the keystone prompt has a `Skip — they're all equal to me` link that sets `keystoneId = null`. Remove that link entirely. The keystone prompt body copy stays:
+- Title: `Mark the keystone`
+- Body: `The one behavior you'd defend first — the one that proves the value is real. Tap the star on whichever behavior carries it.`
+- (NO Skip link)
+
+When user marks a keystone, the prompt still collapses to `Keystone set: "[name]"` (existing behavior, no change).
+
+**Pre-existing users with `keystoneId: null` in state:** when they enter Rank now, Continue locks with the helper telling them to mark keystones. They go back to Behaviors, see the keystone prompt (no Skip link), pick one, return. Not a breaking change — one-time nudge.
+
+---
+
+**Fix #5 · Behaviors copy + UI updates (companion changes for Fix #4)**
+
+Because Fix #4 establishes "three to five" as the real rule (not "up to 5"), copy in three places needs updating:
+
+**(a) Subtitle:**
+- Current: `For each value, the behaviors that bring it to life. We started you with what surfaced in Discover — refine, replace, or add up to 5.`
+- New: `For each value, the behaviors that bring it to life. We started you with what surfaced in Discover — refine, replace, or add. Three to five per value.`
+
+**(b) Helper ribbon:**
+- Current: `A value without behaviors is just a word. Up to 5 per value. Mark one as the keystone — the one you'd defend first.`
+- New: `A value without behaviors is just a word. Three to five per value. Mark one as the keystone — the one you'd defend first.`
+
+**(c) Empty-state ribbon (when value has 0-2 behaviors):**
+The existing ribbon shows when a value has 0 behaviors: `This value needs behaviors to live. Add at least one.`
+
+Replace with three variants based on count:
+- **0 behaviors:** `This value needs behaviors to live. Add three to five.`
+- **1 behavior:** `Almost there — add at least two more behaviors to make this real.`
+- **2 behaviors:** `One more behavior and this value is grounded.`
+- **3+ behaviors:** ribbon disappears
+
+**(d) Cap counter color treatment:**
+
+Currently the counter renders as plain `N of 5` always.
+
+New: color-code the counter to communicate the floor:
+- **0-2 behaviors:** counter text color is `var(--na1-text-mute)` (gray/faint)
+- **3-5 behaviors:** counter text color is `var(--gold)` (warm/active)
+
+Same text format (`N of 5`), just the color changes. Subtle but clear visual signal that the user has "warmed up" past the floor.
+
+---
+
+**Definition of done**
+
+**Fix #1 (Claim unlock):**
+- Set `state.mirror4.pressureTest.complete = true` manually in dev console → Claim hub card immediately unlocks (no 🔒, no `is-locked`, clickable).
+- Click Claim → overlay opens to its placeholder.
+- Reset `complete = false` → Claim re-locks.
+
+**Fix #2 (Continue copy):**
+- Rank footer Continue button reads `Continue to Claim →` (matches Done-screen button inside the modal).
+
+**Fix #3 (Pair preservation):**
+- Walk 3-value pressure-test: pick rank-matching on Pair 1, conflict + Re-order on Pair 2, conflict + Stand-by on Pair 3.
+- `state.mirror4.pressureTest.pairs[]` length === 3 (was 2 in 5.6i due to the wipe).
+- Each entry has correct `aId`, `bId`, `pickedId`, `matchedRank`.
+
+**Fix #4 (Behaviors gate):**
+- With one value having 2 behaviors and 0 keystone: Continue disabled with helper `Add at least three behaviors to "{name}" first.`
+- Add a 3rd behavior: helper switches to `Mark a keystone for "{name}" first.`
+- Mark keystone: helper disappears, Continue enables.
+- Delete a behavior to drop back below 3: helper returns with "add at least three..." message.
+- With two values incomplete: helper reads `Finish behaviors and keystones for "{n1}" and "{n2}" first.`
+- With three+ values incomplete: helper reads `Finish behaviors and keystones for all your values first.`
+- Skip keystone link is gone from the Behaviors keystone prompt.
+- Pre-existing data with `keystoneId: null` correctly triggers the lock.
+
+**Fix #5 (copy + counter):**
+- Subtitle reads `... refine, replace, or add. Three to five per value.`
+- Helper ribbon reads `... Three to five per value. Mark one as the keystone...`
+- Empty-state ribbon shows correct variant for 0, 1, 2 behaviors. Disappears at 3+.
+- Cap counter renders gray (mute color) at 0/1/2, gold at 3/4/5.
+
+---
+
+**DO NOT**
+
+- Touch Section 6 (Claim seal). This ship makes Claim *reachable*; building its body is the next ship.
+- Modify any pressure-test pair generation logic beyond the preservation fix in #3.
+- Modify Discover room code. Discover is shipped.
+- Change keystone mechanic itself (still one keystone per value, click to mark, click another to move).
+- Make any behaviors hard-capped below 5. The ceiling stays 5.
+- Add new design tokens. Use existing `--na1-*`, `--gold*`, `--na1-text-mute` for the new counter color.
+- Reuse the "Skip" pattern anywhere — it's removed because the keystone is now required.
+- Change the keystone prompt's collapsed state ("Keystone set: '[name]'"). That stays.
+- Bundle in any new scenario generation for pressure-test. (That's the next ship, 5.6k.)
+- Touch Sections 1-3 code (Hub, Admire/Irks/Portrait, Discover per-value flow).
+- Add server endpoints or DB tables. Client-side state only.
+- Use Cormorant Garamond, Inter, or Geist anywhere.
+
+---
+
+**Reference:** No new mockup — all changes are copy / logic / one color tweak. Visual patterns reuse the existing 5.6h gate + Behaviors room components.
+
+When you're done, deploy to dev, then reply with:
+- (a) the dev URL,
+- (b) confirmation that each of the five fixes landed,
+- (c) any deviations from spec and why,
+- (d) confirmation that Sections 1-5 (including all polish ships) still work unchanged.
