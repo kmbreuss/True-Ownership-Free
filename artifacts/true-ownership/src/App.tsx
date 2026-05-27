@@ -107,6 +107,12 @@ import {
   clusterColorForIndex as m4ClusterColorForIndex,
   nextBehaviorId as m4NextBehaviorId,
   COUNT_WORD as M4_COUNT_WORD,
+  // Ship 5.6g · Section 4 · Behaviors room
+  buildOperationalizeForCluster as m4BuildOperationalize,
+  nextOpBehaviorId as m4NextOpBehaviorId,
+  type M4OperationalizeBehavior,
+  type M4OperationalizeValue,
+  type M4OperationalizeSource,
 } from "./mirror4Constants";
 const KEYS = {
   map: "to_map",
@@ -1865,6 +1871,76 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,243,239,.78); }
 .na1-m4-step8-soft-title{ font-family:var(--na1-serif); font-size:18px; color:var(--gold); margin-bottom:6px; }
 .na1-m4-step8-soft-body{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; color:var(--na1-text-sec); margin:0 0 12px; line-height:1.5; }
 .na1-m4-step8-addbtn{ background:var(--gold); border:none; color:#fff; padding:10px 22px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; }
+
+/* Ship 5.6g · Section 4 · Behaviors room
+   Reuses every existing token (gold, gold-warm, gold-line, na1-border,
+   na1-bg-card, na1-text-*, na1-radius, na1-serif, na1-sans, c1-c5
+   cluster color vars). No new design tokens. */
+.na1-m4-beh-chiprow{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 22px; }
+.na1-m4-beh-chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:100px; border:1.5px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:12.5px; font-weight:500; cursor:pointer; transition:border-color .18s, background .18s, color .18s; }
+.na1-m4-beh-chip:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); }
+.na1-m4-beh-chip.is-active{ background:var(--gold); border-color:var(--gold); color:var(--na1-bg, #1a1410); font-weight:600; }
+.na1-m4-beh-chip.is-complete{ border-color:var(--cyan, #6fb6c4); color:var(--cyan, #6fb6c4); }
+.na1-m4-beh-chip.is-complete.is-active{ background:var(--cyan, #6fb6c4); border-color:var(--cyan, #6fb6c4); color:var(--na1-bg, #1a1410); }
+.na1-m4-beh-chip-star{ font-size:11px; line-height:1; color:var(--gold); }
+.na1-m4-beh-chip.is-active .na1-m4-beh-chip-star{ color:inherit; }
+.na1-m4-beh-chip-dot{ width:6px; height:6px; border-radius:50%; background:var(--na1-text-mute); opacity:.5; flex-shrink:0; }
+.na1-m4-beh-chip-dot.is-on{ background:var(--gold); opacity:1; }
+.na1-m4-beh-chip.is-active .na1-m4-beh-chip-dot.is-on{ background:currentColor; }
+.na1-m4-beh-chip-check{ font-size:11px; font-weight:700; line-height:1; }
+.na1-m4-beh-helper{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:9px 14px; font-family:var(--na1-serif); font-style:italic; font-size:13px; line-height:1.5; color:var(--na1-text-sec); margin:0 0 18px; }
+.na1-m4-beh-empty-ribbon{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:10px 14px; font-family:var(--na1-sans); font-size:12.5px; color:var(--gold); margin:0 0 16px; }
+.na1-m4-beh-prac-label{ font-family:var(--na1-sans); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--na1-text-mute); margin:10px 0 4px; }
+.na1-m4-beh-prac-del{ background:transparent; border:none; cursor:pointer; font-size:14px; line-height:1; padding:2px 6px; color:var(--na1-text-mute); border-radius:4px; flex-shrink:0; transition:color .18s; }
+.na1-m4-beh-prac-del:hover{ color:var(--burgundy, #b04a4a); }
+.na1-m4-beh-key{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:16px 18px; margin:0 0 18px; text-align:center; }
+.na1-m4-beh-key.is-collapsed{ padding:9px 14px; text-align:left; }
+.na1-m4-beh-key-icon{ font-size:18px; color:var(--gold); margin:0 0 6px; }
+.na1-m4-beh-key-collapsed{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--gold); }
+.na1-m4-beh-vhead{ border-left:3px solid var(--clusterColor, var(--gold)); padding:6px 0 6px 14px; margin:0 0 18px; }
+.na1-m4-beh-vname{ font-family:var(--na1-serif); font-size:24px; line-height:1.15; color:var(--clusterColor, var(--gold)); margin:0; }
+.na1-m4-beh-vdef{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; line-height:1.55; color:var(--na1-text-sec); margin:6px 0 0; }
+.na1-m4-beh-prompt{ font-family:var(--na1-serif); font-style:italic; font-size:14.5px; line-height:1.55; color:var(--na1-text-sec); margin:0 0 14px; }
+.na1-m4-beh-trim{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:10px 14px; font-family:var(--na1-sans); font-size:12.5px; color:var(--gold); margin:0 0 16px; }
+.na1-m4-beh-cards{ display:flex; flex-direction:column; gap:12px; margin:0 0 14px; }
+.na1-m4-beh-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; transition:border-color .18s; }
+.na1-m4-beh-card.is-keystone{ border-color:var(--gold-line); box-shadow:0 0 0 1px var(--gold-glow); }
+.na1-m4-beh-card-head{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.na1-m4-beh-card-name{ flex:1; min-width:0; background:transparent; border:none; font-family:var(--na1-serif); font-size:16px; font-weight:500; color:var(--na1-text); padding:4px 0; outline:none; border-bottom:1px solid transparent; transition:border-color .18s; }
+.na1-m4-beh-card-name:focus{ border-bottom-color:var(--na1-text-mute); }
+.na1-m4-beh-srcchip{ display:inline-flex; align-items:center; padding:3px 9px; border-radius:100px; font-family:var(--na1-sans); font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; border:1px solid var(--na1-border); color:var(--na1-text-sec); background:transparent; flex-shrink:0; }
+.na1-m4-beh-srcchip.is-lights{ color:var(--gold); border-color:var(--gold-line); background:var(--gold-soft); }
+.na1-m4-beh-srcchip.is-warms,.na1-m4-beh-srcchip.is-bothers,.na1-m4-beh-srcchip.is-turns{ color:var(--na1-text); border-color:var(--na1-text-mute); }
+.na1-m4-beh-srcchip.is-flipped{ color:var(--gold); border-color:var(--gold-line); }
+.na1-m4-beh-srcchip.is-new{ color:var(--na1-text-sec); border-style:dashed; }
+.na1-m4-beh-iconbtn{ background:transparent; border:none; cursor:pointer; font-size:16px; line-height:1; padding:4px 6px; color:var(--na1-text-mute); border-radius:6px; transition:color .18s, background .18s; flex-shrink:0; }
+.na1-m4-beh-iconbtn:hover{ color:var(--na1-text); background:var(--na1-bg-mute, rgba(255,255,255,.04)); }
+.na1-m4-beh-iconbtn.is-keystone-on{ color:var(--gold); }
+.na1-m4-beh-iconbtn.is-delete:hover{ color:var(--burgundy, #b04a4a); }
+.na1-m4-beh-prac{ list-style:none; padding:0; margin:8px 0 0; display:flex; flex-direction:column; gap:6px; }
+.na1-m4-beh-prac-row{ display:flex; align-items:center; gap:8px; }
+.na1-m4-beh-prac-bullet{ color:var(--na1-text-mute); font-size:14px; flex-shrink:0; }
+.na1-m4-beh-prac-input{ flex:1; min-width:0; background:transparent; border:none; border-bottom:1px solid transparent; font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-sec); padding:3px 0; outline:none; transition:border-color .18s, color .18s; }
+.na1-m4-beh-prac-input:focus{ border-bottom-color:var(--na1-text-mute); color:var(--na1-text); }
+.na1-m4-beh-prac-input::placeholder{ color:var(--na1-text-mute); font-style:italic; }
+.na1-m4-beh-prac-add{ background:transparent; border:1px dashed var(--na1-border); color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:11.5px; padding:5px 10px; border-radius:100px; cursor:pointer; margin-top:8px; align-self:flex-start; transition:color .18s, border-color .18s; }
+.na1-m4-beh-prac-add:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); border-style:solid; }
+.na1-m4-beh-addrow{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin:6px 0 22px; }
+.na1-m4-beh-addbtn{ background:transparent; border:1px dashed var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:13px; font-weight:600; padding:9px 18px; border-radius:100px; cursor:pointer; transition:background .18s; }
+.na1-m4-beh-addbtn:hover:not(:disabled){ background:var(--gold-soft); }
+.na1-m4-beh-addbtn:disabled{ opacity:.4; cursor:not-allowed; }
+.na1-m4-beh-cap{ font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); }
+.na1-m4-beh-key{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:16px 18px; margin:0 0 18px; }
+.na1-m4-beh-key-title{ font-family:var(--na1-serif); font-size:16px; color:var(--gold); margin:0 0 4px; }
+.na1-m4-beh-key-body{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-sec); margin:0 0 10px; line-height:1.5; }
+.na1-m4-beh-key-pickrow{ display:flex; flex-wrap:wrap; gap:6px; }
+.na1-m4-beh-key-pick{ background:transparent; border:1px solid var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:11.5px; padding:5px 11px; border-radius:100px; cursor:pointer; transition:background .18s; }
+.na1-m4-beh-key-pick:hover{ background:var(--gold-soft); }
+.na1-m4-beh-key-pick.is-current{ background:var(--gold); color:#fff; border-color:var(--gold); }
+.na1-m4-beh-key-skip{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:11.5px; text-decoration:underline; cursor:pointer; padding:0; margin-top:8px; }
+.na1-m4-beh-empty{ text-align:center; padding:40px 20px; font-family:var(--na1-serif); }
+.na1-m4-beh-empty-title{ font-size:20px; color:var(--gold); margin:0 0 8px; }
+.na1-m4-beh-empty-body{ font-style:italic; font-size:14px; color:var(--na1-text-sec); margin:0; line-height:1.55; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -34211,9 +34287,19 @@ function NewA1M4HubView({
   dimmed: boolean;
 }) {
   const [videoOpen, setVideoOpen] = useState(false);
-  // Section 1: room 1 (Discover) is always "Up next" since no Mirror 4
-  // progress can exist yet. Rooms 2-4 are locked. When Section 2+ ships,
-  // unlock logic will read loadMirror4State() to compute status.
+  // Ship 5.6g · Section 4 — hub unlock logic now reads live state.
+  // Discover (idx 0) is always unlocked. Behaviors (idx 1) unlocks
+  // once any cluster has both a userName + userDefinition (the
+  // "complete" gate Step 8 already uses). Rank (idx 2) unlocks once
+  // at least one cluster has ≥1 saved behavior. Claim (idx 3) stays
+  // locked — it unlocks in a later ship after Rank's body ships.
+  const m4State = loadMirror4State();
+  const hasCompleteCluster = m4State.clusters.some(
+    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
+  );
+  const hasAnyBehavior = m4State.clusters.some(
+    (c) => (m4State.operationalize[c.id]?.behaviors?.length ?? 0) > 0,
+  );
   return (
     <div
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
@@ -34288,10 +34374,22 @@ function NewA1M4HubView({
         </div>
         <div className="na1-ex-list">
           {M4_ROOMS.map((room, idx) => {
-            // Section 1: Discover always unlocked, rest locked.
-            const isUnlocked = idx === 0;
-            const isCurrent = isUnlocked;
+            // Ship 5.6g · gate per room key, not just idx.
+            const isUnlocked =
+              idx === 0 ||
+              (room.key === "operationalize" && hasCompleteCluster) ||
+              (room.key === "rank" && hasAnyBehavior);
             const isLocked = !isUnlocked;
+            // "Up next" highlights the deepest unlocked room the user
+            // has yet to finish. Cheap approximation: the last room
+            // that's unlocked. Claim is never "current" until shipped.
+            const isCurrent =
+              isUnlocked &&
+              (idx === 0
+                ? !hasCompleteCluster
+                : room.key === "operationalize"
+                  ? !hasAnyBehavior
+                  : room.key === "rank");
             const isClaim = room.key === "claim";
             const cls = [
               "na1-ex-row",
@@ -34306,7 +34404,9 @@ function NewA1M4HubView({
               ? "Up next · tap to begin"
               : isClaim
                 ? "The seal — unlocks after Rank"
-                : `Unlocks after ${M4_ROOMS[idx - 1].name}`;
+                : isUnlocked
+                  ? "Open · tap to revisit"
+                  : `Unlocks after ${M4_ROOMS[idx - 1]?.name ?? "the previous room"}`;
             const iconChar = isLocked ? "🔒" : String(room.n);
             // Locked rooms remain clickable in M4 so the veil-falls-back
             // pattern (room.bodyShipped === false → setOpenRoom(null) in
@@ -34420,10 +34520,15 @@ function m4ValueIndexToStep(i: number): M4DiscoverStep {
 
 function NewA1M4DiscoverBody({
   onCloseRoom,
+  onContinueToBehaviors,
 }: {
   // Ship 5.6d · Step 8 Continue closes the Discover overlay entirely.
   // Optional so the existing prop-less call sites stay compatible.
   onCloseRoom?: () => void;
+  // Ship 5.6g · When provided, Step 8 Continue routes via the
+  // container's launchRoom("operationalize") instead of plain close,
+  // so the user lands inside the Behaviors room (with veil).
+  onContinueToBehaviors?: () => void;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
@@ -34589,11 +34694,20 @@ function NewA1M4DiscoverBody({
     return "—";
   })();
 
+  // Ship 5.6g · Section 4 hand-off — Step 8 Continue closes the
+  // Discover overlay AND signals the container to launch the
+  // Behaviors room. Container falls back to onCloseRoom when no
+  // handoff prop is wired (keeps the component composable / safe).
+  const handleFinishContinue = () => {
+    if (onContinueToBehaviors) onContinueToBehaviors();
+    else if (onCloseRoom) onCloseRoom();
+  };
+
   // Footer renders Continue only when there is somewhere to go.
   // For "finish", Continue's onClick is overridden to call onCloseRoom.
   const handleContinue = () => {
     if (step === "finish") {
-      if (onCloseRoom) onCloseRoom();
+      handleFinishContinue();
       return;
     }
     goNext();
@@ -36678,6 +36792,520 @@ function M4Step8Confirm({
   );
 }
 
+// ─── Ship 5.6g · Section 4 · Behaviors room body ─────────────────
+// Single-screen room: value-switcher chips → per-value cards (max 5)
+// with editable name + provenance chip + keystone star + delete +
+// practice bullets → gold-warm keystone prompt → Back/Continue.
+// Pre-fill runs once per cluster (tracked in behaviorsPrefilledFor).
+// All writes go through saveMirror4State via mutate. Continue is
+// always enabled (soft minimums per spec); Back closes the overlay.
+const M4_BEH_SOURCE_LABEL: Record<M4OperationalizeSource, string> = {
+  lights: "LIGHTS",
+  warms: "WARMS",
+  bothers: "BOTHERS",
+  turns: "TURNS",
+  flipped: "FLIPPED",
+  new: "NEW",
+};
+
+function NewA1M4BehaviorsBody({
+  onCloseRoom,
+  onContinueToRank,
+}: {
+  onCloseRoom: () => void;
+  onContinueToRank: () => void;
+}) {
+  const [state, setMirrorState] = useState<Mirror4State>(() =>
+    loadMirror4State(),
+  );
+  const mutate = (fn: (s: Mirror4State) => Mirror4State) => {
+    setMirrorState((prev) => {
+      const next = fn(prev);
+      saveMirror4State(next);
+      return next;
+    });
+  };
+
+  // "Complete" cluster = both userName + userDefinition filled. We
+  // don't require cluster.status === "complete" because Step 8 lets
+  // the user Continue without it; the gate here is the same as the
+  // hub's Behaviors-unlock gate so the room never opens empty when
+  // the hub says it can.
+  const completeClusters = state.clusters.filter(
+    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
+  );
+
+  // Active cluster: prefer the persisted id, fall back to the first
+  // complete cluster. If the persisted id is stale (e.g. user deleted
+  // that cluster from Discover), silently drop to the fallback.
+  const activeClusterId: string | null = (() => {
+    const stored = state.behaviorsActiveClusterId;
+    if (stored && completeClusters.some((c) => c.id === stored)) return stored;
+    return completeClusters[0]?.id ?? null;
+  })();
+  const activeCluster: M4Cluster | null =
+    completeClusters.find((c) => c.id === activeClusterId) ?? null;
+
+  // First-pre-fill trim notice: shown once per cluster, only when
+  // the pre-fill actually exceeded the cap. Tracked in component
+  // state (not persisted) so re-entering after refresh doesn't keep
+  // showing the same note.
+  const [trimNoticeFor, setTrimNoticeFor] = useState<string | null>(null);
+
+  // Ship 5.6g · Skip-keystone dismissal is local-only: spec wants
+  // the prompt to collapse on Skip even though keystoneId stays null,
+  // but to re-appear on a fresh visit. Keyed by cluster id so each
+  // value tracks its own skip.
+  const [skippedFor, setSkippedFor] = useState<Set<string>>(() => new Set());
+
+  // Autofocus the title input of a newly-added card. We track the id
+  // here (not in persisted state) and clear it after the focus fires.
+  const [focusBehaviorId, setFocusBehaviorId] = useState<string | null>(null);
+  const newCardInputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    if (!focusBehaviorId) return;
+    if (newCardInputRef.current) {
+      newCardInputRef.current.focus();
+      setFocusBehaviorId(null);
+    }
+  }, [focusBehaviorId]);
+
+  // Pre-fill on cluster activation. Runs at most once per cluster
+  // (gated by behaviorsPrefilledFor) AND only when operationalize
+  // has no existing entry for that cluster — protects user edits if
+  // the prefilled-list flag somehow got lost.
+  useEffect(() => {
+    if (!activeCluster) return;
+    if (state.behaviorsPrefilledFor.includes(activeCluster.id)) return;
+    if (state.operationalize[activeCluster.id]) return;
+    let trimmed = false;
+    mutate((s) => {
+      // Build the *un-capped* set of candidates first so we can detect
+      // whether the cap actually dropped anything. Mirrors the helper's
+      // own filtering rules (missing lookup → skip; blank flip text →
+      // skip) so the trim notice never lies.
+      const lookup = new Map<string, M4Behavior>();
+      for (const b of [...s.admire, ...s.irks]) lookup.set(b.id, b);
+      const candidateCount =
+        activeCluster.behaviorIds.filter((id) => lookup.has(id)).length +
+        activeCluster.flips.filter(
+          (f) => f.accepted === true && (f.toText ?? "").trim() !== "",
+        ).length;
+      trimmed = candidateCount > 5;
+      const built = m4BuildOperationalize(s, activeCluster);
+      return {
+        ...s,
+        operationalize: {
+          ...s.operationalize,
+          [activeCluster.id]: built,
+        },
+        behaviorsPrefilledFor: [
+          ...s.behaviorsPrefilledFor,
+          activeCluster.id,
+        ],
+      };
+    });
+    if (trimmed) setTrimNoticeFor(activeCluster.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCluster?.id]);
+
+  // Persist active cluster id for refresh-resume.
+  useEffect(() => {
+    if (!activeClusterId) return;
+    if (state.behaviorsActiveClusterId === activeClusterId) return;
+    mutate((s) => ({ ...s, behaviorsActiveClusterId: activeClusterId }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeClusterId]);
+
+  // ─── Empty state ───
+  if (!activeCluster) {
+    return (
+      <>
+        <div className="na1-m4-step-eyebrow">
+          Mirror 4 · Behaviors
+        </div>
+        <h2 className="na1-m4-step-title">No values yet</h2>
+        <div className="na1-m4-beh-empty">
+          <div className="na1-m4-beh-empty-title">
+            Discover comes first
+          </div>
+          <p className="na1-m4-beh-empty-body">
+            Name at least one value in Discover before turning it
+            into behaviors.
+          </p>
+        </div>
+        <div className="na1-m4-disc-foot">
+          <button
+            type="button"
+            className="na1-m4-back"
+            onClick={onCloseRoom}
+          >
+            ← Back to Values
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // ─── Active value helpers ───
+  const opValue: M4OperationalizeValue = state.operationalize[
+    activeCluster.id
+  ] ?? { behaviors: [], keystoneId: null };
+  const atCap = opValue.behaviors.length >= 5;
+  const clusterStyle: React.CSSProperties & Record<string, string> = {
+    ["--clusterColor"]: `var(--c${activeCluster.colorIndex})`,
+  } as React.CSSProperties & Record<string, string>;
+
+  const setActiveCluster = (id: string) => {
+    mutate((s) => ({ ...s, behaviorsActiveClusterId: id }));
+    setTrimNoticeFor(null);
+  };
+
+  const updateOpValue = (
+    clusterId: string,
+    fn: (v: M4OperationalizeValue) => M4OperationalizeValue,
+  ) =>
+    mutate((s) => {
+      const cur = s.operationalize[clusterId] ?? {
+        behaviors: [],
+        keystoneId: null,
+      };
+      return {
+        ...s,
+        operationalize: { ...s.operationalize, [clusterId]: fn(cur) },
+      };
+    });
+
+  const updateBehavior = (
+    behaviorId: string,
+    fn: (b: M4OperationalizeBehavior) => M4OperationalizeBehavior,
+  ) =>
+    updateOpValue(activeCluster.id, (v) => ({
+      ...v,
+      behaviors: v.behaviors.map((b) => (b.id === behaviorId ? fn(b) : b)),
+    }));
+
+  const deleteBehavior = (behaviorId: string) =>
+    updateOpValue(activeCluster.id, (v) => ({
+      ...v,
+      behaviors: v.behaviors.filter((b) => b.id !== behaviorId),
+      keystoneId: v.keystoneId === behaviorId ? null : v.keystoneId,
+    }));
+
+  const toggleKeystone = (behaviorId: string) =>
+    updateOpValue(activeCluster.id, (v) => ({
+      ...v,
+      keystoneId: v.keystoneId === behaviorId ? null : behaviorId,
+    }));
+
+  const addBehavior = () => {
+    if (atCap) return;
+    const newId = m4NextOpBehaviorId(opValue);
+    updateOpValue(activeCluster.id, (v) => ({
+      ...v,
+      behaviors: [
+        ...v.behaviors,
+        {
+          id: newId,
+          name: "",
+          practice: [],
+          source: "new",
+          sourceBehaviorId: null,
+        },
+      ],
+    }));
+    setFocusBehaviorId(newId);
+  };
+
+  const addPracticeBullet = (behaviorId: string) =>
+    updateBehavior(behaviorId, (b) =>
+      b.practice.length >= 5
+        ? b
+        : { ...b, practice: [...b.practice, ""] },
+    );
+
+  const setPracticeBullet = (
+    behaviorId: string,
+    idx: number,
+    text: string,
+  ) =>
+    updateBehavior(behaviorId, (b) => ({
+      ...b,
+      practice: b.practice.map((p, i) => (i === idx ? text : p)),
+    }));
+
+  const deletePracticeBullet = (behaviorId: string, idx: number) =>
+    updateBehavior(behaviorId, (b) => ({
+      ...b,
+      practice: b.practice.filter((_, i) => i !== idx),
+    }));
+
+  const skipKeystone = () => {
+    updateOpValue(activeCluster.id, (v) => ({ ...v, keystoneId: null }));
+    setSkippedFor((s) => new Set(s).add(activeCluster.id));
+  };
+
+  // Resolve keystone behavior name for the collapsed prompt.
+  const keystoneBehavior =
+    opValue.behaviors.find((b) => b.id === opValue.keystoneId) ?? null;
+  const showEmptyRibbon = opValue.behaviors.length === 0;
+  const keystoneIsSkipped = skippedFor.has(activeCluster.id);
+
+  const showTrimNotice = trimNoticeFor === activeCluster.id;
+
+  return (
+    <>
+      <div className="na1-m4-step-eyebrow">Mirror 4 · Behaviors</div>
+      <h2 className="na1-m4-step-title">Behaviors</h2>
+      <p className="na1-m4-beh-prompt">
+        For each value, the behaviors that bring it to life. We
+        started you with what surfaced in Discover — refine, replace,
+        or add up to 5.
+      </p>
+      <div className="na1-m4-beh-helper" role="note">
+        A value without behaviors is just a word. Up to 5 per value.
+        Mark one as the keystone — the one you'd defend first.
+      </div>
+
+      <div className="na1-m4-beh-chiprow" role="tablist">
+        {completeClusters.map((c) => {
+          const opv = state.operationalize[c.id];
+          const cnt = opv?.behaviors.length ?? 0;
+          const hasKeystone = !!opv?.keystoneId;
+          const isComplete = cnt >= 5 && hasKeystone;
+          const isActive = c.id === activeCluster.id;
+          const chipStyle: React.CSSProperties &
+            Record<string, string> = {
+            ["--clusterColor"]: `var(--c${c.colorIndex})`,
+          } as React.CSSProperties & Record<string, string>;
+          return (
+            <button
+              type="button"
+              key={c.id}
+              role="tab"
+              aria-selected={isActive}
+              className={
+                "na1-m4-beh-chip" +
+                (isActive ? " is-active" : "") +
+                (isComplete ? " is-complete" : "")
+              }
+              style={chipStyle}
+              onClick={() => setActiveCluster(c.id)}
+            >
+              {hasKeystone && (
+                <span
+                  className="na1-m4-beh-chip-star"
+                  aria-hidden="true"
+                >
+                  ★
+                </span>
+              )}
+              {c.userName || "(unnamed)"}
+              <span
+                className={
+                  "na1-m4-beh-chip-dot" + (cnt > 0 ? " is-on" : "")
+                }
+                aria-hidden="true"
+              />
+              {isComplete && (
+                <span
+                  className="na1-m4-beh-chip-check"
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="na1-m4-beh-vhead" style={clusterStyle}>
+        <h3 className="na1-m4-beh-vname" style={clusterStyle}>
+          {activeCluster.userName}
+        </h3>
+        <p className="na1-m4-beh-vdef">
+          {"\u201C"}
+          {activeCluster.userDefinition}
+          {"\u201D"}
+        </p>
+      </div>
+
+      {showTrimNotice && (
+        <div className="na1-m4-beh-trim" role="status">
+          Trimmed to 5 — your strongest behaviors made the cut.
+        </div>
+      )}
+
+      {showEmptyRibbon && (
+        <div className="na1-m4-beh-empty-ribbon" role="note">
+          This value needs behaviors to live. Add at least one.
+        </div>
+      )}
+
+      <div className="na1-m4-beh-cards">
+        {opValue.behaviors.map((b) => {
+          const isKeystone = opValue.keystoneId === b.id;
+          return (
+            <div
+              key={b.id}
+              className={`na1-m4-beh-card${isKeystone ? " is-keystone" : ""}`}
+            >
+              <div className="na1-m4-beh-card-head">
+                <input
+                  type="text"
+                  className="na1-m4-beh-card-name"
+                  value={b.name}
+                  placeholder="Name this behavior…"
+                  ref={
+                    focusBehaviorId === b.id
+                      ? newCardInputRef
+                      : undefined
+                  }
+                  onChange={(e) =>
+                    updateBehavior(b.id, (cur) => ({
+                      ...cur,
+                      name: e.target.value,
+                    }))
+                  }
+                />
+                <span
+                  className={`na1-m4-beh-srcchip is-${b.source}`}
+                  title={`From ${M4_BEH_SOURCE_LABEL[b.source]}`}
+                >
+                  {M4_BEH_SOURCE_LABEL[b.source]}
+                </span>
+                <button
+                  type="button"
+                  className={`na1-m4-beh-iconbtn${
+                    isKeystone ? " is-keystone-on" : ""
+                  }`}
+                  onClick={() => toggleKeystone(b.id)}
+                  aria-pressed={isKeystone}
+                  aria-label={
+                    isKeystone ? "Remove keystone" : "Mark as keystone"
+                  }
+                  title={
+                    isKeystone ? "Keystone behavior" : "Mark as keystone"
+                  }
+                >
+                  {isKeystone ? "★" : "☆"}
+                </button>
+                <button
+                  type="button"
+                  className="na1-m4-beh-iconbtn is-delete"
+                  onClick={() => deleteBehavior(b.id)}
+                  aria-label="Delete behavior"
+                  title="Delete"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="na1-m4-beh-prac-label">
+                What this looks like in practice
+              </div>
+              <ul className="na1-m4-beh-prac">
+                {b.practice.map((p, idx) => (
+                  <li key={idx} className="na1-m4-beh-prac-row">
+                    <span className="na1-m4-beh-prac-bullet">·</span>
+                    <input
+                      type="text"
+                      className="na1-m4-beh-prac-input"
+                      value={p}
+                      placeholder="What it looks like in practice…"
+                      onChange={(e) =>
+                        setPracticeBullet(b.id, idx, e.target.value)
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="na1-m4-beh-prac-del"
+                      onClick={() => deletePracticeBullet(b.id, idx)}
+                      aria-label="Delete bullet"
+                      title="Delete"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {b.practice.length < 5 && (
+                <button
+                  type="button"
+                  className="na1-m4-beh-prac-add"
+                  onClick={() => addPracticeBullet(b.id)}
+                >
+                  + Add bullet
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="na1-m4-beh-addrow">
+        <button
+          type="button"
+          className="na1-m4-beh-addbtn"
+          onClick={addBehavior}
+          disabled={atCap}
+        >
+          + Add behavior
+        </button>
+        <span className="na1-m4-beh-cap">
+          {opValue.behaviors.length}/5
+        </span>
+      </div>
+
+      {keystoneBehavior ? (
+        <div className="na1-m4-beh-key is-collapsed" role="status">
+          <span className="na1-m4-beh-key-collapsed">
+            Keystone set: {"\u201C"}
+            {keystoneBehavior.name.trim() || "(unnamed)"}
+            {"\u201D"}
+          </span>
+        </div>
+      ) : keystoneIsSkipped ? null : opValue.behaviors.length === 0 ? null : (
+        <div className="na1-m4-beh-key">
+          <div className="na1-m4-beh-key-icon" aria-hidden="true">
+            ★
+          </div>
+          <div className="na1-m4-beh-key-title">Mark the keystone</div>
+          <p className="na1-m4-beh-key-body">
+            The one behavior you'd defend first — the one that proves
+            the value is real. Tap the star on whichever behavior
+            carries it.
+          </p>
+          <button
+            type="button"
+            className="na1-m4-beh-key-skip"
+            onClick={skipKeystone}
+          >
+            Skip — they're all equal to me
+          </button>
+        </div>
+      )}
+
+      <div className="na1-m4-disc-foot">
+        <button
+          type="button"
+          className="na1-m4-back"
+          onClick={onCloseRoom}
+        >
+          ← Back to Values
+        </button>
+        <button
+          type="button"
+          className="na1-m4-continue"
+          onClick={onContinueToRank}
+        >
+          Continue to Rank →
+        </button>
+      </div>
+    </>
+  );
+}
+
 function NewA1M4Container({
   onBackToGrid,
   initialRoomKey,
@@ -36771,7 +37399,34 @@ function NewA1M4Container({
       {openRoom && openRoom.bodyShipped && (
         <NewA1M4RoomShell room={openRoom} open={roomOpen} onClose={closeRoom}>
           {openRoom.key === "discover" ? (
-            <NewA1M4DiscoverBody onCloseRoom={closeRoom} />
+            <NewA1M4DiscoverBody
+              onCloseRoom={closeRoom}
+              onContinueToBehaviors={() => {
+                // Ship 5.6g · Section 4 hand-off — close Discover,
+                // then launch Behaviors after the overlay fade settles
+                // (520ms matches closeRoom's openRoom-clear timer).
+                closeRoom();
+                const beh = M4_ROOMS.find((r) => r.key === "operationalize");
+                if (beh) {
+                  timeoutsRef.current.push(
+                    window.setTimeout(() => launchRoom(beh), 540),
+                  );
+                }
+              }}
+            />
+          ) : openRoom.key === "operationalize" ? (
+            <NewA1M4BehaviorsBody
+              onCloseRoom={closeRoom}
+              onContinueToRank={() => {
+                closeRoom();
+                const rank = M4_ROOMS.find((r) => r.key === "rank");
+                if (rank) {
+                  timeoutsRef.current.push(
+                    window.setTimeout(() => launchRoom(rank), 540),
+                  );
+                }
+              }}
+            />
           ) : (
             <NewA1M4RoomPlaceholderBody room={openRoom} />
           )}

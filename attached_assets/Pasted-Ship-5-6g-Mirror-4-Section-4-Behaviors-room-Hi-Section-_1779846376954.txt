@@ -1,0 +1,193 @@
+Ship 5.6g · Mirror 4 Section 4 · Behaviors room
+Hi — Section 3 (Discover) is fully shipped and approved. This ship opens the next room: Behaviors. After Discover, the user has named values with definitions; Behaviors is where each value gets the concrete actions that bring it to life.
+This is a single-screen room (not multi-step like Discover). Should be smaller and faster than Section 3.
+
+Scope (high level)
+
+Behaviors room overlay replaces the placeholder Section 1 shipped
+Single screen with value-switcher chips + per-value behavior cards
+Cap 5 behaviors per value; pre-fill from Discover; mark one keystone
+Continue → Rank room placeholder (still placeholder until Section 5)
+
+Reference mockup: Values_Mirror4_LiveTokens.html — demo nav button R2·Behaviors. Walk this screen in the mockup before coding. The value-switcher row, behavior card structure (with provenance chip + keystone star), and the gold-warm keystone prompt at the bottom are all spec'd visually there.
+
+Room shell
+
+Replaces the "Coming in Section 4" placeholder that Behaviors currently shows
+Overlay shell same pattern as Discover: breadcrumb Values › Behaviors, close × top-right, gold-bordered card, max-width 720px
+Behaviors room bodyShipped flag flips to true
+5.6c routing already wires Behaviors as an openable room — confirmed during Step 8 Continue test in earlier walks
+
+
+Single screen layout
+Eyebrow: Mirror 4 · Behaviors (no step counter — this is a single-screen room, not a multi-step flow)
+Title: Behaviors
+Subtitle: For each value, the behaviors that bring it to life. We started you with what surfaced in Discover — refine, replace, or add up to 5.
+Helper ribbon (sits below subtitle, faint gold-warm bg):
+A value without behaviors is just a word. Up to 5 per value. Mark one as the keystone — the one you'd defend first.
+
+Value-switcher chips (top of screen)
+
+One chip per named value (from state.mirror4.clusters where cluster.status === "complete")
+Each chip: ★ icon (if keystone marked for this value) + value name (cluster.userName) + small completion dot
+Active chip: filled gold bg, dark text
+Completed values (5/5 behaviors + keystone marked): teal/cyan accent + ✓ marker
+Click to switch the active value being edited
+Chip order matches cluster creation order (not yet ranked — that's Section 5)
+
+
+Active value display (changes when user clicks a chip)
+When a value chip is active, the screen below the chip row shows:
+Value header:
+
+Big serif gold value name (left-aligned, ~34px) — cluster.userName
+Italic definition below in quotes — cluster.userDefinition (use curly quotes like 5.6e did)
+
+Behavior cards (stacked, one per behavior):
+Each card:
+
+Top row: title input (editable, single-line, gold serif, dotted underline like the per-value inputs) + keystone star (top-right, ☆ inactive, ★ gold active) + × delete
+Source chip (small, below title): LIGHTS, WARMS, BOTHERS, TURNS, FLIPPED, or NEW — matches provenance from Discover Section 3a's per-value screens
+Body section (below source chip):
+
+Label: What this looks like in practice
+Bullet list of practice items (one per behavior.practice[] entry)
+Each bullet: editable text + × delete
++ Add bullet link at the bottom of the list (dashed gold, faint)
+
+
+Card visual: gold-line border by default; keystone card gets --gold border (stronger) + --gold-warm background tint
+
+Add behavior button (below the last card):
+
++ Add behavior (dashed gold pill)
+Disabled when at 5 behaviors (operationalize[clusterId].behaviors.length >= 5)
+Click → adds a new empty behavior card with source chip NEW, focuses the title input
+
+Cap counter (below add button):
+
+[N] of 5 — e.g. 3 of 5
+Small italic Georgia, faint
+
+Empty state (when user has deleted all behaviors for the active value):
+
+Helper ribbon: This value needs behaviors to live. Add at least one. (gold-warm bg)
+Does NOT block continue — user can stand by an empty value if they really want
+The + Add behavior button is still visible
+
+
+Keystone prompt (gold-warm card at bottom of screen)
+Below the behavior cards, before the footer:
+
+★ icon centered
+Title: Mark the keystone
+Body: The one behavior you'd defend first — the one that proves the value is real. Tap the star on whichever behavior carries it.
+Skip — they're all equal to me link (underlined gold, small)
+
+Behavior:
+
+Initial state: no keystone marked, prompt visible with full body text
+User clicks a star on any behavior card → that behavior becomes the keystone (state: state.mirror4.operationalize[clusterId].keystoneId)
+Only one keystone per value (clicking another star moves it)
+Once keystone is marked: prompt collapses to a quiet line: Keystone set: "[behavior name]". The skip link disappears (already chose).
+Skip link sets keystoneId = null and dismisses the prompt
+
+
+Behavior pre-fill from Discover
+For each value (cluster) on first entry to Behaviors:
+
+Look at cluster.behaviorIds (the portrait behaviors that landed in this cluster)
+Look at cluster.flips where accepted === true (the accepted flip commitments)
+Build initial state.mirror4.operationalize[clusterId].behaviors:
+
+For each behaviorId in cluster.behaviorIds: create a behavior with name = admire[id].text || irks[id].text, source = tier of that behavior (lights/warms/bothers/turns), practice = []
+For each accepted flip: create a behavior with name = flip.to, source = "flipped", practice = []
+For each "new" typed behavior added on the per-value screen (source NEW in 3a): create a behavior with name = text, source = "new", practice = []
+
+
+Order: Lights → Warms → Flipped → New (group by source)
+Cap initial pre-fill at 5; if there are more, drop the lowest-intensity ones (warms before lights, etc) and add a small note: Trimmed to 5 — your strongest behaviors made the cut.
+
+This pre-fill only runs once per value — first time the user opens Behaviors with that value active. After that, state.mirror4.operationalize[clusterId] is the source of truth and user edits persist.
+
+Footer:
+
+Back → closes Behaviors overlay, returns to M4 hub (NOT back to Discover — Discover is done)
+Continue → closes Behaviors overlay, opens Rank room placeholder (which still has its "Coming in Section 5" placeholder — Section 5 hasn't shipped yet)
+Continue is always enabled — even if a value has 0 behaviors or no keystone (soft minimums, not gates)
+
+
+State schema additions
+state.mirror4.operationalize is keyed by cluster ID. The schema from Section 1 already supports it:
+typescriptoperationalize: Record<string, {
+  behaviors: Array<{
+    id: string;
+    name: string;
+    practice: string[];
+    source: "lights" | "warms" | "flipped" | "new";
+    sourceBehaviorId: string | null;
+  }>;
+  keystoneId: string | null;
+}>;
+Use this verbatim. ID prefix for behaviors: b- (e.g. b-1, b-2, ...). All writes through saveMirror4State(). State resume from 5.6c routing — refresh inside Behaviors with a value selected should return user to Behaviors with the same value active.
+Active value: store as state.mirror4.behaviorsActiveClusterId so refresh returns the user to the same value they were editing. (Or use the per-room state pattern Agent prefers — small detail.)
+
+Design tokens
+Same rule: existing --na1-* + --gold* first; flag any new token before adding.
+Likely reuses:
+
+--gold / --gold-line / --gold-warm (existing) — keystone card styling, helper ribbon, value-switcher chip active state
+--na1-bg-soft (existing) — card backgrounds
+Burgundy / cyan / cluster colors — only if you actually need them; probably don't here
+
+Fonts: DM Sans + Georgia, no exceptions.
+
+Definition of done
+
+User completes Discover Section 3 (or uses existing state with named values), Step 8 Continue closes Discover and opens Behaviors.
+Behaviors room shows breadcrumb Values › Behaviors, eyebrow, title, subtitle, helper ribbon.
+Value-switcher chips render one per named value with the correct names.
+First chip active by default. Active value shows its name + italic definition.
+Pre-fill: behaviors listed with correct provenance chips (LIGHTS/WARMS/BOTHERS/TURNS/FLIPPED/NEW). Order: Lights → Warms → Flipped → New.
+Edit a behavior title → text saves to state, persists on refresh.
+Add a practice bullet → saves and renders.
+Click keystone star on a behavior → behavior gets the keystone styling (--gold border + --gold-warm bg tint), state.mirror4.operationalize[clusterId].keystoneId updates.
+Click a different behavior's star → keystone moves, only one keystone per value.
+Click Skip — they're all equal to me → keystoneId cleared, prompt collapses.
++ Add behavior adds a new empty card with NEW chip. Disabled when at 5 behaviors. Counter shows 5 of 5.
+× delete on a behavior card removes it from state.
+Delete all behaviors for a value → empty-state ribbon appears. Continue still works.
+Switch to a different value chip → display swaps to that value's data, keystone state preserved per-value.
+Continue closes Behaviors, opens Rank placeholder (currently shows "Coming in Section 5" placeholder).
+Back closes Behaviors, returns to M4 hub.
+Refresh inside Behaviors with Value 2 active → resumes inside Behaviors with Value 2 active (uses 5.6c routing + active value persistence).
+Sections 1, 2, 3a (including 5.6e polish), 3b, 5.6c routing all still work unchanged.
+
+
+DO NOT
+
+Build Rank or Pressure-test (Section 5).
+Build Claim seal (Section 6).
+Modify any Discover room code. Discover is shipped.
+Allow more than 5 behaviors per value. Cap is hard.
+Make keystone mandatory. Skip must work without it.
+Auto-mark a keystone. Only user choice.
+Block Continue when a value has zero behaviors. Helper ribbon nudges, no gate.
+Block Continue when no keystone is marked. Soft suggestion, no gate.
+Re-run pre-fill on every Behaviors entry. Pre-fill is once per value. After that, state.mirror4.operationalize[clusterId] is the source of truth.
+Modify the M3 Superpowers behavior card style. This is M4, separate component, separate styling (though visually inspired by it).
+Add new server endpoints, new DB tables, new auth flows. Client-side state only.
+Add new design tokens. If you need one, flag with name + value + reason before adding.
+Use Cormorant Garamond, Inter, or Geist anywhere.
+Auto-trigger any Katherine voice in this room. No Katherine in Behaviors — it's a doing room, not a reflection room.
+
+
+Reference: mockup Values_Mirror4_LiveTokens.html, demo nav button R2·Behaviors.
+When you're done, deploy to dev, then reply with:
+
+(a) the dev URL,
+(b) any new design tokens added to :root with name + value + reason,
+(c) confirmation that pre-fill from Discover landed correctly (provenance chips match source tiers),
+(d) any deviations from spec and why,
+(e) confirmation that Sections 1, 2, 3a (with 5.6e polish), 3b, and 5.6c routing all still work unchanged.
+

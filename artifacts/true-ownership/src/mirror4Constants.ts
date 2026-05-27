@@ -118,11 +118,39 @@ export type Mirror4State = {
   // until clustering runs. The 2-cluster soft prompt is prepended
   // here at cluster-creation time so it survives refresh.
   clustersNarrative: string;
-  operationalize: Record<string, unknown>;
+  operationalize: Record<string, M4OperationalizeValue>;
   rank: unknown[];
   pressureTest: M4PressureTest;
   claimed: boolean;
   claimedAt: string | null;
+  // Ship 5.6g · Section 4 — active value chip in the Behaviors room.
+  // Persisted so refresh restores the same value the user was editing.
+  // null = "no value selected yet" (default to first complete cluster).
+  behaviorsActiveClusterId: string | null;
+  // Ship 5.6g · per-cluster pre-fill happens once on first entry to
+  // the Behaviors room with that value active. After that the
+  // operationalize[clusterId] entry is the source of truth.
+  behaviorsPrefilledFor: string[];
+};
+
+// Ship 5.6g · Section 4 — typed operationalize schema. The fifth
+// "bothers"/"turns" sources from M4Behavior collapse into "warms"
+// for Behaviors room provenance per spec ordering (Lights → Warms
+// → Flipped → New); we keep the original chip kind for display via
+// na1-m4-pv-chip is-{source} so bothers/turns still render distinct.
+export type M4OperationalizeSource = M4BehaviorSource;
+
+export type M4OperationalizeBehavior = {
+  id: string;
+  name: string;
+  practice: string[];
+  source: M4OperationalizeSource;
+  sourceBehaviorId: string | null;
+};
+
+export type M4OperationalizeValue = {
+  behaviors: M4OperationalizeBehavior[];
+  keystoneId: string | null;
 };
 
 export const EMPTY_MIRROR4: Mirror4State = {
@@ -138,6 +166,8 @@ export const EMPTY_MIRROR4: Mirror4State = {
   pressureTest: { complete: false, pairs: [], conflicts: 0, rankChanges: 0 },
   claimed: false,
   claimedAt: null,
+  behaviorsActiveClusterId: null,
+  behaviorsPrefilledFor: [],
 };
 
 // ─── M4 room registry ───
@@ -173,7 +203,7 @@ export const M4_ROOMS: ReadonlyArray<{
     name: "Behaviors",
     tone: "yellow",
     threshold: "Naming the behaviors…",
-    bodyShipped: false,
+    bodyShipped: true,
   },
   {
     n: 3,
@@ -181,7 +211,7 @@ export const M4_ROOMS: ReadonlyArray<{
     name: "Rank",
     tone: "green",
     threshold: "Putting them in order…",
-    bodyShipped: false,
+    bodyShipped: true,
   },
   {
     n: 4,
@@ -216,6 +246,14 @@ export function loadMirror4State(): Mirror4State {
             : { ...c, peelChain: [] as string[] },
         );
       }
+      // Ship 5.6g · Section 4 — defensive defaults for older blobs
+      // that predate the operationalize / behaviors schema fields.
+      if (!merged.operationalize || typeof merged.operationalize !== "object")
+        merged.operationalize = {};
+      if (!Array.isArray(merged.behaviorsPrefilledFor))
+        merged.behaviorsPrefilledFor = [];
+      if (typeof merged.behaviorsActiveClusterId === "undefined")
+        merged.behaviorsActiveClusterId = null;
       return merged;
     }
   } catch {}
@@ -622,4 +660,77 @@ export const COUNT_WORD: Record<number, string> = {
 // Cluster color CSS variable name for inline style usage.
 export function clusterColorVar(c: M4Cluster | { colorIndex: number }): string {
   return `var(--c${c.colorIndex})`;
+}
+
+// ─── Ship 5.6g · Section 4 · Behaviors room helpers ──────────────
+// Source ordering for pre-fill (Lights → Warms → Flipped → New).
+// Bothers/turns get folded into the same source ordering bucket as
+// warms for sort purposes but keep their own provenance chip kind.
+const M4_OP_SOURCE_RANK: Record<M4BehaviorSource, number> = {
+  lights: 0,
+  warms: 1,
+  bothers: 1,
+  turns: 1,
+  flipped: 2,
+  new: 3,
+};
+
+// Build the initial operationalize entry for a cluster from its
+// portrait behaviors + accepted flips. Pure helper (no state writes)
+// so callers can compose it into a mutate(s => ...) cycle. Caps at
+// 5 by dropping lowest-intensity entries last. Behavior IDs prefixed
+// `b-` with a stable per-cluster counter.
+export function buildOperationalizeForCluster(
+  state: Mirror4State,
+  cluster: M4Cluster,
+): M4OperationalizeValue {
+  const lookup = new Map<string, M4Behavior>();
+  for (const b of [...state.admire, ...state.irks]) lookup.set(b.id, b);
+  const items: M4OperationalizeBehavior[] = [];
+  let n = 1;
+  // Portrait behaviors (lights / warms / bothers / turns / new).
+  for (const id of cluster.behaviorIds) {
+    const beh = lookup.get(id);
+    if (!beh) continue;
+    const src: M4OperationalizeSource = beh.source ?? beh.tier;
+    items.push({
+      id: `b-${n++}`,
+      name: beh.text,
+      practice: [],
+      source: src,
+      sourceBehaviorId: beh.id,
+    });
+  }
+  // Accepted flips → "flipped".
+  for (const flip of cluster.flips) {
+    if (flip.accepted !== true) continue;
+    const toText = (flip.toText ?? "").trim();
+    if (!toText) continue;
+    items.push({
+      id: `b-${n++}`,
+      name: toText,
+      practice: [],
+      source: "flipped",
+      sourceBehaviorId: flip.irkId,
+    });
+  }
+  // Sort by source rank (stable within bucket).
+  items.sort(
+    (a, b) => M4_OP_SOURCE_RANK[a.source] - M4_OP_SOURCE_RANK[b.source],
+  );
+  // Cap at 5 — drop from the end (lowest-intensity sources first).
+  const capped = items.slice(0, 5);
+  return { behaviors: capped, keystoneId: null };
+}
+
+// Stable next behavior id within an operationalize entry. Walks
+// existing behaviors to find the highest b-N suffix and returns N+1.
+export function nextOpBehaviorId(value: M4OperationalizeValue): string {
+  let max = 0;
+  for (const b of value.behaviors) {
+    if (!b.id.startsWith("b-")) continue;
+    const n = parseInt(b.id.slice(2), 10);
+    if (!Number.isNaN(n) && n > max) max = n;
+  }
+  return `b-${max + 1}`;
 }
