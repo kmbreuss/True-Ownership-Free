@@ -1,0 +1,202 @@
+Ship 5.6l · Mirror 4 Section 6 · Claim seal
+Hi — Section 5 (Rank + Pressure-test + Scenarios + Re-do) and all polish ships are approved on dev. This is the final ship of Mirror 4: the Claim seal. It closes the entire arc.
+This is a focused, mostly-copy ship. Single screen, no modals, one state write, one tiny conditional check. Should be the smallest of the Mirror 4 section ships.
+
+Critical scope note:
+This ship replaces the "Coming in Section 6" placeholder that the Claim room currently shows. It does NOT build Map of Me. (Map of Me lives in a separate app — Boardroom — and isn't part of True Ownership.) The conditional "navigate to Map of Me if it exists" check stays in the brief because it's part of the spec, but in this app it will always evaluate to false. Do not build Map of Me as part of this ship.
+
+Room shell
+
+Replaces the placeholder Claim shows today (currently reads Coming in Section 6)
+Overlay same pattern as other M4 rooms: breadcrumb Values › Claim, close × top-right, gold-bordered card, max-width 720px
+Claim room bodyShipped flag flips to true
+5.6j wired Claim to unlock when state.mirror4.pressureTest.complete === true — that gate stays as-is
+
+
+Single-screen layout
+Claim is intentionally minimal. It's not a workspace — it's a sealing moment. Five beats. One button.
+Eyebrow: Mirror 4 · Claim (uses the step- prefix classes for theme-aware coloring — i.e. .na1-m4-step-eyebrow if reusing existing class, NOT the .na1-m4-eyebrow from Rank which is now also theme-aware but the step-prefix is the cleaner convention)
+Title: (no static title — the first beat IS the title)
+Anchor ★ icon at the top of the content area:
+
+Large (50-60px) centered gold ★
+Modest top margin (40-48px from eyebrow)
+
+Five italic Georgia beats (centered, max-width 540px, line-height 1.7, ~20px):
+Each beat is its own paragraph. Beats use gold-tinted spans for key phrases (the user's values, their definitions, the keystones). Use existing var(--gold) via inline span styling — no new classes needed.
+Beat 1 — The naming:
+{displayName ? displayName + "," : ""} this is the order you live by.
+
+If resolveDisplayName() returns a non-empty string: render Katherine, this is the order you live by.
+If empty: render This is the order you live by. (no orphan comma, capital T on This)
+The user's name (if present) is in italic gold-tinted span
+"the order you live by" is in gold-tinted span (this is the seal hook — the M4 hub subtitle is Values · The Order You Live By, the seal echoes it)
+
+Beat 2 — The values, in rank order:
+{Value 1}, then {Value 2}, then {Value 3}{, then Value N if more}.
+
+Each value name is in gold serif (not italic — these are the proper nouns being claimed)
+Read from state.mirror4.rank[] mapped through state.mirror4.clusters to get userName
+Use commas + "then" between, no Oxford "and" at end (just commas all the way)
+Period at end
+
+Beat 3 — The definitions, summarized:
+You named what each one means: {def 1 first 6 words…}, {def 2 first 6 words…}, {def 3 first 6 words…}.
+
+For each value in rank order, take cluster.userDefinition, truncate at ~6 words + ellipsis
+Each truncated def in italic gold-tinted span, in curly quotes
+Concatenated with commas
+Example: You named what each one means: "telling the truth even when it…", "standing by the people I…", "doing what scares me when…"
+
+Beat 4 — The keystone behaviors:
+And you marked the one behavior you'd defend first for each: {keystone 1}, {keystone 2}, {keystone 3}.
+
+For each value, take state.mirror4.operationalize[clusterId].keystoneId → resolve to the behavior's name field
+Each keystone name in gold-tinted span
+Concatenated with commas
+
+Beat 5 — The decision filter (the close):
+This beat is the most important. It uses the "Use it when..." triplet to convert the rank from intellectual exercise into operational tool:
+This is your decision filter.
+Use it when two values pull on the same moment.
+Use it when the cost is real and you have to choose.
+Use it when you'd rather not — that's when it counts most.
+
+Three "Use it when..." lines, each its own paragraph (or as one paragraph with line breaks, your call on layout)
+"decision filter" is in gold-tinted span on the first line
+"when it counts most" is in gold italic on the last line (a quiet emphasis)
+This beat is the heaviest visually — give it a bit more vertical breathing room before/after
+
+
+Gold horizontal rule below the beats:
+
+Thin (1px), centered, max-width 200px
+Color: var(--gold-line) or var(--gold) at low opacity
+Margin: 48px above, 32px below
+
+
+Primary CTA — Claim it · go to Map of Me →
+
+Filled gold pill button, large (padding 16px 32px, font size ~16-17px)
+Centered
+Text: Claim it · go to Map of Me →
+Click handler:
+
+Write state.mirror4.claimed = true
+Write state.mirror4.claimedAt = new Date().toISOString()
+Check if Map of Me exists in this app: look for any of these signals:
+
+A view registered as "mapofme" in the app's route table
+A DOM element with id view-mapofme or class MapOfMeContainer
+Any equivalent indicator that Agent identifies in the True Ownership routing
+
+
+If Map of Me exists: close Claim overlay, navigate to Map of Me view, optionally populate a Values row there (see Map of Me populate section below)
+If Map of Me does NOT exist (this is the case in True Ownership today): close Claim overlay, return to M4 hub. Hub now shows Claim room as Sealed · tap to revisit (or whatever the "completed room" status pattern uses).
+
+
+
+Foot line below the button:
+
+Small italic Georgia, faint (var(--na1-text-mute)), centered, ~13px
+Text: You've claimed your Values. The seal stays.
+This is a quiet reassurance that the claim is permanent — they're not signing away anything, they can revise.
+
+Escape link below the foot line:
+
+Small underlined gold text, centered, ~13px
+Text: ← Revise my Values readback
+Click handler: close Claim overlay, return to M4 hub. Does NOT modify any state — user comes back to Claim later and the beats are still there.
+
+
+Map of Me populate (conditional — currently no-op in True Ownership)
+If Map of Me exists in this app (it doesn't in True Ownership), add a Values row to it:
+
+Row title: Values · The Order You Live By
+Body: numbered list of the user's ranked values with cluster.userName + cluster.userDefinition (full def, in italic curly quotes)
+Below the list: small pressure-test badge — e.g. Pressure-tested · {conflicts === 0 ? "rank held" : conflicts + " held against gut"}
+Linked back to Claim room (clicking the row reopens Claim, where user sees the same seal)
+
+In True Ownership today: this section never runs. The condition check returns false, the Map of Me populate is skipped, and the click simply closes Claim and returns to M4 hub. Implement the condition check so it's ready when Map of Me eventually ships (or when this code lands in Boardroom which DOES have Map of Me), but don't build Map of Me itself in this ship.
+
+Sealed state (when user returns to Claim after first claim)
+If state.mirror4.claimed === true and user opens Claim again (via M4 hub or escape link's reverse path):
+
+Same screen content (all five beats render the same — they don't change post-claim)
+Primary CTA changes to: Claim updated ✓ (filled gold, but with a checkmark) — disabled state, just confirms it's sealed
+Foot line changes to: Sealed on {formatted claimedAt date}. — e.g. Sealed on May 27, 2026.
+Escape link stays the same — user can revise their values readback (which sends them back to Discover/Behaviors/Rank flows that already work)
+
+This is a gentle re-entry experience. The seal is permanent, but the user is welcome back.
+
+Hub status after claim
+When state.mirror4.claimed === true, the M4 hub's Claim row status text changes from Up next · tap to begin to Sealed · tap to revisit. Same row, just different status copy.
+
+State schema additions
+typescriptstate.mirror4 = {
+  // ... existing fields ...
+  claimed: boolean;           // default false
+  claimedAt: string | null;   // ISO datetime string
+}
+Both fields persist via saveMirror4State(). 5.6c routing handles room-level resume — refresh inside Claim returns user to Claim with the right (pre-claim or post-claim) UI.
+
+Design tokens
+Reuse existing --na1-* + --gold*. No new tokens needed (the brief was deliberately careful to spec everything in terms of existing colors).
+Fonts: DM Sans + Georgia. No exceptions.
+
+Definition of done
+
+User completes Discover (3+ named values), Behaviors (3+ behaviors per value + keystone), Rank, Pressure-test → Claim hub card unlocks (already shipped in 5.6j).
+Click Claim card → Claim overlay opens, breadcrumb Values › Claim, eyebrow Mirror 4 · Claim.
+★ anchor at top.
+Beat 1 renders with user's display name (if available) + "this is the order you live by." — name + key phrase in gold.
+Beat 2 lists values in rank order with "then" between, gold serif.
+Beat 3 quotes truncated definitions in italic gold curly quotes.
+Beat 4 lists keystone behaviors in gold span, comma-separated.
+Beat 5 renders the "decision filter" + three "Use it when..." lines.
+Gold horizontal rule separates beats from CTA.
+Primary CTA reads Claim it · go to Map of Me →.
+Foot line reads You've claimed your Values. The seal stays.
+Escape link reads ← Revise my Values readback.
+Click primary CTA:
+
+Writes state.mirror4.claimed = true and claimedAt = ISO string
+Checks for Map of Me view in the app — in True Ownership, this is false
+Falls through: closes Claim overlay, returns to M4 hub
+Hub now shows Claim row as Sealed · tap to revisit
+
+
+Reopen Claim from hub → same screen, but primary CTA reads Claim updated ✓ (disabled), foot line reads Sealed on {date}.
+Click escape link from Claim → closes overlay, returns to hub WITHOUT modifying claim state.
+If resolveDisplayName() returns empty: Beat 1 renders This is the order you live by. (no orphan comma).
+Refresh inside Claim → 5.6c routing returns user to Claim with the correct (pre-claim or post-claim) UI.
+All previous M4 sections (1-5) + all polish ships continue to work.
+Light mode and dark mode both render readable text (the seal beats are heavy on italic Georgia — verify contrast in both themes).
+
+
+DO NOT
+
+Build Map of Me. Conditional check only. If it doesn't exist (which it doesn't in True Ownership), the fallback is "close Claim, return to hub."
+Add new design tokens. Use existing --gold, --gold-line, --na1-text-mute, --na1-serif.
+Modify Sections 1-5 or any prior polish ships.
+Add modals to Claim. It's a single screen, no overlays.
+Auto-claim. The button click is the only path to claimed = true.
+Add fanfare animations (confetti, glow pulses, etc). The seal is dignified, not flashy. A subtle 200ms button press animation is fine; nothing more.
+Block the escape link based on claimed state. User can always escape back to hub.
+Re-render beats with current state if user revises values later AFTER claiming. The claimed seal beats reflect the state AT THE MOMENT OF CLAIM. If user wants to update them, they re-claim (which re-renders + re-writes claimedAt). This is intentional — the seal is a moment in time, not a live view.
+Actually, let me reconsider: if user revises values AFTER claiming (goes back to Discover, renames Honesty to Integrity), the next time they open Claim, the beats SHOULD render with current state (current values, current rank, current definitions). The claimedAt timestamp captures when they FIRST claimed, but the beats themselves are always read live from state. If user wants to update their "sealed" status, they hit the disabled Claim updated ✓ button — actually no, that's disabled.
+Resolution: The beats render live from current state every time. The claimedAt field captures the first claim moment. If user wants to "re-claim" after edits, they use the escape link → make their edits → return to Claim → see updated beats → the CTA is still disabled (Claim updated ✓). If we want a "re-seal" path, that's a future enhancement. For now: beats live-render, CTA is one-shot.
+Spec clarification for Agent: beats always render from current state. claimed is a one-way flag (true after first click, never resets in this ship). claimedAt is set once on first claim. Subsequent visits show live beats with sealed CTA.
+Use Cormorant Garamond, Inter, or Geist.
+
+
+Reference
+The seal beats reuse Katherine-voice styling patterns from M1/M3 closing seals. Italic Georgia, max-width centered, gold accents on user-content phrases. Visual rhythm: ★ → beat 1 → beat 2 → beat 3 → beat 4 → beat 5 (heavier) → rule → button → foot → escape.
+When you're done, deploy to dev, then reply with:
+
+(a) the dev URL,
+(b) confirmation that beats render correctly with user's named values, definitions, and keystones in gold spans,
+(c) confirmation that Beat 1 handles both display-name-present and display-name-empty cases correctly,
+(d) confirmation that primary CTA writes claimed + claimedAt and falls through to hub (no Map of Me in this app),
+(e) any deviations from spec and why,
+(f) confirmation that Sections 1-5 and all polish ships still work unchanged.
