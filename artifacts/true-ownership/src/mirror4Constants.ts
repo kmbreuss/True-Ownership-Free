@@ -72,11 +72,25 @@ export type M4Portrait = {
   turns: string[];
 };
 
+// Ship 5.6i · Section 5 — typed pressure-test schema.
+// Pair entries are written once per user pick (or skip). `pickedId`
+// is null when the user took the "they don't actually compete for me"
+// skip; otherwise it's the cluster id the user chose. `matchedRank`
+// is true if the pick was the value positioned HIGHER in rank[] at
+// the moment of the pick (so re-orders flip it true post-swap).
+// `activePairIdx` is where the modal resumes when reopened.
+export type M4PressureTestPair = {
+  aId: string;
+  bId: string;
+  pickedId: string | null;
+  matchedRank: boolean;
+};
 export type M4PressureTest = {
   complete: boolean;
-  pairs: unknown[];
+  pairs: M4PressureTestPair[];
   conflicts: number;
   rankChanges: number;
+  activePairIdx: number;
 };
 
 // Ship 5.6d · Section 3a · Cluster schema
@@ -119,7 +133,10 @@ export type Mirror4State = {
   // here at cluster-creation time so it survives refresh.
   clustersNarrative: string;
   operationalize: Record<string, M4OperationalizeValue>;
-  rank: unknown[];
+  // Ship 5.6i · Section 5 — array of cluster IDs, top = highest
+  // priority. Empty until first entry to Rank room; defaulted to
+  // cluster creation order on that first entry.
+  rank: string[];
   pressureTest: M4PressureTest;
   claimed: boolean;
   claimedAt: string | null;
@@ -163,7 +180,13 @@ export const EMPTY_MIRROR4: Mirror4State = {
   clustersNarrative: "",
   operationalize: {},
   rank: [],
-  pressureTest: { complete: false, pairs: [], conflicts: 0, rankChanges: 0 },
+  pressureTest: {
+    complete: false,
+    pairs: [],
+    conflicts: 0,
+    rankChanges: 0,
+    activePairIdx: 0,
+  },
   claimed: false,
   claimedAt: null,
   behaviorsActiveClusterId: null,
@@ -254,6 +277,39 @@ export function loadMirror4State(): Mirror4State {
         merged.behaviorsPrefilledFor = [];
       if (typeof merged.behaviorsActiveClusterId === "undefined")
         merged.behaviorsActiveClusterId = null;
+      // Ship 5.6i · Section 5 — rank + pressureTest defensive defaults
+      // for older blobs that predate the typed schema. activePairIdx
+      // was added in 5.6i; older blobs default it to 0.
+      if (!Array.isArray(merged.rank)) merged.rank = [];
+      else merged.rank = merged.rank.filter((id) => typeof id === "string");
+      if (!merged.pressureTest || typeof merged.pressureTest !== "object") {
+        merged.pressureTest = {
+          complete: false,
+          pairs: [],
+          conflicts: 0,
+          rankChanges: 0,
+          activePairIdx: 0,
+        };
+      } else {
+        const pt = merged.pressureTest as Partial<M4PressureTest>;
+        merged.pressureTest = {
+          complete: typeof pt.complete === "boolean" ? pt.complete : false,
+          pairs: Array.isArray(pt.pairs)
+            ? (pt.pairs.filter(
+                (p) =>
+                  p &&
+                  typeof p === "object" &&
+                  typeof (p as M4PressureTestPair).aId === "string" &&
+                  typeof (p as M4PressureTestPair).bId === "string",
+              ) as M4PressureTestPair[])
+            : [],
+          conflicts: typeof pt.conflicts === "number" ? pt.conflicts : 0,
+          rankChanges:
+            typeof pt.rankChanges === "number" ? pt.rankChanges : 0,
+          activePairIdx:
+            typeof pt.activePairIdx === "number" ? pt.activePairIdx : 0,
+        };
+      }
       return merged;
     }
   } catch {}
@@ -733,4 +789,71 @@ export function nextOpBehaviorId(value: M4OperationalizeValue): string {
     if (!Number.isNaN(n) && n > max) max = n;
   }
   return `b-${max + 1}`;
+}
+
+// ─── Ship 5.6i · Section 5 · Pressure-test pair generation ───────
+// Deterministic, adjacent-first ordering. For N named values:
+//   1. Emit all pairs grouped by gap (1..N-1); within a gap, by
+//      starting index. This is the "adjacent first, then jumping"
+//      order called out in the spec (e.g. for N=4: (1,2)(2,3)(3,4)
+//      then (1,3)(2,4) then (1,4)).
+//   2. If the total exceeds the 10-pair cap (only possible at N≥5
+//      under normal Mirror 4 limits), keep all adjacent pairs and
+//      deterministically pick the remaining slots from the non-
+//      adjacent pool using a seed derived from the rank order. The
+//      same rank → same selection every render.
+// Used by both the Begin-Pressure-Test card's pair count and the
+// modal's pair walk. Already-walked pair entries in state.mirror4
+// .pressureTest.pairs[] persist independently; this helper only
+// produces the canonical (a,b) sequence for the current rank.
+export const M4_PRESSURE_TEST_CAP = 10;
+export function m4PressureTestPairs(
+  rankIds: readonly string[],
+): Array<{ aId: string; bId: string }> {
+  const N = rankIds.length;
+  if (N < 2) return [];
+  const allByGap: Array<{ aId: string; bId: string; gap: number }> = [];
+  for (let gap = 1; gap < N; gap++) {
+    for (let i = 0; i + gap < N; i++) {
+      allByGap.push({
+        aId: rankIds[i]!,
+        bId: rankIds[i + gap]!,
+        gap,
+      });
+    }
+  }
+  if (allByGap.length <= M4_PRESSURE_TEST_CAP) {
+    return allByGap.map(({ aId, bId }) => ({ aId, bId }));
+  }
+  const adjacent = allByGap.filter((p) => p.gap === 1);
+  const rest = allByGap.filter((p) => p.gap > 1);
+  // Seed = rolling hash of rankIds. Stable for a given rank order.
+  let seed = 0;
+  for (let i = 0; i < rankIds.length; i++) {
+    const s = rankIds[i]!;
+    for (let j = 0; j < s.length; j++) {
+      seed = (Math.imul(seed, 31) + s.charCodeAt(j)) | 0;
+    }
+    seed = (Math.imul(seed, 17) + i) | 0;
+  }
+  let rngState = (seed >>> 0) || 1;
+  const rng = () => {
+    rngState = (rngState + 0x6d2b79f5) | 0;
+    let t = rngState;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const shuffled = [...rest];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const a = shuffled[i]!;
+    const b = shuffled[j]!;
+    shuffled[i] = b;
+    shuffled[j] = a;
+  }
+  const take = M4_PRESSURE_TEST_CAP - adjacent.length;
+  return [...adjacent, ...shuffled.slice(0, Math.max(0, take))].map(
+    ({ aId, bId }) => ({ aId, bId }),
+  );
 }

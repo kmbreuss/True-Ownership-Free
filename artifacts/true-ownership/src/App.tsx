@@ -113,6 +113,10 @@ import {
   type M4OperationalizeBehavior,
   type M4OperationalizeValue,
   type M4OperationalizeSource,
+  // Ship 5.6i · Section 5 · Rank + Pressure-Test
+  m4PressureTestPairs,
+  M4_PRESSURE_TEST_CAP,
+  type M4PressureTestPair,
 } from "./mirror4Constants";
 const KEYS = {
   map: "to_map",
@@ -1898,6 +1902,81 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,243,239,.78); }
 .na1-m4-beh-key-icon{ font-size:18px; color:var(--gold); margin:0 0 6px; }
 .na1-m4-beh-key-collapsed{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--gold); }
 .na1-m4-beh-gate-helper{ font-family:var(--na1-serif); font-style:italic; font-size:13px; color:var(--na1-text-mute); margin:8px 0 0; text-align:right; }
+/* ─── Ship 5.6i · Section 5 · Rank room + Pressure-test modal ───
+   Re-uses existing --gold*, --burgundy*, --na1-* tokens. No new
+   tokens introduced. Drag affordances follow Section 2's portrait
+   drag pattern (HTML5 dnd + ▲▼ touch/keyboard fallback). */
+.na1-m4-rank-phase-eyebrow{ font-family:var(--na1-sans); font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin:18px 0 10px; }
+.na1-m4-rank-stack{ display:flex; flex-direction:column; gap:10px; margin:0 0 22px; }
+.na1-m4-rank-row{ display:flex; align-items:flex-start; gap:14px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 14px 14px 12px; transition:border-color .18s, background .18s, opacity .15s; }
+.na1-m4-rank-row.is-tested{ background:var(--gold-warm); border-color:var(--gold-line); }
+.na1-m4-rank-row.is-dragging{ opacity:.5; }
+.na1-m4-rank-row.is-drop-target{ border-color:var(--gold); box-shadow:0 0 0 1px var(--gold-glow); }
+.na1-m4-rank-num{ font-family:var(--na1-serif); font-size:42px; line-height:1; color:var(--gold); font-weight:500; min-width:42px; text-align:center; flex-shrink:0; padding-top:2px; }
+.na1-m4-rank-body{ flex:1; min-width:0; }
+.na1-m4-rank-name{ font-family:var(--na1-serif); font-size:22px; font-weight:600; line-height:1.2; color:var(--na1-text); margin:0; }
+.na1-m4-rank-def{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; line-height:1.5; color:var(--na1-text-sec); margin:4px 0 0; }
+.na1-m4-rank-key{ font-family:var(--na1-sans); font-size:12px; color:var(--gold); margin:8px 0 0; letter-spacing:.01em; }
+.na1-m4-rank-key.is-unset{ color:var(--na1-text-mute); font-family:var(--na1-serif); font-style:italic; }
+.na1-m4-rank-controls{ display:flex; align-items:center; gap:6px; flex-shrink:0; padding-top:4px; }
+.na1-m4-rank-handle{ background:transparent; border:1px solid var(--na1-border); border-radius:6px; padding:6px 8px; color:var(--na1-text-mute); cursor:grab; font-size:14px; line-height:1; user-select:none; transition:color .15s, border-color .15s; }
+.na1-m4-rank-handle:hover{ color:var(--gold); border-color:var(--gold-line); }
+.na1-m4-rank-handle:active{ cursor:grabbing; }
+.na1-m4-rank-arrow{ background:transparent; border:1px solid var(--na1-border); border-radius:6px; padding:5px 8px; color:var(--na1-text-mute); cursor:pointer; font-size:11px; line-height:1; transition:color .15s, border-color .15s; }
+.na1-m4-rank-arrow:hover:not(:disabled){ color:var(--gold); border-color:var(--gold-line); }
+.na1-m4-rank-arrow:disabled{ opacity:.3; cursor:not-allowed; }
+.na1-m4-rank-pt-card{ background:var(--gold-warm); border:1px dashed var(--gold); border-radius:var(--na1-radius); padding:24px 26px; margin:0 0 18px; text-align:center; }
+.na1-m4-rank-pt-title{ font-family:var(--na1-serif); font-size:22px; font-weight:500; color:var(--na1-text); margin:8px 0 6px; }
+.na1-m4-rank-pt-sub{ font-family:var(--na1-serif); font-style:italic; font-size:14px; line-height:1.5; color:var(--na1-text-sec); margin:0 0 16px; max-width:480px; margin-left:auto; margin-right:auto; }
+.na1-m4-rank-pt-status{ font-family:var(--na1-serif); font-style:italic; font-size:12px; color:var(--na1-text-mute); margin:10px 0 0; }
+.na1-m4-rank-pt-btn{ background:var(--gold); color:#1a1407; border:none; padding:11px 22px; border-radius:100px; font-size:14px; cursor:pointer; font-family:var(--na1-sans); letter-spacing:.02em; font-weight:600; transition:filter .15s; }
+.na1-m4-rank-pt-btn:hover{ filter:brightness(1.08); }
+/* Pressure-test modal */
+.na1-m4-pt-backdrop{ position:fixed; inset:0; background:rgba(8,6,4,.72); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:120; padding:24px; }
+.na1-m4-pt-modal{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:var(--na1-radius); box-shadow:0 18px 48px rgba(0,0,0,.5); width:100%; max-width:680px; max-height:calc(100vh - 48px); overflow-y:auto; position:relative; }
+.na1-m4-pt-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--na1-border); font-family:var(--na1-sans); font-size:12.5px; letter-spacing:.04em; color:var(--gold); }
+.na1-m4-pt-close{ background:transparent; border:none; color:var(--na1-text-mute); font-size:20px; line-height:1; cursor:pointer; padding:4px 8px; }
+.na1-m4-pt-close:hover{ color:var(--gold); }
+.na1-m4-pt-body{ padding:28px 32px 24px; min-height:380px; display:flex; flex-direction:column; }
+.na1-m4-pt-eyebrow{ font-family:var(--na1-sans); font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); text-align:center; margin:0 0 12px; }
+.na1-m4-pt-title{ font-family:var(--na1-serif); font-size:24px; line-height:1.25; color:var(--na1-text); text-align:center; margin:0 0 14px; }
+.na1-m4-pt-sub{ font-family:var(--na1-serif); font-style:italic; font-size:15px; line-height:1.6; color:var(--na1-text-sec); text-align:center; max-width:480px; margin:0 auto 22px; }
+.na1-m4-pt-prompt{ font-family:var(--na1-serif); font-style:italic; font-size:22px; line-height:1.4; color:var(--na1-text); text-align:center; max-width:540px; margin:0 auto 6px; }
+.na1-m4-pt-prompt b{ color:var(--gold); font-style:normal; font-weight:500; }
+.na1-m4-pt-helper{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); text-align:center; margin:0 0 22px; }
+.na1-m4-pt-example{ border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:18px 22px; background:var(--gold-warm); margin:0 auto 22px; max-width:540px; }
+.na1-m4-pt-example-label{ font-family:var(--na1-sans); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin:0 0 8px; }
+.na1-m4-pt-example-body{ font-family:var(--na1-serif); font-style:italic; font-size:15px; line-height:1.65; color:var(--na1-text-sec); margin:0; }
+.na1-m4-pt-example-body b{ font-style:normal; font-weight:500; color:var(--na1-text); }
+.na1-m4-pt-example-close{ font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); margin:14px 0 0; padding-top:12px; border-top:1px solid var(--gold-line); }
+.na1-m4-pt-cards{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0 0 14px; }
+@media (max-width:540px){ .na1-m4-pt-cards{ grid-template-columns:1fr; } }
+.na1-m4-pt-card{ background:transparent; border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:20px 22px; cursor:pointer; text-align:left; position:relative; transition:border-color .18s, background .18s, transform .15s; font-family:inherit; }
+.na1-m4-pt-card:hover:not(:disabled){ border-color:var(--gold); transform:translateY(-2px); }
+.na1-m4-pt-card.is-picked{ border-color:var(--gold); background:var(--gold-warm); }
+.na1-m4-pt-card.is-picked::after{ content:"★"; position:absolute; top:10px; right:14px; color:var(--gold); font-size:16px; }
+.na1-m4-pt-card:disabled{ cursor:default; opacity:.55; }
+.na1-m4-pt-card-name{ font-family:var(--na1-serif); font-size:24px; font-weight:500; color:var(--gold); margin:0 0 6px; }
+.na1-m4-pt-card-def{ font-family:var(--na1-serif); font-style:italic; font-size:14px; line-height:1.5; color:var(--na1-text-sec); margin:0 0 14px; }
+.na1-m4-pt-card-key{ border-top:1px solid var(--gold-line); padding-top:10px; margin-top:8px; }
+.na1-m4-pt-card-keylab{ font-family:var(--na1-sans); font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin:0 0 4px; }
+.na1-m4-pt-card-keybody{ font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); margin:0; }
+.na1-m4-pt-card-keybody.is-unset{ color:var(--na1-text-mute); font-family:var(--na1-serif); font-style:italic; }
+.na1-m4-pt-skip{ display:block; background:transparent; border:none; color:var(--gold); text-decoration:underline; font-family:var(--na1-sans); font-size:12.5px; cursor:pointer; margin:6px auto 0; padding:6px 10px; }
+.na1-m4-pt-skip:hover{ filter:brightness(1.15); }
+.na1-m4-pt-conflict{ border:1px solid var(--burgundy, #b04a4a); border-radius:var(--na1-radius); background:rgba(176,74,74,.06); padding:16px 18px; margin:16px 0 0; }
+.na1-m4-pt-conflict-label{ font-family:var(--na1-sans); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--burgundy, #b04a4a); margin:0 0 8px; }
+.na1-m4-pt-conflict-body{ font-family:var(--na1-serif); font-style:italic; font-size:14.5px; line-height:1.55; color:var(--na1-text-sec); margin:0 0 14px; }
+.na1-m4-pt-conflict-body b{ font-style:normal; font-weight:500; color:var(--na1-text); }
+.na1-m4-pt-conflict-btns{ display:flex; gap:10px; flex-wrap:wrap; }
+.na1-m4-pt-conflict-btn{ background:var(--gold); color:#1a1407; border:none; padding:9px 18px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:filter .15s; }
+.na1-m4-pt-conflict-btn:hover{ filter:brightness(1.08); }
+.na1-m4-pt-conflict-btn.is-outline{ background:transparent; color:var(--gold); border:1px solid var(--gold); }
+.na1-m4-pt-conflict-btn.is-outline:hover{ background:var(--gold-warm); filter:none; }
+.na1-m4-pt-footer{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:auto; padding-top:18px; flex-wrap:wrap; }
+.na1-m4-pt-footer.is-center{ justify-content:center; }
+.na1-m4-pt-footer-status{ font-family:var(--na1-sans); font-style:italic; font-size:12.5px; color:var(--na1-text-mute); }
+.na1-m4-pt-done-star{ font-size:30px; color:var(--gold); text-align:center; margin:0 0 10px; }
 .na1-m4-beh-vhead{ border-left:3px solid var(--clusterColor, var(--gold)); padding:6px 0 6px 14px; margin:0 0 18px; }
 .na1-m4-beh-vname{ font-family:var(--na1-serif); font-size:24px; line-height:1.15; color:var(--clusterColor, var(--gold)); margin:0; }
 .na1-m4-beh-vdef{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; line-height:1.55; color:var(--na1-text-sec); margin:6px 0 0; }
@@ -37343,6 +37422,707 @@ function NewA1M4BehaviorsBody({
   );
 }
 
+// ─── Ship 5.6i · Section 5 · Rank room body + Pressure-Test modal ─
+// Single-screen room (Phase 1 rank stack + Phase 2 begin-pressure-
+// test card) with a modal that lifts over it for the pair walk.
+// All writes go through saveMirror4State via mutate; pair generation
+// is deterministic (mirror4Constants.m4PressureTestPairs); rank
+// seeding defaults to cluster creation order on first entry.
+function NewA1M4RankBody({
+  onCloseRoom,
+  onContinueToClaim,
+}: {
+  onCloseRoom: () => void;
+  onContinueToClaim: () => void;
+}) {
+  const [state, setMirrorState] = useState<Mirror4State>(() =>
+    loadMirror4State(),
+  );
+  const mutate = (fn: (s: Mirror4State) => Mirror4State) => {
+    setMirrorState((prev) => {
+      const next = fn(prev);
+      saveMirror4State(next);
+      return next;
+    });
+  };
+
+  // Named clusters = "values" — the rank room only operates over
+  // these. Use insertion order in state.clusters as the canonical
+  // creation order (matches the cl-1, cl-2... ID sequence + locked
+  // color index). Filter on both userName and userDefinition so
+  // half-finished Step-7 entries don't accidentally rank.
+  const namedClusters = state.clusters.filter(
+    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
+  );
+  const namedIds = namedClusters.map((c) => c.id);
+
+  // Effective rank: persisted order filtered to existing named
+  // clusters, then append any newly-named clusters at the bottom.
+  // First entry seeds rank[] from this list and persists it so the
+  // pair walk has stable indices to read from.
+  const effectiveRank: string[] = (() => {
+    const existing = state.rank.filter((id) => namedIds.includes(id));
+    const missing = namedIds.filter((id) => !existing.includes(id));
+    return [...existing, ...missing];
+  })();
+  useEffect(() => {
+    const same =
+      effectiveRank.length === state.rank.length &&
+      effectiveRank.every((id, i) => id === state.rank[i]);
+    if (same) return;
+    mutate((s) => ({ ...s, rank: effectiveRank }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveRank.join("|")]);
+
+  const clusterById = (id: string): M4Cluster | undefined =>
+    state.clusters.find((c) => c.id === id);
+  const keystoneNameFor = (id: string): string | null => {
+    const op = state.operationalize[id];
+    if (!op || !op.keystoneId) return null;
+    const beh = op.behaviors.find((b) => b.id === op.keystoneId);
+    return beh ? beh.name : null;
+  };
+
+  // Track which cluster IDs have appeared in any walked pair, so we
+  // can render the subtle gold-warm tint on tested rows. Skipped
+  // pairs still count as "tested" for the visual cue.
+  const testedIds = new Set<string>();
+  for (const p of state.pressureTest.pairs) {
+    testedIds.add(p.aId);
+    testedIds.add(p.bId);
+  }
+
+  // Drag state lives in component state (no persistence — drag is
+  // ephemeral). Touch / keyboard users use the ▲▼ arrows instead.
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+
+  const reorder = (fromIdx: number, toIdx: number) => {
+    if (fromIdx === toIdx) return;
+    const next = [...effectiveRank];
+    const [moved] = next.splice(fromIdx, 1);
+    if (!moved) return;
+    next.splice(toIdx, 0, moved);
+    mutate((s) => ({ ...s, rank: next }));
+  };
+
+  const moveUp = (idx: number) => {
+    if (idx <= 0) return;
+    reorder(idx, idx - 1);
+  };
+  const moveDown = (idx: number) => {
+    if (idx >= effectiveRank.length - 1) return;
+    reorder(idx, idx + 1);
+  };
+
+  const onDragStart = (id: string) => (e: React.DragEvent) => {
+    setDragId(id);
+    try {
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", id);
+    } catch {}
+  };
+  const onDragOver = (id: string) => (e: React.DragEvent) => {
+    if (!dragId || dragId === id) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDropTargetId(id);
+  };
+  const onDragLeave = (id: string) => () => {
+    setDropTargetId((cur) => (cur === id ? null : cur));
+  };
+  const onDrop = (id: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!dragId || dragId === id) {
+      setDragId(null);
+      setDropTargetId(null);
+      return;
+    }
+    const fromIdx = effectiveRank.indexOf(dragId);
+    const toIdx = effectiveRank.indexOf(id);
+    if (fromIdx >= 0 && toIdx >= 0) reorder(fromIdx, toIdx);
+    setDragId(null);
+    setDropTargetId(null);
+  };
+  const onDragEnd = () => {
+    setDragId(null);
+    setDropTargetId(null);
+  };
+
+  // Pair sequence is derived from current rank (deterministic).
+  // The pair count text on the begin-card uses this length.
+  const pairSeq = m4PressureTestPairs(effectiveRank);
+  const pairCount = pairSeq.length;
+
+  // Continue gate.
+  const ptComplete = state.pressureTest.complete === true;
+
+  // Pressure-test modal open state. Spec: × closes the modal but
+  // leaves Rank open; reopening resumes from activePairIdx and the
+  // intro screen does NOT re-show on resume.
+  const [modalOpen, setModalOpen] = useState(false);
+  const [introSeen, setIntroSeen] = useState(false);
+
+  // First-time intro logic: show intro on Begin click only if no
+  // pairs have been walked yet (resume case skips intro).
+  const openPressureTest = () => {
+    if (state.pressureTest.pairs.length === 0) {
+      setIntroSeen(false);
+    } else {
+      setIntroSeen(true);
+    }
+    setModalOpen(true);
+  };
+
+  return (
+    <>
+      <div className="na1-m4-eyebrow">Mirror 4 · Rank + Pressure-test</div>
+      <h2 className="na1-m4-title">The order you live by</h2>
+      <p className="na1-m4-subtitle">
+        Drag your values into the order you'd defend them under pressure.
+        Top = the one that wins when two collide. Then we'll pressure-test
+        each pair.
+      </p>
+      <p className="na1-m4-beh-helper" role="note">
+        The rank is your decision filter. When two values collide in a real
+        moment, the higher one wins. The pressure-test proves the order.
+      </p>
+
+      <div className="na1-m4-rank-phase-eyebrow">Phase 1 · Rank</div>
+      <div className="na1-m4-rank-stack">
+        {effectiveRank.map((id, idx) => {
+          const c = clusterById(id);
+          if (!c) return null;
+          const keyName = keystoneNameFor(id);
+          const tested = testedIds.has(id);
+          const isDragging = dragId === id;
+          const isDropTarget = dropTargetId === id && dragId !== id;
+          return (
+            <div
+              key={id}
+              className={
+                "na1-m4-rank-row" +
+                (tested ? " is-tested" : "") +
+                (isDragging ? " is-dragging" : "") +
+                (isDropTarget ? " is-drop-target" : "")
+              }
+              draggable
+              onDragStart={onDragStart(id)}
+              onDragOver={onDragOver(id)}
+              onDragLeave={onDragLeave(id)}
+              onDrop={onDrop(id)}
+              onDragEnd={onDragEnd}
+            >
+              <div className="na1-m4-rank-num">{idx + 1}</div>
+              <div className="na1-m4-rank-body">
+                <p className="na1-m4-rank-name">{c.userName}</p>
+                {c.userDefinition.trim() !== "" && (
+                  <p className="na1-m4-rank-def">{c.userDefinition}</p>
+                )}
+                {keyName ? (
+                  <p className="na1-m4-rank-key">★ Keystone: {keyName}</p>
+                ) : (
+                  <p className="na1-m4-rank-key is-unset">
+                    ★ Keystone: not set
+                  </p>
+                )}
+              </div>
+              <div className="na1-m4-rank-controls">
+                <button
+                  type="button"
+                  className="na1-m4-rank-handle"
+                  aria-label="Drag handle"
+                  title="Drag to reorder"
+                >
+                  ≡
+                </button>
+                <button
+                  type="button"
+                  className="na1-m4-rank-arrow"
+                  aria-label="Move up"
+                  onClick={() => moveUp(idx)}
+                  disabled={idx === 0}
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  className="na1-m4-rank-arrow"
+                  aria-label="Move down"
+                  onClick={() => moveDown(idx)}
+                  disabled={idx === effectiveRank.length - 1}
+                >
+                  ▼
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="na1-m4-rank-phase-eyebrow">Phase 2 · Pressure-Test</div>
+      <div className="na1-m4-rank-pt-card">
+        <h3 className="na1-m4-rank-pt-title">
+          Test the order under collision
+        </h3>
+        <p className="na1-m4-rank-pt-sub">
+          Now we'll walk {pairCount} pairs of your values and ask: when
+          these two collide, which wins? Your gut answers — and we compare
+          them to your stated rank.
+        </p>
+        <button
+          type="button"
+          className="na1-m4-rank-pt-btn"
+          onClick={openPressureTest}
+          disabled={pairCount === 0}
+        >
+          {ptComplete
+            ? "Re-open pressure-test →"
+            : state.pressureTest.pairs.length > 0
+              ? "Resume pressure-test →"
+              : "Begin pressure-test →"}
+        </button>
+        <p className="na1-m4-rank-pt-status">
+          {pairCount} pair{pairCount === 1 ? "" : "s"} · about 2 minutes
+        </p>
+      </div>
+
+      <div className="na1-m4-foot">
+        <button
+          type="button"
+          className="na1-m4-back"
+          onClick={onCloseRoom}
+        >
+          ← Back
+        </button>
+        <div style={{ flex: 1 }} />
+        <div style={{ textAlign: "right" }}>
+          <button
+            type="button"
+            className="na1-m4-continue"
+            onClick={onContinueToClaim}
+            disabled={!ptComplete}
+          >
+            Continue →
+          </button>
+          {!ptComplete && (
+            <p className="na1-m4-beh-gate-helper" role="status">
+              Complete the pressure-test first.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {modalOpen && (
+        <NewA1M4PressureTestModal
+          state={state}
+          mutate={mutate}
+          pairSeq={pairSeq}
+          rank={effectiveRank}
+          introSeen={introSeen}
+          markIntroSeen={() => setIntroSeen(true)}
+          onClose={() => setModalOpen(false)}
+          onContinueToClaim={() => {
+            // 1. mark complete (already done by Done screen mutate
+            //    call before invoking onContinueToClaim, but defensive
+            //    re-mutate here is a no-op if already true).
+            mutate((s) => ({
+              ...s,
+              pressureTest: { ...s.pressureTest, complete: true },
+            }));
+            // 2. close modal, 3. close Rank overlay, 4. open Claim.
+            setModalOpen(false);
+            onContinueToClaim();
+          }}
+          clusterById={clusterById}
+          keystoneNameFor={keystoneNameFor}
+        />
+      )}
+    </>
+  );
+}
+
+// Pressure-Test modal. State sequencing:
+//   1. Intro screen (first-time-only this open; resume skips it).
+//   2. Pair screens 0..pairSeq.length-1 (using pressureTest
+//      .activePairIdx to resume). Already-walked pairs are looked
+//      up from pressureTest.pairs[] by index match against pairSeq;
+//      if a written entry exists for an earlier index we skip past
+//      it (resume). The current pair index is local state seeded
+//      from activePairIdx.
+//   3. Done screen with one of three subtitle variants based on
+//      conflicts / rankChanges. Continue → close + open Claim.
+function NewA1M4PressureTestModal({
+  state,
+  mutate,
+  pairSeq,
+  rank,
+  introSeen,
+  markIntroSeen,
+  onClose,
+  onContinueToClaim,
+  clusterById,
+  keystoneNameFor,
+}: {
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+  pairSeq: Array<{ aId: string; bId: string }>;
+  rank: string[];
+  introSeen: boolean;
+  markIntroSeen: () => void;
+  onClose: () => void;
+  onContinueToClaim: () => void;
+  clusterById: (id: string) => M4Cluster | undefined;
+  keystoneNameFor: (id: string) => string | null;
+}) {
+  type Phase = "intro" | "pair" | "done";
+  // Resume index = activePairIdx, clamped to range.
+  const resumeIdx = Math.min(
+    Math.max(0, state.pressureTest.activePairIdx),
+    pairSeq.length,
+  );
+  const initialPhase: Phase =
+    !introSeen && state.pressureTest.pairs.length === 0
+      ? "intro"
+      : resumeIdx >= pairSeq.length
+        ? "done"
+        : "pair";
+  const [phase, setPhase] = useState<Phase>(initialPhase);
+  const [currentIdx, setCurrentIdx] = useState<number>(resumeIdx);
+  // Pick state on the current pair: the picked cluster id (for the
+  // ★ animation) and whether the conflict prompt is showing.
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const [conflictMode, setConflictMode] = useState(false);
+
+  const advance = (delayMs: number) => {
+    window.setTimeout(() => {
+      setPickedId(null);
+      setConflictMode(false);
+      setCurrentIdx((idx) => {
+        const nextIdx = idx + 1;
+        mutate((s) => ({
+          ...s,
+          pressureTest: { ...s.pressureTest, activePairIdx: nextIdx },
+        }));
+        if (nextIdx >= pairSeq.length) {
+          setPhase("done");
+        }
+        return nextIdx;
+      });
+    }, delayMs);
+  };
+
+  const writePair = (entry: M4PressureTestPair) => {
+    mutate((s) => {
+      // Replace any existing entry that matches this (a,b) so re-
+      // walking the same pair (after a re-order re-roll) updates in
+      // place rather than duplicating.
+      const sameAB = (p: M4PressureTestPair) =>
+        (p.aId === entry.aId && p.bId === entry.bId) ||
+        (p.aId === entry.bId && p.bId === entry.aId);
+      const filtered = s.pressureTest.pairs.filter((p) => !sameAB(p));
+      return {
+        ...s,
+        pressureTest: {
+          ...s.pressureTest,
+          pairs: [...filtered, entry],
+        },
+      };
+    });
+  };
+
+  const handlePick = (pair: { aId: string; bId: string }, clickedId: string) => {
+    if (pickedId !== null) return;
+    setPickedId(clickedId);
+    const otherId = clickedId === pair.aId ? pair.bId : pair.aId;
+    const pickedRank = rank.indexOf(clickedId);
+    const otherRank = rank.indexOf(otherId);
+    const matched = pickedRank >= 0 && otherRank >= 0 && pickedRank < otherRank;
+    if (matched) {
+      // Non-conflict: animate, 600ms beat, write, advance.
+      writePair({
+        aId: pair.aId,
+        bId: pair.bId,
+        pickedId: clickedId,
+        matchedRank: true,
+      });
+      advance(600);
+    } else {
+      // Conflict: show prompt, do NOT advance until user resolves.
+      setConflictMode(true);
+    }
+  };
+
+  const handleReorder = (pair: { aId: string; bId: string }) => {
+    if (!pickedId) return;
+    const otherId = pickedId === pair.aId ? pair.bId : pair.aId;
+    mutate((s) => {
+      const next = [...s.rank];
+      const pickedAt = next.indexOf(pickedId);
+      const otherAt = next.indexOf(otherId);
+      if (pickedAt >= 0 && otherAt >= 0) {
+        next[pickedAt] = otherId;
+        next[otherAt] = pickedId;
+      }
+      return {
+        ...s,
+        rank: next,
+        pressureTest: {
+          ...s.pressureTest,
+          rankChanges: s.pressureTest.rankChanges + 1,
+        },
+      };
+    });
+    writePair({
+      aId: pair.aId,
+      bId: pair.bId,
+      pickedId,
+      matchedRank: true,
+    });
+    advance(300);
+  };
+
+  const handleStandBy = (pair: { aId: string; bId: string }) => {
+    if (!pickedId) return;
+    writePair({
+      aId: pair.aId,
+      bId: pair.bId,
+      pickedId,
+      matchedRank: false,
+    });
+    mutate((s) => ({
+      ...s,
+      pressureTest: {
+        ...s.pressureTest,
+        conflicts: s.pressureTest.conflicts + 1,
+      },
+    }));
+    advance(300);
+  };
+
+  const handleSkip = (pair: { aId: string; bId: string }) => {
+    if (pickedId !== null) return;
+    writePair({
+      aId: pair.aId,
+      bId: pair.bId,
+      pickedId: null,
+      matchedRank: false,
+    });
+    advance(300);
+  };
+
+  const handleDoneContinue = () => {
+    mutate((s) => ({
+      ...s,
+      pressureTest: { ...s.pressureTest, complete: true },
+    }));
+    onContinueToClaim();
+  };
+
+  const renderCard = (
+    pair: { aId: string; bId: string },
+    id: string,
+  ) => {
+    const c = clusterById(id);
+    if (!c) return null;
+    const key = keystoneNameFor(id);
+    const isPicked = pickedId === id;
+    return (
+      <button
+        type="button"
+        key={id}
+        className={"na1-m4-pt-card" + (isPicked ? " is-picked" : "")}
+        onClick={() => handlePick(pair, id)}
+        disabled={pickedId !== null && !isPicked}
+      >
+        <div className="na1-m4-pt-card-name">{c.userName}</div>
+        <p className="na1-m4-pt-card-def">
+          “{c.userDefinition}”
+        </p>
+        <div className="na1-m4-pt-card-key">
+          <p className="na1-m4-pt-card-keylab">Keystone</p>
+          {key ? (
+            <p className="na1-m4-pt-card-keybody">{key}</p>
+          ) : (
+            <p className="na1-m4-pt-card-keybody is-unset">
+              No keystone set
+            </p>
+          )}
+        </div>
+      </button>
+    );
+  };
+
+  return (
+    <div
+      className="na1-m4-pt-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Pressure-test"
+    >
+      <div className="na1-m4-pt-modal">
+        <div className="na1-m4-pt-head">
+          <span>★ Pressure-test · the collision walk</span>
+          <button
+            type="button"
+            className="na1-m4-pt-close"
+            aria-label="Close pressure-test"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
+        <div className="na1-m4-pt-body">
+          {phase === "intro" && (
+            <>
+              <p className="na1-m4-pt-eyebrow">What we're doing</p>
+              <h3 className="na1-m4-pt-title">
+                When two values collide, one wins.
+              </h3>
+              <p className="na1-m4-pt-sub">
+                Real life forces choices. Pressure-test means: imagine the
+                two values pulling on each other at the same time — gut-
+                pick which one you'd actually defend.
+              </p>
+              <div className="na1-m4-pt-example">
+                <p className="na1-m4-pt-example-label">For example</p>
+                <p className="na1-m4-pt-example-body">
+                  A friend asks you to keep a secret that goes against
+                  what you stand for. <i>Loyalty</i> says{" "}
+                  <b>hold the confidence — the friendship comes first.</b>{" "}
+                  <i>Honesty</i> says{" "}
+                  <b>say something — even if it costs the friendship.</b>{" "}
+                  Both are true. Only one can win. That's a collision.
+                </p>
+                <p className="na1-m4-pt-example-close">
+                  You're about to walk {pairSeq.length} pair
+                  {pairSeq.length === 1 ? "" : "s"} of yours.
+                </p>
+              </div>
+              <div className="na1-m4-pt-footer">
+                <span className="na1-m4-pt-footer-status">
+                  Read the example first
+                </span>
+                <button
+                  type="button"
+                  className="na1-m4-rank-pt-btn"
+                  onClick={() => {
+                    markIntroSeen();
+                    setPhase("pair");
+                  }}
+                >
+                  Got it — start →
+                </button>
+              </div>
+            </>
+          )}
+          {phase === "pair" && (() => {
+            const pair = pairSeq[currentIdx];
+            if (!pair) return null;
+            const a = clusterById(pair.aId);
+            const b = clusterById(pair.bId);
+            if (!a || !b) return null;
+            const pickedName =
+              pickedId === pair.aId
+                ? a.userName
+                : pickedId === pair.bId
+                  ? b.userName
+                  : "";
+            const otherId = pickedId === pair.aId ? pair.bId : pair.aId;
+            const otherCluster = clusterById(otherId);
+            const otherName = otherCluster?.userName ?? "";
+            return (
+              <>
+                <p className="na1-m4-pt-eyebrow">
+                  Pair {currentIdx + 1} of {pairSeq.length}
+                </p>
+                <p className="na1-m4-pt-prompt">
+                  When <b>{a.userName}</b> and <b>{b.userName}</b>{" "}
+                  <i>collide</i> — which wins?
+                </p>
+                <p className="na1-m4-pt-helper">
+                  Gut-pick. No overthinking.
+                </p>
+                <div className="na1-m4-pt-cards">
+                  {renderCard(pair, pair.aId)}
+                  {renderCard(pair, pair.bId)}
+                </div>
+                {!conflictMode && (
+                  <button
+                    type="button"
+                    className="na1-m4-pt-skip"
+                    onClick={() => handleSkip(pair)}
+                    disabled={pickedId !== null}
+                  >
+                    Skip — they don't actually compete for me
+                  </button>
+                )}
+                {conflictMode && (
+                  <div className="na1-m4-pt-conflict" role="alert">
+                    <p className="na1-m4-pt-conflict-label">
+                      Your gut said something different
+                    </p>
+                    <p className="na1-m4-pt-conflict-body">
+                      You picked <b>{pickedName}</b> — but you ranked{" "}
+                      <b>{otherName}</b> higher. Want to re-order, or
+                      stand by your stated rank?
+                    </p>
+                    <div className="na1-m4-pt-conflict-btns">
+                      <button
+                        type="button"
+                        className="na1-m4-pt-conflict-btn"
+                        onClick={() => handleReorder(pair)}
+                      >
+                        Re-order — gut wins →
+                      </button>
+                      <button
+                        type="button"
+                        className="na1-m4-pt-conflict-btn is-outline"
+                        onClick={() => handleStandBy(pair)}
+                      >
+                        Stand by my rank
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+          {phase === "done" && (() => {
+            const conflicts = state.pressureTest.conflicts;
+            const rankChanges = state.pressureTest.rankChanges;
+            const N = pairSeq.length;
+            let sub: string;
+            if (conflicts === 0 && rankChanges === 0) {
+              sub = `All ${N} pairs walked. Your rank held up — what you said is what you actually defend. Ready to claim it?`;
+            } else if (conflicts === 0 && rankChanges >= 1) {
+              sub = `All ${N} pairs walked. You re-ordered ${rankChanges} time${rankChanges === 1 ? "" : "s"} to match your gut. Your real rank is locked in. Ready to claim it?`;
+            } else {
+              sub = `All ${N} pairs walked. You stood by your rank on ${conflicts} of them even when your gut said otherwise — that's a real choice, and it counts. Ready to claim it?`;
+            }
+            return (
+              <>
+                <p className="na1-m4-pt-done-star">★</p>
+                <h3 className="na1-m4-pt-title">Order tested.</h3>
+                <p className="na1-m4-pt-sub">{sub}</p>
+                <div className="na1-m4-pt-footer is-center">
+                  <button
+                    type="button"
+                    className="na1-m4-rank-pt-btn"
+                    onClick={handleDoneContinue}
+                  >
+                    Continue to Claim →
+                  </button>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NewA1M4Container({
   onBackToGrid,
   initialRoomKey,
@@ -37460,6 +38240,25 @@ function NewA1M4Container({
                 if (rank) {
                   timeoutsRef.current.push(
                     window.setTimeout(() => launchRoom(rank), 540),
+                  );
+                }
+              }}
+            />
+          ) : openRoom.key === "rank" ? (
+            <NewA1M4RankBody
+              onCloseRoom={closeRoom}
+              onContinueToClaim={() => {
+                // Ship 5.6i · Section 5 hand-off — close Rank, then
+                // launch Claim after the overlay fade settles (540ms
+                // matches the Behaviors→Rank pattern). Claim's
+                // bodyShipped is still false (Section 6 not shipped),
+                // so the veil bounces back to the hub — that's the
+                // "placeholder" mentioned in the 5.6i spec.
+                closeRoom();
+                const claim = M4_ROOMS.find((r) => r.key === "claim");
+                if (claim) {
+                  timeoutsRef.current.push(
+                    window.setTimeout(() => launchRoom(claim), 540),
                   );
                 }
               }}

@@ -1,0 +1,298 @@
+**Ship 5.6i · Mirror 4 Section 5 · Rank room + Pressure-Test modal**
+
+Hi — Section 4 (Behaviors) is approved on dev with the gate polish (5.6h). This ship opens the next room: Rank. It has two surfaces — the rank stack (a single screen with drag-to-reorder) and a Pressure-Test modal that lifts over it.
+
+**Scope (high level)**
+
+1. Rank room overlay replaces the current placeholder (which reads `Coming in Section 6` — that placeholder text gets removed by this ship)
+2. Single screen with drag-to-reorder rank stack
+3. Pressure-Test modal: intro screen → pair screens → done screen
+4. Conflict prompt mechanic when user's gut pick contradicts their stated rank
+5. Continue → Claim room placeholder (Claim is the final Section, 6)
+
+**Reference mockup:** `Values_Mirror4_LiveTokens.html` — demo nav buttons `R3·Rank` and `R3·Pressure`. Walk both screens in the mockup before coding. The rank stack with numbered rows, the pressure-test intro with mini-example, the pair-card layout, and the conflict prompt are all spec'd visually there.
+
+---
+
+**Room shell**
+
+- Replaces the existing placeholder in Rank room
+- Overlay same pattern as Behaviors: breadcrumb `Values › Rank`, close × top-right, gold-bordered card, max-width 720px
+- Rank room `bodyShipped` flag flips to `true`
+- 5.6c routing already wires Rank as an openable room
+
+---
+
+**Rank screen layout**
+
+**Eyebrow:** `Mirror 4 · Rank + Pressure-test` (no step counter — this is a single-screen room with one modal pass)
+
+**Title:** `The order you live by`
+
+**Subtitle:** `Drag your values into the order you'd defend them under pressure. Top = the one that wins when two collide. Then we'll pressure-test each pair.`
+
+**Helper ribbon** (faint gold-warm bg):
+`The rank is your decision filter. When two values collide in a real moment, the higher one wins. The pressure-test proves the order.`
+
+---
+
+**Phase 1 · Rank stack**
+
+**Phase eyebrow** above the stack: `PHASE 1 · RANK` (uppercase, gold, letter-spaced)
+
+**Rank stack** — numbered rows, one per named value. Order from `state.mirror4.rank[]` (array of cluster IDs, top = highest priority).
+
+**Initial rank:** if `state.mirror4.rank` is empty (first entry to Rank room), default to cluster creation order (cl-1 first, cl-2 second, etc — same order as cluster colors c1, c2, c3 cycle through). Once populated, this stays as the source of truth.
+
+Each row:
+- **Big serif gold number on left** (~42px): 1, 2, 3...
+- **Value content middle:**
+  - Value name (serif weight 600, ~24px)
+  - Italic Georgia definition below (faint, smaller)
+  - Keystone line below definition: `★ Keystone: {behavior name}` if `operationalize[clusterId].keystoneId` is set
+  - If keystone is null: `★ Keystone: not set` (in faint italic, gray) — informative, not blocking
+- **Drag affordances on right:**
+  - Drag handle (≡ icon) for mouse drag
+  - `▲` and `▼` arrow buttons for keyboard accessibility — `▲` moves the row up by one position, `▼` moves down. Top row's `▲` is disabled. Bottom row's `▼` is disabled.
+
+**Drag behavior:**
+- HTML5 drag-and-drop (`draggable="true"` + standard drag events) OR a small library if Agent prefers — but no new heavy dependencies. Same touch fallback pattern as the Portrait drag from Section 2 / Step 3 (we used `⋮` move menu there — Agent can apply the same fallback here using the `▲▼` arrows for touch, which already exist).
+- On drop: reorder `state.mirror4.rank[]` accordingly, save via `saveMirror4State()`
+- Visual feedback during drag: dragged row gets reduced opacity (~0.5), drop zones highlight with gold border
+
+**Once a pressure-test pair has been "tested" for a value** (covered later), the row's background gets a subtle gold-warm tint to signal "this one's been tested." But that's a Phase 2 visual; initially all rows render as untested.
+
+---
+
+**Phase 2 · Begin Pressure-Test card** (sits below the rank stack)
+
+A prominent card to launch the pressure-test phase:
+
+- Gold-warm bg, dashed gold border, padding 28px
+- **Phase eyebrow:** `PHASE 2 · PRESSURE-TEST` (uppercase, gold, letter-spaced)
+- **Title:** `Test the order under collision`
+- **Subtitle** (italic Georgia): `Now we'll walk {N} pairs of your values and ask: when these two collide, which wins? Your gut answers — and we compare them to your stated rank.`
+  - Substitute `{N}` with calculated pair count (see Pair generation rules below)
+- **Filled gold pill button:** `Begin pressure-test →`
+- **Status line below button** (small italic, faint): `{N} pairs · about 2 minutes`
+
+---
+
+**Footer**
+
+- Back → closes Rank overlay, returns to M4 hub
+- Continue → closes Rank overlay, opens Claim placeholder (Section 6 not yet shipped)
+- **Continue is DISABLED until pressure-test is complete** (`state.mirror4.pressureTest.complete === true`)
+- When disabled: same muted-gold pill pattern as 5.6h's Continue-to-Rank disabled state. Helper line below: `Complete the pressure-test first.`
+
+---
+
+**Pair generation rules**
+
+For N named values:
+- Generate all `N×(N-1)/2` pairs **in rank order, adjacent-first** (e.g. for 4 values ranked [Honesty, Loyalty, Courage, Discipline], pairs are: Honesty-Loyalty, Loyalty-Courage, Courage-Discipline, Honesty-Courage, Loyalty-Discipline, Honesty-Discipline — adjacent first, then jumping)
+- **Cap at 10 pairs.** If `N >= 5` (which gives 10+ pairs), cap by:
+  - Take all adjacent pairs first (`N-1` pairs)
+  - Then fill remaining slots up to 10 with random non-adjacent pairs (use a deterministic seed based on rank order so the selection is stable across re-renders)
+- **Re-roll trigger:** when the user's `rank[]` order changes during pressure-test (via the conflict prompt's `Re-order — gut wins →` button), pairs are re-generated for any pairs not yet walked. Already-walked pairs stay in state with their picks.
+
+---
+
+**Pressure-Test modal**
+
+Lifts over the Rank room with blur. Class on parent overlay: `.pressure-open`. Max-width 680px, gold-bordered card.
+
+**Modal header:** `★ Pressure-test · the collision walk`
+
+---
+
+**Modal · Intro screen (always first when opening pressure-test)**
+
+Centered content, min-height ~380px:
+
+- **Eyebrow:** `WHAT WE'RE DOING` (uppercase gold)
+- **Title:** `When two values collide, one wins.`
+- **Subtitle** (italic Georgia, centered, max-width 480px): `Real life forces choices. Pressure-test means: imagine the two values pulling on each other at the same time — gut-pick which one you'd actually defend.`
+- **Example card** (gold-bordered, left-aligned text, padding 24px):
+  - Label (gold uppercase, small): `FOR EXAMPLE`
+  - Body (italic Georgia, ~16px, line-height 1.6):
+    > A friend asks you to keep a secret that goes against what you stand for. *Loyalty* says **hold the confidence — the friendship comes first.** *Honesty* says **say something — even if it costs the friendship.** Both are true. Only one can win. That's a collision.
+  - Closing line below body: `You're about to walk {N} pairs of yours.`
+- **Footer:**
+  - Status line on left: `Read the example first`
+  - Filled gold button on right: `Got it — start →`
+
+---
+
+**Modal · Pair screens (one per pair)**
+
+After intro, the user walks each pair. Each pair screen:
+
+- **Counter eyebrow** (uppercase, gold): `PAIR {X} OF {Y}` — e.g. `PAIR 3 OF 6`
+- **Prompt** (italic Georgia, ~22px, centered, max-width 540px): `When **{Value A}** and **{Value B}** *collide* — which wins?` (A and B in gold)
+- **Helper line below prompt** (small, faint): `Gut-pick. No overthinking.`
+
+**Two pair-cards side-by-side:**
+
+Each card:
+- Padding 24px, gold-line border by default, hover state with `--gold` border + slight lift
+- Click state: gold border + `--gold-warm` background tint + ★ in top-right corner
+- Content:
+  - **Value name** (serif 26px gold)
+  - **Definition** (italic Georgia, ~15px, in curly quotes)
+  - **Keystone footer block** (separated by a top border in `--gold-line`):
+    - Label (uppercase, gold, small): `KEYSTONE`
+    - Behavior name (single line)
+    - **If `keystoneId` is null:** label still shows `KEYSTONE`, body shows `No keystone set` in faint italic gray. Doesn't block the pair from working.
+
+**Skip link** below the pair-cards: `Skip — they don't actually compete for me` (underlined gold text, small)
+
+**Behavior on card click (non-conflict):**
+1. Animate the picked card to `.selected` state (gold border, gold-warm tint, ★ appears)
+2. 600ms beat
+3. Write to state: `pressureTest.pairs[currentIdx] = { aId, bId, pickedId: clickedClusterId, matchedRank: true }`
+4. Advance to next pair
+
+**Behavior on card click (conflict — user picked the lower-ranked value):**
+1. Animate the picked card to `.selected` state (no auto-advance)
+2. Render **conflict prompt** as a burgundy-bordered card BELOW the pair-cards (inline, not a separate modal):
+   - Label (burgundy uppercase, small): `YOUR GUT SAID SOMETHING DIFFERENT`
+   - Body (italic Georgia): `You picked **{picked value name}** — but you ranked **{other value name}** higher. Want to re-order, or stand by your stated rank?`
+   - Two buttons:
+     - `Re-order — gut wins →` (filled gold)
+     - `Stand by my rank` (outlined gold)
+3. **On Re-order click:** swap the two values in `state.mirror4.rank[]`, increment `pressureTest.rankChanges`, write to pair state with `matchedRank: true` (after re-order, gut now matches rank), advance to next pair after 300ms
+4. **On Stand-by click:** leave rank unchanged, write pair state with `pickedId` set to the actual gut-picked value and `matchedRank: false`, increment `pressureTest.conflicts`, advance to next pair after 300ms
+
+**Behavior on skip:**
+- Write pair state: `{ aId, bId, pickedId: null, matchedRank: false }`
+- Advance after 300ms
+
+**Determining "conflict":** `matchedRank` is `true` if and only if the user's pick is the value currently positioned HIGHER (lower index) in `state.mirror4.rank[]` at the moment of the pick. So pick of the lower-ranked value triggers the conflict prompt. The `pressureTest.conflicts` counter only increments on Stand-by (the user kept the conflict). Re-orders resolve the conflict.
+
+---
+
+**Modal · Done screen (after all pairs are walked or skipped)**
+
+- ★ star anchor (30px gold, centered)
+- **Title:** `Order tested.`
+- **Subtitle** (italic Georgia, max-width 480px, centered) — varies based on `conflicts` and `rankChanges`:
+  - **0 conflicts AND 0 rankChanges:** `All {N} pairs walked. Your rank held up — what you said is what you actually defend. Ready to claim it?`
+  - **0 conflicts, 1+ rankChanges:** `All {N} pairs walked. You re-ordered {rankChanges} times to match your gut. Your real rank is locked in. Ready to claim it?`
+  - **1+ conflicts:** `All {N} pairs walked. You stood by your rank on {conflicts} of them even when your gut said otherwise — that's a real choice, and it counts. Ready to claim it?`
+- **Filled gold pill button:** `Continue to Claim →`
+- Clicking Continue:
+  1. Set `state.mirror4.pressureTest.complete = true`
+  2. Close pressure-test modal
+  3. Close Rank overlay
+  4. Open Claim room (which still has its placeholder until Section 6 ships)
+
+---
+
+**Modal close behavior**
+
+- The pressure-test modal's close `×` (top-right) closes the modal but leaves Rank room open
+- Reopening Begin pressure-test resumes from where the user left off — `state.mirror4.pressureTest.pairs[]` keeps already-walked pairs with their data; only the un-walked pairs run. The intro screen does NOT re-show on resume (only on first open).
+- Modals don't restore across page refresh (per 5.6c spec) — but Rank room itself does, and pressureTest state is preserved, so reopening the modal continues correctly.
+
+---
+
+**State schema additions**
+
+From the Section 1 `Mirror4State` type, this ship populates:
+
+```typescript
+rank: string[];                          // array of cluster IDs, top = highest
+
+pressureTest: {
+  complete: boolean;
+  pairs: Array<{
+    aId: string;                         // cluster id
+    bId: string;                         // cluster id
+    pickedId: string | null;             // null if user skipped
+    matchedRank: boolean;
+  }>;
+  conflicts: number;
+  rankChanges: number;
+};
+```
+
+All writes through `saveMirror4State()`. 5.6c routing handles the room-level resume.
+
+**Active pair index:** track which pair the user is currently walking. Store as `state.mirror4.pressureTestActivePairIdx` (or as a `currentPairIdx` field on the `pressureTest` object — Agent's call). Refresh inside the pressure-test modal resumes Rank room (without the modal — modals reopen closed), but on next Begin pressure-test click, the user picks up at the active pair.
+
+---
+
+**Design tokens**
+
+Same rule: existing `--na1-*` + `--gold*` + `--burgundy*` first; flag any new token before adding.
+
+Likely reuses:
+- `--gold` / `--gold-line` / `--gold-soft` / `--gold-warm` for rank stack, pair cards, intro example
+- `--burgundy*` (from Section 2) for the conflict prompt card
+- `--na1-bg-soft` for muted backgrounds
+- Existing disabled-button pattern for the Continue-to-Claim gate
+
+Fonts: DM Sans + Georgia. No exceptions.
+
+---
+
+**Definition of done**
+
+- User completes Discover + Behaviors (all named values have ≥1 behavior), Continue to Rank enabled, click → Rank room opens.
+- Rank screen renders with title, subtitle, helper ribbon.
+- Phase 1 rank stack shows N numbered rows (one per named value) in initial cluster-creation order.
+- Each row shows value name, definition, keystone line (or "not set"), drag handle, ▲ ▼ arrows.
+- Top row's ▲ is disabled. Bottom row's ▼ is disabled.
+- ▲ ▼ click reorders rows AND updates `state.mirror4.rank[]`.
+- Drag a row → drop in new position → reorders correctly, state updates.
+- Phase 2 Begin Pressure-Test card shows correct pair count for N values (cap 10 at N≥5).
+- Continue button is disabled with helper `Complete the pressure-test first.`
+- Click Begin pressure-test → modal opens to Intro screen with example.
+- Click `Got it — start →` → first pair screen renders.
+- Pair card click matching rank: animates selected, 600ms beat, advances to next pair without conflict prompt.
+- Pair card click against rank: shows conflict prompt with both Re-order and Stand-by buttons.
+- Re-order swaps the two values in `state.mirror4.rank[]` AND increments `rankChanges`. Advances after 300ms.
+- Stand-by leaves rank unchanged AND increments `conflicts`. Advances after 300ms.
+- Skip link writes `pickedId: null` and advances.
+- After all pairs walked: Done screen shows correct subtitle variant based on conflicts/rankChanges counters.
+- `Continue to Claim →` sets `pressureTest.complete = true`, closes both modal and Rank, opens Claim placeholder.
+- After completion, Continue button in Rank footer is enabled (no helper).
+- Walked pairs render with subtle gold-warm tint on the rank stack rows.
+- Closing pressure-test modal mid-walk preserves state. Reopening: skip intro, resume at active pair.
+- Page refresh on Rank room (modal closed) lands back on Rank room with rank state intact. Reopening modal resumes correctly.
+- Page refresh on Rank room with pressureTest.complete = true: Rank shows tested-state visuals, Continue is enabled.
+- All previous sections (1, 2, 3a/3b, 4, all polish) work unchanged.
+- No new design tokens added (or flagged and approved).
+
+---
+
+**DO NOT**
+
+- Build Claim seal (Section 6).
+- Modify any Discover or Behaviors room code.
+- Auto-trigger Katherine voice in Rank or in pressure-test. There's no Katherine voice in this section — Katherine taught the user, now the user pressure-tests themselves.
+- Re-run the intro screen on modal reopen. Intro is first-time only.
+- Re-run already-walked pairs on resume. Use `pressureTest.pairs[]` to skip past completed pair indices.
+- Auto-re-order rank without explicit user confirmation in the conflict prompt.
+- Block on keystones missing. Keystone footer just shows "No keystone set" gracefully.
+- Allow Continue to Claim until `pressureTest.complete === true`.
+- Generate pairs non-deterministically. Pair order must be stable for a given rank (so refreshing doesn't shuffle).
+- Add new server endpoints or DB tables. Client-side state only.
+- Add new font loads. DM Sans + Georgia only. No Cormorant Garamond, no Inter, no Geist.
+- Add new design tokens silently. Flag any with name + value + reason before adding.
+- Auto-mark anything. Every pair pick is a user click.
+- Build any kind of "summary stats" page at the end. The Done screen's three subtitle variants are the whole reflection — no charts, no percentages, no breakdowns.
+- Wrap the conflict prompt in another modal. It renders inline below the pair cards within the same modal.
+
+---
+
+**Reference:** mockup `Values_Mirror4_LiveTokens.html`, demo nav buttons `R3·Rank` and `R3·Pressure`.
+
+When you're done, deploy to dev, then reply with:
+- (a) the dev URL,
+- (b) any new design tokens added to `:root` with name + value + reason,
+- (c) confirmation that pair generation matches the spec (adjacent-first ordering, cap 10 at N≥5),
+- (d) confirmation that the three Done-screen subtitle variants render correctly (test by manually setting `conflicts` and `rankChanges` in dev console),
+- (e) any deviations from spec and why,
+- (f) confirmation that Sections 1-4 and all polish ships still work unchanged.
