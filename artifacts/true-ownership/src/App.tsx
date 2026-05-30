@@ -27910,6 +27910,7 @@ function NewA1Grid({
   name,
   progress,
   m2Progress,
+  m3Complete,
   onOpenPurpose,
   onOpenVision,
   onOpenM3,
@@ -27924,6 +27925,7 @@ function NewA1Grid({
     purposeFinal: string;
   };
   m2Progress: NewA1GridM2Progress;
+  m3Complete?: boolean;
   onOpenPurpose: () => void;
   onOpenVision: () => void;
   // Optional: when present AND vision is complete, the Mirror 3 card
@@ -28249,7 +28251,7 @@ function NewA1Grid({
               scaffold immediately. When flag is off, the existing
               "04 · Values · Behaviors" locked placeholder renders
               verbatim — app looks identical to today. */}
-          {NEW_M4_ENABLED && onOpenM4 ? (
+          {NEW_M4_ENABLED && onOpenM4 && m3Complete ? (
             <article
               className="na1-mirror-card is-vision-up-next"
               role="button"
@@ -32918,6 +32920,12 @@ function NewA1View({ name }: { name?: string }) {
       complete: !!v?.complete,
     };
   }, [view, roomOpen]);
+  // M3 (Identity) completion — Mirror 3 is "complete" once the user has
+  // claimed/sealed their identity (sealCompleted). Mirror 4 gates on this.
+  const m3Complete = useMemo(() => {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    return !!map?.mirror3?.sealCompleted;
+  }, [view, roomOpen]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -33160,6 +33168,7 @@ function NewA1View({ name }: { name?: string }) {
       name={resolvedName}
       progress={progress}
       m2Progress={m2Progress}
+      m3Complete={m3Complete}
       onOpenPurpose={() => setView("explore")}
       onOpenVision={() => setView("explore2")}
       onOpenM3={() => setView("m3")}
