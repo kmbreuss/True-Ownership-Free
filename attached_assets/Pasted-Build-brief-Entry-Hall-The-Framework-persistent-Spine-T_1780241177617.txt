@@ -1,0 +1,27 @@
+Build brief: Entry Hall + The Framework + persistent Spine
+Two files attached:
+
+Entry_Hall_Framework_Replit_Brief_v2.md — the build instructions (architectural context, design tokens, exact copy, definition of done)
+Home_and_Framework_Mockup_v4.html — the visual source of truth, build to match exactly
+
+Three new surfaces, one file touched (artifacts/true-ownership/src/App.tsx):
+
+Persistent left-rail Spine — visible on Entry Hall, The Framework, A1 hub, M1/M2/M3/M4 mirror hubs, and future A2-A5 hubs. Hidden inside any room overlay and inside Map of Me.
+Entry Hall (home) — welcomes the user, sets the principle, leads into the framework.
+The Framework — explains the 5A Framework™ across Phase 1 (Own It) and Phase 2 (Build It), with navy↔gold phase duality from the Owners Blueprint landing page.
+
+No new feature flag. Ships under existing ?newA1=1. Same testing URL as today: ?newA1=1.
+Builds on the freshly-shipped 5.7 foundation. Spine reads the same mirror completion signals that 5.7 just fixed:
+
+purposeComplete → A1 "claimed" or "here"
+loadMirror4State() → M4 status (the corrected helper from the M4 storage-key fix)
+Cascading unlock for A2-A5 vertebrae (all "ahead" for now, A2 unlocks when A1 fully complete in future ship)
+
+Per the brief, scope this with the source-investigation discipline you brought to 5.7 — read live file paths and existing patterns before writing new code. Specifically:
+
+The existing breadcrumb pattern already renders "Entry Hall" as a placeholder span on every M1-M4 hub and room view. Wire that span to a real route, don't recreate the breadcrumb.
+Reuse existing chip/button styles (cyan/burgundy/gold variants, disabled na1-btn-gold) — same as 5.7.
+Theme-aware color tokens (var(--na1-*), var(--gold)) — never hardcoded values.
+
+Same shipping flow as 5.7: read source → confirm any field-name corrections back to Katherine before coding → ship to dev → I'll walk it via Chrome MCP under ?newA1=1. Test plan covers fresh-user landing, returning-user resume, spine visibility on all A-pages, spine hidden in rooms, phase tab navy↔gold transitions, breadcrumb click-back, empty-name fallback (Welcome. not Welcome, .), and mobile at <600px.
+Switch to plan mode first if you have any field-name questions or source-investigation finds — same way you flagged mirror3.sealCompleted / mirror4.status / map.vision.complete before 5.7. Otherwise, ship it.

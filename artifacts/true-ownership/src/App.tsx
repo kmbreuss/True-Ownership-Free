@@ -493,6 +493,13 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   --na1-radius-sm:6px; --na1-radius:10px; --na1-radius-lg:14px; --na1-radius-xl:18px;
   --na1-serif:Georgia, 'Times New Roman', serif;
   --na1-sans:'DM Sans', system-ui, sans-serif;
+  /* Persistent spine + Framework phase duality. Navy reads as the "Own It"
+     anchor against both themes; rail width drives the content offset.
+     --navy is a *surface* (tab/badge backgrounds, always dark with white
+     text); --navy-ink is navy-as-text, lightened in dark mode so it stays
+     legible on dark cards; --navy-soft is the faint deliverable tint. */
+  --navy:#1A2A44; --navy-deep:#0F1B2E; --footer-ink:#0d1b2e; --rail-w:220px;
+  --navy-ink:#8fb0e0; --navy-soft:rgba(143,176,224,.12);
 }
 html[data-theme="light"]{
   --gold:#b8892f; --gold-soft:rgba(184,137,47,.16); --gold-warm:rgba(184,137,47,.08);
@@ -503,6 +510,8 @@ html[data-theme="light"]{
   --na1-text:#2a2620; --na1-text-sec:#534b3f; --na1-text-mute:#8a8170;
   --na1-border:#d8d1c2;
   --c1:#b8892f; --c2:#4a8458; --c3:#7d63a8;
+  /* Light mode · navy-as-text is the true navy; tint matches the mockup. */
+  --navy-ink:#1A2A44; --navy-soft:rgba(26,42,68,.06);
 }
 .na1-root{ background:var(--na1-bg); color:var(--na1-text); font-family:var(--na1-sans); min-height:100vh; }
 .na1-root *{ -webkit-tap-highlight-color: transparent; }
@@ -523,6 +532,136 @@ html[data-theme="light"]{
 .na1-breadcrumb a{ color:var(--na1-text-sec); text-decoration:none; cursor:pointer; }
 .na1-breadcrumb a:hover{ color:var(--na1-text); }
 .na1-breadcrumb .sep{ color:var(--na1-text-mute); }
+
+/* ════════════════════════════════════════════════════════════════════
+   PERSISTENT LEFT-RAIL SPINE  (Entry Hall · Framework · A1 hub · M3/M4)
+   ════════════════════════════════════════════════════════════════════ */
+/* The pad wrapper carries the themed bg behind the fixed rail and offsets
+   the content right by the rail width on desktop. Mobile (<768px): rail is
+   hidden and the offset collapses to 0. */
+.na1-spine-pad{ background:var(--na1-bg); min-height:100vh; }
+.na1-spine{ display:none; }
+@media (min-width:768px){
+  .na1-spine-pad{ padding-left:var(--rail-w); }
+  .na1-spine{
+    position:fixed; left:0; top:0; bottom:0; width:var(--rail-w);
+    padding:56px 0 32px;
+    display:flex; flex-direction:column; align-items:center;
+    z-index:50; pointer-events:none;
+  }
+}
+.na1-spine-brand{ font-family:var(--na1-serif); font-size:14px; color:var(--na1-text); margin-bottom:2px; pointer-events:auto; }
+.na1-spine-brand-sub{ font-size:10px; color:var(--na1-text-mute); letter-spacing:.16em; text-transform:uppercase; margin-bottom:56px; pointer-events:auto; }
+.na1-spine-thread{ position:absolute; left:50%; top:168px; bottom:56px; width:1px; transform:translateX(-50%); pointer-events:none; }
+.na1-spine-thread::before{ content:""; position:absolute; inset:0; background:linear-gradient(to bottom, var(--gold-line) 0%, var(--gold-line) 20%, var(--gold-warm) 22%, var(--gold-warm) 100%); }
+.na1-vertebra{ position:relative; display:flex; flex-direction:column; align-items:center; margin-bottom:42px; z-index:2; pointer-events:auto; }
+.na1-vertebra:last-child{ margin-bottom:0; }
+.na1-bone{ width:22px; height:22px; border-radius:50%; background:var(--na1-bg); border:1.5px solid var(--na1-text-mute); margin-bottom:6px; transition:all .3s; }
+.na1-vertebra.is-claimed .na1-bone{ background:var(--gold); border-color:var(--gold); }
+.na1-vertebra.is-here .na1-bone{ background:var(--gold); border-color:var(--gold); box-shadow:0 0 0 5px var(--gold-soft), 0 0 16px var(--gold-glow); }
+.na1-vertebra-num{ font-family:var(--na1-serif); font-style:italic; font-size:10px; color:var(--gold); letter-spacing:.06em; font-weight:600; margin-bottom:1px; }
+.na1-vertebra-label{ font-family:var(--na1-serif); font-size:13.5px; font-weight:600; color:var(--na1-text-mute); transition:color .3s; }
+.na1-vertebra.is-claimed .na1-vertebra-label, .na1-vertebra.is-here .na1-vertebra-label{ color:var(--na1-text); }
+.na1-vertebra-status{ font-family:var(--na1-sans); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-top:4px; opacity:0; transition:opacity .3s; }
+.na1-vertebra.is-here .na1-vertebra-status{ opacity:1; }
+
+/* ════════════════════════════════════════════════════════════════════
+   ENTRY HALL  +  THE FRAMEWORK · shared content shell
+   ════════════════════════════════════════════════════════════════════ */
+.na1-eh-content, .na1-fw-content{ padding:72px 64px 120px; max-width:1080px; }
+@media (max-width:767px){ .na1-eh-content, .na1-fw-content{ padding:40px 20px 96px; } }
+.na1-eh-eyebrow, .na1-fw-eyebrow{ font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+
+/* Entry Hall */
+.na1-eh-quote{ font-family:var(--na1-serif); font-style:italic; font-size:22px; line-height:1.45; color:var(--na1-text-sec); max-width:600px; margin-bottom:36px; position:relative; padding-left:24px; }
+.na1-eh-quote::before{ content:""; position:absolute; left:0; top:8px; bottom:8px; width:2px; background:var(--gold); }
+.na1-eh-hero{ font-family:var(--na1-serif); font-size:48px; line-height:1.08; font-weight:600; color:var(--na1-text); letter-spacing:-0.4px; margin-bottom:16px; max-width:760px; }
+@media (max-width:767px){ .na1-eh-hero{ font-size:34px; } }
+.na1-eh-hero-italic{ font-family:var(--na1-serif); font-style:italic; font-size:16px; color:var(--na1-text-sec); margin-bottom:28px; }
+.na1-eh-lead{ font-size:17px; line-height:1.55; color:var(--na1-text-sec); max-width:620px; margin-bottom:48px; }
+.na1-eh-lead em{ font-family:var(--na1-serif); font-style:italic; color:var(--na1-text); }
+.na1-eh-principle-card{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:12px; padding:32px 36px; max-width:760px; margin-bottom:36px; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
+.na1-eh-principle-card .na1-eh-eyebrow{ margin-bottom:12px; }
+.na1-eh-principle{ font-family:var(--na1-serif); font-style:italic; font-size:19px; line-height:1.5; color:var(--na1-text); margin-bottom:20px; }
+.na1-eh-principle-meta{ font-size:15px; line-height:1.6; color:var(--na1-text-sec); }
+.na1-eh-principle-meta strong{ color:var(--na1-text); font-weight:600; }
+.na1-eh-ai-note{ font-family:var(--na1-serif); font-style:italic; font-size:16px; line-height:1.6; color:var(--na1-text-sec); max-width:640px; margin-bottom:48px; padding-left:24px; border-left:2px solid var(--gold-line); }
+.na1-eh-video-card{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:12px; padding:24px 28px; display:flex; align-items:center; gap:22px; max-width:480px; margin-bottom:48px; cursor:pointer; transition:transform .2s, box-shadow .2s; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
+.na1-eh-video-card:hover{ transform:translateY(-1px); box-shadow:0 1px 0 var(--gold-warm), 0 12px 36px -14px rgba(0,0,0,0.12); }
+.na1-eh-play-btn{ width:48px; height:48px; border-radius:50%; background:var(--gold); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; padding-left:3px; }
+.na1-eh-video-num{ font-family:var(--na1-serif); font-style:italic; font-size:11px; color:var(--gold); letter-spacing:.06em; margin-bottom:2px; }
+.na1-eh-video-title{ font-family:var(--na1-serif); font-size:17px; font-weight:600; color:var(--na1-text); margin-bottom:2px; }
+.na1-eh-video-sub{ font-size:12px; color:var(--na1-text-mute); letter-spacing:.04em; }
+.na1-eh-cta-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.na1-eh-btn-gold{ background:var(--gold); color:#fff; border:0; font-family:var(--na1-sans); font-weight:600; font-size:14px; letter-spacing:.04em; padding:14px 28px; border-radius:999px; cursor:pointer; transition:background .2s, transform .2s; display:inline-flex; align-items:center; gap:8px; }
+.na1-eh-btn-gold:hover{ background:#a07827; transform:translateY(-1px); }
+.na1-eh-btn-quiet{ background:transparent; color:var(--na1-text-mute); border:0; font-family:inherit; font-size:13px; padding:14px 18px; cursor:pointer; text-decoration:none; }
+.na1-eh-btn-quiet:hover{ color:var(--na1-text); }
+
+/* The Framework · 5A · two phases */
+.na1-fw-hero{ font-family:var(--na1-serif); font-size:52px; line-height:1.04; font-weight:600; color:var(--na1-text); letter-spacing:-0.5px; margin-bottom:16px; max-width:780px; }
+@media (max-width:767px){ .na1-fw-hero{ font-size:36px; } }
+.na1-fw-hero em{ font-style:italic; color:var(--gold); font-weight:500; }
+.na1-fw-sub{ font-size:17px; line-height:1.55; color:var(--na1-text-sec); max-width:620px; margin-bottom:48px; }
+.na1-fw-sub strong{ color:var(--na1-text); font-weight:600; }
+.na1-phase-tabs{ display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--gold-line); border-radius:12px 12px 0 0; overflow:hidden; max-width:880px; }
+.na1-phase-tab{ border:0; background:var(--na1-bg-soft); padding:22px 28px; text-align:left; cursor:pointer; transition:background .3s; border-right:1px solid var(--gold-line); }
+.na1-phase-tab:last-child{ border-right:0; }
+.na1-phase-tab-eyebrow{ display:block; font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:6px; transition:color .3s; }
+.na1-phase-tab-title{ display:block; font-family:var(--na1-serif); font-size:20px; font-weight:600; color:var(--na1-text-mute); transition:color .3s; }
+.na1-fw[data-phase="p1"] .na1-phase-tab[data-phase="p1"]{ background:var(--navy); }
+.na1-fw[data-phase="p1"] .na1-phase-tab[data-phase="p1"] .na1-phase-tab-eyebrow{ color:var(--gold); }
+.na1-fw[data-phase="p1"] .na1-phase-tab[data-phase="p1"] .na1-phase-tab-title{ color:#fff; }
+.na1-fw[data-phase="p2"] .na1-phase-tab[data-phase="p2"]{ background:var(--gold); }
+.na1-fw[data-phase="p2"] .na1-phase-tab[data-phase="p2"] .na1-phase-tab-eyebrow{ color:rgba(255,255,255,0.75); }
+.na1-fw[data-phase="p2"] .na1-phase-tab[data-phase="p2"] .na1-phase-tab-title{ color:#fff; }
+.na1-phase-tab:hover .na1-phase-tab-title{ color:var(--na1-text); }
+.na1-phase-body{ border:1px solid var(--gold-line); border-top:0; border-radius:0 0 12px 12px; max-width:880px; background:var(--na1-bg-card); display:grid; grid-template-columns:1fr 64px; }
+.na1-phase-cards{ padding:36px 36px 36px 40px; }
+.na1-phase-bar-col{ padding:36px 0; display:flex; flex-direction:column; align-items:center; position:relative; }
+.na1-phase-intro{ margin-bottom:28px; }
+.na1-phase-intro-tag{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:8px; }
+.na1-fw[data-phase="p1"] .na1-phase-intro-tag{ color:var(--navy-ink); }
+.na1-fw[data-phase="p2"] .na1-phase-intro-tag{ color:var(--gold); }
+.na1-phase-intro-headline{ font-family:var(--na1-serif); font-size:28px; font-weight:600; color:var(--na1-text); line-height:1.15; }
+.na1-phase-intro-headline em{ font-style:italic; font-weight:500; }
+.na1-fw[data-phase="p1"] .na1-phase-intro-headline em{ color:var(--navy-ink); }
+.na1-fw[data-phase="p2"] .na1-phase-intro-headline em{ color:var(--gold); }
+.na1-a-card{ display:grid; grid-template-columns:56px 1fr; gap:16px; padding:22px 0; border-bottom:1px solid var(--gold-line); align-items:start; }
+.na1-a-card:last-child{ border-bottom:0; }
+.na1-a-num{ font-family:var(--na1-serif); font-size:32px; font-weight:600; line-height:1; padding-top:4px; transition:color .3s; }
+.na1-fw[data-phase="p1"] .na1-a-num{ color:var(--navy-ink); }
+.na1-fw[data-phase="p2"] .na1-a-num{ color:var(--gold); }
+.na1-a-name{ font-family:var(--na1-serif); font-size:19px; font-weight:600; color:var(--na1-text); margin-bottom:2px; }
+.na1-a-shift{ font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
+.na1-fw[data-phase="p1"] .na1-a-shift{ color:var(--navy-ink); }
+.na1-fw[data-phase="p2"] .na1-a-shift{ color:var(--gold); }
+.na1-a-desc{ font-size:14.5px; line-height:1.55; color:var(--na1-text-sec); margin-bottom:10px; }
+.na1-a-deliverable{ display:inline-block; font-family:var(--na1-serif); font-style:italic; font-size:13px; font-weight:600; padding:4px 12px; border-radius:4px; }
+.na1-fw[data-phase="p1"] .na1-a-deliverable{ color:var(--navy-ink); background:var(--navy-soft); }
+.na1-fw[data-phase="p2"] .na1-a-deliverable{ color:var(--gold); background:var(--gold-warm); }
+.na1-spine-badge-day{ font-family:var(--na1-sans); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; padding:5px 9px; writing-mode:vertical-rl; transform:rotate(180deg); transition:all .3s; }
+.na1-fw[data-phase="p1"] .na1-spine-badge-day{ background:var(--navy); color:var(--gold); }
+.na1-fw[data-phase="p2"] .na1-spine-badge-day{ background:var(--gold); color:var(--navy); }
+.na1-spine-line-inner{ flex:1; width:2px; transition:background .3s; }
+.na1-fw[data-phase="p1"] .na1-spine-line-inner{ background:var(--navy); }
+.na1-fw[data-phase="p2"] .na1-spine-line-inner{ background:var(--gold); }
+.na1-spine-dot-inner{ width:9px; height:9px; border-radius:50%; flex-shrink:0; transition:background .3s; }
+.na1-fw[data-phase="p1"] .na1-spine-dot-inner{ background:var(--navy); }
+.na1-fw[data-phase="p2"] .na1-spine-dot-inner{ background:var(--gold); }
+.na1-fw-cta-row{ margin-top:40px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+@media (max-width:1100px){
+  .na1-phase-body{ grid-template-columns:1fr 52px; }
+  .na1-phase-cards{ padding:28px 24px 28px 28px; }
+}
+@media (max-width:640px){
+  .na1-phase-tabs, .na1-phase-body{ max-width:100%; }
+  .na1-phase-body{ grid-template-columns:1fr; }
+  .na1-phase-bar-col{ display:none; }
+}
+
+/* Fixed footer · Entry Hall + Framework only */
+.na1-app-footer{ position:fixed; bottom:0; left:0; right:0; height:36px; background:var(--footer-ink); color:rgba(255,253,248,0.5); display:flex; align-items:center; justify-content:center; font-size:12px; letter-spacing:.02em; z-index:40; }
 .na1-breadcrumb .current{ color:var(--na1-text); }
 .na1-hero{ margin-bottom:28px; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; }
 .na1-hero-eyebrow{ font-size:11px; font-weight:700; letter-spacing:0.22em; color:var(--gold); text-transform:uppercase; margin-bottom:10px; font-family:var(--na1-sans); }
@@ -27856,6 +27995,7 @@ function NewA1Grid({
   onOpenVision,
   onOpenM3,
   onOpenM4,
+  onEntryHall,
 }: {
   name?: string;
   progress: {
@@ -27876,6 +28016,8 @@ function NewA1Grid({
   // complete. Parent wires the open handlers + progress flags.
   onOpenM3?: () => void;
   onOpenM4?: () => void;
+  // Persistent-spine era · breadcrumb "Entry Hall" routes back to the home.
+  onEntryHall?: () => void;
 }) {
   const doneCount = [
     progress.ex1,
@@ -27908,9 +28050,7 @@ function NewA1Grid({
       ? "Continue Purpose →"
       : "Begin Purpose →";
   const purposeEmpty = purposeComplete
-    ? progress.purposeFinal
-      ? `"${progress.purposeFinal}"`
-      : "Declared."
+    ? "Claimed."
     : purposeInProgress
       ? `${doneCount} of 4 exercises complete.`
       : "Not yet explored.";
@@ -28021,7 +28161,11 @@ function NewA1Grid({
     <div className="na1-root">
       <div className="na1-shell">
         <div className="na1-breadcrumb">
-          <span>Entry Hall</span>
+          {onEntryHall ? (
+            <a onClick={onEntryHall}>Entry Hall</a>
+          ) : (
+            <span>Entry Hall</span>
+          )}
           <span className="sep">›</span>
           <span className="current">A1 · All In It · The Commitment</span>
         </div>
@@ -28423,6 +28567,7 @@ const SHOW_STATUS_STRIP = false;
 function NewA1Explore({
   progress,
   onBack,
+  onEntryHall,
   onLaunchRoom,
   dimmed,
 }: {
@@ -28434,6 +28579,7 @@ function NewA1Explore({
     purposeFinal: string;
   };
   onBack: () => void;
+  onEntryHall: () => void;
   onLaunchRoom: (ex: NA1Exercise) => void;
   dimmed: boolean;
 }) {
@@ -28591,7 +28737,7 @@ function NewA1Explore({
     >
       <div className="na1-shell">
         <div className="na1-breadcrumb">
-          <a onClick={onBack}>Entry Hall</a>
+          <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
           <a onClick={onBack}>A1 · All In It</a>
           <span className="sep">›</span>
@@ -30108,6 +30254,7 @@ type M2Exercise = (typeof M2_EXERCISES)[number];
 function NewA2Explore({
   m2Progress,
   onBack,
+  onEntryHall,
   onLaunchRoom,
   dimmed,
 }: {
@@ -30120,6 +30267,7 @@ function NewA2Explore({
     complete: boolean;
   };
   onBack: () => void;
+  onEntryHall: () => void;
   onLaunchRoom: (ex: M2Exercise) => void;
   dimmed: boolean;
 }) {
@@ -30140,7 +30288,7 @@ function NewA2Explore({
     >
       <div className="na1-shell">
         <div className="na1-breadcrumb">
-          <a onClick={onBack}>Entry Hall</a>
+          <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
           <a onClick={onBack}>A1 · All In It</a>
           <span className="sep">›</span>
@@ -32757,7 +32905,14 @@ function NewA2RoomPlaceholderBody({
 // roomId — all fall back gracefully (overlay drops, view drops to
 // "grid", no throw).
 
-type AppRouteView = "grid" | "explore" | "explore2" | "m3" | "m4";
+type AppRouteView =
+  | "grid"
+  | "explore"
+  | "explore2"
+  | "m3"
+  | "m4"
+  | "entry-hall"
+  | "framework";
 type AppRouteOverlay = {
   hubId: "m1" | "m2" | "m3" | "m4";
   roomId: string;
@@ -32771,7 +32926,43 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "explore2",
   "m3",
   "m4",
+  "entry-hall",
+  "framework",
 ];
+
+// ─── Entry Hall · first-visit landing state ─────────────────────────────
+// Separate from the route key: `to_app_route_v1` records *where* the user
+// last was; this records *whether* they've ever crossed the threshold into
+// the app proper (Skip to A1 / Begin A1). A brand-new user with no saved
+// route lands on the Entry Hall; once they've entered, a no-route reload
+// drops them on the A1 grid instead.
+const HOME_STATE_KEY = "to_home_state_v1";
+type HomeState = { visited: boolean };
+function loadHomeState(): HomeState {
+  try {
+    const raw =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(HOME_STATE_KEY)
+        : null;
+    if (!raw) return { visited: false };
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return { visited: false };
+    return { visited: !!(parsed as { visited?: unknown }).visited };
+  } catch {
+    return { visited: false };
+  }
+}
+function saveHomeState(state: HomeState): void {
+  try {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(HOME_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // localStorage may be unavailable; first-visit detection just resets.
+  }
+}
+function markHomeVisited(): void {
+  saveHomeState({ visited: true });
+}
 
 function loadAppRoute(): AppRoute | null {
   try {
@@ -32816,6 +33007,334 @@ function saveAppRoute(route: AppRoute): void {
     // localStorage may be unavailable (private mode, quota); failing
     // silently is fine — restore just won't work next refresh.
   }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// Ship 5.6d · Entry Hall · The Framework · persistent left-rail Spine.
+// Three additive surfaces gated behind ?newA1=1. Copy + visual structure
+// mirror /tmp/home_brief/Home_and_Framework_Mockup_v4.html (v4).
+// ════════════════════════════════════════════════════════════════════
+
+type FwPhaseKey = "p1" | "p2";
+type FwACard = {
+  num: string;
+  name: string;
+  shift: string;
+  desc: string;
+  deliverable: string;
+};
+type FwPhase = {
+  introTag: string;
+  headlineLine: string;
+  headlineEm: string;
+  dayTop: string;
+  dayBot: string;
+  cards: FwACard[];
+};
+const FW_PHASES: Record<FwPhaseKey, FwPhase> = {
+  p1: {
+    introTag: "Days 1–45 · Who you are as an owner",
+    headlineLine: "You go in first.",
+    headlineEm: "The business follows.",
+    dayTop: "Day 1",
+    dayBot: "Day 45",
+    cards: [
+      {
+        num: "A1",
+        name: "All In It",
+        shift: "Commitment Shift",
+        desc: "Map your purpose, identity, values, and direction. Who are you as an owner — and what are you building toward?",
+        deliverable: "Map of Me™",
+      },
+      {
+        num: "A2",
+        name: "Align With It",
+        shift: "Integrity Shift",
+        desc: "Self-alignment and time audit. Where is your energy actually going — and does it match what matters most?",
+        deliverable: "Time Audit",
+      },
+      {
+        num: "A3",
+        name: "Advocate For It",
+        shift: "Expansion Shift",
+        desc: "Build your personal board of advisors. Who is in your corner — and who needs to be?",
+        deliverable: "Board of Advisors",
+      },
+      {
+        num: "A4",
+        name: "Act On It",
+        shift: "Momentum Shift",
+        desc: "Establish your personal weekly operating rhythm. How do you show up consistently at your best?",
+        deliverable: "Actionable Roadmap",
+      },
+      {
+        num: "A5",
+        name: "Accountable To It",
+        shift: "Mastery Shift",
+        desc: "Personal scorecards. How do you keep the commitments you made to yourself?",
+        deliverable: "Stay Committed",
+      },
+    ],
+  },
+  p2: {
+    introTag: "Days 46–90 · Now the business",
+    headlineLine: "The owner is ready.",
+    headlineEm: "Time to build.",
+    dayTop: "Day 46",
+    dayBot: "Day 90",
+    cards: [
+      {
+        num: "A1",
+        name: "All In It",
+        shift: "Commitment Shift",
+        desc: "Define the soul, vision, and direction of your business. Why does it exist? Who does it serve? What does it become?",
+        deliverable: "Business Soul Foundation",
+      },
+      {
+        num: "A2",
+        name: "Align With It",
+        shift: "Integrity Shift",
+        desc: "SWOTT analysis and 3-year strategic priorities. Where does the business stand — and where is it going?",
+        deliverable: "Align Priorities",
+      },
+      {
+        num: "A3",
+        name: "Advocate For It",
+        shift: "Expansion Shift",
+        desc: "Build your business board of advisors. What expert voices does your business need in the room to make better decisions?",
+        deliverable: "Decisions and Your Board",
+      },
+      {
+        num: "A4",
+        name: "Act On It",
+        shift: "Momentum Shift",
+        desc: "Set this year's focus areas and quarterly plan. What gets done — and in what order?",
+        deliverable: "Quarterly Plan",
+      },
+      {
+        num: "A5",
+        name: "Accountable To It",
+        shift: "Mastery Shift",
+        desc: "Operating rhythm and critical numbers. How does your business know it's winning week to week?",
+        deliverable: "Operating Dashboard",
+      },
+    ],
+  },
+};
+
+const NA1_FOOTER_TEXT =
+  "True Ownership™ · © 2026 AccelerateGrowth45 LLC · All rights reserved";
+
+// Persistent left-rail "Spine" — brand presence + 5A progress at a glance.
+// Non-navigating by design (presence, not a menu). Hidden under 768px.
+function NewA1Spine({
+  name,
+  a1Complete,
+}: {
+  name?: string;
+  a1Complete: boolean;
+}) {
+  const rest: { num: string; label: string }[] = [
+    { num: "02", label: "Align" },
+    { num: "03", label: "Advocate" },
+    { num: "04", label: "Act" },
+    { num: "05", label: "Accountable" },
+  ];
+  return (
+    <aside className="na1-spine">
+      <div className="na1-spine-brand">True Ownership™</div>
+      {name ? <div className="na1-spine-brand-sub">{name}</div> : null}
+      <div className="na1-spine-thread" />
+      <div className={`na1-vertebra ${a1Complete ? "is-claimed" : "is-here"}`}>
+        <div className="na1-bone" />
+        <div className="na1-vertebra-num">01</div>
+        <div className="na1-vertebra-label">All In</div>
+        <div className="na1-vertebra-status">
+          {a1Complete ? "Claimed" : "You are here"}
+        </div>
+      </div>
+      {rest.map((v) => (
+        <div className="na1-vertebra" key={v.num}>
+          <div className="na1-bone" />
+          <div className="na1-vertebra-num">{v.num}</div>
+          <div className="na1-vertebra-label">{v.label}</div>
+        </div>
+      ))}
+    </aside>
+  );
+}
+
+// Entry Hall — the first-visit home. "You write first" framing, the one
+// principle card, the welcome-video stub, and two CTAs (framework / skip).
+function NewA1EntryHall({
+  name,
+  onSeeFramework,
+  onEnterApp,
+}: {
+  name?: string;
+  onSeeFramework: () => void;
+  onEnterApp: () => void;
+}) {
+  const greeting = name ? `Welcome, ${name}.` : "Welcome.";
+  return (
+    <div className="na1-root">
+      <main className="na1-eh-content">
+        <div className="na1-breadcrumb">
+          <span className="current">Entry Hall</span>
+        </div>
+        <p className="na1-eh-eyebrow">True Ownership · Welcome</p>
+        <p className="na1-eh-quote">
+          Our life is a mirror of how we think and feel about ourselves.
+        </p>
+        <h1 className="na1-eh-hero">Everything starts with you.</h1>
+        <p className="na1-eh-hero-italic">{greeting}</p>
+        <p className="na1-eh-lead">
+          Before you can build a life that is truly yours, you need to know who
+          is building it. Not the role. Not the title. <em>You.</em>
+        </p>
+        <div className="na1-eh-principle-card">
+          <p className="na1-eh-eyebrow">Before we start — one principle</p>
+          <p className="na1-eh-principle">
+            You are the authority on your own life. This system is a mirror — it
+            reflects your own thinking back more clearly. It doesn't give you
+            answers. You already have them.
+          </p>
+          <p className="na1-eh-principle-meta">
+            The voices here — Katherine, the coach, the challenger — are a board
+            of advisors. They help you think. But your voice leads. That's why
+            here, <strong>you write first</strong>. The board responds after.
+          </p>
+        </div>
+        <p className="na1-eh-ai-note">
+          We live in a world that trains us to look outside ourselves first — and
+          AI is only going to deepen that pull. Before you look out, build the
+          inner trust. Know who you are. Then look outward from a foundation
+          that's actually yours.
+        </p>
+        <div className="na1-eh-video-card">
+          <div className="na1-eh-play-btn">▶</div>
+          <div>
+            <div className="na1-eh-video-num">00</div>
+            <div className="na1-eh-video-title">Welcome to True Ownership</div>
+            <div className="na1-eh-video-sub">Katherine · 4 min</div>
+          </div>
+        </div>
+        <div className="na1-eh-cta-row">
+          <button className="na1-eh-btn-gold" onClick={onSeeFramework}>
+            See the framework <span>→</span>
+          </button>
+          <button className="na1-eh-btn-quiet" onClick={onEnterApp}>
+            Skip to A1 · All In It →
+          </button>
+        </div>
+      </main>
+      <footer className="na1-app-footer">{NA1_FOOTER_TEXT}</footer>
+    </div>
+  );
+}
+
+// The Framework — the 5A explainer with the navy↔gold Phase 1/Phase 2
+// duality. Active phase drives every accent via the [data-phase] root.
+function NewA1Framework({
+  onEntryHall,
+  onBeginA1,
+}: {
+  onEntryHall: () => void;
+  onBeginA1: () => void;
+}) {
+  const [phase, setPhase] = useState<FwPhaseKey>("p1");
+  const data = FW_PHASES[phase];
+  return (
+    <div className="na1-root">
+      <main className="na1-fw na1-fw-content" data-phase={phase}>
+        <div className="na1-breadcrumb">
+          <a onClick={onEntryHall}>Entry Hall</a>
+          <span className="sep">›</span>
+          <span className="current">The Framework</span>
+        </div>
+        <p className="na1-fw-eyebrow">The 5A Framework™</p>
+        <h1 className="na1-fw-hero">
+          90 days. Two phases.
+          <br />
+          <em>One complete owner.</em>
+        </h1>
+        <p className="na1-fw-sub">
+          The 5A Framework applied first to <strong>you</strong> — then to{" "}
+          <strong>your business</strong>. Five disciplines. The same shifts, run
+          twice — once on the owner, once on what they build.
+        </p>
+        <div className="na1-phase-tabs">
+          <button
+            className="na1-phase-tab"
+            data-phase="p1"
+            onClick={() => setPhase("p1")}
+          >
+            <span className="na1-phase-tab-eyebrow">Phase 1 · Days 1–45</span>
+            <span className="na1-phase-tab-title">
+              Own It — The Personal Side
+            </span>
+          </button>
+          <button
+            className="na1-phase-tab"
+            data-phase="p2"
+            onClick={() => setPhase("p2")}
+          >
+            <span className="na1-phase-tab-eyebrow">Phase 2 · Days 46–90</span>
+            <span className="na1-phase-tab-title">
+              Build It — The Business Side
+            </span>
+          </button>
+        </div>
+        <div className="na1-phase-body">
+          <div className="na1-phase-cards">
+            <div className="na1-phase-intro">
+              <div className="na1-phase-intro-tag">{data.introTag}</div>
+              <div className="na1-phase-intro-headline">
+                {data.headlineLine}
+                <br />
+                <em>{data.headlineEm}</em>
+              </div>
+            </div>
+            {data.cards.map((c) => (
+              <div className="na1-a-card" key={c.num}>
+                <div className="na1-a-num">{c.num}</div>
+                <div>
+                  <div className="na1-a-name">{c.name}</div>
+                  <div className="na1-a-shift">{c.shift}</div>
+                  <div className="na1-a-desc">{c.desc}</div>
+                  <div className="na1-a-deliverable">→ {c.deliverable}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="na1-phase-bar-col">
+            <div className="na1-spine-badge-day">{data.dayTop}</div>
+            <div className="na1-spine-line-inner" />
+            <div className="na1-spine-dot-inner" />
+            <div className="na1-spine-line-inner" />
+            <div className="na1-spine-dot-inner" />
+            <div className="na1-spine-line-inner" />
+            <div className="na1-spine-dot-inner" />
+            <div className="na1-spine-line-inner" />
+            <div className="na1-spine-dot-inner" />
+            <div className="na1-spine-line-inner" />
+            <div className="na1-spine-dot-inner" />
+            <div className="na1-spine-line-inner" />
+            <div className="na1-spine-badge-day">{data.dayBot}</div>
+          </div>
+        </div>
+        <div className="na1-fw-cta-row">
+          <button className="na1-eh-btn-gold" onClick={onBeginA1}>
+            Begin A1 · All In It <span>→</span>
+          </button>
+          <button className="na1-eh-btn-quiet" onClick={onEntryHall}>
+            ← Back to Entry Hall
+          </button>
+        </div>
+      </main>
+      <footer className="na1-app-footer">{NA1_FOOTER_TEXT}</footer>
+    </div>
+  );
 }
 
 function NewA1View({ name }: { name?: string }) {
@@ -32863,6 +33382,10 @@ function NewA1View({ name }: { name?: string }) {
       // but must NOT force-route past the mirror grid on every page load —
       // otherwise a flagged user can never see Mirrors 1/2 or the grid.
       if (hasM3Progress) return "m3";
+      // First-ever visit (no saved route, never crossed the threshold) →
+      // open on the Entry Hall. Returning users with no saved route land
+      // on the A1 grid.
+      if (!loadHomeState().visited) return "entry-hall";
       return "grid";
     },
   );
@@ -32992,6 +33515,13 @@ function NewA1View({ name }: { name?: string }) {
     const status = m4?.status;
     return typeof status === "string" && status !== "not_started";
   }, [view, roomOpen]);
+  // Ship 5.6d · A1 is "claimed" once all four mirrors are complete. Drives
+  // the spine's 01·All In vertebra (claimed badge vs. "You are here" glow).
+  const purposeComplete =
+    progress.ex1 && progress.ex2 && progress.ex3 && progress.ex4;
+  const visionComplete = m2Progress.complete;
+  const a1Complete =
+    purposeComplete && visionComplete && m3Complete && m4Complete;
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -33060,6 +33590,7 @@ function NewA1View({ name }: { name?: string }) {
         <NewA1Explore
           progress={progress}
           onBack={() => setView("grid")}
+          onEntryHall={() => setView("entry-hall")}
           onLaunchRoom={launchRoom}
           dimmed={roomOpen}
         />
@@ -33138,6 +33669,7 @@ function NewA1View({ name }: { name?: string }) {
         <NewA2Explore
           m2Progress={m2Progress}
           onBack={() => setView("grid")}
+          onEntryHall={() => setView("entry-hall")}
           onLaunchRoom={launchRoomM2}
           dimmed={roomOpen}
         />
@@ -33205,28 +33737,75 @@ function NewA1View({ name }: { name?: string }) {
     // later in the session (after going back to grid) starts fresh.
     const initialKey = initialM3RoomKeyRef.current;
     initialM3RoomKeyRef.current = null;
+    // Spine shows on the hub; it's suppressed while a room overlay is open
+    // (the room is a full-bleed surface and owns the whole viewport).
+    const showSpine = overlayRoute == null;
     return (
-      <NewA1M3Container
-        onBackToGrid={() => setView("grid")}
-        initialRoomKey={initialKey}
-        onRoomChange={onM3RoomChange}
-      />
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        )}
+        <NewA1M3Container
+          onBackToGrid={() => setView("grid")}
+          onEntryHall={() => setView("entry-hall")}
+          initialRoomKey={initialKey}
+          onRoomChange={onM3RoomChange}
+        />
+      </div>
     );
   }
   // Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
   if (view === "m4") {
     const initialKey = initialM4RoomKeyRef.current;
     initialM4RoomKeyRef.current = null;
+    const showSpine = overlayRoute == null;
     return (
-      <NewA1M4Container
-        onBackToGrid={() => setView("grid")}
-        initialRoomKey={initialKey}
-        onRoomChange={onM4RoomChange}
-      />
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        )}
+        <NewA1M4Container
+          onBackToGrid={() => setView("grid")}
+          onEntryHall={() => setView("entry-hall")}
+          initialRoomKey={initialKey}
+          onRoomChange={onM4RoomChange}
+        />
+      </div>
+    );
+  }
+  if (view === "entry-hall") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        <NewA1EntryHall
+          name={resolvedName}
+          onSeeFramework={() => setView("framework")}
+          onEnterApp={() => {
+            markHomeVisited();
+            setView("grid");
+          }}
+        />
+      </div>
+    );
+  }
+  if (view === "framework") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        <NewA1Framework
+          onEntryHall={() => setView("entry-hall")}
+          onBeginA1={() => {
+            markHomeVisited();
+            setView("grid");
+          }}
+        />
+      </div>
     );
   }
   return (
-    <NewA1Grid
+    <div className="na1-spine-pad">
+      <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+      <NewA1Grid
       // Ship 5.5e · Personalization · pass the canonically-resolved name
       // (intake → auth fallback) so the Entry Hall greeting in NewA1Grid
       // is correct even when the legacy A1 wrapper only forwarded
@@ -33242,7 +33821,9 @@ function NewA1View({ name }: { name?: string }) {
       onOpenVision={() => setView("explore2")}
       onOpenM3={() => setView("m3")}
       onOpenM4={() => setView("m4")}
+      onEntryHall={() => setView("entry-hall")}
     />
+    </div>
   );
 }
 
@@ -33266,11 +33847,13 @@ type M3Room = (typeof M3_ROOMS)[number];
 function NewA1M3HubView({
   doneArr,
   onBackToGrid,
+  onEntryHall,
   onLaunchRoom,
   dimmed,
 }: {
   doneArr: boolean[];
   onBackToGrid: () => void;
+  onEntryHall: () => void;
   onLaunchRoom: (room: M3Room) => void;
   dimmed: boolean;
 }) {
@@ -33284,7 +33867,7 @@ function NewA1M3HubView({
     >
       <div className="na1-shell">
         <div className="na1-breadcrumb">
-          <a onClick={onBackToGrid}>Entry Hall</a>
+          <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
           <a onClick={onBackToGrid}>A1 · All In It</a>
           <span className="sep">›</span>
@@ -34133,10 +34716,12 @@ function NewA1M3OwnItView({
 // veil then dismiss back to the hub (no body mounts).
 function NewA1M3Container({
   onBackToGrid,
+  onEntryHall,
   initialRoomKey,
   onRoomChange,
 }: {
   onBackToGrid: () => void;
+  onEntryHall: () => void;
   initialRoomKey?: string | null;
   onRoomChange?: (roomId: string | null) => void;
 }) {
@@ -34255,6 +34840,7 @@ function NewA1M3Container({
       <NewA1M3HubView
         doneArr={doneArr}
         onBackToGrid={onBackToGrid}
+        onEntryHall={onEntryHall}
         onLaunchRoom={launchRoom}
         dimmed={roomOpen}
       />
@@ -34458,10 +35044,12 @@ function NewA1M4RoomPlaceholderBody({ room }: { room: M4Room }) {
 
 function NewA1M4HubView({
   onBackToGrid,
+  onEntryHall,
   onLaunchRoom,
   dimmed,
 }: {
   onBackToGrid: () => void;
+  onEntryHall: () => void;
   onLaunchRoom: (room: M4Room) => void;
   dimmed: boolean;
 }) {
@@ -34505,7 +35093,7 @@ function NewA1M4HubView({
     >
       <div className="na1-shell">
         <div className="na1-breadcrumb">
-          <a onClick={onBackToGrid}>Entry Hall</a>
+          <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
           <a onClick={onBackToGrid}>A1 · All In It</a>
           <span className="sep">›</span>
@@ -38898,10 +39486,12 @@ function NewA1M4PressureTestModal({
 
 function NewA1M4Container({
   onBackToGrid,
+  onEntryHall,
   initialRoomKey,
   onRoomChange,
 }: {
   onBackToGrid: () => void;
+  onEntryHall: () => void;
   initialRoomKey?: string | null;
   onRoomChange?: (roomId: string | null) => void;
 }) {
@@ -38983,6 +39573,7 @@ function NewA1M4Container({
     <>
       <NewA1M4HubView
         onBackToGrid={onBackToGrid}
+        onEntryHall={onEntryHall}
         onLaunchRoom={launchRoom}
         dimmed={roomOpen}
       />
