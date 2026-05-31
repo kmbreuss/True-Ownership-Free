@@ -1,0 +1,1 @@
+- [Mirror card gating](true-ownership-mirror-gating.md) — A1-hub mirror cards must chain unlock booleans through the prior card's unlock, not just its persisted completion, or downstream cards leak unlocked after an upstream reset.

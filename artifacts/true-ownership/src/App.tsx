@@ -27818,84 +27818,22 @@ const NEW_A1_FLAG = (() => {
   }
 })();
 
-// ─── NEW M3 (?newM3=1) opt-in flag ───
-// Per spec S29 routing logic: the M2 Vision Declaration seal's "Continue to
-// Identity →" button routes to the new Mirror 3 surface when newA1=1 is in
-// the URL AND any of these are true:
-//   • newM3=1 in URL
-//   • newM3 truthy in localStorage (lets owner opt in across reloads without
-//     editing the URL each time)
-//   • mirror3.pickedGifts already has content (so a user who has started M3
-//     keeps using it even if the opt-in token disappears)
-// Once Ship 5 lands and demos on dev, a 5-line follow-up flips this so
-// newA1=1 alone routes to M3 by default.
-// Shared truthy-value coercion so URL + localStorage agree and `?newM3=0`
-// or `?newM3=false` does NOT count as opt-in.
-function isFlagTruthy(v: string | null | undefined): boolean {
-  if (v == null) return false;
-  return v === "1" || v.toLowerCase() === "true";
-}
-const NEW_M3_FLAG_URL = (() => {
-  try {
-    return isFlagTruthy(
-      new URLSearchParams(window.location.search).get("newM3"),
-    );
-  } catch {
-    return false;
-  }
-})();
-const NEW_M3_FLAG_LOCAL = (() => {
-  try {
-    return isFlagTruthy(window.localStorage.getItem("newM3"));
-  } catch {
-    return false;
-  }
-})();
-// If newM3=1 is in the URL with a truthy value, persist the opt-in to
-// localStorage so subsequent reloads (without the query param) still land
-// in M3. Falsy values (`?newM3=0`) do not sticky-enable.
-if (NEW_M3_FLAG_URL) {
-  try {
-    window.localStorage.setItem("newM3", "1");
-  } catch {}
-}
+// ─── M3 / M4 routing (Ship 5.7) ───
+// The legacy ?newM3 / ?newM4 dev unlock flags have been removed. Both mirrors
+// are shipped, and the A1 hub cards now gate purely on completion of the prior
+// mirror (M2→M3, M3→M4). Clean up any stale sticky opt-in keys left behind by
+// old dev sessions so they don't linger as noise.
+try {
+  window.localStorage.removeItem("newM3");
+  window.localStorage.removeItem("newM4");
+} catch {}
+// Route the M2 Vision Declaration seal's "Continue to Identity →" button into
+// the Mirror 3 surface once Vision is complete. Stays gated by the same
+// ?newA1 surface everything else uses.
 function shouldRouteToM3(mapState: any): boolean {
   if (!NEW_A1_FLAG) return false;
-  if (NEW_M3_FLAG_URL || NEW_M3_FLAG_LOCAL) return true;
-  const picked = mapState?.mirror3?.pickedGifts;
-  return Array.isArray(picked) && picked.length > 0;
+  return !!mapState?.vision?.complete;
 }
-
-// ─── NEW M4 (?newM4=1) opt-in flag (Ship 5.6a · Section 1 scaffold) ───
-// Mirrors the NEW_M3_FLAG_* block above verbatim. Off by default; when on,
-// the A1 grid shows a Mirror 4 hub card immediately after the Identity
-// card (in place of the existing locked "04 · Values · Behaviors"
-// placeholder). When off, the grid renders identically to today.
-// Truthy URL value sticky-enables in localStorage so subsequent reloads
-// keep the opt-in without needing the query param. `?newM4=0` does not
-// sticky-enable (matches M3's coercion via shared isFlagTruthy).
-const NEW_M4_FLAG_URL = (() => {
-  try {
-    return isFlagTruthy(
-      new URLSearchParams(window.location.search).get("newM4"),
-    );
-  } catch {
-    return false;
-  }
-})();
-const NEW_M4_FLAG_LOCAL = (() => {
-  try {
-    return isFlagTruthy(window.localStorage.getItem("newM4"));
-  } catch {
-    return false;
-  }
-})();
-if (NEW_M4_FLAG_URL) {
-  try {
-    window.localStorage.setItem("newM4", "1");
-  } catch {}
-}
-const NEW_M4_ENABLED = NEW_M4_FLAG_URL || NEW_M4_FLAG_LOCAL;
 
 // ─── NEW A1: Mirror grid (4 cards · Purpose unlocked, BAG/Identity/Values locked) ───
 type NewA1GridM2Progress = {
@@ -27910,7 +27848,10 @@ function NewA1Grid({
   name,
   progress,
   m2Progress,
+  m3Started,
   m3Complete,
+  m4Started,
+  m4Complete,
   onOpenPurpose,
   onOpenVision,
   onOpenM3,
@@ -27925,11 +27866,14 @@ function NewA1Grid({
     purposeFinal: string;
   };
   m2Progress: NewA1GridM2Progress;
+  m3Started?: boolean;
   m3Complete?: boolean;
+  m4Started?: boolean;
+  m4Complete?: boolean;
   onOpenPurpose: () => void;
   onOpenVision: () => void;
-  // Optional: when present AND vision is complete, the Mirror 3 card
-  // unlocks and routes here. Parent wires this only when the M3 flag is on.
+  // Mirror 3 unlocks once Vision is complete; Mirror 4 once Identity is
+  // complete. Parent wires the open handlers + progress flags.
   onOpenM3?: () => void;
   onOpenM4?: () => void;
 }) {
@@ -27939,18 +27883,30 @@ function NewA1Grid({
     progress.ex3,
     progress.ex4,
   ].filter(Boolean).length;
+  // ── Ship 5.7 · Mirror card gating ──────────────────────────────────────
+  // Every card resolves to one of four states — Locked → Up next → In
+  // progress → Complete — with a cascading unlock chain:
+  //   M1 (Purpose)  · always unlocked
+  //   M2 (Vision)   · unlocks once Purpose is complete
+  //   M3 (Identity) · unlocks once Vision is complete
+  //   M4 (Values)   · unlocks once Identity is complete
+  // CTA wording follows Option B: Begin / Continue / Review {Mirror} →, with
+  // a disabled "Unlocks after {Prior}" button on locked cards.
+
+  // M1 · Purpose — always unlocked.
   const purposeComplete = doneCount === 4;
-  const purposeInProgress = doneCount > 0 && !purposeComplete;
+  const purposeStarted = doneCount > 0 || !!progress.purposeFinal;
+  const purposeInProgress = purposeStarted && !purposeComplete;
   const purposeStatusLabel = purposeComplete
     ? "Complete"
     : purposeInProgress
       ? "In progress"
       : "Up next";
   const purposeCtaLabel = purposeComplete
-    ? "Review with Katherine →"
+    ? "Review Purpose →"
     : purposeInProgress
-      ? "Continue with Katherine →"
-      : "Explore with Katherine →";
+      ? "Continue Purpose →"
+      : "Begin Purpose →";
   const purposeEmpty = purposeComplete
     ? progress.purposeFinal
       ? `"${progress.purposeFinal}"`
@@ -27959,7 +27915,8 @@ function NewA1Grid({
       ? `${doneCount} of 4 exercises complete.`
       : "Not yet explored.";
   const pips = [progress.ex1, progress.ex2, progress.ex3, progress.ex4];
-  // Mirror 2 (Vision) gating: unlock the moment Purpose is declared.
+
+  // M2 · Vision — unlocks the moment Purpose is declared.
   const visionUnlocked = purposeComplete && !!progress.purposeFinal;
   const m2DoneCount = [
     m2Progress.ex1,
@@ -27969,17 +27926,22 @@ function NewA1Grid({
     m2Progress.ex5,
   ].filter(Boolean).length;
   const visionComplete = !!m2Progress.complete;
-  const visionInProgress = visionUnlocked && m2DoneCount > 0 && !visionComplete;
-  const visionStatusLabel = visionComplete
-    ? "Complete"
-    : visionInProgress
-      ? "In progress"
-      : "Up next";
-  const visionCtaLabel = visionComplete
-    ? "Review with Katherine →"
-    : visionInProgress
-      ? "Continue with Katherine →"
-      : "Explore with Katherine →";
+  const visionStarted = m2DoneCount > 0 || visionComplete;
+  const visionInProgress = visionUnlocked && visionStarted && !visionComplete;
+  const visionStatusLabel = !visionUnlocked
+    ? "Locked"
+    : visionComplete
+      ? "Complete"
+      : visionInProgress
+        ? "In progress"
+        : "Up next";
+  const visionCtaLabel = !visionUnlocked
+    ? "Unlocks after Purpose"
+    : visionComplete
+      ? "Review Vision →"
+      : visionInProgress
+        ? "Continue Vision →"
+        : "Begin Vision →";
   const visionEmpty = visionComplete
     ? "Claimed."
     : visionInProgress
@@ -27992,7 +27954,69 @@ function NewA1Grid({
     m2Progress.ex4,
     m2Progress.ex5,
   ];
-  const mirrorsComplete = (purposeComplete ? 1 : 0) + (visionComplete ? 1 : 0);
+
+  // M3 · Identity — unlocks once Vision is complete. Chained through
+  // `visionUnlocked` so the gate re-locks transitively when Purpose is reset
+  // (a persisted `vision.complete` must not leak an active M3 while Vision
+  // itself is visibly locked).
+  const identityUnlocked = visionUnlocked && visionComplete;
+  const identityComplete = !!m3Complete;
+  const identityStarted = !!m3Started || identityComplete;
+  const identityInProgress =
+    identityUnlocked && identityStarted && !identityComplete;
+  const identityStatusLabel = !identityUnlocked
+    ? "Locked"
+    : identityComplete
+      ? "Complete"
+      : identityInProgress
+        ? "In progress"
+        : "Up next";
+  const identityCtaLabel = !identityUnlocked
+    ? "Unlocks after Vision"
+    : identityComplete
+      ? "Review Identity →"
+      : identityInProgress
+        ? "Continue Identity →"
+        : "Begin Identity →";
+  const identityCardClass = identityComplete
+    ? "is-complete"
+    : identityInProgress
+      ? "is-vision-in-progress"
+      : "is-vision-up-next";
+
+  // M4 · Values — unlocks once Identity is complete. Chained through
+  // `identityUnlocked` so the gate re-locks transitively when any upstream
+  // mirror is reset (a persisted `claimed`/`sealCompleted` must not leak an
+  // active M4 while Identity is visibly locked).
+  const valuesUnlocked = identityUnlocked && identityComplete;
+  const valuesComplete = !!m4Complete;
+  const valuesStarted = !!m4Started || valuesComplete;
+  const valuesInProgress = valuesUnlocked && valuesStarted && !valuesComplete;
+  const valuesStatusLabel = !valuesUnlocked
+    ? "Locked"
+    : valuesComplete
+      ? "Complete"
+      : valuesInProgress
+        ? "In progress"
+        : "Up next";
+  const valuesCtaLabel = !valuesUnlocked
+    ? "Unlocks after Identity"
+    : valuesComplete
+      ? "Review Values →"
+      : valuesInProgress
+        ? "Continue Values →"
+        : "Begin Values →";
+  const valuesCardClass = valuesComplete
+    ? "is-complete"
+    : valuesInProgress
+      ? "is-vision-in-progress"
+      : "is-vision-up-next";
+
+  const mirrorsComplete =
+    (purposeComplete ? 1 : 0) +
+    (visionComplete ? 1 : 0) +
+    (identityComplete ? 1 : 0) +
+    (valuesComplete ? 1 : 0);
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -28037,7 +28061,7 @@ function NewA1Grid({
         </div>
         <div className="na1-mirror-grid">
           <article
-            className={`na1-mirror-card ${purposeComplete ? "is-complete" : "is-current"}`}
+            className={`na1-mirror-card ${purposeComplete ? "is-complete" : purposeInProgress ? "is-vision-in-progress" : "is-current"}`}
           >
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">01</span>
@@ -28152,32 +28176,31 @@ function NewA1Grid({
               </div>
               <h2 className="na1-mirror-card-name">Vision</h2>
               <p className="na1-mirror-card-sub">
-                Who you've become in 10 years.
+                Who you've become in 10 years — across time, wealth, and self.
               </p>
-              <div className="na1-mirror-card-empty">Unlocks after Purpose</div>
               <div className="na1-mirror-card-action">
-                <span className="na1-mirror-card-meta">
-                  Complete Purpose to unlock
-                </span>
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  disabled
+                >
+                  {visionCtaLabel}
+                </button>
               </div>
             </article>
           )}
-          {/* Ship 5.5f · Mirror 3 · Identity — chained gate. Unlocks the
-              moment Vision is complete (matches M1→M2 and M3→M4 patterns).
-              The dev-only ?newM3=1 / localStorage override still works for
-              entering the M3 view, but it no longer bypasses the chained
-              gate here. Locked card below uses the same copy pattern as
-              M2 and M4: "Unlocks after Vision" / "Complete Vision to
-              unlock", tap-inert per §1 of the standards doc.
+          {/* Ship 5.7 · Mirror 3 · Identity — cascading gate. Unlocks the
+              moment Vision is complete (matches M1→M2 and M3→M4). The card
+              then resolves to Up next / In progress / Complete and stays
+              clickable so the owner can review a finished Identity. Locked
+              card uses a disabled "Unlocks after Vision" CTA, tap-inert.
 
-              IMPORTANT: gate must include `visionUnlocked` so the chain
-              re-locks transitively when Purpose is reset. `m2Progress.
-              complete` is a persisted absolute flag — a user who finished
-              Vision once and later cleared Purpose would otherwise leak
-              an active M3 card while Vision itself is visibly locked. */}
-          {visionUnlocked && visionComplete && onOpenM3 ? (
+              IMPORTANT: gate keys on `identityUnlocked` (= visionComplete),
+              which itself requires `visionUnlocked`, so the chain re-locks
+              transitively when an upstream mirror is reset. */}
+          {identityUnlocked && onOpenM3 ? (
             <article
-              className="na1-mirror-card is-vision-up-next"
+              className={`na1-mirror-card ${identityCardClass}`}
               role="button"
               tabIndex={0}
               onClick={onOpenM3}
@@ -28190,15 +28213,32 @@ function NewA1Grid({
             >
               <div className="na1-mirror-card-head">
                 <span className="na1-mirror-card-num">03</span>
-                <span className="na1-mirror-card-status">Up next</span>
+                <span className="na1-mirror-card-status">
+                  {identityStatusLabel}
+                </span>
               </div>
               <div className="na1-mirror-card-eyebrow">Mirror 3</div>
               <h2 className="na1-mirror-card-name">Identity · Superpowers</h2>
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
-              <div className="na1-mirror-card-empty" style={{ fontStyle: "normal", color: "var(--na1-text-sec)" }}>
-                Pick your gifts, shape your clusters, name what's true.
+              <div
+                className="na1-mirror-card-empty"
+                style={
+                  identityComplete
+                    ? {
+                        fontStyle: "italic",
+                        color: "var(--na1-text-sec)",
+                        fontFamily: "var(--na1-serif)",
+                      }
+                    : { fontStyle: "normal", color: "var(--na1-text-sec)" }
+                }
+              >
+                {identityComplete
+                  ? "Claimed."
+                  : identityInProgress
+                    ? "In progress — keep shaping your gifts."
+                    : "Pick your gifts, shape your clusters, name what's true."}
               </div>
               <div className="na1-mirror-card-action">
                 <button
@@ -28209,7 +28249,7 @@ function NewA1Grid({
                     onOpenM3();
                   }}
                 >
-                  Begin Identity →
+                  {identityCtaLabel}
                 </button>
                 <span className="na1-mirror-card-meta">
                   5 steps · gifts · animals · shadows
@@ -28232,28 +28272,26 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
-              <div className="na1-mirror-card-empty">
-                Unlocks after Vision
-              </div>
               <div className="na1-mirror-card-action">
-                <span className="na1-mirror-card-meta">
-                  Complete Vision to unlock
-                </span>
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  disabled
+                >
+                  {identityCtaLabel}
+                </button>
               </div>
             </article>
           )}
-          {/* Ship 5.6a · Mirror 4 · Values · Section 1 scaffold
-              Flag-gated: when NEW_M4_ENABLED (?newM4=1 or sticky local),
-              render an unlocked Values hub card in place of the existing
-              locked placeholder below. The hub itself gates internal
-              progress; this card on the A1 grid is unconditionally
-              clickable while the flag is on so owner can walk the
-              scaffold immediately. When flag is off, the existing
-              "04 · Values · Behaviors" locked placeholder renders
-              verbatim — app looks identical to today. */}
-          {NEW_M4_ENABLED && onOpenM4 && m3Complete ? (
+          {/* Ship 5.7 · Mirror 4 · Values — cascading gate. Unlocks once
+              Identity is complete (valuesUnlocked = identityUnlocked &&
+              identityComplete, so it re-locks transitively when any upstream
+              mirror is reset). The card then resolves to Up next / In
+              progress / Complete and stays clickable for review; the locked
+              card uses a disabled "Unlocks after Identity" CTA. */}
+          {valuesUnlocked && onOpenM4 ? (
             <article
-              className="na1-mirror-card is-vision-up-next"
+              className={`na1-mirror-card ${valuesCardClass}`}
               role="button"
               tabIndex={0}
               onClick={onOpenM4}
@@ -28266,7 +28304,9 @@ function NewA1Grid({
             >
               <div className="na1-mirror-card-head">
                 <span className="na1-mirror-card-num">04</span>
-                <span className="na1-mirror-card-status">Up next</span>
+                <span className="na1-mirror-card-status">
+                  {valuesStatusLabel}
+                </span>
               </div>
               <div className="na1-mirror-card-eyebrow">Mirror 4</div>
               <h2 className="na1-mirror-card-name">Values · The Order You Live By</h2>
@@ -28275,9 +28315,21 @@ function NewA1Grid({
               </p>
               <div
                 className="na1-mirror-card-empty"
-                style={{ fontStyle: "normal", color: "var(--na1-text-sec)" }}
+                style={
+                  valuesComplete
+                    ? {
+                        fontStyle: "italic",
+                        color: "var(--na1-text-sec)",
+                        fontFamily: "var(--na1-serif)",
+                      }
+                    : { fontStyle: "normal", color: "var(--na1-text-sec)" }
+                }
               >
-                Four rooms. Three to five values. One decision filter.
+                {valuesComplete
+                  ? "Claimed."
+                  : valuesInProgress
+                    ? "In progress — keep ordering what you stand for."
+                    : "Four rooms. Three to five values. One decision filter."}
               </div>
               <div className="na1-mirror-card-action">
                 <button
@@ -28288,7 +28340,7 @@ function NewA1Grid({
                     onOpenM4();
                   }}
                 >
-                  Begin Values →
+                  {valuesCtaLabel}
                 </button>
                 <span className="na1-mirror-card-meta">
                   4 rooms · discover · behaviors · rank · claim
@@ -28296,34 +28348,31 @@ function NewA1Grid({
               </div>
             </article>
           ) : (
-            [
-              {
-                num: "04",
-                eyebrow: "Mirror 4",
-                name: "Values · Behaviors",
-                sub: "What you stand for.",
-                empty: "Unlocks after Identity",
-                meta: "Complete Mirror 3 to unlock",
-              },
-            ].map((c) => (
-              <article
-                key={c.num}
-                className="na1-mirror-card is-locked"
-                aria-disabled="true"
-              >
-                <div className="na1-mirror-card-head">
-                  <span className="na1-mirror-card-num">{c.num}</span>
-                  <span className="na1-mirror-card-status">Locked</span>
-                </div>
-                <div className="na1-mirror-card-eyebrow">{c.eyebrow}</div>
-                <h2 className="na1-mirror-card-name">{c.name}</h2>
-                <p className="na1-mirror-card-sub">{c.sub}</p>
-                <div className="na1-mirror-card-empty">{c.empty}</div>
-                <div className="na1-mirror-card-action">
-                  <span className="na1-mirror-card-meta">{c.meta}</span>
-                </div>
-              </article>
-            ))
+            <article
+              className="na1-mirror-card is-locked"
+              aria-disabled="true"
+            >
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">04</span>
+                <span className="na1-mirror-card-status">Locked</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">Mirror 4</div>
+              <h2 className="na1-mirror-card-name">
+                Values · The Order You Live By
+              </h2>
+              <p className="na1-mirror-card-sub">
+                What you stand for, in order.
+              </p>
+              <div className="na1-mirror-card-action">
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  disabled
+                >
+                  {valuesCtaLabel}
+                </button>
+              </div>
+            </article>
           )}
         </div>
       </div>
@@ -32920,11 +32969,28 @@ function NewA1View({ name }: { name?: string }) {
       complete: !!v?.complete,
     };
   }, [view, roomOpen]);
-  // M3 (Identity) completion — Mirror 3 is "complete" once the user has
-  // claimed/sealed their identity (sealCompleted). Mirror 4 gates on this.
+  // Ship 5.7 · Mirror 3/4 progress flags for the A1 hub card gating.
+  // M3 (Identity) is "complete" once the identity is sealed (sealCompleted)
+  // and "started" once any gift is picked. M4 (Values) is "complete" once
+  // claimed and "started" once it leaves the not_started status. Mirror 4's
+  // unlock cascades from M3 completion.
   const m3Complete = useMemo(() => {
     const map = (loadDataSync(KEYS.map) as any) || {};
     return !!map?.mirror3?.sealCompleted;
+  }, [view, roomOpen]);
+  const m3Started = useMemo(() => {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    const picked = map?.mirror3?.pickedGifts;
+    return Array.isArray(picked) && picked.length > 0;
+  }, [view, roomOpen]);
+  const m4Complete = useMemo(() => {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    return !!map?.mirror4?.claimed;
+  }, [view, roomOpen]);
+  const m4Started = useMemo(() => {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    const status = map?.mirror4?.status;
+    return typeof status === "string" && status !== "not_started";
   }, [view, roomOpen]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
@@ -33168,7 +33234,10 @@ function NewA1View({ name }: { name?: string }) {
       name={resolvedName}
       progress={progress}
       m2Progress={m2Progress}
+      m3Started={m3Started}
       m3Complete={m3Complete}
+      m4Started={m4Started}
+      m4Complete={m4Complete}
       onOpenPurpose={() => setView("explore")}
       onOpenVision={() => setView("explore2")}
       onOpenM3={() => setView("m3")}
