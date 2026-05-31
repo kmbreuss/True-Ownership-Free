@@ -24,3 +24,17 @@ through the predecessor's `*Unlocked` makes the whole chain re-lock transitively
 `valuesUnlocked = identityUnlocked && identityComplete`. CTA wording is Option B
 (Begin / Continue / Review {Mirror} →) with a disabled "Unlocks after {Prior}"
 button on locked cards. Whole feature ships under the `?newA1=1` surface.
+
+## Mirror 4 lives in its own localStorage key (gotcha)
+
+M4 (Values) state does NOT live in `to_map` like the other mirrors — it has a
+dedicated `to_mirror4_state_v1` key (Mirror 4 Build Plan v2). To read M4
+progress in the A1 grid, call the `loadMirror4State()` helper, never
+`loadDataSync(KEYS.map).mirror4` (that is always `undefined`).
+
+- `m4Complete` = `loadMirror4State()?.claimed`
+- `m4Started` = `loadMirror4State()?.status` is a string && !== `"not_started"`
+
+M3 is the exception that proves the rule: M3 was never extracted into its own
+module, so `to_map.mirror3.pickedGifts` / `to_map.mirror3.sealCompleted` is
+correct for M3. Only M4 is relocated.

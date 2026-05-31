@@ -32984,12 +32984,12 @@ function NewA1View({ name }: { name?: string }) {
     return Array.isArray(picked) && picked.length > 0;
   }, [view, roomOpen]);
   const m4Complete = useMemo(() => {
-    const map = (loadDataSync(KEYS.map) as any) || {};
-    return !!map?.mirror4?.claimed;
+    const m4 = loadMirror4State() as any;
+    return !!m4?.claimed;
   }, [view, roomOpen]);
   const m4Started = useMemo(() => {
-    const map = (loadDataSync(KEYS.map) as any) || {};
-    const status = map?.mirror4?.status;
+    const m4 = loadMirror4State() as any;
+    const status = m4?.status;
     return typeof status === "string" && status !== "not_started";
   }, [view, roomOpen]);
   const clearTimers = () => {
