@@ -34486,6 +34486,18 @@ function NewA1M4HubView({
   // .complete was true. Body is still bodyShipped:false → click
   // triggers the veil-bounce placeholder (Section 6 not shipped).
   const isPressureTestDone = m4State.pressureTest.complete === true;
+  // Ship 5.7 · Behaviors-room completion mirrors the Continue-to-Rank
+  // gate exactly (≥3 complete clusters, each with ≥3 behaviors AND a
+  // keystone). Used to drive the hub's per-room "Complete" treatment.
+  const m4CompleteClusters = m4State.clusters.filter(
+    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
+  );
+  const behaviorsComplete =
+    m4CompleteClusters.length >= 3 &&
+    m4CompleteClusters.every((c) => {
+      const op = m4State.operationalize[c.id];
+      return (op?.behaviors?.length ?? 0) >= 3 && !!op?.keystoneId;
+    });
   return (
     <div
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
@@ -34587,9 +34599,22 @@ function NewA1M4HubView({
                       // becomes a calm revisit affordance.
                       room.key === "claim" && !isClaimed);
             const isClaim = room.key === "claim";
+            // Ship 5.7 · M3-parity Complete state. Discover, Behaviors,
+            // and Rank earn a gold ✓ + is-complete border once they meet
+            // their threshold. Claim is excluded — it keeps its existing
+            // "Sealed" treatment when claimed.
+            const isRoomComplete =
+              room.key === "discover"
+                ? hasCompleteCluster
+                : room.key === "operationalize"
+                  ? behaviorsComplete
+                  : room.key === "rank"
+                    ? isPressureTestDone
+                    : false;
             const cls = [
               "na1-ex-row",
               `tone-${room.tone}`,
+              isRoomComplete ? "is-complete" : "",
               isCurrent ? "is-current" : "",
               isLocked ? "is-locked" : "is-unlocked",
               isClaim ? "is-m4-claim" : "",
@@ -34602,10 +34627,16 @@ function NewA1M4HubView({
                 ? "Up next · tap to begin"
                 : isClaim
                   ? "The seal — unlocks after Rank"
-                  : isUnlocked
-                    ? "Open · tap to revisit"
-                    : `Unlocks after ${M4_ROOMS[idx - 1]?.name ?? "the previous room"}`;
-            const iconChar = isLocked ? "🔒" : String(room.n);
+                  : isRoomComplete
+                    ? "Complete"
+                    : isUnlocked
+                      ? "Open · tap to revisit"
+                      : `Unlocks after ${M4_ROOMS[idx - 1]?.name ?? "the previous room"}`;
+            const iconChar = isLocked
+              ? "🔒"
+              : isRoomComplete
+                ? "✓"
+                : String(room.n);
             // Locked rooms remain clickable in M4 so the veil-falls-back
             // pattern (room.bodyShipped === false → setOpenRoom(null) in
             // the container's launch timer) fires. This mirrors the spec
