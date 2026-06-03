@@ -33357,6 +33357,7 @@ function NewA1EntryHall({
           Before you can build a life that is truly yours, you need to know who
           is building it. Not the role. Not the title. <em>You.</em>
         </p>
+        <EntryHallVideoCard />
         <div className="na1-eh-principle-card">
           <p className="na1-eh-eyebrow">Before we start — one principle</p>
           <p className="na1-eh-principle">
@@ -33376,7 +33377,6 @@ function NewA1EntryHall({
           inner trust. Know who you are. Then look outward from a foundation
           that's actually yours.
         </p>
-        <EntryHallVideoCard />
         <div className="na1-eh-cta-row">
           <button className="na1-eh-btn-gold" onClick={onSeeFramework}>
             See the framework <span>→</span>
