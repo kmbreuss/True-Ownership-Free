@@ -120,6 +120,11 @@ import {
   // Ship 5.6k · Part B — sorted-pair key for scenario lookup.
   m4ScenarioKey,
 } from "./mirror4Constants";
+import {
+  VIDEOS,
+  isVideoReady,
+  getVimeoEmbedUrl,
+} from "./videoConstants";
 const KEYS = {
   map: "to_map",
   done: "to_done",
@@ -592,6 +597,22 @@ html[data-theme="light"]{
 .na1-eh-video-num{ font-family:var(--na1-serif); font-style:italic; font-size:11px; color:var(--gold); letter-spacing:.06em; margin-bottom:2px; }
 .na1-eh-video-title{ font-family:var(--na1-serif); font-size:17px; font-weight:600; color:var(--na1-text); margin-bottom:2px; }
 .na1-eh-video-sub{ font-size:12px; color:var(--na1-text-mute); letter-spacing:.04em; }
+/* Ship 5.8 · Entry Hall video player — paused card expands in place (desktop)
+   or opens a full-screen overlay (mobile). Reuses the card tokens. */
+.na1-eh-video-card{ position:relative; }
+.na1-eh-video-card.is-playing{ display:block; padding:0; max-width:760px; cursor:default; overflow:hidden; }
+.na1-eh-video-card.is-playing:hover{ transform:none; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
+.na1-eh-video-player-wrap{ position:relative; width:100%; padding-bottom:56.25%; border-radius:12px; overflow:hidden; background:var(--na1-bg-video); }
+.na1-eh-video-iframe{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+.na1-eh-video-close{ position:absolute; top:10px; right:10px; z-index:3; width:32px; height:32px; border-radius:50%; background:var(--gold); color:#fff; border:0; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .18s; }
+.na1-eh-video-close:hover{ background:#a07827; }
+.na1-eh-video-toast{ position:absolute; bottom:-34px; left:0; font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-sec); background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:6px 12px; white-space:nowrap; }
+.na1-eh-video-overlay{ position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; padding:0; background:rgba(8,15,28,0.96); }
+[data-theme="light"] .na1-eh-video-overlay{ background:rgba(20,18,14,0.94); }
+.na1-eh-video-overlay-inner{ width:100%; }
+.na1-eh-video-overlay .na1-eh-video-player-wrap{ border-radius:0; background:#000; }
+.na1-eh-video-overlay-close{ position:absolute; top:calc(env(safe-area-inset-top, 0px) + 16px); right:calc(env(safe-area-inset-right, 0px) + 16px); z-index:3; width:40px; height:40px; border-radius:50%; background:var(--gold); color:#fff; border:0; font-size:22px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.na1-eh-video-overlay-close:hover{ background:#a07827; }
 .na1-eh-cta-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .na1-eh-btn-gold{ background:var(--gold); color:#fff; border:0; font-family:var(--na1-sans); font-weight:600; font-size:14px; letter-spacing:.04em; padding:14px 28px; border-radius:999px; cursor:pointer; transition:background .2s, transform .2s; display:inline-flex; align-items:center; gap:8px; }
 .na1-eh-btn-gold:hover{ background:#a07827; transform:translateY(-1px); }
@@ -33164,6 +33185,150 @@ function NewA1Spine({
   );
 }
 
+// Ship 5.8 · Entry Hall welcome-video card. Reads its display + player
+// config from VIDEOS["entry-hall"] so future copy/duration changes never
+// touch JSX. Paused → static card; play expands inline (desktop) or opens
+// a full-screen overlay (mobile <600px, with back-button dismiss). If the
+// video isn't ready it shows a brief "Video coming soon" toast instead.
+function EntryHallVideoCard() {
+  const meta = VIDEOS["entry-hall"];
+  const ready = isVideoReady(meta);
+  const embedUrl = getVimeoEmbedUrl(meta);
+  const [playing, setPlaying] = useState(false);
+  const [toast, setToast] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width:599px)").matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width:599px)");
+    const onChange = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  const open = useCallback(() => {
+    if (!ready) {
+      setToast(true);
+      return;
+    }
+    setPlaying(true);
+  }, [ready]);
+  const close = useCallback(() => setPlaying(false), []);
+
+  // Auto-dismiss the "coming soon" toast after 2s.
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(false), 2000);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  // Mobile full-screen overlay: lock body scroll, Esc to close, and push a
+  // history entry so the browser back button dismisses the player.
+  useEffect(() => {
+    if (!playing || !isMobile) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPlaying(false);
+    };
+    const onPop = () => setPlaying(false);
+    document.addEventListener("keydown", onKey);
+    window.history.pushState({ ehVideo: true }, "");
+    window.addEventListener("popstate", onPop);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("popstate", onPop);
+      document.body.style.overflow = prevOverflow;
+      // Closed via button/Esc (our pushed entry still on top): pop it so
+      // history stays clean. Closed via Back: entry already gone, skip.
+      const st = window.history.state as { ehVideo?: boolean } | null;
+      if (st && st.ehVideo) window.history.back();
+    };
+  }, [playing, isMobile]);
+
+  const pausedCard = (
+    <div
+      className="na1-eh-video-card"
+      role="button"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      }}
+    >
+      <div className="na1-eh-play-btn">▶</div>
+      <div>
+        <div className="na1-eh-video-num">{meta.number}</div>
+        <div className="na1-eh-video-title">{meta.title}</div>
+        <div className="na1-eh-video-sub">
+          {meta.speaker} · {meta.durationLabel}
+        </div>
+      </div>
+      {toast && <div className="na1-eh-video-toast">Video coming soon</div>}
+    </div>
+  );
+
+  if (!playing) return pausedCard;
+
+  const player = (
+    <div className="na1-eh-video-player-wrap">
+      <iframe
+        src={embedUrl ?? undefined}
+        frameBorder="0"
+        allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
+        allowFullScreen
+        title={meta.title}
+        className="na1-eh-video-iframe"
+      />
+    </div>
+  );
+
+  if (isMobile) {
+    return createPortal(
+      <div
+        className="na1-eh-video-overlay is-open"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) close();
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={meta.title}
+      >
+        <button
+          type="button"
+          className="na1-eh-video-overlay-close"
+          onClick={close}
+          aria-label="Close video"
+        >
+          ×
+        </button>
+        <div className="na1-eh-video-overlay-inner">{player}</div>
+      </div>,
+      document.body,
+    );
+  }
+
+  return (
+    <div className="na1-eh-video-card is-playing">
+      <button
+        type="button"
+        className="na1-eh-video-close"
+        onClick={close}
+        aria-label="Close video"
+      >
+        ×
+      </button>
+      {player}
+    </div>
+  );
+}
+
 // Entry Hall — the first-visit home. "You write first" framing, the one
 // principle card, the welcome-video stub, and two CTAs (framework / skip).
 function NewA1EntryHall({
@@ -33211,14 +33376,7 @@ function NewA1EntryHall({
           inner trust. Know who you are. Then look outward from a foundation
           that's actually yours.
         </p>
-        <div className="na1-eh-video-card">
-          <div className="na1-eh-play-btn">▶</div>
-          <div>
-            <div className="na1-eh-video-num">00</div>
-            <div className="na1-eh-video-title">Welcome to True Ownership</div>
-            <div className="na1-eh-video-sub">Katherine · 4 min</div>
-          </div>
-        </div>
+        <EntryHallVideoCard />
         <div className="na1-eh-cta-row">
           <button className="na1-eh-btn-gold" onClick={onSeeFramework}>
             See the framework <span>→</span>

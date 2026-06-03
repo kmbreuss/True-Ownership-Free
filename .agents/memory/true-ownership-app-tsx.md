@@ -35,6 +35,23 @@ The Entry Hall / Framework / Spine / new A1 grid render only when the URL has
 these surfaces cannot be screenshotted without credentials — the user walks them
 with their own account.
 
+## Video surfaces: data in videoConstants.ts, but UI is per-surface
+
+`videoConstants.ts` (`VIDEOS` record, `isVideoReady`, `getVimeoEmbedUrl`) is the
+single source of truth for all seven video surfaces' metadata. Only surfaces
+with a `vimeoId` are "ready" and playable; the rest render a placeholder.
+
+**Gotcha:** adding a `vimeoId`/`vimeoHash` to a surface in `videoConstants.ts`
+does NOT auto-make it playable. Each surface needs its own player-capable card
+component wired to its `VIDEOS[...]` entry. Only the Entry Hall (`EntryHallVideoCard`
+in App.tsx) has that treatment so far. Future video ships must add the card UI to
+the target surface (Framework / A1 hub / M1–M4), not just the data row.
+
+**Vimeo embed:** private videos need the `?h=<hash>` unlock param or the embed
+fails with "video unavailable". Never autoplay (browsers block it without a user
+gesture anyway). Mobile (<600px) opens a full-screen portal overlay that pushes a
+history entry so the Back button dismisses it; desktop expands inline.
+
 ## Breadcrumb "Entry Hall" link threading
 
 The `onEntryHall` handler must be threaded through *both* a hub view component

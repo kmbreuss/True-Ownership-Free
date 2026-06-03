@@ -1,0 +1,23 @@
+Plan is clean. Agent did exactly the right read-the-source work — three things worth calling out:
+1. Token-name correction (good catch). My brief said var(--gold-mute) for the dark-theme border treatment. Agent confirmed that token doesn't exist in this codebase. The real tokens are --na1-bg-card, --gold-line, --gold, --gold-warm, --na1-text, --na1-text-mute. Same source-investigation discipline as Ship 5.7 and Task #26 field-name corrections. Ship with the real tokens.
+2. The 55k-line / stale-line-numbers note. That's an honest engineering observation — the read tool stales out on a file this large, so navigation via rg/sed plus pnpm --filter @workspace/true-ownership run typecheck is the right workflow. Locked.
+3. The four file references. Agent identified the exact existing Entry Hall card location (App.tsx:33214-33234), the tokens block (App.tsx:475-620), the constants-module reference pattern (mirror4Constants.ts), and two other touch points. That tells me Agent has the surface area properly scoped.
+Reply to send Agent:
+
+Plan approved. Token correction noted — use the real tokens (--na1-bg-card, --gold-line, --gold, --gold-warm, --na1-text, --na1-text-mute), not --gold-mute. Excellent source-investigation catch — same pattern as Ship 5.7 and Task #26.
+Switch to Build mode and ship to dev under ?newA1=1. Once it's there, I'll walk via Chrome MCP using the test plan from the brief — specifically these nine checkpoints:
+1. Entry Hall card meta reads "Katherine · 7:43" (was "4 min")
+2. Click play → card expands → Vimeo "Welcome to True Ownership" loads and plays
+3. Close-X collapses cleanly, no orphaned iframe
+4. Reopen works (no double-iframe ghost)
+5. Resize to <600px → click play → full-screen overlay instead of inline
+6. Browser back button dismisses the overlay
+7. Toggle dark theme → card + player both render correctly
+8. Click play on Framework or M3/M4 placeholder → no crash (toast or silent OK)
+9. Refresh mid-playback → app re-mounts to paused state, no broken player
+Specific things I'll inspect via DevTools during the walk:
+• Confirm videoConstants.ts exports MediaMeta, VIDEOS, isVideoReady, getVimeoEmbedUrl as designed
+• Confirm iframe src resolves to exactly https://player.vimeo.com/video/1198147066?h=92f1bb6e8a (the h= hash is non-negotiable — without it the embed fails)
+• Confirm iframe allowfullscreen is set and autoplay is NOT in the URL
+• Confirm the player container has position: relative + padding-bottom: 56.25% (16:9 aspect)
+Ping me with the dev URL when it's live.

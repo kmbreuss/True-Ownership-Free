@@ -1,0 +1,346 @@
+# Ship 5.8 · Wire Vimeo Video to Entry Hall
+
+**Owner:** Katherine Breuss · AG45
+**File:** `artifacts/true-ownership/src/App.tsx`
+**Flag:** Ships under existing `?newA1=1` (no new flag)
+**Scope:** ~150 lines new TS + ~30 lines edits to the existing Entry Hall card
+
+---
+
+## What we're doing
+
+Wire a real Vimeo video into the existing Entry Hall "00 · Welcome to True Ownership" card. When user clicks the play button, the static card expands in place to reveal a Vimeo player iframe. Click the close-X (top right) to collapse back to the static card.
+
+This is the FIRST video to land. The other five surfaces (Framework, A1 hub, M1, M2, M3, M4) stay in **placeholder mode** — same UI, but the play button shows a small "Video coming soon" toast on click. As Katherine records more videos, only one file (`videoConstants.ts`) changes — no UI work required.
+
+---
+
+## Confirmed video details
+
+| Field | Value |
+|---|---|
+| Surface | `"entry-hall"` |
+| Number | `"00"` |
+| Display title | `"Welcome to True Ownership"` |
+| Speaker | `"Katherine"` |
+| Duration label | `"7:43"` |
+| Vimeo video ID | `1198147066` |
+| Unlock hash | `92f1bb6e8a` |
+| Player URL (use this exactly) | `https://player.vimeo.com/video/1198147066?h=92f1bb6e8a` |
+| Privacy | Unlisted with hash · embed permission set to "Anywhere" on Vimeo |
+
+The `?h=92f1bb6e8a` parameter on the player URL is **required** — it's the unlock hash for the private video. Without it, the embed will fail with "video unavailable."
+
+---
+
+## What to build
+
+### 1. New file: `artifacts/true-ownership/src/videoConstants.ts`
+
+Single source of truth for all video metadata. New file, no existing equivalent. Pattern mirrors `mirror4Constants.ts`.
+
+```typescript
+// Surface keys for each video position in the app
+export type VideoSurface =
+  | "entry-hall"
+  | "framework"
+  | "a1-hub"
+  | "m1-hub"
+  | "m2-hub"
+  | "m3-hub"
+  | "m4-hub";
+
+export type MediaType = "video" | "audio";
+
+export type VideoMeta = {
+  id: string;                  // unique identifier
+  surface: VideoSurface;       // which surface in the app it renders on
+  number: string;              // "00" | "01" | "02" ... — displayed as italic gold eyebrow
+  title: string;               // displayed title on the card
+  speaker: string;             // currently always "Katherine"
+  durationLabel: string;       // "7:43" | "45 sec" — shows in muted meta line
+  mediaType: MediaType;        // "video" — drives player choice (audio support is future-proofing)
+  vimeoId: string | null;      // Vimeo numeric ID, e.g. "1198147066"
+  vimeoHash: string | null;    // Unlock hash for private videos, e.g. "92f1bb6e8a"
+  audioUrl: string | null;     // future: local /audio path for audio variants
+  posterUrl: string | null;    // future: thumbnail/hero photo
+  transcript: string | null;   // future: collapsible transcript text
+};
+
+export const VIDEOS: Record<VideoSurface, VideoMeta> = {
+  "entry-hall": {
+    id: "entry-hall-welcome",
+    surface: "entry-hall",
+    number: "00",
+    title: "Welcome to True Ownership",
+    speaker: "Katherine",
+    durationLabel: "7:43",
+    mediaType: "video",
+    vimeoId: "1198147066",
+    vimeoHash: "92f1bb6e8a",
+    audioUrl: null,
+    posterUrl: null,
+    transcript: null,
+  },
+  "framework": {
+    id: "framework-5a",
+    surface: "framework",
+    number: "01",
+    title: "Walk your spine — the 5A Framework",
+    speaker: "Katherine",
+    durationLabel: "5 min",
+    mediaType: "video",
+    vimeoId: null,
+    vimeoHash: null,
+    audioUrl: null,
+    posterUrl: null,
+    transcript: null,
+  },
+  "a1-hub": {
+    id: "a1-hub-orientation",
+    surface: "a1-hub",
+    number: "02",
+    title: "Before you begin — how to show up",
+    speaker: "Katherine",
+    durationLabel: "45 sec",
+    mediaType: "video",
+    vimeoId: null,
+    vimeoHash: null,
+    audioUrl: null,
+    posterUrl: null,
+    transcript: null,
+  },
+  "m1-hub": {
+    id: "m1-purpose-intro",
+    surface: "m1-hub",
+    number: "03",
+    title: "Name the why",
+    speaker: "Katherine",
+    durationLabel: "45 sec",
+    mediaType: "video",
+    vimeoId: null,
+    vimeoHash: null,
+    audioUrl: null,
+    posterUrl: null,
+    transcript: null,
+  },
+  "m2-hub": {
+    id: "m2-vision-intro",
+    surface: "m2-hub",
+    number: "04",
+    title: "See it before you build it",
+    speaker: "Katherine",
+    durationLabel: "45 sec",
+    mediaType: "video",
+    vimeoId: null,
+    vimeoHash: null,
+    audioUrl: null,
+    posterUrl: null,
+    transcript: null,
+  },
+  "m3-hub": {
+    id: "m3-identity-intro",
+    surface: "m3-hub",
+    number: "05",
+    title: "What's already true",
+    speaker: "Katherine",
+    durationLabel: "45 sec",
+    mediaType: "video",
+    vimeoId: null,
+    vimeoHash: null,
+    audioUrl: null,
+    posterUrl: null,
+    transcript: null,
+  },
+  "m4-hub": {
+    id: "m4-values-intro",
+    surface: "m4-hub",
+    number: "06",
+    title: "Get the order right",
+    speaker: "Katherine",
+    durationLabel: "45 sec",
+    mediaType: "video",
+    vimeoId: null,
+    vimeoHash: null,
+    audioUrl: null,
+    posterUrl: null,
+    transcript: null,
+  },
+};
+
+/**
+ * Helper to check whether a video is ready to play
+ * (vs. placeholder mode where the card shows but play does nothing).
+ */
+export function isVideoReady(meta: VideoMeta): boolean {
+  if (meta.mediaType === "video") return meta.vimeoId !== null;
+  if (meta.mediaType === "audio") return meta.audioUrl !== null;
+  return false;
+}
+
+/**
+ * Helper to build the Vimeo embed URL from meta.
+ * Returns null if the video isn't ready (placeholder mode).
+ */
+export function getVimeoEmbedUrl(meta: VideoMeta): string | null {
+  if (meta.vimeoId === null) return null;
+  const hashParam = meta.vimeoHash ? `?h=${meta.vimeoHash}` : "";
+  return `https://player.vimeo.com/video/${meta.vimeoId}${hashParam}`;
+}
+```
+
+### 2. New inline component: `<EntryHallVideoCard />`
+
+Lives inside `App.tsx` (don't create a separate file — same single-file convention as everything else in this codebase). Wire to consume `VIDEOS["entry-hall"]` from the constants module.
+
+Component states:
+- **Paused (default)** — static card matching the existing v4 mockup pattern exactly. Cream background, gold border, 12px radius, 48px gold play-button circle with white triangle, italic gold "00", Georgia 600 title, DM Sans 12px muted meta line.
+- **Playing** — card expands in place; iframe replaces the inner card content; small close-X (24px circular gold button, top-right of expanded area) returns to paused state.
+
+When user clicks the play button:
+1. If `isVideoReady(meta)` is `false` → show a small inline toast that reads "Video coming soon" for 2 seconds, do nothing else.
+2. If `isVideoReady(meta)` is `true` → expand the card and render a Vimeo embed iframe using `getVimeoEmbedUrl(meta)`.
+
+### 3. Replace existing Entry Hall video card
+
+The current Entry Hall video card is hardcoded with "00 · Welcome to True Ownership · Katherine · 4 min". Replace this with `<EntryHallVideoCard />`. The new component reads everything from the constants file, so future title/duration changes never touch JSX again.
+
+**Find** the existing hardcoded card in the Entry Hall surface render (lives under the `?newA1=1` Entry Hall logic — search for the existing "Welcome to True Ownership" placeholder string to locate it).
+
+**Replace** with `<EntryHallVideoCard />`.
+
+Do NOT touch any other video card position in this ship. Framework, A1 hub, M1-M4 video cards stay as they currently are (placeholder UI). They get wired up in future ships, surface by surface, as Katherine records each one.
+
+---
+
+## Vimeo iframe spec
+
+The iframe element:
+
+```html
+<iframe
+  src="https://player.vimeo.com/video/1198147066?h=92f1bb6e8a"
+  width="100%"
+  height="100%"
+  frameBorder="0"
+  allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
+  allowFullScreen
+  title="Welcome to True Ownership"
+  style={{
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+  }}
+/>
+```
+
+Wrap it in a 16:9 aspect-ratio container so it scales correctly at all viewport widths:
+
+```css
+.video-card-player-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;  /* 16:9 */
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--na1-bg);
+}
+```
+
+Critical: do NOT autoplay. The user must click the play button first. Autoplay creates a hostile experience and violates browser autoplay policies (modern browsers block it without user gesture anyway).
+
+---
+
+## CSS / theme
+
+Reuse existing tokens. No hardcoded colors anywhere. Specifically:
+
+- Background: `var(--na1-bg)` (cream in light theme, navy in dark theme)
+- Border: `var(--gold)` (gold-mute in dark)
+- Play button fill: `var(--gold)`
+- Close button: small circular `var(--gold)` background, white "×" character inside, hovers to slightly darker gold
+- Number eyebrow color: `var(--gold)` italic Georgia
+- Title color: `var(--na1-text)` Georgia 600
+- Meta line color: `var(--na1-text-mute)` DM Sans
+
+Test both light and dark themes.
+
+---
+
+## Mobile pattern (<600px)
+
+On viewports below 600px:
+- Card still shows the same paused state
+- Clicking play opens the Vimeo player in a **full-screen overlay** (not inline expansion) — the iframe takes the full viewport height/width with a 12px gold close button anchored top-right with 16px safe-area inset
+- Tapping the close button or the dark backdrop dismisses the overlay
+- Browser back button also dismisses (push a history state on open, pop on close)
+
+This pattern is the same as the existing room overlays in M3/M4. Reuse the existing overlay infrastructure if there is any; otherwise build a thin equivalent.
+
+---
+
+## Definition of done
+
+- [ ] `src/videoConstants.ts` created with the seven surfaces; only `entry-hall` has Vimeo ID + hash populated, the other six are null (placeholder mode)
+- [ ] Helpers `isVideoReady(meta)` and `getVimeoEmbedUrl(meta)` exported and unit-testable
+- [ ] `<EntryHallVideoCard />` defined inline in App.tsx, consumes `VIDEOS["entry-hall"]`
+- [ ] Existing hardcoded Entry Hall card replaced with `<EntryHallVideoCard />`
+- [ ] Play click on Entry Hall card expands the card inline and renders the Vimeo iframe
+- [ ] Close-X collapses back to the static paused state
+- [ ] Mobile (<600px) opens player in full-screen overlay instead of inline
+- [ ] Light and dark themes both render correctly (no hardcoded colors)
+- [ ] Card still says "00 · Welcome to True Ownership · Katherine · 7:43" in the paused state (duration updated from old "4 min" to new "7:43")
+- [ ] Typecheck passes on edited ranges
+- [ ] No regression: A1 hub, M1/M2/M3/M4 hubs still render their existing video card / "START HERE" bar as before. Clicking play on those does nothing destructive (a "Video coming soon" toast is fine but optional for this ship — minimum bar is "play click doesn't crash and doesn't open a broken iframe").
+- [ ] No new feature flag introduced; ships under existing `?newA1=1`
+- [ ] Legacy app at `/` (no flags) is unchanged
+
+---
+
+## Test plan for Katherine's walk
+
+Once shipped to dev, I'll walk these via Chrome MCP:
+
+1. Land on Entry Hall (`?newA1=1`) → see paused card with new "7:43" meta
+2. Click play → card expands → Vimeo player loads → confirm video is "Welcome to True Ownership" with Katherine in frame
+3. Click close-X → card collapses to paused state
+4. Click play again → confirm reopens cleanly (no double-iframe, no orphaned listeners)
+5. Resize browser <600px → click play → confirm full-screen overlay instead of inline expansion
+6. Toggle dark theme → confirm card + player both render correctly
+7. Navigate to Framework → click its existing video placeholder → confirm no crash (acceptable: nothing happens, or "Video coming soon" toast)
+8. Navigate to M3 hub → click "START HERE" bar → confirm no crash
+9. Refresh in the middle of playing video → app re-mounts cleanly to paused state (no broken player ghost)
+
+---
+
+## What is NOT in this ship (out of scope, do not implement)
+
+- New feature flag
+- Changes to the legacy app at `/` (no flags)
+- Modifying the Framework, A1 hub, M1, M2, M3, or M4 video positions (those stay in current placeholder UI — they're future ships, one per recording session)
+- Transcript display
+- Speed control or playback rate UI
+- Custom video player UI (we let Vimeo provide the player chrome — clean, free, accessibility built-in)
+- Analytics / watch-time tracking
+- Resume-from-position
+- Captions toggle (Vimeo handles this if Katherine enables on Vimeo's side)
+
+---
+
+## After Ship 5.8 — what comes next
+
+The architecture is intentionally designed so each future video is a **single-line change in `videoConstants.ts`**. When Katherine records the Framework video and uploads to Vimeo:
+
+```typescript
+"framework": {
+  ...
+  vimeoId: "[new vimeo id]",
+  vimeoHash: "[new hash]",
+  durationLabel: "[new duration]",
+  ...
+}
+```
+
+That's it. No UI work, no new component, no new ship needed. The same component pattern needs to be applied to the Framework card (and A1 hub, and each mirror hub) but those are tiny follow-up ships (~20 lines each, mostly just JSX replacement), not full architectural builds. Ship 5.8 does the architectural heavy lifting once.
