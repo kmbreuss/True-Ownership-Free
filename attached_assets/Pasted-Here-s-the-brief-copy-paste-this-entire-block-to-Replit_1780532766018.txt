@@ -1,0 +1,55 @@
+Here's the brief — copy-paste this entire block to Replit Agent:
+
+MESSAGE TO SEND AGENT:
+
+Ship 5.9 · Framework Video + Generic VideoCard Refactor
+Two related changes — add Katherine's new 5A Framework video AND refactor the existing <EntryHallVideoCard /> into a generic reusable <VideoCard surface={...} /> component. The refactor is the right move now while there's only one component to abstract; otherwise the next 5 surfaces become 5 copy-pasted components.
+Files: src/videoConstants.ts + src/App.tsx. Ships under existing ?newA1=1. No new flag.
+
+Change 1 — videoConstants.ts: Update the "framework" entry (currently in placeholder mode). Three fields:
+
+vimeoId: null → "1198243013"
+vimeoHash: null → "705008f567"
+durationLabel: "5 min" → "6:28"
+
+Resulting embed URL: https://player.vimeo.com/video/1198243013?h=705008f567. Title "Walk your spine — the 5A Framework" and number: "01" unchanged.
+
+Change 2 — Refactor inline <EntryHallVideoCard /> → <VideoCard surface={surface} />:
+Same single-file convention. Component takes a surface: VideoSurface prop, reads meta via useVideo(surface), renders identical UI to current EntryHallVideoCard. Replace existing <EntryHallVideoCard /> usage with <VideoCard surface="entry-hall" />.
+CSS class names — rename from surface-specific to surface-agnostic (update both JSX className attributes AND the corresponding CSS rules in the same edit pass):
+
+na1-eh-video-card → na1-video-card
+na1-eh-video-player-wrap → na1-video-player-wrap
+na1-eh-video-iframe → na1-video-iframe
+na1-eh-video-overlay → na1-video-overlay
+na1-eh-video-overlay-inner → na1-video-overlay-inner
+na1-eh-video-overlay-close → na1-video-overlay-close
+na1-eh-video-toast → na1-video-toast
+
+Zero-functional-change refactor on Entry Hall — play/expand/close/reopen/mobile-overlay/both-themes behavior must be IDENTICAL after.
+
+Change 3 — Add <VideoCard surface="framework" /> on the Framework page:
+Insert between the lead paragraph and the phase tabs. Target Framework page order top-to-bottom:
+
+Breadcrumb Entry Hall › The Framework
+Eyebrow THE 5A FRAMEWORK™
+Hero 90 days. Two phases. + italic gold One complete owner.
+Lead paragraph: "The 5A Framework applied first to you — then to your business. Five disciplines. The same shifts, run twice — once on the owner, once on what they build."
+<VideoCard surface="framework" /> ← new position
+Phase tabs (Phase 1 / Phase 2)
+Phase content (A1–A5 cards with day badges + spine bar)
+CTAs (Begin A1 / Back to Entry Hall)
+
+Same visual styling as Entry Hall card — cream/dark themes, gold border, 48px play button, italic gold "01", Georgia 600 title, DM Sans muted meta line Katherine · 6:28.
+
+Done looks like:
+
+Entry Hall video still works EXACTLY as before (1198147066, meta Katherine · 7:43, all interactions identical)
+Framework page shows new card between paragraph and phase tabs, meta reads Katherine · 6:28
+Click on Framework card → expand → iframe loads https://player.vimeo.com/video/1198243013?h=705008f567
+Close-X / mobile overlay / both themes / reopen all work on Framework card
+Typecheck clean, no regressions on placeholder surfaces (A1 hub, M1-M4)
+
+Out of scope: new flag, legacy / route changes, wiring A1/M1/M2/M3/M4 surfaces (they stay in placeholder mode), visual differentiation between Entry Hall and Framework cards (same component, same styling).
+Switch to plan mode first if you find any source-investigation questions about the refactor — same discipline as Ship 5.7, Task #26, and Ship 5.8.
+

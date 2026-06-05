@@ -124,6 +124,7 @@ import {
   VIDEOS,
   isVideoReady,
   getVimeoEmbedUrl,
+  type VideoSurface,
 } from "./videoConstants";
 const KEYS = {
   map: "to_map",
@@ -591,28 +592,28 @@ html[data-theme="light"]{
 .na1-eh-principle-meta{ font-size:15px; line-height:1.6; color:var(--na1-text-sec); }
 .na1-eh-principle-meta strong{ color:var(--na1-text); font-weight:600; }
 .na1-eh-ai-note{ font-family:var(--na1-serif); font-style:italic; font-size:16px; line-height:1.6; color:var(--na1-text-sec); max-width:640px; margin-bottom:48px; padding-left:24px; border-left:2px solid var(--gold-line); }
-.na1-eh-video-card{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:12px; padding:24px 28px; display:flex; align-items:center; gap:22px; max-width:480px; margin-bottom:48px; cursor:pointer; transition:transform .2s, box-shadow .2s; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
-.na1-eh-video-card:hover{ transform:translateY(-1px); box-shadow:0 1px 0 var(--gold-warm), 0 12px 36px -14px rgba(0,0,0,0.12); }
-.na1-eh-play-btn{ width:48px; height:48px; border-radius:50%; background:var(--gold); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; padding-left:3px; }
-.na1-eh-video-num{ font-family:var(--na1-serif); font-style:italic; font-size:11px; color:var(--gold); letter-spacing:.06em; margin-bottom:2px; }
-.na1-eh-video-title{ font-family:var(--na1-serif); font-size:17px; font-weight:600; color:var(--na1-text); margin-bottom:2px; }
-.na1-eh-video-sub{ font-size:12px; color:var(--na1-text-mute); letter-spacing:.04em; }
+.na1-video-card{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:12px; padding:24px 28px; display:flex; align-items:center; gap:22px; max-width:480px; margin-bottom:48px; cursor:pointer; transition:transform .2s, box-shadow .2s; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
+.na1-video-card:hover{ transform:translateY(-1px); box-shadow:0 1px 0 var(--gold-warm), 0 12px 36px -14px rgba(0,0,0,0.12); }
+.na1-video-play-btn{ width:48px; height:48px; border-radius:50%; background:var(--gold); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; padding-left:3px; }
+.na1-video-num{ font-family:var(--na1-serif); font-style:italic; font-size:11px; color:var(--gold); letter-spacing:.06em; margin-bottom:2px; }
+.na1-video-title{ font-family:var(--na1-serif); font-size:17px; font-weight:600; color:var(--na1-text); margin-bottom:2px; }
+.na1-video-sub{ font-size:12px; color:var(--na1-text-mute); letter-spacing:.04em; }
 /* Ship 5.8 · Entry Hall video player — paused card expands in place (desktop)
    or opens a full-screen overlay (mobile). Reuses the card tokens. */
-.na1-eh-video-card{ position:relative; }
-.na1-eh-video-card.is-playing{ display:block; padding:0; max-width:760px; cursor:default; overflow:hidden; }
-.na1-eh-video-card.is-playing:hover{ transform:none; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
-.na1-eh-video-player-wrap{ position:relative; width:100%; padding-bottom:56.25%; border-radius:12px; overflow:hidden; background:var(--na1-bg-video); }
-.na1-eh-video-iframe{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
-.na1-eh-video-close{ position:absolute; top:10px; right:10px; z-index:3; width:32px; height:32px; border-radius:50%; background:var(--gold); color:#fff; border:0; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .18s; }
-.na1-eh-video-close:hover{ background:#a07827; }
-.na1-eh-video-toast{ position:absolute; bottom:-34px; left:0; font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-sec); background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:6px 12px; white-space:nowrap; }
-.na1-eh-video-overlay{ position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; padding:0; background:rgba(8,15,28,0.96); }
-[data-theme="light"] .na1-eh-video-overlay{ background:rgba(20,18,14,0.94); }
-.na1-eh-video-overlay-inner{ width:100%; }
-.na1-eh-video-overlay .na1-eh-video-player-wrap{ border-radius:0; background:#000; }
-.na1-eh-video-overlay-close{ position:absolute; top:calc(env(safe-area-inset-top, 0px) + 16px); right:calc(env(safe-area-inset-right, 0px) + 16px); z-index:3; width:40px; height:40px; border-radius:50%; background:var(--gold); color:#fff; border:0; font-size:22px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.na1-eh-video-overlay-close:hover{ background:#a07827; }
+.na1-video-card{ position:relative; }
+.na1-video-card.is-playing{ display:block; padding:0; max-width:760px; cursor:default; overflow:hidden; }
+.na1-video-card.is-playing:hover{ transform:none; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
+.na1-video-player-wrap{ position:relative; width:100%; padding-bottom:56.25%; border-radius:12px; overflow:hidden; background:var(--na1-bg-video); }
+.na1-video-iframe{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+.na1-video-close{ position:absolute; top:10px; right:10px; z-index:3; width:32px; height:32px; border-radius:50%; background:var(--gold); color:#fff; border:0; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .18s; }
+.na1-video-close:hover{ background:#a07827; }
+.na1-video-toast{ position:absolute; bottom:-34px; left:0; font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-sec); background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:6px 12px; white-space:nowrap; }
+.na1-video-overlay{ position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; padding:0; background:rgba(8,15,28,0.96); }
+[data-theme="light"] .na1-video-overlay{ background:rgba(20,18,14,0.94); }
+.na1-video-overlay-inner{ width:100%; }
+.na1-video-overlay .na1-video-player-wrap{ border-radius:0; background:#000; }
+.na1-video-overlay-close{ position:absolute; top:calc(env(safe-area-inset-top, 0px) + 16px); right:calc(env(safe-area-inset-right, 0px) + 16px); z-index:3; width:40px; height:40px; border-radius:50%; background:var(--gold); color:#fff; border:0; font-size:22px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.na1-video-overlay-close:hover{ background:#a07827; }
 .na1-eh-cta-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .na1-eh-btn-gold{ background:var(--gold); color:#fff; border:0; font-family:var(--na1-sans); font-weight:600; font-size:14px; letter-spacing:.04em; padding:14px 28px; border-radius:999px; cursor:pointer; transition:background .2s, transform .2s; display:inline-flex; align-items:center; gap:8px; }
 .na1-eh-btn-gold:hover{ background:#a07827; transform:translateY(-1px); }
@@ -33185,13 +33186,14 @@ function NewA1Spine({
   );
 }
 
-// Ship 5.8 · Entry Hall welcome-video card. Reads its display + player
-// config from VIDEOS["entry-hall"] so future copy/duration changes never
-// touch JSX. Paused → static card; play expands inline (desktop) or opens
-// a full-screen overlay (mobile <600px, with back-button dismiss). If the
-// video isn't ready it shows a brief "Video coming soon" toast instead.
-function EntryHallVideoCard() {
-  const meta = VIDEOS["entry-hall"];
+// Ship 5.8/5.9 · Generic welcome-video card, keyed by surface. Reads its
+// display + player config from VIDEOS[surface] so future copy/duration
+// changes never touch JSX. Paused → static card; play expands inline
+// (desktop) or opens a full-screen overlay (mobile <600px, with back-button
+// dismiss). If the video isn't ready it shows a brief "Video coming soon"
+// toast instead.
+function VideoCard({ surface }: { surface: VideoSurface }) {
+  const meta = VIDEOS[surface];
   const ready = isVideoReady(meta);
   const embedUrl = getVimeoEmbedUrl(meta);
   const [playing, setPlaying] = useState(false);
@@ -33251,7 +33253,7 @@ function EntryHallVideoCard() {
 
   const pausedCard = (
     <div
-      className="na1-eh-video-card"
+      className="na1-video-card"
       role="button"
       tabIndex={0}
       onClick={open}
@@ -33262,29 +33264,29 @@ function EntryHallVideoCard() {
         }
       }}
     >
-      <div className="na1-eh-play-btn">▶</div>
+      <div className="na1-video-play-btn">▶</div>
       <div>
-        <div className="na1-eh-video-num">{meta.number}</div>
-        <div className="na1-eh-video-title">{meta.title}</div>
-        <div className="na1-eh-video-sub">
+        <div className="na1-video-num">{meta.number}</div>
+        <div className="na1-video-title">{meta.title}</div>
+        <div className="na1-video-sub">
           {meta.speaker} · {meta.durationLabel}
         </div>
       </div>
-      {toast && <div className="na1-eh-video-toast">Video coming soon</div>}
+      {toast && <div className="na1-video-toast">Video coming soon</div>}
     </div>
   );
 
   if (!playing) return pausedCard;
 
   const player = (
-    <div className="na1-eh-video-player-wrap">
+    <div className="na1-video-player-wrap">
       <iframe
         src={embedUrl ?? undefined}
         frameBorder="0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
         allowFullScreen
         title={meta.title}
-        className="na1-eh-video-iframe"
+        className="na1-video-iframe"
       />
     </div>
   );
@@ -33292,7 +33294,7 @@ function EntryHallVideoCard() {
   if (isMobile) {
     return createPortal(
       <div
-        className="na1-eh-video-overlay is-open"
+        className="na1-video-overlay is-open"
         onClick={(e) => {
           if (e.target === e.currentTarget) close();
         }}
@@ -33302,23 +33304,23 @@ function EntryHallVideoCard() {
       >
         <button
           type="button"
-          className="na1-eh-video-overlay-close"
+          className="na1-video-overlay-close"
           onClick={close}
           aria-label="Close video"
         >
           ×
         </button>
-        <div className="na1-eh-video-overlay-inner">{player}</div>
+        <div className="na1-video-overlay-inner">{player}</div>
       </div>,
       document.body,
     );
   }
 
   return (
-    <div className="na1-eh-video-card is-playing">
+    <div className="na1-video-card is-playing">
       <button
         type="button"
-        className="na1-eh-video-close"
+        className="na1-video-close"
         onClick={close}
         aria-label="Close video"
       >
@@ -33357,7 +33359,7 @@ function NewA1EntryHall({
           Before you can build a life that is truly yours, you need to know who
           is building it. Not the role. Not the title. <em>You.</em>
         </p>
-        <EntryHallVideoCard />
+        <VideoCard surface="entry-hall" />
         <div className="na1-eh-principle-card">
           <p className="na1-eh-eyebrow">Before we start — one principle</p>
           <p className="na1-eh-principle">
@@ -33421,6 +33423,7 @@ function NewA1Framework({
           <strong>your business</strong>. Five disciplines. The same shifts, run
           twice — once on the owner, once on what they build.
         </p>
+        <VideoCard surface="framework" />
         <div className="na1-phase-tabs">
           <button
             className="na1-phase-tab"
