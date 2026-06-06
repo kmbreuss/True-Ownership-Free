@@ -790,6 +790,12 @@ html[data-theme="light"]{
 .na1-ex-row.is-m4-claim .na1-ex-icon{ background:var(--gold-soft); border-color:var(--gold-line); color:var(--gold); }
 .na1-ex-row.is-m4-claim .na1-ex-name{ color:var(--gold); font-weight:600; }
 .na1-ex-row.is-m4-claim .na1-ex-status{ color:var(--na1-text-mute); }
+/* Ship 5.9a · A sealed Claim card carries both is-m4-claim and
+   is-complete. Without this, is-m4-claim's icon rule (later in source,
+   equal specificity) wins and the sealed ✓ loses the complete-state
+   icon sizing/border. Declarations copied verbatim from
+   .na1-ex-row.is-complete .na1-ex-icon above so they cannot drift. */
+.na1-ex-row.is-m4-claim.is-complete .na1-ex-icon{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); font-size:18px; }
 /* Status strip */
 .na1-status-strip{ position:sticky; top:80px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; font-family:var(--na1-sans); display:flex; flex-direction:column; gap:14px; }
 @media (max-width:900px){ .na1-status-strip{ position:static; } }
@@ -35360,10 +35366,15 @@ function NewA1M4HubView({
                   : room.key === "rank"
                     ? isPressureTestDone
                     : false;
+            // Ship 5.9a · A sealed Claim card earns the same Complete
+            // treatment as the other three rooms (gold ✓ + complete
+            // border), while keeping its "Sealed" label and is-m4-claim
+            // accent. claimed=true is the sealed signal.
+            const isClaimComplete = isClaim && isClaimed;
             const cls = [
               "na1-ex-row",
               `tone-${room.tone}`,
-              isRoomComplete ? "is-complete" : "",
+              isRoomComplete || isClaimComplete ? "is-complete" : "",
               isCurrent ? "is-current" : "",
               isLocked ? "is-locked" : "is-unlocked",
               isClaim ? "is-m4-claim" : "",
@@ -35383,7 +35394,7 @@ function NewA1M4HubView({
                       : `Unlocks after ${M4_ROOMS[idx - 1]?.name ?? "the previous room"}`;
             const iconChar = isLocked
               ? "🔒"
-              : isRoomComplete
+              : isRoomComplete || isClaimComplete
                 ? "✓"
                 : String(room.n);
             // Locked rooms remain clickable in M4 so the veil-falls-back

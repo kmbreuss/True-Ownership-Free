@@ -1,0 +1,41 @@
+The bug: the M4 hub status chain has no "Complete" branch, so Discover / Behaviors / Rank all fall through to "Open · tap to revisit" with a gray number badge — no gold ✓, no gold left border. M3 already does this correctly; we're matching it. There's also a storage-key bug feeding wrong data into the completion check.
+Files to touch: artifacts/true-ownership/src/App.tsx only.
+Fix #1 — storage key. The m4Started and m4Complete useMemos in the parent component read loadDataSync(KEYS.map) and then access .mirror4.status / .mirror4.claimed. M4 state does not live in the map key — it lives in its own key to_mirror4_state_v1. Swap those reads to loadMirror4State() (already imported; appears at ~5 positions in App.tsx). The map-key read returns undefined, which is why completion never registers.
+Fix #2 — add a Complete treatment to the four hub room cards. Mirror M3's existing pattern.
+Complete-when, per room:
+
+Discover — at least one value has a saved definition.
+Behaviors — every value has ≥1 behavior AND a keystone (the same gate that already unlocks Rank).
+Rank — rank ordering has been applied / pressure-test complete (reuse whatever signal the existing Claim-unlock gate uses).
+Claim — claimed === true (already handled as "Sealed").
+
+Insert a Complete branch into the status-label chain before "Open · tap to revisit":
+jsconst statusLabel =
+  isLocked ? `Unlocks after ${prevRoomName}` :
+  isClaim && claimed ? "Sealed · tap to revisit" :
+  isClaim && !canSeal ? "The seal unlocks after Rank" :
+  roomComplete ? "Complete" :              // NEW
+  isCurrent ? "Up next · tap to begin" :
+  "Open · tap to revisit";
+
+const iconChar =
+  isLocked ? "🔒" :
+  roomComplete ? "✓" :                     // NEW (replaces numbered badge)
+  /* existing numbered fallback */;
+
+const cls = [ base,
+  isLocked ? "is-locked" : "is-unlocked",
+  roomComplete ? "is-complete" : "",       // NEW — reuses M3's existing class
+  isClaim ? "is-m4-claim" : "" ].filter(Boolean).join(" ");
+DO NOT:
+
+Invent any new CSS. The is-complete treatment (gold left border + gold ✓ + cream card) already exists in the style block — M3 uses it at positions ~26163, ~26642, ~27108. Reuse it.
+Touch M1 / M2 / M3 hub logic.
+Change the Claim ("Sealed") branch — it already works.
+
+Done looks like:
+
+Complete a value definition → Discover card flips to gold ✓ + "Complete".
+Add behaviors + keystone to all values → Behaviors card flips.
+Finish Rank → Rank card flips.
+Claim → all four cards read complete/Sealed; refresh persists it.
