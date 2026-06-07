@@ -575,6 +575,14 @@ html[data-theme="light"]{
 .na1-vertebra.is-claimed .na1-vertebra-label, .na1-vertebra.is-here .na1-vertebra-label{ color:var(--na1-text); }
 .na1-vertebra-status{ font-family:var(--na1-sans); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-top:4px; opacity:0; transition:opacity .3s; }
 .na1-vertebra.is-here .na1-vertebra-status{ opacity:1; }
+/* A2.S · spine nav. Claimed-but-not-current vertebrae still surface their
+   "Claimed" label (current uses is-here for "You are here"). Interactive
+   vertebrae (is-nav) render as <button>; reset UA chrome and add pointer +
+   hover + keyboard-focus affordances. Reuses existing tokens only. */
+.na1-vertebra.is-claimed .na1-vertebra-status{ opacity:1; }
+.na1-vertebra.is-nav{ cursor:pointer; background:none; border:0; padding:0; font:inherit; -webkit-appearance:none; appearance:none; }
+.na1-vertebra.is-nav:hover .na1-vertebra-label{ color:var(--na1-text); }
+.na1-vertebra.is-nav:focus-visible{ outline:2px solid var(--gold); outline-offset:4px; border-radius:6px; }
 
 /* ════════════════════════════════════════════════════════════════════
    ENTRY HALL  +  THE FRAMEWORK · shared content shell
@@ -33179,40 +33187,123 @@ const NA1_FOOTER_TEXT =
   "True Ownership™ · © 2026 AccelerateGrowth45 LLC · All rights reserved";
 
 // Persistent left-rail "Spine" — brand presence + 5A progress at a glance.
-// Non-navigating by design (presence, not a menu). Hidden under 768px.
+// Hidden under 768px.
+// A2.S · the left spine is a real nav with a "you are here" state.
+// - `current` (the gold-halo is-here marker) follows the active view: the A2
+//   hub lights Align; every other spine surface (grid / m1–m4 / entry hall /
+//   framework) lights All In. Only two destinations exist today.
+// - `claimed` (persistent gold dot) stays driven solely by a1Complete; its
+//   derivation is unchanged. A vertebra can be both claimed and current
+//   (All In on the A1 grid once A1 is done) — is-here layers its halo on top
+//   of the claimed dot, and the status label precedence (in JS below) makes
+//   "You are here" win over "Claimed".
+// - Vertebrae with a destination render as focusable <button>s (is-nav);
+//   inert ones (Advocate / Act / Accountable, and Align when ?newA2=1 is off)
+//   stay plain <div>s. Align is gated on a2Enabled only — NOT on A1
+//   completion, so it's reachable mid-A1.
 function NewA1Spine({
   name,
   a1Complete,
+  view,
+  onNavigate,
+  a2Enabled,
 }: {
   name?: string;
   a1Complete: boolean;
+  view: AppRouteView;
+  onNavigate: (v: AppRouteView) => void;
+  a2Enabled: boolean;
 }) {
-  const rest: { num: string; label: string }[] = [
-    { num: "02", label: "Align" },
-    { num: "03", label: "Advocate" },
-    { num: "04", label: "Act" },
-    { num: "05", label: "Accountable" },
+  const current: "allin" | "align" = view === "a2" ? "align" : "allin";
+  const vertebrae: {
+    num: string;
+    label: string;
+    claimed: boolean;
+    isCurrent: boolean;
+    dest: AppRouteView | null;
+  }[] = [
+    {
+      num: "01",
+      label: "All In",
+      claimed: a1Complete,
+      isCurrent: current === "allin",
+      dest: "grid",
+    },
+    {
+      num: "02",
+      label: "Align",
+      claimed: false,
+      isCurrent: current === "align",
+      dest: a2Enabled ? "a2" : null,
+    },
+    {
+      num: "03",
+      label: "Advocate",
+      claimed: false,
+      isCurrent: false,
+      dest: null,
+    },
+    { num: "04", label: "Act", claimed: false, isCurrent: false, dest: null },
+    {
+      num: "05",
+      label: "Accountable",
+      claimed: false,
+      isCurrent: false,
+      dest: null,
+    },
   ];
   return (
     <aside className="na1-spine">
       <div className="na1-spine-brand">True Ownership™</div>
       {name ? <div className="na1-spine-brand-sub">{name}</div> : null}
       <div className="na1-spine-thread" />
-      <div className={`na1-vertebra ${a1Complete ? "is-claimed" : "is-here"}`}>
-        <div className="na1-bone" />
-        <div className="na1-vertebra-num">01</div>
-        <div className="na1-vertebra-label">All In</div>
-        <div className="na1-vertebra-status">
-          {a1Complete ? "Claimed" : "You are here"}
-        </div>
-      </div>
-      {rest.map((v) => (
-        <div className="na1-vertebra" key={v.num}>
-          <div className="na1-bone" />
-          <div className="na1-vertebra-num">{v.num}</div>
-          <div className="na1-vertebra-label">{v.label}</div>
-        </div>
-      ))}
+      {vertebrae.map((v) => {
+        // Status label precedence: current wins. "You are here" whenever
+        // current (even if also claimed); "Claimed" only when claimed AND
+        // not current; otherwise no label at all.
+        const status = v.isCurrent
+          ? "You are here"
+          : v.claimed
+            ? "Claimed"
+            : null;
+        const cls = [
+          "na1-vertebra",
+          v.dest ? "is-nav" : "",
+          v.claimed ? "is-claimed" : "",
+          v.isCurrent ? "is-here" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        const inner = (
+          <>
+            <div className="na1-bone" />
+            <div className="na1-vertebra-num">{v.num}</div>
+            <div className="na1-vertebra-label">{v.label}</div>
+            {status ? (
+              <div className="na1-vertebra-status">{status}</div>
+            ) : null}
+          </>
+        );
+        if (v.dest) {
+          const dest = v.dest;
+          return (
+            <button
+              type="button"
+              key={v.num}
+              className={cls}
+              aria-current={v.isCurrent ? "page" : undefined}
+              onClick={() => onNavigate(dest)}
+            >
+              {inner}
+            </button>
+          );
+        }
+        return (
+          <div className={cls} key={v.num}>
+            {inner}
+          </div>
+        );
+      })}
     </aside>
   );
 }
@@ -34057,7 +34148,7 @@ function NewA1View({ name }: { name?: string }) {
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
         )}
         <NewA1M3Container
           onBackToGrid={() => setView("grid")}
@@ -34076,7 +34167,7 @@ function NewA1View({ name }: { name?: string }) {
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
         )}
         <NewA1M4Container
           onBackToGrid={() => setView("grid")}
@@ -34097,7 +34188,7 @@ function NewA1View({ name }: { name?: string }) {
   if (view === "a2") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
         <NewA2HubView
           name={resolvedName}
           onEntryHall={() => setView("entry-hall")}
@@ -34108,7 +34199,7 @@ function NewA1View({ name }: { name?: string }) {
   if (view === "entry-hall") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
         <NewA1EntryHall
           name={resolvedName}
           onSeeFramework={() => setView("framework")}
@@ -34123,7 +34214,7 @@ function NewA1View({ name }: { name?: string }) {
   if (view === "framework") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
         <NewA1Framework
           onEntryHall={() => setView("entry-hall")}
           onBeginA1={() => {
@@ -34136,7 +34227,7 @@ function NewA1View({ name }: { name?: string }) {
   }
   return (
     <div className="na1-spine-pad">
-      <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+      <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
       <NewA1Grid
       // Ship 5.5e · Personalization · pass the canonically-resolved name
       // (intake → auth fallback) so the Entry Hall greeting in NewA1Grid

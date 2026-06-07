@@ -61,6 +61,21 @@ fails with "video unavailable". Never autoplay (browsers block it without a user
 gesture anyway). Mobile (<600px) opens a full-screen portal overlay that pushes a
 history entry so the Back button dismisses it; desktop expands inline.
 
+## Spine nav (NewA1Spine) — current marker reuses `is-here`
+
+The left spine's "you are here" marker is the existing `.na1-vertebra.is-here`
+gold-halo class — there is NO separate `is-current` class; do not add one.
+`claimed` (gold dot, `.is-claimed`, driven solely by `a1Complete`) and current
+(`is-here`) are independent and can coexist on one vertebra; CSS order keeps the
+halo on top of the dot. **Current follows the active `view`:** `view === "a2"` →
+Align lit, every other spine surface → All In lit. **Status-label precedence is
+enforced in JS, not CSS:** "You are here" whenever current (even if also
+claimed), "Claimed" only when claimed-and-not-current. Navigable vertebrae
+render as `<button class="na1-vertebra is-nav">`; Align is gated on the A2 flag
+only (reachable mid-A1), not on A1 completion; 03–05 are inert plain divs.
+**Why:** the ruling was to reuse the spine's existing treatment and never add new
+tokens/classes — a future "is-current" duplicate would diverge the two states.
+
 ## Breadcrumb "Entry Hall" link threading
 
 The `onEntryHall` handler must be threaded through *both* a hub view component

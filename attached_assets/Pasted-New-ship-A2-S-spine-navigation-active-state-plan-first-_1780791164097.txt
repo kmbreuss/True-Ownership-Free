@@ -1,0 +1,31 @@
+New ship: A2.S — spine navigation + active state (plan first, then build).
+Goal: make the left spine a real nav and give it a "you are here" state that follows the current view. Today the vertebrae (.na1-vertebra) are non-clickable DIVs and only All In shows treatment (via is-claimed), so the spine never reflects being on A2.
+Behavior:
+
+Make vertebrae interactive where a destination exists:
+
+01 All In → navigate to the A1 grid.
+02 Align → setView("a2"), gated on NEW_A2_FLAG only — NOT on A1 completion. Reachable mid-A1.
+03 Advocate / 04 Act / 05 Accountable → remain inert (no destinations yet): default cursor, not clickable.
+
+
+Add a is-current "you are here" state that follows the active view: any A1 surface (grid / m1–m4 / rooms) → All In current; view==="a2" → Align current. Pass the current view into NewA1Spine to compute it.
+Keep is-claimed for completed disciplines. A vertebra can be both claimed and current (e.g. A1 grid when A1 is done) — make sure the is-current treatment (gold halo per the spine spec) renders on top of the claimed dot.
+Interactive vertebrae get pointer cursor + hover + keyboard access (render as <button> or add role/tabindex/keydown). Inert ones stay plain.
+
+DO NOT:
+
+Change A1 mirror/room/grid logic or the existing is-claimed derivation.
+Make Advocate/Act/Accountable navigable.
+Touch the M4-claim → A2 button (it's the end-of-A1 handoff; leave it).
+Add new tokens; reuse the spine's existing is-current/is-claimed styles (if no is-current style exists yet, add one reusing --gold halo values and flag it).
+
+Done looks like:
+
+On any A1 surface, All In shows current; on the A2 hub, Align shows current and All In shows claimed-but-not-current.
+Clicking Align from anywhere — even with A1 unfinished — lands the A2 hub (which already shows M1 = Begin, M2–M4 locked, so the preview reads correctly).
+Clicking All In from A2 returns to the A1 grid.
+Advocate/Act/Accountable are visibly inert.
+Both themes; no console errors; A1 behavior unchanged.
+
+Plan it first and show me before building.
