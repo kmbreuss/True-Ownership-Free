@@ -35,6 +35,15 @@ The Entry Hall / Framework / Spine / new A1 grid render only when the URL has
 these surfaces cannot be screenshotted without credentials — the user walks them
 with their own account.
 
+**Flag convention:** feature flags here use `URLSearchParams.has("flag")`, NOT
+`=== "1"`. So `?newA1` / `?newA1=anything` all enable. When adding a nested flag
+(e.g. A2's `NEW_A2_FLAG = NEW_A1_FLAG && has("newA2")`), keep `.has()` to match
+A1 — do not "harden" it to `=== "1"`. **Why:** consistency with the established
+A1 convention was the explicit ruling; both behave identically for the user's
+actual `?flag=1` usage, and diverging makes the surfaces inconsistent. Persisted
+`view` values for a flag-gated surface must fall back to `"grid"` when the flag
+is off (restore-eligibility check) so dropping the flag fully hides the surface.
+
 ## Video surfaces: data in videoConstants.ts, but UI is per-surface
 
 `videoConstants.ts` (`VIDEOS` record, `isVideoReady`, `getVimeoEmbedUrl`) is the

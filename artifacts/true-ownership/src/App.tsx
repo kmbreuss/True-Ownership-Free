@@ -121,6 +121,11 @@ import {
   m4ScenarioKey,
 } from "./mirror4Constants";
 import {
+  EMPTY_A2,
+  hasA2State,
+  saveA2State,
+} from "./a2Constants";
+import {
   VIDEOS,
   isVideoReady,
   getVimeoEmbedUrl,
@@ -27985,6 +27990,23 @@ const NEW_A1_FLAG = (() => {
   }
 })();
 
+// ─── NEW A2 (?newA2=1) feature flag ───
+// A2 ("Align With It") hub scaffold. Requires ?newA1=1 — A2 lives inside the
+// NewA1View tree, so newA1 is required transitively, but we AND it explicitly
+// so the flag's intent is self-documenting. Dropping ?newA2 hides A2 entirely:
+// the M4-claim "Align With It · A2" button disappears and any persisted
+// view:"a2" route falls back to the A1 grid. Read once at module load.
+const NEW_A2_FLAG = (() => {
+  try {
+    return (
+      NEW_A1_FLAG &&
+      new URLSearchParams(window.location.search).has("newA2")
+    );
+  } catch {
+    return false;
+  }
+})();
+
 // ─── M3 / M4 routing (Ship 5.7) ───
 // The legacy ?newM3 / ?newM4 dev unlock flags have been removed. Both mirrors
 // are shipped, and the A1 hub cards now gate purely on completion of the prior
@@ -32940,7 +32962,9 @@ type AppRouteView =
   | "m3"
   | "m4"
   | "entry-hall"
-  | "framework";
+  | "framework"
+  // A2.0 · Align With It hub (gated behind ?newA2=1).
+  | "a2";
 type AppRouteOverlay = {
   hubId: "m1" | "m2" | "m3" | "m4";
   roomId: string;
@@ -32956,6 +32980,7 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "m4",
   "entry-hall",
   "framework",
+  "a2",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -33504,6 +33529,125 @@ function NewA1Framework({
   );
 }
 
+// ─── A2.0 · Align With It · hub view ───
+// Scaffold only — mirrors NewA1Grid's structure (breadcrumb + hero + 2×2
+// na1-mirror-card grid). Only Mirror 1 is active ("Begin"), and its CTA is
+// an inert placeholder until A2.1 wires the real Alignment Check room.
+// Mirrors 2–4 are locked. Reuses existing na1-* classes only — no new
+// font/color tokens. Seeds EMPTY_A2 on first mount, matching the M4
+// container's first-mount seed pattern.
+function NewA2HubView({
+  name,
+  onEntryHall,
+}: {
+  name?: string;
+  onEntryHall: () => void;
+}) {
+  useEffect(() => {
+    if (!hasA2State()) {
+      saveA2State(EMPTY_A2);
+    }
+  }, []);
+  const lockedCards = [
+    {
+      num: "02",
+      eyebrow: "Mirror 2",
+      title: "Time Audit",
+      room: "The Proof Room",
+      unlocksAfter: "Alignment Check",
+    },
+    {
+      num: "03",
+      eyebrow: "Mirror 3",
+      title: "Focus + Commit",
+      room: null,
+      unlocksAfter: "Time Audit",
+    },
+    {
+      num: "04",
+      eyebrow: "Mirror 4",
+      title: "Integrity Claim",
+      room: null,
+      unlocksAfter: "Focus + Commit",
+    },
+  ];
+  return (
+    <div className="na1-root">
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <a onClick={onEntryHall}>Entry Hall</a>
+          <span className="sep">›</span>
+          <span className="current">A2 · Align With It</span>
+        </div>
+        <div className="na1-hero">
+          <div>
+            <div className="na1-hero-eyebrow">
+              A2 · Align With It{name ? ` · ${name}` : ""}
+            </div>
+            <h1 className="na1-hero-title">
+              Prove the life with your{" "}
+              <span style={{ color: "var(--gold)", fontStyle: "italic" }}>
+                time.
+              </span>
+            </h1>
+          </div>
+          <div className="na1-hero-meta">
+            <strong>0 of 4</strong> complete · ~40 min
+          </div>
+        </div>
+        <div className="na1-mirror-grid">
+          {/* 01 · Alignment Check — active. Begin is an inert placeholder
+              (A2.1 will wire the room); no navigation past the hub. */}
+          <article className="na1-mirror-card is-current">
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">01</span>
+              <span className="na1-mirror-card-status">Up next</span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 1</div>
+            <h2 className="na1-mirror-card-name">Alignment Check</h2>
+            <div className="na1-mirror-card-empty">Not yet explored.</div>
+            <div className="na1-mirror-card-action">
+              <button
+                type="button"
+                className="na1-btn-gold na1-btn-block"
+                onClick={() => {
+                  /* A2.0 · inert — Begin does not navigate yet. A2.1 opens
+                     the Alignment Check (M1) room from here. */
+                }}
+              >
+                Begin Alignment Check →
+              </button>
+            </div>
+          </article>
+          {lockedCards.map((c) => (
+            <article key={c.num} className="na1-mirror-card is-locked">
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">{c.num}</span>
+                <span className="na1-mirror-card-status">Locked</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">{c.eyebrow}</div>
+              <h2 className="na1-mirror-card-name">{c.title}</h2>
+              {c.room ? (
+                <p className="na1-mirror-card-sub">{c.room}</p>
+              ) : null}
+              <div className="na1-mirror-card-empty">Locked.</div>
+              <div className="na1-mirror-card-action">
+                <button
+                  type="button"
+                  className="na1-btn-ghost na1-btn-block"
+                  disabled
+                >
+                  Unlocks after {c.unlocksAfter}
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NewA1View({ name }: { name?: string }) {
   // Ship 5.5e · Personalization · resolve the display name with the
   // canonical intake → auth fallback. The legacy A1 wrapper only forwards
@@ -33541,6 +33685,9 @@ function NewA1View({ name }: { name?: string }) {
       if (saved) {
         if (saved.view === "m3" && !hasM3Progress) return "grid";
         if (saved.view === "m4" && !hasM4State) return "grid";
+        // A2.0 · the A2 hub only exists under ?newA2=1. Dropping the flag
+        // sends a persisted view:"a2" back to the A1 grid.
+        if (saved.view === "a2" && !NEW_A2_FLAG) return "grid";
         return saved.view;
       }
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -33936,6 +34083,24 @@ function NewA1View({ name }: { name?: string }) {
           onEntryHall={() => setView("entry-hall")}
           initialRoomKey={initialKey}
           onRoomChange={onM4RoomChange}
+          onGoToA2={NEW_A2_FLAG ? () => setView("a2") : undefined}
+        />
+      </div>
+    );
+  }
+  // A2.0 · Align With It hub (gated behind ?newA2=1). Eligibility above
+  // sends a persisted view:"a2" back to "grid" when the flag is dropped,
+  // so this branch only renders under the flag. Wrapped in the same
+  // spine-pad + NewA1Spine as every other newA1 surface; the spine is
+  // reused unmodified (no A2 nav item yet — that's a later, A1-touching
+  // ship).
+  if (view === "a2") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} />
+        <NewA2HubView
+          name={resolvedName}
+          onEntryHall={() => setView("entry-hall")}
         />
       </div>
     );
@@ -38386,8 +38551,12 @@ function NewA1M4BehaviorsBody({
 // the conditional always falls through to "close + return to hub".
 function NewA1M4ClaimBody({
   onCloseRoom,
+  onGoToA2,
 }: {
   onCloseRoom: () => void;
+  // A2.0 · supplied only when ?newA2=1. Routes to the A2 "Align With It"
+  // hub. Undefined → the button is not rendered.
+  onGoToA2?: () => void;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
@@ -38640,6 +38809,21 @@ function NewA1M4ClaimBody({
             : "Claim it · go to Map of Me →"}
         </button>
       </div>
+
+      {/* A2.0 · Align With It · A2 → — additive, flag-gated. Renders only
+          when ?newA2=1 (onGoToA2 supplied); routes into the A2 hub. Not
+          gated on `claimed` per owner ruling. */}
+      {onGoToA2 && (
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onGoToA2}
+          >
+            Align With It · A2 →
+          </button>
+        </div>
+      )}
 
       {/* Foot line. */}
       <p
@@ -39661,11 +39845,15 @@ function NewA1M4Container({
   onEntryHall,
   initialRoomKey,
   onRoomChange,
+  onGoToA2,
 }: {
   onBackToGrid: () => void;
   onEntryHall: () => void;
   initialRoomKey?: string | null;
   onRoomChange?: (roomId: string | null) => void;
+  // A2.0 · routes the Claim seal's "Align With It · A2" button into the A2
+  // hub. Only supplied when ?newA2=1; undefined hides the button entirely.
+  onGoToA2?: () => void;
 }) {
   // Ship 5.6c · refresh-resume. If an initialRoomKey is handed in,
   // resolve it against M4_ROOMS and open the room directly (no veil,
@@ -39799,7 +39987,7 @@ function NewA1M4Container({
               }}
             />
           ) : openRoom.key === "claim" ? (
-            <NewA1M4ClaimBody onCloseRoom={closeRoom} />
+            <NewA1M4ClaimBody onCloseRoom={closeRoom} onGoToA2={onGoToA2} />
           ) : (
             <NewA1M4RoomPlaceholderBody room={openRoom} />
           )}
