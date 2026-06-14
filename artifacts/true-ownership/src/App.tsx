@@ -34878,6 +34878,27 @@ function NewA2M1Step3Body({
 // to the A2 hub. Re-entry once claimed lands straight on the sealed state; the
 // stepper still lets the user walk Steps 1–3. This step never routes into or
 // unlocks Mirror 2 — it only marks Mirror 1 done via `claimed`.
+// Forward-route availability for A2 mirrors, keyed by the mirror you're leaving.
+// An entry exists only once the *next* mirror is reachable; absent = not built
+// yet. The Claim step's forward CTA derives from this, so it can never be a
+// permanently-dead button. Shipping the Time Audit (Mirror 2) = add an `m1`
+// entry here and pass its launcher to resolveA2NextMirror — no edit to Step 4.
+const A2_NEXT_MIRROR: Record<string, { label: string } | undefined> = {
+  // m1: { label: "the Time Audit" },  // ← uncomment when Mirror 2 ships
+};
+
+// Resolve the mirror that follows `fromMirror`, binding the caller's launcher.
+// Returns null when the next mirror has no registry entry or no launcher (i.e.
+// it isn't built), so callers fall back to "Back to A2 →" with no per-step edit.
+function resolveA2NextMirror(
+  fromMirror: string,
+  launch: (() => void) | undefined,
+): { label: string; go: () => void } | null {
+  const next = A2_NEXT_MIRROR[fromMirror];
+  if (!next || !launch) return null;
+  return { label: next.label, go: launch };
+}
+
 function NewA2M1Step4Body({
   screens,
   ratings,
@@ -34887,6 +34908,7 @@ function NewA2M1Step4Body({
   claimed,
   onClaim,
   onFinish,
+  nextMirror,
 }: {
   screens: A2SubScreen[];
   ratings: Record<string, number>;
@@ -34896,6 +34918,11 @@ function NewA2M1Step4Body({
   claimed: boolean;
   onClaim: () => void;
   onFinish: () => void;
+  // The mirror that follows Mirror 1. Null until the Time Audit (Mirror 2)
+  // ships; when its route exists the claimed seal's forward CTA reads
+  // "Continue to {label} →" and routes there instead of back to A2. Driven off
+  // the route's existence so there's never a permanently-dead forward button.
+  nextMirror?: { label: string; go: () => void } | null;
 }) {
   const candidates = useMemo(
     () => buildA2KMCandidates(screens, ratings, purposeRating),
@@ -34970,8 +34997,12 @@ function NewA2M1Step4Body({
           <p className="na1-a2m1-seal-by">— Katherine</p>
         </div>
         <div className="na1-a2m1-claim-actions">
-          <button type="button" className="na1-btn-gold" onClick={onFinish}>
-            Back to A2 →
+          <button
+            type="button"
+            className="na1-btn-gold"
+            onClick={nextMirror ? nextMirror.go : onFinish}
+          >
+            {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A2 →"}
           </button>
         </div>
       </div>
@@ -35428,6 +35459,13 @@ function NewA2M1Container({
     if (m1.currentStep < 4) goToStep(m1.currentStep + 1);
   };
 
+  // Forward CTA target for the Claim step, derived from the mirror registry: the
+  // resolver returns null until the Time Audit (Mirror 2) has both a registry
+  // entry and a launcher passed here, so today the seal shows "Back to A2 →".
+  // When Mirror 2 ships, add its A2_NEXT_MIRROR entry and pass its launcher as
+  // the 2nd arg — the CTA auto-switches to "Continue to the Time Audit →".
+  const a2NextMirror = resolveA2NextMirror("m1", undefined);
+
   // Escape + scroll-lock while the room is open.
   useEffect(() => {
     if (!roomOpen) return;
@@ -35531,6 +35569,7 @@ function NewA2M1Container({
                     closeRoom();
                     onBackToA2();
                   }}
+                  nextMirror={a2NextMirror}
                 />
               )}
             </div>
@@ -35550,19 +35589,20 @@ function NewA2M1Container({
               >
                 {m1.currentStep > 1 ? "← Back" : "Close"}
               </button>
-              <button
-                type="button"
-                className="na1-btn-gold"
-                onClick={onContinue}
-                disabled={
-                  m1.currentStep >= 4 ||
-                  (m1.currentStep === 2 &&
+              {m1.currentStep < 4 && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onContinue}
+                  disabled={
+                    m1.currentStep === 2 &&
                     step2Index === lastIndex &&
-                    !isStep2Complete)
-                }
-              >
-                Continue
-              </button>
+                    !isStep2Complete
+                  }
+                >
+                  Continue
+                </button>
+              )}
             </div>
           </div>
         </div>
