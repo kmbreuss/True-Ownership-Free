@@ -66,16 +66,56 @@ export const EMPTY_A2_M1: A2M1State = {
   claimed: false,
 };
 
+// A2 Ship 1 · Mirror 2 (Time Audit). Runs as one continuous paced room with three
+// working steps (1 Your priorities · 2 Where time goes · 3 What's missing) plus a
+// Claim step. Everything persists here under to_a2_state_v1.m2; `claimed` is the
+// SOLE driver of Mirror 2 hub completion.
+export type A2M2Feeling = "love" | "like" | "dislike" | "despise";
+
+export type A2M2Activity = {
+  id: string;
+  name: string;
+  hrsPerWeek: number; // 0–80
+  feeling: A2M2Feeling;
+  priorityServed: string; // a priority name, or "" for none
+};
+
+export type A2M2MissingItem = {
+  id: string;
+  name: string;
+  priorityTag: string; // a priority name, or "" for none
+};
+
+export type A2M2State = {
+  // Step 1 · ordered priority names, most important first (UI caps at 5).
+  priorities: string[];
+  // Step 2 · activities logged for the week.
+  activities: A2M2Activity[];
+  // Step 3 · things being crowded out.
+  missingItems: A2M2MissingItem[];
+  // Claim · single source of truth for Mirror 2 completion.
+  claimed: boolean;
+  claimedAt: string | null;
+};
+
+export const EMPTY_A2_M2: A2M2State = {
+  priorities: [],
+  activities: [],
+  missingItems: [],
+  claimed: false,
+  claimedAt: null,
+};
+
 export type A2State = {
   m1: A2M1State;
-  m2: A2MirrorStub;
+  m2: A2M2State;
   m3: A2MirrorStub;
   m4: A2MirrorStub;
 };
 
 export const EMPTY_A2: A2State = {
   m1: { ...EMPTY_A2_M1 },
-  m2: {},
+  m2: { ...EMPTY_A2_M2 },
   m3: {},
   m4: {},
 };
@@ -138,6 +178,70 @@ function normalizeA2M1(raw: unknown): A2M1State {
   };
 }
 
+const A2M2_FEELINGS: readonly A2M2Feeling[] = [
+  "love",
+  "like",
+  "dislike",
+  "despise",
+];
+
+// Coerce an unknown blob into a valid A2M2State, dropping garbage so a corrupt
+// store can't poison the Time Audit. Ids are preserved when present and
+// synthesized from index otherwise so list keys stay stable.
+function normalizeA2M2(raw: unknown): A2M2State {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<A2M2State>;
+  const cleanStr = (v: unknown): string => (typeof v === "string" ? v : "");
+  const rawPri = (r as { priorities?: unknown }).priorities;
+  const priorities = Array.isArray(rawPri)
+    ? rawPri
+        .filter((p): p is string => typeof p === "string" && p.trim() !== "")
+        .map((p) => p.trim())
+    : [];
+  const rawActs = (r as { activities?: unknown }).activities;
+  const activities: A2M2Activity[] = Array.isArray(rawActs)
+    ? rawActs
+        .filter(
+          (a): a is Record<string, unknown> => !!a && typeof a === "object",
+        )
+        .map((a, i) => {
+          const hrs = a.hrsPerWeek;
+          const feeling = a.feeling;
+          return {
+            id:
+              typeof a.id === "string" && a.id.trim() !== "" ? a.id : `m2a_${i}`,
+            name: cleanStr(a.name),
+            hrsPerWeek:
+              typeof hrs === "number" && Number.isFinite(hrs)
+                ? Math.max(0, Math.min(80, hrs))
+                : 0,
+            feeling: A2M2_FEELINGS.includes(feeling as A2M2Feeling)
+              ? (feeling as A2M2Feeling)
+              : "like",
+            priorityServed: cleanStr(a.priorityServed),
+          };
+        })
+    : [];
+  const rawMissing = (r as { missingItems?: unknown }).missingItems;
+  const missingItems: A2M2MissingItem[] = Array.isArray(rawMissing)
+    ? rawMissing
+        .filter(
+          (m): m is Record<string, unknown> => !!m && typeof m === "object",
+        )
+        .map((m, i) => ({
+          id: typeof m.id === "string" && m.id.trim() !== "" ? m.id : `m2m_${i}`,
+          name: cleanStr(m.name),
+          priorityTag: cleanStr(m.priorityTag),
+        }))
+    : [];
+  const claimed = (r as { claimed?: unknown }).claimed === true;
+  const rawClaimedAt = (r as { claimedAt?: unknown }).claimedAt;
+  const claimedAt =
+    typeof rawClaimedAt === "string" && rawClaimedAt.trim() !== ""
+      ? rawClaimedAt
+      : null;
+  return { priorities, activities, missingItems, claimed, claimedAt };
+}
+
 export function loadA2State(): A2State {
   try {
     if (typeof window === "undefined") return EMPTY_A2;
@@ -150,6 +254,7 @@ export function loadA2State(): A2State {
       // legacy empty-object stub upgrades to the real step shape.
       const merged = { ...EMPTY_A2, ...parsed } as A2State;
       merged.m1 = normalizeA2M1((parsed as { m1?: unknown }).m1);
+      merged.m2 = normalizeA2M2((parsed as { m2?: unknown }).m2);
       return merged;
     }
   } catch {}

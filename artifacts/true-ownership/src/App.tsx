@@ -127,6 +127,11 @@ import {
   loadA2State,
   type A2M1State,
   type A2State,
+  type A2M2State,
+  type A2M2Activity,
+  type A2M2Feeling,
+  type A2M2MissingItem,
+  EMPTY_A2_M2,
 } from "./a2Constants";
 import {
   VIDEOS,
@@ -975,6 +980,132 @@ html[data-theme="light"]{
 .na1-a2m1-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
 .na1-a2m1-reclaim-note{ margin:0; font-family:var(--na1-sans); font-size:13px; line-height:1.5; color:var(--na1-text-mute); text-align:center; }
 @media (max-width:600px){ .na1-a2m1-purpose-quote{ font-size:16px; } .na1-a2m1-km-label{ font-size:15px; } .na1-a2m1-seal-body{ font-size:16px; } }
+/* ── A2 Ship 1 · Mirror 2 (Time Audit · a2m2) room. Mirrors a2m1; tokens only. ── */
+.na1-a2m2-room-card{ max-width:780px; }
+.na1-a2m2-stepper{ display:flex; align-items:center; gap:6px; margin:0 0 28px; }
+.na1-a2m2-step{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto; background:none; border:none; padding:0; cursor:default; }
+.na1-a2m2-step.is-clickable{ cursor:pointer; }
+.na1-a2m2-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
+.na1-a2m2-line.is-reached{ background:var(--gold-line); }
+.na1-a2m2-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--na1-sans); font-size:13px; font-weight:700; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a2m2-dot.is-reached{ border-color:var(--gold-line); color:var(--na1-text-sec); }
+.na1-a2m2-dot.is-complete{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); }
+.na1-a2m2-dot.is-current{ background:var(--gold); border-color:var(--gold); color:#1a1206; box-shadow:0 0 14px var(--gold-glow); }
+.na1-a2m2-step-name{ font-family:var(--na1-sans); font-size:11px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:84px; }
+.na1-a2m2-step-name.is-current{ color:var(--gold); font-weight:600; }
+@media (max-width:600px){ .na1-a2m2-step-name{ display:none; } }
+.na1-a2m2-body{ min-height:200px; }
+.na1-a2m2-step-title{ font-family:var(--na1-serif); font-size:26px; font-weight:600; line-height:1.2; color:var(--na1-text); margin:0 0 10px; }
+.na1-a2m2-step-title em{ font-style:italic; color:var(--gold); }
+.na1-a2m2-step-lede{ font-family:var(--na1-sans); font-size:14.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 24px; }
+.na1-a2m2-block-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 12px; }
+.na1-a2m2-count{ font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-mute); margin:14px 0 0; }
+.na1-a2m2-empty{ font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text-mute); font-style:italic; margin:0; }
+.na1-a2m2-input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:14.5px; outline:none; transition:border-color .15s; }
+.na1-a2m2-input:focus{ border-color:var(--gold); }
+.na1-a2m2-input::placeholder{ color:var(--na1-text-mute); }
+.na1-a2m2-select{ min-height:40px; padding:8px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:13.5px; outline:none; cursor:pointer; transition:border-color .15s; }
+.na1-a2m2-select:focus{ border-color:var(--gold); }
+.na1-a2m2-select[data-feeling="love"]{ color:var(--gold); border-color:var(--gold-line); }
+.na1-a2m2-select[data-feeling="like"]{ color:var(--c2); border-color:var(--c2); }
+.na1-a2m2-select[data-feeling="dislike"]{ color:var(--na1-text-mute); }
+.na1-a2m2-select[data-feeling="despise"]{ color:var(--burgundy); border-color:var(--burgundy-line); }
+.na1-a2m2-nav{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:28px; padding-top:22px; border-top:1px solid var(--na1-border); }
+.na1-a2m2-nav .na1-btn-gold:disabled{ opacity:0.4; cursor:not-allowed; }
+/* Step 1 · Your priorities */
+.na1-a2m2-chips{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 8px; }
+.na1-a2m2-chip{ min-height:38px; padding:0 14px; border-radius:100px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+.na1-a2m2-chip:hover{ border-color:var(--gold-line); color:var(--na1-text); }
+.na1-a2m2-chip.is-selected{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); }
+.na1-a2m2-chip:disabled{ opacity:0.4; cursor:not-allowed; }
+.na1-a2m2-add-row{ display:flex; gap:8px; margin:14px 0 0; }
+.na1-a2m2-add-row .na1-a2m2-input{ flex:1 1 auto; }
+.na1-a2m2-add-btn{ flex:0 0 auto; min-height:44px; padding:0 16px; border-radius:var(--na1-radius); background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+.na1-a2m2-add-btn:hover{ background:var(--gold); color:#1a1206; }
+.na1-a2m2-add-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+.na1-a2m2-rank-list{ display:flex; flex-direction:column; gap:8px; list-style:none; margin:0; padding:0; }
+.na1-a2m2-rank-row{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); transition:border-color .15s, opacity .15s; }
+.na1-a2m2-rank-row.is-dragging{ opacity:0.5; border-color:var(--gold); }
+.na1-a2m2-rank-row.is-drop-target{ border-color:var(--gold); }
+.na1-a2m2-drag{ flex:0 0 auto; cursor:grab; color:var(--na1-text-mute); font-size:15px; line-height:1; user-select:none; }
+.na1-a2m2-rank-num{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.na1-a2m2-rank-name{ flex:1 1 auto; font-family:var(--na1-sans); font-size:14.5px; color:var(--na1-text); min-width:0; }
+.na1-a2m2-rank-actions{ flex:0 0 auto; display:flex; align-items:center; gap:4px; }
+.na1-a2m2-arrow{ width:30px; height:30px; border-radius:var(--na1-radius-sm); background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.na1-a2m2-arrow:hover:not(:disabled){ color:var(--gold); border-color:var(--gold-line); }
+.na1-a2m2-arrow:disabled{ opacity:0.3; cursor:not-allowed; }
+.na1-a2m2-arrow.is-remove:hover{ color:var(--burgundy); border-color:var(--burgundy-line); }
+/* Step 2 · Where time goes */
+.na1-a2m2-activities{ display:flex; flex-direction:column; gap:14px; }
+.na1-a2m2-activity-card{ padding:14px 16px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
+.na1-a2m2-activity-top{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.na1-a2m2-activity-top .na1-a2m2-input{ flex:1 1 auto; }
+.na1-a2m2-activity-fields{ display:flex; flex-wrap:wrap; gap:10px; }
+.na1-a2m2-field{ display:flex; flex-direction:column; gap:5px; flex:1 1 140px; min-width:0; }
+.na1-a2m2-field-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--na1-text-mute); }
+.na1-a2m2-field .na1-a2m2-input, .na1-a2m2-field .na1-a2m2-select{ width:100%; }
+.na1-a2m2-hrs{ flex:0 0 110px; }
+.na1-a2m2-add-activity{ align-self:flex-start; margin-top:14px; background:none; border:1px dashed var(--gold-line); border-radius:var(--na1-radius); padding:10px 16px; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; transition:all .15s; }
+.na1-a2m2-add-activity:hover{ background:var(--gold-soft); }
+.na1-a2m2-totals{ margin:24px 0 0; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
+.na1-a2m2-totals-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.na1-a2m2-totals-title{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0; }
+.na1-a2m2-totals-sum{ font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
+.na1-a2m2-total-row{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:6px 12px; margin:0 0 10px; }
+.na1-a2m2-total-name{ font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text); }
+.na1-a2m2-total-val{ font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); white-space:nowrap; }
+.na1-a2m2-total-bar{ grid-column:1 / -1; height:6px; border-radius:3px; background:var(--na1-border); overflow:hidden; }
+.na1-a2m2-total-fill{ height:100%; border-radius:3px; background:var(--gold); transition:width .25s; }
+.na1-a2m2-total-row.is-unaccounted .na1-a2m2-total-name{ color:var(--na1-text-mute); font-style:italic; }
+.na1-a2m2-total-fill.is-unaccounted{ background:var(--na1-text-mute); }
+/* Step 3 · What's missing */
+.na1-a2m2-missing-list{ display:flex; flex-direction:column; gap:10px; }
+.na1-a2m2-missing-row{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
+.na1-a2m2-missing-dot{ flex:0 0 auto; width:10px; height:10px; border-radius:50%; background:var(--burgundy); }
+.na1-a2m2-missing-row .na1-a2m2-input{ flex:1 1 auto; }
+.na1-a2m2-missing-tag{ flex:0 0 auto; max-width:150px; }
+.na1-a2m2-missing-note{ font-family:var(--na1-serif); font-style:italic; font-size:14px; line-height:1.6; color:var(--na1-text-sec); margin:18px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); }
+/* Step 4 · Claim */
+.na1-a2m2-step4{ display:flex; flex-direction:column; }
+.na1-a2m2-summary{ margin:4px 0 20px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
+.na1-a2m2-summary-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 14px; }
+.na1-a2m2-summary-row{ display:flex; align-items:center; gap:10px; margin:0 0 10px; }
+.na1-a2m2-summary-row:last-child{ margin-bottom:0; }
+.na1-a2m2-summary-num{ flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.na1-a2m2-summary-name{ flex:1 1 auto; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
+.na1-a2m2-summary-val{ flex:0 0 auto; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
+.na1-a2m2-missing-card{ margin:0 0 20px; padding:18px 20px; border-radius:12px; background:var(--burgundy-soft); border:1px solid var(--burgundy-line); }
+.na1-a2m2-missing-card-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--burgundy); margin:0 0 12px; }
+.na1-a2m2-missing-card-row{ display:flex; align-items:center; gap:9px; margin:0 0 8px; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
+.na1-a2m2-missing-card-row:last-child{ margin-bottom:0; }
+.na1-a2m2-missing-card-row::before{ content:""; flex:0 0 auto; width:7px; height:7px; border-radius:50%; background:var(--burgundy); }
+.na1-a2m2-seal{ margin:6px 0 26px; padding:22px 24px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
+.na1-a2m2-seal-body{ font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.7; color:var(--gold); margin:0; }
+.na1-a2m2-seal-body strong{ font-weight:700; color:var(--gold); }
+.na1-a2m2-seal-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:14px 0 0; text-align:right; }
+.na1-a2m2-claim-actions{ display:flex; }
+.na1-a2m2-claim-actions .na1-btn-gold{ width:100%; }
+.na1-a2m2-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
+.na1-a2m2-reclaim-note{ margin:0; font-family:var(--na1-sans); font-size:13px; line-height:1.5; color:var(--na1-text-mute); text-align:center; }
+@media (max-width:600px){ .na1-a2m2-step-title{ font-size:23px; } .na1-a2m2-seal-body{ font-size:16px; } .na1-a2m2-hrs{ flex:1 1 110px; } }
+/* Step body wrappers + shared helpers */
+.na1-a2m2-step1, .na1-a2m2-step2, .na1-a2m2-step3{ display:flex; flex-direction:column; }
+.na1-a2m2-help{ font-family:var(--na1-sans); font-size:13px; line-height:1.6; color:var(--na1-text-mute); margin:0 0 16px; }
+.na1-a2m2-activity-name{ flex:1 1 auto; min-width:0; }
+.na1-a2m2-missing-name{ flex:1 1 auto; min-width:0; }
+.na1-a2m2-missing-card-name{ flex:1 1 auto; min-width:0; }
+.na1-a2m2-total-num{ flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:11px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
+.na1-a2m2-remove{ flex:0 0 auto; width:30px; height:30px; border-radius:var(--na1-radius-sm); background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); font-size:14px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.na1-a2m2-remove:hover{ color:var(--burgundy); border-color:var(--burgundy-line); }
+.na1-a2m2-add-missing{ align-self:flex-start; margin-top:14px; background:none; border:1px dashed var(--gold-line); border-radius:var(--na1-radius); padding:10px 16px; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; transition:all .15s; }
+.na1-a2m2-add-missing:hover{ background:var(--gold-soft); }
+.na1-a2m2-claim-btn{ width:100%; }
+/* ── A2 Ship 1 · Mirror 3 (Named Truth · a2m3) placeholder shell ── */
+.na1-a2m3-shell{ max-width:620px; margin:0 auto; padding:48px 0; }
+.na1-a2m3-title{ font-family:var(--na1-serif); font-size:38px; font-weight:600; line-height:1.15; color:var(--na1-text); margin:8px 0 18px; }
+.na1-a2m3-title em{ font-style:italic; color:var(--gold); }
+.na1-a2m3-lede{ font-family:var(--na1-sans); font-size:15.5px; line-height:1.7; color:var(--na1-text-sec); margin:0 0 28px; max-width:520px; }
+@media (max-width:600px){ .na1-a2m3-title{ font-size:30px; } }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
 .na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
 .na1-room-eyebrow.tone-burgundy{ color:var(--burgundy); }
@@ -33113,10 +33244,14 @@ type AppRouteView =
   // A2.0 · Align With It hub (gated behind ?newA2=1).
   | "a2"
   // A2.1 · Alignment Check (A2 Mirror 1) hub (gated behind ?newA2=1).
-  | "a2m1";
+  | "a2m1"
+  // A2 Ship 1 · Time Audit (a2m2) room + Named Truth (a2m3) placeholder shell.
+  | "a2m2"
+  | "a2m3";
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1";
+  // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -33132,6 +33267,8 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "framework",
   "a2",
   "a2m1",
+  "a2m2",
+  "a2m3",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -33191,7 +33328,8 @@ function loadAppRoute(): AppRoute | null {
           hubId === "m2" ||
           hubId === "m3" ||
           hubId === "m4" ||
-          hubId === "a2m1") &&
+          hubId === "a2m1" ||
+          hubId === "a2m2") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -33779,6 +33917,8 @@ function NewA2HubView({
   onEntryHall,
   a1Complete,
   onBeginM1,
+  onBeginM2,
+  onBeginM3,
 }: {
   name?: string;
   onEntryHall: () => void;
@@ -33787,6 +33927,10 @@ function NewA2HubView({
   // hub via onBeginM1; incomplete → Begin disabled + inline message.
   a1Complete: boolean;
   onBeginM1: () => void;
+  // A2 Ship 1 · Time Audit (M2) and Named Truth (M3) launches. M2 routes into
+  // the Time Audit room; M3 routes into the Named Truth placeholder shell.
+  onBeginM2: () => void;
+  onBeginM3: () => void;
 }) {
   useEffect(() => {
     if (!hasA2State()) {
@@ -33797,29 +33941,16 @@ function NewA2HubView({
   // mount — this view remounts on every hub↔room view switch, so a claim made
   // inside the room is reflected the moment the user returns here.
   const m1Claimed = useMemo(() => loadA2State().m1.claimed, []);
-  const lockedCards = [
-    {
-      num: "02",
-      eyebrow: "Mirror 2",
-      title: "Time Audit",
-      room: "The Proof Room",
-      unlocksAfter: "Alignment Check",
-    },
-    {
-      num: "03",
-      eyebrow: "Mirror 3",
-      title: "Focus + Commit",
-      room: null,
-      unlocksAfter: "Time Audit",
-    },
-    {
-      num: "04",
-      eyebrow: "Mirror 4",
-      title: "Integrity Claim",
-      room: null,
-      unlocksAfter: "Focus + Commit",
-    },
-  ];
+  // A2 Ship 1 · Mirror 2 completion is likewise driven solely by m2.claimed,
+  // read once at mount; this view remounts on every hub↔room switch, so a claim
+  // made inside the Time Audit room is reflected on return.
+  const m2Claimed = useMemo(() => loadA2State().m2.claimed, []);
+  // A2 Ship 1 · Mirror 3's unlock chains through Mirror 2's unlock (m1Claimed),
+  // not m2.claimed alone. If Mirror 1 is later reset while m2.claimed lingers,
+  // Mirror 2 re-locks but a m2.claimed-only check would leak Mirror 3 as
+  // unlocked. Chaining keeps the gate transitive (see Mirror-gating memory).
+  const m3Unlocked = m1Claimed && m2Claimed;
+  const mirrorsComplete = (m1Claimed ? 1 : 0) + (m2Claimed ? 1 : 0);
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -33841,7 +33972,7 @@ function NewA2HubView({
             </h1>
           </div>
           <div className="na1-hero-meta">
-            <strong>{m1Claimed ? 1 : 0} of 4</strong> complete · ~40 min
+            <strong>{mirrorsComplete} of 3</strong> complete · ~40 min
           </div>
         </div>
         <div className="na1-mirror-grid">
@@ -33885,29 +34016,96 @@ function NewA2HubView({
               </button>
             </div>
           </article>
-          {lockedCards.map((c) => (
-            <article key={c.num} className="na1-mirror-card is-locked">
-              <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">{c.num}</span>
-                <span className="na1-mirror-card-status">Locked</span>
-              </div>
-              <div className="na1-mirror-card-eyebrow">{c.eyebrow}</div>
-              <h2 className="na1-mirror-card-name">{c.title}</h2>
-              {c.room ? (
-                <p className="na1-mirror-card-sub">{c.room}</p>
-              ) : null}
-              <div className="na1-mirror-card-empty">Locked.</div>
-              <div className="na1-mirror-card-action">
+          {/* 02 · Mirror 2 · Time Audit. A2 Ship 1 · locked until Mirror 1 is
+              claimed; once unlocked the card offers Begin and routes into the
+              Time Audit room. After m2.claimed it flips to the sealed treatment
+              (reusing the is-complete gold styling) — "✓ Sealed" / "Sealed ·
+              tap to revisit", matching Mirror 1's wording. */}
+          <article
+            className={`na1-mirror-card ${
+              m2Claimed ? "is-complete" : m1Claimed ? "is-current" : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">02</span>
+              <span className="na1-mirror-card-status">
+                {m2Claimed ? "✓ Sealed" : m1Claimed ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 2</div>
+            <h2 className="na1-mirror-card-name">Time Audit</h2>
+            <div className="na1-mirror-card-empty">
+              {m2Claimed ? "Sealed." : m1Claimed ? "Not yet explored." : "Locked."}
+            </div>
+            {m1Claimed ? null : (
+              <p className="na1-mirror-card-sub">
+                Unlocks after Alignment Check — claim Mirror 1 to begin.
+              </p>
+            )}
+            <div className="na1-mirror-card-action">
+              {m1Claimed ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginM2}
+                >
+                  {m2Claimed
+                    ? "Sealed · tap to revisit →"
+                    : "Begin Time Audit →"}
+                </button>
+              ) : (
                 <button
                   type="button"
                   className="na1-btn-ghost na1-btn-block"
                   disabled
                 >
-                  Unlocks after {c.unlocksAfter}
+                  Unlocks after Alignment Check
                 </button>
-              </div>
-            </article>
-          ))}
+              )}
+            </div>
+          </article>
+          {/* 03 · Mirror 3 · Named Truth. A2 Ship 1 · locked until Mirror 2 is
+              claimed; once unlocked, Begin routes into the Named Truth
+              placeholder shell (the real room ships later). */}
+          <article
+            className={`na1-mirror-card ${m3Unlocked ? "is-current" : "is-locked"}`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">03</span>
+              <span className="na1-mirror-card-status">
+                {m3Unlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+            <h2 className="na1-mirror-card-name">Named Truth</h2>
+            <div className="na1-mirror-card-empty">
+              {m3Unlocked ? "Not yet explored." : "Locked."}
+            </div>
+            {m3Unlocked ? null : (
+              <p className="na1-mirror-card-sub">
+                Unlocks after Time Audit — claim Mirror 2 to begin.
+              </p>
+            )}
+            <div className="na1-mirror-card-action">
+              {m3Unlocked ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginM3}
+                >
+                  Begin Named Truth →
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="na1-btn-ghost na1-btn-block"
+                  disabled
+                >
+                  Unlocks after Time Audit
+                </button>
+              )}
+            </div>
+          </article>
         </div>
       </div>
     </div>
@@ -34156,6 +34354,61 @@ const A2M1_STEPS: { num: number; name: string }[] = [
 ];
 
 const A2M1_VEIL_TEXT = "Back to the mirror — honestly this time…";
+
+// A2 Ship 1 · Mirror 2 (Time Audit) — step registry + launch veil copy. Three
+// working steps plus a Claim step, mirroring the Mirror 1 stepper shape.
+const A2M2_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "Your priorities" },
+  { num: 2, name: "Where time goes" },
+  { num: 3, name: "What's missing" },
+  { num: 4, name: "Claim" },
+];
+
+const A2M2_VEIL_TEXT = "Looking at where your time actually goes…";
+
+// Step 1 · suggested priority chips. The user can also add their own; the list
+// caps at A2M2_PRIORITY_MAX.
+const A2M2_PRIORITY_CHIPS: readonly string[] = [
+  "Family",
+  "Work",
+  "Health",
+  "Finances",
+  "Self / Growth",
+  "Friends",
+  "Faith / Spirituality",
+  "Community",
+  "Partnership / Marriage",
+  "Learning",
+  "Rest / Recovery",
+];
+const A2M2_PRIORITY_MAX = 5;
+const A2M2_ACTIVITY_MAX = 25;
+
+// Forward CTA label per step, shown on the Continue button (Claim step has none).
+const A2M2_CONTINUE_LABEL: Record<number, string> = {
+  1: "Continue to Where time goes →",
+  2: "Continue to What's missing →",
+  3: "Continue to Claim →",
+};
+
+// Circled-number glyphs for priority-served indicators (caps at the 5th).
+const A2M2_CIRCLED = ["①", "②", "③", "④", "⑤"];
+
+// Feeling dropdown options (Step 2). Order matches the spec; selected styling is
+// driven by a data-feeling attribute in CSS.
+const A2M2_FEELING_OPTIONS: { value: A2M2Feeling; label: string }[] = [
+  { value: "love", label: "Love" },
+  { value: "like", label: "Like" },
+  { value: "dislike", label: "Dislike" },
+  { value: "despise", label: "Despise" },
+];
+
+// Stable id for activity/missing rows. Mirrors the inline crypto.randomUUID
+// pattern used elsewhere in this file, with a non-crypto fallback.
+const a2m2NewId = (): string =>
+  typeof crypto !== "undefined" && (crypto as any).randomUUID
+    ? (crypto as any).randomUUID()
+    : String(Date.now()) + Math.random();
 
 type A1Recall = {
   purpose: string;
@@ -34889,6 +35142,7 @@ function NewA2M1Step3Body({
 // entry here and pass its launcher to resolveA2NextMirror — no edit to Step 4.
 const A2_NEXT_MIRROR: Record<string, { label: string } | undefined> = {
   m1: { label: "Time Audit" },
+  m2: { label: "Named Truth" },
 };
 
 // Resolve the mirror that follows `fromMirror`, binding the caller's launcher.
@@ -35674,6 +35928,991 @@ function NewA2M1Container({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// A2 Ship 1 · Mirror 2 (Time Audit) — continuous paced room
+// ─────────────────────────────────────────────────────────────────────────────
+// Mirrors the Mirror 1 room architecture (container + horizontal stepper + step
+// bodies + launch veil + close/back routing) but with its own na1-a2m2-* CSS and
+// its own persisted state (to_a2_state_v1.m2). Unlike Mirror 1, step navigation
+// is LOCAL (non-persisted) component state — only the user's answers + the claim
+// persist; the overlay route persists "timeaudit" so a refresh re-opens the room
+// (landing on Step 1, or the sealed Claim step once claimed). There is no intro
+// hub: the A2 hub's 02 Begin routes straight here and the container launches the
+// veil on entry, matching "tapping Begin plays the launch veil and opens the
+// room".
+
+// Horizontal step indicator for the Time Audit. Same behavior as Mirror 1's
+// stepper (current = gold, completed steps show ✓ + are clickable to jump back)
+// with its own na1-a2m2-* classes.
+function NewA2M2Stepper({
+  currentStep,
+  maxReached,
+  onJump,
+}: {
+  currentStep: number;
+  maxReached: number;
+  onJump: (step: number) => void;
+}) {
+  return (
+    <div className="na1-a2m2-stepper" role="list" aria-label="Time Audit progress">
+      {A2M2_STEPS.map((s, i) => {
+        const num = s.num;
+        const isCurrent = num === currentStep;
+        const isComplete = num < maxReached && !isCurrent;
+        const isReached = num <= maxReached;
+        const dotCls = [
+          "na1-a2m2-dot",
+          isCurrent ? "is-current" : "",
+          isComplete ? "is-complete" : "",
+          isReached ? "is-reached" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        const clickable = num < currentStep;
+        const inner = (
+          <>
+            <span className={dotCls} aria-hidden>
+              {isComplete ? "✓" : num}
+            </span>
+            <span className={`na1-a2m2-step-name ${isCurrent ? "is-current" : ""}`}>
+              {s.name}
+            </span>
+          </>
+        );
+        return (
+          <React.Fragment key={num}>
+            {i > 0 && (
+              <span
+                className={`na1-a2m2-line ${num <= maxReached ? "is-reached" : ""}`}
+                aria-hidden
+              />
+            )}
+            {clickable ? (
+              <button
+                type="button"
+                className="na1-a2m2-step is-clickable"
+                onClick={() => onJump(num)}
+                aria-label={`Go back to ${s.name}`}
+              >
+                {inner}
+              </button>
+            ) : (
+              <div
+                className="na1-a2m2-step"
+                role="listitem"
+                aria-current={isCurrent ? "step" : undefined}
+              >
+                {inner}
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// Step 1 · Your priorities. Pick from suggested chips or add custom ones, then
+// rank them (drag handle or ▲▼). Caps at A2M2_PRIORITY_MAX. Priorities are an
+// ordered string[]; the Continue gate (≥1) lives in the container.
+function NewA2M2Step1Body({
+  priorities,
+  onChange,
+}: {
+  priorities: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [custom, setCustom] = useState("");
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const atCap = priorities.length >= A2M2_PRIORITY_MAX;
+
+  const toggleChip = (label: string) => {
+    if (priorities.includes(label)) {
+      onChange(priorities.filter((p) => p !== label));
+    } else if (!atCap) {
+      onChange([...priorities, label]);
+    }
+  };
+  const addCustom = () => {
+    const name = custom.trim();
+    if (!name || atCap) return;
+    if (priorities.some((p) => p.toLowerCase() === name.toLowerCase())) {
+      setCustom("");
+      return;
+    }
+    onChange([...priorities, name]);
+    setCustom("");
+  };
+  const removeAt = (i: number) => {
+    onChange(priorities.filter((_, idx) => idx !== i));
+  };
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= priorities.length) return;
+    const next = priorities.slice();
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  };
+  const onDrop = (target: number) => {
+    if (dragIndex === null || dragIndex === target) {
+      setDragIndex(null);
+      return;
+    }
+    const next = priorities.slice();
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(target, 0, moved);
+    onChange(next);
+    setDragIndex(null);
+  };
+
+  const countHint =
+    priorities.length < 3 ? " — aim for at least 3" : "";
+
+  return (
+    <div className="na1-a2m2-step1">
+      <h2 className="na1-a2m2-step-title">
+        Your <em>priorities.</em>
+      </h2>
+      <p className="na1-a2m2-step-lede">
+        Not how you spend your time — how you want to live. Ideally 3, maximum 5.
+        Rank them in order of importance.
+      </p>
+      <div className="na1-a2m2-help">
+        This isn&rsquo;t about what you should say. It&rsquo;s what&rsquo;s
+        actually true — what you&rsquo;d protect first if something had to give.
+      </div>
+
+      <div className="na1-a2m2-chips" role="group" aria-label="Suggested priorities">
+        {A2M2_PRIORITY_CHIPS.map((label) => {
+          const selected = priorities.includes(label);
+          const disabled = !selected && atCap;
+          return (
+            <button
+              key={label}
+              type="button"
+              className={`na1-a2m2-chip ${selected ? "is-selected" : ""}`}
+              onClick={() => toggleChip(label)}
+              disabled={disabled}
+              aria-pressed={selected}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="na1-a2m2-add-row">
+        <input
+          type="text"
+          className="na1-a2m2-input"
+          placeholder="Add your own…"
+          value={custom}
+          maxLength={40}
+          disabled={atCap}
+          onChange={(e) => setCustom(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addCustom();
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="na1-a2m2-add-btn"
+          onClick={addCustom}
+          disabled={atCap || !custom.trim()}
+        >
+          + Add
+        </button>
+      </div>
+
+      {priorities.length > 0 && (
+        <ol className="na1-a2m2-rank-list" aria-label="Ranked priorities">
+          {priorities.map((name, i) => (
+            <li
+              key={name}
+              className={`na1-a2m2-rank-row ${dragIndex === i ? "is-dragging" : ""}`}
+              draggable
+              onDragStart={() => setDragIndex(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => onDrop(i)}
+              onDragEnd={() => setDragIndex(null)}
+            >
+              <span className="na1-a2m2-drag" aria-hidden>
+                ⠿
+              </span>
+              <span className="na1-a2m2-rank-num" aria-hidden>
+                {i + 1}
+              </span>
+              <span className="na1-a2m2-rank-name">{name}</span>
+              <span className="na1-a2m2-rank-actions">
+                <button
+                  type="button"
+                  className="na1-a2m2-arrow"
+                  onClick={() => move(i, -1)}
+                  disabled={i === 0}
+                  aria-label={`Move ${name} up`}
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  className="na1-a2m2-arrow"
+                  onClick={() => move(i, 1)}
+                  disabled={i === priorities.length - 1}
+                  aria-label={`Move ${name} down`}
+                >
+                  ▼
+                </button>
+                <button
+                  type="button"
+                  className="na1-a2m2-remove"
+                  onClick={() => removeAt(i)}
+                  aria-label={`Remove ${name}`}
+                >
+                  ✕
+                </button>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      <p className="na1-a2m2-count">
+        {priorities.length} of {A2M2_PRIORITY_MAX} chosen{countHint}
+      </p>
+    </div>
+  );
+}
+
+// Step 2 · Where time goes. Activity cards (name, hrs/week, feeling, which
+// priority it serves) plus a live running-totals bar. Caps at A2M2_ACTIVITY_MAX.
+function NewA2M2Step2Body({
+  activities,
+  priorities,
+  onAdd,
+  onUpdate,
+  onRemove,
+}: {
+  activities: A2M2Activity[];
+  priorities: string[];
+  onAdd: () => void;
+  onUpdate: (id: string, patch: Partial<A2M2Activity>) => void;
+  onRemove: (id: string) => void;
+}) {
+  const atCap = activities.length >= A2M2_ACTIVITY_MAX;
+  const totalHrs = activities.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+  const perPriority = priorities.map((name) => ({
+    name,
+    hrs: activities
+      .filter((a) => a.priorityServed === name)
+      .reduce((s, a) => s + (a.hrsPerWeek || 0), 0),
+  }));
+  const accounted = perPriority.reduce((s, p) => s + p.hrs, 0);
+  const unaccounted = Math.max(0, totalHrs - accounted);
+  const pct = (h: number) => (totalHrs > 0 ? Math.round((h / totalHrs) * 100) : 0);
+
+  return (
+    <div className="na1-a2m2-step2">
+      <h2 className="na1-a2m2-step-title">
+        Where your time <em>goes.</em>
+      </h2>
+      <p className="na1-a2m2-step-lede">
+        Log what fills your week — honestly. Hours per week, how it feels, and
+        which priority it serves.
+      </p>
+
+      <div className="na1-a2m2-activities">
+        {activities.map((a) => (
+          <div className="na1-a2m2-activity-card" key={a.id}>
+            <div className="na1-a2m2-activity-top">
+              <input
+                type="text"
+                className="na1-a2m2-input na1-a2m2-activity-name"
+                placeholder="Activity…"
+                value={a.name}
+                maxLength={60}
+                onChange={(e) => onUpdate(a.id, { name: e.target.value })}
+              />
+              <button
+                type="button"
+                className="na1-a2m2-remove"
+                onClick={() => onRemove(a.id)}
+                aria-label="Remove activity"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="na1-a2m2-activity-fields">
+              <label className="na1-a2m2-field">
+                <span className="na1-a2m2-field-label">Hrs / week</span>
+                <input
+                  type="number"
+                  className="na1-a2m2-input na1-a2m2-hrs"
+                  min={0}
+                  max={80}
+                  value={a.hrsPerWeek === 0 ? "" : a.hrsPerWeek}
+                  placeholder="0"
+                  onChange={(e) => {
+                    const raw = Number(e.target.value);
+                    const clamped = Number.isFinite(raw)
+                      ? Math.max(0, Math.min(80, Math.round(raw)))
+                      : 0;
+                    onUpdate(a.id, { hrsPerWeek: clamped });
+                  }}
+                />
+              </label>
+              <label className="na1-a2m2-field">
+                <span className="na1-a2m2-field-label">How it feels</span>
+                <select
+                  className="na1-a2m2-select"
+                  data-feeling={a.feeling}
+                  value={a.feeling}
+                  onChange={(e) =>
+                    onUpdate(a.id, { feeling: e.target.value as A2M2Feeling })
+                  }
+                >
+                  {A2M2_FEELING_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="na1-a2m2-field">
+                <span className="na1-a2m2-field-label">Priority served</span>
+                <select
+                  className="na1-a2m2-select"
+                  value={priorities.includes(a.priorityServed) ? a.priorityServed : ""}
+                  onChange={(e) => onUpdate(a.id, { priorityServed: e.target.value })}
+                >
+                  <option value="">— none —</option>
+                  {priorities.map((p, i) => (
+                    <option key={p} value={p}>
+                      {(A2M2_CIRCLED[i] ?? "") + " " + p}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="na1-a2m2-add-activity"
+        onClick={onAdd}
+        disabled={atCap}
+      >
+        + Add activity
+      </button>
+      <p className="na1-a2m2-count">
+        {activities.length} of {A2M2_ACTIVITY_MAX} activities logged
+      </p>
+
+      {totalHrs > 0 && (
+        <div className="na1-a2m2-totals" aria-label="Time by priority">
+          <div className="na1-a2m2-totals-head">
+            Where your {totalHrs}h / week actually go
+          </div>
+          {perPriority.map((p, i) => (
+            <div className="na1-a2m2-total-row" key={p.name}>
+              <span className="na1-a2m2-total-num" aria-hidden>
+                {A2M2_CIRCLED[i] ?? "•"}
+              </span>
+              <span className="na1-a2m2-total-name">{p.name}</span>
+              <span className="na1-a2m2-total-bar" aria-hidden>
+                <span
+                  className="na1-a2m2-total-fill"
+                  style={{ width: `${pct(p.hrs)}%` }}
+                />
+              </span>
+              <span className="na1-a2m2-total-val">
+                {p.hrs}h · {pct(p.hrs)}%
+              </span>
+            </div>
+          ))}
+          <div className="na1-a2m2-total-row is-unaccounted">
+            <span className="na1-a2m2-total-num" aria-hidden>
+              ?
+            </span>
+            <span className="na1-a2m2-total-name">Unaccounted</span>
+            <span className="na1-a2m2-total-bar" aria-hidden>
+              <span
+                className="na1-a2m2-total-fill is-unaccounted"
+                style={{ width: `${pct(unaccounted)}%` }}
+              />
+            </span>
+            <span className="na1-a2m2-total-val">
+              {unaccounted}h · {pct(unaccounted)}%
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Step 3 · What's missing. Rows of things being crowded out, each with an
+// optional priority tag. Optional step — no Continue gate.
+function NewA2M2Step3Body({
+  missingItems,
+  priorities,
+  onAdd,
+  onUpdate,
+  onRemove,
+}: {
+  missingItems: A2M2MissingItem[];
+  priorities: string[];
+  onAdd: () => void;
+  onUpdate: (id: string, patch: Partial<A2M2MissingItem>) => void;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="na1-a2m2-step3">
+      <h2 className="na1-a2m2-step-title">
+        What&rsquo;s <em>missing.</em>
+      </h2>
+      <p className="na1-a2m2-step-lede">
+        Things you want to spend time on — but can&rsquo;t right now. Name them.
+      </p>
+      <div className="na1-a2m2-help">
+        These are the things being crowded out. Naming them is the first step to
+        making space for them.
+      </div>
+
+      <div className="na1-a2m2-missing-list">
+        {missingItems.map((item) => (
+          <div className="na1-a2m2-missing-row" key={item.id}>
+            <span className="na1-a2m2-missing-dot" aria-hidden />
+            <input
+              type="text"
+              className="na1-a2m2-input na1-a2m2-missing-name"
+              placeholder="Something you want to do but can't…"
+              value={item.name}
+              maxLength={80}
+              onChange={(e) => onUpdate(item.id, { name: e.target.value })}
+            />
+            <select
+              className="na1-a2m2-select na1-a2m2-missing-tag"
+              value={priorities.includes(item.priorityTag) ? item.priorityTag : ""}
+              onChange={(e) => onUpdate(item.id, { priorityTag: e.target.value })}
+            >
+              <option value="">— priority —</option>
+              {priorities.map((p, i) => (
+                <option key={p} value={p}>
+                  {(A2M2_CIRCLED[i] ?? "") + " " + p}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="na1-a2m2-remove"
+              onClick={() => onRemove(item.id)}
+              aria-label="Remove"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="na1-a2m2-add-missing"
+        onClick={onAdd}
+      >
+        + Add something that&rsquo;s missing
+      </button>
+
+      <p className="na1-a2m2-missing-note">
+        These carry forward into Mirror 3 — Named Truth — where you&rsquo;ll see
+        the full picture.
+      </p>
+    </div>
+  );
+}
+
+// Step 4 · Claim. Summary of where the hours go + what's still missing, a
+// personalized Katherine seal, the reused gold burst ceremony, a re-claim
+// affordance, and a forward CTA to Named Truth (Mirror 3). Mirrors the Mirror 1
+// claim body's burst/seal/re-claim mechanics exactly.
+function NewA2M2Step4Body({
+  priorities,
+  activities,
+  missingItems,
+  claimed,
+  onClaim,
+  onReclaim,
+  onFinish,
+  nextMirror,
+}: {
+  priorities: string[];
+  activities: A2M2Activity[];
+  missingItems: A2M2MissingItem[];
+  claimed: boolean;
+  onClaim: () => void;
+  onReclaim: () => void;
+  onFinish: () => void;
+  nextMirror?: { label: string; go: () => void } | null;
+}) {
+  // Personalize the seal in Katherine's voice — same resolver A1's M4 seal uses
+  // (auth user → null fallback; never the literal "User").
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+
+  const totalHrs = activities.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+  const summary = priorities.map((name, i) => {
+    const hrs = activities
+      .filter((a) => a.priorityServed === name)
+      .reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+    return {
+      name,
+      hrs,
+      pct: totalHrs > 0 ? Math.round((hrs / totalHrs) * 100) : 0,
+      glyph: A2M2_CIRCLED[i] ?? "•",
+    };
+  });
+  const namedMissing = missingItems.filter((it) => it.name.trim() !== "");
+
+  // Claim ceremony — reuse A1's gold burst exactly (portaled to body so the
+  // position:fixed burst resolves against the viewport, not the room card).
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onClaim();
+    }, 2000);
+  };
+  const handleReclaim = () => {
+    if (showBurst) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onReclaim();
+    }, 2000);
+  };
+
+  const summaryCard = (
+    <div className="na1-a2m2-summary">
+      <div className="na1-a2m2-summary-head">Where your week actually goes</div>
+      {summary.map((row) => (
+        <div className="na1-a2m2-summary-row" key={row.name}>
+          <span className="na1-a2m2-summary-num" aria-hidden>
+            {row.glyph}
+          </span>
+          <span className="na1-a2m2-summary-name">{row.name}</span>
+          <span className="na1-a2m2-summary-val">
+            {row.hrs}h · {row.pct}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+  const missingCard = namedMissing.length > 0 && (
+    <div className="na1-a2m2-missing-card">
+      <div className="na1-a2m2-missing-card-head">Still waiting for space</div>
+      {namedMissing.map((it) => (
+        <div className="na1-a2m2-missing-card-row" key={it.id}>
+          <span className="na1-a2m2-missing-dot" aria-hidden />
+          <span className="na1-a2m2-missing-card-name">{it.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+  const burstPortal =
+    showBurst &&
+    createPortal(
+      <div className="na1-gold-burst" aria-hidden>
+        <div className="na1-gold-burst-inner" />
+      </div>,
+      document.body,
+    );
+
+  // Sealed state — reached on claim, and on every re-entry once claimed.
+  if (claimed) {
+    return (
+      <div className="na1-a2m2-step4">
+        <div className="na1-room-eyebrow tone-gold">A2 · Mirror 2 · Claim ★</div>
+        {summaryCard}
+        {missingCard}
+        <div className="na1-a2m2-seal" role="status">
+          <p className="na1-a2m2-seal-body">
+            {displayName ? `${displayName}, you've` : "You've"} laid it all out —
+            your priorities, where the hours actually go, and what has no space
+            yet. That honesty is the starting point. Mirror 3 is where you decide
+            what changes.
+          </p>
+          <p className="na1-a2m2-seal-by">— Katherine</p>
+        </div>
+        {burstPortal}
+        <div className="na1-a2m2-reclaim">
+          <p className="na1-a2m2-reclaim-note">Changed something? Re-commit.</p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={handleReclaim}
+            disabled={showBurst}
+          >
+            ↺ Re-claim
+          </button>
+        </div>
+        <div className="na1-a2m2-claim-actions">
+          <button
+            type="button"
+            className="na1-btn-gold"
+            onClick={nextMirror ? nextMirror.go : onFinish}
+          >
+            {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A2 →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Pre-claim read-back.
+  return (
+    <div className="na1-a2m2-step4">
+      {burstPortal}
+      <h2 className="na1-a2m2-step-title">
+        Claim <em>it.</em>
+      </h2>
+      <p className="na1-a2m2-step-lede">
+        Your priorities. Your week. What&rsquo;s missing. All seen.
+      </p>
+      {summaryCard}
+      {missingCard}
+      <div className="na1-a2m2-claim-actions">
+        <button
+          type="button"
+          className="na1-btn-gold na1-a2m2-claim-btn"
+          onClick={handleClaim}
+          disabled={showBurst}
+        >
+          Claim my Time Audit →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Container for the Time Audit. Owns the single room overlay, the launch veil,
+// the local step navigation, and the persisted Mirror 2 state. Isolated from
+// Mirror 1 — no shared overlay ids, room state, or veil timers.
+function NewA2M2Container({
+  onBackToA2,
+  onContinueToM3,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA2: () => void;
+  // Forward route to the Mirror 3 (Named Truth) shell, fired from the Claim seal.
+  onContinueToM3: () => void;
+  // One-shot: "timeaudit" when restoring a saved room (resume — no veil).
+  initialRoomKey: string | null;
+  // Reports the open room ("timeaudit") or null so the parent can persist it.
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a2State, setA2State] = useState<A2State>(() => loadA2State());
+  const m2 = a2State.m2;
+  const mutateM2 = useCallback((fn: (m: A2M2State) => A2M2State) => {
+    setA2State((prev) => {
+      const next = { ...prev, m2: fn(prev.m2) };
+      saveA2State(next);
+      return next;
+    });
+  }, []);
+
+  // A resume mount (refresh while the room was open) restores the room with no
+  // veil. A fresh entry from the hub plays the launch veil — unless the mirror
+  // is already claimed, in which case we open straight to the sealed Claim step.
+  const resuming = initialRoomKey === "timeaudit";
+  const launchVeil = !resuming && !m2.claimed;
+
+  // Local, non-persisted step navigation. A claimed re-entry lands on Claim.
+  const [currentStep, setCurrentStep] = useState<number>(m2.claimed ? 4 : 1);
+  const [maxReached, setMaxReached] = useState<number>(m2.claimed ? 4 : 1);
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+
+  // Mount-once veil sequence for a fresh launch. veilPhase is seeded "rising"
+  // above so there's no idle flicker on the first paint; this schedules the
+  // hold (room reveal), falling, and idle phases. The ref guards against any
+  // double-invoke. Resume / claimed re-entry skip this entirely.
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Report the open room up so the route persists it (overlay "timeaudit").
+  useEffect(() => {
+    onRoomChange(roomOpen ? "timeaudit" : null);
+  }, [roomOpen, onRoomChange]);
+
+  // Closing the room leaves straight back to the A2 hub (no intro hub here).
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA2();
+  };
+
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(4, step));
+    setCurrentStep(clamped);
+    setMaxReached((m) => Math.max(m, clamped));
+  };
+  const onBack = () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+    else closeRoom();
+  };
+  const onContinue = () => {
+    if (currentStep < 4) goToStep(currentStep + 1);
+  };
+
+  // Per-step Continue gate. Step 1 needs at least one priority; the rest are
+  // optional, so the user can always advance.
+  const canContinue = currentStep === 1 ? m2.priorities.length >= 1 : true;
+
+  // Step 1 priorities edit handler. Does NOT auto-unseal a claimed mirror —
+  // re-committing is an explicit action on the Claim step.
+  const setPriorities = (next: string[]) =>
+    mutateM2((m) => ({ ...m, priorities: next }));
+
+  // Step 2 activity handlers.
+  const addActivity = () =>
+    mutateM2((m) =>
+      m.activities.length >= A2M2_ACTIVITY_MAX
+        ? m
+        : {
+            ...m,
+            activities: [
+              ...m.activities,
+              {
+                id: a2m2NewId(),
+                name: "",
+                hrsPerWeek: 0,
+                feeling: "like" as A2M2Feeling,
+                priorityServed: "",
+              },
+            ],
+          },
+    );
+  const updateActivity = (id: string, patch: Partial<A2M2Activity>) =>
+    mutateM2((m) => ({
+      ...m,
+      activities: m.activities.map((a) => (a.id === id ? { ...a, ...patch } : a)),
+    }));
+  const removeActivity = (id: string) =>
+    mutateM2((m) => ({
+      ...m,
+      activities: m.activities.filter((a) => a.id !== id),
+    }));
+
+  // Step 3 missing-item handlers.
+  const addMissing = () =>
+    mutateM2((m) => ({
+      ...m,
+      missingItems: [
+        ...m.missingItems,
+        { id: a2m2NewId(), name: "", priorityTag: "" },
+      ],
+    }));
+  const updateMissing = (id: string, patch: Partial<A2M2MissingItem>) =>
+    mutateM2((m) => ({
+      ...m,
+      missingItems: m.missingItems.map((it) =>
+        it.id === id ? { ...it, ...patch } : it,
+      ),
+    }));
+  const removeMissing = (id: string) =>
+    mutateM2((m) => ({
+      ...m,
+      missingItems: m.missingItems.filter((it) => it.id !== id),
+    }));
+
+  // Claim handlers. claimM2 seals + stamps; reclaimM2 re-stamps without
+  // un-sealing (the seal stays visible). Both are followed by the gold burst,
+  // fired inside the Step 4 body before these run.
+  const claimM2 = () =>
+    mutateM2((m) => ({
+      ...m,
+      claimed: true,
+      claimedAt: new Date().toISOString(),
+    }));
+  const reclaimM2 = () =>
+    mutateM2((m) => ({ ...m, claimedAt: new Date().toISOString() }));
+
+  // Forward CTA target for the Claim step — Named Truth (Mirror 3) shell. The
+  // launcher always exists this ship (the shell ships alongside), so the seal's
+  // forward CTA reads "Continue to Named Truth →".
+  const a2NextMirror = resolveA2NextMirror("m2", onContinueToM3);
+
+  // Escape + scroll-lock while the room is open.
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  return (
+    <>
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Time Audit"
+        >
+          <div className="na1-room-card na1-a2m2-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>Time Audit</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A2M2_STEPS[currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <NewA2M2Stepper
+              currentStep={currentStep}
+              maxReached={maxReached}
+              onJump={goToStep}
+            />
+            <div className="na1-a2m2-body">
+              {currentStep === 1 ? (
+                <NewA2M2Step1Body
+                  priorities={m2.priorities}
+                  onChange={setPriorities}
+                />
+              ) : currentStep === 2 ? (
+                <NewA2M2Step2Body
+                  activities={m2.activities}
+                  priorities={m2.priorities}
+                  onAdd={addActivity}
+                  onUpdate={updateActivity}
+                  onRemove={removeActivity}
+                />
+              ) : currentStep === 3 ? (
+                <NewA2M2Step3Body
+                  missingItems={m2.missingItems}
+                  priorities={m2.priorities}
+                  onAdd={addMissing}
+                  onUpdate={updateMissing}
+                  onRemove={removeMissing}
+                />
+              ) : (
+                <NewA2M2Step4Body
+                  priorities={m2.priorities}
+                  activities={m2.activities}
+                  missingItems={m2.missingItems}
+                  claimed={m2.claimed}
+                  onClaim={claimM2}
+                  onReclaim={reclaimM2}
+                  onFinish={closeRoom}
+                  nextMirror={a2NextMirror}
+                />
+              )}
+            </div>
+            <div className="na1-a2m2-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>
+                {currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              {currentStep < 4 && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onContinue}
+                  disabled={!canContinue}
+                >
+                  {A2M2_CONTINUE_LABEL[currentStep] ?? "Continue"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A2M2_VEIL_TEXT} />
+      )}
+    </>
+  );
+}
+
+// A2 Ship 1 · Mirror 3 (Named Truth) — placeholder landing shell. The Mirror 2
+// Claim forward CTA and the hub's 03 Begin both route here. Real Named Truth
+// content ships in a later A2 ship; this is just a gated landing so the forward
+// path is never a dead end.
+function NewA2M3Shell({ onBackToA2 }: { onBackToA2: () => void }) {
+  return (
+    <div className="na1-a2m3-shell">
+      <div className="na1-room-eyebrow tone-gold">A2 · Mirror 3</div>
+      <h1 className="na1-a2m3-title">
+        Named <em>Truth.</em>
+      </h1>
+      <p className="na1-a2m3-lede">
+        You&rsquo;ve seen where your time goes and what&rsquo;s missing. Named
+        Truth is where you decide what changes — coming in the next chapter.
+      </p>
+      <button type="button" className="na1-btn-ghost" onClick={onBackToA2}>
+        ← Back to A2
+      </button>
+    </div>
+  );
+}
+
 function NewA1View({ name }: { name?: string }) {
   // Ship 5.5e · Personalization · resolve the display name with the
   // canonical intake → auth fallback. The legacy A1 wrapper only forwards
@@ -35717,6 +36956,11 @@ function NewA1View({ name }: { name?: string }) {
         // A2.1 · the Alignment Check hub is likewise flag-gated; a persisted
         // view:"a2m1" falls back to the grid when ?newA2=1 is dropped.
         if (saved.view === "a2m1" && !NEW_A2_FLAG) return "grid";
+        // A2 Ship 1 · the Time Audit room (a2m2) and Named Truth shell (a2m3)
+        // are flag-gated too; a persisted view falls back to the grid when
+        // ?newA2=1 is dropped, matching a2/a2m1 above.
+        if (saved.view === "a2m2" && !NEW_A2_FLAG) return "grid";
+        if (saved.view === "a2m3" && !NEW_A2_FLAG) return "grid";
         return saved.view;
       }
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -35748,6 +36992,11 @@ function NewA1View({ name }: { name?: string }) {
     if (saved.overlay.hubId === "a2m1") {
       if (saved.view === "a2m1" && NEW_A2_FLAG) return saved.overlay;
     }
+    // A2 Ship 1 · Restore the Time Audit room overlay only when the saved view
+    // matches and the A2 flag is on.
+    if (saved.overlay.hubId === "a2m2") {
+      if (saved.view === "a2m2" && NEW_A2_FLAG) return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -35761,6 +37010,9 @@ function NewA1View({ name }: { name?: string }) {
   );
   const initialA2M1RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a2m1" ? overlayRoute.roomId : null,
+  );
+  const initialA2M2RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a2m2" ? overlayRoute.roomId : null,
   );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
@@ -35779,6 +37031,7 @@ function NewA1View({ name }: { name?: string }) {
       view !== "m3" &&
       view !== "m4" &&
       view !== "a2m1" &&
+      view !== "a2m2" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -35813,6 +37066,17 @@ function NewA1View({ name }: { name?: string }) {
   const onA2M1RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
       const next: AppRouteOverlay = roomId ? { hubId: "a2m1", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A2 Ship 1 · Time Audit room (single room "timeaudit") reports open/close.
+  const onA2M2RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a2m2", roomId } : null;
       if (prev === next) return prev;
       if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
         return prev;
@@ -36169,6 +37433,8 @@ function NewA1View({ name }: { name?: string }) {
           onEntryHall={() => setView("entry-hall")}
           a1Complete={a1Complete}
           onBeginM1={() => setView("a2m1")}
+          onBeginM2={() => setView("a2m2")}
+          onBeginM3={() => setView("a2m3")}
         />
       </div>
     );
@@ -36193,6 +37459,34 @@ function NewA1View({ name }: { name?: string }) {
           initialRoomKey={initialKey}
           onRoomChange={onA2M1RoomChange}
         />
+      </div>
+    );
+  }
+  // A2 Ship 1 · Time Audit (A2 Mirror 2) room. Reached only via the A2 hub's
+  // gated 02 Begin (unlocked once Mirror 1 is claimed). No intro hub — the
+  // container launches the veil on entry and the room overlay owns the view.
+  if (view === "a2m2") {
+    // True one-shot: capture the saved room key, then null the ref so
+    // re-entering later in the session starts fresh (no auto-resume).
+    const initialKey = initialA2M2RoomKeyRef.current;
+    initialA2M2RoomKeyRef.current = null;
+    return (
+      <NewA2M2Container
+        onBackToA2={() => setView("a2")}
+        onContinueToM3={() => setView("a2m3")}
+        initialRoomKey={initialKey}
+        onRoomChange={onA2M2RoomChange}
+      />
+    );
+  }
+  // A2 Ship 1 · Named Truth (A2 Mirror 3) placeholder landing. Reached via the
+  // A2 hub's gated 03 Begin (unlocked once Mirror 2 is claimed) and the Mirror 2
+  // Claim forward CTA. Spine kept for consistent A2 chrome.
+  if (view === "a2m3") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+        <NewA2M3Shell onBackToA2={() => setView("a2")} />
       </div>
     );
   }

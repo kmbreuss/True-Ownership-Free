@@ -1,0 +1,253 @@
+Ship A2 · Ship 1 of 3
+
+A2 Hub Restructure + Mirror 2 (Time Audit) — Full Build
+
+File: artifacts/true-ownership/src/App.tsx (~86,824 lines)
+Flag: ?newA2=1 — same flag as M1. All new code additive only. Legacy A2 untouched.
+State key: to_a2_state_v1 — already exists. M2 writes to .m2.*, M3 writes to .m3.*.
+Dev URL: https://b8363272-ff9f-404c-9632-5af68f34d738-00-2kazqkj8gufie.spock.replit.dev/?newA1=1&newA2=1
+
+
+PART A — Hub Restructure (change existing code)
+
+The A2 hub currently shows 4 mirror cards: Alignment Check · Time Audit · Focus + Commit · Integrity Claim.
+
+Change: Reduce to 3 mirror cards. Remove "Focus + Commit" and "Integrity Claim" cards entirely. The lockedCards array near line 52247 currently has 4 entries — remove the last two. Result:
+
+01 · Mirror 1 · Alignment Check     (existing — sealed)
+02 · Mirror 2 · Time Audit          (existing stub → now gets a real room)
+03 · Mirror 3 · Named Truth         (rename from nothing — this is new)
+
+Hub card for Mirror 2 unlocks when M1 is claimed (m1.claimed === true).
+Hub card for Mirror 3 unlocks when M2 is claimed (m2.claimed === true).
+
+Hub subtitle update: change from "1 of 4 complete" to "1 of 3 complete" (or however the count is computed — just ensure it references 3 total mirrors, not 4).
+
+DO NOT touch Mirror 1 code, its hub card, its room, its claim, or its CSS. Additive only.
+
+
+PART B — Mirror 2: Time Audit (new continuous room)
+
+Mirror 2 runs as ONE continuous paced room with a horizontal 3-step indicator at the top — same pattern as Mirror 1's 4-step indicator. Steps: Your priorities · Where time goes · What's missing
+
+Routing
+
+
+Tap "Begin" on Mirror 2 hub card → launch the M2 room overlay (same veil pattern as M1)
+Veil text: "Looking at where your time actually goes…"
+On M2 Claim → route back to A2 hub, M2 card shows "Sealed · tap to revisit"
+
+
+CSS namespace
+
+All new CSS: na1-a2m2-* prefix. Never reuse M1's na1-a2m1-* classes.
+
+State schema — writes to to_a2_state_v1.m2
+
+typescriptm2: {
+  // Step 1
+  priorities: string[],          // ordered array e.g. ['Family','Work','Health']
+  
+  // Step 2
+  activities: Array<{
+    id: string,
+    name: string,
+    hrsPerWeek: number,
+    feeling: 'love' | 'like' | 'dislike' | 'despise',
+    priorityServed: string,      // matches a priority name or '' for none
+  }>,
+  
+  // Step 3
+  missingItems: Array<{
+    id: string,
+    name: string,
+    priorityTag: string,         // matches a priority name or ''
+  }>,
+  
+  // Claim
+  claimed: boolean,
+  claimedAt: string | null,
+}
+
+
+Step 1 — Your priorities
+
+Eyebrow: A2 · MIRROR 2 · STEP 1
+Title (Georgia serif): Your *priorities.* (italic gold on "priorities")
+Lead: "Not how you spend your time — how you want to live. Ideally 3, maximum 5. Rank them in order of importance."
+Help card (gold italic Georgia): "This isn't about what you should say. It's what's actually true — what you'd protect first if something had to give."
+
+Life area chips (tap to add/remove, gold when picked, greyed + untappable at 5):
+Family · Work · Health · Finances · Self / Growth · Friends · Faith / Spirituality · Community · Partnership / Marriage · Learning · Rest / Recovery
+
+Ranked list (below chips, shows picked items in order):
+
+
+Each item shows: drag handle ⠿⠿ · rank number (gold circle) · name · ▲ ▼ arrows · ✕ remove
+Draggable to reorder (dragstart/dragover/drop)
+▲ ▼ buttons also reorder (swap with item above/below)
+Rank circles use --gold background, #3a2800 text
+
+
+Add your own — text input + "+ Add" button. Adds to chip pool and immediately to ranked list if under 5.
+
+Count line: "N of 5 chosen — [hint if under 3]"
+
+Continue button (gold pill, right-aligned): "Continue to Where time goes →"
+Disabled (50% opacity) if fewer than 1 priority chosen.
+
+Saves to: to_a2_state_v1.m2.priorities on every change.
+
+
+Step 2 — Where time goes
+
+Eyebrow: A2 · MIRROR 2 · STEP 2
+Title: Where your time *goes.*
+Lead: "Log what fills your week — honestly. Hours per week, how it feels, and which priority it serves."
+
+Activity cards (mobile-first card layout — NOT a table):
+Each activity is a full-width card (background: var(--na1-bg-card), border: 1px solid var(--na1-border), border-radius: 10px, padding: 14px 16px, margin-bottom: 10px).
+
+Each card contains:
+
+
+Top row: editable name input (full width) + ✕ delete button
+Field row (3-column grid, collapses to 2-col on mobile <600px):
+
+Hrs / week — number input, min 0 max 80, centred, bold
+Feeling — dropdown: Love · Like · Dislike · Despise. Each option styled when selected:
+
+Love: gold bg/text
+Like: green bg/text (rgba(80,150,90,.1) / #3a7040)
+Dislike: burgundy light bg/text
+Despise: burgundy strong bg/text (#A03B3B)
+
+
+
+Priority served — dropdown populated from Step 1 priorities, shown with circle numbers ①②③④⑤. Empty option "— none —". Turns gold when a priority is selected.
+
+
+
+
+
+"+ Add activity" button — dashed gold border, ghost style, full width, adds blank card at top.
+
+Activity counter: "N of 25 activities logged"
+
+Live running totals bar (below cards, background: var(--na1-bg-card), bordered, rounded):
+
+
+Label: "Running totals"
+One row per priority: circle number + name · progress bar (gold fill) · hours · percentage
+Final row: "Unaccounted" (burgundy fill) showing hours tagged to no priority
+All update live as user edits hours or priority tags
+
+
+Continue button: "Continue to What's missing →"
+
+Saves to: to_a2_state_v1.m2.activities on every change.
+
+
+Step 3 — What's missing
+
+Eyebrow: A2 · MIRROR 2 · STEP 3
+Title: What's *missing.*
+Lead: "Things you want to spend time on — but can't right now. Name them."
+Help card: "These are the things being crowded out. Naming them is the first step to making space for them."
+
+Missing item cards — each is a row:
+
+
+Burgundy dot (6px, #A03B3B)
+Text input: placeholder "Something you want to do but can't…"
+Priority dropdown (from Step 1 list, same ①②③ format) — optional tag
+✕ delete button
+
+
+"+ Add something that's missing" button — dashed burgundy border, burgundy text, full width
+
+Note below: small italic muted text: "These carry forward into Mirror 3 — Named Truth — where you'll see the full picture."
+
+Continue button: "Continue to Claim →"
+
+Saves to: to_a2_state_v1.m2.missingItems on every change.
+
+
+Step 4 — Claim (Mirror 2)
+
+Eyebrow: A2 · MIRROR 2 · CLAIM ★
+Title: Claim *it.*
+Lead: "Your priorities. Your week. What's missing. All seen."
+
+Summary card (white card, bordered):
+One row per priority: rank circle · name · total hours logged this week · percentage of total
+
+Missing list (burgundy-tinted card):
+Label: "Still waiting for space"
+Each missing item as a dot + name
+
+Katherine seal — follows Claim Architecture exactly:
+
+
+Gold left border (3px solid var(--gold))
+Gold faint background
+Eyebrow: A2 · MIRROR 2 · CLAIM ★
+Italic Georgia gold text, personalized using resolveDisplayName()
+Seal copy: "[Name], you've laid it all out — your priorities, where the hours actually go, and what has no space yet. That honesty is the starting point. Mirror 3 is where you decide what changes."
+Attribution: — Katherine
+
+
+Gold burst on claim — reuse EXISTING na1-gold-burst + na1-gold-burst-inner + keyframes na1GoldRadial / na1GoldScrim. Do NOT author new burst classes.
+
+Claim button (full-width gold): "Claim my Time Audit →"
+
+Forward CTA after claim: "Continue to Named Truth →" → routes to M3 room
+
+Sets: to_a2_state_v1.m2.claimed = true, m2.claimedAt = new Date().toISOString()
+
+Hub card after claim: "Sealed · tap to revisit" with ✓ gold checkmark
+
+Re-claim: seal stays visible after claiming. Below the seal: small muted text "Changed something? Re-commit." + ghost "↺ Re-claim" button that re-fires the burst and re-stamps claimedAt. Do NOT auto-unseal when user navigates back to edit.
+
+
+PART C — Architecture rules (non-negotiable)
+
+
+Fonts: var(--na1-sans) (DM Sans) for body/UI. var(--na1-serif) (Georgia) for titles and italic prose. Never Inter, never Cormorant.
+Colors via tokens only: var(--gold) / var(--gold-glow) / var(--na1-burgundy) / var(--na1-bg-card) / var(--na1-border) etc. Never hardcode hex values in JSX.
+Shell: .na1-shell at 760px max-width. Mobile single-column at 600px.
+Stepper: same .step / .step.done / .step.cur / .step-dot / .step-lbl / ::before connector line pattern as M1. Steps fill gold with ✓ when complete.
+Veil on room entry: reuse existing NA1_VEIL_TIMING constant and .na1-veil component.
+Both themes tested: light and dark. No hardcoded colors anywhere.
+A1 untouched: no edits to any M1–M4 A1 code, CSS, or state.
+Legacy A2 untouched: the existing 9-page legacy A2 continues running when ?newA2 flag is off.
+Complete rule: m2.claimed boolean is the SOLE driver of M2 completion state on the hub card. No second threshold.
+
+
+
+Definition of done — Ship 1
+
+
+ A2 hub shows 3 mirror cards (not 4) — Focus+Commit and Integrity Claim removed
+ M2 hub card unlocks when M1 is claimed
+ M2 room launches with veil, 3-step horizontal stepper
+ Step 1: priorities chip picker, rank list with drag + arrows, add custom, saves to state
+ Step 2: activity cards (not table), all 3 fields per card, live totals bar updates, saves to state
+ Step 3: missing items list, priority tag dropdown, saves to state
+ Claim: summary + missing list + Katherine seal (personalized) + gold burst + re-claim button
+ Forward CTA "Continue to Named Truth →" present (routes to M3 — M3 can be a placeholder shell for now)
+ Hub card shows "Sealed · tap to revisit" after claim
+ Both themes, both flags, no regressions to A1 or M1
+
+
+
+DO NOT
+
+
+Touch A1 code (any of it)
+Touch legacy A2 (the 9-page version)
+Hardcode any color values in JSX/TSX
+Build M3 in this ship (placeholder shell only is fine)
+Add any new burst keyframe CSS — reuse existing na1GoldRadial / na1GoldScrim
+Use Inter or Cormorant fonts
+Build a table for activities — cards only
