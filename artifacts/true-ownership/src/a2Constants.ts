@@ -30,10 +30,23 @@ export type A2M1State = {
   // position label; presence is what marks an item rated (Step 2 Complete = all
   // shown gifts + behaviors present here).
   ratings: Record<string, number>;
-  // A2.3 · Saved Step 2 sub-screen index (0-based, one per creature then one
-  // per value) so a refresh resumes the exact screen. Clamped to the live
-  // sub-screen count at the render site.
+  // A2.4 · Step 2 (Rate alignment) · Purpose reading. The first sub-screen of
+  // Step 2 is a single 1–10 self-rating of how fully the user lives their
+  // purpose ("Far from it" → "Fully embodied"). ABSENT/undefined = unrated
+  // (renders neutral, no score label); presence (1–10) marks it rated. Step 2
+  // Complete = purpose rated (when a purpose statement exists) AND every gift
+  // AND every behavior rated.
+  purposeRating?: number;
+  // A2.3 · Saved Step 2 sub-screen index (0-based: Purpose, then one per
+  // creature, then one per value) so a refresh resumes the exact screen.
+  // Clamped to the live sub-screen count at the render site.
   step2Index: number;
+  // A2.4 · Step 3 (Key Misalignment) selections. `bottleneck` is the id of the
+  // chosen single bottleneck candidate ("purpose" | gift id | behavior id);
+  // null means "use the live lowest-ranked default". `keepInFocus` is the id of
+  // the single pinned watch-item (☆), or null. Both carry forward to A3.
+  bottleneck: string | null;
+  keepInFocus: string | null;
 };
 
 export const EMPTY_A2_M1: A2M1State = {
@@ -42,6 +55,8 @@ export const EMPTY_A2_M1: A2M1State = {
   veilSeen: false,
   ratings: {},
   step2Index: 0,
+  bottleneck: null,
+  keepInFocus: null,
 };
 
 export type A2State = {
@@ -84,12 +99,26 @@ function normalizeA2M1(raw: unknown): A2M1State {
     typeof rawIdx === "number" && Number.isFinite(rawIdx)
       ? Math.max(0, Math.round(rawIdx))
       : 0;
+  // Purpose rating: a clean 1–10 int when present, else undefined (= unrated).
+  const rawPurpose = (r as { purposeRating?: unknown }).purposeRating;
+  const purposeRating =
+    typeof rawPurpose === "number" && Number.isFinite(rawPurpose)
+      ? Math.max(1, Math.min(10, Math.round(rawPurpose)))
+      : undefined;
+  // Step 3 selections: a non-empty string id, else null.
+  const cleanId = (v: unknown): string | null =>
+    typeof v === "string" && v.trim() !== "" ? v : null;
+  const bottleneck = cleanId((r as { bottleneck?: unknown }).bottleneck);
+  const keepInFocus = cleanId((r as { keepInFocus?: unknown }).keepInFocus);
   return {
     currentStep,
     maxReached,
     veilSeen: r.veilSeen === true,
     ratings,
+    purposeRating,
     step2Index,
+    bottleneck,
+    keepInFocus,
   };
 }
 

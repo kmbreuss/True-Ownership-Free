@@ -1,0 +1,23 @@
+One ship it is — the clickable-back stepper fix bundled with A2.4 (Key Misalignment). And on the recall question I still need your call before I can write it cleanly:
+Read your A1 — behaviors under values: in or out? (Gifts already show under creatures; the symmetry argument says add behaviors under values. The redundancy argument says keep it lean since they rate behaviors in Step 2.) I'll default to out (lean) unless you say include — tell me which.
+Here's the brief, written for the default (lean recall). If you want behaviors in, say so and I'll add that one line:
+
+New ship: A2.4 — Step 3 (Key Misalignment) + clickable-back stepper. Plan first, then build.
+Two parts, one ship:
+Part A — Stepper jump-back (fix). The horizontal 4-step indicator is display-only. Make completed steps clickable — tapping a done step (e.g. "✓ Read your A1") jumps straight to it; the current step and future/locked steps stay non-clickable. Returning from a jumped-to step lands the user back where they were (or simply re-advances via Continue). Applies across the whole Alignment Check room. Done steps get pointer cursor + focus state; locked steps don't.
+Part B — Step 3 (Key Misalignment). Build the titled shell into the real step.
+
+Enters when Step 2's Complete predicate is satisfied (every gift + behavior rated). The 4-step indicator moves to Key Misalignment.
+Live ranking across everything rated in Step 2 — Purpose (normalize 1–10 → /5), every gift, every behavior — lowest first.
+Pre-select the lowest as the bottleneck, badged "lowest." User can tap any other candidate to override (single select).
+Keep-in-focus: a ☆ on each candidate pins one watch-item (toggle).
+Show the top ~4 candidates with a "show more" to reveal the rest. Gift candidates display their shadow word + creature ("Owl · falls to 'Mistrustful'"); behaviors show the value ("Honesty · lived rarely"); Purpose shows its score.
+Summary line: "Bottleneck: X — carries to A3 · Keeping in focus: Y."
+Writes a2.m1.bottleneck + a2.m1.keepInFocus to to_a2_state_v1; persists + resumes.
+Continue advances the 4-step indicator to Step 4 (Claim — still a titled shell).
+
+LOOK & FEEL (bible v2.2): tokens only — --gold, --burgundy #9b3d44, shadow-marker dot #A03B3B; Georgia + DM Sans; .na1-shell 760px; 600px mobile; both themes. New classes na1-a2m1-.
+Defaults (locked): bottleneck pool ranks everything together; keep-in-focus = single watch-item.
+DO NOT: build Step 4 (Claim) internals; alter Step 1/2 logic beyond making the stepper clickable; change the Step 2 Complete predicate; reuse A1 overlay ids/state; touch A1; add font/color tokens.
+Done looks like: completed steps in the horizontal bar are clickable and jump back (locked steps don't); finishing Step 2 enters Key Misalignment; candidates rank lowest-first with the lowest pre-selected; override + ☆ keep-in-focus work; summary names both; selections persist and resume; Continue advances to Step 4 (shell). Both themes; no console errors; A1 unchanged.
+Plan it first and show me before building.

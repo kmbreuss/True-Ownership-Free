@@ -921,6 +921,39 @@ html[data-theme="light"]{
 .na1-a2m1-pos{ font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:.04em; margin-top:9px; text-align:center; min-height:16px; }
 .na1-a2m1-blocked-hint{ font-family:var(--na1-sans); font-size:12.5px; line-height:1.5; color:var(--burgundy); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:var(--na1-radius); padding:10px 13px; margin-top:18px; }
 @media (max-width:600px){ .na1-a2m1-anchor{ font-size:12px; } .na1-a2m1-rate-list{ gap:24px; } }
+/* ── A2.4 · clickable-back stepper ── */
+.na1-a2m1-step.is-clickable{ background:none; border:none; padding:0; margin:0; font:inherit; cursor:pointer; transition:transform .15s; }
+.na1-a2m1-step.is-clickable:hover{ transform:translateY(-1px); }
+.na1-a2m1-step.is-clickable:hover .na1-a2m1-step-name{ color:var(--gold); }
+.na1-a2m1-step.is-clickable:focus-visible{ outline:2px solid var(--gold); outline-offset:4px; border-radius:8px; }
+/* ── A2.4 · Purpose sub-screen ── */
+.na1-a2m1-rate-head.is-purpose{ display:flex; flex-direction:column; gap:9px; }
+.na1-a2m1-purpose-eyebrow{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); }
+.na1-a2m1-purpose-quote{ font-family:var(--na1-serif); font-style:italic; font-size:18px; line-height:1.5; color:var(--na1-text); margin:0; padding-left:16px; border-left:2px solid var(--gold-line); }
+/* ── A2.4 · Step 3 · Key Misalignment ── */
+.na1-a2m1-km-list{ display:flex; flex-direction:column; gap:10px; }
+.na1-a2m1-km-row{ display:flex; align-items:stretch; gap:8px; }
+.na1-a2m1-km-pick{ flex:1 1 auto; display:flex; align-items:center; gap:13px; text-align:left; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:12px 15px; cursor:pointer; font:inherit; transition:border-color .15s, background .15s, box-shadow .15s; }
+.na1-a2m1-km-pick:hover{ border-color:var(--gold-line); }
+.na1-a2m1-km-pick:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+.na1-a2m1-km-row.is-selected .na1-a2m1-km-pick{ border-color:var(--gold); background:var(--gold-soft); box-shadow:0 0 0 1px var(--gold-line); }
+.na1-a2m1-km-score{ flex:0 0 auto; font-family:var(--na1-serif); font-size:15px; font-weight:600; color:var(--burgundy); min-width:38px; text-align:center; }
+.na1-a2m1-km-text{ display:flex; flex-direction:column; gap:3px; min-width:0; flex:1 1 auto; }
+.na1-a2m1-km-label{ display:flex; align-items:center; gap:9px; font-family:var(--na1-serif); font-size:16px; font-weight:600; color:var(--na1-text); }
+.na1-a2m1-km-badge{ font-family:var(--na1-sans); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--burgundy); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:999px; padding:2px 8px; }
+.na1-a2m1-km-sub{ font-family:var(--na1-sans); font-size:12.5px; line-height:1.45; color:var(--na1-text-sec); }
+.na1-a2m1-km-radio{ flex:0 0 auto; font-size:15px; color:var(--na1-text-mute); }
+.na1-a2m1-km-row.is-selected .na1-a2m1-km-radio{ color:var(--gold); }
+.na1-a2m1-km-star{ flex:0 0 auto; width:44px; display:flex; align-items:center; justify-content:center; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); color:var(--na1-text-mute); font-size:19px; cursor:pointer; transition:color .15s, border-color .15s; }
+.na1-a2m1-km-star:hover{ color:var(--gold); border-color:var(--gold-line); }
+.na1-a2m1-km-star:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+.na1-a2m1-km-star.is-kept{ color:var(--gold); border-color:var(--gold); background:var(--gold-soft); }
+.na1-a2m1-km-more{ align-self:flex-start; margin-top:13px; background:none; border:none; padding:0; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; }
+.na1-a2m1-km-more:hover{ text-decoration:underline; }
+.na1-a2m1-km-more:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; border-radius:4px; }
+.na1-a2m1-km-summary{ font-family:var(--na1-sans); font-size:13px; line-height:1.6; color:var(--na1-text-sec); margin:22px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); }
+.na1-a2m1-km-summary strong{ color:var(--gold); font-weight:600; }
+@media (max-width:600px){ .na1-a2m1-purpose-quote{ font-size:16px; } .na1-a2m1-km-label{ font-size:15px; } }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
 .na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
 .na1-room-eyebrow.tone-burgundy{ color:var(--burgundy); }
@@ -34117,14 +34150,15 @@ type A2RateItem = {
   isKeystone: boolean; // value behaviors: the keystone is starred
 };
 type A2SubScreen = {
-  kind: "creature" | "value";
-  sectionLabel: string; // "Identity" | "Values"
-  itemName: string; // creature animal name | value name
+  kind: "purpose" | "creature" | "value";
+  sectionLabel: string; // "Purpose" | "Identity" | "Values"
+  itemName: string; // creature animal name | value name | "Purpose"
   emoji?: string;
   definition?: string; // value definition
+  purposeText?: string; // kind "purpose": the user's purpose statement prompt
   sectionIndex: number; // 1-based position within its section
   sectionCount: number; // total in its section
-  items: A2RateItem[];
+  items: A2RateItem[]; // kind "purpose" carries none (single 1–10 slider)
 };
 
 // Build the Step 2 sub-screen list from the user's real A1 data: one screen
@@ -34138,6 +34172,25 @@ function readA2RateModel(): A2SubScreen[] {
   const screens: A2SubScreen[] = [];
   try {
     const map = (loadDataSync(KEYS.map) as any) || {};
+    // A2.4 · Purpose reads first — a single 1–10 alignment slider against the
+    // user's claimed purpose. Only shown when a purpose statement exists, so a
+    // user with no purpose is never required to rate (and never trapped).
+    const purposeText = (
+      (map.purpose_final as string) ||
+      (map.purpose_draft as string) ||
+      ""
+    ).trim();
+    if (purposeText !== "") {
+      screens.push({
+        kind: "purpose",
+        sectionLabel: "Purpose",
+        itemName: "Purpose",
+        purposeText,
+        sectionIndex: 1,
+        sectionCount: 1,
+        items: [],
+      });
+    }
     const m3 = (map.mirror3 as any) || {};
     const clusters: Cluster[] = Array.isArray(m3.clusters) ? m3.clusters : [];
     const picked: PickedGift[] = Array.isArray(m3.pickedGifts)
@@ -34241,9 +34294,10 @@ function readA2RateModel(): A2SubScreen[] {
 }
 
 // Live burgundy(#b34d52) → gold(#c9a84b) lerp for the position label, so the
-// score recolors along the track (idx 0–4). Fixed bible hexes per spec.
-function a2RateColor(idx: number): string {
-  const t = Math.max(0, Math.min(1, idx / 4));
+// score recolors along the track. `steps` = max index span (4 for the 5-point
+// gift/behavior sliders, 9 for the 1–10 Purpose slider). Fixed bible hexes.
+function a2RateColor(idx: number, steps = 4): string {
+  const t = Math.max(0, Math.min(1, idx / steps));
   const from = [0xb3, 0x4d, 0x52];
   const to = [0xc9, 0xa8, 0x4b];
   const c = from.map((f, i) => Math.round(f + (to[i] - f) * t));
@@ -34265,19 +34319,28 @@ function NewA2M1Slider({
 }: {
   value: number | undefined;
   onChange: (v: number) => void;
-  variant: "gift" | "behavior";
+  variant: "gift" | "behavior" | "purpose";
   leftAnchor: string;
   rightAnchor: string;
   showLeftDot: boolean;
   keystone: boolean;
 }) {
   const rated = typeof value === "number";
-  const display = rated ? (value as number) : 3;
-  const labels = variant === "gift" ? A2_GIFT_LABELS : A2_BEHAVIOR_LABELS;
+  // Purpose is a 1–10 scale; gifts/behaviors are 5-point. The untouched
+  // neutral middle is the rounded midpoint (3 of 5, 6 of 10).
+  const max = variant === "purpose" ? 10 : 5;
+  const mid = Math.round((1 + max) / 2);
+  const display = rated ? (value as number) : mid;
   const idx = display - 1;
+  // Position label: a scale word for gifts/behaviors, a numeric "n / 10" for
+  // Purpose.
+  const posLabel =
+    variant === "purpose"
+      ? `${display} / 10`
+      : (variant === "gift" ? A2_GIFT_LABELS : A2_BEHAVIOR_LABELS)[idx];
   // First interaction always marks the item rated — even a click that lands on
-  // the neutral middle (3 → 3), which a native range input would NOT fire an
-  // onChange for. pointerdown covers mouse/touch/pen on the thumb or track;
+  // the neutral middle (e.g. 3 → 3), which a native range input would NOT fire
+  // an onChange for. pointerdown covers mouse/touch/pen on the thumb or track;
   // arrow keys already change the value and fire onChange on their own.
   const commitFirst = () => {
     if (!rated) onChange(display);
@@ -34302,11 +34365,11 @@ function NewA2M1Slider({
       <input
         type="range"
         min={1}
-        max={5}
+        max={max}
         step={1}
         value={display}
         className="na1-a2m1-range"
-        aria-label={`${rightAnchor} — ${rated ? labels[idx] : "not yet rated"}`}
+        aria-label={`${rightAnchor} — ${rated ? posLabel : "not yet rated"}`}
         onPointerDown={commitFirst}
         onChange={(e) => onChange(Number(e.target.value))}
       />
@@ -34314,11 +34377,11 @@ function NewA2M1Slider({
         className="na1-a2m1-pos"
         style={{
           visibility: rated ? "visible" : "hidden",
-          color: a2RateColor(idx),
+          color: a2RateColor(idx, max - 1),
         }}
         aria-hidden={!rated}
       >
-        {rated ? labels[idx] : "\u00A0"}
+        {rated ? posLabel : "\u00A0"}
       </div>
     </div>
   );
@@ -34378,11 +34441,15 @@ function NewA2M1SubProgress({
 function NewA2M1Step2Body({
   screen,
   ratings,
+  purposeRating,
   onRate,
+  onRatePurpose,
 }: {
   screen: A2SubScreen | null;
   ratings: Record<string, number>;
+  purposeRating: number | undefined;
   onRate: (id: string, v: number) => void;
+  onRatePurpose: (v: number) => void;
 }) {
   if (!screen) {
     return (
@@ -34391,6 +34458,35 @@ function NewA2M1Step2Body({
         <p className="na1-a2m1-empty">
           Nothing from your A1 to rate yet — name your gifts and values first.
         </p>
+      </div>
+    );
+  }
+  // Purpose reads first: one 1–10 slider against the user's purpose statement.
+  if (screen.kind === "purpose") {
+    return (
+      <div className="na1-a2m1-step2">
+        <h2 className="na1-a2m1-step-title">Rate alignment</h2>
+        <p className="na1-a2m1-step-lede">
+          Start with the root — honestly, how fully are you living your purpose
+          right now?
+        </p>
+        <div className="na1-a2m1-rate-head is-purpose">
+          <div className="na1-a2m1-purpose-eyebrow">Your purpose</div>
+          <blockquote className="na1-a2m1-purpose-quote">
+            {screen.purposeText}
+          </blockquote>
+        </div>
+        <div className="na1-a2m1-rate-list">
+          <NewA2M1Slider
+            value={purposeRating}
+            onChange={onRatePurpose}
+            variant="purpose"
+            leftAnchor="Far from it"
+            rightAnchor="Fully embodied"
+            showLeftDot={false}
+            keystone={false}
+          />
+        </div>
       </div>
     );
   }
@@ -34444,14 +34540,195 @@ function NewA2M1Step2Body({
   );
 }
 
+// Step 3 · Key Misalignment — rank every rated signal (Purpose normalised from
+// its 1–10 scale to /5, every gift, every behavior) lowest-first. The lowest is
+// pre-selected as the bottleneck (badged "lowest"); the user can override the
+// pick (single select) and star one signal to keep in focus (single toggle).
+// Both choices persist and carry to A3.
+type A2KMCandidate = {
+  id: string;
+  label: string;
+  sub: string;
+  score: string;
+  norm: number; // normalised to a /5 scale for cross-type ranking
+};
+function NewA2M1Step3Body({
+  screens,
+  ratings,
+  purposeRating,
+  bottleneck,
+  keepInFocus,
+  onPickBottleneck,
+  onToggleKeepInFocus,
+}: {
+  screens: A2SubScreen[];
+  ratings: Record<string, number>;
+  purposeRating: number | undefined;
+  bottleneck: string | null;
+  keepInFocus: string | null;
+  onPickBottleneck: (id: string) => void;
+  onToggleKeepInFocus: (id: string) => void;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const candidates = useMemo<A2KMCandidate[]>(() => {
+    const out: A2KMCandidate[] = [];
+    screens.forEach((s) => {
+      if (s.kind === "purpose") {
+        if (typeof purposeRating !== "number") return;
+        out.push({
+          id: "purpose",
+          label: "Purpose",
+          sub: `Living it · ${purposeRating} / 10`,
+          score: `${purposeRating}/10`,
+          norm: purposeRating / 2,
+        });
+        return;
+      }
+      const isCreature = s.kind === "creature";
+      s.items.forEach((it) => {
+        const raw = ratings[it.id];
+        if (typeof raw !== "number") return;
+        const word =
+          A2_BEHAVIOR_LABELS[Math.max(0, Math.min(4, raw - 1))].toLowerCase();
+        out.push({
+          id: it.id,
+          label: it.name,
+          sub: isCreature
+            ? `${s.itemName} · falls to '${it.shadowWord ?? "Shadow"}'`
+            : `${s.itemName} · lived ${word}`,
+          score: `${raw}/5`,
+          norm: raw,
+        });
+      });
+    });
+    // Lowest-first, with a stable source-order tiebreak so equal scores keep
+    // their Purpose → gifts → behaviors reading order.
+    return out
+      .map((c, i) => ({ c, i }))
+      .sort((a, b) => a.c.norm - b.c.norm || a.i - b.i)
+      .map((x) => x.c);
+  }, [screens, ratings, purposeRating]);
+
+  const lowestId = candidates[0]?.id ?? null;
+  const ids = useMemo(() => new Set(candidates.map((c) => c.id)), [candidates]);
+  // Self-heal a stale saved pick (data shrank) by falling back to the lowest.
+  const validBottleneck = bottleneck && ids.has(bottleneck) ? bottleneck : null;
+  const selected = validBottleneck ?? lowestId;
+  const validKeep = keepInFocus && ids.has(keepInFocus) ? keepInFocus : null;
+
+  // Persist the lowest-first pre-selection so A3 always has a bottleneck, even
+  // if the user never taps to override it.
+  useEffect(() => {
+    if (validBottleneck === null && lowestId !== null)
+      onPickBottleneck(lowestId);
+  }, [validBottleneck, lowestId, onPickBottleneck]);
+  // Clear a stale keep-in-focus (its signal vanished from the model) so A3 never
+  // reads a dangling id. Toggling the saved id off resolves it to null.
+  useEffect(() => {
+    if (keepInFocus !== null && validKeep === null)
+      onToggleKeepInFocus(keepInFocus);
+  }, [keepInFocus, validKeep, onToggleKeepInFocus]);
+
+  if (candidates.length === 0) {
+    return (
+      <div className="na1-a2m1-step3">
+        <h2 className="na1-a2m1-step-title">Key Misalignment</h2>
+        <p className="na1-a2m1-empty">
+          Nothing rated yet — rate your alignment in Step 2 first.
+        </p>
+      </div>
+    );
+  }
+
+  const shown = showAll ? candidates : candidates.slice(0, 4);
+  const bottleneckLabel =
+    candidates.find((c) => c.id === selected)?.label ?? "—";
+  const keepLabel = candidates.find((c) => c.id === validKeep)?.label ?? null;
+
+  return (
+    <div className="na1-a2m1-step3">
+      <h2 className="na1-a2m1-step-title">Key Misalignment</h2>
+      <p className="na1-a2m1-step-lede">
+        Your weakest-aligned signals, lowest first. The lowest is your likely
+        bottleneck — pick another if it rings truer, and star one to keep in
+        focus.
+      </p>
+      <div className="na1-a2m1-km-list" role="list">
+        {shown.map((c) => {
+          const isSelected = c.id === selected;
+          const isKept = c.id === validKeep;
+          return (
+            <div
+              key={c.id}
+              className={`na1-a2m1-km-row ${isSelected ? "is-selected" : ""}`}
+              role="listitem"
+            >
+              <button
+                type="button"
+                className="na1-a2m1-km-pick"
+                onClick={() => onPickBottleneck(c.id)}
+                aria-pressed={isSelected}
+                aria-label={`Set bottleneck to ${c.label}`}
+              >
+                <span className="na1-a2m1-km-score" aria-hidden>
+                  {c.score}
+                </span>
+                <span className="na1-a2m1-km-text">
+                  <span className="na1-a2m1-km-label">
+                    {c.label}
+                    {c.id === lowestId && (
+                      <span className="na1-a2m1-km-badge">lowest</span>
+                    )}
+                  </span>
+                  <span className="na1-a2m1-km-sub">{c.sub}</span>
+                </span>
+                <span className="na1-a2m1-km-radio" aria-hidden>
+                  {isSelected ? "●" : "○"}
+                </span>
+              </button>
+              <button
+                type="button"
+                className={`na1-a2m1-km-star ${isKept ? "is-kept" : ""}`}
+                onClick={() => onToggleKeepInFocus(c.id)}
+                aria-pressed={isKept}
+                aria-label={`Keep ${c.label} in focus`}
+              >
+                {isKept ? "★" : "☆"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {candidates.length > 4 && (
+        <button
+          type="button"
+          className="na1-a2m1-km-more"
+          onClick={() => setShowAll((v) => !v)}
+        >
+          {showAll ? "Show less" : `Show more (${candidates.length - 4})`}
+        </button>
+      )}
+      <p className="na1-a2m1-km-summary" role="status">
+        Bottleneck: <strong>{bottleneckLabel}</strong> — carries to A3 ·
+        Keeping in focus: <strong>{keepLabel ?? "nothing yet"}</strong>.
+      </p>
+    </div>
+  );
+}
+
 // Horizontal 4-step progress stepper. Current step is gold; steps below
 // maxReached show a ✓; the connecting line + dots up to maxReached are lit.
+// A2.4 · completed steps (strictly before the current one) are clickable and
+// jump straight back via onJump; the current step and any future/locked steps
+// stay inert.
 function NewA2M1Stepper({
   currentStep,
   maxReached,
+  onJump,
 }: {
   currentStep: number;
   maxReached: number;
+  onJump: (step: number) => void;
 }) {
   return (
     <div
@@ -34472,6 +34749,21 @@ function NewA2M1Stepper({
         ]
           .filter(Boolean)
           .join(" ");
+        // Only steps strictly before the current one are "done" → clickable to
+        // jump back. The current step and any reached-but-ahead step stay inert.
+        const clickable = num < currentStep;
+        const inner = (
+          <>
+            <span className={dotCls} aria-hidden>
+              {isComplete ? "✓" : num}
+            </span>
+            <span
+              className={`na1-a2m1-step-name ${isCurrent ? "is-current" : ""}`}
+            >
+              {s.name}
+            </span>
+          </>
+        );
         return (
           <React.Fragment key={num}>
             {i > 0 && (
@@ -34480,20 +34772,24 @@ function NewA2M1Stepper({
                 aria-hidden
               />
             )}
-            <div
-              className="na1-a2m1-step"
-              role="listitem"
-              aria-current={isCurrent ? "step" : undefined}
-            >
-              <span className={dotCls} aria-hidden>
-                {isComplete ? "✓" : num}
-              </span>
-              <span
-                className={`na1-a2m1-step-name ${isCurrent ? "is-current" : ""}`}
+            {clickable ? (
+              <button
+                type="button"
+                className="na1-a2m1-step is-clickable"
+                onClick={() => onJump(num)}
+                aria-label={`Go back to ${s.name}`}
               >
-                {s.name}
-              </span>
-            </div>
+                {inner}
+              </button>
+            ) : (
+              <div
+                className="na1-a2m1-step"
+                role="listitem"
+                aria-current={isCurrent ? "step" : undefined}
+              >
+                {inner}
+              </div>
+            )}
           </React.Fragment>
         );
       })}
@@ -34613,20 +34909,36 @@ function NewA2M1Container({
     () => rateScreens.flatMap((s) => s.items.map((it) => it.id)),
     [rateScreens],
   );
-  const unratedCount = allRateIds.filter(
+  // A2.4 · Purpose is a sub-screen with no `items` (a single 1–10 slider held
+  // in m1.purposeRating, not the ratings map). It's required only when present.
+  const purposeScreenIndex = useMemo(
+    () => rateScreens.findIndex((s) => s.kind === "purpose"),
+    [rateScreens],
+  );
+  const purposeRequired = purposeScreenIndex >= 0;
+  const purposeRated = typeof m1.purposeRating === "number";
+  const giftBehaviorUnrated = allRateIds.filter(
     (id) => typeof m1.ratings[id] !== "number",
   ).length;
-  // Single Complete predicate: every shown gift + behavior is rated. An empty
-  // model (no A1 data) counts as complete so the user is never trapped.
-  const isStep2Complete = allRateIds.length === 0 || unratedCount === 0;
+  const purposeUnrated = purposeRequired && !purposeRated ? 1 : 0;
+  const unratedCount = giftBehaviorUnrated + purposeUnrated;
+  // Single Complete predicate: purpose (when present) + every shown gift +
+  // behavior is rated. An empty model (no A1 data) counts as complete so the
+  // user is never trapped.
+  const hasAnythingToRate = allRateIds.length > 0 || purposeRequired;
+  const isStep2Complete = !hasAnythingToRate || unratedCount === 0;
   const incompleteSet = useMemo(() => {
     const set = new Set<number>();
     rateScreens.forEach((s, i) => {
+      if (s.kind === "purpose") {
+        if (typeof m1.purposeRating !== "number") set.add(i);
+        return;
+      }
       if (s.items.some((it) => typeof m1.ratings[it.id] !== "number"))
         set.add(i);
     });
     return set;
-  }, [rateScreens, m1.ratings]);
+  }, [rateScreens, m1.ratings, m1.purposeRating]);
 
   const onRate = useCallback(
     (id: string, v: number) => {
@@ -34640,9 +34952,35 @@ function NewA2M1Container({
     },
     [mutateM1],
   );
+  const onRatePurpose = useCallback(
+    (v: number) => {
+      mutateM1((m) => ({
+        ...m,
+        purposeRating: Math.max(1, Math.min(10, Math.round(v))),
+      }));
+    },
+    [mutateM1],
+  );
   const setStep2Index = useCallback(
     (i: number) => {
       mutateM1((m) => ({ ...m, step2Index: Math.max(0, i) }));
+    },
+    [mutateM1],
+  );
+  // A2.4 · Step 3 — single-select bottleneck (the override of the lowest-first
+  // pre-selection) and single-toggle keep-in-focus star.
+  const onPickBottleneck = useCallback(
+    (id: string) => {
+      mutateM1((m) => ({ ...m, bottleneck: id }));
+    },
+    [mutateM1],
+  );
+  const onToggleKeepInFocus = useCallback(
+    (id: string) => {
+      mutateM1((m) => ({
+        ...m,
+        keepInFocus: m.keepInFocus === id ? null : id,
+      }));
     },
     [mutateM1],
   );
@@ -34797,6 +35135,7 @@ function NewA2M1Container({
             <NewA2M1Stepper
               currentStep={m1.currentStep}
               maxReached={m1.maxReached}
+              onJump={goToStep}
             />
             {m1.currentStep === 2 && rateScreens.length > 0 && (
               <NewA2M1SubProgress
@@ -34818,12 +35157,20 @@ function NewA2M1Container({
                 <NewA2M1Step2Body
                   screen={rateScreens[step2Index] ?? null}
                   ratings={m1.ratings}
+                  purposeRating={m1.purposeRating}
                   onRate={onRate}
+                  onRatePurpose={onRatePurpose}
                 />
               ) : m1.currentStep === 3 ? (
-                <div className="na1-a2m1-shell">
-                  <h2 className="na1-a2m1-step-title">Key Misalignment</h2>
-                </div>
+                <NewA2M1Step3Body
+                  screens={rateScreens}
+                  ratings={m1.ratings}
+                  purposeRating={m1.purposeRating}
+                  bottleneck={m1.bottleneck}
+                  keepInFocus={m1.keepInFocus}
+                  onPickBottleneck={onPickBottleneck}
+                  onToggleKeepInFocus={onToggleKeepInFocus}
+                />
               ) : (
                 <div className="na1-a2m1-shell">
                   <h2 className="na1-a2m1-step-title">Claim</h2>
