@@ -96,3 +96,20 @@ before resume runs.
 intentionally NOT enabled in this app, so that render-time ref consumption is
 safe (no double render). If StrictMode is ever turned on, every room
 container's one-shot resume breaks — revisit then, don't pre-emptively rewrite.
+
+## Container hook/derived-state ordering vs the resume-seed `roomOpen`
+
+In the per-Mirror room containers (e.g. `NewA2M1Container`) `roomOpen` is a
+`useState` seeded from `initialRoomKey` partway down the component body (M3/M4
+resume pattern). Any derived state or `useMemo`/`useCallback` that reads
+`roomOpen` (e.g. a model built only when the room is open) MUST be declared
+AFTER that `useState` line, not up near `mutateM1` at the top.
+
+**Why:** placing it earlier compiles past a glance but throws at runtime
+`Cannot access 'roomOpen' before initialization` (TDZ) and tsc also flags
+TS2448/TS2454. The whole container then crashes with a cascade of
+"Invalid hook call" warnings (React unwinding a mid-render throw).
+
+**How to apply:** add new room-model memos/handlers immediately after the
+`const [roomOpen, setRoomOpen] = useState(...)` block, before the veil/timer
+hooks and before `onBack`/`onContinue`.

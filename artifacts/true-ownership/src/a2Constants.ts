@@ -24,12 +24,24 @@ export type A2M1State = {
   currentStep: number; // 1–4, the step currently shown
   maxReached: number; // 1–4, highest step ever reached (drives stepper checks)
   veilSeen: boolean; // true once the launch veil has played
+  // A2.3 · Step 2 (Rate alignment). Per-item alignment ratings keyed by gift
+  // id (creatures) and behavior id (values), each a 5-point score 1–5. An id
+  // ABSENT from this map is "unrated" and renders at a neutral middle without a
+  // position label; presence is what marks an item rated (Step 2 Complete = all
+  // shown gifts + behaviors present here).
+  ratings: Record<string, number>;
+  // A2.3 · Saved Step 2 sub-screen index (0-based, one per creature then one
+  // per value) so a refresh resumes the exact screen. Clamped to the live
+  // sub-screen count at the render site.
+  step2Index: number;
 };
 
 export const EMPTY_A2_M1: A2M1State = {
   currentStep: 1,
   maxReached: 1,
   veilSeen: false,
+  ratings: {},
+  step2Index: 0,
 };
 
 export type A2State = {
@@ -56,10 +68,28 @@ function normalizeA2M1(raw: unknown): A2M1State {
       : fallback;
   const currentStep = clamp(r.currentStep, 1);
   const maxReached = Math.max(currentStep, clamp(r.maxReached, currentStep));
+  // Coerce ratings to a clean { id: 1–5 } map; drop any non-numeric/garbage
+  // entries so a corrupt blob can't poison Step 2's completion math.
+  const ratings: Record<string, number> = {};
+  const rawRatings = (r as { ratings?: unknown }).ratings;
+  if (rawRatings && typeof rawRatings === "object") {
+    for (const [k, v] of Object.entries(rawRatings as Record<string, unknown>)) {
+      if (typeof v === "number" && Number.isFinite(v)) {
+        ratings[k] = Math.max(1, Math.min(5, Math.round(v)));
+      }
+    }
+  }
+  const rawIdx = (r as { step2Index?: unknown }).step2Index;
+  const step2Index =
+    typeof rawIdx === "number" && Number.isFinite(rawIdx)
+      ? Math.max(0, Math.round(rawIdx))
+      : 0;
   return {
     currentStep,
     maxReached,
     veilSeen: r.veilSeen === true,
+    ratings,
+    step2Index,
   };
 }
 

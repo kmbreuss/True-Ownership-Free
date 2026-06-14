@@ -1,0 +1,16 @@
+New ship: A2.3 — Alignment Check Step 2 (Rate alignment). Plan first, then build.
+Goal: build the "Rate alignment" step inside the existing Alignment Check room (a2m1). One continuous step that pages one creature at a time, then one value at a time, each with per-item sliders. Auto-advances within the step; the 4-step indicator stays on "Rate alignment" the whole time.
+LOOK & FEEL (bible v2.2 — match A1 mirror rooms; tokens only): --na1-serif Georgia + --na1-sans DM Sans · --na1-* surfaces · --gold #b8892f/#c9a84b · slider track burgundy→gold, shadow-marker dot #A03B3B (not --burgundy) · .na1-shell 760px · 600px mobile · both themes. New classes na1-a2m1-.
+Nested sub-progress: while in Step 2, show a slim sub-progress bar under the 4-step indicator — one pip per sub-screen (each creature, then each value) — with a contextual label ("Identity · Owl · 1 of 3", "Values · Honesty · 1 of 3"). Built from real counts, not hardcoded.
+Paging (one per screen, all from real data):
+
+Creatures (from mirror3, in cluster order): one screen per creature — emoji + descriptors + name, then every gift it carries (owned AND emerging, no filtering), each with a slider.
+Then values (from mirror4, rank order): one screen per value — name + definition, then every behavior (keystone starred), each with a slider.
+Continue advances creature→creature→(into values)→value→value; Back reverses; the sub-progress + label track position.
+
+Gift slider: 5-point, left→right = Shadow · Slipping · Holding · Growing · In your power, burgundy→gold track. Left anchor = the gift's named shadow word (shadows[giftId].primaryShadow) with a #A03B3B dot; if no shadow word is set, the left anchor reads "Shadow" (system vocabulary, not "Under pressure"). Right anchor = the gift name. Position label updates live and recolors burgundy→gold.
+Behavior slider: 5-point, left→right = Rarely · Sometimes · Often · Mostly · Consistently, same burgundy→gold track. Left = misaligned, right = the behavior lived/aligned.
+State: save each rating into a2.m1 in to_a2_state_v1 (keyed by giftId / behavior id). Default any unrated item to a neutral middle so nothing reads as a false low. Step 2 Complete = every gift and every behavior has been rated — and that same boolean is what enables the final Continue out of Step 2 (one predicate, per the bible's Complete rule). Re-entering resumes the sub-screen they were on.
+DO NOT: filter gifts (rate all, owned + emerging); build Step 3/4 internals; return to hub mid-step; reuse A1 overlay ids/state; touch A1; add font/color tokens.
+Done looks like: in the Alignment Check room, Continue from Step 1 enters Rate alignment on the first creature; each creature then each value pages one per screen with working sliders + live position labels; sub-progress + label track position; ratings persist and resume; when all gifts + behaviors are rated, Continue advances the 4-step indicator to Step 3 (still a titled shell). Both themes; no console errors; A1 unchanged.
+Plan it first and show me before building.

@@ -891,6 +891,36 @@ html[data-theme="light"]{
 .na1-a2m1-value-rank{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
 .na1-a2m1-shell{ padding:32px 0; }
 .na1-a2m1-nav{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:28px; padding-top:20px; border-top:1px solid var(--na1-border); }
+/* ── A2.3 · Step 2 (Rate alignment) ── */
+.na1-a2m1-subprog{ margin:0 0 26px; }
+.na1-a2m1-pips{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:9px; }
+.na1-a2m1-pip{ width:9px; height:9px; padding:0; border-radius:50%; border:1.5px solid var(--na1-border); background:transparent; cursor:pointer; transition:transform .18s, background .18s, border-color .18s, box-shadow .18s; }
+.na1-a2m1-pip.is-past{ background:var(--gold-line); border-color:var(--gold-line); }
+.na1-a2m1-pip.is-current{ background:var(--gold); border-color:var(--gold); box-shadow:0 0 8px var(--gold-glow); transform:scale(1.18); }
+.na1-a2m1-pip.is-incomplete{ border-color:var(--burgundy); border-style:dashed; }
+.na1-a2m1-pip.is-incomplete.is-current{ border-style:solid; }
+.na1-a2m1-subprog-label{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.06em; color:var(--na1-text-mute); text-transform:capitalize; }
+.na1-a2m1-step2 .na1-a2m1-step-lede{ margin-bottom:22px; }
+.na1-a2m1-rate-head{ margin:0 0 24px; padding-bottom:15px; border-bottom:1px solid var(--na1-border); }
+.na1-a2m1-rate-head.is-creature{ display:flex; align-items:center; gap:10px; }
+.na1-a2m1-value-name{ font-family:var(--na1-serif); font-size:20px; font-weight:600; color:var(--na1-text); }
+.na1-a2m1-value-def{ font-family:var(--na1-sans); font-size:13.5px; line-height:1.6; color:var(--na1-text-sec); margin-top:7px; }
+.na1-a2m1-rate-list{ display:flex; flex-direction:column; gap:28px; }
+.na1-a2m1-slider-anchors{ display:flex; justify-content:space-between; align-items:baseline; gap:14px; margin-bottom:9px; }
+.na1-a2m1-anchor{ font-family:var(--na1-sans); font-size:13px; display:inline-flex; align-items:center; gap:6px; }
+.na1-a2m1-anchor.is-left{ color:var(--na1-text-mute); }
+.na1-a2m1-anchor.is-right{ color:var(--na1-text); font-weight:600; text-align:right; }
+.na1-a2m1-shadow-dot{ width:8px; height:8px; border-radius:50%; background:#A03B3B; flex:0 0 auto; }
+.na1-a2m1-keystone{ color:var(--gold); }
+.na1-a2m1-range{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:3px; background:linear-gradient(90deg, var(--burgundy), var(--gold)); outline:none; cursor:pointer; }
+.na1-a2m1-range::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; background:var(--gold); border:2px solid var(--na1-bg-soft); box-shadow:0 1px 5px rgba(0,0,0,.35); cursor:pointer; transition:background .15s, border-color .15s; }
+.na1-a2m1-range::-moz-range-thumb{ width:20px; height:20px; border-radius:50%; background:var(--gold); border:2px solid var(--na1-bg-soft); box-shadow:0 1px 5px rgba(0,0,0,.35); cursor:pointer; }
+.na1-a2m1-slider.is-unrated .na1-a2m1-range{ background:var(--na1-border); }
+.na1-a2m1-slider.is-unrated .na1-a2m1-range::-webkit-slider-thumb{ background:transparent; border-color:var(--na1-text-mute); box-shadow:none; }
+.na1-a2m1-slider.is-unrated .na1-a2m1-range::-moz-range-thumb{ background:transparent; border-color:var(--na1-text-mute); box-shadow:none; }
+.na1-a2m1-pos{ font-family:var(--na1-sans); font-size:12px; font-weight:600; letter-spacing:.04em; margin-top:9px; text-align:center; min-height:16px; }
+.na1-a2m1-blocked-hint{ font-family:var(--na1-sans); font-size:12.5px; line-height:1.5; color:var(--burgundy); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:var(--na1-radius); padding:10px 13px; margin-top:18px; }
+@media (max-width:600px){ .na1-a2m1-anchor{ font-size:12px; } .na1-a2m1-rate-list{ gap:24px; } }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
 .na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
 .na1-room-eyebrow.tone-burgundy{ color:var(--burgundy); }
@@ -34062,6 +34092,358 @@ function readA1Recall(): A1Recall {
   return { purpose, creatures, values };
 }
 
+// ─── A2.3 · Step 2 (Rate alignment) ─────────────────────────────────────────
+
+// 5-point scale labels, left→right (misaligned → aligned).
+const A2_GIFT_LABELS = [
+  "Shadow",
+  "Slipping",
+  "Holding",
+  "Growing",
+  "In your power",
+] as const;
+const A2_BEHAVIOR_LABELS = [
+  "Rarely",
+  "Sometimes",
+  "Often",
+  "Mostly",
+  "Consistently",
+] as const;
+
+type A2RateItem = {
+  id: string; // gift id (creatures) or behavior id (values)
+  name: string; // gift label / behavior name — the slider's right anchor
+  shadowWord: string | null; // gift's named shadow (left anchor); null → "Shadow"
+  isKeystone: boolean; // value behaviors: the keystone is starred
+};
+type A2SubScreen = {
+  kind: "creature" | "value";
+  sectionLabel: string; // "Identity" | "Values"
+  itemName: string; // creature animal name | value name
+  emoji?: string;
+  definition?: string; // value definition
+  sectionIndex: number; // 1-based position within its section
+  sectionCount: number; // total in its section
+  items: A2RateItem[];
+};
+
+// Build the Step 2 sub-screen list from the user's real A1 data: one screen
+// per creature (cluster order, every gift owned + emerging), then one per
+// value (rank order, every behavior). Degenerate entries with nothing to rate
+// (a creature with no resolvable gifts, a value with no behaviors) are dropped
+// so every id returned here is actually shown — the Complete predicate can
+// never be blocked by an invisible item. All reads are guarded so missing or
+// malformed blobs never throw.
+function readA2RateModel(): A2SubScreen[] {
+  const screens: A2SubScreen[] = [];
+  try {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    const m3 = (map.mirror3 as any) || {};
+    const clusters: Cluster[] = Array.isArray(m3.clusters) ? m3.clusters : [];
+    const picked: PickedGift[] = Array.isArray(m3.pickedGifts)
+      ? m3.pickedGifts
+      : [];
+    const shadows: Record<string, any> =
+      m3.shadows && typeof m3.shadows === "object" ? m3.shadows : {};
+    const giftById = new Map<string, PickedGift>(
+      picked.map((p) => [p.id, p] as const),
+    );
+    const creatureScreens: A2SubScreen[] = [];
+    for (const c of clusters) {
+      const items: A2RateItem[] = [];
+      for (const gid of c.giftIds ?? []) {
+        const g = giftById.get(gid);
+        if (!g || typeof g.label !== "string" || g.label.trim() === "")
+          continue;
+        const sw = shadows[gid]?.primaryShadow;
+        items.push({
+          id: gid,
+          name: g.label.trim(),
+          shadowWord:
+            typeof sw === "string" && sw.trim() !== "" ? sw.trim() : null,
+          isKeystone: false,
+        });
+      }
+      if (items.length === 0) continue;
+      const animal = (c.animal || "").trim();
+      const itemName = animal || m3CreatureWithDescriptors(c) || "Creature";
+      creatureScreens.push({
+        kind: "creature",
+        sectionLabel: "Identity",
+        itemName,
+        emoji: (c.animalEmoji || "").trim(),
+        sectionIndex: 0,
+        sectionCount: 0,
+        items,
+      });
+    }
+    creatureScreens.forEach((s, i) => {
+      s.sectionIndex = i + 1;
+      s.sectionCount = creatureScreens.length;
+    });
+    screens.push(...creatureScreens);
+  } catch {
+    // leave whatever resolved before the throw
+  }
+  try {
+    const m4 = loadMirror4State() as any;
+    const named = (Array.isArray(m4.clusters) ? m4.clusters : []).filter(
+      (c: any) => (c?.userName || "").trim() !== "",
+    );
+    const rank: string[] = Array.isArray(m4.rank) ? m4.rank : [];
+    const ids: string[] =
+      rank.length > 0
+        ? rank.filter((id) => named.some((c: any) => c.id === id))
+        : named.map((c: any) => c.id);
+    const op: Record<string, any> =
+      m4.operationalize && typeof m4.operationalize === "object"
+        ? m4.operationalize
+        : {};
+    const valueScreens: A2SubScreen[] = [];
+    for (const id of ids) {
+      const c = named.find((x: any) => x.id === id);
+      if (!c) continue;
+      const ov = op[id] || {};
+      const behaviors: any[] = Array.isArray(ov.behaviors) ? ov.behaviors : [];
+      const keystoneId: string | null = ov.keystoneId ?? null;
+      const items: A2RateItem[] = [];
+      for (const b of behaviors) {
+        const bid = b?.id;
+        const nm = (b?.name || "").trim();
+        if (typeof bid !== "string" || bid === "" || nm === "") continue;
+        items.push({
+          id: bid,
+          name: nm,
+          shadowWord: null,
+          isKeystone: bid === keystoneId,
+        });
+      }
+      if (items.length === 0) continue;
+      valueScreens.push({
+        kind: "value",
+        sectionLabel: "Values",
+        itemName: (c.userName || "").trim(),
+        definition: (c.userDefinition || "").trim(),
+        sectionIndex: 0,
+        sectionCount: 0,
+        items,
+      });
+    }
+    valueScreens.forEach((s, i) => {
+      s.sectionIndex = i + 1;
+      s.sectionCount = valueScreens.length;
+    });
+    screens.push(...valueScreens);
+  } catch {
+    // leave whatever resolved before the throw
+  }
+  return screens;
+}
+
+// Live burgundy(#b34d52) → gold(#c9a84b) lerp for the position label, so the
+// score recolors along the track (idx 0–4). Fixed bible hexes per spec.
+function a2RateColor(idx: number): string {
+  const t = Math.max(0, Math.min(1, idx / 4));
+  const from = [0xb3, 0x4d, 0x52];
+  const to = [0xc9, 0xa8, 0x4b];
+  const c = from.map((f, i) => Math.round(f + (to[i] - f) * t));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
+
+// One 5-point alignment slider. Untouched (value === undefined) renders at a
+// neutral middle with a hollow/grey thumb and NO position label, so a real
+// "rated at the middle" is never confused with "not yet rated". Any change
+// (including landing on the middle) marks the item rated via onChange.
+function NewA2M1Slider({
+  value,
+  onChange,
+  variant,
+  leftAnchor,
+  rightAnchor,
+  showLeftDot,
+  keystone,
+}: {
+  value: number | undefined;
+  onChange: (v: number) => void;
+  variant: "gift" | "behavior";
+  leftAnchor: string;
+  rightAnchor: string;
+  showLeftDot: boolean;
+  keystone: boolean;
+}) {
+  const rated = typeof value === "number";
+  const display = rated ? (value as number) : 3;
+  const labels = variant === "gift" ? A2_GIFT_LABELS : A2_BEHAVIOR_LABELS;
+  const idx = display - 1;
+  // First interaction always marks the item rated — even a click that lands on
+  // the neutral middle (3 → 3), which a native range input would NOT fire an
+  // onChange for. pointerdown covers mouse/touch/pen on the thumb or track;
+  // arrow keys already change the value and fire onChange on their own.
+  const commitFirst = () => {
+    if (!rated) onChange(display);
+  };
+  return (
+    <div className={`na1-a2m1-slider ${rated ? "is-rated" : "is-unrated"}`}>
+      <div className="na1-a2m1-slider-anchors">
+        <span className="na1-a2m1-anchor is-left">
+          {showLeftDot && <span className="na1-a2m1-shadow-dot" aria-hidden />}
+          {leftAnchor}
+        </span>
+        <span className="na1-a2m1-anchor is-right">
+          {rightAnchor}
+          {keystone && (
+            <span className="na1-a2m1-keystone" aria-label="keystone behavior">
+              {" "}
+              ★
+            </span>
+          )}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={1}
+        max={5}
+        step={1}
+        value={display}
+        className="na1-a2m1-range"
+        aria-label={`${rightAnchor} — ${rated ? labels[idx] : "not yet rated"}`}
+        onPointerDown={commitFirst}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <div
+        className="na1-a2m1-pos"
+        style={{
+          visibility: rated ? "visible" : "hidden",
+          color: a2RateColor(idx),
+        }}
+        aria-hidden={!rated}
+      >
+        {rated ? labels[idx] : "\u00A0"}
+      </div>
+    </div>
+  );
+}
+
+// Slim sub-progress under the 4-step indicator: one pip per sub-screen, with
+// a contextual label. Pips for screens that still hold an unrated item carry
+// an is-incomplete marker and are clickable so the user can jump straight to
+// what's left when the final Continue is blocked.
+function NewA2M1SubProgress({
+  total,
+  index,
+  incompleteSet,
+  label,
+  onJump,
+}: {
+  total: number;
+  index: number;
+  incompleteSet: Set<number>;
+  label: string;
+  onJump: (i: number) => void;
+}) {
+  if (total <= 0) return null;
+  return (
+    <div className="na1-a2m1-subprog">
+      <div className="na1-a2m1-pips" role="list" aria-label="Rate alignment progress">
+        {Array.from({ length: total }).map((_, i) => {
+          const cls = [
+            "na1-a2m1-pip",
+            i === index ? "is-current" : "",
+            i < index ? "is-past" : "",
+            incompleteSet.has(i) ? "is-incomplete" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          return (
+            <button
+              key={i}
+              type="button"
+              className={cls}
+              onClick={() => onJump(i)}
+              aria-label={`Go to screen ${i + 1} of ${total}${
+                incompleteSet.has(i) ? " (still unrated)" : ""
+              }`}
+              aria-current={i === index ? "true" : undefined}
+            />
+          );
+        })}
+      </div>
+      <div className="na1-a2m1-subprog-label">{label}</div>
+    </div>
+  );
+}
+
+// Step 2 body — renders the current creature or value sub-screen with one
+// slider per gift / behavior.
+function NewA2M1Step2Body({
+  screen,
+  ratings,
+  onRate,
+}: {
+  screen: A2SubScreen | null;
+  ratings: Record<string, number>;
+  onRate: (id: string, v: number) => void;
+}) {
+  if (!screen) {
+    return (
+      <div className="na1-a2m1-step2">
+        <h2 className="na1-a2m1-step-title">Rate alignment</h2>
+        <p className="na1-a2m1-empty">
+          Nothing from your A1 to rate yet — name your gifts and values first.
+        </p>
+      </div>
+    );
+  }
+  const isCreature = screen.kind === "creature";
+  return (
+    <div className="na1-a2m1-step2">
+      <h2 className="na1-a2m1-step-title">Rate alignment</h2>
+      <p className="na1-a2m1-step-lede">
+        {isCreature
+          ? "Honestly — how alive is each gift in your life right now?"
+          : "Honestly — how consistently do you live each behavior right now?"}
+      </p>
+      <div
+        className={`na1-a2m1-rate-head ${
+          isCreature ? "is-creature" : "is-value"
+        }`}
+      >
+        {isCreature ? (
+          <>
+            {screen.emoji && (
+              <span className="na1-a2m1-creature-emoji" aria-hidden>
+                {screen.emoji}
+              </span>
+            )}
+            <span className="na1-a2m1-creature-name">{screen.itemName}</span>
+          </>
+        ) : (
+          <>
+            <div className="na1-a2m1-value-name">{screen.itemName}</div>
+            {screen.definition && (
+              <div className="na1-a2m1-value-def">{screen.definition}</div>
+            )}
+          </>
+        )}
+      </div>
+      <div className="na1-a2m1-rate-list">
+        {screen.items.map((it) => (
+          <NewA2M1Slider
+            key={it.id}
+            value={ratings[it.id]}
+            onChange={(v) => onRate(it.id, v)}
+            variant={isCreature ? "gift" : "behavior"}
+            leftAnchor={isCreature ? it.shadowWord ?? "Shadow" : "Misaligned"}
+            rightAnchor={it.name}
+            showLeftDot={isCreature}
+            keystone={it.isKeystone}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Horizontal 4-step progress stepper. Current step is gold; steps below
 // maxReached show a ✓; the connecting line + dots up to maxReached are lit.
 function NewA2M1Stepper({
@@ -34217,6 +34599,54 @@ function NewA2M1Container({
   const [roomOpen, setRoomOpen] = useState<boolean>(
     initialRoomKey === "alignment",
   );
+
+  // A2.3 · Step 2 (Rate alignment) model. Built from the user's real A1 data
+  // and recomputed when the room opens. step2Index is clamped to the live
+  // sub-screen count so a stale saved index from shrunk data still resolves.
+  const rateScreens = useMemo(
+    () => (roomOpen ? readA2RateModel() : []),
+    [roomOpen],
+  );
+  const lastIndex = Math.max(0, rateScreens.length - 1);
+  const step2Index = Math.min(Math.max(0, m1.step2Index), lastIndex);
+  const allRateIds = useMemo(
+    () => rateScreens.flatMap((s) => s.items.map((it) => it.id)),
+    [rateScreens],
+  );
+  const unratedCount = allRateIds.filter(
+    (id) => typeof m1.ratings[id] !== "number",
+  ).length;
+  // Single Complete predicate: every shown gift + behavior is rated. An empty
+  // model (no A1 data) counts as complete so the user is never trapped.
+  const isStep2Complete = allRateIds.length === 0 || unratedCount === 0;
+  const incompleteSet = useMemo(() => {
+    const set = new Set<number>();
+    rateScreens.forEach((s, i) => {
+      if (s.items.some((it) => typeof m1.ratings[it.id] !== "number"))
+        set.add(i);
+    });
+    return set;
+  }, [rateScreens, m1.ratings]);
+
+  const onRate = useCallback(
+    (id: string, v: number) => {
+      mutateM1((m) => ({
+        ...m,
+        ratings: {
+          ...m.ratings,
+          [id]: Math.max(1, Math.min(5, Math.round(v))),
+        },
+      }));
+    },
+    [mutateM1],
+  );
+  const setStep2Index = useCallback(
+    (i: number) => {
+      mutateM1((m) => ({ ...m, step2Index: Math.max(0, i) }));
+    },
+    [mutateM1],
+  );
+
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
   const clearTimers = () => {
@@ -34285,10 +34715,37 @@ function NewA2M1Container({
   };
 
   const onBack = () => {
+    if (m1.currentStep === 2) {
+      // Page backwards through Step 2 sub-screens, then out to Step 1.
+      if (step2Index > 0) setStep2Index(step2Index - 1);
+      else goToStep(1);
+      return;
+    }
     if (m1.currentStep > 1) goToStep(m1.currentStep - 1);
     else closeRoom();
   };
   const onContinue = () => {
+    if (m1.currentStep === 1) {
+      // Enter Step 2 on the first sub-screen. The saved step2Index resume only
+      // applies to a refresh, not a fresh forward advance from Step 1.
+      mutateM1((m) => ({
+        ...m,
+        currentStep: 2,
+        maxReached: Math.max(m.maxReached, 2),
+        step2Index: 0,
+      }));
+      return;
+    }
+    if (m1.currentStep === 2) {
+      // Page forward through sub-screens; on the last one, the single Complete
+      // predicate gates the exit to Step 3.
+      if (step2Index < lastIndex) {
+        setStep2Index(step2Index + 1);
+        return;
+      }
+      if (isStep2Complete) goToStep(3);
+      return;
+    }
     if (m1.currentStep < 4) goToStep(m1.currentStep + 1);
   };
 
@@ -34341,13 +34798,28 @@ function NewA2M1Container({
               currentStep={m1.currentStep}
               maxReached={m1.maxReached}
             />
+            {m1.currentStep === 2 && rateScreens.length > 0 && (
+              <NewA2M1SubProgress
+                total={rateScreens.length}
+                index={step2Index}
+                incompleteSet={incompleteSet}
+                label={
+                  rateScreens[step2Index]
+                    ? `${rateScreens[step2Index].sectionLabel} · ${rateScreens[step2Index].itemName} · ${rateScreens[step2Index].sectionIndex} of ${rateScreens[step2Index].sectionCount}`
+                    : ""
+                }
+                onJump={(i) => setStep2Index(i)}
+              />
+            )}
             <div className="na1-a2m1-body">
               {m1.currentStep === 1 ? (
                 <NewA2M1Step1Body />
               ) : m1.currentStep === 2 ? (
-                <div className="na1-a2m1-shell">
-                  <h2 className="na1-a2m1-step-title">Rate alignment</h2>
-                </div>
+                <NewA2M1Step2Body
+                  screen={rateScreens[step2Index] ?? null}
+                  ratings={m1.ratings}
+                  onRate={onRate}
+                />
               ) : m1.currentStep === 3 ? (
                 <div className="na1-a2m1-shell">
                   <h2 className="na1-a2m1-step-title">Key Misalignment</h2>
@@ -34358,6 +34830,14 @@ function NewA2M1Container({
                 </div>
               )}
             </div>
+            {m1.currentStep === 2 &&
+              step2Index === lastIndex &&
+              !isStep2Complete && (
+                <div className="na1-a2m1-blocked-hint" role="status">
+                  {unratedCount} {unratedCount === 1 ? "item" : "items"} still
+                  need a rating — the dots above marked unrated show where.
+                </div>
+              )}
             <div className="na1-a2m1-nav">
               <button
                 type="button"
@@ -34370,7 +34850,12 @@ function NewA2M1Container({
                 type="button"
                 className="na1-btn-gold"
                 onClick={onContinue}
-                disabled={m1.currentStep >= 4}
+                disabled={
+                  m1.currentStep >= 4 ||
+                  (m1.currentStep === 2 &&
+                    step2Index === lastIndex &&
+                    !isStep2Complete)
+                }
               >
                 Continue
               </button>
