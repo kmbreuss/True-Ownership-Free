@@ -83,3 +83,16 @@ The `onEntryHall` handler must be threaded through *both* a hub view component
 (e.g. `NewA1M3HubView`) *and* its container (`NewA1M3Container`) — the container
 declares the prop but you must also forward it into the hub, or the hub's
 breadcrumb `<a onClick={onEntryHall}>` throws "onEntryHall is not defined".
+
+## Room-container resume pattern (M3/M4/A2M1) + StrictMode is OFF
+
+Room containers (M3, M4, A2.2 Alignment Check) resume an open room after a
+refresh by seeding `roomOpen`/`openRoom` in the `useState` *initializer* from
+`initialRoomKey`, NOT in a mount `useEffect`. A mount effect would let the
+`onRoomChange` reporter fire `null` first and clear the persisted overlay route
+before resume runs.
+**Why:** the parent consumes the saved overlay roomId as a one-shot
+(`initial*RoomKeyRef.current` read+nulled during render). React StrictMode is
+intentionally NOT enabled in this app, so that render-time ref consumption is
+safe (no double render). If StrictMode is ever turned on, every room
+container's one-shot resume breaks — revisit then, don't pre-emptively rewrite.

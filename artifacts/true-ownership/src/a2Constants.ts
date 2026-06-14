@@ -14,19 +14,54 @@ export const A2_STORAGE_KEY = "to_a2_state_v1";
 // Placeholder per-mirror state. Empty until A2.1+ fills each mirror in.
 export type A2MirrorStub = Record<string, never>;
 
+// A2.2 · Mirror 1 (Alignment Check) flow progress. The Alignment Check runs
+// as one continuous paced room with four steps (1 Read your A1 · 2 Rate
+// alignment · 3 Key Misalignment · 4 Claim). We persist only the step
+// progress here (Step 1 is read-only). `veilSeen` makes the launch veil fire
+// once — the first time the user ever enters the room — so a resume or a
+// close+reopen drops them straight into their step with no ceremony replay.
+export type A2M1State = {
+  currentStep: number; // 1–4, the step currently shown
+  maxReached: number; // 1–4, highest step ever reached (drives stepper checks)
+  veilSeen: boolean; // true once the launch veil has played
+};
+
+export const EMPTY_A2_M1: A2M1State = {
+  currentStep: 1,
+  maxReached: 1,
+  veilSeen: false,
+};
+
 export type A2State = {
-  m1: A2MirrorStub;
+  m1: A2M1State;
   m2: A2MirrorStub;
   m3: A2MirrorStub;
   m4: A2MirrorStub;
 };
 
 export const EMPTY_A2: A2State = {
-  m1: {},
+  m1: { ...EMPTY_A2_M1 },
   m2: {},
   m3: {},
   m4: {},
 };
+
+// Coerce an unknown blob into a valid A2M1State, defaulting missing/invalid
+// fields and clamping steps into 1–4 so older `{}` stubs upgrade cleanly.
+function normalizeA2M1(raw: unknown): A2M1State {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<A2M1State>;
+  const clamp = (n: unknown, fallback: number) =>
+    typeof n === "number" && Number.isFinite(n)
+      ? Math.max(1, Math.min(4, Math.round(n)))
+      : fallback;
+  const currentStep = clamp(r.currentStep, 1);
+  const maxReached = Math.max(currentStep, clamp(r.maxReached, currentStep));
+  return {
+    currentStep,
+    maxReached,
+    veilSeen: r.veilSeen === true,
+  };
+}
 
 export function loadA2State(): A2State {
   try {
@@ -36,8 +71,11 @@ export function loadA2State(): A2State {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object") {
       // Shallow-merge over EMPTY_A2 so future schema additions get
-      // sensible defaults on older stored blobs.
-      return { ...EMPTY_A2, ...parsed } as A2State;
+      // sensible defaults on older stored blobs, then normalize m1 so a
+      // legacy empty-object stub upgrades to the real step shape.
+      const merged = { ...EMPTY_A2, ...parsed } as A2State;
+      merged.m1 = normalizeA2M1((parsed as { m1?: unknown }).m1);
+      return merged;
     }
   } catch {}
   return EMPTY_A2;

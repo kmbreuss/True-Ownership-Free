@@ -124,6 +124,9 @@ import {
   EMPTY_A2,
   hasA2State,
   saveA2State,
+  loadA2State,
+  type A2M1State,
+  type A2State,
 } from "./a2Constants";
 import {
   VIDEOS,
@@ -855,6 +858,39 @@ html[data-theme="light"]{
 .na1-room-crumb a:hover{ color:var(--gold); }
 .na1-room-crumb .sep{ color:var(--na1-text-mute); }
 .na1-room-crumb .current{ color:var(--na1-text); font-weight:600; }
+/* ── A2.2 · Alignment Check (a2m1) room ── */
+.na1-ex-row.is-clickable{ cursor:pointer; }
+.na1-ex-row.is-clickable:hover{ transform:translateY(-1px); }
+.na1-a2m1-room-card{ max-width:760px; }
+.na1-a2m1-stepper{ display:flex; align-items:center; gap:6px; margin:0 0 28px; }
+.na1-a2m1-step{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto; }
+.na1-a2m1-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
+.na1-a2m1-line.is-reached{ background:var(--gold-line); }
+.na1-a2m1-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--na1-sans); font-size:13px; font-weight:700; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a2m1-dot.is-reached{ border-color:var(--gold-line); color:var(--na1-text-sec); }
+.na1-a2m1-dot.is-complete{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); }
+.na1-a2m1-dot.is-current{ background:var(--gold); border-color:var(--gold); color:#1a1206; box-shadow:0 0 14px var(--gold-glow); }
+.na1-a2m1-step-name{ font-family:var(--na1-sans); font-size:11px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:78px; }
+.na1-a2m1-step-name.is-current{ color:var(--gold); font-weight:600; }
+@media (max-width:600px){ .na1-a2m1-step-name{ display:none; } }
+.na1-a2m1-body{ min-height:160px; }
+.na1-a2m1-step-title{ font-family:var(--na1-serif); font-size:26px; font-weight:600; line-height:1.2; color:var(--na1-text); margin:0 0 10px; }
+.na1-a2m1-step-lede{ font-family:var(--na1-sans); font-size:14.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 24px; }
+.na1-a2m1-block{ margin:0 0 24px; }
+.na1-a2m1-block-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 10px; }
+.na1-a2m1-purpose{ font-family:var(--na1-serif); font-size:18px; font-style:italic; line-height:1.5; color:var(--na1-text); margin:0; }
+.na1-a2m1-empty{ font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text-mute); font-style:italic; margin:0; }
+.na1-a2m1-creatures{ display:flex; flex-direction:column; gap:16px; }
+.na1-a2m1-creature{ border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; background:var(--na1-bg-soft); }
+.na1-a2m1-creature-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.na1-a2m1-creature-emoji{ font-size:20px; line-height:1; }
+.na1-a2m1-creature-name{ font-family:var(--na1-serif); font-size:16px; font-weight:600; color:var(--na1-text); text-transform:capitalize; }
+.na1-a2m1-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.na1-a2m1-values{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+.na1-a2m1-values li{ display:flex; align-items:center; gap:12px; font-family:var(--na1-sans); font-size:15px; color:var(--na1-text); }
+.na1-a2m1-value-rank{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.na1-a2m1-shell{ padding:32px 0; }
+.na1-a2m1-nav{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:28px; padding-top:20px; border-top:1px solid var(--na1-border); }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
 .na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
 .na1-room-eyebrow.tone-burgundy{ color:var(--burgundy); }
@@ -32976,7 +33012,8 @@ type AppRouteView =
   // A2.1 · Alignment Check (A2 Mirror 1) hub (gated behind ?newA2=1).
   | "a2m1";
 type AppRouteOverlay = {
-  hubId: "m1" | "m2" | "m3" | "m4";
+  // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -33050,7 +33087,8 @@ function loadAppRoute(): AppRoute | null {
         (hubId === "m1" ||
           hubId === "m2" ||
           hubId === "m3" ||
-          hubId === "m4") &&
+          hubId === "m4" ||
+          hubId === "a2m1") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -33764,10 +33802,18 @@ function NewA2HubView({
 // HUBS don't fire the entry veil (only room launches do, via NewA1Veil), and
 // A2.1 ships no rooms. Step internals land in A2.2–A2.4 — the four step cards
 // are intentionally inert here.
-function NewA2M1HubView({ onBackToA2 }: { onBackToA2: () => void }) {
+function NewA2M1HubView({
+  onBackToA2,
+  onStart,
+}: {
+  onBackToA2: () => void;
+  // A2.2 · launches the continuous Alignment Check room. Wired by the
+  // container; absent the hub renders its inert (A2.1) step shells.
+  onStart?: () => void;
+}) {
   const [videoOpen, setVideoOpen] = useState(false);
-  // Static step shells. step 1 is "up next"; 2–4 locked. Inert until A2.2–A2.4
-  // wire each step's internals.
+  // Static step shells. step 1 is "up next"; 2–4 locked. The up-next Step 1
+  // row + the Begin CTA launch the room when onStart is provided (A2.2).
   const steps: { num: number; name: string; current: boolean }[] = [
     { num: 1, name: "Read your A1", current: true },
     { num: 2, name: "Rate alignment", current: false },
@@ -33853,10 +33899,12 @@ function NewA2M1HubView({ onBackToA2 }: { onBackToA2: () => void }) {
             // label treatment exactly.
             const isCurrent = s.current;
             const isLocked = !s.current;
+            const clickable = isCurrent && !!onStart;
             const cls = [
               "na1-ex-row",
               isCurrent ? "is-current tone-gold" : "",
               isLocked ? "is-locked" : "",
+              clickable ? "is-clickable" : "",
             ]
               .filter(Boolean)
               .join(" ");
@@ -33869,6 +33917,19 @@ function NewA2M1HubView({ onBackToA2 }: { onBackToA2: () => void }) {
                 className={cls}
                 key={s.num}
                 aria-label={`${s.name} — ${statusLabel}`}
+                role={clickable ? "button" : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                onClick={clickable ? onStart : undefined}
+                onKeyDown={
+                  clickable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onStart?.();
+                        }
+                      }
+                    : undefined
+                }
               >
                 <span className="na1-ex-icon" aria-hidden>
                   {iconChar}
@@ -33893,7 +33954,9 @@ function NewA2M1HubView({ onBackToA2 }: { onBackToA2: () => void }) {
         <div
           style={{
             display: "flex",
-            justifyContent: "flex-start",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
             marginTop: 8,
           }}
         >
@@ -33904,9 +33967,421 @@ function NewA2M1HubView({ onBackToA2 }: { onBackToA2: () => void }) {
           >
             ← Back to A2
           </button>
+          {onStart && (
+            <button type="button" className="na1-btn-gold" onClick={onStart}>
+              Begin Alignment Check
+            </button>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// A2.2 · Alignment Check (A2 · Mirror 1) — continuous paced room
+// ─────────────────────────────────────────────────────────────────────────────
+// One room launched from the a2m1 hub. Auto-advances Step 1→4 via Continue,
+// with a horizontal 4-step stepper at the top. Step 1 reads back A1 (Purpose,
+// Mirror 3 creatures + gifts, Mirror 4 ranked values) read-only; Steps 2–4 are
+// titled empty shells until A2.3/A2.4. Veil + room/step state are isolated from
+// A1's — no shared overlay ids or container state. The launch veil fires only
+// the first time the user ever enters the room (persisted `veilSeen`); a resume
+// or close+reopen drops straight into the saved step with no replay.
+const A2M1_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "Read your A1" },
+  { num: 2, name: "Rate alignment" },
+  { num: 3, name: "Key Misalignment" },
+  { num: 4, name: "Claim" },
+];
+
+const A2M1_VEIL_TEXT = "Back to the mirror — honestly this time…";
+
+type A1Recall = {
+  purpose: string;
+  creatures: { id: string; label: string; emoji: string; gifts: string[] }[];
+  values: string[];
+};
+
+// Read-only recall of the user's A1 claims for Step 1. All reads are wrapped
+// so a missing/degenerate blob never throws — per spec a giftId with no
+// matching pickedGift label is skipped cleanly.
+function readA1Recall(): A1Recall {
+  let purpose = "";
+  const creatures: A1Recall["creatures"] = [];
+  try {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    purpose = (map.purpose_final || map.purpose_draft || "").trim();
+    const m3 = (map.mirror3 as any) || {};
+    const clusters: Cluster[] = Array.isArray(m3.clusters) ? m3.clusters : [];
+    const picked: PickedGift[] = Array.isArray(m3.pickedGifts)
+      ? m3.pickedGifts
+      : [];
+    const giftById = new Map<string, string>(
+      picked.map((p) => [p.id, p.label] as const),
+    );
+    for (const c of clusters) {
+      const label = m3CreatureWithDescriptors(c);
+      const gifts = (c.giftIds ?? [])
+        .map((gid) => giftById.get(gid))
+        .filter(
+          (l): l is string => typeof l === "string" && l.trim() !== "",
+        );
+      // Skip wholly empty clusters (no descriptors/animal and no resolvable
+      // gift labels) so degenerate data renders nothing rather than a blank.
+      if (label.trim() === "" && gifts.length === 0) continue;
+      creatures.push({
+        id: c.id,
+        label,
+        emoji: (c.animalEmoji || "").trim(),
+        gifts,
+      });
+    }
+  } catch {
+    // leave purpose/creatures with whatever resolved before the throw
+  }
+  const values: string[] = [];
+  try {
+    const m4 = loadMirror4State() as any;
+    const named = (Array.isArray(m4.clusters) ? m4.clusters : []).filter(
+      (c: any) => (c?.userName || "").trim() !== "",
+    );
+    const rank: string[] = Array.isArray(m4.rank) ? m4.rank : [];
+    const ids: string[] =
+      rank.length > 0
+        ? rank.filter((id) => named.some((c: any) => c.id === id))
+        : named.map((c: any) => c.id);
+    for (const id of ids) {
+      const c = named.find((x: any) => x.id === id);
+      const name = (c?.userName || "").trim();
+      if (name) values.push(name);
+    }
+  } catch {
+    // leave values empty
+  }
+  return { purpose, creatures, values };
+}
+
+// Horizontal 4-step progress stepper. Current step is gold; steps below
+// maxReached show a ✓; the connecting line + dots up to maxReached are lit.
+function NewA2M1Stepper({
+  currentStep,
+  maxReached,
+}: {
+  currentStep: number;
+  maxReached: number;
+}) {
+  return (
+    <div
+      className="na1-a2m1-stepper"
+      role="list"
+      aria-label="Alignment Check progress"
+    >
+      {A2M1_STEPS.map((s, i) => {
+        const num = s.num;
+        const isCurrent = num === currentStep;
+        const isComplete = num < maxReached && !isCurrent;
+        const isReached = num <= maxReached;
+        const dotCls = [
+          "na1-a2m1-dot",
+          isCurrent ? "is-current" : "",
+          isComplete ? "is-complete" : "",
+          isReached ? "is-reached" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        return (
+          <React.Fragment key={num}>
+            {i > 0 && (
+              <span
+                className={`na1-a2m1-line ${num <= maxReached ? "is-reached" : ""}`}
+                aria-hidden
+              />
+            )}
+            <div
+              className="na1-a2m1-step"
+              role="listitem"
+              aria-current={isCurrent ? "step" : undefined}
+            >
+              <span className={dotCls} aria-hidden>
+                {isComplete ? "✓" : num}
+              </span>
+              <span
+                className={`na1-a2m1-step-name ${isCurrent ? "is-current" : ""}`}
+              >
+                {s.name}
+              </span>
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// Step 1 · Read your A1 — read-only recall of Purpose, Gifts, Values.
+function NewA2M1Step1Body() {
+  const recall = useMemo(() => readA1Recall(), []);
+  return (
+    <div className="na1-a2m1-step1">
+      <h2 className="na1-a2m1-step-title">Read your A1</h2>
+      <p className="na1-a2m1-step-lede">
+        Before you check alignment, read back what you claimed in A1 — in your
+        own words.
+      </p>
+      <section className="na1-a2m1-block">
+        <h3 className="na1-a2m1-block-label">Your Purpose</h3>
+        {recall.purpose ? (
+          <p className="na1-a2m1-purpose">“{recall.purpose}”</p>
+        ) : (
+          <p className="na1-a2m1-empty">No purpose captured yet.</p>
+        )}
+      </section>
+      <section className="na1-a2m1-block">
+        <h3 className="na1-a2m1-block-label">Your Gifts</h3>
+        {recall.creatures.length > 0 ? (
+          <div className="na1-a2m1-creatures">
+            {recall.creatures.map((c) => (
+              <div className="na1-a2m1-creature" key={c.id}>
+                <div className="na1-a2m1-creature-head">
+                  {c.emoji && (
+                    <span className="na1-a2m1-creature-emoji" aria-hidden>
+                      {c.emoji}
+                    </span>
+                  )}
+                  <span className="na1-a2m1-creature-name">{c.label}</span>
+                </div>
+                {c.gifts.length > 0 && (
+                  <div className="na1-a2m1-chips">
+                    {c.gifts.map((g, i) => (
+                      <span className="na1-chip" key={i}>
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="na1-a2m1-empty">No gifts captured yet.</p>
+        )}
+      </section>
+      <section className="na1-a2m1-block">
+        <h3 className="na1-a2m1-block-label">Your Values</h3>
+        {recall.values.length > 0 ? (
+          <ol className="na1-a2m1-values">
+            {recall.values.map((v, i) => (
+              <li key={i}>
+                <span className="na1-a2m1-value-rank">{i + 1}</span>
+                <span>{v}</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="na1-a2m1-empty">No values ranked yet.</p>
+        )}
+      </section>
+    </div>
+  );
+}
+
+// Container for the Alignment Check. Owns the a2m1 hub + the single room
+// overlay, the veil launch, and the persisted step state. Isolated from the
+// A1 container — no shared overlay ids, room state, or veil timers.
+function NewA2M1Container({
+  onBackToA2,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA2: () => void;
+  // One-shot: "alignment" when restoring a saved room (resume — no veil).
+  initialRoomKey: string | null;
+  // Reports the open room ("alignment") or null so the parent can persist it.
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a2State, setA2State] = useState<A2State>(() => loadA2State());
+  const m1 = a2State.m1;
+  const mutateM1 = useCallback((fn: (m: A2M1State) => A2M1State) => {
+    setA2State((prev) => {
+      const next = { ...prev, m1: fn(prev.m1) };
+      saveA2State(next);
+      return next;
+    });
+  }, []);
+
+  // Mirror the M3/M4 resume pattern: when an initialRoomKey is handed in
+  // (refresh while the room was open), open directly with no veil by seeding
+  // roomOpen in the useState initializer — no mount effect, so there is no
+  // brief onRoomChange(null) flicker that would clear the persisted overlay.
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    initialRoomKey === "alignment",
+  );
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
+  const timeoutsRef = useRef<number[]>([]);
+  const clearTimers = () => {
+    timeoutsRef.current.forEach((t) => window.clearTimeout(t));
+    timeoutsRef.current = [];
+  };
+  useEffect(() => () => clearTimers(), []);
+
+  // Open the room without ceremony (re-entry once the veil has been seen).
+  const openRoomDirect = useCallback(() => {
+    clearTimers();
+    setVeilPhase("idle");
+    setRoomOpen(true);
+  }, []);
+
+  // First-ever launch: play the veil, then reveal the room. Marks veilSeen so
+  // it never replays.
+  const launchWithVeil = useCallback(() => {
+    clearTimers();
+    setVeilPhase("rising");
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timeoutsRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+    mutateM1((m) => (m.veilSeen ? m : { ...m, veilSeen: true }));
+  }, [mutateM1]);
+
+  // Start from the hub CTA / Step 1 row.
+  const startRoom = useCallback(() => {
+    if (m1.veilSeen) openRoomDirect();
+    else launchWithVeil();
+  }, [m1.veilSeen, openRoomDirect, launchWithVeil]);
+
+  // Report the open room up so the route persists it. On a resume mount
+  // roomOpen is already true (seeded above), so this reports "alignment"
+  // immediately rather than a transient null.
+  useEffect(() => {
+    onRoomChange(roomOpen ? "alignment" : null);
+  }, [roomOpen, onRoomChange]);
+
+  const closeRoom = () => {
+    clearTimers();
+    setVeilPhase("idle");
+    setRoomOpen(false);
+  };
+
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(4, step));
+    mutateM1((m) => ({
+      ...m,
+      currentStep: clamped,
+      maxReached: Math.max(m.maxReached, clamped),
+    }));
+  };
+
+  const onBack = () => {
+    if (m1.currentStep > 1) goToStep(m1.currentStep - 1);
+    else closeRoom();
+  };
+  const onContinue = () => {
+    if (m1.currentStep < 4) goToStep(m1.currentStep + 1);
+  };
+
+  // Escape + scroll-lock while the room is open.
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  return (
+    <>
+      <NewA2M1HubView onBackToA2={onBackToA2} onStart={startRoom} />
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Alignment Check"
+        >
+          <div className="na1-room-card na1-a2m1-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>Alignment Check</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A2M1_STEPS[m1.currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <NewA2M1Stepper
+              currentStep={m1.currentStep}
+              maxReached={m1.maxReached}
+            />
+            <div className="na1-a2m1-body">
+              {m1.currentStep === 1 ? (
+                <NewA2M1Step1Body />
+              ) : m1.currentStep === 2 ? (
+                <div className="na1-a2m1-shell">
+                  <h2 className="na1-a2m1-step-title">Rate alignment</h2>
+                </div>
+              ) : m1.currentStep === 3 ? (
+                <div className="na1-a2m1-shell">
+                  <h2 className="na1-a2m1-step-title">Key Misalignment</h2>
+                </div>
+              ) : (
+                <div className="na1-a2m1-shell">
+                  <h2 className="na1-a2m1-step-title">Claim</h2>
+                </div>
+              )}
+            </div>
+            <div className="na1-a2m1-nav">
+              <button
+                type="button"
+                className="na1-btn-ghost"
+                onClick={onBack}
+              >
+                {m1.currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              <button
+                type="button"
+                className="na1-btn-gold"
+                onClick={onContinue}
+                disabled={m1.currentStep >= 4}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A2M1_VEIL_TEXT} />
+      )}
+    </>
   );
 }
 
@@ -33978,6 +34453,12 @@ function NewA1View({ name }: { name?: string }) {
       // Only restore the overlay if the saved hub matches the saved view.
       if (saved.view === saved.overlay.hubId) return saved.overlay;
     }
+    // A2.2 · Restore the Alignment Check room overlay only when the saved view
+    // matches and the A2 flag is on. The a1Complete runtime guard (and the
+    // leave-view overlay clear below) drop it if A1 is no longer complete.
+    if (saved.overlay.hubId === "a2m1") {
+      if (saved.view === "a2m1" && NEW_A2_FLAG) return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -33989,6 +34470,9 @@ function NewA1View({ name }: { name?: string }) {
   const initialM4RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "m4" ? overlayRoute.roomId : null,
   );
+  const initialA2M1RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a2m1" ? overlayRoute.roomId : null,
+  );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
   const firstRoutePersistRef = useRef(true);
@@ -33999,9 +34483,15 @@ function NewA1View({ name }: { name?: string }) {
     }
     saveAppRoute({ view, overlay: overlayRoute });
   }, [view, overlayRoute]);
-  // When the user leaves m3/m4, the overlay no longer applies.
+  // When the user leaves a view that can carry a room overlay (m3/m4/a2m1),
+  // the overlay no longer applies.
   useEffect(() => {
-    if (view !== "m3" && view !== "m4" && overlayRoute != null) {
+    if (
+      view !== "m3" &&
+      view !== "m4" &&
+      view !== "a2m1" &&
+      overlayRoute != null
+    ) {
       setOverlayRoute(null);
     }
   }, [view, overlayRoute]);
@@ -34023,6 +34513,17 @@ function NewA1View({ name }: { name?: string }) {
   const onM4RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
       const next: AppRouteOverlay = roomId ? { hubId: "m4", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A2.2 · Alignment Check room (single room "alignment") reports open/close.
+  const onA2M1RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a2m1", roomId } : null;
       if (prev === next) return prev;
       if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
         return prev;
@@ -34387,10 +34888,22 @@ function NewA1View({ name }: { name?: string }) {
   // every other newA1 surface. The only entry is the A2 hub's gated 01 Begin,
   // so incomplete-A1 users can never reach this view.
   if (view === "a2m1") {
+    // A2.2 · True one-shot: capture the saved room key, then null the ref so
+    // re-entering later in the session starts fresh (no auto-resume).
+    const initialKey = initialA2M1RoomKeyRef.current;
+    initialA2M1RoomKeyRef.current = null;
+    // Spine shows on the hub; suppressed while the room overlay owns the view.
+    const showSpine = overlayRoute == null;
     return (
-      <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
-        <NewA2M1HubView onBackToA2={() => setView("a2")} />
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+        )}
+        <NewA2M1Container
+          onBackToA2={() => setView("a2")}
+          initialRoomKey={initialKey}
+          onRoomChange={onA2M1RoomChange}
+        />
       </div>
     );
   }

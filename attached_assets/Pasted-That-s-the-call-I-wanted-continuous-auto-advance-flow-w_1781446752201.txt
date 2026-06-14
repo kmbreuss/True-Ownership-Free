@@ -1,0 +1,21 @@
+That's the call I wanted — continuous auto-advance flow with the horizontal 4-step indicator, no return-to-hub between steps. You're right that A1 doesn't work this way (it's hub → room → back to hub per step); noting it as a deferred A1 retrofit to do after A2 ships, so we don't touch A1 now and the two stay intentionally different until then.
+Locking the structure and starting the build. First ship is the flow scaffold + Step 1 (Read your A1) — deliberately, because Step 1 is read-only and reading your real to_map data is the #1 risk. Better to find a data-wiring problem on a display screen than on the rating screen. Steps 2–4 follow once the reads are proven.
+Here's the paste-ready, plan-first brief:
+
+New ship: A2.2 — Alignment Check flow scaffold + Step 1 (Read your A1). Plan first, then build.
+Structural decision (locked): Alignment Check runs as one continuous paced room launched from the M1 hub — the user auto-advances through 4 steps (Read your A1 → Rate alignment → Key Misalignment → Claim) via a Continue button, with a horizontal 4-step indicator at the top. Not the A1 return-to-hub-between-rooms pattern. (A1 will be retrofitted to match later — out of scope here, don't touch A1.)
+This ship builds: the room + veil launch, the 4-step horizontal stepper, auto-advance nav, and Step 1 (Read your A1) only, wired to real data. Steps 2–4 are titled empty shells to be filled in later ships.
+LOOK & FEEL (bible v2 — match the A1 mirror rooms; reference tokens, never hardcode): --na1-serif Georgia + --na1-sans DM Sans only · --na1-* surface tokens · --gold #b8892f/#c9a84b · --burgundy #9b3d44 · shadow-marker dots #A03B3B (not --burgundy) · .na1-shell 760px · radius --na1-radius · 600px mobile collapse · both data-theme. Reuse na1-room-overlay / na1-room-card / na1-room-close, na1-breadcrumb, the veil (NewA1Veil). New flow classes prefixed na1-a2m1-.
+Launch + room: from the M1 hub, the up-next Step 1 card (and/or a Begin CTA) opens the Alignment Check room. Fire the veil on launch (line: "Back to the mirror — honestly this time…", italic Georgia gold). Route overlay uses an A2 namespace — overlay:{ hubId:"a2m1", roomId:"alignment" } — do not reuse A1's m1–m4 overlay ids. Close (na1-room-close) returns to the M1 hub.
+4-step stepper (na1-a2m1-steps): horizontal row — 1 Read your A1 · 2 Rate alignment · 3 Key Misalignment · 4 Claim. Current step ringed in gold, completed steps filled with a check + gold connector line, future steps muted. (The nested sub-progress within "Rate alignment" comes with that step's build — not now.)
+Step 1 — Read your A1 (read-only recall, real data). A1 is guaranteed complete here (the A2-hub Begin gate enforces a1Complete), so the data exists. Read from the confirmed paths:
+
+Purpose → loadDataSync(KEYS.map): (map.purpose_final || map.purpose_draft || "").trim().
+Creatures + gifts → map.mirror3: for each clusters[], show animalEmoji + descriptorWord1/2 + animal (creature name) + its gift chips = giftIds.map(id => pickedGifts.find(g=>g.id===id)?.label).
+Values ranked → loadMirror4State(): value names in rank order.
+Layout = the hybrid from the approved mockup: Purpose card, each creature with its gift chips, ranked values line. Nothing editable.
+
+State: new a2.m1 in to_a2_state_v1 via loadA2State/saveA2State — track step progress only (Step 1 read-only, nothing else to persist yet).
+DO NOT: build Step 2/3/4 internals (titled shells only); return to hub between steps; reuse A1 overlay ids or A1 room components' state; touch A1; add font/color tokens.
+Done looks like: A1-complete user, ?newA1=1&newA2=1 → A2 hub → Begin → M1 hub → launch → veil → Alignment Check room with the 4-step stepper on Step 1; Read your A1 shows the user's real Purpose, creatures+gifts, and ranked values; Continue advances the stepper to Step 2 (empty titled shell); Back works; close returns to the M1 hub. Both themes clean; no console errors; A1 unchanged.
+Plan it first and show me before building.
