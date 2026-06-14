@@ -28101,27 +28101,46 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
   );
 }
 // ─── NEW A1 (?newA1=1) feature flag ───
-// Reads once at module load; changes require a page reload.
+// Sticky opt-in: the flag first enables via ?newA1=1, then persists to
+// localStorage so it survives a hard reload. The preview iframe reloads to its
+// base path and drops the query string, which would otherwise re-disable the
+// flag on every refresh and bounce the user back to the grid. Read once at
+// module load; clearing site data resets the opt-in.
+const NEW_A1_OPTIN_KEY = "na1_optin";
+const NEW_A2_OPTIN_KEY = "na2_optin";
 const NEW_A1_FLAG = (() => {
   try {
-    return new URLSearchParams(window.location.search).has("newA1");
+    const urlOn = new URLSearchParams(window.location.search).has("newA1");
+    if (urlOn) {
+      try {
+        window.localStorage.setItem(NEW_A1_OPTIN_KEY, "1");
+      } catch {}
+      return true;
+    }
+    return window.localStorage.getItem(NEW_A1_OPTIN_KEY) === "1";
   } catch {
     return false;
   }
 })();
 
 // ─── NEW A2 (?newA2=1) feature flag ───
-// A2 ("Align With It") hub scaffold. Requires ?newA1=1 — A2 lives inside the
+// A2 ("Align With It") hub scaffold. Requires NEW_A1_FLAG — A2 lives inside the
 // NewA1View tree, so newA1 is required transitively, but we AND it explicitly
-// so the flag's intent is self-documenting. Dropping ?newA2 hides A2 entirely:
-// the M4-claim "Align With It · A2" button disappears and any persisted
-// view:"a2" route falls back to the A1 grid. Read once at module load.
+// so the flag's intent is self-documenting. Sticky opt-in like NEW_A1_FLAG:
+// once enabled via ?newA2=1 it persists across hard reloads so a persisted
+// view:"a2"/"a2m1" route (and its open room overlay) restores instead of
+// falling back to the grid. Read once at module load.
 const NEW_A2_FLAG = (() => {
   try {
-    return (
-      NEW_A1_FLAG &&
-      new URLSearchParams(window.location.search).has("newA2")
-    );
+    if (!NEW_A1_FLAG) return false;
+    const urlOn = new URLSearchParams(window.location.search).has("newA2");
+    if (urlOn) {
+      try {
+        window.localStorage.setItem(NEW_A2_OPTIN_KEY, "1");
+      } catch {}
+      return true;
+    }
+    return window.localStorage.getItem(NEW_A2_OPTIN_KEY) === "1";
   } catch {
     return false;
   }
@@ -34868,6 +34887,33 @@ function NewA2M1Step4Body({
   const { user: authUser } = useAuth();
   const displayName = resolveDisplayName(null, authUser);
 
+  // A2.6 · Claim ceremony — replicate A1's gold burst exactly (reuses the
+  // .na1-gold-burst / .na1-gold-burst-inner classes + na1GoldRadial /
+  // na1GoldScrim keyframes, portaled to document.body so position:fixed
+  // resolves against the viewport, not the transformed room card). On tapping
+  // "Claim", mount the full-screen burst, play it once (2s), then persist the
+  // claim so the seal reveals. On re-entry to an already-claimed Step 4,
+  // `claimed` is true on mount so the seal shows immediately with no burst; the
+  // burst only fires from the click path. After a reclaim (claimed flipped back
+  // to false upstream) this remounts fresh, so the next claim re-fires it.
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onClaim();
+    }, 2000);
+  };
+
   if (!bottleneckCand) {
     return (
       <div className="na1-a2m1-step4">
@@ -34908,6 +34954,13 @@ function NewA2M1Step4Body({
   // Pre-claim read-back.
   return (
     <div className="na1-a2m1-step4">
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
       <h2 className="na1-a2m1-step-title">Claim</h2>
       <p className="na1-a2m1-step-lede">
         One named gap — the lever you&rsquo;ll move first. Read it back, then
@@ -34925,7 +34978,12 @@ function NewA2M1Step4Body({
         )}
       </div>
       <div className="na1-a2m1-claim-actions">
-        <button type="button" className="na1-btn-gold" onClick={onClaim}>
+        <button
+          type="button"
+          className="na1-btn-gold"
+          onClick={handleClaim}
+          disabled={showBurst}
+        >
           Claim this — seal the mirror →
         </button>
       </div>
@@ -35081,6 +35139,15 @@ function NewA2M1Step1Body() {
   );
 }
 
+// A2.6 · Reclaim. Any change to the upstream alignment inputs (a gift/behavior
+// rating, the Purpose rating, the bottleneck pick, or the keep-in-focus star)
+// un-seals Mirror 1 so the user can claim again — the seal is never permanent.
+// Clears `claimedAt` alongside `claimed` so the next claim stamps a fresh time
+// and re-fires the gold burst. No-op when not yet claimed.
+function unsealA2M1(m: A2M1State): A2M1State {
+  return m.claimed ? { ...m, claimed: false, claimedAt: undefined } : m;
+}
+
 // Container for the Alignment Check. Owns the a2m1 hub + the single room
 // overlay, the veil launch, and the persisted step state. Isolated from the
 // A1 container — no shared overlay ids, room state, or veil timers.
@@ -35159,22 +35226,24 @@ function NewA2M1Container({
 
   const onRate = useCallback(
     (id: string, v: number) => {
-      mutateM1((m) => ({
-        ...m,
-        ratings: {
-          ...m.ratings,
-          [id]: Math.max(1, Math.min(5, Math.round(v))),
-        },
-      }));
+      mutateM1((m) => {
+        const nv = Math.max(1, Math.min(5, Math.round(v)));
+        if (m.ratings[id] === nv) return m;
+        return unsealA2M1({
+          ...m,
+          ratings: { ...m.ratings, [id]: nv },
+        });
+      });
     },
     [mutateM1],
   );
   const onRatePurpose = useCallback(
     (v: number) => {
-      mutateM1((m) => ({
-        ...m,
-        purposeRating: Math.max(1, Math.min(10, Math.round(v))),
-      }));
+      mutateM1((m) => {
+        const nv = Math.max(1, Math.min(10, Math.round(v)));
+        if (m.purposeRating === nv) return m;
+        return unsealA2M1({ ...m, purposeRating: nv });
+      });
     },
     [mutateM1],
   );
@@ -35188,16 +35257,20 @@ function NewA2M1Container({
   // pre-selection) and single-toggle keep-in-focus star.
   const onPickBottleneck = useCallback(
     (id: string) => {
-      mutateM1((m) => ({ ...m, bottleneck: id }));
+      mutateM1((m) =>
+        m.bottleneck === id ? m : unsealA2M1({ ...m, bottleneck: id }),
+      );
     },
     [mutateM1],
   );
   const onToggleKeepInFocus = useCallback(
     (id: string) => {
-      mutateM1((m) => ({
-        ...m,
-        keepInFocus: m.keepInFocus === id ? null : id,
-      }));
+      mutateM1((m) =>
+        unsealA2M1({
+          ...m,
+          keepInFocus: m.keepInFocus === id ? null : id,
+        }),
+      );
     },
     [mutateM1],
   );
