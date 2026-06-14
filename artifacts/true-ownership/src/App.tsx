@@ -953,7 +953,20 @@ html[data-theme="light"]{
 .na1-a2m1-km-more:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; border-radius:4px; }
 .na1-a2m1-km-summary{ font-family:var(--na1-sans); font-size:13px; line-height:1.6; color:var(--na1-text-sec); margin:22px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); }
 .na1-a2m1-km-summary strong{ color:var(--gold); font-weight:600; }
-@media (max-width:600px){ .na1-a2m1-purpose-quote{ font-size:16px; } .na1-a2m1-km-label{ font-size:15px; } }
+/* A2.5 · Step 4 (Claim). Pre-claim read-back + Katherine's seal. Tokens only. */
+.na1-a2m1-step4{ display:flex; flex-direction:column; }
+.na1-a2m1-claim-readback{ margin:4px 0 26px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
+.na1-a2m1-claim-line{ font-family:var(--na1-sans); font-size:14.5px; line-height:1.6; color:var(--na1-text-sec); margin:0; }
+.na1-a2m1-claim-line strong{ color:var(--gold); font-weight:600; }
+.na1-a2m1-claim-keep{ font-family:var(--na1-sans); font-size:13px; line-height:1.6; color:var(--na1-text-mute); margin:10px 0 0; }
+.na1-a2m1-claim-keep strong{ color:var(--gold); font-weight:600; }
+.na1-a2m1-seal{ margin:6px 0 26px; padding:22px 24px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
+.na1-a2m1-seal-body{ font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.7; color:var(--gold); margin:0; }
+.na1-a2m1-seal-body strong{ font-weight:700; color:var(--gold); }
+.na1-a2m1-seal-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:14px 0 0; text-align:right; }
+.na1-a2m1-claim-actions{ display:flex; }
+.na1-a2m1-claim-actions .na1-btn-gold{ width:100%; }
+@media (max-width:600px){ .na1-a2m1-purpose-quote{ font-size:16px; } .na1-a2m1-km-label{ font-size:15px; } .na1-a2m1-seal-body{ font-size:16px; } }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
 .na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
 .na1-room-eyebrow.tone-burgundy{ color:var(--burgundy); }
@@ -33753,6 +33766,10 @@ function NewA2HubView({
       saveA2State(EMPTY_A2);
     }
   }, []);
+  // A2.5 · Mirror 1 completion is driven solely by m1.claimed. Read it once at
+  // mount — this view remounts on every hub↔room view switch, so a claim made
+  // inside the room is reflected the moment the user returns here.
+  const m1Claimed = useMemo(() => loadA2State().m1.claimed, []);
   const lockedCards = [
     {
       num: "02",
@@ -33797,21 +33814,29 @@ function NewA2HubView({
             </h1>
           </div>
           <div className="na1-hero-meta">
-            <strong>0 of 4</strong> complete · ~40 min
+            <strong>{m1Claimed ? 1 : 0} of 4</strong> complete · ~40 min
           </div>
         </div>
         <div className="na1-mirror-grid">
-          {/* 01 · Alignment Check — active. A2.1 · Begin is enabled only when
-              A1 is complete (it routes into the Alignment Check hub); when A1
-              is incomplete, Begin is disabled with an inline gate message. */}
-          <article className="na1-mirror-card is-current">
+          {/* 01 · Alignment Check. A2.1 · Begin is enabled only when A1 is
+              complete (it routes into the Alignment Check hub); when A1 is
+              incomplete, Begin is disabled with an inline gate message. A2.5 ·
+              once m1.claimed, the card flips to the completed treatment (reusing
+              A1's is-complete styling) and Begin becomes "Revisit". */}
+          <article
+            className={`na1-mirror-card ${m1Claimed ? "is-complete" : "is-current"}`}
+          >
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">01</span>
-              <span className="na1-mirror-card-status">Up next</span>
+              <span className="na1-mirror-card-status">
+                {m1Claimed ? "✓ Complete" : "Up next"}
+              </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 1</div>
             <h2 className="na1-mirror-card-name">Alignment Check</h2>
-            <div className="na1-mirror-card-empty">Not yet explored.</div>
+            <div className="na1-mirror-card-empty">
+              {m1Claimed ? "Sealed." : "Not yet explored."}
+            </div>
             {a1Complete ? null : (
               <p className="na1-mirror-card-sub">
                 Complete A1 to begin — Alignment Check reads your Purpose,
@@ -33825,7 +33850,9 @@ function NewA2HubView({
                 disabled={!a1Complete}
                 onClick={a1Complete ? onBeginM1 : undefined}
               >
-                Begin Alignment Check →
+                {m1Claimed
+                  ? "Revisit Alignment Check →"
+                  : "Begin Alignment Check →"}
               </button>
             </div>
           </article>
@@ -34552,6 +34579,80 @@ type A2KMCandidate = {
   score: string;
   norm: number; // normalised to a /5 scale for cross-type ranking
 };
+
+// A2.4/A2.5 · shared bottleneck model. Builds the ranked candidate list from the
+// rated screens (Purpose 1–10 normalised to /5, gifts & behaviours 1–5),
+// lowest-first with a stable source-order tiebreak so equal scores keep their
+// Purpose → gifts → behaviours reading order. Step 3 (Key Misalignment) and
+// Step 4 (Claim) both read from this so the seal names exactly what was ranked.
+function buildA2KMCandidates(
+  screens: A2SubScreen[],
+  ratings: Record<string, number>,
+  purposeRating: number | undefined,
+): A2KMCandidate[] {
+  const out: A2KMCandidate[] = [];
+  screens.forEach((s) => {
+    if (s.kind === "purpose") {
+      if (typeof purposeRating !== "number") return;
+      out.push({
+        id: "purpose",
+        label: "Purpose",
+        sub: `Living it · ${purposeRating} / 10`,
+        score: `${purposeRating}/10`,
+        norm: purposeRating / 2,
+      });
+      return;
+    }
+    const isCreature = s.kind === "creature";
+    s.items.forEach((it) => {
+      const raw = ratings[it.id];
+      if (typeof raw !== "number") return;
+      const word =
+        A2_BEHAVIOR_LABELS[Math.max(0, Math.min(4, raw - 1))].toLowerCase();
+      out.push({
+        id: it.id,
+        label: it.name,
+        sub: isCreature
+          ? `${s.itemName} · falls to '${it.shadowWord ?? "Shadow"}'`
+          : `${s.itemName} · lived ${word}`,
+        score: `${raw}/5`,
+        norm: raw,
+      });
+    });
+  });
+  return out
+    .map((c, i) => ({ c, i }))
+    .sort((a, b) => a.c.norm - b.c.norm || a.i - b.i)
+    .map((x) => x.c);
+}
+
+// Resolve the user's working selection from saved state. The chosen bottleneck
+// is honoured whenever it still maps to a live candidate (an explicit override
+// wins); only when nothing valid is selected do we fall back to the computed
+// lowest. Keep-in-focus is validated the same way. The seal/read-back name what
+// the user picked — never a freshly recomputed lowest.
+function resolveA2KM(
+  candidates: A2KMCandidate[],
+  bottleneck: string | null,
+  keepInFocus: string | null,
+) {
+  const ids = new Set(candidates.map((c) => c.id));
+  const lowestId = candidates[0]?.id ?? null;
+  const validBottleneck = bottleneck && ids.has(bottleneck) ? bottleneck : null;
+  const selected = validBottleneck ?? lowestId;
+  const validKeep = keepInFocus && ids.has(keepInFocus) ? keepInFocus : null;
+  const bottleneckCand = candidates.find((c) => c.id === selected) ?? null;
+  const keepCand = candidates.find((c) => c.id === validKeep) ?? null;
+  return {
+    lowestId,
+    validBottleneck,
+    selected,
+    validKeep,
+    bottleneckCand,
+    keepCand,
+  };
+}
+
 function NewA2M1Step3Body({
   screens,
   ratings,
@@ -34570,51 +34671,17 @@ function NewA2M1Step3Body({
   onToggleKeepInFocus: (id: string) => void;
 }) {
   const [showAll, setShowAll] = useState(false);
-  const candidates = useMemo<A2KMCandidate[]>(() => {
-    const out: A2KMCandidate[] = [];
-    screens.forEach((s) => {
-      if (s.kind === "purpose") {
-        if (typeof purposeRating !== "number") return;
-        out.push({
-          id: "purpose",
-          label: "Purpose",
-          sub: `Living it · ${purposeRating} / 10`,
-          score: `${purposeRating}/10`,
-          norm: purposeRating / 2,
-        });
-        return;
-      }
-      const isCreature = s.kind === "creature";
-      s.items.forEach((it) => {
-        const raw = ratings[it.id];
-        if (typeof raw !== "number") return;
-        const word =
-          A2_BEHAVIOR_LABELS[Math.max(0, Math.min(4, raw - 1))].toLowerCase();
-        out.push({
-          id: it.id,
-          label: it.name,
-          sub: isCreature
-            ? `${s.itemName} · falls to '${it.shadowWord ?? "Shadow"}'`
-            : `${s.itemName} · lived ${word}`,
-          score: `${raw}/5`,
-          norm: raw,
-        });
-      });
-    });
-    // Lowest-first, with a stable source-order tiebreak so equal scores keep
-    // their Purpose → gifts → behaviors reading order.
-    return out
-      .map((c, i) => ({ c, i }))
-      .sort((a, b) => a.c.norm - b.c.norm || a.i - b.i)
-      .map((x) => x.c);
-  }, [screens, ratings, purposeRating]);
-
-  const lowestId = candidates[0]?.id ?? null;
-  const ids = useMemo(() => new Set(candidates.map((c) => c.id)), [candidates]);
-  // Self-heal a stale saved pick (data shrank) by falling back to the lowest.
-  const validBottleneck = bottleneck && ids.has(bottleneck) ? bottleneck : null;
-  const selected = validBottleneck ?? lowestId;
-  const validKeep = keepInFocus && ids.has(keepInFocus) ? keepInFocus : null;
+  const candidates = useMemo(
+    () => buildA2KMCandidates(screens, ratings, purposeRating),
+    [screens, ratings, purposeRating],
+  );
+  // Honors an explicit override; self-heals a stale saved pick (data shrank) by
+  // falling back to the computed lowest.
+  const { lowestId, validBottleneck, selected, validKeep } = resolveA2KM(
+    candidates,
+    bottleneck,
+    keepInFocus,
+  );
 
   // Persist the lowest-first pre-selection so A3 always has a bottleneck, even
   // if the user never taps to override it.
@@ -34712,6 +34779,108 @@ function NewA2M1Step3Body({
         Bottleneck: <strong>{bottleneckLabel}</strong> — carries to A3 ·
         Keeping in focus: <strong>{keepLabel ?? "nothing yet"}</strong>.
       </p>
+    </div>
+  );
+}
+
+// A2.5 · Step 4 (Claim). Pre-claim: a quiet read-back of the bottleneck the user
+// chose in Step 3 (+ keep-in-focus if set), then a single gold CTA to seal it.
+// On claim: Katherine's seal is revealed and the only action is finishing back
+// to the A2 hub. Re-entry once claimed lands straight on the sealed state; the
+// stepper still lets the user walk Steps 1–3. This step never routes into or
+// unlocks Mirror 2 — it only marks Mirror 1 done via `claimed`.
+function NewA2M1Step4Body({
+  screens,
+  ratings,
+  purposeRating,
+  bottleneck,
+  keepInFocus,
+  claimed,
+  onClaim,
+  onFinish,
+}: {
+  screens: A2SubScreen[];
+  ratings: Record<string, number>;
+  purposeRating: number | undefined;
+  bottleneck: string | null;
+  keepInFocus: string | null;
+  claimed: boolean;
+  onClaim: () => void;
+  onFinish: () => void;
+}) {
+  const candidates = useMemo(
+    () => buildA2KMCandidates(screens, ratings, purposeRating),
+    [screens, ratings, purposeRating],
+  );
+  // Name what the user picked — honor the override, fall back to lowest only if
+  // nothing valid is selected. Same resolver Step 3 uses, so the names match.
+  const { bottleneckCand, keepCand } = resolveA2KM(
+    candidates,
+    bottleneck,
+    keepInFocus,
+  );
+  const bottleneckLabel = bottleneckCand?.label ?? "—";
+
+  if (!bottleneckCand) {
+    return (
+      <div className="na1-a2m1-step4">
+        <h2 className="na1-a2m1-step-title">Claim</h2>
+        <p className="na1-a2m1-empty">
+          Nothing to claim yet — rate your alignment and choose a bottleneck
+          first.
+        </p>
+      </div>
+    );
+  }
+
+  // Sealed state — reached on claim, and on every re-entry once claimed.
+  if (claimed) {
+    return (
+      <div className="na1-a2m1-step4">
+        <h2 className="na1-a2m1-step-title">Claim</h2>
+        <div className="na1-a2m1-seal" role="status">
+          <p className="na1-a2m1-seal-body">
+            You rated it honestly — and the mirror showed where it costs you most
+            right now: <strong>{bottleneckLabel}</strong>. That&rsquo;s not a
+            verdict, it&rsquo;s the lever. Move that one thing toward alignment
+            and the rest gets lighter. Next, we follow it into your time — the
+            Time Audit.
+          </p>
+          <p className="na1-a2m1-seal-by">— Katherine</p>
+        </div>
+        <div className="na1-a2m1-claim-actions">
+          <button type="button" className="na1-btn-gold" onClick={onFinish}>
+            Back to A2 →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Pre-claim read-back.
+  return (
+    <div className="na1-a2m1-step4">
+      <h2 className="na1-a2m1-step-title">Claim</h2>
+      <p className="na1-a2m1-step-lede">
+        One named gap — the lever you&rsquo;ll move first. Read it back, then
+        seal it.
+      </p>
+      <div className="na1-a2m1-claim-readback">
+        <p className="na1-a2m1-claim-line">
+          Your bottleneck: <strong>{bottleneckCand.label}</strong> —{" "}
+          {bottleneckCand.sub}.
+        </p>
+        {keepCand && (
+          <p className="na1-a2m1-claim-keep">
+            Keeping in focus: <strong>{keepCand.label}</strong> — {keepCand.sub}.
+          </p>
+        )}
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button type="button" className="na1-btn-gold" onClick={onClaim}>
+          Claim this — seal the mirror →
+        </button>
+      </div>
     </div>
   );
 }
@@ -34984,6 +35153,15 @@ function NewA2M1Container({
     },
     [mutateM1],
   );
+  // A2.5 · seal the mirror. `claimed` alone drives Mirror 1 completion; stamp
+  // `claimedAt` once on the first claim and leave it untouched thereafter.
+  const onClaim = useCallback(() => {
+    mutateM1((m) =>
+      m.claimed
+        ? m
+        : { ...m, claimed: true, claimedAt: new Date().toISOString() },
+    );
+  }, [mutateM1]);
 
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
@@ -35172,9 +35350,19 @@ function NewA2M1Container({
                   onToggleKeepInFocus={onToggleKeepInFocus}
                 />
               ) : (
-                <div className="na1-a2m1-shell">
-                  <h2 className="na1-a2m1-step-title">Claim</h2>
-                </div>
+                <NewA2M1Step4Body
+                  screens={rateScreens}
+                  ratings={m1.ratings}
+                  purposeRating={m1.purposeRating}
+                  bottleneck={m1.bottleneck}
+                  keepInFocus={m1.keepInFocus}
+                  claimed={m1.claimed}
+                  onClaim={onClaim}
+                  onFinish={() => {
+                    closeRoom();
+                    onBackToA2();
+                  }}
+                />
               )}
             </div>
             {m1.currentStep === 2 &&

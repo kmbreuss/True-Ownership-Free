@@ -47,6 +47,12 @@ export type A2M1State = {
   // the single pinned watch-item (☆), or null. Both carry forward to A3.
   bottleneck: string | null;
   keepInFocus: string | null;
+  // A2.5 · Step 4 (Claim). `claimed` is the single source of truth for Mirror 1
+  // completion (the §7 rule — the A2 hub's Alignment Check card flips to
+  // COMPLETE off this boolean, not a separate flag). `claimedAt` is the ISO
+  // timestamp of the first claim, set once and preserved across re-entry.
+  claimed: boolean;
+  claimedAt?: string;
 };
 
 export const EMPTY_A2_M1: A2M1State = {
@@ -57,6 +63,7 @@ export const EMPTY_A2_M1: A2M1State = {
   step2Index: 0,
   bottleneck: null,
   keepInFocus: null,
+  claimed: false,
 };
 
 export type A2State = {
@@ -110,6 +117,13 @@ function normalizeA2M1(raw: unknown): A2M1State {
     typeof v === "string" && v.trim() !== "" ? v : null;
   const bottleneck = cleanId((r as { bottleneck?: unknown }).bottleneck);
   const keepInFocus = cleanId((r as { keepInFocus?: unknown }).keepInFocus);
+  // Claim: a strict boolean, plus a clean ISO string timestamp when present.
+  const claimed = (r as { claimed?: unknown }).claimed === true;
+  const rawClaimedAt = (r as { claimedAt?: unknown }).claimedAt;
+  const claimedAt =
+    typeof rawClaimedAt === "string" && rawClaimedAt.trim() !== ""
+      ? rawClaimedAt
+      : undefined;
   return {
     currentStep,
     maxReached,
@@ -119,6 +133,8 @@ function normalizeA2M1(raw: unknown): A2M1State {
     step2Index,
     bottleneck,
     keepInFocus,
+    claimed,
+    claimedAt,
   };
 }
 

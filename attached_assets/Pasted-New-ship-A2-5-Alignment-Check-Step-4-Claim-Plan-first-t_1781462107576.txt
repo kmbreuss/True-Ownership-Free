@@ -1,0 +1,20 @@
+New ship: A2.5 — Alignment Check Step 4 (Claim). Plan first, then build.
+Goal: build the titled Step 4 shell into the real Claim step — the Katherine seal that names the chosen bottleneck, records the claim, and marks Mirror 1 complete on the A2 hub. This finishes Mirror 1.
+Enters when Continue is pressed on Key Misalignment (a bottleneck must be selected). The 4-step indicator moves to Claim.
+Screen (before claiming):
+
+Brief read-back: the chosen bottleneck (a2.m1.bottleneck) and the keep-in-focus pick if set, in plain language ("Your bottleneck: Visionary — Owl, falls to 'Disconnected.'").
+A primary claim CTA (gold), e.g. "Claim this — seal the mirror →".
+
+On claim:
+
+Write a2.m1.claimed = true (+ claimedAt) to to_a2_state_v1.
+Reveal the Katherine seal — italic Georgia gold on gold-faint background, left gold border (the established seal pattern: validate + name trajectory + send forward), interpolating the bottleneck name. It must read naturally whether the bottleneck is a gift, a behavior, or Purpose.
+Draft seal copy (Katherine to lock/reword): "You rated it honestly — and the mirror showed you where it costs most right now: {bottleneck}. That's not a verdict, it's the lever. Move that one thing toward alignment and the rest gets lighter. Next, we find where your time is actually going. — Katherine"
+Finish CTA returns to the A2 hub (e.g. "Back to A2 →"); the seal can name the Time Audit as what's next, but do not unlock or route into Mirror 2 (it isn't built).
+
+Mark Mirror 1 complete (the §7 rule): the A2 hub's 01 Alignment Check card flips to COMPLETE with the existing is-complete gold ✓ treatment, driven by the same a2.m1.claimed boolean — not a separate flag. Re-entering the room shows the sealed/revisit state (consistent with M4's "Sealed · tap to revisit"); the user can still go back through steps.
+LOOK & FEEL (bible v2.2): tokens only — --gold, --burgundy #9b3d44, gold-faint seal bg, Georgia + DM Sans; .na1-shell 760px; 600px mobile; both themes. Seal/claim classes na1-a2m1-. Reuse the is-complete treatment on the hub card, don't invent.
+DO NOT: build or unlock Mirror 2–4; route into Time Audit; alter Step 1–3 logic or the Step 2 Complete predicate; reuse A1 overlay ids/state; touch A1; add font/color tokens.
+Done looks like: Continue from Key Misalignment enters Claim (indicator on Claim) showing the chosen bottleneck; claiming writes a2.m1.claimed, reveals the Katherine seal naming the bottleneck, and flips the A2 hub's Alignment Check card to COMPLETE (gold ✓) via the claimed boolean; finish returns to the A2 hub; re-entering shows the sealed state; selections/seal persist on refresh. Both themes; no console errors; A1 unchanged.
+Plan it first and show me before building.
