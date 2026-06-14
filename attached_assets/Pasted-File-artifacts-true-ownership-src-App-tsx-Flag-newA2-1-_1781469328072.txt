@@ -1,0 +1,43 @@
+File: artifacts/true-ownership/src/App.tsx
+
+Flag: ?newA2=1 — touch only A2 M1 claim step code. A1 untouched. Legacy untouched.
+Fix 1 — Re-claim button on the sealed Claim step
+The Claim step (Step 4) when a2.m1.claimed === true currently shows only the sealed Katherine card and "Back to A2 →". It needs a Re-claim action.
+In the sealed state render of the A2 M1 Claim step, add below the Katherine seal card and above the "Back to A2 →" button:
+A small secondary line (na1-text-mute, 13px, centered) reading:
+"Changed your ratings? Re-commit your alignment."
+
+Below it, a ghost-style button (na1-btn-ghost) reading:
+"↺ Re-claim"
+When "↺ Re-claim" is clicked:
+
+Mount the gold burst overlay (.na1-gold-burst + .na1-gold-burst-inner) — same burst that fires on first claim
+After 2000ms, unmount the burst
+Update a2.m1.claimedAt to new Date().toISOString() (re-stamps the claim time, seal content already reflects current bottleneck)
+Hub card stays "Sealed · tap to revisit" — no change to claimed boolean
+
+Reuse the EXISTING burst classes and keyframes — na1GoldRadial / na1GoldScrim. Do NOT author new ones.
+Fix 2 — "Continue to Time Audit →" CTA (conditional swap)
+The forward CTA on the claim step already reads:
+nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A2 →"
+Find where nextMirror is defined/resolved in the A2 M1 claim step. Add this logic:
+const newA2TimeAudit = new URLSearchParams(window.location.search).get('newA2TimeAudit') === '1';
+const nextMirror = newA2TimeAudit
+  ? { label: 'Time Audit', go: () => { /* navigate to A2 Mirror 2 hub */ routeToA2M2() } }
+  : null;
+Where routeToA2M2 routes to the A2 Mirror 2 hub (use the same routing pattern as onBackToA2 but targeting a2m2). If an a2m2 route doesn't exist yet, the go function can call onBackToA2 as a temporary fallback — the label will still update to "Continue to Time Audit →" so the user sees the correct forward direction.
+Flag ?newA2TimeAudit=1 controls the swap. When the flag is off, button stays "Back to A2 →".
+Definition of done
+
+Sealed claim step shows Re-claim secondary text + "↺ Re-claim" ghost button
+Clicking Re-claim fires the gold burst, re-stamps claimedAt, seal stays visible
+At ?newA2=1 (no TimeAudit flag): forward CTA = "Back to A2 →" ✅ unchanged
+At ?newA2=1&newA2TimeAudit=1: forward CTA = "Continue to Time Audit →"
+Both themes tested, no regressions to A1
+
+DO NOT
+
+Touch A1 code
+Author new burst keyframes or CSS classes
+Auto-unseal or flip claimed to false on Re-claim click
+Add any other changes beyond these two fixes

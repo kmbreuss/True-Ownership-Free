@@ -934,8 +934,8 @@ html[data-theme="light"]{
 .na1-a2m1-km-legend{ display:flex; flex-direction:column; gap:8px; margin:-12px 0 22px; padding:13px 15px; border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); }
 .na1-a2m1-km-legend-row{ display:flex; align-items:flex-start; gap:11px; margin:0; font-family:var(--na1-sans); font-size:12.5px; line-height:1.5; color:var(--na1-text-sec); }
 .na1-a2m1-km-legend-glyph{ flex:0 0 auto; width:16px; text-align:center; font-size:14px; line-height:1.5; }
-.na1-a2m1-km-legend-glyph.is-bottleneck{ color:var(--gold); }
-.na1-a2m1-km-legend-glyph.is-keep{ color:var(--na1-text-mute); font-size:15px; }
+.na1-a2m1-km-legend-glyph.is-bottleneck{ color:var(--gold); font-size:15px; }
+.na1-a2m1-km-legend-glyph.is-keep{ color:var(--na1-text-mute); }
 .na1-a2m1-km-legend-text strong{ color:var(--na1-text); font-weight:600; }
 .na1-a2m1-km-list{ display:flex; flex-direction:column; gap:10px; }
 .na1-a2m1-km-row{ display:flex; align-items:stretch; gap:8px; }
@@ -948,12 +948,12 @@ html[data-theme="light"]{
 .na1-a2m1-km-label{ display:flex; align-items:center; gap:9px; font-family:var(--na1-serif); font-size:16px; font-weight:600; color:var(--na1-text); }
 .na1-a2m1-km-badge{ font-family:var(--na1-sans); font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--burgundy); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:999px; padding:2px 8px; }
 .na1-a2m1-km-sub{ font-family:var(--na1-sans); font-size:12.5px; line-height:1.45; color:var(--na1-text-sec); }
-.na1-a2m1-km-radio{ flex:0 0 auto; font-size:15px; color:var(--na1-text-mute); }
-.na1-a2m1-km-row.is-selected .na1-a2m1-km-radio{ color:var(--gold); }
-.na1-a2m1-km-star{ flex:0 0 auto; width:44px; display:flex; align-items:center; justify-content:center; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); color:var(--na1-text-mute); font-size:19px; cursor:pointer; transition:color .15s, border-color .15s; }
-.na1-a2m1-km-star:hover{ color:var(--gold); border-color:var(--gold-line); }
-.na1-a2m1-km-star:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
-.na1-a2m1-km-star.is-kept{ color:var(--gold); border-color:var(--gold); background:var(--gold-soft); }
+.na1-a2m1-km-mark{ flex:0 0 auto; font-size:17px; color:var(--na1-text-mute); }
+.na1-a2m1-km-row.is-selected .na1-a2m1-km-mark{ color:var(--gold); }
+.na1-a2m1-km-keep{ flex:0 0 auto; width:44px; display:flex; align-items:center; justify-content:center; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); color:var(--na1-text-mute); font-size:16px; cursor:pointer; transition:color .15s, border-color .15s; }
+.na1-a2m1-km-keep:hover{ color:var(--gold); border-color:var(--gold-line); }
+.na1-a2m1-km-keep:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+.na1-a2m1-km-keep.is-kept{ color:var(--gold); border-color:var(--gold); background:var(--gold-soft); }
 .na1-a2m1-km-more{ align-self:flex-start; margin-top:13px; background:none; border:none; padding:0; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; }
 .na1-a2m1-km-more:hover{ text-decoration:underline; }
 .na1-a2m1-km-more:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; border-radius:4px; }
@@ -972,6 +972,8 @@ html[data-theme="light"]{
 .na1-a2m1-seal-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:14px 0 0; text-align:right; }
 .na1-a2m1-claim-actions{ display:flex; }
 .na1-a2m1-claim-actions .na1-btn-gold{ width:100%; }
+.na1-a2m1-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
+.na1-a2m1-reclaim-note{ margin:0; font-family:var(--na1-sans); font-size:13px; line-height:1.5; color:var(--na1-text-mute); text-align:center; }
 @media (max-width:600px){ .na1-a2m1-purpose-quote{ font-size:16px; } .na1-a2m1-km-label{ font-size:15px; } .na1-a2m1-seal-body{ font-size:16px; } }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
 .na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
@@ -34638,7 +34640,7 @@ function NewA2M1Step2Body({
 // Step 3 · Key Misalignment — rank every rated signal (Purpose normalised from
 // its 1–10 scale to /5, every gift, every behavior) lowest-first. The lowest is
 // pre-selected as the bottleneck (badged "lowest"); the user can override the
-// pick (single select) and star one signal to keep in focus (single toggle).
+// pick (single select) and mark one signal to keep in focus (single toggle).
 // Both choices persist and carry to A3.
 type A2KMCandidate = {
   id: string;
@@ -34785,13 +34787,13 @@ function NewA2M1Step3Body({
       <h2 className="na1-a2m1-step-title">Key Misalignment</h2>
       <p className="na1-a2m1-step-lede">
         Your weakest-aligned signals, lowest first. The lowest is your likely
-        bottleneck — pick another if it rings truer, and star one to keep in
+        bottleneck — pick another if it rings truer, and mark one to keep in
         focus.
       </p>
       <div className="na1-a2m1-km-legend">
         <p className="na1-a2m1-km-legend-row">
           <span className="na1-a2m1-km-legend-glyph is-bottleneck" aria-hidden>
-            ●
+            ★
           </span>
           <span className="na1-a2m1-km-legend-text">
             <strong>Bottleneck</strong> — the one thing you'll move first. Shift
@@ -34801,7 +34803,7 @@ function NewA2M1Step3Body({
         </p>
         <p className="na1-a2m1-km-legend-row">
           <span className="na1-a2m1-km-legend-glyph is-keep" aria-hidden>
-            ☆
+            ●
           </span>
           <span className="na1-a2m1-km-legend-text">
             <strong>Keep in focus</strong> — a second signal to watch — not the
@@ -34838,18 +34840,18 @@ function NewA2M1Step3Body({
                   </span>
                   <span className="na1-a2m1-km-sub">{c.sub}</span>
                 </span>
-                <span className="na1-a2m1-km-radio" aria-hidden>
-                  {isSelected ? "●" : "○"}
+                <span className="na1-a2m1-km-mark" aria-hidden>
+                  {isSelected ? "★" : "☆"}
                 </span>
               </button>
               <button
                 type="button"
-                className={`na1-a2m1-km-star ${isKept ? "is-kept" : ""}`}
+                className={`na1-a2m1-km-keep ${isKept ? "is-kept" : ""}`}
                 onClick={() => onToggleKeepInFocus(c.id)}
                 aria-pressed={isKept}
                 aria-label={`Keep ${c.label} in focus`}
               >
-                {isKept ? "★" : "☆"}
+                {isKept ? "●" : "○"}
               </button>
             </div>
           );
@@ -34879,12 +34881,14 @@ function NewA2M1Step3Body({
 // stepper still lets the user walk Steps 1–3. This step never routes into or
 // unlocks Mirror 2 — it only marks Mirror 1 done via `claimed`.
 // Forward-route availability for A2 mirrors, keyed by the mirror you're leaving.
-// An entry exists only once the *next* mirror is reachable; absent = not built
-// yet. The Claim step's forward CTA derives from this, so it can never be a
+// An entry names the next mirror's label; whether it's actually reachable is
+// decided at the call site by the launcher passed in (gated by the
+// ?newA2TimeAudit=1 flag today). The Claim step's forward CTA derives from this,
+// so it can never be a
 // permanently-dead button. Shipping the Time Audit (Mirror 2) = add an `m1`
 // entry here and pass its launcher to resolveA2NextMirror — no edit to Step 4.
 const A2_NEXT_MIRROR: Record<string, { label: string } | undefined> = {
-  // m1: { label: "the Time Audit" },  // ← uncomment when Mirror 2 ships
+  m1: { label: "Time Audit" },
 };
 
 // Resolve the mirror that follows `fromMirror`, binding the caller's launcher.
@@ -34907,6 +34911,7 @@ function NewA2M1Step4Body({
   keepInFocus,
   claimed,
   onClaim,
+  onReclaim,
   onFinish,
   nextMirror,
 }: {
@@ -34917,6 +34922,7 @@ function NewA2M1Step4Body({
   keepInFocus: string | null;
   claimed: boolean;
   onClaim: () => void;
+  onReclaim: () => void;
   onFinish: () => void;
   // The mirror that follows Mirror 1. Null until the Time Audit (Mirror 2)
   // ships; when its route exists the claimed seal's forward CTA reads
@@ -34967,6 +34973,17 @@ function NewA2M1Step4Body({
       onClaim();
     }, 2000);
   };
+  // Re-claim from the sealed state: fire the same burst, then re-stamp the claim
+  // time (onReclaim) without flipping `claimed`, so the seal stays visible.
+  const handleReclaim = () => {
+    if (showBurst) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onReclaim();
+    }, 2000);
+  };
 
   if (!bottleneckCand) {
     return (
@@ -34995,6 +35012,26 @@ function NewA2M1Step4Body({
             Audit.
           </p>
           <p className="na1-a2m1-seal-by">— Katherine</p>
+        </div>
+        {showBurst &&
+          createPortal(
+            <div className="na1-gold-burst" aria-hidden>
+              <div className="na1-gold-burst-inner" />
+            </div>,
+            document.body,
+          )}
+        <div className="na1-a2m1-reclaim">
+          <p className="na1-a2m1-reclaim-note">
+            Changed your ratings? Re-commit your alignment.
+          </p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={handleReclaim}
+            disabled={showBurst}
+          >
+            ↺ Re-claim
+          </button>
         </div>
         <div className="na1-a2m1-claim-actions">
           <button
@@ -35198,7 +35235,7 @@ function NewA2M1Step1Body() {
 }
 
 // A2.6 · Reclaim. Any change to the upstream alignment inputs (a gift/behavior
-// rating, the Purpose rating, the bottleneck pick, or the keep-in-focus star)
+// rating, the Purpose rating, the bottleneck pick, or the keep-in-focus mark)
 // un-seals Mirror 1 so the user can claim again — the seal is never permanent.
 // Clears `claimedAt` alongside `claimed` so the next claim stamps a fresh time
 // and re-fires the gold burst. No-op when not yet claimed.
@@ -35312,7 +35349,7 @@ function NewA2M1Container({
     [mutateM1],
   );
   // A2.4 · Step 3 — single-select bottleneck (the override of the lowest-first
-  // pre-selection) and single-toggle keep-in-focus star.
+  // pre-selection) and single-toggle keep-in-focus mark.
   const onPickBottleneck = useCallback(
     (id: string) => {
       mutateM1((m) =>
@@ -35339,6 +35376,16 @@ function NewA2M1Container({
       m.claimed
         ? m
         : { ...m, claimed: true, claimedAt: new Date().toISOString() },
+    );
+  }, [mutateM1]);
+
+  // A2.6 · Re-claim — re-commit an already-sealed mirror after the user changes
+  // their ratings. Re-stamps claimedAt only (the seal content already reflects
+  // the current bottleneck); claimed stays true so the hub card stays sealed.
+  // No-op when not yet claimed.
+  const onReclaim = useCallback(() => {
+    mutateM1((m) =>
+      m.claimed ? { ...m, claimedAt: new Date().toISOString() } : m,
     );
   }, [mutateM1]);
 
@@ -35459,12 +35506,24 @@ function NewA2M1Container({
     if (m1.currentStep < 4) goToStep(m1.currentStep + 1);
   };
 
-  // Forward CTA target for the Claim step, derived from the mirror registry: the
-  // resolver returns null until the Time Audit (Mirror 2) has both a registry
-  // entry and a launcher passed here, so today the seal shows "Back to A2 →".
-  // When Mirror 2 ships, add its A2_NEXT_MIRROR entry and pass its launcher as
-  // the 2nd arg — the CTA auto-switches to "Continue to the Time Audit →".
-  const a2NextMirror = resolveA2NextMirror("m1", undefined);
+  // Forward CTA target for the Claim step, derived from the mirror registry +
+  // the ?newA2TimeAudit=1 flag. The registry carries the Time Audit (Mirror 2)
+  // label; the flag supplies its launcher. With the flag the resolver returns a
+  // target so the seal CTA reads "Continue to Time Audit"; without it the
+  // launcher is absent and the resolver returns null, so the CTA stays
+  // "Back to A2".
+  const newA2TimeAudit =
+    new URLSearchParams(window.location.search).get("newA2TimeAudit") === "1";
+  // The A2 Time Audit (Mirror 2) has no route yet, so its launcher falls back to
+  // leaving the room for the A2 hub; swap in the real a2m2 route once it exists.
+  const routeToA2M2 = () => {
+    closeRoom();
+    onBackToA2();
+  };
+  const a2NextMirror = resolveA2NextMirror(
+    "m1",
+    newA2TimeAudit ? routeToA2M2 : undefined,
+  );
 
   // Escape + scroll-lock while the room is open.
   useEffect(() => {
@@ -35565,6 +35624,7 @@ function NewA2M1Container({
                   keepInFocus={m1.keepInFocus}
                   claimed={m1.claimed}
                   onClaim={onClaim}
+                  onReclaim={onReclaim}
                   onFinish={() => {
                     closeRoom();
                     onBackToA2();
