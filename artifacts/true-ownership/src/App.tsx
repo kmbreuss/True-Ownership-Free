@@ -32972,7 +32972,9 @@ type AppRouteView =
   | "entry-hall"
   | "framework"
   // A2.0 · Align With It hub (gated behind ?newA2=1).
-  | "a2";
+  | "a2"
+  // A2.1 · Alignment Check (A2 Mirror 1) hub (gated behind ?newA2=1).
+  | "a2m1";
 type AppRouteOverlay = {
   hubId: "m1" | "m2" | "m3" | "m4";
   roomId: string;
@@ -32989,6 +32991,7 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "entry-hall",
   "framework",
   "a2",
+  "a2m1",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -33214,7 +33217,10 @@ function NewA1Spine({
   onNavigate: (v: AppRouteView) => void;
   a2Enabled: boolean;
 }) {
-  const current: "allin" | "align" = view === "a2" ? "align" : "allin";
+  // A2.1 · the Alignment Check hub (a2m1) lives under Align, so it lights the
+  // same vertebra as the A2 hub itself.
+  const current: "allin" | "align" =
+    view === "a2" || view === "a2m1" ? "align" : "allin";
   const vertebrae: {
     num: string;
     label: string;
@@ -33630,9 +33636,16 @@ function NewA1Framework({
 function NewA2HubView({
   name,
   onEntryHall,
+  a1Complete,
+  onBeginM1,
 }: {
   name?: string;
   onEntryHall: () => void;
+  // A2.1 · the 01 Alignment Check card is gated on the same a1Complete signal
+  // the spine uses. Complete → Begin enabled, routes into the Alignment Check
+  // hub via onBeginM1; incomplete → Begin disabled + inline message.
+  a1Complete: boolean;
+  onBeginM1: () => void;
 }) {
   useEffect(() => {
     if (!hasA2State()) {
@@ -33687,8 +33700,9 @@ function NewA2HubView({
           </div>
         </div>
         <div className="na1-mirror-grid">
-          {/* 01 · Alignment Check — active. Begin is an inert placeholder
-              (A2.1 will wire the room); no navigation past the hub. */}
+          {/* 01 · Alignment Check — active. A2.1 · Begin is enabled only when
+              A1 is complete (it routes into the Alignment Check hub); when A1
+              is incomplete, Begin is disabled with an inline gate message. */}
           <article className="na1-mirror-card is-current">
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">01</span>
@@ -33697,14 +33711,18 @@ function NewA2HubView({
             <div className="na1-mirror-card-eyebrow">Mirror 1</div>
             <h2 className="na1-mirror-card-name">Alignment Check</h2>
             <div className="na1-mirror-card-empty">Not yet explored.</div>
+            {a1Complete ? null : (
+              <p className="na1-mirror-card-sub">
+                Complete A1 to begin — Alignment Check reads your Purpose,
+                gifts, and values.
+              </p>
+            )}
             <div className="na1-mirror-card-action">
               <button
                 type="button"
                 className="na1-btn-gold na1-btn-block"
-                onClick={() => {
-                  /* A2.0 · inert — Begin does not navigate yet. A2.1 opens
-                     the Alignment Check (M1) room from here. */
-                }}
+                disabled={!a1Complete}
+                onClick={a1Complete ? onBeginM1 : undefined}
               >
                 Begin Alignment Check →
               </button>
@@ -33733,6 +33751,159 @@ function NewA2HubView({
               </div>
             </article>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// A2.1 · Alignment Check (A2 Mirror 1) hub — hub chrome + four inert step-card
+// shells. Modeled on the A1 mirror hub (NewA1M3HubView), reusing its na1-*
+// classes as-is (breadcrumb, ex-eyebrow/-title/-sub, intro-video START HERE,
+// ex-list/ex-row step cards, btn-ghost). No veil: per the A1 pattern, mirror
+// HUBS don't fire the entry veil (only room launches do, via NewA1Veil), and
+// A2.1 ships no rooms. Step internals land in A2.2–A2.4 — the four step cards
+// are intentionally inert here.
+function NewA2M1HubView({ onBackToA2 }: { onBackToA2: () => void }) {
+  const [videoOpen, setVideoOpen] = useState(false);
+  // Static step shells. step 1 is "up next"; 2–4 locked. Inert until A2.2–A2.4
+  // wire each step's internals.
+  const steps: { num: number; name: string; current: boolean }[] = [
+    { num: 1, name: "Read your A1", current: true },
+    { num: 2, name: "Rate alignment", current: false },
+    { num: 3, name: "Key Misalignment", current: false },
+    { num: 4, name: "Claim", current: false },
+  ];
+  return (
+    <div className="na1-root">
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <a onClick={onBackToA2}>Entry Hall</a>
+          <span className="sep">›</span>
+          <a onClick={onBackToA2}>A2 · Align With It</a>
+          <span className="sep">›</span>
+          <span className="current">Alignment Check</span>
+        </div>
+        <div className="na1-ex-eyebrow">
+          A2 · Mirror 1 · Explore with Katherine
+        </div>
+        <h1 className="na1-ex-title">Alignment Check</h1>
+        <p
+          className="na1-ex-sub"
+          style={{ fontStyle: "italic", fontFamily: "var(--na1-serif)" }}
+        >
+          Three readings. One named gap.
+        </p>
+        <p className="na1-ex-foot-sub">
+          You can return any time to edit anything you've written.
+        </p>
+        <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
+          <div
+            className="na1-intro-video-head"
+            onClick={() => setVideoOpen((v) => !v)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setVideoOpen((v) => !v);
+              }
+            }}
+            aria-expanded={videoOpen}
+          >
+            <div className="na1-intro-video-left">
+              <div className="na1-intro-video-play-mini" aria-hidden>
+                ▶
+              </div>
+              <div className="na1-intro-video-title-row">
+                <span className="na1-intro-video-eyebrow">
+                  Start here · Katherine introduces Alignment Check
+                </span>
+                <span className="na1-intro-video-title">
+                  Alignment Check
+                </span>
+              </div>
+            </div>
+            <span className="na1-intro-video-chev" aria-hidden>
+              ▾
+            </span>
+          </div>
+          <div className="na1-intro-video-body">
+            <div className="na1-video-stub">
+              <button
+                type="button"
+                className="na1-video-stub-play"
+                aria-label="Play intro video"
+              >
+                ▶
+              </button>
+              <div className="na1-video-stub-caption">
+                Katherine's Alignment Check intro · placeholder
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="na1-ex-list">
+          {steps.map((s) => {
+            // Step cards are inert shells for A2.1 — rendered as plain (non-
+            // interactive) rows. Internals (Read your A1 / Rate alignment /
+            // Key Misalignment / Claim) land in A2.2–A2.4. Until then step 1
+            // reads "up next" (gold, like A1's current row) and 2–4 are
+            // locked, matching the A1 mirror hub's up-next vs locked icon and
+            // label treatment exactly.
+            const isCurrent = s.current;
+            const isLocked = !s.current;
+            const cls = [
+              "na1-ex-row",
+              isCurrent ? "is-current tone-gold" : "",
+              isLocked ? "is-locked" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            const statusLabel = isCurrent
+              ? "Up next"
+              : `Unlocks after ${steps[s.num - 2]?.name ?? ""}`;
+            const iconChar = isLocked ? "🔒" : String(s.num);
+            return (
+              <div
+                className={cls}
+                key={s.num}
+                aria-label={`${s.name} — ${statusLabel}`}
+              >
+                <span className="na1-ex-icon" aria-hidden>
+                  {iconChar}
+                </span>
+                <span className="na1-ex-text">
+                  <span className="na1-ex-name" style={{ display: "block" }}>
+                    {s.name}
+                  </span>
+                  <span className="na1-ex-status" style={{ display: "block" }}>
+                    {statusLabel}
+                  </span>
+                </span>
+                {!isLocked && (
+                  <span className="na1-ex-arrow" aria-hidden>
+                    ›
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-start",
+            marginTop: 8,
+          }}
+        >
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onBackToA2}
+          >
+            ← Back to A2
+          </button>
         </div>
       </div>
     </div>
@@ -33779,6 +33950,9 @@ function NewA1View({ name }: { name?: string }) {
         // A2.0 · the A2 hub only exists under ?newA2=1. Dropping the flag
         // sends a persisted view:"a2" back to the A1 grid.
         if (saved.view === "a2" && !NEW_A2_FLAG) return "grid";
+        // A2.1 · the Alignment Check hub is likewise flag-gated; a persisted
+        // view:"a2m1" falls back to the grid when ?newA2=1 is dropped.
+        if (saved.view === "a2m1" && !NEW_A2_FLAG) return "grid";
         return saved.view;
       }
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -33927,6 +34101,17 @@ function NewA1View({ name }: { name?: string }) {
   const visionComplete = m2Progress.complete;
   const a1Complete =
     purposeComplete && visionComplete && m3Complete && m4Complete;
+  // A2.1 · Defense in depth for the "no other entry into a2m1" rule. The
+  // Alignment Check hub is only meant to be reachable via the A2 hub's 01
+  // card, which is gated on a1Complete. A persisted view:"a2m1" can otherwise
+  // survive a later A1 reset (the init-time route guard only drops it when the
+  // ?newA2 flag is off). If A1 is no longer complete, bounce the user back to
+  // the A2 hub, whose 01 card shows the "Complete A1 to begin" gate.
+  useEffect(() => {
+    if (view === "a2m1" && !a1Complete) {
+      setView("a2");
+    }
+  }, [view, a1Complete]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -34192,7 +34377,20 @@ function NewA1View({ name }: { name?: string }) {
         <NewA2HubView
           name={resolvedName}
           onEntryHall={() => setView("entry-hall")}
+          a1Complete={a1Complete}
+          onBeginM1={() => setView("a2m1")}
         />
+      </div>
+    );
+  }
+  // A2.1 · Alignment Check (A2 Mirror 1) hub. Same spine-pad + reused spine as
+  // every other newA1 surface. The only entry is the A2 hub's gated 01 Begin,
+  // so incomplete-A1 users can never reach this view.
+  if (view === "a2m1") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+        <NewA2M1HubView onBackToA2={() => setView("a2")} />
       </div>
     );
   }

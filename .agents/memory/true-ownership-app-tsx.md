@@ -67,8 +67,9 @@ The left spine's "you are here" marker is the existing `.na1-vertebra.is-here`
 gold-halo class — there is NO separate `is-current` class; do not add one.
 `claimed` (gold dot, `.is-claimed`, driven solely by `a1Complete`) and current
 (`is-here`) are independent and can coexist on one vertebra; CSS order keeps the
-halo on top of the dot. **Current follows the active `view`:** `view === "a2"` →
-Align lit, every other spine surface → All In lit. **Status-label precedence is
+halo on top of the dot. **Current follows the active `view`:** `view === "a2"` *or* `view === "a2m1"`
+(the Alignment Check mirror hub) → Align lit, every other spine surface → All
+In lit. Any future A2 mirror-hub views must be added to this Align mapping too. **Status-label precedence is
 enforced in JS, not CSS:** "You are here" whenever current (even if also
 claimed), "Claimed" only when claimed-and-not-current. Navigable vertebrae
 render as `<button class="na1-vertebra is-nav">`; Align is gated on the A2 flag

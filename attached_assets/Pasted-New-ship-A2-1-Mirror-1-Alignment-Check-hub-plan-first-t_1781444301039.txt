@@ -1,0 +1,33 @@
+New ship: A2.1 — Mirror 1 (Alignment Check) hub (plan first, then build).
+Goal: build the Alignment Check mirror hub + gated entry from the A2 hub. Hub navigation + the 4 step-card shells only — no step internals yet.
+
+LOOK & FEEL — verified live from ?newA1=1, match exactly. Reference tokens; never hardcode. The fastest way to stay in sync: visually match the existing A1 mirror hubs (Purpose/Identity/Values) and reuse their classes rather than restyling.
+Colors (light / dark): page --na1-bg #f5f3ef / #0d1b2e · card --na1-bg-card #fffdf8 / #13243d · soft --na1-bg-soft #ece8df / #112240 · border --na1-border #d8d1c2 / #1f3553 · text --na1-text #2a2620 / #f4f1eb · secondary --na1-text-sec #534b3f / #cfc8b9 · mute --na1-text-mute #8a8170 / #7d8a98 · gold --gold #b8892f / #c9a84b · gold hairline --gold-line · burgundy --burgundy #9b3d44 / #b34d52. Semantics: gold = truth/yours, burgundy = cost/shadow.
+Type: --na1-serif (Georgia) for headings + gold-italic accents; --na1-sans (DM Sans) for body/eyebrows/buttons. Never Inter or Cormorant. Eyebrow 10–11px / 700 / uppercase / tracking .2em / gold. H1 Georgia 36 / 600. Gold-italic subhead Georgia italic ~18px / --gold. Body DM Sans 16 / 400.
+Layout: .na1-shell 760px · radius --na1-radius (10px) · single-column at 600px · spine rail 220px (reused). Both data-theme modes must be clean.
+Reuse these classes as-is (do not fork): na1-breadcrumb · step cards na1-ex-row / na1-ex-icon / na1-ex-name / na1-ex-status / na1-ex-arrow (match A1's up-next vs locked icon/label states exactly) · START HERE na1-intro-video-* + na1-video-stub · na1-btn-ghost. New M1-specific classes only where none exist, prefixed na1-a2m1-*.
+Routing: add "a2m1" to the route view union/array (same pattern as "a2"). Guard: if (saved.view === "a2m1" && !NEW_A2_FLAG) return "grid";. No room overlays yet.
+Gating (reuse the same a1Complete signal the spine already uses — no new check):
+
+On the A2 hub's 01 Alignment Check card: a1Complete true → Begin enabled, routes to view:"a2m1". False → Begin disabled + inline message: "Complete A1 to begin — Alignment Check reads your Purpose, gifts, and values."
+No other entry to a2m1 exists, so incomplete-A1 users see the card but can't enter.
+
+Spine: extend the A2.S active-view mapping so view==="a2m1" also lights Align as current (is-here), like view==="a2".
+M1 hub view (NewA2M1HubView, modeled on A1 mirror hubs):
+
+Breadcrumb: Entry Hall › A2 · Align With It › Alignment Check (the A2 · Align With It crumb → view:"a2").
+Eyebrow: A2 · MIRROR 1 · EXPLORE WITH KATHERINE
+H1: Alignment Check. · gold-italic subhead: Three readings. One named gap. · a "return any time" line.
+START HERE card (na1-intro-video-* + na1-video-stub), eyebrow START HERE · KATHERINE INTRODUCES ALIGNMENT CHECK.
+Four step cards (na1-ex-*): 1 Read your A1 (up next) · 2 Rate alignment (locked) · 3 Key Misalignment (locked) · 4 Claim (locked). Step cards inert for now (internals are A2.2–A2.4) — add a comment.
+na1-btn-ghost "← Back to A2" → view:"a2".
+Veil: match A1's mirror-hub entry behavior exactly — if A1 mirror hubs fire the entry veil, use line "Back to the mirror — honestly this time…" (italic Georgia gold); if only their rooms veil, don't add one. Confirm A1's pattern and match it.
+
+DO NOT: build step internals or make step cards interactive; unlock entry when A1 incomplete; reuse A1's m1–m4 overlay ids (this is a2m1); touch A1 hub/grid/mirror logic; add any font or color token.
+Done looks like:
+
+A1 complete: A2 hub → 01 Begin enabled → Alignment Check hub renders (breadcrumb, eyebrow, hero, START HERE, 4 step cards: 1 up-next, 2–4 locked, Back to A2); spine shows Align current.
+A1 not complete: 01 Begin disabled + the message; no entry to a2m1.
+Dropping ?newA2=1 → grid. Both themes clean; no console errors; A1 unchanged.
+
+Plan it first and show me before building.
