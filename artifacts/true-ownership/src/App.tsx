@@ -33821,15 +33821,17 @@ function NewA2HubView({
           {/* 01 · Alignment Check. A2.1 · Begin is enabled only when A1 is
               complete (it routes into the Alignment Check hub); when A1 is
               incomplete, Begin is disabled with an inline gate message. A2.5 ·
-              once m1.claimed, the card flips to the completed treatment (reusing
-              A1's is-complete styling) and Begin becomes "Revisit". */}
+              once m1.claimed, the card flips to the sealed treatment (reusing
+              A1's is-complete gold styling) — status "✓ Sealed" and the action
+              reads "Sealed · tap to revisit", matching A1's sealed-mirror
+              wording. Same route/click; counter still "1 of 4". */}
           <article
             className={`na1-mirror-card ${m1Claimed ? "is-complete" : "is-current"}`}
           >
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">01</span>
               <span className="na1-mirror-card-status">
-                {m1Claimed ? "✓ Complete" : "Up next"}
+                {m1Claimed ? "✓ Sealed" : "Up next"}
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 1</div>
@@ -33851,7 +33853,7 @@ function NewA2HubView({
                 onClick={a1Complete ? onBeginM1 : undefined}
               >
                 {m1Claimed
-                  ? "Revisit Alignment Check →"
+                  ? "Sealed · tap to revisit →"
                   : "Begin Alignment Check →"}
               </button>
             </div>
