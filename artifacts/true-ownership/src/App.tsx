@@ -931,6 +931,12 @@ html[data-theme="light"]{
 .na1-a2m1-purpose-eyebrow{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); }
 .na1-a2m1-purpose-quote{ font-family:var(--na1-serif); font-style:italic; font-size:18px; line-height:1.5; color:var(--na1-text); margin:0; padding-left:16px; border-left:2px solid var(--gold-line); }
 /* ── A2.4 · Step 3 · Key Misalignment ── */
+.na1-a2m1-km-legend{ display:flex; flex-direction:column; gap:8px; margin:-12px 0 22px; padding:13px 15px; border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); }
+.na1-a2m1-km-legend-row{ display:flex; align-items:flex-start; gap:11px; margin:0; font-family:var(--na1-sans); font-size:12.5px; line-height:1.5; color:var(--na1-text-sec); }
+.na1-a2m1-km-legend-glyph{ flex:0 0 auto; width:16px; text-align:center; font-size:14px; line-height:1.5; }
+.na1-a2m1-km-legend-glyph.is-bottleneck{ color:var(--gold); }
+.na1-a2m1-km-legend-glyph.is-keep{ color:var(--na1-text-mute); font-size:15px; }
+.na1-a2m1-km-legend-text strong{ color:var(--na1-text); font-weight:600; }
 .na1-a2m1-km-list{ display:flex; flex-direction:column; gap:10px; }
 .na1-a2m1-km-row{ display:flex; align-items:stretch; gap:8px; }
 .na1-a2m1-km-pick{ flex:1 1 auto; display:flex; align-items:center; gap:13px; text-align:left; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:12px 15px; cursor:pointer; font:inherit; transition:border-color .15s, background .15s, box-shadow .15s; }
@@ -34782,6 +34788,27 @@ function NewA2M1Step3Body({
         bottleneck — pick another if it rings truer, and star one to keep in
         focus.
       </p>
+      <div className="na1-a2m1-km-legend">
+        <p className="na1-a2m1-km-legend-row">
+          <span className="na1-a2m1-km-legend-glyph is-bottleneck" aria-hidden>
+            ●
+          </span>
+          <span className="na1-a2m1-km-legend-text">
+            <strong>Bottleneck</strong> — the one thing you'll move first. Shift
+            this toward alignment and the rest gets lighter — it carries into
+            A3.
+          </span>
+        </p>
+        <p className="na1-a2m1-km-legend-row">
+          <span className="na1-a2m1-km-legend-glyph is-keep" aria-hidden>
+            ☆
+          </span>
+          <span className="na1-a2m1-km-legend-text">
+            <strong>Keep in focus</strong> — a second signal to watch — not the
+            one you're acting on yet, just one you don't want to lose sight of.
+          </span>
+        </p>
+      </div>
       <div className="na1-a2m1-km-list" role="list">
         {shown.map((c) => {
           const isSelected = c.id === selected;
