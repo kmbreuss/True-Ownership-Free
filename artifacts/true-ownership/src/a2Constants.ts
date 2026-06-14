@@ -91,6 +91,9 @@ export type A2M2State = {
   priorities: string[];
   // Step 2 · activities logged for the week.
   activities: A2M2Activity[];
+  // Step 2 · weekly waking-hours benchmark — the denominator for every
+  // priority percentage in the totals bar. Defaults to 112 (16h × 7).
+  awakeHoursPerWeek: number;
   // Step 3 · things being crowded out.
   missingItems: A2M2MissingItem[];
   // Claim · single source of truth for Mirror 2 completion.
@@ -101,6 +104,7 @@ export type A2M2State = {
 export const EMPTY_A2_M2: A2M2State = {
   priorities: [],
   activities: [],
+  awakeHoursPerWeek: 112,
   missingItems: [],
   claimed: false,
   claimedAt: null,
@@ -233,13 +237,25 @@ function normalizeA2M2(raw: unknown): A2M2State {
           priorityTag: cleanStr(m.priorityTag),
         }))
     : [];
+  const rawAwake = (r as { awakeHoursPerWeek?: unknown }).awakeHoursPerWeek;
+  const awakeHoursPerWeek =
+    typeof rawAwake === "number" && Number.isFinite(rawAwake)
+      ? Math.max(1, Math.min(168, Math.round(rawAwake)))
+      : 112;
   const claimed = (r as { claimed?: unknown }).claimed === true;
   const rawClaimedAt = (r as { claimedAt?: unknown }).claimedAt;
   const claimedAt =
     typeof rawClaimedAt === "string" && rawClaimedAt.trim() !== ""
       ? rawClaimedAt
       : null;
-  return { priorities, activities, missingItems, claimed, claimedAt };
+  return {
+    priorities,
+    activities,
+    awakeHoursPerWeek,
+    missingItems,
+    claimed,
+    claimedAt,
+  };
 }
 
 export function loadA2State(): A2State {

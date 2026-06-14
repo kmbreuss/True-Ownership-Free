@@ -1044,7 +1044,7 @@ html[data-theme="light"]{
 .na1-a2m2-field{ display:flex; flex-direction:column; gap:5px; flex:1 1 140px; min-width:0; }
 .na1-a2m2-field-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--na1-text-mute); }
 .na1-a2m2-field .na1-a2m2-input, .na1-a2m2-field .na1-a2m2-select{ width:100%; }
-.na1-a2m2-hrs{ flex:0 0 110px; }
+.na1-a2m2-hrs{ flex:0 0 110px; height:40px; min-height:40px; }
 .na1-a2m2-add-activity{ align-self:flex-start; margin-top:14px; background:none; border:1px dashed var(--gold-line); border-radius:var(--na1-radius); padding:10px 16px; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; transition:all .15s; }
 .na1-a2m2-add-activity:hover{ background:var(--gold-soft); }
 .na1-a2m2-totals{ margin:24px 0 0; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
@@ -1055,9 +1055,12 @@ html[data-theme="light"]{
 .na1-a2m2-total-name{ font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text); }
 .na1-a2m2-total-val{ font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); white-space:nowrap; }
 .na1-a2m2-total-bar{ grid-column:1 / -1; height:6px; border-radius:3px; background:var(--na1-border); overflow:hidden; }
-.na1-a2m2-total-fill{ height:100%; border-radius:3px; background:var(--gold); transition:width .25s; }
+.na1-a2m2-total-fill{ height:100%; border-radius:3px; background:var(--gold); transition:width .4s ease; }
 .na1-a2m2-total-row.is-unaccounted .na1-a2m2-total-name{ color:var(--na1-text-mute); font-style:italic; }
-.na1-a2m2-total-fill.is-unaccounted{ background:var(--na1-text-mute); }
+.na1-a2m2-total-fill.is-unaccounted{ background:var(--burgundy); }
+.na1-a2m2-benchmark{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin:24px 0 0; padding:14px 16px; border-radius:12px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
+.na1-a2m2-benchmark-label{ flex:1 1 200px; font-family:var(--na1-sans); font-size:13.5px; line-height:1.45; color:var(--na1-text-sec); }
+.na1-a2m2-benchmark .na1-a2m2-input{ flex:0 0 96px; height:40px; min-height:40px; text-align:center; }
 /* Step 3 · What's missing */
 .na1-a2m2-missing-list{ display:flex; flex-direction:column; gap:10px; }
 .na1-a2m2-missing-row{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
@@ -36191,15 +36194,19 @@ function NewA2M2Step1Body({
 function NewA2M2Step2Body({
   activities,
   priorities,
+  awakeHours,
   onAdd,
   onUpdate,
   onRemove,
+  onAwakeChange,
 }: {
   activities: A2M2Activity[];
   priorities: string[];
+  awakeHours: number;
   onAdd: () => void;
   onUpdate: (id: string, patch: Partial<A2M2Activity>) => void;
   onRemove: (id: string) => void;
+  onAwakeChange: (n: number) => void;
 }) {
   const atCap = activities.length >= A2M2_ACTIVITY_MAX;
   const totalHrs = activities.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
@@ -36211,7 +36218,12 @@ function NewA2M2Step2Body({
   }));
   const accounted = perPriority.reduce((s, p) => s + p.hrs, 0);
   const unaccounted = Math.max(0, totalHrs - accounted);
-  const pct = (h: number) => (totalHrs > 0 ? Math.round((h / totalHrs) * 100) : 0);
+  // Percentages are of the weekly waking-hours benchmark (not of logged hours),
+  // so the bars read as "share of your week". Bar widths clamp to 100% even if
+  // someone over-logs past their benchmark; the printed % still shows the truth.
+  const benchmark = Math.max(1, awakeHours || 0);
+  const pct = (h: number) => Math.round((h / benchmark) * 100);
+  const barW = (h: number) => Math.min(100, Math.max(0, pct(h)));
 
   return (
     <div className="na1-a2m2-step2">
@@ -36312,45 +36324,65 @@ function NewA2M2Step2Body({
         {activities.length} of {A2M2_ACTIVITY_MAX} activities logged
       </p>
 
-      {totalHrs > 0 && (
-        <div className="na1-a2m2-totals" aria-label="Time by priority">
-          <div className="na1-a2m2-totals-head">
-            Where your {totalHrs}h / week actually go
-          </div>
-          {perPriority.map((p, i) => (
-            <div className="na1-a2m2-total-row" key={p.name}>
-              <span className="na1-a2m2-total-num" aria-hidden>
-                {A2M2_CIRCLED[i] ?? "•"}
-              </span>
-              <span className="na1-a2m2-total-name">{p.name}</span>
-              <span className="na1-a2m2-total-bar" aria-hidden>
-                <span
-                  className="na1-a2m2-total-fill"
-                  style={{ width: `${pct(p.hrs)}%` }}
-                />
-              </span>
-              <span className="na1-a2m2-total-val">
-                {p.hrs}h · {pct(p.hrs)}%
-              </span>
-            </div>
-          ))}
-          <div className="na1-a2m2-total-row is-unaccounted">
+      <div className="na1-a2m2-benchmark">
+        <label className="na1-a2m2-benchmark-label" htmlFor="na1-a2m2-awake">
+          How many hours are you awake per week?
+        </label>
+        <input
+          id="na1-a2m2-awake"
+          type="number"
+          className="na1-a2m2-input"
+          min={1}
+          max={168}
+          value={awakeHours === 0 ? "" : awakeHours}
+          placeholder="112"
+          onChange={(e) => {
+            const raw = Number(e.target.value);
+            const clamped = Number.isFinite(raw)
+              ? Math.max(1, Math.min(168, Math.round(raw)))
+              : 1;
+            onAwakeChange(clamped);
+          }}
+        />
+      </div>
+
+      <div className="na1-a2m2-totals" aria-label="Time by priority">
+        <div className="na1-a2m2-totals-head">
+          Where your {benchmark}h waking week actually goes
+        </div>
+        {perPriority.map((p, i) => (
+          <div className="na1-a2m2-total-row" key={p.name}>
             <span className="na1-a2m2-total-num" aria-hidden>
-              ?
+              {A2M2_CIRCLED[i] ?? "•"}
             </span>
-            <span className="na1-a2m2-total-name">Unaccounted</span>
+            <span className="na1-a2m2-total-name">{p.name}</span>
             <span className="na1-a2m2-total-bar" aria-hidden>
               <span
-                className="na1-a2m2-total-fill is-unaccounted"
-                style={{ width: `${pct(unaccounted)}%` }}
+                className="na1-a2m2-total-fill"
+                style={{ width: `${barW(p.hrs)}%` }}
               />
             </span>
             <span className="na1-a2m2-total-val">
-              {unaccounted}h · {pct(unaccounted)}%
+              {p.hrs}h · {pct(p.hrs)}%
             </span>
           </div>
+        ))}
+        <div className="na1-a2m2-total-row is-unaccounted">
+          <span className="na1-a2m2-total-num" aria-hidden>
+            ?
+          </span>
+          <span className="na1-a2m2-total-name">Unaccounted</span>
+          <span className="na1-a2m2-total-bar" aria-hidden>
+            <span
+              className="na1-a2m2-total-fill is-unaccounted"
+              style={{ width: `${barW(unaccounted)}%` }}
+            />
+          </span>
+          <span className="na1-a2m2-total-val">
+            {unaccounted}h · {pct(unaccounted)}%
+          </span>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -36713,6 +36745,10 @@ function NewA2M2Container({
   const setPriorities = (next: string[]) =>
     mutateM2((m) => ({ ...m, priorities: next }));
 
+  // Step 2 waking-hours benchmark (totals-bar denominator).
+  const setAwakeHours = (n: number) =>
+    mutateM2((m) => ({ ...m, awakeHoursPerWeek: n }));
+
   // Step 2 activity handlers.
   const addActivity = () =>
     mutateM2((m) =>
@@ -36841,9 +36877,11 @@ function NewA2M2Container({
                 <NewA2M2Step2Body
                   activities={m2.activities}
                   priorities={m2.priorities}
+                  awakeHours={m2.awakeHoursPerWeek}
                   onAdd={addActivity}
                   onUpdate={updateActivity}
                   onRemove={removeActivity}
+                  onAwakeChange={setAwakeHours}
                 />
               ) : currentStep === 3 ? (
                 <NewA2M2Step3Body
