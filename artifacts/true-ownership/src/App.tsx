@@ -33889,27 +33889,39 @@ function NewA2HubView({
 // shells. Modeled on the A1 mirror hub (NewA1M3HubView), reusing its na1-*
 // classes as-is (breadcrumb, ex-eyebrow/-title/-sub, intro-video START HERE,
 // ex-list/ex-row step cards, btn-ghost). No veil: per the A1 pattern, mirror
-// HUBS don't fire the entry veil (only room launches do, via NewA1Veil), and
-// A2.1 ships no rooms. Step internals land in A2.2–A2.4 — the four step cards
-// are intentionally inert here.
+// HUBS don't fire the entry veil (only room launches do, via NewA1Veil).
+// A2.5 · the four step cards are now LIVE — they reflect the shared
+// currentStep/maxReached/claimed state (one source of truth with the in-room
+// horizontal stepper) and launch the continuous room AT the tapped step.
 function NewA2M1HubView({
   onBackToA2,
   onStart,
+  currentStep,
+  maxReached,
+  claimed,
 }: {
   onBackToA2: () => void;
-  // A2.2 · launches the continuous Alignment Check room. Wired by the
-  // container; absent the hub renders its inert (A2.1) step shells.
-  onStart?: () => void;
+  // A2.2 · launches the continuous Alignment Check room. Optional target step
+  // (tapping an unlocked hub card) opens the room AT that step; no arg resumes
+  // at currentStep. Wired by the container.
+  onStart?: (step?: number) => void;
+  // A2.5 · Live Mirror-1 progress — the SAME currentStep/maxReached/claimed the
+  // in-room horizontal stepper reads, so the hub cards can never drift from it.
+  currentStep: number;
+  maxReached: number;
+  claimed: boolean;
 }) {
   const [videoOpen, setVideoOpen] = useState(false);
-  // Static step shells. step 1 is "up next"; 2–4 locked. The up-next Step 1
-  // row + the Begin CTA launch the room when onStart is provided (A2.2).
-  const steps: { num: number; name: string; current: boolean }[] = [
-    { num: 1, name: "Read your A1", current: true },
-    { num: 2, name: "Rate alignment", current: false },
-    { num: 3, name: "Key Misalignment", current: false },
-    { num: 4, name: "Claim", current: false },
+  const steps: { num: number; name: string }[] = [
+    { num: 1, name: "Read your A1" },
+    { num: 2, name: "Rate alignment" },
+    { num: 3, name: "Key Misalignment" },
+    { num: 4, name: "Claim" },
   ];
+  // "Started" distinguishes the current step's label: a fresh hub (never
+  // entered the room) reads "Up next"; once the user has moved through the flow
+  // it reads "In progress".
+  const started = currentStep > 1 || maxReached > 1;
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -33981,27 +33993,52 @@ function NewA2M1HubView({
         </div>
         <div className="na1-ex-list">
           {steps.map((s) => {
-            // Step cards are inert shells for A2.1 — rendered as plain (non-
-            // interactive) rows. Internals (Read your A1 / Rate alignment /
-            // Key Misalignment / Claim) land in A2.2–A2.4. Until then step 1
-            // reads "up next" (gold, like A1's current row) and 2–4 are
-            // locked, matching the A1 mirror hub's up-next vs locked icon and
-            // label treatment exactly.
-            const isCurrent = s.current;
-            const isLocked = !s.current;
-            const clickable = isCurrent && !!onStart;
+            // A2.5 · Live status, derived purely from the shared
+            // currentStep/maxReached/claimed (one source of truth with the
+            // in-room stepper):
+            //   sealed   — Step 4 once claimed (gold ✓, "Sealed · tap to
+            //              revisit"), reusing A1's M4 is-m4-claim treatment.
+            //   complete — a step already passed (num < currentStep) → gold ✓.
+            //   current  — the live step (gold), "Up next" / "In progress".
+            //   revisit  — reached before but stepped back from (num <=
+            //              maxReached) → calm "Open · tap to revisit".
+            //   locked   — never reached (num > maxReached) → inert.
+            // Every non-locked card launches the room AT its step; locked
+            // cards stay inert.
+            const isSealed = s.num === 4 && claimed;
+            const isComplete = !isSealed && s.num < currentStep;
+            const isCurrent = !isSealed && s.num === currentStep;
+            const isLocked = s.num > maxReached;
+            const isRevisit =
+              !isSealed && !isComplete && !isCurrent && !isLocked;
+            const clickable = !isLocked && !!onStart;
             const cls = [
               "na1-ex-row",
               isCurrent ? "is-current tone-gold" : "",
+              isComplete || isSealed ? "is-complete" : "",
+              isSealed ? "is-m4-claim" : "",
               isLocked ? "is-locked" : "",
-              clickable ? "is-clickable" : "",
+              clickable ? "is-clickable is-unlocked" : "",
             ]
               .filter(Boolean)
               .join(" ");
-            const statusLabel = isCurrent
-              ? "Up next"
-              : `Unlocks after ${steps[s.num - 2]?.name ?? ""}`;
-            const iconChar = isLocked ? "🔒" : String(s.num);
+            const statusLabel = isSealed
+              ? "Sealed · tap to revisit"
+              : isComplete
+                ? "Complete"
+                : isCurrent
+                  ? started
+                    ? "In progress"
+                    : "Up next"
+                  : isRevisit
+                    ? "Open · tap to revisit"
+                    : `Unlocks after ${steps[s.num - 2]?.name ?? ""}`;
+            const iconChar = isLocked
+              ? "🔒"
+              : isComplete || isSealed
+                ? "✓"
+                : String(s.num);
+            const launch = clickable ? () => onStart?.(s.num) : undefined;
             return (
               <div
                 className={cls}
@@ -34009,13 +34046,13 @@ function NewA2M1HubView({
                 aria-label={`${s.name} — ${statusLabel}`}
                 role={clickable ? "button" : undefined}
                 tabIndex={clickable ? 0 : undefined}
-                onClick={clickable ? onStart : undefined}
+                onClick={launch}
                 onKeyDown={
                   clickable
                     ? (e) => {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          onStart?.();
+                          onStart?.(s.num);
                         }
                       }
                     : undefined
@@ -34058,8 +34095,12 @@ function NewA2M1HubView({
             ← Back to A2
           </button>
           {onStart && (
-            <button type="button" className="na1-btn-gold" onClick={onStart}>
-              Begin Alignment Check
+            <button
+              type="button"
+              className="na1-btn-gold"
+              onClick={() => onStart()}
+            >
+              {started ? "Resume Alignment Check" : "Begin Alignment Check"}
             </button>
           )}
         </div>
@@ -34820,6 +34861,10 @@ function NewA2M1Step4Body({
     keepInFocus,
   );
   const bottleneckLabel = bottleneckCand?.label ?? "—";
+  // A2.5 · Personalize the seal in Katherine's voice, exactly as A1's M4 seal
+  // resolves the name (auth user → null fallback; never the literal "User").
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
 
   if (!bottleneckCand) {
     return (
@@ -34837,14 +34882,15 @@ function NewA2M1Step4Body({
   if (claimed) {
     return (
       <div className="na1-a2m1-step4">
-        <h2 className="na1-a2m1-step-title">Claim</h2>
+        <div className="na1-room-eyebrow tone-gold">A2 · Mirror 1 · Claim ★</div>
         <div className="na1-a2m1-seal" role="status">
           <p className="na1-a2m1-seal-body">
-            You rated it honestly — and the mirror showed where it costs you most
-            right now: <strong>{bottleneckLabel}</strong>. That&rsquo;s not a
-            verdict, it&rsquo;s the lever. Move that one thing toward alignment
-            and the rest gets lighter. Next, we follow it into your time — the
-            Time Audit.
+            {displayName ? `${displayName}, you` : "You"} rated this honestly —
+            and the mirror showed where it costs you most right now:{" "}
+            <strong>{bottleneckLabel}</strong>. That&rsquo;s not a verdict,
+            it&rsquo;s the lever. Move that one thing toward alignment and the
+            rest gets lighter. Next, we follow it into your time — the Time
+            Audit.
           </p>
           <p className="na1-a2m1-seal-by">— Katherine</p>
         </div>
@@ -35202,11 +35248,26 @@ function NewA2M1Container({
     mutateM1((m) => (m.veilSeen ? m : { ...m, veilSeen: true }));
   }, [mutateM1]);
 
-  // Start from the hub CTA / Step 1 row.
-  const startRoom = useCallback(() => {
-    if (m1.veilSeen) openRoomDirect();
-    else launchWithVeil();
-  }, [m1.veilSeen, openRoomDirect, launchWithVeil]);
+  // Start from the hub CTA / a hub step card. When a target step is passed
+  // (tapping an unlocked hub card), seed currentStep first so the continuous
+  // room opens AT that step; maxReached never regresses. No arg → resume at
+  // the live currentStep. This shares the same currentStep the in-room stepper
+  // reads, so the hub and the room can never drift.
+  const startRoom = useCallback(
+    (step?: number) => {
+      if (typeof step === "number") {
+        const clamped = Math.max(1, Math.min(4, step));
+        mutateM1((m) => ({
+          ...m,
+          currentStep: clamped,
+          maxReached: Math.max(m.maxReached, clamped),
+        }));
+      }
+      if (m1.veilSeen) openRoomDirect();
+      else launchWithVeil();
+    },
+    [m1.veilSeen, openRoomDirect, launchWithVeil, mutateM1],
+  );
 
   // Report the open room up so the route persists it. On a resume mount
   // roomOpen is already true (seeded above), so this reports "alignment"
@@ -35283,7 +35344,13 @@ function NewA2M1Container({
 
   return (
     <>
-      <NewA2M1HubView onBackToA2={onBackToA2} onStart={startRoom} />
+      <NewA2M1HubView
+        onBackToA2={onBackToA2}
+        onStart={startRoom}
+        currentStep={m1.currentStep}
+        maxReached={m1.maxReached}
+        claimed={m1.claimed}
+      />
       {roomOpen && (
         <div
           className="na1-room-overlay is-open"
