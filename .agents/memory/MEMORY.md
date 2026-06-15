@@ -1,2 +1,3 @@
-- [Mirror card gating](true-ownership-mirror-gating.md) — A1-hub mirror cards must chain unlock booleans through the prior card's unlock, not just its persisted completion, or downstream cards leak unlocked after an upstream reset.
-- [App.tsx giant file](true-ownership-app-tsx.md) — True Ownership is one ~55k-line App.tsx; `read` tool reports stale line counts (use wc/sed/rg); ~1000+ pre-existing typecheck errors; new surfaces gated behind ?newA1=1 and auth.
+- [Mirror card gating](true-ownership-mirror-gating.md) — hub mirror cards must chain unlock booleans through the prior card's unlock, not its persisted completion, or downstream leaks unlocked after reset.
+- [App.tsx giant file](true-ownership-app-tsx.md) — True Ownership is one huge App.tsx; `read` reports stale line counts (use wc/sed/rg); ~1095 pre-existing typecheck errors baseline; new A2 surfaces gated behind ?newA1/?newA2 + auth.
+- [A2 mirror revisit hubs](true-ownership-app-tsx.md) — claimed mirrors re-enter via a step-card overview hub (NewA2MirrorHubView); gate close-routing on a useRef snapshot of claimed-at-entry, not live state.

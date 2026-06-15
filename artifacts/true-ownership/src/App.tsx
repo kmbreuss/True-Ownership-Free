@@ -34432,7 +34432,6 @@ function NewA2M1HubView({
               "na1-ex-row",
               isCurrent ? "is-current tone-gold" : "",
               isComplete || isSealed ? "is-complete" : "",
-              isSealed ? "is-m4-claim" : "",
               isLocked ? "is-locked" : "",
               clickable ? "is-clickable is-unlocked" : "",
             ]
@@ -34517,6 +34516,210 @@ function NewA2M1HubView({
               onClick={() => onStart()}
             >
               {started ? "Resume Alignment Check" : "Begin Alignment Check"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// A2 · Generalized mirror overview hub — the same chrome + step-card list as the
+// Alignment Check hub (NewA2M1HubView above), parameterized so Mirror 2 (Time
+// Audit) and Mirror 3 (Named Truth) can present the identical revisit overview
+// when a sealed mirror is re-entered. Reuses the same na1-* classes verbatim so
+// the row height, ✓ circle, "Complete" subtitle, and chevron all match exactly.
+// No veil here — like every mirror hub, only room launches fire the entry veil.
+function NewA2MirrorHubView({
+  onBackToA2,
+  onStart,
+  currentStep,
+  maxReached,
+  claimed,
+  steps,
+  eyebrow,
+  title,
+  sub,
+  introEyebrow,
+  introCaption,
+  beginLabel,
+  resumeLabel,
+}: {
+  onBackToA2: () => void;
+  onStart?: (step?: number) => void;
+  currentStep: number;
+  maxReached: number;
+  claimed: boolean;
+  steps: { num: number; name: string }[];
+  eyebrow: string;
+  title: string;
+  sub: string;
+  introEyebrow: string;
+  introCaption: string;
+  beginLabel: string;
+  resumeLabel: string;
+}) {
+  const [videoOpen, setVideoOpen] = useState(false);
+  const claimStepNum = steps[steps.length - 1]?.num ?? steps.length;
+  const started = currentStep > 1 || maxReached > 1;
+  return (
+    <div className="na1-root">
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <a onClick={onBackToA2}>Entry Hall</a>
+          <span className="sep">›</span>
+          <a onClick={onBackToA2}>A2 · Align With It</a>
+          <span className="sep">›</span>
+          <span className="current">{title}</span>
+        </div>
+        <div className="na1-ex-eyebrow">{eyebrow}</div>
+        <h1 className="na1-ex-title">{title}</h1>
+        <p
+          className="na1-ex-sub"
+          style={{ fontStyle: "italic", fontFamily: "var(--na1-serif)" }}
+        >
+          {sub}
+        </p>
+        <p className="na1-ex-foot-sub">
+          You can return any time to edit anything you've written.
+        </p>
+        <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
+          <div
+            className="na1-intro-video-head"
+            onClick={() => setVideoOpen((v) => !v)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setVideoOpen((v) => !v);
+              }
+            }}
+            aria-expanded={videoOpen}
+          >
+            <div className="na1-intro-video-left">
+              <div className="na1-intro-video-play-mini" aria-hidden>
+                ▶
+              </div>
+              <div className="na1-intro-video-title-row">
+                <span className="na1-intro-video-eyebrow">{introEyebrow}</span>
+                <span className="na1-intro-video-title">{title}</span>
+              </div>
+            </div>
+            <span className="na1-intro-video-chev" aria-hidden>
+              ▾
+            </span>
+          </div>
+          <div className="na1-intro-video-body">
+            <div className="na1-video-stub">
+              <button
+                type="button"
+                className="na1-video-stub-play"
+                aria-label="Play intro video"
+              >
+                ▶
+              </button>
+              <div className="na1-video-stub-caption">{introCaption}</div>
+            </div>
+          </div>
+        </div>
+        <div className="na1-ex-list">
+          {steps.map((s) => {
+            const isSealed = s.num === claimStepNum && claimed;
+            const isComplete = !isSealed && s.num < currentStep;
+            const isCurrent = !isSealed && s.num === currentStep;
+            const isLocked = s.num > maxReached;
+            const isRevisit =
+              !isSealed && !isComplete && !isCurrent && !isLocked;
+            const clickable = !isLocked && !!onStart;
+            const cls = [
+              "na1-ex-row",
+              isCurrent ? "is-current tone-gold" : "",
+              isComplete || isSealed ? "is-complete" : "",
+              isLocked ? "is-locked" : "",
+              clickable ? "is-clickable is-unlocked" : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            const statusLabel = isSealed
+              ? "Sealed · tap to revisit"
+              : isComplete
+                ? "Complete"
+                : isCurrent
+                  ? started
+                    ? "In progress"
+                    : "Up next"
+                  : isRevisit
+                    ? "Open · tap to revisit"
+                    : `Unlocks after ${steps[s.num - 2]?.name ?? ""}`;
+            const iconChar = isLocked
+              ? "🔒"
+              : isComplete || isSealed
+                ? "✓"
+                : String(s.num);
+            const launch = clickable ? () => onStart?.(s.num) : undefined;
+            return (
+              <div
+                className={cls}
+                key={s.num}
+                aria-label={`${s.name} — ${statusLabel}`}
+                role={clickable ? "button" : undefined}
+                tabIndex={clickable ? 0 : undefined}
+                onClick={launch}
+                onKeyDown={
+                  clickable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onStart?.(s.num);
+                        }
+                      }
+                    : undefined
+                }
+              >
+                <span className="na1-ex-icon" aria-hidden>
+                  {iconChar}
+                </span>
+                <span className="na1-ex-text">
+                  <span className="na1-ex-name" style={{ display: "block" }}>
+                    {s.name}
+                  </span>
+                  <span className="na1-ex-status" style={{ display: "block" }}>
+                    {statusLabel}
+                  </span>
+                </span>
+                {!isLocked && (
+                  <span className="na1-ex-arrow" aria-hidden>
+                    ›
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            marginTop: 8,
+          }}
+        >
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onBackToA2}
+          >
+            ← Back to A2
+          </button>
+          {onStart && (
+            <button
+              type="button"
+              className="na1-btn-gold"
+              onClick={() => onStart()}
+            >
+              {started ? resumeLabel : beginLabel}
             </button>
           )}
         </div>
@@ -37066,12 +37269,21 @@ function NewA2M2Container({
   // is already claimed, in which case we open straight to the sealed Claim step.
   const resuming = initialRoomKey === "timeaudit";
   const launchVeil = !resuming && !m2.claimed;
+  // A claimed re-entry that is NOT a room resume lands on the mirror overview
+  // hub (the step-card list) rather than dropping straight into the room.
+  // Snapshot the claimed flag AT ENTRY so claiming mid-session (first run) does
+  // not retroactively flip close routing toward the hub — the hub is only for
+  // a mirror that was already sealed when this container mounted.
+  const claimedAtEntry = useRef(m2.claimed).current;
+  const claimedRevisit = claimedAtEntry && !resuming;
 
   // Local, non-persisted step navigation. A claimed re-entry lands on Claim.
   const [currentStep, setCurrentStep] = useState<number>(m2.claimed ? 4 : 1);
   const [maxReached, setMaxReached] = useState<number>(m2.claimed ? 4 : 1);
 
-  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    !launchVeil && !claimedRevisit,
+  );
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
     launchVeil ? "rising" : "idle",
   );
@@ -37110,10 +37322,12 @@ function NewA2M2Container({
     onRoomChange(roomOpen ? "timeaudit" : null);
   }, [roomOpen, onRoomChange]);
 
-  // Closing the room leaves straight back to the A2 hub (no intro hub here).
+  // Closing the room returns to the mirror overview hub on a claimed revisit
+  // (so the user lands back on the step-card list), otherwise it leaves
+  // straight back to the A2 hub (first-run flow has no overview to return to).
   const closeRoom = () => {
     setRoomOpen(false);
-    onBackToA2();
+    if (!claimedRevisit) onBackToA2();
   };
 
   const goToStep = (step: number) => {
@@ -37229,6 +37443,26 @@ function NewA2M2Container({
 
   return (
     <>
+      {!roomOpen && veilPhase === "idle" && (
+        <NewA2MirrorHubView
+          onBackToA2={onBackToA2}
+          onStart={(step) => {
+            goToStep(step ?? currentStep);
+            setRoomOpen(true);
+          }}
+          currentStep={currentStep}
+          maxReached={maxReached}
+          claimed={m2.claimed}
+          steps={A2M2_STEPS}
+          eyebrow="A2 · Mirror 2 · Explore with Katherine"
+          title="Time Audit"
+          sub="Where your time actually goes."
+          introEyebrow="Start here · Katherine introduces Time Audit"
+          introCaption="Katherine's Time Audit intro · placeholder"
+          beginLabel="Begin Time Audit"
+          resumeLabel="Resume Time Audit"
+        />
+      )}
       {roomOpen && (
         <div
           className="na1-room-overlay is-open"
@@ -38333,11 +38567,20 @@ function NewA2M3Container({
 
   const resuming = initialRoomKey === "namedtruth";
   const launchVeil = !resuming && !m3.claimed;
+  // A claimed re-entry that is NOT a room resume lands on the mirror overview
+  // hub (the step-card list) rather than dropping straight into the room.
+  // Snapshot the claimed flag AT ENTRY so claiming mid-session (first run) does
+  // not retroactively flip close routing toward the hub — the hub is only for
+  // a mirror that was already sealed when this container mounted.
+  const claimedAtEntry = useRef(m3.claimed).current;
+  const claimedRevisit = claimedAtEntry && !resuming;
 
   const [currentStep, setCurrentStep] = useState<number>(m3.claimed ? 3 : 1);
   const [maxReached, setMaxReached] = useState<number>(m3.claimed ? 3 : 1);
 
-  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    !launchVeil && !claimedRevisit,
+  );
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
     launchVeil ? "rising" : "idle",
   );
@@ -38367,9 +38610,12 @@ function NewA2M3Container({
     onRoomChange(roomOpen ? "namedtruth" : null);
   }, [roomOpen, onRoomChange]);
 
+  // Closing the room returns to the mirror overview hub on a claimed revisit
+  // (so the user lands back on the step-card list), otherwise it leaves
+  // straight back to the A2 hub (first-run flow has no overview to return to).
   const closeRoom = () => {
     setRoomOpen(false);
-    onBackToA2();
+    if (!claimedRevisit) onBackToA2();
   };
   const goToStep = (step: number) => {
     const clamped = Math.max(1, Math.min(3, step));
@@ -38482,6 +38728,26 @@ function NewA2M3Container({
 
   return (
     <>
+      {!roomOpen && veilPhase === "idle" && (
+        <NewA2MirrorHubView
+          onBackToA2={onBackToA2}
+          onStart={(step) => {
+            goToStep(step ?? currentStep);
+            setRoomOpen(true);
+          }}
+          currentStep={currentStep}
+          maxReached={maxReached}
+          claimed={m3.claimed}
+          steps={A2M3_STEPS}
+          eyebrow="A2 · Mirror 3 · Explore with Katherine"
+          title="Named Truth"
+          sub="What the truth is asking of you."
+          introEyebrow="Start here · Katherine introduces Named Truth"
+          introCaption="Katherine's Named Truth intro · placeholder"
+          beginLabel="Begin Named Truth"
+          resumeLabel="Resume Named Truth"
+        />
+      )}
       {roomOpen && (
         <div
           className="na1-room-overlay is-open"
