@@ -1,0 +1,100 @@
+# Fix — A1 Mirror Rooms: Add Horizontal Step Indicator
+
+**File:** `artifacts/true-ownership/src/App.tsx` (~91,252 lines)
+**Scope:** Additive only. Add a horizontal step indicator to the top of each A1 mirror room overlay. No changes to exercise content, routing, state, or any A2/A3 code.
+
+---
+
+## What's wrong
+
+A2 mirrors (M2 Time Audit, M3 Named Truth) show a clean horizontal step indicator at the top of each room — numbered steps with connector lines, the current step ringed gold, completed steps showing ✓.
+
+A1 mirrors (Purpose, Vision, Identity · Superpowers, Values) have NO step indicator. When a user opens a mirror room they have no sense of where they are, how many steps there are, or how far they've progressed. The exercise list is a vertical scroll with no progress context.
+
+**A2 pattern (target):**
+```
+[✓ Step 1] ——— [✓ Step 2] ——— [● Step 3 (current)] ——— [○ Step 4]
+Your priorities   Where time goes   What's missing         Claim
+```
+
+---
+
+## What to build
+
+Add the same horizontal step indicator to the TOP of each A1 mirror room — inside the room card overlay, below the breadcrumb, above the exercise title.
+
+### Step counts per mirror
+
+| Mirror | Steps | Step names |
+|---|---|---|
+| M1 Purpose | 4 | Owned Symptoms · True Ownership · The Peel · Declare |
+| M2 Vision | 5 | Two Futures · Time · Wealth · Self · Vision Declaration |
+| M3 Identity · Superpowers | 4 | Your Gifts · Animals as Anchors · Under Pressure · Own It |
+| M4 Values · The Order You Live By | 4 | Discover · Rank · Behaviors · Claim |
+
+### Step state per exercise
+
+For each step in the indicator:
+- **Done (✓):** exercise is complete — gold filled circle, white ✓, gold connector line to next
+- **Current (●):** the active exercise — gold ring + gold text label, connector line muted
+- **Upcoming (○):** not yet reached — muted circle, muted label, muted connector
+
+### CSS namespace
+
+New classes: `na1-a1-stepper`, `na1-a1-step`, `na1-a1-step--done`, `na1-a1-step--cur`, `na1-a1-step--upcoming`, `na1-a1-step-dot`, `na1-a1-step-lbl`, `na1-a1-step-line`
+
+**Copy the visual pattern from `na1-a2m2-stepper` / `na1-a2m2-step`.** Same proportions, same connector line, same gold/muted states. Use CSS tokens only — no hardcoded hex.
+
+### Placement
+
+Inside the room card, the stepper sits:
+- Below: the `Purpose › Owned Symptoms` breadcrumb line (existing)
+- Above: the exercise title / video / content area (existing)
+- No changes to the content below it
+
+### Logic
+
+The stepper reads the same completion state already used by the exercise list rows (the `isDone` / `isActive` logic near `NA1_EXERCISES.map` at line ~45253). Do not duplicate state — read the same booleans.
+
+Current exercise = whichever exercise is currently open/active in the room.
+Done = exercises completed before the current one.
+Upcoming = exercises not yet reached.
+
+---
+
+## Implementation approach
+
+1. Create a shared `NA1A1StepperView` component (or inline function) that accepts:
+   - `steps: Array<{key: string, name: string}>` — the step list for this mirror
+   - `currentKey: string` — the key of the active exercise
+   - `doneKeys: string[]` — keys of completed exercises
+
+2. Render it inside each of the 4 mirror room views, immediately after the breadcrumb and before the exercise content.
+
+3. On exercise navigation (moving from step to step within a mirror), the stepper updates automatically because it reads from the same state.
+
+---
+
+## What NOT to change
+
+- Do not change exercise content, copy, or layout
+- Do not change routing or state
+- Do not change the exercise list (the vertical card list that already exists in each mirror hub)
+- Do not touch A2, A3, or any other code
+- Do not author new gold burst keyframes
+- Do not change veil timing or transitions
+
+---
+
+## Definition of done
+
+- [ ] M1 Purpose room shows 4-step horizontal indicator at top
+- [ ] M2 Vision room shows 5-step horizontal indicator at top
+- [ ] M3 Identity room shows 4-step horizontal indicator at top
+- [ ] M4 Values room shows 4-step horizontal indicator at top
+- [ ] Completed steps show gold ✓ circle + gold connector line
+- [ ] Current step shows gold ring + gold label
+- [ ] Upcoming steps show muted circle + muted label
+- [ ] Stepper updates correctly as user moves through exercises
+- [ ] Both light and dark themes correct
+- [ ] No regressions to A2, A3, or any other code

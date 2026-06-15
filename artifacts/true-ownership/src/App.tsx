@@ -999,6 +999,17 @@ html[data-theme="light"]{
 .na1-a2m2-step-name{ font-family:var(--na1-sans); font-size:11px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:84px; }
 .na1-a2m2-step-name.is-current{ color:var(--gold); font-weight:600; }
 @media (max-width:600px){ .na1-a2m2-step-name{ display:none; } }
+.na1-a1-stepper{ display:flex; align-items:center; gap:6px; margin:0 0 28px; }
+.na1-a1-step{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto; }
+.na1-a1-step-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
+.na1-a1-step-line.is-done{ background:var(--gold-line); }
+.na1-a1-step-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--na1-sans); font-size:13px; font-weight:700; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a1-step--done .na1-a1-step-dot{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); }
+.na1-a1-step--cur .na1-a1-step-dot{ background:transparent; border-color:var(--gold); color:var(--gold); box-shadow:0 0 14px var(--gold-glow); }
+.na1-a1-step-lbl{ font-family:var(--na1-sans); font-size:11px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:84px; }
+.na1-a1-step--done .na1-a1-step-lbl{ color:var(--na1-text-sec); }
+.na1-a1-step--cur .na1-a1-step-lbl{ color:var(--gold); font-weight:600; }
+@media (max-width:600px){ .na1-a1-step-lbl{ display:none; } }
 .na1-a2m2-body{ min-height:200px; }
 .na1-a2m2-step-title{ font-family:var(--na1-serif); font-size:26px; font-weight:600; line-height:1.2; color:var(--na1-text); margin:0 0 10px; }
 .na1-a2m2-step-title em{ font-style:italic; color:var(--gold); }
@@ -29312,16 +29323,71 @@ function NewA1Veil({
   );
 }
 
+// Shared horizontal step indicator for the A1 mirror rooms. Unlike A2 (one
+// continuous multi-step room), each A1 "step" is its own room overlay, so this
+// renders at the top of every A1 exercise room — marking that room's exercise
+// as current, earlier ones done, later ones upcoming. Driven entirely by the
+// caller's canonical step array + completion keys (no duplicated state). Visual
+// pattern mirrors the A2 Time Audit stepper (na1-a2m2-*); tokens only.
+function NA1A1StepperView({
+  steps,
+  currentKey,
+  doneKeys,
+  ariaLabel,
+}: {
+  steps: ReadonlyArray<{ key: string; name: string }>;
+  currentKey: string;
+  doneKeys: string[];
+  ariaLabel: string;
+}) {
+  return (
+    <div className="na1-a1-stepper" role="list" aria-label={ariaLabel}>
+      {steps.map((s, i) => {
+        const isCurrent = s.key === currentKey;
+        const isDone = doneKeys.includes(s.key) && !isCurrent;
+        const stateCls = isDone
+          ? "na1-a1-step--done"
+          : isCurrent
+            ? "na1-a1-step--cur"
+            : "na1-a1-step--upcoming";
+        const prevDone = i > 0 && doneKeys.includes(steps[i - 1].key);
+        return (
+          <React.Fragment key={s.key}>
+            {i > 0 && (
+              <span
+                className={`na1-a1-step-line ${prevDone ? "is-done" : ""}`}
+                aria-hidden
+              />
+            )}
+            <div
+              className={`na1-a1-step ${stateCls}`}
+              role="listitem"
+              aria-current={isCurrent ? "step" : undefined}
+            >
+              <span className="na1-a1-step-dot" aria-hidden>
+                {isDone ? "✓" : i + 1}
+              </span>
+              <span className="na1-a1-step-lbl">{s.name}</span>
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
 function NewA1RoomShell({
   exercise,
   open,
   onClose,
   children,
+  stepper,
 }: {
   exercise: NA1Exercise;
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  stepper?: React.ReactNode;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -29352,6 +29418,7 @@ function NewA1RoomShell({
           <span className="sep">›</span>
           <span className="current">{exercise.name}</span>
         </div>
+        {stepper}
         <button
           type="button"
           className="na1-room-close"
@@ -30931,11 +30998,13 @@ function NewA2RoomShell({
   open,
   onClose,
   children,
+  stepper,
 }: {
   exercise: M2Exercise;
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  stepper?: React.ReactNode;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -30966,6 +31035,7 @@ function NewA2RoomShell({
           <span className="sep">›</span>
           <span className="current">{exercise.name}</span>
         </div>
+        {stepper}
         <button
           type="button"
           className="na1-room-close"
@@ -39181,7 +39251,22 @@ function NewA1View({ name }: { name?: string }) {
           dimmed={roomOpen}
         />
         {openEx && (
-          <NewA1RoomShell exercise={openEx} open={roomOpen} onClose={closeRoom}>
+          <NewA1RoomShell
+            exercise={openEx}
+            open={roomOpen}
+            onClose={closeRoom}
+            stepper={
+              <NA1A1StepperView
+                steps={NA1_EXERCISES}
+                currentKey={openEx.key}
+                doneKeys={NA1_EXERCISES.filter(
+                  (_e, i) =>
+                    [progress.ex1, progress.ex2, progress.ex3, progress.ex4][i],
+                ).map((e) => e.key)}
+                ariaLabel="Purpose progress"
+              />
+            }
+          >
             {openEx.key === "sym" ? (
               <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
             ) : openEx.key === "to" ? (
@@ -39264,6 +39349,23 @@ function NewA1View({ name }: { name?: string }) {
             exercise={openM2Ex}
             open={roomOpen}
             onClose={closeRoom}
+            stepper={
+              <NA1A1StepperView
+                steps={M2_EXERCISES}
+                currentKey={openM2Ex.key}
+                doneKeys={M2_EXERCISES.filter(
+                  (_e, i) =>
+                    [
+                      m2Progress.ex1,
+                      m2Progress.ex2,
+                      m2Progress.ex3,
+                      m2Progress.ex4,
+                      m2Progress.ex5,
+                    ][i],
+                ).map((e) => e.key)}
+                ariaLabel="Vision progress"
+              />
+            }
           >
             {openM2Ex.key === "twoFutures" ? (
               <NewA2TwoFuturesBody onSaved={closeRoom} onClose={closeRoom} />
@@ -39677,11 +39779,13 @@ function NewA1M3RoomShell({
   open,
   onClose,
   children,
+  stepper,
 }: {
   room: M3Room;
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  stepper?: React.ReactNode;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -39712,6 +39816,7 @@ function NewA1M3RoomShell({
           <span className="sep">›</span>
           <span className="current">{room.name}</span>
         </div>
+        {stepper}
         <button
           type="button"
           className="na1-room-close"
@@ -40513,6 +40618,14 @@ function NewA1M3Container({
           room={openRoom}
           open={roomOpen}
           onClose={closeRoom}
+          stepper={
+            <NA1A1StepperView
+              steps={M3_ROOMS}
+              currentKey={openRoom.key}
+              doneKeys={M3_ROOMS.filter((_r, i) => doneArr[i]).map((r) => r.key)}
+              ariaLabel="Identity progress"
+            />
+          }
         >
           {openRoom.key === "yourGifts" ? (
             <NewA1M3View embedded onBack={closeRoom} />
@@ -40599,11 +40712,13 @@ function NewA1M4RoomShell({
   open,
   onClose,
   children,
+  stepper,
 }: {
   room: M4Room;
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  stepper?: React.ReactNode;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -40634,6 +40749,7 @@ function NewA1M4RoomShell({
           <span className="sep">›</span>
           <span className="current">{room.name}</span>
         </div>
+        {stepper}
         <button
           type="button"
           className="na1-room-close"
@@ -45261,6 +45377,28 @@ function NewA1M4Container({
     );
   };
 
+  // Per-room completion for the A1 step indicator. Reuses the exact same
+  // predicates the M4 hub uses to mark each room "Complete" (Ship 5.7 / 5.9a),
+  // read from the same loadMirror4State() source so the stepper never
+  // duplicates or drifts from the hub's completion state.
+  const m4StepState = loadMirror4State();
+  const m4CompleteClustersForStep = m4StepState.clusters.filter(
+    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
+  );
+  const m4DoneKeys = M4_ROOMS.filter((r) =>
+    r.key === "discover"
+      ? m4CompleteClustersForStep.length > 0
+      : r.key === "operationalize"
+        ? m4CompleteClustersForStep.length >= 3 &&
+          m4CompleteClustersForStep.every((c) => {
+            const op = m4StepState.operationalize[c.id];
+            return (op?.behaviors?.length ?? 0) >= 3 && !!op?.keystoneId;
+          })
+        : r.key === "rank"
+          ? m4StepState.pressureTest.complete === true
+          : m4StepState.claimed === true,
+  ).map((r) => r.key);
+
   return (
     <>
       <NewA1M4HubView
@@ -45270,7 +45408,19 @@ function NewA1M4Container({
         dimmed={roomOpen}
       />
       {openRoom && openRoom.bodyShipped && (
-        <NewA1M4RoomShell room={openRoom} open={roomOpen} onClose={closeRoom}>
+        <NewA1M4RoomShell
+          room={openRoom}
+          open={roomOpen}
+          onClose={closeRoom}
+          stepper={
+            <NA1A1StepperView
+              steps={M4_ROOMS}
+              currentKey={openRoom.key}
+              doneKeys={m4DoneKeys}
+              ariaLabel="Values progress"
+            />
+          }
+        >
           {openRoom.key === "discover" ? (
             <NewA1M4DiscoverBody
               onCloseRoom={closeRoom}
