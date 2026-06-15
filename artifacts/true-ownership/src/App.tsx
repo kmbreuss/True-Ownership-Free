@@ -1256,7 +1256,8 @@ html[data-theme="light"]{
 .na1-a2m3-summary-row{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--na1-border); }
 .na1-a2m3-summary-row:last-child{ border-bottom:none; }
 .na1-a2m3-summary-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); text-align:left; }
-.na1-a2m3-summary-hrs{ flex:0 0 auto; min-width:48px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); text-align:right; }
+.na1-a2m3-summary-hrs{ flex:0 0 auto; min-width:36px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); text-align:right; }
+.na1-a2m3-summary-row .na1-a2m3-flag{ flex:0 0 auto; min-width:100px; text-align:center; margin-left:10px; }
 .na1-a2m3-missing-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--burgundy-soft); border:1px solid var(--burgundy-line); }
 .na1-a2m3-missing-card-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--burgundy); margin:0 0 12px; }
 .na1-a2m3-missing-card-row{ display:flex; align-items:center; gap:9px; margin:0 0 8px; }
