@@ -1044,9 +1044,9 @@ html[data-theme="light"]{
 .na1-a2m2-field{ display:flex; flex-direction:column; gap:5px; flex:1 1 140px; min-width:0; }
 .na1-a2m2-field-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--na1-text-mute); }
 .na1-a2m2-field .na1-a2m2-input, .na1-a2m2-field .na1-a2m2-select{ width:100%; }
-/* Compound selector (0,3,0) is required to beat `.na1-a2m2-field
-   .na1-a2m2-input` (0,2,0, sets width:100%) and the base `.na1-a2m2-input`
-   padding/min-height — otherwise the hrs field renders full-width and tall. */
+/* Compound selector (0,3,0) is required to beat the descendant width:100%
+   rule (0,2,0) and the base na1-a2m2-input padding/min-height — otherwise
+   the hrs field renders full-width and tall. */
 .na1-a2m2-field .na1-a2m2-input.na1-a2m2-hrs{ flex:0 0 80px; width:80px; height:40px; min-height:40px; padding:0 10px; align-self:flex-start; }
 .na1-a2m2-add-activity{ align-self:flex-start; margin-top:14px; background:none; border:1px dashed var(--gold-line); border-radius:var(--na1-radius); padding:10px 16px; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; transition:all .15s; }
 .na1-a2m2-add-activity:hover{ background:var(--gold-soft); }
