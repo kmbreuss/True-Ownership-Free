@@ -110,17 +110,69 @@ export const EMPTY_A2_M2: A2M2State = {
   claimedAt: null,
 };
 
+// A2 Ship 2 · Mirror 3 (Named Truth). Turns the M2 audit into decisions + a
+// commitment. Runs as one continuous paced room with three steps (1 The gap ·
+// 2 Rethink your time · 3 Claim). Everything persists under to_a2_state_v1.m3;
+// `claimed` is the SOLE driver of Mirror 3 hub completion. All M3 inputs are
+// derived from M2 data — M3 stores only decisions, assignments, and intent.
+export type A2M3Decision = "move" | "reduce" | "cut" | "do";
+export type A2M3Intent = "yes" | "no" | "unsure";
+
+// Step 2 · per-activity decision. newHrs null = keep original; 0 = cut.
+export type A2M3ActivityDecision = {
+  decision: A2M3Decision;
+  newHrs: number | null;
+  who: string; // who/what takes the rest (move or reduce)
+};
+
+// Step 2 · a chunk of freed time committed to a priority. `activity` (the plan
+// for the time) carries forward to A4.
+export type A2M3PriorityCommitment = {
+  priority: string; // matches a name from m2.priorities
+  addedHrs: number;
+  activity: string;
+};
+
+export type A2M3State = {
+  // Step 1 · per-priority intent flag (yes = works, no = gap, unsure).
+  intentMap: Record<string, A2M3Intent>;
+  // Step 2 · per-activity decisions, keyed by m2 activity id.
+  activityDecisions: Record<string, A2M3ActivityDecision>;
+  // Step 2 · freed hrs assigned to a missing item, keyed by m2 missing item id.
+  missingAssignments: Record<string, number>;
+  // Step 2 · freed hrs committed to priorities, with a forward-carrying plan.
+  priorityCommitments: A2M3PriorityCommitment[];
+  // Step 2 · auto-generated, user-editable "your move" text.
+  moveText: string;
+  // Step 2 · cached Self Feedback (Map of Me reflection) — never re-fetched.
+  selfFeedback: string;
+  // Claim · single source of truth for Mirror 3 completion.
+  claimed: boolean;
+  claimedAt: string | null;
+};
+
+export const EMPTY_A2_M3: A2M3State = {
+  intentMap: {},
+  activityDecisions: {},
+  missingAssignments: {},
+  priorityCommitments: [],
+  moveText: "",
+  selfFeedback: "",
+  claimed: false,
+  claimedAt: null,
+};
+
 export type A2State = {
   m1: A2M1State;
   m2: A2M2State;
-  m3: A2MirrorStub;
+  m3: A2M3State;
   m4: A2MirrorStub;
 };
 
 export const EMPTY_A2: A2State = {
   m1: { ...EMPTY_A2_M1 },
   m2: { ...EMPTY_A2_M2 },
-  m3: {},
+  m3: { ...EMPTY_A2_M3 },
   m4: {},
 };
 
@@ -258,6 +310,92 @@ function normalizeA2M2(raw: unknown): A2M2State {
   };
 }
 
+const A2M3_DECISIONS: readonly A2M3Decision[] = [
+  "move",
+  "reduce",
+  "cut",
+  "do",
+];
+const A2M3_INTENTS: readonly A2M3Intent[] = ["yes", "no", "unsure"];
+
+// Coerce an unknown blob into a valid A2M3State, dropping garbage so a corrupt
+// store can't poison Named Truth. Numeric assignments clamp to 0–168 hrs;
+// decisions/intents fall back to safe defaults when unrecognized.
+function normalizeA2M3(raw: unknown): A2M3State {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<A2M3State>;
+  const cleanStr = (v: unknown): string => (typeof v === "string" ? v : "");
+  const clampHrs = (v: unknown, fallback: number): number =>
+    typeof v === "number" && Number.isFinite(v)
+      ? Math.max(0, Math.min(168, v))
+      : fallback;
+
+  const intentMap: Record<string, A2M3Intent> = {};
+  const rawIM = (r as { intentMap?: unknown }).intentMap;
+  if (rawIM && typeof rawIM === "object") {
+    for (const [k, v] of Object.entries(rawIM as Record<string, unknown>)) {
+      if (A2M3_INTENTS.includes(v as A2M3Intent)) intentMap[k] = v as A2M3Intent;
+    }
+  }
+
+  const activityDecisions: Record<string, A2M3ActivityDecision> = {};
+  const rawAD = (r as { activityDecisions?: unknown }).activityDecisions;
+  if (rawAD && typeof rawAD === "object") {
+    for (const [k, v] of Object.entries(rawAD as Record<string, unknown>)) {
+      if (!v || typeof v !== "object") continue;
+      const d = v as Record<string, unknown>;
+      const decision = A2M3_DECISIONS.includes(d.decision as A2M3Decision)
+        ? (d.decision as A2M3Decision)
+        : "do";
+      const newHrs =
+        typeof d.newHrs === "number" && Number.isFinite(d.newHrs)
+          ? Math.max(0, Math.min(80, d.newHrs))
+          : null;
+      activityDecisions[k] = { decision, newHrs, who: cleanStr(d.who) };
+    }
+  }
+
+  const missingAssignments: Record<string, number> = {};
+  const rawMA = (r as { missingAssignments?: unknown }).missingAssignments;
+  if (rawMA && typeof rawMA === "object") {
+    for (const [k, v] of Object.entries(rawMA as Record<string, unknown>)) {
+      if (typeof v === "number" && Number.isFinite(v)) {
+        missingAssignments[k] = Math.max(0, Math.min(168, v));
+      }
+    }
+  }
+
+  const rawPC = (r as { priorityCommitments?: unknown }).priorityCommitments;
+  const priorityCommitments: A2M3PriorityCommitment[] = Array.isArray(rawPC)
+    ? rawPC
+        .filter(
+          (c): c is Record<string, unknown> => !!c && typeof c === "object",
+        )
+        .map((c) => ({
+          priority: cleanStr(c.priority),
+          addedHrs: clampHrs(c.addedHrs, 0),
+          activity: cleanStr(c.activity),
+        }))
+    : [];
+
+  const claimed = (r as { claimed?: unknown }).claimed === true;
+  const rawClaimedAt = (r as { claimedAt?: unknown }).claimedAt;
+  const claimedAt =
+    typeof rawClaimedAt === "string" && rawClaimedAt.trim() !== ""
+      ? rawClaimedAt
+      : null;
+
+  return {
+    intentMap,
+    activityDecisions,
+    missingAssignments,
+    priorityCommitments,
+    moveText: cleanStr((r as { moveText?: unknown }).moveText),
+    selfFeedback: cleanStr((r as { selfFeedback?: unknown }).selfFeedback),
+    claimed,
+    claimedAt,
+  };
+}
+
 export function loadA2State(): A2State {
   try {
     if (typeof window === "undefined") return EMPTY_A2;
@@ -271,6 +409,7 @@ export function loadA2State(): A2State {
       const merged = { ...EMPTY_A2, ...parsed } as A2State;
       merged.m1 = normalizeA2M1((parsed as { m1?: unknown }).m1);
       merged.m2 = normalizeA2M2((parsed as { m2?: unknown }).m2);
+      merged.m3 = normalizeA2M3((parsed as { m3?: unknown }).m3);
       return merged;
     }
   } catch {}

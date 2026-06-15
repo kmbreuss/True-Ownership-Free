@@ -131,6 +131,11 @@ import {
   type A2M2Activity,
   type A2M2Feeling,
   type A2M2MissingItem,
+  type A2M3State,
+  type A2M3Intent,
+  type A2M3Decision,
+  type A2M3ActivityDecision,
+  type A2M3PriorityCommitment,
   EMPTY_A2_M2,
 } from "./a2Constants";
 import {
@@ -1106,12 +1111,177 @@ html[data-theme="light"]{
 .na1-a2m2-add-missing{ align-self:flex-start; margin-top:14px; background:none; border:1px dashed var(--gold-line); border-radius:var(--na1-radius); padding:10px 16px; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; transition:all .15s; }
 .na1-a2m2-add-missing:hover{ background:var(--gold-soft); }
 .na1-a2m2-claim-btn{ width:100%; }
-/* ── A2 Ship 1 · Mirror 3 (Named Truth · a2m3) placeholder shell ── */
-.na1-a2m3-shell{ max-width:620px; margin:0 auto; padding:48px 0; }
-.na1-a2m3-title{ font-family:var(--na1-serif); font-size:38px; font-weight:600; line-height:1.15; color:var(--na1-text); margin:8px 0 18px; }
-.na1-a2m3-title em{ font-style:italic; color:var(--gold); }
-.na1-a2m3-lede{ font-family:var(--na1-sans); font-size:15.5px; line-height:1.7; color:var(--na1-text-sec); margin:0 0 28px; max-width:520px; }
-@media (max-width:600px){ .na1-a2m3-title{ font-size:30px; } }
+/* ─────────────────────────────────────────────────────────────────────────
+   A2 Ship 2 · Mirror 3 (Named Truth · a2m3). Own namespace; tokens only so
+   both themes resolve automatically (same approach as na1-a2m2-*).
+   ───────────────────────────────────────────────────────────────────────── */
+.na1-a2m3-room-card{ }
+.na1-a2m3-body{ min-height:200px; }
+.na1-a2m3-step-title{ font-family:var(--na1-serif); font-size:26px; font-weight:600; line-height:1.2; color:var(--na1-text); margin:8px 0 10px; }
+.na1-a2m3-step-title em{ font-style:italic; color:var(--gold); }
+.na1-a2m3-step-lede{ font-family:var(--na1-sans); font-size:14.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 24px; }
+.na1-a2m3-step1, .na1-a2m3-step2, .na1-a2m3-step3{ display:flex; flex-direction:column; }
+.na1-a2m3-nav{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:28px; padding-top:22px; border-top:1px solid var(--na1-border); }
+.na1-a2m3-nav .na1-btn-gold:disabled{ opacity:0.4; cursor:not-allowed; }
+.na1-a2m3-rank{ flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.na1-a2m3-miss-dot{ flex:0 0 auto; width:10px; height:10px; border-radius:50%; background:var(--burgundy); }
+.na1-a2m3-flag{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; }
+.na1-a2m3-flag.is-yes{ background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); }
+.na1-a2m3-flag.is-no{ background:var(--burgundy-soft); border:1px solid var(--burgundy-line); color:var(--burgundy); }
+.na1-a2m3-flag.is-unsure{ background:var(--na1-bg-soft); border:1px solid var(--na1-border); color:var(--na1-text-mute); }
+/* Stepper (3-step) */
+.na1-a2m3-stepper{ display:flex; align-items:center; gap:6px; margin:0 0 28px; }
+.na1-a2m3-step{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto; background:none; border:none; padding:0; cursor:default; }
+.na1-a2m3-step.is-clickable{ cursor:pointer; }
+.na1-a2m3-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
+.na1-a2m3-line.is-reached{ background:var(--gold-line); }
+.na1-a2m3-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--na1-sans); font-size:13px; font-weight:700; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a2m3-dot.is-reached{ border-color:var(--gold-line); color:var(--na1-text-sec); }
+.na1-a2m3-dot.is-complete{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); }
+.na1-a2m3-dot.is-current{ background:var(--gold); border-color:var(--gold); color:#1a1206; box-shadow:0 0 14px var(--gold-glow); }
+.na1-a2m3-step-name{ font-family:var(--na1-sans); font-size:11px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:110px; }
+.na1-a2m3-step-name.is-current{ color:var(--gold); font-weight:600; }
+@media (max-width:600px){ .na1-a2m3-step-name{ display:none; } .na1-a2m3-step-title{ font-size:23px; } }
+/* Step 1 · The gap */
+.na1-a2m3-context{ display:flex; flex-wrap:wrap; gap:12px; margin:0 0 20px; }
+.na1-a2m3-ctx-card{ flex:1 1 220px; min-width:0; padding:16px 18px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
+.na1-a2m3-ctx-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 12px; }
+.na1-a2m3-ctx-empty{ font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-mute); font-style:italic; margin:0; }
+.na1-a2m3-ctx-row{ display:flex; align-items:center; gap:9px; margin:0 0 9px; }
+.na1-a2m3-ctx-row:last-child{ margin-bottom:0; }
+.na1-a2m3-ctx-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text); }
+.na1-a2m3-ctx-hrs{ flex:0 0 auto; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); }
+.na1-a2m3-insight{ margin:0 0 22px; padding:18px 20px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
+.na1-a2m3-insight-text{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; line-height:1.7; color:var(--gold); margin:0; }
+.na1-a2m3-gap-card{ margin:0 0 14px; padding:16px 18px; border-radius:12px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
+.na1-a2m3-gap-top{ display:flex; align-items:center; gap:10px; margin:0 0 10px; }
+.na1-a2m3-gap-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:15px; font-weight:600; color:var(--na1-text); }
+.na1-a2m3-gap-hrs{ flex:0 0 auto; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
+.na1-a2m3-bar{ height:8px; border-radius:4px; background:var(--na1-border); overflow:hidden; }
+.na1-a2m3-bar-fill{ height:100%; border-radius:4px; background:var(--gold); transition:width .4s ease; }
+.na1-a2m3-bar-fill.is-burgundy{ background:var(--burgundy); }
+.na1-a2m3-bar-label{ font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); margin:7px 0 0; }
+.na1-a2m3-gap-card.is-unaccounted .na1-a2m3-gap-name{ font-style:italic; color:var(--na1-text-mute); }
+.na1-a2m3-intent-btns{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 0; }
+.na1-a2m3-intent-btn{ flex:1 1 auto; min-height:40px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s; }
+.na1-a2m3-intent-btn:hover{ border-color:var(--gold-line); color:var(--na1-text); }
+.na1-a2m3-intent-btn.is-yes.is-selected{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); }
+.na1-a2m3-intent-btn.is-no.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy); }
+.na1-a2m3-intent-btn.is-unsure.is-selected{ background:var(--na1-bg-soft); border-color:var(--na1-text-mute); color:var(--na1-text); }
+/* Step 2 · Rethink your time */
+.na1-a2m3-note{ font-family:var(--na1-sans); font-size:13px; line-height:1.6; color:var(--na1-text-mute); margin:0 0 20px; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px dashed var(--na1-border); }
+.na1-a2m3-freed-hero{ display:flex; flex-direction:column; align-items:center; gap:2px; margin:0 0 24px; padding:22px 20px; border-radius:14px; background:var(--gold-soft); border:1px solid var(--gold-line); }
+.na1-a2m3-freed-num{ font-family:var(--na1-serif); font-size:52px; font-weight:700; line-height:1; color:var(--gold); }
+.na1-a2m3-freed-label{ font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); }
+.na1-a2m3-accordion{ margin:0 0 12px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); overflow:hidden; }
+.na1-a2m3-accordion.is-open{ border-color:var(--gold-line); }
+.na1-a2m3-acc-head{ display:flex; align-items:center; gap:10px; width:100%; padding:14px 16px; background:none; border:none; cursor:pointer; text-align:left; font-family:var(--na1-sans); }
+.na1-a2m3-acc-label{ flex:0 0 auto; font-size:14.5px; font-weight:700; color:var(--na1-text); }
+.na1-a2m3-acc-note{ flex:1 1 auto; font-size:12px; font-style:italic; color:var(--na1-text-mute); }
+.na1-a2m3-acc-meta{ flex:0 0 auto; font-size:12px; color:var(--na1-text-sec); }
+.na1-a2m3-acc-chevron{ flex:0 0 auto; color:var(--na1-text-mute); font-size:12px; }
+.na1-a2m3-acc-body{ padding:0 16px 16px; display:flex; flex-direction:column; gap:14px; }
+.na1-a2m3-act{ padding:14px 16px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
+.na1-a2m3-act-top{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 12px; }
+.na1-a2m3-act-name{ flex:1 1 140px; min-width:0; font-family:var(--na1-sans); font-size:14.5px; font-weight:600; color:var(--na1-text); }
+.na1-a2m3-act-feel{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--na1-sans); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text-mute); }
+.na1-a2m3-act-feel[data-feeling="love"]{ color:var(--gold); border-color:var(--gold-line); }
+.na1-a2m3-act-feel[data-feeling="like"]{ color:var(--c2); border-color:var(--c2); }
+.na1-a2m3-act-feel[data-feeling="despise"]{ color:var(--burgundy); border-color:var(--burgundy-line); }
+.na1-a2m3-act-pri{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--na1-sans); font-size:10.5px; font-weight:600; }
+.na1-a2m3-act-pri.is-tagged{ background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); }
+.na1-a2m3-act-pri.is-none{ background:var(--burgundy-soft); border:1px solid var(--burgundy-line); color:var(--burgundy); font-style:italic; }
+.na1-a2m3-act-hrs{ flex:0 0 auto; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
+.na1-a2m3-dec-btns{ display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
+.na1-a2m3-dec-btn{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:9px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); cursor:pointer; transition:all .15s; text-align:left; }
+.na1-a2m3-dec-btn:hover{ border-color:var(--gold-line); }
+.na1-a2m3-dec-main{ font-family:var(--na1-sans); font-size:13px; font-weight:700; color:var(--na1-text); }
+.na1-a2m3-dec-sub{ font-family:var(--na1-sans); font-size:11px; color:var(--na1-text-mute); }
+.na1-a2m3-dec-btn.is-selected{ background:var(--gold-soft); border-color:var(--gold); }
+.na1-a2m3-dec-btn.is-selected .na1-a2m3-dec-main{ color:var(--gold); }
+.na1-a2m3-dec-btn.is-cut.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); }
+.na1-a2m3-dec-btn.is-cut.is-selected .na1-a2m3-dec-main{ color:var(--burgundy); }
+.na1-a2m3-detail{ margin:12px 0 0; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-card); border:1px solid var(--na1-border); display:flex; flex-direction:column; gap:12px; }
+.na1-a2m3-detail-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.na1-a2m3-detail-label{ flex:0 0 auto; font-family:var(--na1-sans); font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--na1-text-mute); }
+.na1-a2m3-detail-input{ flex:0 0 80px; width:80px; height:38px; padding:0 10px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:14px; outline:none; }
+.na1-a2m3-detail-input:focus{ border-color:var(--gold); }
+.na1-a2m3-detail-text{ flex:1 1 180px; min-width:0; height:38px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:14px; outline:none; }
+.na1-a2m3-detail-text:focus{ border-color:var(--gold); }
+.na1-a2m3-detail-text::placeholder, .na1-a2m3-detail-input::placeholder{ color:var(--na1-text-mute); }
+.na1-a2m3-detail-freed{ flex:0 0 auto; font-family:var(--na1-sans); font-size:12px; font-weight:700; color:var(--gold); }
+.na1-a2m3-act-suggest{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; line-height:1.6; color:var(--na1-text-sec); margin:12px 0 0; padding-top:11px; border-top:1px solid var(--na1-border); }
+.na1-a2m3-trade{ margin:18px 0 0; padding:18px 20px; border-radius:14px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
+.na1-a2m3-trade.is-muted{ opacity:0.75; }
+.na1-a2m3-trade-head{ font-family:var(--na1-serif); font-size:18px; font-weight:600; color:var(--na1-text); margin:0 0 4px; }
+.na1-a2m3-trade-sub{ font-family:var(--na1-sans); font-size:13px; line-height:1.55; color:var(--na1-text-sec); margin:0 0 16px; }
+.na1-a2m3-trade-sec{ margin:0 0 16px; }
+.na1-a2m3-trade-sec-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 10px; }
+.na1-a2m3-trade-row{ display:flex; flex-wrap:wrap; align-items:center; gap:9px; padding:9px 11px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); margin:0 0 8px; }
+.na1-a2m3-trade-row.is-active{ border-color:var(--gold-line); }
+.na1-a2m3-trade-name{ flex:1 1 120px; min-width:0; font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text); }
+.na1-a2m3-trade-tag{ flex:0 0 auto; padding:2px 8px; border-radius:100px; font-family:var(--na1-sans); font-size:10px; font-weight:600; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); }
+.na1-a2m3-trade-input{ flex:0 0 70px; width:70px; height:36px; padding:0 9px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:14px; outline:none; }
+.na1-a2m3-trade-input:focus{ border-color:var(--gold); }
+.na1-a2m3-trade-unit{ flex:0 0 auto; font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); }
+.na1-a2m3-trade-add{ display:flex; gap:8px; margin:0 0 12px; }
+.na1-a2m3-trade-select{ flex:1 1 auto; min-height:40px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:13.5px; outline:none; cursor:pointer; }
+.na1-a2m3-trade-select:focus{ border-color:var(--gold); }
+.na1-a2m3-trade-addbtn{ flex:0 0 auto; }
+.na1-a2m3-trade-addbtn:disabled{ opacity:0.4; cursor:not-allowed; }
+.na1-a2m3-commit{ margin:0 0 10px; padding:11px 13px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--gold-line); }
+.na1-a2m3-commit-top{ display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin:0 0 9px; }
+.na1-a2m3-commit-dot{ flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:var(--gold); }
+.na1-a2m3-commit-name{ flex:1 1 100px; min-width:0; font-family:var(--na1-sans); font-size:13.5px; font-weight:600; color:var(--na1-text); }
+.na1-a2m3-commit-x{ flex:0 0 auto; width:28px; height:28px; border-radius:var(--na1-radius-sm); background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); font-size:15px; line-height:1; cursor:pointer; transition:all .15s; }
+.na1-a2m3-commit-x:hover{ color:var(--burgundy); border-color:var(--burgundy-line); }
+.na1-a2m3-commit-activity{ width:100%; min-height:40px; padding:9px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:13.5px; outline:none; }
+.na1-a2m3-commit-activity:focus{ border-color:var(--gold); }
+.na1-a2m3-commit-activity::placeholder{ color:var(--na1-text-mute); }
+.na1-a2m3-remain{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:16px 0 0; padding:14px 18px; border-radius:12px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
+.na1-a2m3-remain-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); }
+.na1-a2m3-remain-num{ font-family:var(--na1-serif); font-size:30px; font-weight:700; line-height:1; color:var(--gold); }
+.na1-a2m3-remain-num.is-zero{ color:var(--c2); }
+.na1-a2m3-remain-num.is-over{ color:var(--burgundy); }
+.na1-a2m3-move{ margin:18px 0 0; }
+.na1-a2m3-move-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 10px; }
+.na1-a2m3-move-preview{ font-family:var(--na1-serif); font-style:italic; font-size:14.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 10px; }
+.na1-a2m3-move-text{ width:100%; min-height:80px; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-sans); font-size:14px; line-height:1.6; outline:none; resize:vertical; }
+.na1-a2m3-move-text:focus{ border-color:var(--gold); }
+.na1-a2m3-feedback{ margin:18px 0 0; }
+.na1-a2m3-feedback-btn{ width:100%; }
+.na1-a2m3-feedback-btn:disabled{ opacity:0.6; cursor:progress; }
+.na1-a2m3-feedback-err{ font-family:var(--na1-sans); font-size:12.5px; color:var(--burgundy); margin:10px 0 0; }
+.na1-a2m3-feedback-card{ margin:18px 0 0; padding:20px 22px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
+.na1-a2m3-feedback-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 12px; }
+.na1-a2m3-feedback-text{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; line-height:1.7; color:var(--gold); margin:0; }
+.na1-a2m3-feedback-note{ font-family:var(--na1-sans); font-size:11.5px; line-height:1.5; color:var(--na1-text-mute); margin:12px 0 0; }
+/* Step 3 · Claim */
+.na1-a2m3-summary{ margin:4px 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
+.na1-a2m3-summary-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 14px; }
+.na1-a2m3-summary-row{ display:flex; align-items:center; gap:10px; margin:0 0 10px; }
+.na1-a2m3-summary-row:last-child{ margin-bottom:0; }
+.na1-a2m3-summary-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
+.na1-a2m3-summary-hrs{ flex:0 0 auto; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
+.na1-a2m3-missing-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--burgundy-soft); border:1px solid var(--burgundy-line); }
+.na1-a2m3-missing-card-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--burgundy); margin:0 0 12px; }
+.na1-a2m3-missing-card-row{ display:flex; align-items:center; gap:9px; margin:0 0 8px; }
+.na1-a2m3-missing-card-row:last-child{ margin-bottom:0; }
+.na1-a2m3-missing-card-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
+.na1-a2m3-move-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--gold-line); }
+.na1-a2m3-move-card-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 10px; }
+.na1-a2m3-move-card-text{ font-family:var(--na1-serif); font-size:15.5px; line-height:1.65; color:var(--na1-text); margin:0; }
+.na1-a2m3-seal{ margin:6px 0 24px; padding:22px 24px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
+.na1-a2m3-seal-eyebrow{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 12px; }
+.na1-a2m3-seal-body{ font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.7; color:var(--gold); margin:0; }
+.na1-a2m3-seal-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:14px 0 0; text-align:right; }
+.na1-a2m3-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
+.na1-a2m3-reclaim-note{ margin:0; font-family:var(--na1-sans); font-size:13px; line-height:1.5; color:var(--na1-text-mute); text-align:center; }
+.na1-a2m3-claim-actions{ display:flex; flex-direction:column; gap:10px; }
+.na1-a2m3-claim-actions .na1-btn-gold{ width:100%; }
+.na1-a2m3-claim-btn{ width:100%; }
+.na1-a2m3-soon{ font-family:var(--na1-sans); font-size:12px; color:var(--na1-text-mute); text-align:center; margin:0; }
+@media (max-width:600px){ .na1-a2m3-seal-body{ font-size:16px; } .na1-a2m3-freed-num{ font-size:44px; } .na1-a2m3-dec-btns{ grid-template-columns:1fr; } }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
 .na1-room-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--na1-sans); }
 .na1-room-eyebrow.tone-burgundy{ color:var(--burgundy); }
@@ -33257,7 +33427,7 @@ type AppRouteView =
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
   // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2";
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -33335,7 +33505,8 @@ function loadAppRoute(): AppRoute | null {
           hubId === "m3" ||
           hubId === "m4" ||
           hubId === "a2m1" ||
-          hubId === "a2m2") &&
+          hubId === "a2m2" ||
+          hubId === "a2m3") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -33956,6 +34127,9 @@ function NewA2HubView({
   // Mirror 2 re-locks but a m2.claimed-only check would leak Mirror 3 as
   // unlocked. Chaining keeps the gate transitive (see Mirror-gating memory).
   const m3Unlocked = m1Claimed && m2Claimed;
+  // A2 Ship 2 · Mirror 3 completion, read once at mount like the others. Only
+  // meaningful when m3Unlocked, but the card guards on m3Unlocked first.
+  const m3Claimed = useMemo(() => loadA2State().m3.claimed, []);
   const mirrorsComplete = (m1Claimed ? 1 : 0) + (m2Claimed ? 1 : 0);
   return (
     <div className="na1-root">
@@ -34070,22 +34244,33 @@ function NewA2HubView({
               )}
             </div>
           </article>
-          {/* 03 · Mirror 3 · Named Truth. A2 Ship 1 · locked until Mirror 2 is
-              claimed; once unlocked, Begin routes into the Named Truth
-              placeholder shell (the real room ships later). */}
+          {/* 03 · Mirror 3 · Named Truth. A2 Ship 2 · locked until Mirror 2 is
+              claimed; once unlocked, Begin routes into the Named Truth room.
+              Sealed treatment is gated on m3Unlocked so an upstream relock
+              cannot leak a "Sealed" card while the action stays locked. */}
           <article
-            className={`na1-mirror-card ${m3Unlocked ? "is-current" : "is-locked"}`}
+            className={`na1-mirror-card ${
+              m3Unlocked
+                ? m3Claimed
+                  ? "is-complete"
+                  : "is-current"
+                : "is-locked"
+            }`}
           >
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">03</span>
               <span className="na1-mirror-card-status">
-                {m3Unlocked ? "Up next" : "Locked"}
+                {m3Unlocked ? (m3Claimed ? "✓ Sealed" : "Up next") : "Locked"}
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 3</div>
             <h2 className="na1-mirror-card-name">Named Truth</h2>
             <div className="na1-mirror-card-empty">
-              {m3Unlocked ? "Not yet explored." : "Locked."}
+              {m3Unlocked
+                ? m3Claimed
+                  ? "Sealed."
+                  : "Not yet explored."
+                : "Locked."}
             </div>
             {m3Unlocked ? null : (
               <p className="na1-mirror-card-sub">
@@ -34099,7 +34284,7 @@ function NewA2HubView({
                   className="na1-btn-gold na1-btn-block"
                   onClick={onBeginM3}
                 >
-                  Begin Named Truth →
+                  {m3Claimed ? "Sealed · tap to revisit" : "Begin Named Truth →"}
                 </button>
               ) : (
                 <button
@@ -34415,6 +34600,185 @@ const a2m2NewId = (): string =>
   typeof crypto !== "undefined" && (crypto as any).randomUUID
     ? (crypto as any).randomUUID()
     : String(Date.now()) + Math.random();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// A2 Ship 2 · Mirror 3 (Named Truth) · constants + pure helpers
+// ─────────────────────────────────────────────────────────────────────────────
+const A2M3_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "The gap" },
+  { num: 2, name: "Rethink your time" },
+  { num: 3, name: "Claim" },
+];
+
+const A2M3_VEIL_TEXT = "Looking at what the truth is asking of you…";
+
+const A2M3_CONTINUE_LABEL: Record<number, string> = {
+  1: "Continue to Rethink your time →",
+  2: "Continue to Claim →",
+};
+
+// Step 1 · per-priority intent buttons.
+const A2M3_INTENT_OPTIONS: { value: A2M3Intent; label: string }[] = [
+  { value: "yes", label: "✓ This works" },
+  { value: "no", label: "Gap" },
+  { value: "unsure", label: "Not sure" },
+];
+
+// Step 2 · per-activity decision buttons.
+const A2M3_DECISION_OPTIONS: {
+  value: A2M3Decision;
+  label: string;
+  sub: string;
+}[] = [
+  { value: "move", label: "→ Move it", sub: "Someone else or automate" },
+  { value: "reduce", label: "↓ Reduce it", sub: "Do less of it" },
+  { value: "cut", label: "✕ Cut it", sub: "Remove entirely" },
+  { value: "do", label: "✓ Do it", sub: "Keep as is" },
+];
+
+// Step 2 · accordion groups (one open at a time; Despise opens first).
+type A2M3Group = "despise" | "dislike" | "nopriority" | "else";
+const A2M3_GROUP_META: { key: A2M3Group; label: string; note: string }[] = [
+  { key: "despise", label: "Despise", note: "highest cost" },
+  { key: "dislike", label: "Dislike", note: "worth a look" },
+  { key: "nopriority", label: "No priority", note: "serving nothing named" },
+  { key: "else", label: "Everything else", note: "confirm or keep" },
+];
+function a2m3GroupOf(a: A2M2Activity): A2M3Group {
+  if (a.feeling === "despise") return "despise";
+  if (a.feeling === "dislike") return "dislike";
+  if (a.priorityServed.trim() === "") return "nopriority";
+  return "else";
+}
+
+// Effective hrs/week after a decision. null newHrs = keep original; cut = 0.
+function a2m3EffectiveHrs(
+  a: A2M2Activity,
+  dec: A2M3ActivityDecision | undefined,
+): number {
+  if (!dec || dec.decision === "do") return a.hrsPerWeek;
+  if (dec.decision === "cut") return 0;
+  return dec.newHrs !== null ? dec.newHrs : a.hrsPerWeek;
+}
+// Total hrs freed across all activities (never negative per activity).
+function a2m3FreedHrs(
+  activities: A2M2Activity[],
+  decisions: Record<string, A2M3ActivityDecision>,
+): number {
+  return activities.reduce(
+    (s, a) => s + Math.max(0, a.hrsPerWeek - a2m3EffectiveHrs(a, decisions[a.id])),
+    0,
+  );
+}
+
+// Contextual, italic suggestion for an activity card. Empty string = none
+// (shown only for despise / dislike / untagged / love-untagged activities).
+function a2m3Suggestion(a: A2M2Activity): string {
+  const name = a.name.trim() || "this";
+  const hrs = a.hrsPerWeek;
+  const untagged = a.priorityServed.trim() === "";
+  if (a.feeling === "despise" && untagged && hrs >= 5) {
+    return `${hrs} hrs of ${name} with no priority attached — strong candidate for delegation or elimination.`;
+  }
+  if (a.feeling === "dislike" && !untagged) {
+    return `You dislike this but it serves ${a.priorityServed}. Can you reduce it or restructure how it gets done?`;
+  }
+  if (a.feeling === "love" && untagged) {
+    return `You love this — it just wasn't tagged. Tag it and protect it.`;
+  }
+  if (a.feeling === "despise") {
+    return `You despise this — a strong candidate to move, reduce, or cut.`;
+  }
+  if (untagged) {
+    return `This serves no named priority — worth a second look.`;
+  }
+  return "";
+}
+
+// Step 1 · auto insight line, built from M2 data. Empty string = no insight.
+function a2m3Insight(
+  priorities: string[],
+  activities: A2M2Activity[],
+  awakeHours: number,
+): string {
+  const benchmark = awakeHours > 0 ? awakeHours : 112;
+  const hrsFor = (name: string) =>
+    activities
+      .filter((a) => a.priorityServed === name)
+      .reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+  if (priorities.length >= 2) {
+    const p1 = priorities[0];
+    const p2 = priorities[1];
+    const h1 = hrsFor(p1);
+    const h2 = hrsFor(p2);
+    if (h2 > h1) {
+      const y = Math.round((h2 / benchmark) * 100);
+      const x = Math.round((h1 / benchmark) * 100);
+      return `${p1} is your #1 — it's getting ${x}% of your time. ${p2} is #2 and getting more: ${y}%. That's not automatically wrong — is the ${p2} in service of ${p1}, or quietly replacing it?`;
+    }
+  }
+  const tagged = activities.reduce(
+    (s, a) => s + (a.priorityServed.trim() !== "" ? a.hrsPerWeek || 0 : 0),
+    0,
+  );
+  const total = activities.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+  const unaccounted = Math.max(0, total - tagged);
+  if (unaccounted > benchmark * 0.2) {
+    const x = Math.round((unaccounted / benchmark) * 100);
+    return `${x}% of your week is going to activities that serve none of your priorities.`;
+  }
+  return "";
+}
+
+// Step 2 · auto-generated "your move" text, assembled from decisions + trades.
+function a2m3BuildMoveText(
+  activities: A2M2Activity[],
+  decisions: Record<string, A2M3ActivityDecision>,
+  missingItems: A2M2MissingItem[],
+  missingAssignments: Record<string, number>,
+  commitments: A2M3PriorityCommitment[],
+): string {
+  const lines: string[] = [];
+  for (const a of activities) {
+    const dec = decisions[a.id];
+    if (!dec || dec.decision === "do") continue;
+    const name = a.name.trim() || "this activity";
+    const eff = a2m3EffectiveHrs(a, dec);
+    const freed = Math.max(0, a.hrsPerWeek - eff);
+    const who = dec.who.trim();
+    if (dec.decision === "move") {
+      lines.push(
+        `Moving ${name}${who ? ` to ${who}` : ""} (${freed} hrs freed).`,
+      );
+    } else if (dec.decision === "reduce") {
+      lines.push(
+        `Reducing ${name} to ${eff} hrs${
+          who ? ` — ${who} handles the rest` : ""
+        } (${freed} hrs freed).`,
+      );
+    } else if (dec.decision === "cut") {
+      lines.push(`Cutting ${name} (${a.hrsPerWeek} hrs).`);
+    }
+  }
+  const totalFreed = a2m3FreedHrs(activities, decisions);
+  if (totalFreed > 0) lines.push(`That frees ${totalFreed} hours a week.`);
+  for (const it of missingItems) {
+    const hrs = missingAssignments[it.id] || 0;
+    if (hrs > 0) {
+      lines.push(`${hrs} hrs to ${it.name.trim() || "what's missing"}.`);
+    }
+  }
+  for (const c of commitments) {
+    if (c.addedHrs > 0 && c.priority.trim() !== "") {
+      lines.push(
+        `${c.addedHrs} more hrs for ${c.priority}${
+          c.activity.trim() ? ` — ${c.activity.trim()}` : ""
+        }.`,
+      );
+    }
+  }
+  return lines.join(" ");
+}
 
 type A1Recall = {
   purpose: string;
@@ -36932,25 +37296,1197 @@ function NewA2M2Container({
   );
 }
 
-// A2 Ship 1 · Mirror 3 (Named Truth) — placeholder landing shell. The Mirror 2
-// Claim forward CTA and the hub's 03 Begin both route here. Real Named Truth
-// content ships in a later A2 ship; this is just a gated landing so the forward
-// path is never a dead end.
-function NewA2M3Shell({ onBackToA2 }: { onBackToA2: () => void }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// A2 Ship 2 · Mirror 3 (Named Truth) · room
+// ─────────────────────────────────────────────────────────────────────────────
+
+// 3-step indicator. Mirrors NewA2M2Stepper structurally; own na1-a2m3-* classes.
+function NewA2M3Stepper({
+  currentStep,
+  maxReached,
+  onJump,
+}: {
+  currentStep: number;
+  maxReached: number;
+  onJump: (step: number) => void;
+}) {
   return (
-    <div className="na1-a2m3-shell">
-      <div className="na1-room-eyebrow tone-gold">A2 · Mirror 3</div>
-      <h1 className="na1-a2m3-title">
-        Named <em>Truth.</em>
-      </h1>
-      <p className="na1-a2m3-lede">
-        You&rsquo;ve seen where your time goes and what&rsquo;s missing. Named
-        Truth is where you decide what changes — coming in the next chapter.
-      </p>
-      <button type="button" className="na1-btn-ghost" onClick={onBackToA2}>
-        ← Back to A2
-      </button>
+    <div
+      className="na1-a2m3-stepper"
+      role="list"
+      aria-label="Named Truth progress"
+    >
+      {A2M3_STEPS.map((s, i) => {
+        const num = s.num;
+        const isCurrent = num === currentStep;
+        const isComplete = num < maxReached && !isCurrent;
+        const isReached = num <= maxReached;
+        const dotCls = [
+          "na1-a2m3-dot",
+          isCurrent ? "is-current" : "",
+          isComplete ? "is-complete" : "",
+          isReached ? "is-reached" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        const clickable = num < currentStep;
+        const inner = (
+          <>
+            <span className={dotCls} aria-hidden>
+              {isComplete ? "✓" : num}
+            </span>
+            <span
+              className={`na1-a2m3-step-name ${isCurrent ? "is-current" : ""}`}
+            >
+              {s.name}
+            </span>
+          </>
+        );
+        return (
+          <React.Fragment key={num}>
+            {i > 0 && (
+              <span
+                className={`na1-a2m3-line ${num <= maxReached ? "is-reached" : ""}`}
+                aria-hidden
+              />
+            )}
+            {clickable ? (
+              <button
+                type="button"
+                className="na1-a2m3-step is-clickable"
+                onClick={() => onJump(num)}
+                aria-label={`Go back to ${s.name}`}
+              >
+                {inner}
+              </button>
+            ) : (
+              <div
+                className="na1-a2m3-step"
+                role="listitem"
+                aria-current={isCurrent ? "step" : undefined}
+              >
+                {inner}
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
+  );
+}
+
+const A2M3_INTENT_FLAG: Record<A2M3Intent, string> = {
+  yes: "Intentional",
+  no: "Gap",
+  unsure: "Not sure",
+};
+
+// Step 1 · The gap. Reads M2 data; writes only intentMap.
+function NewA2M3Step1Body({
+  priorities,
+  activities,
+  missingItems,
+  awakeHours,
+  intentMap,
+  onSetIntent,
+}: {
+  priorities: string[];
+  activities: A2M2Activity[];
+  missingItems: A2M2MissingItem[];
+  awakeHours: number;
+  intentMap: Record<string, A2M3Intent>;
+  onSetIntent: (name: string, intent: A2M3Intent) => void;
+}) {
+  const benchmark = awakeHours > 0 ? awakeHours : 112;
+  const hrsFor = (name: string) =>
+    activities
+      .filter((a) => a.priorityServed === name)
+      .reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+  const total = activities.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+  const tagged = priorities.reduce((s, n) => s + hrsFor(n), 0);
+  const unaccounted = Math.max(0, total - tagged);
+  const insight = a2m3Insight(priorities, activities, benchmark);
+  const namedMissing = missingItems.filter((m) => m.name.trim() !== "");
+
+  return (
+    <div className="na1-a2m3-step1">
+      <div className="na1-room-eyebrow tone-gold">A2 · MIRROR 3 · STEP 1</div>
+      <h2 className="na1-a2m3-step-title">
+        The <em>gap.</em>
+      </h2>
+      <p className="na1-a2m3-step-lede">
+        Your priorities vs. where your hours actually went. For each one — is
+        this intentional, or invisible?
+      </p>
+
+      <div className="na1-a2m3-context">
+        <div className="na1-a2m3-ctx-card">
+          <div className="na1-a2m3-ctx-head">Your priorities</div>
+          {priorities.length === 0 ? (
+            <p className="na1-a2m3-ctx-empty">No priorities logged in Mirror 2.</p>
+          ) : (
+            priorities.map((name, i) => {
+              const flag = intentMap[name];
+              return (
+                <div className="na1-a2m3-ctx-row" key={name}>
+                  <span className="na1-a2m3-rank" aria-hidden>
+                    {i + 1}
+                  </span>
+                  <span className="na1-a2m3-ctx-name">{name}</span>
+                  <span className="na1-a2m3-ctx-hrs">{hrsFor(name)}h</span>
+                  {flag && (
+                    <span
+                      className={`na1-a2m3-flag is-${flag}`}
+                      data-intent={flag}
+                    >
+                      {A2M3_INTENT_FLAG[flag]}
+                    </span>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+        <div className="na1-a2m3-ctx-card">
+          <div className="na1-a2m3-ctx-head">What&rsquo;s missing</div>
+          {namedMissing.length === 0 ? (
+            <p className="na1-a2m3-ctx-empty">Nothing named as missing.</p>
+          ) : (
+            namedMissing.map((m) => (
+              <div className="na1-a2m3-ctx-row" key={m.id}>
+                <span className="na1-a2m3-miss-dot" aria-hidden />
+                <span className="na1-a2m3-ctx-name">{m.name}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {insight && (
+        <div className="na1-a2m3-insight">
+          <p className="na1-a2m3-insight-text">{insight}</p>
+        </div>
+      )}
+
+      {priorities.map((name, i) => {
+        const hrs = hrsFor(name);
+        const pct = Math.round((hrs / benchmark) * 100);
+        const barW = Math.max(0, Math.min(100, pct));
+        const flag = intentMap[name];
+        return (
+          <div className="na1-a2m3-gap-card" key={name}>
+            <div className="na1-a2m3-gap-top">
+              <span className="na1-a2m3-rank" aria-hidden>
+                {i + 1}
+              </span>
+              <span className="na1-a2m3-gap-name">{name}</span>
+              <span className="na1-a2m3-gap-hrs">{hrs}h</span>
+            </div>
+            <div className="na1-a2m3-bar">
+              <div
+                className="na1-a2m3-bar-fill"
+                style={{ width: `${barW}%` }}
+                aria-hidden
+              />
+            </div>
+            <p className="na1-a2m3-bar-label">
+              {pct}% of your {benchmark}-hr week
+            </p>
+            <div className="na1-a2m3-intent-btns">
+              {A2M3_INTENT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`na1-a2m3-intent-btn is-${opt.value} ${
+                    flag === opt.value ? "is-selected" : ""
+                  }`}
+                  onClick={() => onSetIntent(name, opt.value)}
+                  aria-pressed={flag === opt.value}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {unaccounted > 0 && (
+        <div className="na1-a2m3-gap-card is-unaccounted">
+          <div className="na1-a2m3-gap-top">
+            <span className="na1-a2m3-gap-name">Unaccounted</span>
+            <span className="na1-a2m3-gap-hrs">{unaccounted}h</span>
+          </div>
+          <div className="na1-a2m3-bar">
+            <div
+              className="na1-a2m3-bar-fill is-burgundy"
+              style={{
+                width: `${Math.max(0, Math.min(100, Math.round((unaccounted / benchmark) * 100)))}%`,
+              }}
+              aria-hidden
+            />
+          </div>
+          <p className="na1-a2m3-bar-label">
+            {Math.round((unaccounted / benchmark) * 100)}% of your week · Serves
+            no priority
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const A2M3_FEELING_LABEL: Record<A2M2Feeling, string> = {
+  love: "Love",
+  like: "Like",
+  dislike: "Dislike",
+  despise: "Despise",
+};
+
+// Step 2 · Rethink your time. The heaviest step: freed-hours hero, accordion
+// groups of activity-decision cards, the trade panel, the auto-built move, and
+// the Self Feedback (Map of Me) call.
+function NewA2M3Step2Body({
+  m2,
+  m3,
+  onSetDecision,
+  onSetMissing,
+  onAddCommitment,
+  onUpdateCommitment,
+  onRemoveCommitment,
+  onMoveText,
+  onSelfFeedback,
+}: {
+  m2: A2M2State;
+  m3: A2M3State;
+  onSetDecision: (id: string, patch: Partial<A2M3ActivityDecision>) => void;
+  onSetMissing: (id: string, hrs: number) => void;
+  onAddCommitment: (priority: string) => void;
+  onUpdateCommitment: (
+    index: number,
+    patch: Partial<A2M3PriorityCommitment>,
+  ) => void;
+  onRemoveCommitment: (index: number) => void;
+  onMoveText: (text: string) => void;
+  onSelfFeedback: (text: string) => void;
+}) {
+  const decisions = m3.activityDecisions;
+  const activities = m2.activities.filter((a) => a.name.trim() !== "");
+  const freed = a2m3FreedHrs(activities, decisions);
+
+  // Accordion: one group open at a time; default the first non-empty group,
+  // preferring Despise.
+  const groupActs = (key: A2M3Group) =>
+    activities.filter((a) => a2m3GroupOf(a) === key);
+  const firstNonEmpty =
+    A2M3_GROUP_META.find((g) => groupActs(g.key).length > 0)?.key ?? null;
+  const [openGroup, setOpenGroup] = useState<A2M3Group | null>(firstNonEmpty);
+
+  // Assigned freed hrs (missing items + priority commitments) vs. freed total.
+  const assignedMissing = Object.values(m3.missingAssignments).reduce(
+    (s, n) => s + (n || 0),
+    0,
+  );
+  const assignedPriorities = m3.priorityCommitments.reduce(
+    (s, c) => s + (c.addedHrs || 0),
+    0,
+  );
+  const remaining = freed - assignedMissing - assignedPriorities;
+
+  const autoMove = a2m3BuildMoveText(
+    activities,
+    decisions,
+    m2.missingItems,
+    m3.missingAssignments,
+    m3.priorityCommitments,
+  );
+  const moveValue = m3.moveText.trim() !== "" ? m3.moveText : autoMove;
+
+  // Add-priority dropdown selection (local).
+  const [pickPriority, setPickPriority] = useState<string>("");
+  const usedPriorities = new Set(
+    m3.priorityCommitments.map((c) => c.priority),
+  );
+  const availablePriorities = m2.priorities.filter(
+    (p) => !usedPriorities.has(p),
+  );
+
+  // Self Feedback fetch state.
+  const [fbLoading, setFbLoading] = useState(false);
+  const [fbError, setFbError] = useState<string>("");
+  const runSelfFeedback = async () => {
+    if (fbLoading || m3.selfFeedback.trim() !== "") return;
+    setFbError("");
+    setFbLoading(true);
+    try {
+      const context = a2m3MapOfMeContext();
+      const system =
+        "You are reflecting back to the user what their own Map of Me says about the decision they just made. Read their A1 data and write a short paragraph (3-4 sentences) in THEIR voice — using their own words from their purpose, values, and behaviors. Do not use \"Katherine says\" or any third-person framing. This is the user's own truth reflected back. Keep it grounded, specific to their actual inputs, and connect their time decision to who they said they are.";
+      const user = `Here is my Map of Me:\n${context || "(no Map of Me data found)"}\n\nMy one move (the time decision I just made):\n${moveValue || "(no move named yet)"}\n\nReflect my own truth back to me.`;
+      const res = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 500,
+          system,
+          messages: [{ role: "user", content: user }],
+        }),
+      });
+      const data: any = await res.json();
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error?.message || data?.error || `HTTP ${res.status}`);
+      }
+      const text = (
+        data?.content?.map((b: any) => b?.text || "").join("") || ""
+      ).trim();
+      if (!text) throw new Error("Empty response.");
+      onSelfFeedback(text);
+    } catch (e: any) {
+      setFbError(e?.message || "Could not reach the reflection. Try again.");
+    } finally {
+      setFbLoading(false);
+    }
+  };
+
+  return (
+    <div className="na1-a2m3-step2">
+      <div className="na1-room-eyebrow tone-gold">A2 · MIRROR 3 · STEP 2</div>
+      <h2 className="na1-a2m3-step-title">
+        Rethink your <em>time.</em>
+      </h2>
+      <p className="na1-a2m3-step-lede">
+        Your week, laid out. Change what needs changing — leave the rest.
+      </p>
+
+      <div className="na1-a2m3-note">
+        You don&rsquo;t have to go through all of this. If an activity is fine as
+        is, leave it — the system keeps your original hours. Only act where
+        something needs to change.
+      </div>
+
+      <div className="na1-a2m3-freed-hero">
+        <div className="na1-a2m3-freed-num">{freed}</div>
+        <div className="na1-a2m3-freed-label">
+          {freed === 0 ? "hrs freed so far" : "hrs freed this week"}
+        </div>
+      </div>
+
+      {activities.length === 0 ? (
+        <p className="na1-a2m3-ctx-empty">No activities logged in Mirror 2.</p>
+      ) : (
+        A2M3_GROUP_META.map((g) => {
+          const acts = groupActs(g.key);
+          if (acts.length === 0) return null;
+          const groupHrs = acts.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+          const groupFreed = a2m3FreedHrs(acts, decisions);
+          const isOpen = openGroup === g.key;
+          return (
+            <div
+              className={`na1-a2m3-accordion is-${g.key} ${isOpen ? "is-open" : ""}`}
+              key={g.key}
+            >
+              <button
+                type="button"
+                className="na1-a2m3-acc-head"
+                onClick={() => setOpenGroup(isOpen ? null : g.key)}
+                aria-expanded={isOpen}
+              >
+                <span className="na1-a2m3-acc-label">{g.label}</span>
+                <span className="na1-a2m3-acc-note">{g.note}</span>
+                <span className="na1-a2m3-acc-meta">
+                  {acts.length} · {groupHrs}h
+                  {groupFreed > 0 ? ` · ${groupFreed}h freed` : ""}
+                </span>
+                <span className="na1-a2m3-acc-chevron" aria-hidden>
+                  {isOpen ? "▾" : "▸"}
+                </span>
+              </button>
+              {isOpen && (
+                <div className="na1-a2m3-acc-body">
+                  {acts.map((a) => {
+                    const dec = decisions[a.id];
+                    const decision = dec?.decision ?? "do";
+                    const showDetail =
+                      decision === "move" || decision === "reduce";
+                    const eff = a2m3EffectiveHrs(a, dec);
+                    const actFreed = Math.max(0, a.hrsPerWeek - eff);
+                    const suggestion = a2m3Suggestion(a);
+                    return (
+                      <div className="na1-a2m3-act" key={a.id}>
+                        <div className="na1-a2m3-act-top">
+                          <span className="na1-a2m3-act-name">{a.name}</span>
+                          <span
+                            className="na1-a2m3-act-feel"
+                            data-feeling={a.feeling}
+                          >
+                            {A2M3_FEELING_LABEL[a.feeling]}
+                          </span>
+                          <span
+                            className={`na1-a2m3-act-pri ${
+                              a.priorityServed.trim() ? "is-tagged" : "is-none"
+                            }`}
+                          >
+                            {a.priorityServed.trim() || "No priority"}
+                          </span>
+                          <span className="na1-a2m3-act-hrs">
+                            {a.hrsPerWeek}h
+                          </span>
+                        </div>
+                        <div className="na1-a2m3-dec-btns">
+                          {A2M3_DECISION_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={`na1-a2m3-dec-btn is-${opt.value} ${
+                                decision === opt.value ? "is-selected" : ""
+                              }`}
+                              onClick={() =>
+                                onSetDecision(a.id, { decision: opt.value })
+                              }
+                              aria-pressed={decision === opt.value}
+                            >
+                              <span className="na1-a2m3-dec-main">
+                                {opt.label}
+                              </span>
+                              <span className="na1-a2m3-dec-sub">{opt.sub}</span>
+                            </button>
+                          ))}
+                        </div>
+                        {showDetail && (
+                          <div className="na1-a2m3-detail">
+                            <div className="na1-a2m3-detail-row">
+                              <label className="na1-a2m3-detail-label">
+                                Your hrs / week
+                              </label>
+                              <input
+                                type="number"
+                                min={0}
+                                max={a.hrsPerWeek}
+                                className="na1-a2m3-detail-input"
+                                value={dec?.newHrs ?? ""}
+                                placeholder="0"
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  onSetDecision(a.id, {
+                                    newHrs:
+                                      v === ""
+                                        ? null
+                                        : Math.max(
+                                            0,
+                                            Math.min(
+                                              a.hrsPerWeek,
+                                              Math.round(Number(v) || 0),
+                                            ),
+                                          ),
+                                  });
+                                }}
+                              />
+                              {actFreed > 0 && (
+                                <span className="na1-a2m3-detail-freed">
+                                  +{actFreed} hrs freed
+                                </span>
+                              )}
+                            </div>
+                            <div className="na1-a2m3-detail-row">
+                              <label className="na1-a2m3-detail-label">
+                                Who / what takes the rest
+                              </label>
+                              <input
+                                type="text"
+                                className="na1-a2m3-detail-text"
+                                value={dec?.who ?? ""}
+                                placeholder="e.g. Leighann, VA, automation…"
+                                onChange={(e) =>
+                                  onSetDecision(a.id, { who: e.target.value })
+                                }
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {suggestion && (
+                          <p className="na1-a2m3-act-suggest">{suggestion}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+
+      <div className={`na1-a2m3-trade ${freed > 0 ? "" : "is-muted"}`}>
+        <div className="na1-a2m3-trade-head">Where do those hours go?</div>
+        <p className="na1-a2m3-trade-sub">
+          {freed > 0
+            ? `You've freed ${freed} hours. Assign them where they matter most.`
+            : "Make changes above to free up hours first."}
+        </p>
+
+        {m2.missingItems.filter((m) => m.name.trim() !== "").length > 0 && (
+          <div className="na1-a2m3-trade-sec">
+            <div className="na1-a2m3-trade-sec-head">What&rsquo;s missing</div>
+            {m2.missingItems
+              .filter((m) => m.name.trim() !== "")
+              .map((m) => {
+                const v = m3.missingAssignments[m.id] || 0;
+                return (
+                  <div
+                    className={`na1-a2m3-trade-row ${v > 0 ? "is-active" : ""}`}
+                    key={m.id}
+                  >
+                    <span className="na1-a2m3-miss-dot" aria-hidden />
+                    <span className="na1-a2m3-trade-name">{m.name}</span>
+                    {m.priorityTag.trim() && (
+                      <span className="na1-a2m3-trade-tag">
+                        {m.priorityTag}
+                      </span>
+                    )}
+                    <input
+                      type="number"
+                      min={0}
+                      className="na1-a2m3-trade-input"
+                      value={v || ""}
+                      placeholder="0"
+                      onChange={(e) =>
+                        onSetMissing(
+                          m.id,
+                          Math.max(0, Math.round(Number(e.target.value) || 0)),
+                        )
+                      }
+                    />
+                    <span className="na1-a2m3-trade-unit">hrs / wk</span>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        <div className="na1-a2m3-trade-sec">
+          <div className="na1-a2m3-trade-sec-head">Add more to a priority</div>
+          <div className="na1-a2m3-trade-add">
+            <select
+              className="na1-a2m3-trade-select"
+              value={pickPriority}
+              onChange={(e) => setPickPriority(e.target.value)}
+            >
+              <option value="">Choose a priority to add time to…</option>
+              {availablePriorities.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="na1-btn-ghost na1-a2m3-trade-addbtn"
+              disabled={pickPriority === ""}
+              onClick={() => {
+                if (pickPriority === "") return;
+                onAddCommitment(pickPriority);
+                setPickPriority("");
+              }}
+            >
+              + Add
+            </button>
+          </div>
+          {m3.priorityCommitments.map((c, idx) => (
+            <div className="na1-a2m3-commit" key={`${c.priority}-${idx}`}>
+              <div className="na1-a2m3-commit-top">
+                <span className="na1-a2m3-commit-dot" aria-hidden />
+                <span className="na1-a2m3-commit-name">{c.priority}</span>
+                <input
+                  type="number"
+                  min={0}
+                  className="na1-a2m3-trade-input"
+                  value={c.addedHrs || ""}
+                  placeholder="0"
+                  onChange={(e) =>
+                    onUpdateCommitment(idx, {
+                      addedHrs: Math.max(
+                        0,
+                        Math.round(Number(e.target.value) || 0),
+                      ),
+                    })
+                  }
+                />
+                <span className="na1-a2m3-trade-unit">more hrs / wk</span>
+                <button
+                  type="button"
+                  className="na1-a2m3-commit-x"
+                  onClick={() => onRemoveCommitment(idx)}
+                  aria-label={`Remove ${c.priority}`}
+                >
+                  ×
+                </button>
+              </div>
+              <input
+                type="text"
+                className="na1-a2m3-commit-activity"
+                value={c.activity}
+                placeholder="What will you do with this time? e.g. Sunday afternoons at the park with the kids…"
+                onChange={(e) =>
+                  onUpdateCommitment(idx, { activity: e.target.value })
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="na1-a2m3-remain">
+          <div className="na1-a2m3-remain-label">
+            {remaining > 0
+              ? "HRS STILL TO ASSIGN"
+              : remaining === 0
+                ? "ALL HOURS ASSIGNED"
+                : "HRS OVER-ASSIGNED"}
+          </div>
+          <div
+            className={`na1-a2m3-remain-num ${
+              remaining === 0 ? "is-zero" : remaining < 0 ? "is-over" : ""
+            }`}
+          >
+            {Math.abs(remaining)}
+          </div>
+        </div>
+      </div>
+
+      <div className="na1-a2m3-move">
+        <div className="na1-a2m3-move-label">
+          Your move — built from your decisions
+        </div>
+        <p className="na1-a2m3-move-preview">
+          {moveValue ||
+            "Leave activities as is or make changes above — your move will build itself here."}
+        </p>
+        <textarea
+          className="na1-a2m3-move-text"
+          value={moveValue}
+          rows={3}
+          onChange={(e) => onMoveText(e.target.value)}
+        />
+      </div>
+
+      <div className="na1-a2m3-feedback">
+        {m3.selfFeedback.trim() !== "" ? (
+          <div className="na1-a2m3-feedback-card">
+            <div className="na1-a2m3-feedback-head">
+              What your Map of Me says
+            </div>
+            <p className="na1-a2m3-feedback-text">{m3.selfFeedback}</p>
+            <p className="na1-a2m3-feedback-note">
+              Built from your own words — your purpose, values, and behaviors as
+              you named them.
+            </p>
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="na1-btn-ghost na1-a2m3-feedback-btn"
+              onClick={runSelfFeedback}
+              disabled={fbLoading}
+            >
+              {fbLoading ? "Reading your Map of Me…" : "◎ Check this against my Map of Me"}
+            </button>
+            {fbError && <p className="na1-a2m3-feedback-err">{fbError}</p>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Map of Me context blob for the Self Feedback call. Defensive — pulls whatever
+// purpose / gifts / values / behaviors exist from the A1 stores.
+function a2m3MapOfMeContext(): string {
+  const parts: string[] = [];
+  try {
+    const map: any = loadDataSync(KEYS.map) || {};
+    const purpose = (map.purpose_final || map.purpose_draft || "")
+      .toString()
+      .trim();
+    if (purpose) parts.push(`PURPOSE (their words): "${purpose}"`);
+    const m3: any = map.mirror3;
+    if (m3) {
+      const gifts = Array.isArray(m3.pickedGifts) ? m3.pickedGifts : [];
+      const giftLabels = gifts
+        .map((g: any) => g?.label || g?.name || g?.title || g?.text)
+        .filter(Boolean);
+      if (giftLabels.length)
+        parts.push(`IDENTITY / GIFTS: ${giftLabels.join(", ")}`);
+    }
+  } catch {}
+  try {
+    const m4: any = loadDataSync("to_mirror4_state_v1") || {};
+    const clusters = Array.isArray(m4.clusters) ? m4.clusters : [];
+    const clusterNames = clusters
+      .map((c: any) => c?.name || c?.label)
+      .filter(Boolean);
+    if (clusterNames.length) parts.push(`VALUES: ${clusterNames.join(", ")}`);
+    const behaviors = Array.isArray(m4.behaviors) ? m4.behaviors : [];
+    const behaviorLabels = behaviors
+      .map((b: any) => b?.label || b?.text || b?.name)
+      .filter(Boolean)
+      .slice(0, 25);
+    if (behaviorLabels.length)
+      parts.push(`BEHAVIORS: ${behaviorLabels.join(", ")}`);
+  } catch {}
+  return parts.join("\n");
+}
+
+// Step 3 · Claim. Summary + seal + gold burst + re-claim + forward CTA.
+function NewA2M3Step3Body({
+  m2,
+  m3,
+  onClaim,
+  onReclaim,
+  onContinueToA3,
+}: {
+  m2: A2M2State;
+  m3: A2M3State;
+  onClaim: () => void;
+  onReclaim: () => void;
+  onContinueToA3: () => void;
+}) {
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const activities = m2.activities.filter((a) => a.name.trim() !== "");
+  const namedMissing = m2.missingItems.filter((it) => it.name.trim() !== "");
+
+  const autoMove = a2m3BuildMoveText(
+    activities,
+    m3.activityDecisions,
+    m2.missingItems,
+    m3.missingAssignments,
+    m3.priorityCommitments,
+  );
+  const moveValue = m3.moveText.trim() !== "" ? m3.moveText : autoMove;
+
+  const hrsFor = (name: string) =>
+    activities
+      .filter((a) => a.priorityServed === name)
+      .reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+
+  const gapPriorities = m2.priorities.filter((p) => m3.intentMap[p] === "no");
+
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const fireBurst = (after: () => void) => {
+    if (showBurst) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      after();
+    }, 2000);
+  };
+  const handleClaim = () => {
+    if (m3.claimed) return;
+    fireBurst(onClaim);
+  };
+  const handleReclaim = () => fireBurst(onReclaim);
+
+  const burstPortal =
+    showBurst &&
+    createPortal(
+      <div className="na1-gold-burst" aria-hidden>
+        <div className="na1-gold-burst-inner" />
+      </div>,
+      document.body,
+    );
+
+  // Dynamic seal copy referencing #1 priority, gaps, and missing items.
+  const p1 = m2.priorities[0] || "your #1";
+  const gapClause =
+    gapPriorities.length > 0
+      ? ` You've called ${gapPriorities.join(", ")} out as ${
+          gapPriorities.length > 1 ? "gaps" : "a gap"
+        }.`
+      : "";
+  const missClause =
+    namedMissing.length > 0
+      ? ` ${namedMissing.length} thing${
+          namedMissing.length > 1 ? "s" : ""
+        } that want space still ${namedMissing.length > 1 ? "don't" : "doesn't"} have it yet.`
+      : "";
+  const sealBody = `${displayName ? `${displayName}, you` : "You"} named ${p1} as #1 — and you've just looked at what your week actually says about that.${gapClause}${missClause} One move named. That's what alignment starts with — not perfect, just honest.`;
+
+  const summaryCard = (
+    <div className="na1-a2m3-summary">
+      <div className="na1-a2m3-summary-head">Your priorities</div>
+      {m2.priorities.map((name, i) => {
+        const flag = m3.intentMap[name];
+        return (
+          <div className="na1-a2m3-summary-row" key={name}>
+            <span className="na1-a2m3-rank" aria-hidden>
+              {i + 1}
+            </span>
+            <span className="na1-a2m3-summary-name">{name}</span>
+            <span className="na1-a2m3-summary-hrs">{hrsFor(name)}h</span>
+            {flag && (
+              <span className={`na1-a2m3-flag is-${flag}`} data-intent={flag}>
+                {A2M3_INTENT_FLAG[flag]}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div className="na1-a2m3-step3">
+      {burstPortal}
+      <div className="na1-room-eyebrow tone-gold">A2 · MIRROR 3 · CLAIM ★</div>
+      <h2 className="na1-a2m3-step-title">
+        Claim <em>it.</em>
+      </h2>
+      <p className="na1-a2m3-step-lede">
+        What the audit showed. What you named. What you&rsquo;re doing about it.
+      </p>
+
+      {summaryCard}
+
+      {namedMissing.length > 0 && (
+        <div className="na1-a2m3-missing-card">
+          <div className="na1-a2m3-missing-card-head">Still waiting for space</div>
+          {namedMissing.map((it) => (
+            <div className="na1-a2m3-missing-card-row" key={it.id}>
+              <span className="na1-a2m3-miss-dot" aria-hidden />
+              <span className="na1-a2m3-missing-card-name">{it.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="na1-a2m3-move-card">
+        <div className="na1-a2m3-move-card-head">Your one move</div>
+        <p className="na1-a2m3-move-card-text">
+          {moveValue || "No changes named — your week stands as is."}
+        </p>
+      </div>
+
+      {m3.selfFeedback.trim() !== "" && (
+        <div className="na1-a2m3-feedback-card">
+          <div className="na1-a2m3-feedback-head">What your Map of Me says</div>
+          <p className="na1-a2m3-feedback-text">{m3.selfFeedback}</p>
+        </div>
+      )}
+
+      <div className="na1-a2m3-seal" role="status">
+        <div className="na1-a2m3-seal-eyebrow">A2 · MIRROR 3 · CLAIM ★</div>
+        <p className="na1-a2m3-seal-body">{sealBody}</p>
+        <p className="na1-a2m3-seal-by">— Katherine</p>
+      </div>
+
+      {m3.claimed ? (
+        <>
+          <div className="na1-a2m3-reclaim">
+            <p className="na1-a2m3-reclaim-note">Changed something? Re-commit.</p>
+            <button
+              type="button"
+              className="na1-btn-ghost"
+              onClick={handleReclaim}
+              disabled={showBurst}
+            >
+              ↺ Re-claim
+            </button>
+          </div>
+          <div className="na1-a2m3-claim-actions">
+            <button
+              type="button"
+              className="na1-btn-gold na1-btn-block"
+              onClick={onContinueToA3}
+            >
+              Continue to A3 →
+            </button>
+            <p className="na1-a2m3-soon">A3 · Advocate For It — coming soon.</p>
+          </div>
+        </>
+      ) : (
+        <div className="na1-a2m3-claim-actions">
+          <button
+            type="button"
+            className="na1-btn-gold na1-btn-block na1-a2m3-claim-btn"
+            onClick={handleClaim}
+            disabled={showBurst}
+          >
+            Claim my Named Truth →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// A2 Ship 2 · Mirror 3 (Named Truth) room container. Mirrors NewA2M2Container:
+// veil on fresh entry, 3-step stepper, per-step bodies, persistence via mutateM3.
+function NewA2M3Container({
+  onBackToA2,
+  onContinueToA3,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA2: () => void;
+  onContinueToA3: () => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a2State, setA2State] = useState<A2State>(() => loadA2State());
+  const m2 = a2State.m2;
+  const m3 = a2State.m3;
+  const mutateM3 = useCallback((fn: (m: A2M3State) => A2M3State) => {
+    setA2State((prev) => {
+      const next = { ...prev, m3: fn(prev.m3) };
+      saveA2State(next);
+      return next;
+    });
+  }, []);
+
+  const resuming = initialRoomKey === "namedtruth";
+  const launchVeil = !resuming && !m3.claimed;
+
+  const [currentStep, setCurrentStep] = useState<number>(m3.claimed ? 3 : 1);
+  const [maxReached, setMaxReached] = useState<number>(m3.claimed ? 3 : 1);
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => setVeilPhase("falling"), NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    onRoomChange(roomOpen ? "namedtruth" : null);
+  }, [roomOpen, onRoomChange]);
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA2();
+  };
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(3, step));
+    setCurrentStep(clamped);
+    setMaxReached((m) => Math.max(m, clamped));
+  };
+  const onBack = () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+    else closeRoom();
+  };
+  const onContinue = () => {
+    if (currentStep < 3) goToStep(currentStep + 1);
+  };
+
+  // Step 1 intent.
+  const setIntent = (name: string, intent: A2M3Intent) =>
+    mutateM3((m) => ({
+      ...m,
+      intentMap: { ...m.intentMap, [name]: intent },
+    }));
+
+  // Step 2 decision (merges onto the default so partial patches keep prior).
+  const setDecision = (id: string, patch: Partial<A2M3ActivityDecision>) =>
+    mutateM3((m) => {
+      const prev: A2M3ActivityDecision = m.activityDecisions[id] ?? {
+        decision: "do",
+        newHrs: null,
+        who: "",
+      };
+      return {
+        ...m,
+        activityDecisions: {
+          ...m.activityDecisions,
+          [id]: { ...prev, ...patch },
+        },
+      };
+    });
+  const setMissing = (id: string, hrs: number) =>
+    mutateM3((m) => ({
+      ...m,
+      missingAssignments: { ...m.missingAssignments, [id]: hrs },
+    }));
+  const addCommitment = (priority: string) =>
+    mutateM3((m) => ({
+      ...m,
+      priorityCommitments: [
+        ...m.priorityCommitments,
+        { priority, addedHrs: 0, activity: "" },
+      ],
+    }));
+  const updateCommitment = (
+    index: number,
+    patch: Partial<A2M3PriorityCommitment>,
+  ) =>
+    mutateM3((m) => ({
+      ...m,
+      priorityCommitments: m.priorityCommitments.map((c, i) =>
+        i === index ? { ...c, ...patch } : c,
+      ),
+    }));
+  const removeCommitment = (index: number) =>
+    mutateM3((m) => ({
+      ...m,
+      priorityCommitments: m.priorityCommitments.filter((_, i) => i !== index),
+    }));
+  const setMoveText = (text: string) =>
+    mutateM3((m) => ({ ...m, moveText: text }));
+  const setSelfFeedback = (text: string) =>
+    mutateM3((m) => ({ ...m, selfFeedback: text }));
+
+  // Claim seals + stamps; captures the live auto-move text if the user never
+  // edited it, so the claimed move is always concrete. reclaim re-stamps only.
+  const claimM3 = () =>
+    mutateM3((m) => {
+      const activities = m2.activities.filter((a) => a.name.trim() !== "");
+      const move =
+        m.moveText.trim() !== ""
+          ? m.moveText
+          : a2m3BuildMoveText(
+              activities,
+              m.activityDecisions,
+              m2.missingItems,
+              m.missingAssignments,
+              m.priorityCommitments,
+            );
+      return {
+        ...m,
+        moveText: move,
+        claimed: true,
+        claimedAt: new Date().toISOString(),
+      };
+    });
+  const reclaimM3 = () =>
+    mutateM3((m) => ({ ...m, claimedAt: new Date().toISOString() }));
+
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  return (
+    <>
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Named Truth"
+        >
+          <div className="na1-room-card na1-a2m3-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>Named Truth</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A2M3_STEPS[currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <NewA2M3Stepper
+              currentStep={currentStep}
+              maxReached={maxReached}
+              onJump={goToStep}
+            />
+            <div className="na1-a2m3-body">
+              {currentStep === 1 ? (
+                <NewA2M3Step1Body
+                  priorities={m2.priorities}
+                  activities={m2.activities}
+                  missingItems={m2.missingItems}
+                  awakeHours={m2.awakeHoursPerWeek}
+                  intentMap={m3.intentMap}
+                  onSetIntent={setIntent}
+                />
+              ) : currentStep === 2 ? (
+                <NewA2M3Step2Body
+                  m2={m2}
+                  m3={m3}
+                  onSetDecision={setDecision}
+                  onSetMissing={setMissing}
+                  onAddCommitment={addCommitment}
+                  onUpdateCommitment={updateCommitment}
+                  onRemoveCommitment={removeCommitment}
+                  onMoveText={setMoveText}
+                  onSelfFeedback={setSelfFeedback}
+                />
+              ) : (
+                <NewA2M3Step3Body
+                  m2={m2}
+                  m3={m3}
+                  onClaim={claimM3}
+                  onReclaim={reclaimM3}
+                  onContinueToA3={onContinueToA3}
+                />
+              )}
+            </div>
+            <div className="na1-a2m3-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>
+                {currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              {currentStep < 3 && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onContinue}
+                >
+                  {A2M3_CONTINUE_LABEL[currentStep] ?? "Continue"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A2M3_VEIL_TEXT} />
+      )}
+    </>
   );
 }
 
@@ -37038,6 +38574,11 @@ function NewA1View({ name }: { name?: string }) {
     if (saved.overlay.hubId === "a2m2") {
       if (saved.view === "a2m2" && NEW_A2_FLAG) return saved.overlay;
     }
+    // A2 Ship 2 · Restore the Named Truth room overlay only when the saved view
+    // matches and the A2 flag is on.
+    if (saved.overlay.hubId === "a2m3") {
+      if (saved.view === "a2m3" && NEW_A2_FLAG) return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -37054,6 +38595,9 @@ function NewA1View({ name }: { name?: string }) {
   );
   const initialA2M2RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a2m2" ? overlayRoute.roomId : null,
+  );
+  const initialA2M3RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a2m3" ? overlayRoute.roomId : null,
   );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
@@ -37073,6 +38617,7 @@ function NewA1View({ name }: { name?: string }) {
       view !== "m4" &&
       view !== "a2m1" &&
       view !== "a2m2" &&
+      view !== "a2m3" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -37118,6 +38663,17 @@ function NewA1View({ name }: { name?: string }) {
   const onA2M2RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
       const next: AppRouteOverlay = roomId ? { hubId: "a2m2", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A2 Ship 2 · Named Truth room (single room "namedtruth") reports open/close.
+  const onA2M3RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a2m3", roomId } : null;
       if (prev === next) return prev;
       if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
         return prev;
@@ -37524,11 +39080,15 @@ function NewA1View({ name }: { name?: string }) {
   // A2 hub's gated 03 Begin (unlocked once Mirror 2 is claimed) and the Mirror 2
   // Claim forward CTA. Spine kept for consistent A2 chrome.
   if (view === "a2m3") {
+    const initialKey = initialA2M3RoomKeyRef.current;
+    initialA2M3RoomKeyRef.current = null;
     return (
-      <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
-        <NewA2M3Shell onBackToA2={() => setView("a2")} />
-      </div>
+      <NewA2M3Container
+        onBackToA2={() => setView("a2")}
+        onContinueToA3={() => setView("a2")}
+        initialRoomKey={initialKey}
+        onRoomChange={onA2M3RoomChange}
+      />
     );
   }
   if (view === "entry-hall") {

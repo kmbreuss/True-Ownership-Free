@@ -1,0 +1,457 @@
+Ship A2 · Ship 2 of 3
+
+Mirror 3 — Named Truth (Full Build)
+
+File: artifacts/true-ownership/src/App.tsx
+Flag: ?newA2=1 — same flag. All code additive. A1, M1, M2, and legacy A2 untouched.
+State key: to_a2_state_v1.m3.*
+Prerequisite: M2 must be claimed before M3 unlocks. Read M2 state from to_a2_state_v1.m2 throughout.
+CSS namespace: na1-a2m3-* — never reuse M1 (na1-a2m1-*) or M2 (na1-a2m2-*) classes.
+
+
+What M3 Does
+
+M3 (Named Truth) takes everything the user logged in M2 and turns it into decisions and a commitment. Three steps:
+
+
+The gap — auto-calculated from M2 data. No new input. Just the mirror.
+Rethink your time — decisions on every activity (Move it / Reduce it / Cut it / Do it) + trade freed hours into missing items or more priority time.
+Claim — summary + Self Feedback + Katherine seal + gold burst.
+
+
+
+State Schema — writes to to_a2_state_v1.m3
+
+typescriptm3: {
+  // Step 2 decisions
+  activityDecisions: {
+    [activityId: string]: {
+      decision: 'move' | 'reduce' | 'cut' | 'do',
+      newHrs: number | null,   // null = use original. 0 = cut.
+      who: string,             // who/what takes the rest (move or reduce)
+    }
+  },
+
+  // Step 2 trade panel
+  missingAssignments: {
+    [missingItemId: string]: number   // hrs assigned to this missing item
+  },
+  priorityCommitments: Array<{
+    priority: string,          // matches a priority name from m2.priorities
+    addedHrs: number,
+    activity: string,          // what they'll do with the time — carries to A4
+  }>,
+
+  // Step 2 move text
+  moveText: string,            // auto-generated, user-editable
+
+  // Step 1 intent
+  intentMap: {
+    [priorityName: string]: 'yes' | 'no' | 'unsure'
+  },
+
+  // Self Feedback
+  selfFeedback: string,        // cached API response
+
+  // Claim
+  claimed: boolean,
+  claimedAt: string | null,
+}
+
+
+Room Architecture
+
+M3 runs as ONE continuous room — same pattern as M1 and M2. Horizontal 3-step indicator at top:
+
+Step 1: The gap   →   Step 2: Rethink your time   →   Step 3: Claim
+
+
+Steps fill gold + ✓ when passed
+Current step ringed gold
+Future steps muted
+Veil on room entry: "Looking at what the truth is asking of you…"
+Close (×) → back to A2 hub
+Back button between steps
+
+
+
+Step 1 — The Gap
+
+Eyebrow: A2 · MIRROR 3 · STEP 1
+Title (Georgia serif): The *gap.* (italic gold on "gap")
+Lead: "Your priorities vs. where your hours actually went. For each one — is this intentional, or invisible?"
+
+Context strip (2-column grid, collapses to 1-col on mobile)
+
+Left card — Your gaps:
+One row per priority from m2.priorities[]:
+
+
+Rank circle (gold) · priority name · total hrs logged for that priority · intent flag (shown after user taps — see below)
+
+
+Right card — What's missing:
+One row per item from m2.missingItems[]:
+
+
+Burgundy dot · item name
+
+
+Insight card (burgundy-tinted, before the gap rows)
+
+Auto-generated from M2 data. Logic:
+
+
+Find m2.priorities[0] (the #1 priority) and its logged hours + % of m2.weeklyHours
+Find m2.priorities[1] (the #2 priority) and compare
+If #2 has more hours than #1: "[Priority1] is your #1 — it's getting [X]% of your time. [Priority2] is #2 and getting more: [Y]%. That's not automatically wrong — is the [priority2] in service of [priority1], or quietly replacing it?"
+If unaccounted hours > 20% of weekly benchmark: "[X]% of your week is going to activities that serve none of your priorities."
+
+
+Gap rows — one card per priority
+
+Each priority gets its own card:
+
+
+Top row: rank circle · priority name · total hrs that week
+Progress bar (gold fill, animated) showing % of m2.weeklyHours benchmark
+Percentage label below bar: "X% of your [112-hr] week"
+Three intent buttons (full width, equal columns):
+
+✓ This works — gold when selected
+Gap — burgundy when selected
+Not sure — amber/tan when selected
+
+
+
+
+
+Selecting an intent button saves to m3.intentMap[priorityName].
+
+Unaccounted row
+
+If any activities have no priority tagged:
+
+
+Burgundy-tinted card
+Shows total unaccounted hours · burgundy bar · % of week
+Label: "Serves no priority"
+
+
+Continue button: "Continue to Rethink your time →"
+Saves m3.intentMap on every tap.
+
+
+Step 2 — Rethink Your Time
+
+Eyebrow: A2 · MIRROR 3 · STEP 2
+Title: Rethink your *time.*
+Lead: "Your week, laid out. Change what needs changing — leave the rest."
+
+Default note (gold-tinted card at top)
+
+"You don't have to go through all of this. If an activity is fine as is, leave it — the system keeps your original hours. Only act where something needs to change."
+
+Freed hours counter (hero display)
+
+Gold card, always visible, updates live:
+
+
+Large Georgia serif number (gold, ~38px): total hours freed so far
+Label: "hrs freed this week" (or "hrs freed so far" when 0)
+Recalculates on every decision change
+
+
+Freed hours calculation:
+
+freed = sum over all activities of (originalHrs - effectiveHrs)
+effectiveHrs = 
+  if decision === 'cut': 0
+  if decision === 'move' or 'reduce' AND newHrs !== null: newHrs
+  else: originalHrs (default)
+
+Accordion groups
+
+Four groups. One open at a time — tapping a header opens it and closes the others. Despise opens first by default.
+
+Each accordion header shows:
+
+
+Group label (coloured by feel)
+Activity count · total original hrs
+Hours freed from this group (updates live as decisions are made)
+
+
+Groups:
+
+
+Despise — highest cost (#A03B3B label colour) — activities where feeling === 'despise'
+Dislike — worth a look (burgundy label) — activities where feeling === 'dislike'
+No priority — serving nothing named (muted label) — activities where priorityServed === '' AND feeling is not despise/dislike
+Everything else — confirm or keep (green label) — activities where priorityServed !== '' AND feeling is not despise/dislike
+
+
+If a group has 0 activities, skip it entirely (don't render the accordion).
+
+Activity cards (inside accordions)
+
+Each activity from m2.activities[] appears in exactly one group.
+
+Card layout:
+
+
+Top row: activity name · feeling badge (colour-coded) · priority badge (gold if tagged, muted if none) · original hrs
+Decision buttons (4, equal width):
+
+→ Move it / Someone else or automate — gold when selected
+↓ Reduce it / Do less of it — amber when selected
+✕ Cut it / Remove entirely — burgundy when selected
+✓ Do it / Keep as is — green when selected, pre-selected by default
+
+
+
+Detail panel (appears below buttons when Move or Reduce selected):
+
+Row 1: "Your hrs / week" · number input (0 to originalHrs) · shows "+X hrs freed" when filled
+Row 2: "Who / what takes the rest" · text input · placeholder "e.g. Leighann, VA, automation…"
+
+
+
+Suggestion (italic muted text, shown for Despise/Dislike/untagged activities):
+
+Generated contextually. Examples:
+
+High hrs + despise + no priority: "[N] hrs of [activity] with no priority attached — strong candidate for delegation or elimination."
+Dislike + serves priority: "You dislike this but it serves [Priority]. Can you reduce it or restructure how it gets done?"
+Love + no priority: "You love this — it just wasn't tagged. Tag it and protect it."
+
+
+
+
+
+
+
+
+Saves to m3.activityDecisions[activity.id] on every change.
+
+Trade panel — "Where do those hours go?"
+
+Card below the accordions. Shows when freed hours > 0 (or always, grayed if 0).
+
+Header: "Where do those hours go?"
+Subhead (dynamic): "You've freed X hours. Assign them where they matter most." or "Make changes above to free up hours first." when 0.
+
+Section 1 — What's missing (from m2.missingItems[]):
+One row per missing item:
+
+
+Burgundy dot · item name · priority tag (small gold label if tagged)
+Number input: "X hrs / wk"
+Turns gold when value > 0
+
+
+Section 2 — Add more to a priority:
+
+
+Dropdown: "Choose a priority to add time to…" (populated from m2.priorities[])
+"+ Add" button
+When added, shows a card:
+
+Gold dot · priority name · number input "X more hrs / wk" · ✕ remove
+Text input below: placeholder "What will you do with this time? e.g. Sunday afternoons at the park with the kids…"
+This activity description carries to A4 via m3.priorityCommitments[]
+
+
+
+
+
+Freed hours remaining (bottom of trade panel, centred):
+
+
+Small uppercase label: "HRS STILL TO ASSIGN" / "ALL HOURS ASSIGNED" / "HRS OVER-ASSIGNED"
+Large Georgia serif number (gold, ~44px) — the remaining unassigned freed hours
+Turns green when exactly 0, burgundy when negative
+
+
+Saves to m3.missingAssignments and m3.priorityCommitments on every change.
+
+Auto-generated move
+
+Gold-tinted card below trade panel.
+
+Label: "Your move — built from your decisions"
+Preview text (italic Georgia, auto-built):
+Assembles plain-language sentences:
+
+
+Moving: "Moving [activity] to [who] ([X] hrs freed)."
+Reducing: "Reducing [activity] to [N] hrs — [who] handles the rest ([X] hrs freed)."
+Cutting: "Cutting [activity] ([X] hrs)."
+Total: "That frees [N] hours a week."
+Missing items assigned: "[N] hrs to [missing item name]."
+Priority additions: "[N] more hrs for [Priority] — [activity description]."
+
+
+If no changes made: "Leave activities as is or make changes above — your move will build itself here."
+
+Editable textarea below preview — pre-filled with auto-generated text, user can edit.
+Saves to m3.moveText on change.
+
+Self Feedback button
+
+Full-width ghost button (gold border, gold text):
+◎ Check this against my Map of Me
+
+On tap:
+
+
+Show loading state: "Reading your Map of Me…"
+Call Anthropic API (claude-sonnet-4-6, max_tokens: 500) with system prompt:
+
+
+You are reflecting back to the user what their own Map of Me says about the decision they just made. 
+Read their A1 data and write a short paragraph (3-4 sentences) in THEIR voice — using their own words 
+from their purpose, values, and behaviors. Do not use "Katherine says" or any third-person framing. 
+This is the user's own truth reflected back. Keep it grounded, specific to their actual inputs, 
+and connect their time decision to who they said they are.
+
+User message includes:
+
+
+Their purpose (from to_map.purpose_final)
+Their values and behaviors (from to_mirror4_state_v1)
+Their identity/gifts (from to_map.mirror3)
+Their move text from m3.moveText
+
+
+
+Display response in gold-tinted card:
+
+Label: "What your Map of Me says"
+Italic Georgia text — the API response
+Small muted note: "Built from your own words — your purpose, values, and behaviors as you named them."
+
+
+
+Cache response in m3.selfFeedback
+
+
+Re-entry: if m3.selfFeedback exists, show it directly without re-calling API.
+
+Continue button: "Continue to Claim →"
+Saves all Step 2 state before advancing.
+
+
+Step 3 — Claim
+
+Eyebrow: A2 · MIRROR 3 · CLAIM ★
+Title: Claim *it.*
+Lead: "What the audit showed. What you named. What you're doing about it."
+
+Priorities summary card (white, bordered)
+
+One row per priority:
+
+
+Rank circle · priority name · hrs logged · intent flag chip
+Flag chips: "Intentional" (gold) · "Gap" (burgundy) · "Not sure" (muted)
+
+
+Missing — still waiting (burgundy-tinted card)
+
+Only shown if m2.missingItems[] is non-empty.
+Label: "Still waiting for space"
+Each missing item: burgundy dot · name
+
+Your move card (soft background)
+
+Label: "Your one move"
+Shows m3.moveText in italic Georgia
+
+Self Feedback card (gold-tinted)
+
+Only shown if m3.selfFeedback is non-empty.
+Label: "What your Map of Me says"
+Shows cached feedback text in italic Georgia
+
+Katherine seal
+
+
+Gold left border (3px solid var(--gold))
+Gold faint background
+Eyebrow: A2 · MIRROR 3 · CLAIM ★
+Italic Georgia gold, personalized with resolveDisplayName()
+Seal copy (dynamic — references their actual #1 priority and any gaps):
+
+
+"[Name], you named [Priority1] as #1 — and you've just looked at what your week actually says about that. [If gaps exist: You've called [gap priorities] out as gaps.] [If missing items: [N] things that want space still don't have it yet.] One move named. That's what alignment starts with — not perfect, just honest."
+
+
+Attribution: — Katherine
+
+
+Claim button
+
+Full-width gold: Claim my Named Truth →
+
+On tap:
+
+
+Fire gold burst (reuse existing na1-gold-burst / na1-gold-burst-inner + na1GoldRadial / na1GoldScrim — do NOT author new keyframes)
+Set m3.claimed = true, m3.claimedAt = new Date().toISOString()
+Reveal seal (already visible, burst plays over it)
+
+
+Re-claim
+
+Below seal: small muted text "Changed something? Re-commit."
+Ghost button: "↺ Re-claim"
+On tap: re-fires burst, re-stamps m3.claimedAt. Seal stays. Never auto-unseals.
+
+Forward CTA
+
+After claiming: full-width gold button: Continue to A3 →
+Routes to A3 (Advocate For It) — or if A3 is not yet built, routes to home with a "Coming soon" message.
+
+Hub card after claim
+
+M3 hub card shows: "Sealed · tap to revisit" with gold ✓
+
+
+Architecture Rules (non-negotiable)
+
+
+Fonts: var(--na1-sans) (DM Sans) for body/UI. var(--na1-serif) (Georgia) for titles and italic prose. Never Inter or Cormorant.
+Colors via tokens only. Never hardcode hex in JSX/TSX.
+Gold burst: reuse existing na1-gold-burst / na1-gold-burst-inner + na1GoldRadial / na1GoldScrim. Do NOT author new burst CSS.
+m3.claimed is the SOLE completion driver. No second threshold.
+Veil on room entry: reuse existing NA1_VEIL_TIMING and .na1-veil.
+Both themes: light and dark. Test both before marking done.
+A1, M1, M2, legacy A2 untouched. Additive only.
+Anthropic API call: use claude-sonnet-4-6, client-side fetch to https://api.anthropic.com/v1/messages. Same pattern as M4 scenario generation already in the codebase. Max tokens 500. Cache result in state — never re-call if cached.
+Mobile: all layouts single-column at 600px. Accordion cards stack cleanly. Trade panel fields wrap. Freed hours number stays large and centred.
+
+
+
+Definition of Done — Ship 2
+
+
+ M3 room launches from M2 claim CTA with veil, 3-step stepper
+ Step 1: context strip shows M2 priorities + missing items; insight card generates from M2 data; gap rows show per-priority bars + intent buttons; intent saves to state
+ Step 2: default note visible; freed hours counter updates live; 4 accordions (skip empty groups); each activity has 4 decision buttons pre-set to Do it; Move/Reduce shows detail panel with hrs input + who field; suggestions show for relevant activities; trade panel has missing items + add-priority-with-activity-description; freed hours remaining is large + centred; auto-generated move builds from decisions; Self Feedback button calls API and caches
+ Step 3: priorities summary with intent flags; missing list; move card; feedback card (if run); Katherine seal (personalized, dynamic); gold burst on claim; re-claim button; "Continue to A3 →" CTA
+ M3 hub card shows "Sealed · tap to revisit" after claim
+ m3.priorityCommitments[] written to state with priority + addedHrs + activity description
+ Both themes clean, no console errors, no regressions to A1/M1/M2/legacy A2
+
+
+
+DO NOT
+
+
+Touch A1, M1, M2, or legacy A2 code
+Hardcode hex values in JSX
+Author new gold burst keyframes
+Re-call the Anthropic API if m3.selfFeedback is already cached
+Auto-unseal M3 when user navigates back to edit decisions
+Build A4 in this ship — A4 data dependency is Ship 3
