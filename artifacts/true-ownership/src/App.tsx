@@ -1091,6 +1091,8 @@ html[data-theme="light"]{
 .na1-a2m2-missing-card-row:last-child{ margin-bottom:0; }
 .na1-a2m2-missing-card-row::before{ content:""; flex:0 0 auto; width:7px; height:7px; border-radius:50%; background:var(--burgundy); }
 .na1-a2m2-seal{ margin:6px 0 26px; padding:22px 24px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
+@keyframes na1-a2m2-seal-in{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:translateY(0); } }
+.na1-a2m2-seal.is-revealing{ animation:na1-a2m2-seal-in 600ms cubic-bezier(0.22,1,0.36,1) both; }
 .na1-a2m2-seal-body{ font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.7; color:var(--gold); margin:0; }
 .na1-a2m2-seal-body strong{ font-weight:700; color:var(--gold); }
 .na1-a2m2-seal-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:14px 0 0; text-align:right; }
@@ -36879,6 +36881,10 @@ function NewA2M2Step4Body({
   // Claim ceremony — reuse A1's gold burst exactly (portaled to body so the
   // position:fixed burst resolves against the viewport, not the room card).
   const [showBurst, setShowBurst] = useState(false);
+  // Tracks a claim/reclaim that happened in this session (vs. landing on an
+  // already-sealed Step 4 via re-entry). Drives the seal's fade-in reveal so a
+  // fresh claim animates, but a re-entry shows the seal already in place.
+  const [justSealed, setJustSealed] = useState(false);
   const burstTimerRef = useRef<number | null>(null);
   useEffect(
     () => () => {
@@ -36886,21 +36892,38 @@ function NewA2M2Step4Body({
     },
     [],
   );
+  // On the claim flip (and on re-entry to a sealed step) snap the scroll
+  // container to the top so the seal reveals at the top of the visible area
+  // instead of buried below the summary. `auto` (instant) so the seal is in
+  // place before its fade-in begins.
+  useEffect(() => {
+    if (!claimed) return;
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "auto" });
+  }, [claimed]);
   const handleClaim = () => {
     if (showBurst || claimed) return;
     setShowBurst(true);
+    // Smooth-scroll to top now so the burst plays on a clean stage; the
+    // claimed-flip effect re-snaps instantly once the seal mounts.
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "smooth" });
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
       setShowBurst(false);
+      setJustSealed(true);
       onClaim();
     }, 2000);
   };
   const handleReclaim = () => {
     if (showBurst) return;
     setShowBurst(true);
+    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+    if (card) card.scrollTo({ top: 0, behavior: "smooth" });
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
       setShowBurst(false);
+      setJustSealed(true);
       onReclaim();
     }, 2000);
   };
@@ -36948,7 +36971,10 @@ function NewA2M2Step4Body({
         <div className="na1-room-eyebrow tone-gold">A2 · Mirror 2 · Claim ★</div>
         {summaryCard}
         {missingCard}
-        <div className="na1-a2m2-seal" role="status">
+        <div
+          className={`na1-a2m2-seal${justSealed ? " is-revealing" : ""}`}
+          role="status"
+        >
           <p className="na1-a2m2-seal-body">
             {displayName ? `${displayName}, you've` : "You've"} laid it all out —
             your priorities, where the hours actually go, and what has no space
@@ -36959,7 +36985,7 @@ function NewA2M2Step4Body({
         </div>
         {burstPortal}
         <div className="na1-a2m2-reclaim">
-          <p className="na1-a2m2-reclaim-note">Changed something? Re-commit.</p>
+          <p className="na1-a2m2-reclaim-note">Changed something?</p>
           <button
             type="button"
             className="na1-btn-ghost"
