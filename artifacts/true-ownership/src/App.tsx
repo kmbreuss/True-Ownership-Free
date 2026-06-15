@@ -1251,12 +1251,12 @@ html[data-theme="light"]{
 .na1-a2m3-feedback-text{ font-family:var(--na1-serif); font-style:italic; font-size:15.5px; line-height:1.7; color:var(--gold); margin:0; }
 .na1-a2m3-feedback-note{ font-family:var(--na1-sans); font-size:11.5px; line-height:1.5; color:var(--na1-text-mute); margin:12px 0 0; }
 /* Step 3 · Claim */
-.na1-a2m3-summary{ margin:4px 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
+.na1-a2m3-summary{ margin:4px 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); text-align:left; }
 .na1-a2m3-summary-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 14px; }
-.na1-a2m3-summary-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--na1-border); }
+.na1-a2m3-summary-row{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--na1-border); }
 .na1-a2m3-summary-row:last-child{ border-bottom:none; }
-.na1-a2m3-summary-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
-.na1-a2m3-summary-hrs{ flex:0 0 auto; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
+.na1-a2m3-summary-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); text-align:left; }
+.na1-a2m3-summary-hrs{ flex:0 0 auto; min-width:48px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); text-align:right; }
 .na1-a2m3-missing-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--burgundy-soft); border:1px solid var(--burgundy-line); }
 .na1-a2m3-missing-card-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--burgundy); margin:0 0 12px; }
 .na1-a2m3-missing-card-row{ display:flex; align-items:center; gap:9px; margin:0 0 8px; }
@@ -35493,15 +35493,13 @@ function NewA2M1Step3Body({
 // chose in Step 3 (+ keep-in-focus if set), then a single gold CTA to seal it.
 // On claim: Katherine's seal is revealed and the only action is finishing back
 // to the A2 hub. Re-entry once claimed lands straight on the sealed state; the
-// stepper still lets the user walk Steps 1–3. This step never routes into or
-// unlocks Mirror 2 — it only marks Mirror 1 done via `claimed`.
+// stepper still lets the user walk Steps 1–3. Claiming marks Mirror 1 done via
+// `claimed`; the seal's forward CTA then routes on into Mirror 2 (Time Audit).
 // Forward-route availability for A2 mirrors, keyed by the mirror you're leaving.
 // An entry names the next mirror's label; whether it's actually reachable is
-// decided at the call site by the launcher passed in (gated by the
-// ?newA2TimeAudit=1 flag today). The Claim step's forward CTA derives from this,
-// so it can never be a
-// permanently-dead button. Shipping the Time Audit (Mirror 2) = add an `m1`
-// entry here and pass its launcher to resolveA2NextMirror — no edit to Step 4.
+// decided at the call site by the launcher passed in. The Claim step's forward
+// CTA derives from this, so it can never be a permanently-dead button: a mirror
+// without a launcher falls back to "Back to A2 →".
 const A2_NEXT_MIRROR: Record<string, { label: string } | undefined> = {
   m1: { label: "Time Audit" },
   m2: { label: "Named Truth" },
@@ -35540,10 +35538,9 @@ function NewA2M1Step4Body({
   onClaim: () => void;
   onReclaim: () => void;
   onFinish: () => void;
-  // The mirror that follows Mirror 1. Null until the Time Audit (Mirror 2)
-  // ships; when its route exists the claimed seal's forward CTA reads
-  // "Continue to {label} →" and routes there instead of back to A2. Driven off
-  // the route's existence so there's never a permanently-dead forward button.
+  // The mirror that follows Mirror 1 (Time Audit). When a launcher is bound the
+  // claimed seal's forward CTA reads "Continue to {label} →" and routes there;
+  // null falls back to "Back to A2 →" so there's never a dead forward button.
   nextMirror?: { label: string; go: () => void } | null;
 }) {
   const candidates = useMemo(
@@ -35864,10 +35861,14 @@ function unsealA2M1(m: A2M1State): A2M1State {
 // A1 container — no shared overlay ids, room state, or veil timers.
 function NewA2M1Container({
   onBackToA2,
+  onContinueToM2,
   initialRoomKey,
   onRoomChange,
 }: {
   onBackToA2: () => void;
+  // Launches Time Audit (Mirror 2) directly. Drives the claimed seal's forward
+  // CTA ("Continue to Time Audit →") so claiming M1 flows straight into M2.
+  onContinueToM2: () => void;
   // One-shot: "alignment" when restoring a saved room (resume — no veil).
   initialRoomKey: string | null;
   // Reports the open room ("alignment") or null so the parent can persist it.
@@ -36122,24 +36123,10 @@ function NewA2M1Container({
     if (m1.currentStep < 4) goToStep(m1.currentStep + 1);
   };
 
-  // Forward CTA target for the Claim step, derived from the mirror registry +
-  // the ?newA2TimeAudit=1 flag. The registry carries the Time Audit (Mirror 2)
-  // label; the flag supplies its launcher. With the flag the resolver returns a
-  // target so the seal CTA reads "Continue to Time Audit"; without it the
-  // launcher is absent and the resolver returns null, so the CTA stays
-  // "Back to A2".
-  const newA2TimeAudit =
-    new URLSearchParams(window.location.search).get("newA2TimeAudit") === "1";
-  // The A2 Time Audit (Mirror 2) has no route yet, so its launcher falls back to
-  // leaving the room for the A2 hub; swap in the real a2m2 route once it exists.
-  const routeToA2M2 = () => {
-    closeRoom();
-    onBackToA2();
-  };
-  const a2NextMirror = resolveA2NextMirror(
-    "m1",
-    newA2TimeAudit ? routeToA2M2 : undefined,
-  );
+  // Forward CTA target for the Claim step. The registry carries the Time Audit
+  // (Mirror 2) label; onContinueToM2 launches the M2 room directly, so the
+  // claimed seal reads "Continue to Time Audit →" and flows straight into M2.
+  const a2NextMirror = resolveA2NextMirror("m1", onContinueToM2);
 
   // Escape + scroll-lock while the room is open.
   useEffect(() => {
@@ -39135,6 +39122,7 @@ function NewA1View({ name }: { name?: string }) {
         )}
         <NewA2M1Container
           onBackToA2={() => setView("a2")}
+          onContinueToM2={() => setView("a2m2")}
           initialRoomKey={initialKey}
           onRoomChange={onA2M1RoomChange}
         />
