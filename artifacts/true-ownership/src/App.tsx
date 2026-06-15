@@ -1044,7 +1044,10 @@ html[data-theme="light"]{
 .na1-a2m2-field{ display:flex; flex-direction:column; gap:5px; flex:1 1 140px; min-width:0; }
 .na1-a2m2-field-label{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--na1-text-mute); }
 .na1-a2m2-field .na1-a2m2-input, .na1-a2m2-field .na1-a2m2-select{ width:100%; }
-.na1-a2m2-hrs{ flex:0 0 110px; height:40px; min-height:40px; }
+/* Compound selector (0,3,0) is required to beat `.na1-a2m2-field
+   .na1-a2m2-input` (0,2,0, sets width:100%) and the base `.na1-a2m2-input`
+   padding/min-height — otherwise the hrs field renders full-width and tall. */
+.na1-a2m2-field .na1-a2m2-input.na1-a2m2-hrs{ flex:0 0 80px; width:80px; height:40px; min-height:40px; padding:0 10px; align-self:flex-start; }
 .na1-a2m2-add-activity{ align-self:flex-start; margin-top:14px; background:none; border:1px dashed var(--gold-line); border-radius:var(--na1-radius); padding:10px 16px; font-family:var(--na1-sans); font-size:13px; font-weight:600; color:var(--gold); cursor:pointer; transition:all .15s; }
 .na1-a2m2-add-activity:hover{ background:var(--gold-soft); }
 .na1-a2m2-totals{ margin:24px 0 0; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
@@ -1090,7 +1093,7 @@ html[data-theme="light"]{
 .na1-a2m2-claim-actions .na1-btn-gold{ width:100%; }
 .na1-a2m2-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
 .na1-a2m2-reclaim-note{ margin:0; font-family:var(--na1-sans); font-size:13px; line-height:1.5; color:var(--na1-text-mute); text-align:center; }
-@media (max-width:600px){ .na1-a2m2-step-title{ font-size:23px; } .na1-a2m2-seal-body{ font-size:16px; } .na1-a2m2-hrs{ flex:1 1 110px; } }
+@media (max-width:600px){ .na1-a2m2-step-title{ font-size:23px; } .na1-a2m2-seal-body{ font-size:16px; } }
 /* Step body wrappers + shared helpers */
 .na1-a2m2-step1, .na1-a2m2-step2, .na1-a2m2-step3{ display:flex; flex-direction:column; }
 .na1-a2m2-help{ font-family:var(--na1-sans); font-size:13px; line-height:1.6; color:var(--na1-text-mute); margin:0 0 16px; }
