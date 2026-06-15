@@ -1084,6 +1084,8 @@ html[data-theme="light"]{
 .na1-a2m2-claim-mini-name{ display:inline-flex; align-items:center; gap:7px; }
 .na1-a2m2-claim-mini-glyph{ color:var(--gold); font-size:12px; }
 .na1-a2m2-claim-mini-val{ color:var(--na1-text-mute); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.na1-a2m2-claim-mini.is-sealed .na1-a2m2-claim-mini-row{ border-bottom-color:var(--na1-border); }
+.na1-a2m2-claim-mini.is-sealed .na1-a2m2-claim-mini-glyph{ color:var(--na1-text); }
 .na1-a2m2-claim-missing-line{ font-family:var(--na1-sans); font-size:12.5px; font-style:italic; line-height:1.5; color:var(--na1-text-mute); text-align:center; margin:0 auto 24px; max-width:360px; }
 .na1-a2m2-cer-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:16px 0 0; text-align:center; }
 .na1-a2m2-claim .na1-a2m2-reclaim{ margin-top:18px; }
@@ -1123,6 +1125,9 @@ html[data-theme="light"]{
 .na1-a2m3-flag.is-yes{ background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); }
 .na1-a2m3-flag.is-no{ background:var(--burgundy-soft); border:1px solid var(--burgundy-line); color:var(--burgundy); }
 .na1-a2m3-flag.is-unsure{ background:var(--na1-bg-soft); border:1px solid var(--na1-border); color:var(--na1-text-mute); }
+.na1-a2m3-summary.is-sealed .na1-a2m3-flag.is-yes,
+.na1-a2m3-summary.is-sealed .na1-a2m3-flag.is-no,
+.na1-a2m3-summary.is-sealed .na1-a2m3-flag.is-unsure{ background:var(--na1-bg-soft); border:1px solid var(--na1-border); color:var(--na1-text); }
 /* Stepper (3-step) */
 .na1-a2m3-stepper{ display:flex; align-items:center; gap:6px; margin:0 0 28px; }
 .na1-a2m3-step{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto; background:none; border:none; padding:0; cursor:default; }
@@ -36925,7 +36930,9 @@ function NewA2M2Step4Body({
   // Minimal priorities summary — small and quiet, shown above the seal so it
   // never dominates the page (per the A1-style ceremonial layout).
   const miniSummary = (
-    <div className="na1-a2m2-claim-mini">
+    <div
+      className={`na1-a2m2-claim-mini ${mode === "ceremony" ? "is-sealed" : ""}`}
+    >
       <div className="na1-a2m2-claim-mini-head">Where your week goes</div>
       {summary.map((row) => (
         <div className="na1-a2m2-claim-mini-row" key={row.name}>
@@ -38177,7 +38184,9 @@ function NewA2M3Step3Body({
   const sealBody = `${displayName ? `${displayName}, you` : "You"} named ${p1} as #1 — and you've just looked at what your week actually says about that.${gapClause}${missClause} One move named. That's what alignment starts with — not perfect, just honest.`;
 
   const summaryCard = (
-    <div className="na1-a2m3-summary">
+    <div
+      className={`na1-a2m3-summary ${mode === "ceremony" ? "is-sealed" : ""}`}
+    >
       <div className="na1-a2m3-summary-head">Your priorities</div>
       {m2.priorities.map((name, i) => {
         const flag = m3.intentMap[name];
