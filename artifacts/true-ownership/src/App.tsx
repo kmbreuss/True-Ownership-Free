@@ -1077,30 +1077,22 @@ html[data-theme="light"]{
 .na1-a2m2-missing-tag{ flex:0 0 auto; max-width:150px; }
 .na1-a2m2-missing-note{ font-family:var(--na1-serif); font-style:italic; font-size:14px; line-height:1.6; color:var(--na1-text-sec); margin:18px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); }
 /* Step 4 · Claim */
-.na1-a2m2-step4{ display:flex; flex-direction:column; }
-.na1-a2m2-summary{ margin:4px 0 20px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
-.na1-a2m2-summary-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 14px; }
-.na1-a2m2-summary-row{ display:flex; align-items:center; gap:10px; margin:0 0 10px; }
-.na1-a2m2-summary-row:last-child{ margin-bottom:0; }
-.na1-a2m2-summary-num{ flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold); font-family:var(--na1-sans); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
-.na1-a2m2-summary-name{ flex:1 1 auto; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
-.na1-a2m2-summary-val{ flex:0 0 auto; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
-.na1-a2m2-missing-card{ margin:0 0 20px; padding:18px 20px; border-radius:12px; background:var(--burgundy-soft); border:1px solid var(--burgundy-line); }
-.na1-a2m2-missing-card-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--burgundy); margin:0 0 12px; }
-.na1-a2m2-missing-card-row{ display:flex; align-items:center; gap:9px; margin:0 0 8px; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
-.na1-a2m2-missing-card-row:last-child{ margin-bottom:0; }
-.na1-a2m2-missing-card-row::before{ content:""; flex:0 0 auto; width:7px; height:7px; border-radius:50%; background:var(--burgundy); }
-.na1-a2m2-seal{ margin:6px 0 26px; padding:22px 24px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
-@keyframes na1-a2m2-seal-in{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:translateY(0); } }
-.na1-a2m2-seal.is-revealing{ animation:na1-a2m2-seal-in 600ms cubic-bezier(0.22,1,0.36,1) both; }
-.na1-a2m2-seal-body{ font-family:var(--na1-serif); font-style:italic; font-size:17px; line-height:1.7; color:var(--gold); margin:0; }
-.na1-a2m2-seal-body strong{ font-weight:700; color:var(--gold); }
-.na1-a2m2-seal-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:14px 0 0; text-align:right; }
+.na1-a2m2-claim-mini{ max-width:360px; margin:0 auto 22px; }
+.na1-a2m2-claim-mini-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); text-align:center; margin:0 0 10px; }
+.na1-a2m2-claim-mini-row{ display:flex; justify-content:space-between; align-items:center; gap:14px; padding:5px 0; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); border-bottom:1px solid var(--gold-line); }
+.na1-a2m2-claim-mini-row:last-child{ border-bottom:none; }
+.na1-a2m2-claim-mini-name{ display:inline-flex; align-items:center; gap:7px; }
+.na1-a2m2-claim-mini-glyph{ color:var(--gold); font-size:12px; }
+.na1-a2m2-claim-mini-val{ color:var(--na1-text-mute); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.na1-a2m2-claim-missing-line{ font-family:var(--na1-sans); font-size:12.5px; font-style:italic; line-height:1.5; color:var(--na1-text-mute); text-align:center; margin:0 auto 24px; max-width:360px; }
+.na1-a2m2-cer-by{ font-family:var(--na1-serif); font-style:italic; font-size:14px; color:var(--gold); margin:16px 0 0; text-align:center; }
+.na1-a2m2-claim .na1-a2m2-reclaim{ margin-top:18px; }
+.na1-a2m2-claim .na1-decl-cer-para{ color:var(--gold); font-size:19px; }
+@media (max-width:600px){ .na1-a2m2-claim .na1-decl-cer-para{ font-size:17px; } }
 .na1-a2m2-claim-actions{ display:flex; }
 .na1-a2m2-claim-actions .na1-btn-gold{ width:100%; }
 .na1-a2m2-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
-.na1-a2m2-reclaim-note{ margin:0; font-family:var(--na1-sans); font-size:13px; line-height:1.5; color:var(--na1-text-mute); text-align:center; }
-@media (max-width:600px){ .na1-a2m2-step-title{ font-size:23px; } .na1-a2m2-seal-body{ font-size:16px; } }
+@media (max-width:600px){ .na1-a2m2-step-title{ font-size:23px; } }
 /* Step body wrappers + shared helpers */
 .na1-a2m2-step1, .na1-a2m2-step2, .na1-a2m2-step3{ display:flex; flex-direction:column; }
 .na1-a2m2-help{ font-family:var(--na1-sans); font-size:13px; line-height:1.6; color:var(--na1-text-mute); margin:0 0 16px; }
@@ -36881,40 +36873,57 @@ function NewA2M2Step4Body({
   // Claim ceremony — reuse A1's gold burst exactly (portaled to body so the
   // position:fixed burst resolves against the viewport, not the room card).
   const [showBurst, setShowBurst] = useState(false);
-  // Tracks a claim/reclaim that happened in this session (vs. landing on an
-  // already-sealed Step 4 via re-entry). Drives the seal's fade-in reveal so a
-  // fresh claim animates, but a re-entry shows the seal already in place.
-  const [justSealed, setJustSealed] = useState(false);
+  // Ceremony mode machine — mirrors A1 Ex4 (Declare) exactly:
+  //   "readback"  → minimal summary + the single Claim action
+  //   "claiming"  → gold burst plays; readback fades out
+  //   "ceremony"  → readback collapses (display:none); the seal expands,
+  //                 centred, as the centrepiece of the room.
+  // On re-entry to an already-claimed step we open straight into "ceremony"
+  // so the seal is the centrepiece immediately, with no burst.
+  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">(
+    claimed ? "ceremony" : "readback",
+  );
+  const claimingTimerRef = useRef<number | null>(null);
   const burstTimerRef = useRef<number | null>(null);
   useEffect(
     () => () => {
+      if (claimingTimerRef.current)
+        window.clearTimeout(claimingTimerRef.current);
       if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
     },
     [],
   );
-  // On the claim flip (and on re-entry to a sealed step) snap the scroll
-  // container to the top so the seal reveals at the top of the visible area
-  // instead of buried below the summary. `auto` (instant) so the seal is in
-  // place before its fade-in begins.
+  // Snap the scroll container to the top the moment the ceremony becomes the
+  // top of the card (readback collapses to display:none), so the seal reveals
+  // at the top of the viewport rather than below a list. `auto` (instant) — the
+  // 380ms ceremony fade then plays with the seal already in place. Mirrors A1.
   useEffect(() => {
-    if (!claimed) return;
+    if (mode !== "ceremony") return;
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
     if (card) card.scrollTo({ top: 0, behavior: "auto" });
-  }, [claimed]);
+  }, [mode]);
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (mode !== "readback" || showBurst) return;
     setShowBurst(true);
-    // Smooth-scroll to top now so the burst plays on a clean stage; the
-    // claimed-flip effect re-snaps instantly once the seal mounts.
+    // First scroll (smooth) gives the burst a clean stage while the readback is
+    // still in flow; the mode-flip effect re-snaps instantly at "ceremony".
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
     if (card) card.scrollTo({ top: 0, behavior: "smooth" });
+    // 50ms → "claiming" kicks the readback fade; 2000ms (the burst keyframe
+    // length) → "ceremony" collapses the readback, reveals the seal, persists.
+    claimingTimerRef.current = window.setTimeout(() => {
+      claimingTimerRef.current = null;
+      setMode("claiming");
+    }, 50);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
       setShowBurst(false);
-      setJustSealed(true);
+      setMode("ceremony");
       onClaim();
     }, 2000);
   };
+  // Re-claim from the sealed state: replay the burst, re-stamp the claim time
+  // (onReclaim keeps `claimed` true), and stay in the ceremony.
   const handleReclaim = () => {
     if (showBurst) return;
     setShowBurst(true);
@@ -36923,34 +36932,26 @@ function NewA2M2Step4Body({
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
       setShowBurst(false);
-      setJustSealed(true);
       onReclaim();
     }, 2000);
   };
 
-  const summaryCard = (
-    <div className="na1-a2m2-summary">
-      <div className="na1-a2m2-summary-head">Where your week actually goes</div>
+  // Minimal priorities summary — small and quiet, shown above the seal so it
+  // never dominates the page (per the A1-style ceremonial layout).
+  const miniSummary = (
+    <div className="na1-a2m2-claim-mini">
+      <div className="na1-a2m2-claim-mini-head">Where your week goes</div>
       {summary.map((row) => (
-        <div className="na1-a2m2-summary-row" key={row.name}>
-          <span className="na1-a2m2-summary-num" aria-hidden>
-            {row.glyph}
+        <div className="na1-a2m2-claim-mini-row" key={row.name}>
+          <span className="na1-a2m2-claim-mini-name">
+            <span className="na1-a2m2-claim-mini-glyph" aria-hidden>
+              {row.glyph}
+            </span>
+            {row.name}
           </span>
-          <span className="na1-a2m2-summary-name">{row.name}</span>
-          <span className="na1-a2m2-summary-val">
+          <span className="na1-a2m2-claim-mini-val">
             {row.hrs}h · {row.pct}%
           </span>
-        </div>
-      ))}
-    </div>
-  );
-  const missingCard = namedMissing.length > 0 && (
-    <div className="na1-a2m2-missing-card">
-      <div className="na1-a2m2-missing-card-head">Still waiting for space</div>
-      {namedMissing.map((it) => (
-        <div className="na1-a2m2-missing-card-row" key={it.id}>
-          <span className="na1-a2m2-missing-dot" aria-hidden />
-          <span className="na1-a2m2-missing-card-name">{it.name}</span>
         </div>
       ))}
     </div>
@@ -36963,29 +36964,69 @@ function NewA2M2Step4Body({
       </div>,
       document.body,
     );
+  const isFading = mode !== "readback";
 
-  // Sealed state — reached on claim, and on every re-entry once claimed.
-  if (claimed) {
-    return (
-      <div className="na1-a2m2-step4">
-        <div className="na1-room-eyebrow tone-gold">A2 · Mirror 2 · Claim ★</div>
-        {summaryCard}
-        {missingCard}
-        <div
-          className={`na1-a2m2-seal${justSealed ? " is-revealing" : ""}`}
-          role="status"
-        >
-          <p className="na1-a2m2-seal-body">
+  return (
+    <div className="na1-decl na1-a2m2-claim">
+      {burstPortal}
+      {/* ── Read-back state — minimal summary + the single Claim action ── */}
+      <div
+        className={`na1-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
+      >
+        <div className="na1-room-eyebrow tone-gold">A2 · Mirror 2 · Claim</div>
+        <h2 className="na1-room-title">
+          {displayName
+            ? `${displayName}, claim your Time Audit.`
+            : "Claim your Time Audit."}
+        </h2>
+        <p className="na1-room-context">
+          Your priorities. Your week. What&rsquo;s missing. All seen.
+        </p>
+        {miniSummary}
+        {namedMissing.length > 0 && (
+          <p className="na1-a2m2-claim-missing-line">
+            Still waiting for space:{" "}
+            {namedMissing.map((it) => it.name).join(" · ")}
+          </p>
+        )}
+        <div className="na1-a2m2-claim-actions">
+          <button
+            type="button"
+            className="na1-btn-gold na1-a2m2-claim-btn"
+            onClick={handleClaim}
+            disabled={showBurst}
+          >
+            Claim my Time Audit →
+          </button>
+        </div>
+      </div>
+      {/* ── Ceremony state — the seal as the centrepiece of the room ── */}
+      <div
+        className={`na1-decl-ceremony ${mode === "ceremony" ? "is-on" : ""}`}
+        aria-hidden={mode !== "ceremony"}
+      >
+        {miniSummary}
+        <div className="na1-decl-cer-star" aria-hidden>
+          ★
+        </div>
+        <div className="na1-decl-cer-body" role="status">
+          <p className="na1-decl-cer-para">
             {displayName ? `${displayName}, you've` : "You've"} laid it all out —
             your priorities, where the hours actually go, and what has no space
             yet. That honesty is the starting point. Mirror 3 is where you decide
             what changes.
           </p>
-          <p className="na1-a2m2-seal-by">— Katherine</p>
+          <p className="na1-a2m2-cer-by">— Katherine</p>
         </div>
-        {burstPortal}
+        <div className="na1-decl-cer-divider" />
+        <button
+          type="button"
+          className="na1-decl-cer-cta"
+          onClick={nextMirror ? nextMirror.go : onFinish}
+        >
+          {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A2 →"}
+        </button>
         <div className="na1-a2m2-reclaim">
-          <p className="na1-a2m2-reclaim-note">Changed something?</p>
           <button
             type="button"
             className="na1-btn-ghost"
@@ -36995,40 +37036,6 @@ function NewA2M2Step4Body({
             ↺ Re-claim
           </button>
         </div>
-        <div className="na1-a2m2-claim-actions">
-          <button
-            type="button"
-            className="na1-btn-gold"
-            onClick={nextMirror ? nextMirror.go : onFinish}
-          >
-            {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A2 →"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Pre-claim read-back.
-  return (
-    <div className="na1-a2m2-step4">
-      {burstPortal}
-      <h2 className="na1-a2m2-step-title">
-        Claim <em>it.</em>
-      </h2>
-      <p className="na1-a2m2-step-lede">
-        Your priorities. Your week. What&rsquo;s missing. All seen.
-      </p>
-      {summaryCard}
-      {missingCard}
-      <div className="na1-a2m2-claim-actions">
-        <button
-          type="button"
-          className="na1-btn-gold na1-a2m2-claim-btn"
-          onClick={handleClaim}
-          disabled={showBurst}
-        >
-          Claim my Time Audit →
-        </button>
       </div>
     </div>
   );
