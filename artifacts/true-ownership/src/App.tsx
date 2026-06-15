@@ -34881,7 +34881,15 @@ const A2M3_STEPS: { num: number; name: string }[] = [
   { num: 3, name: "Claim" },
 ];
 
-const A2M3_VEIL_TEXT = "Looking at what the truth is asking of you…";
+const A2M3_VEIL_TEXT = "Looking at what the truth is showing you…";
+
+// Per-step veil text. Step 1 ("The gap") is covered by the room-entry veil
+// (A2M3_VEIL_TEXT); steps 2 and 3 fire their own veil on forward entry. Reuses
+// the shared .na1-veil component + NA1_VEIL_TIMING exactly — no new constants.
+const A2M3_STEP_VEIL_TEXT: Record<number, string> = {
+  2: "This is where it shifts…",
+  3: "The moment of naming it…",
+};
 
 const A2M3_CONTINUE_LABEL: Record<number, string> = {
   1: "Continue to Rethink your time →",
@@ -38654,6 +38662,10 @@ function NewA2M3Container({
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
     launchVeil ? "rising" : "idle",
   );
+  // The text shown by the entry veil. Step 1 / room entry uses A2M3_VEIL_TEXT;
+  // a forward step transition swaps in that step's line before the veil rises.
+  const [veilText, setVeilText] = useState<string>(A2M3_VEIL_TEXT);
+  const stepVeilTimersRef = useRef<number[]>([]);
 
   const launchedRef = useRef(false);
   useEffect(() => {
@@ -38676,6 +38688,13 @@ function NewA2M3Container({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Clear any in-flight step-transition veil timers on unmount.
+  useEffect(
+    () => () =>
+      stepVeilTimersRef.current.forEach((t) => window.clearTimeout(t)),
+    [],
+  );
+
   useEffect(() => {
     onRoomChange(roomOpen ? "namedtruth" : null);
   }, [roomOpen, onRoomChange]);
@@ -38696,8 +38715,35 @@ function NewA2M3Container({
     if (currentStep > 1) goToStep(currentStep - 1);
     else closeRoom();
   };
+  // Fire the entry veil for a forward step transition, swapping the step
+  // content invisibly under the veil at the hold point (matching A1's
+  // "screen swap happens underneath" pattern). Reuses NA1_VEIL_TIMING exactly —
+  // no new constants or keyframes. Backward navigation (onBack / stepper) and
+  // in-step screen swaps never call this, so the veil fires on step ENTRY only.
+  const advanceWithVeil = (target: number) => {
+    const text = A2M3_STEP_VEIL_TEXT[target];
+    if (!text) {
+      goToStep(target);
+      return;
+    }
+    stepVeilTimersRef.current.forEach((t) => window.clearTimeout(t));
+    stepVeilTimersRef.current = [];
+    setVeilText(text);
+    setVeilPhase("rising");
+    stepVeilTimersRef.current.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        goToStep(target);
+      }, NA1_VEIL_TIMING.holdAt),
+      window.setTimeout(
+        () => setVeilPhase("falling"),
+        NA1_VEIL_TIMING.fallingAt,
+      ),
+      window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt),
+    );
+  };
   const onContinue = () => {
-    if (currentStep < 3) goToStep(currentStep + 1);
+    if (currentStep < 3) advanceWithVeil(currentStep + 1);
   };
 
   // Step 1 intent.
@@ -38899,7 +38945,7 @@ function NewA2M3Container({
         </div>
       )}
       {veilPhase !== "idle" && (
-        <NewA1Veil phase={veilPhase} text={A2M3_VEIL_TEXT} />
+        <NewA1Veil phase={veilPhase} text={veilText} />
       )}
     </>
   );
