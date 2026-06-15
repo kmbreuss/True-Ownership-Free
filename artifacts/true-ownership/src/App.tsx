@@ -1253,8 +1253,8 @@ html[data-theme="light"]{
 /* Step 3 · Claim */
 .na1-a2m3-summary{ margin:4px 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
 .na1-a2m3-summary-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 14px; }
-.na1-a2m3-summary-row{ display:flex; align-items:center; gap:10px; margin:0 0 10px; }
-.na1-a2m3-summary-row:last-child{ margin-bottom:0; }
+.na1-a2m3-summary-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid var(--na1-border); }
+.na1-a2m3-summary-row:last-child{ border-bottom:none; }
 .na1-a2m3-summary-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
 .na1-a2m3-summary-hrs{ flex:0 0 auto; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); }
 .na1-a2m3-missing-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--burgundy-soft); border:1px solid var(--burgundy-line); }
@@ -1264,7 +1264,7 @@ html[data-theme="light"]{
 .na1-a2m3-missing-card-name{ flex:1 1 auto; min-width:0; font-family:var(--na1-sans); font-size:14px; color:var(--na1-text); }
 .na1-a2m3-move-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--gold-line); }
 .na1-a2m3-move-card-head{ font-family:var(--na1-sans); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin:0 0 10px; }
-.na1-a2m3-move-card-text{ font-family:var(--na1-serif); font-size:15.5px; line-height:1.65; color:var(--na1-text); margin:0; }
+.na1-a2m3-move-card-text{ font-family:var(--na1-serif); font-style:italic; font-size:15px; line-height:1.65; color:var(--na1-text); margin:0; }
 .na1-a2m3-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
 .na1-a2m3-claim-actions{ display:flex; flex-direction:column; gap:10px; }
 .na1-a2m3-claim-actions .na1-btn-gold{ width:100%; }
