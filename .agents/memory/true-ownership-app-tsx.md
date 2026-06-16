@@ -97,6 +97,33 @@ intentionally NOT enabled in this app, so that render-time ref consumption is
 safe (no double render). If StrictMode is ever turned on, every room
 container's one-shot resume breaks — revisit then, don't pre-emptively rewrite.
 
+## Veil backdrop: A2 mirror containers must render inside `.na1-root`
+
+`NewA1Veil` paints a translucent cream wash (`rgba(245,243,239,0.55)` in light
+theme). It is `position:fixed`, so its colour depends on whatever it composites
+over. A1 rooms render inside `.na1-root` (cream `#f5f3ef`) → the veil reads warm.
+The A2 mirror room containers (`NewA2M2Container`, `NewA2M3Container`) originally
+returned a bare `<>` fragment; the cream `.na1-room-overlay` only mounts once the
+room *opens* (hold phase). So during the veil's *rising* phase (intro hidden,
+room not yet open) the veil composited over the dark page body `rgb(8,15,28)` and
+read cold grey (~`#8a9099`), and the warm wash was only briefly visible.
+
+**Fix/rule:** every A2 mirror container's top-level return must be
+`<div className="na1-root">…</div>`, mirroring A1, so the cream backdrop is
+present for the full veil lifecycle. `NewA2MirrorHubView` already self-wraps in
+`.na1-root`, so the wrapper only adds the backdrop during the rising phase and
+the resulting nested `.na1-root` during the intro is harmless (cream-on-cream).
+**Why:** this single change fixes BOTH the grey colour and the "too short" feel
+(warm veil now visible across rising+hold+falling ≈2s) without touching shared
+`NA1_VEIL_TIMING` — A1 and A2 share that timing already, so no constant edit.
+
+**Filtered-typecheck caveat:** `pnpm --filter @workspace/true-ownership run
+typecheck` runs `tsc -p` WITHOUT building libs first, so it reports ~6000 errors
+(mostly unresolved `@workspace/*` imports + the implicit-any noise). That's the
+expected baseline, not a regression. To verify a JSX edit, grep the error list
+for TS17002/structural errors (must be 0) and for your edited line ranges (must
+be 0) rather than expecting a clean run.
+
 ## Container hook/derived-state ordering vs the resume-seed `roomOpen`
 
 In the per-Mirror room containers (e.g. `NewA2M1Container`) `roomOpen` is a

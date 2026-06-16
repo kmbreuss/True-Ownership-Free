@@ -37520,7 +37520,7 @@ function NewA2M2Container({
   }, [roomOpen]);
 
   return (
-    <>
+    <div className="na1-root">
       {!roomOpen && veilPhase === "idle" && (
         <NewA2MirrorHubView
           onBackToA2={onBackToA2}
@@ -37630,7 +37630,7 @@ function NewA2M2Container({
       {veilPhase !== "idle" && (
         <NewA1Veil phase={veilPhase} text={A2M2_VEIL_TEXT} />
       )}
-    </>
+    </div>
   );
 }
 
@@ -38843,7 +38843,7 @@ function NewA2M3Container({
   }, [roomOpen]);
 
   return (
-    <>
+    <div className="na1-root">
       {!roomOpen && veilPhase === "idle" && (
         <NewA2MirrorHubView
           onBackToA2={onBackToA2}
@@ -38947,7 +38947,7 @@ function NewA2M3Container({
       {veilPhase !== "idle" && (
         <NewA1Veil phase={veilPhase} text={veilText} />
       )}
-    </>
+    </div>
   );
 }
 
