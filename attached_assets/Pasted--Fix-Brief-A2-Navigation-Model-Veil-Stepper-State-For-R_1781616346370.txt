@@ -1,0 +1,179 @@
+# Fix Brief — A2 Navigation Model + Veil + Stepper State
+## For Replit Agent
+
+---
+
+## Context
+
+Three bugs were found in A2 (Align With It) via live Chrome verification. Additionally, a navigation model decision has been made that affects the architecture of A2 and all future disciplines (A3, A4, A5).
+
+Fix these in order. Plan before every change. Do not bundle fixes.
+
+---
+
+## Navigation Model Decision (read this first)
+
+**The A1 return-to-stepper model is the standard for all mirrors going forward.**
+
+### What this means
+
+**A1 model (correct — adopt everywhere):**
+Hub card → tap "Begin" / "Resume" / "Sealed · tap to revisit" → veil fires → step list opens → user taps step 1 → exercise room opens → user completes it → lands back on step list → user taps step 2 → exercise room opens → completes → back to step list → etc.
+
+The step list is the home base. The user returns to it between every step. They always see their full progress and consciously choose to continue.
+
+**A2 model (wrong — remove this):**
+Hub card → intermediate overview screen (separate from hub) → enters step 1 → "Continue to [next step] →" button auto-advances to step 2 without returning to step list → step 3 → etc.
+
+The user is pushed through steps without ever returning to see the full picture.
+
+### Two things to remove
+1. The **horizontal dot indicator** inside the exercise room (the dots + connectors + labels at the top of the modal, e.g. "1 Your priorities ── ✓ Where time goes ── ✓ What's missing ── 4 Claim"). Remove this from all A2 mirror rooms. It is redundant when the step list is the home base.
+2. The **"Continue to [next step] →" auto-advance button** at the bottom of each exercise. Replace with a "Done → Back to [Mirror Name]" button that returns the user to the step list on completion.
+
+### What stays exactly as-is in A1
+Do not touch A1. It already uses this model correctly. A1 is the reference.
+
+### What the step list must look like (already correct in A2, just has a status bug — see Fix 3)
+- Video intro row at top (collapsible)
+- Numbered step rows: step name + status
+- Status states: **In progress** (gold, current) / **Complete ✓** (gold checkmark) / **Open · tap to revisit** (muted) / **Sealed · tap to revisit ✓** (gold checkmark, for Claim row)
+- Tapping any row opens that step's exercise room
+- "← Back to A2" button at bottom left
+
+---
+
+## Fix 1 — Remove horizontal dot indicator from A2 exercise rooms
+
+### What to remove
+The horizontal stepper component at the top of every A2 exercise room modal — the row of numbered dots connected by lines, showing step names and gold checkmarks. This appears in M1 (Alignment Check), M2 (Time Audit), and M3 (Named Truth) exercise rooms.
+
+### What to preserve
+Everything else in the room is untouched — the breadcrumb ("Time Audit › Your priorities"), the × close button, the exercise content, the CTA button.
+
+### Acceptance criteria
+- No horizontal dot/connector/label row appears inside any A2 exercise room
+- A1 rooms are untouched (they never had this component)
+
+---
+
+## Fix 2 — Replace "Continue to [next step]" with "Done → Back to [Mirror]"
+
+### What is broken
+Each A2 exercise room has a "Continue to [next step] →" button at the bottom that auto-advances to the next step without returning to the step list. This bypasses the step list entirely.
+
+### What it must do instead
+On completing an exercise, the primary CTA returns the user to the step list for that mirror. The step list then shows the completed step as "Complete ✓" and the next step as the active one.
+
+### Button labels
+- **Mid-mirror steps:** "Done → Back to Time Audit" (or whichever mirror name)
+- **Final step before Claim:** same pattern — "Done → Back to [Mirror Name]" — the Claim row on the step list is then the next tap
+- **Claim step:** after claiming, "Continue to [Next Mirror] →" remains — this is the one forward-advance that stays, because it exits the mirror entirely
+
+### Acceptance criteria
+- Completing any non-Claim step returns user to the step list
+- Step list immediately shows that step as "Complete ✓"
+- The next step is visually active/highlighted as the logical next action
+- Claim step CTA remains as a forward advance to next mirror (unchanged)
+- A1 is untouched
+
+---
+
+## Fix 3 — Step list shows wrong status on mount
+
+### What is broken
+When landing on the A2 M2 Time Audit step list after the mirror is fully sealed, steps 1–3 show as "In progress" / "Open" instead of "Complete ✓". They only update to "Complete" after visiting the Claim screen and returning. This is a derived-state hydration bug — the step list is not reading completion state correctly on mount.
+
+### What it must do
+On mount, the step list reads the actual completion boolean for each step from state and renders the correct status immediately — no interaction required to trigger the correct display.
+
+- A step is **Complete ✓** when its completion boolean is `true` in state
+- A step is **In progress** when it is the current active step (partially done)
+- A step is **Open · tap to revisit** when not yet started
+- The Claim row is **Sealed · tap to revisit ✓** when `claimed === true`
+
+"Visited" is not the same as "complete." A step that has been opened but not finished is "In progress" for the current step, or "Open" for future steps — not "Complete."
+
+### Acceptance criteria
+- Landing on any A2 mirror step list shows correct status for all steps immediately on mount
+- A fully sealed mirror shows all steps as "Complete ✓" and Claim as "Sealed · tap to revisit ✓" — no interaction needed
+- A partially complete mirror shows done steps as "Complete ✓", current step as "In progress", future steps as "Open"
+
+---
+
+## Fix 4 — Veil not firing on re-entry to sealed A2 mirrors
+
+### What is broken
+The veil fires on first entry to A2 M2 and M3. It does NOT fire when re-entering a mirror that is already claimed/sealed — tapping "Sealed · tap to revisit →" goes straight to the step list with no veil.
+
+A1 Purpose correctly fires the veil on every entry including revisits. A2 must match.
+
+### What it must do
+The veil fires every time the user enters a mirror from the hub card button — fresh, in-progress, or sealed. Claimed state does not suppress the veil. The rule is: veil fires on hub-card-to-mirror entry. It does not fire on step-to-step-list transitions within the mirror.
+
+### Veil texts (confirm these are wired)
+- **M1 Alignment Check** entry: *"Looking at where you stand right now…"*
+- **M2 Time Audit** entry: *"Looking at where your time actually goes…"*
+- **M3 Named Truth** entry: *"Looking at what the truth is showing you…"*
+- **M3 Step 2 ("Rethink your time")** entry from step list: *"This is where it shifts…"*
+- **M3 Claim** entry from step list: *"The moment of naming it…"*
+
+### Root cause to check
+1. Is the veil component mounted inside the A2 hub render tree at all? (Prior session noted it may never have been mounted in `NewA2HubView`)
+2. Is the veil trigger condition gated on `!claimed`? Remove that gate.
+3. The veil must re-trigger on every hub-card tap — use a key or counter to force remount if needed
+
+### Veil appearance
+- Background: warm cream — NOT grey (match A1 veil exactly)
+- Text: italic Georgia, gold, centred
+- Timing: reuse `NA1_VEIL_TIMING` exactly — do not create new constants
+
+### Acceptance criteria
+- Veil fires on every entry to M1, M2, M3 from hub card — fresh, in-progress, and sealed
+- Veil fires on M3 step 2 and Claim step entries from the step list
+- Veil does NOT fire when returning to the step list after completing a step
+- Veil does NOT fire when tapping between steps on the step list
+- Veil background is warm cream, not grey
+
+---
+
+## Verification steps (after all four fixes)
+
+Walk in Chrome on dev URL `?newA1=1&newA2=1`:
+
+1. **A2 hub → tap "Sealed · tap to revisit →" on Time Audit**
+   - ✓ Veil fires ("Looking at where your time actually goes…"), warm cream background
+   - ✓ Step list opens — all steps show "Complete ✓", Claim shows "Sealed · tap to revisit ✓" immediately
+   - ✓ No horizontal dot indicator inside any exercise room
+   - ✓ Tap step 1 → exercise opens → CTA says "Done → Back to Time Audit" → tap it → returns to step list
+
+2. **A2 hub → tap "Begin Named Truth →" (M3 not started)**
+   - ✓ Veil fires ("Looking at what the truth is showing you…")
+   - ✓ Step list opens — all steps show "Open", no steps "Complete"
+   - ✓ Tap step 1 → exercise → complete it → "Done → Back to Named Truth" → step list shows step 1 "Complete ✓"
+   - ✓ Tap step 2 → veil fires ("This is where it shifts…") → exercise opens with no horizontal dot stepper
+
+3. **A1 → Purpose → "Review Purpose →"**
+   - ✓ Veil fires ("Stepping into the room with Katherine…")
+   - ✓ Step list opens with correct statuses
+   - ✓ A1 is completely untouched by this work
+
+---
+
+## What NOT to change
+- A1 in any way — reference only, never touch
+- Claim ceremony, seal copy, gold burst animation — untouched
+- Hub card layouts and mirror card states (SEALED / UP NEXT / LOCKED) — untouched
+- State keys (`to_a2_state_v1`) — do not restructure, only fix reads
+- The Claim step CTA ("Continue to [Next Mirror] →") — this one forward-advance stays
+
+---
+
+## Working rules
+- Plan before coding — send plan, wait for approval, then build
+- One fix at a time in order: Fix 1 → verify → Fix 2 → verify → Fix 3 → verify → Fix 4 → verify
+- Verify on `spock.replit.dev` — never the Replit IDE webview
+- Tokens only — `var(--gold)`, `var(--na1-burgundy)`, `var(--na1-sans)`, `var(--na1-serif)`
+- Both light and dark themes must work after each fix
+
+— end of brief —

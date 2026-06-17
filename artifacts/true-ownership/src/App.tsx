@@ -34376,13 +34376,11 @@ function NewA2HubView({
 // classes as-is (breadcrumb, ex-eyebrow/-title/-sub, intro-video START HERE,
 // ex-list/ex-row step cards, btn-ghost). No veil: per the A1 pattern, mirror
 // HUBS don't fire the entry veil (only room launches do, via NewA1Veil).
-// A2.5 · the four step cards are now LIVE — they reflect the shared
-// currentStep/maxReached/claimed state (one source of truth with the in-room
-// horizontal stepper) and launch the continuous room AT the tapped step.
+// A2.5 · the four step cards are now LIVE — they reflect persisted
+// maxReached/claimed state and launch the continuous room AT the tapped step.
 function NewA2M1HubView({
   onBackToA2,
   onStart,
-  currentStep,
   maxReached,
   claimed,
 }: {
@@ -34391,9 +34389,8 @@ function NewA2M1HubView({
   // (tapping an unlocked hub card) opens the room AT that step; no arg resumes
   // at currentStep. Wired by the container.
   onStart?: (step?: number) => void;
-  // A2.5 · Live Mirror-1 progress — the SAME currentStep/maxReached/claimed the
-  // in-room horizontal stepper reads, so the hub cards can never drift from it.
-  currentStep: number;
+  // A2.5 · Live Mirror-1 progress. `maxReached` (persisted, monotonic) drives
+  // step completion; `claimed` seals the whole mirror.
   maxReached: number;
   claimed: boolean;
 }) {
@@ -34404,10 +34401,20 @@ function NewA2M1HubView({
     { num: 3, name: "Key Misalignment" },
     { num: 4, name: "Claim" },
   ];
+  // Fix 3 · status reads real completion, not the volatile in-room pointer.
+  // A claimed mirror is fully sealed → every step counts done. For an unclaimed
+  // mirror M1 has no per-step data artifact, so we use persisted `maxReached`
+  // (the furthest step ever opened) — it is monotonic, survives remount, and,
+  // unlike currentStep, does NOT regress when the user revisits an earlier step.
+  const claimStepNum = steps[steps.length - 1]?.num ?? steps.length;
+  const isStepDone = (num: number): boolean =>
+    num === claimStepNum ? claimed : claimed || num < maxReached;
+  const firstIncomplete = steps.find((s) => !isStepDone(s.num))?.num;
+  const anyDone = steps.some((s) => isStepDone(s.num));
   // "Started" distinguishes the current step's label: a fresh hub (never
   // entered the room) reads "Up next"; once the user has moved through the flow
   // it reads "In progress".
-  const started = currentStep > 1 || maxReached > 1;
+  const started = anyDone || maxReached > 1;
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -34491,12 +34498,12 @@ function NewA2M1HubView({
             //   locked   — never reached (num > maxReached) → inert.
             // Every non-locked card launches the room AT its step; locked
             // cards stay inert.
-            const isSealed = s.num === 4 && claimed;
-            const isComplete = !isSealed && s.num < currentStep;
-            const isCurrent = !isSealed && s.num === currentStep;
-            const isLocked = s.num > maxReached;
-            const isRevisit =
-              !isSealed && !isComplete && !isCurrent && !isLocked;
+            const isSealed = s.num === claimStepNum && claimed;
+            const complete = isStepDone(s.num);
+            const isComplete = complete && !isSealed;
+            const isCurrent = !complete && s.num === firstIncomplete;
+            const isLocked = !complete && !isCurrent && !anyDone;
+            const isRevisit = !complete && !isCurrent && !isLocked;
             const clickable = !isLocked && !!onStart;
             const cls = [
               "na1-ex-row",
@@ -34606,6 +34613,7 @@ function NewA2MirrorHubView({
   currentStep,
   maxReached,
   claimed,
+  stepDone,
   steps,
   eyebrow,
   title,
@@ -34620,6 +34628,9 @@ function NewA2MirrorHubView({
   currentStep: number;
   maxReached: number;
   claimed: boolean;
+  // Fix 3 · real per-step completion from persisted data. When omitted the
+  // status falls back to the volatile currentStep comparison.
+  stepDone?: (num: number) => boolean;
   steps: { num: number; name: string }[];
   eyebrow: string;
   title: string;
@@ -34631,7 +34642,17 @@ function NewA2MirrorHubView({
 }) {
   const [videoOpen, setVideoOpen] = useState(false);
   const claimStepNum = steps[steps.length - 1]?.num ?? steps.length;
-  const started = currentStep > 1 || maxReached > 1;
+  // Fix 3 · status must read real completion, not currentStep/maxReached
+  // (both reset on remount). A claimed mirror is fully sealed → every step
+  // counts done; otherwise per-step completion comes from the persisted-data
+  // predicate, falling back to the currentStep comparison when none is given.
+  const isStepDone = (num: number): boolean =>
+    num === claimStepNum
+      ? claimed
+      : claimed || (stepDone ? stepDone(num) : num < currentStep);
+  const firstIncomplete = steps.find((s) => !isStepDone(s.num))?.num;
+  const anyDone = steps.some((s) => isStepDone(s.num));
+  const started = anyDone || maxReached > 1;
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -34696,11 +34717,11 @@ function NewA2MirrorHubView({
         <div className="na1-ex-list">
           {steps.map((s) => {
             const isSealed = s.num === claimStepNum && claimed;
-            const isComplete = !isSealed && s.num < currentStep;
-            const isCurrent = !isSealed && s.num === currentStep;
-            const isLocked = s.num > maxReached;
-            const isRevisit =
-              !isSealed && !isComplete && !isCurrent && !isLocked;
+            const complete = isStepDone(s.num);
+            const isComplete = complete && !isSealed;
+            const isCurrent = !complete && s.num === firstIncomplete;
+            const isLocked = !complete && !isCurrent && !anyDone;
+            const isRevisit = !complete && !isCurrent && !isLocked;
             const clickable = !isLocked && !!onStart;
             const cls = [
               "na1-ex-row",
@@ -35986,87 +36007,6 @@ function NewA2M1Step4Body({
   );
 }
 
-// Horizontal 4-step progress stepper. Current step is gold; steps below
-// maxReached show a ✓; the connecting line + dots up to maxReached are lit.
-// A2.4 · completed steps (strictly before the current one) are clickable and
-// jump straight back via onJump; the current step and any future/locked steps
-// stay inert.
-function NewA2M1Stepper({
-  currentStep,
-  maxReached,
-  onJump,
-}: {
-  currentStep: number;
-  maxReached: number;
-  onJump: (step: number) => void;
-}) {
-  return (
-    <div
-      className="na1-a2m1-stepper"
-      role="list"
-      aria-label="Alignment Check progress"
-    >
-      {A2M1_STEPS.map((s, i) => {
-        const num = s.num;
-        const isCurrent = num === currentStep;
-        const isComplete = num < maxReached && !isCurrent;
-        const isReached = num <= maxReached;
-        const dotCls = [
-          "na1-a2m1-dot",
-          isCurrent ? "is-current" : "",
-          isComplete ? "is-complete" : "",
-          isReached ? "is-reached" : "",
-        ]
-          .filter(Boolean)
-          .join(" ");
-        // Only steps strictly before the current one are "done" → clickable to
-        // jump back. The current step and any reached-but-ahead step stay inert.
-        const clickable = num < currentStep;
-        const inner = (
-          <>
-            <span className={dotCls} aria-hidden>
-              {isComplete ? "✓" : num}
-            </span>
-            <span
-              className={`na1-a2m1-step-name ${isCurrent ? "is-current" : ""}`}
-            >
-              {s.name}
-            </span>
-          </>
-        );
-        return (
-          <React.Fragment key={num}>
-            {i > 0 && (
-              <span
-                className={`na1-a2m1-line ${num <= maxReached ? "is-reached" : ""}`}
-                aria-hidden
-              />
-            )}
-            {clickable ? (
-              <button
-                type="button"
-                className="na1-a2m1-step is-clickable"
-                onClick={() => onJump(num)}
-                aria-label={`Go back to ${s.name}`}
-              >
-                {inner}
-              </button>
-            ) : (
-              <div
-                className="na1-a2m1-step"
-                role="listitem"
-                aria-current={isCurrent ? "step" : undefined}
-              >
-                {inner}
-              </div>
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
 // Step 1 · Read your A1 — read-only recall of Purpose, Gifts, Values.
 function NewA2M1Step1Body() {
   const recall = useMemo(() => readA1Recall(), []);
@@ -36301,15 +36241,8 @@ function NewA2M1Container({
   };
   useEffect(() => () => clearTimers(), []);
 
-  // Open the room without ceremony (re-entry once the veil has been seen).
-  const openRoomDirect = useCallback(() => {
-    clearTimers();
-    setVeilPhase("idle");
-    setRoomOpen(true);
-  }, []);
-
-  // First-ever launch: play the veil, then reveal the room. Marks veilSeen so
-  // it never replays.
+  // Launch ceremony: play the veil, then reveal the room. Fix 4 · this now
+  // replays on every hub launch; veilSeen is still recorded but no longer gates.
   const launchWithVeil = useCallback(() => {
     clearTimers();
     setVeilPhase("rising");
@@ -36347,10 +36280,11 @@ function NewA2M1Container({
           maxReached: Math.max(m.maxReached, clamped),
         }));
       }
-      if (m1.veilSeen) openRoomDirect();
-      else launchWithVeil();
+      // Fix 4 · the entry veil now replays on every room launch from the hub,
+      // including a sealed mirror — no veilSeen suppression.
+      launchWithVeil();
     },
-    [m1.veilSeen, openRoomDirect, launchWithVeil, mutateM1],
+    [launchWithVeil, mutateM1],
   );
 
   // Report the open room up so the route persists it. On a resume mount
@@ -36385,29 +36319,28 @@ function NewA2M1Container({
     if (m1.currentStep > 1) goToStep(m1.currentStep - 1);
     else closeRoom();
   };
-  const onContinue = () => {
-    if (m1.currentStep === 1) {
-      // Enter Step 2 on the first sub-screen. The saved step2Index resume only
-      // applies to a refresh, not a fresh forward advance from Step 1.
+  // Primary room CTA. Step 2 pages forward through its rating sub-screens; at
+  // every step boundary the CTA instead reads "Done → Back to Alignment Check"
+  // and returns to the step-card list (closeRoom) rather than auto-advancing
+  // into the next step. The Step 2 completion gate still blocks "Done" until
+  // every item is rated (enforced by the button's disabled prop below).
+  const onPrimary = () => {
+    if (m1.currentStep === 2 && step2Index < lastIndex) {
+      setStep2Index(step2Index + 1);
+      return;
+    }
+    // Fix 2 · completing a step returns to the step-card list instead of
+    // auto-advancing. Advance the persisted pointer first so `maxReached` grows
+    // and the hub marks this step Complete / unlocks the next, then close.
+    if (m1.currentStep < 4) {
+      const next = m1.currentStep + 1;
       mutateM1((m) => ({
         ...m,
-        currentStep: 2,
-        maxReached: Math.max(m.maxReached, 2),
-        step2Index: 0,
+        currentStep: next,
+        maxReached: Math.max(m.maxReached, next),
       }));
-      return;
     }
-    if (m1.currentStep === 2) {
-      // Page forward through sub-screens; on the last one, the single Complete
-      // predicate gates the exit to Step 3.
-      if (step2Index < lastIndex) {
-        setStep2Index(step2Index + 1);
-        return;
-      }
-      if (isStep2Complete) goToStep(3);
-      return;
-    }
-    if (m1.currentStep < 4) goToStep(m1.currentStep + 1);
+    closeRoom();
   };
 
   // Forward CTA target for the Claim step. The registry carries the Time Audit
@@ -36436,7 +36369,6 @@ function NewA2M1Container({
       <NewA2M1HubView
         onBackToA2={onBackToA2}
         onStart={startRoom}
-        currentStep={m1.currentStep}
         maxReached={m1.maxReached}
         claimed={m1.claimed}
       />
@@ -36466,11 +36398,6 @@ function NewA2M1Container({
             >
               ×
             </button>
-            <NewA2M1Stepper
-              currentStep={m1.currentStep}
-              maxReached={m1.maxReached}
-              onJump={goToStep}
-            />
             {m1.currentStep === 2 && rateScreens.length > 0 && (
               <NewA2M1SubProgress
                 total={rateScreens.length}
@@ -36543,14 +36470,16 @@ function NewA2M1Container({
                 <button
                   type="button"
                   className="na1-btn-gold"
-                  onClick={onContinue}
+                  onClick={onPrimary}
                   disabled={
                     m1.currentStep === 2 &&
                     step2Index === lastIndex &&
                     !isStep2Complete
                   }
                 >
-                  Continue
+                  {m1.currentStep === 2 && step2Index < lastIndex
+                    ? "Continue"
+                    : "Done → Back to Alignment Check"}
                 </button>
               )}
             </div>
@@ -36576,77 +36505,6 @@ function NewA2M1Container({
 // hub: the A2 hub's 02 Begin routes straight here and the container launches the
 // veil on entry, matching "tapping Begin plays the launch veil and opens the
 // room".
-
-// Horizontal step indicator for the Time Audit. Same behavior as Mirror 1's
-// stepper (current = gold, completed steps show ✓ + are clickable to jump back)
-// with its own na1-a2m2-* classes.
-function NewA2M2Stepper({
-  currentStep,
-  maxReached,
-  onJump,
-}: {
-  currentStep: number;
-  maxReached: number;
-  onJump: (step: number) => void;
-}) {
-  return (
-    <div className="na1-a2m2-stepper" role="list" aria-label="Time Audit progress">
-      {A2M2_STEPS.map((s, i) => {
-        const num = s.num;
-        const isCurrent = num === currentStep;
-        const isComplete = num < maxReached && !isCurrent;
-        const isReached = num <= maxReached;
-        const dotCls = [
-          "na1-a2m2-dot",
-          isCurrent ? "is-current" : "",
-          isComplete ? "is-complete" : "",
-          isReached ? "is-reached" : "",
-        ]
-          .filter(Boolean)
-          .join(" ");
-        const clickable = num < currentStep;
-        const inner = (
-          <>
-            <span className={dotCls} aria-hidden>
-              {isComplete ? "✓" : num}
-            </span>
-            <span className={`na1-a2m2-step-name ${isCurrent ? "is-current" : ""}`}>
-              {s.name}
-            </span>
-          </>
-        );
-        return (
-          <React.Fragment key={num}>
-            {i > 0 && (
-              <span
-                className={`na1-a2m2-line ${num <= maxReached ? "is-reached" : ""}`}
-                aria-hidden
-              />
-            )}
-            {clickable ? (
-              <button
-                type="button"
-                className="na1-a2m2-step is-clickable"
-                onClick={() => onJump(num)}
-                aria-label={`Go back to ${s.name}`}
-              >
-                {inner}
-              </button>
-            ) : (
-              <div
-                className="na1-a2m2-step"
-                role="listitem"
-                aria-current={isCurrent ? "step" : undefined}
-              >
-                {inner}
-              </div>
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
 
 // Step 1 · Your priorities. Pick from suggested chips or add custom ones, then
 // rank them (drag handle or ▲▼). Caps at A2M2_PRIORITY_MAX. Priorities are an
@@ -37343,10 +37201,10 @@ function NewA2M2Container({
   }, []);
 
   // A resume mount (refresh while the room was open) restores the room with no
-  // veil. A fresh entry from the hub plays the launch veil — unless the mirror
-  // is already claimed, in which case we open straight to the sealed Claim step.
+  // veil. Fix 4 · every other entry from the hub plays the launch veil — even a
+  // sealed mirror replays it, then lands on the overview hub (see launch effect).
   const resuming = initialRoomKey === "timeaudit";
-  const launchVeil = !resuming && !m2.claimed;
+  const launchVeil = !resuming;
   // A claimed re-entry that is NOT a room resume lands on the mirror overview
   // hub (the step-card list) rather than dropping straight into the room.
   // Snapshot the claimed flag AT ENTRY so claiming mid-session (first run) does
@@ -37378,7 +37236,9 @@ function NewA2M2Container({
     timers.push(
       window.setTimeout(() => {
         setVeilPhase("hold");
-        setRoomOpen(true);
+        // Fix 4 · a sealed re-entry replays the veil but lands on the overview
+        // hub (step-card list), not the room; only fresh/in-progress open it.
+        if (!claimedRevisit) setRoomOpen(true);
       }, NA1_VEIL_TIMING.holdAt),
     );
     timers.push(
@@ -37417,8 +37277,12 @@ function NewA2M2Container({
     if (currentStep > 1) goToStep(currentStep - 1);
     else closeRoom();
   };
-  const onContinue = () => {
+  // Completing a step returns to the step-card list (the home base) rather than
+  // auto-advancing into the next step. Advance the pointer first so the list
+  // surfaces the next step as up-next, then close the room to reveal the list.
+  const onDone = () => {
     if (currentStep < 4) goToStep(currentStep + 1);
+    setRoomOpen(false);
   };
 
   // Per-step Continue gate. Step 1 needs at least one priority; the rest are
@@ -37521,7 +37385,9 @@ function NewA2M2Container({
 
   return (
     <div className="na1-root">
-      {!roomOpen && veilPhase === "idle" && (
+      {/* Fix 4 · reveal the step list UNDER the veil (hold/falling) so a sealed
+          re-entry lands cleanly on the hub rather than popping in at idle. */}
+      {!roomOpen && veilPhase !== "rising" && (
         <NewA2MirrorHubView
           onBackToA2={onBackToA2}
           onStart={(step) => {
@@ -37531,6 +37397,15 @@ function NewA2M2Container({
           currentStep={currentStep}
           maxReached={maxReached}
           claimed={m2.claimed}
+          stepDone={(num) =>
+            num === 1
+              ? m2.priorities.length >= 1
+              : num === 2
+                ? m2.activities.length >= 1
+                : num === 3
+                  ? m2.missingItems.some((it) => it.name.trim() !== "")
+                  : m2.claimed
+          }
           steps={A2M2_STEPS}
           eyebrow="A2 · Mirror 2 · Explore with Katherine"
           title="Time Audit"
@@ -37567,11 +37442,6 @@ function NewA2M2Container({
             >
               ×
             </button>
-            <NewA2M2Stepper
-              currentStep={currentStep}
-              maxReached={maxReached}
-              onJump={goToStep}
-            />
             <div className="na1-a2m2-body">
               {currentStep === 1 ? (
                 <NewA2M2Step1Body
@@ -37617,10 +37487,10 @@ function NewA2M2Container({
                 <button
                   type="button"
                   className="na1-btn-gold"
-                  onClick={onContinue}
+                  onClick={onDone}
                   disabled={!canContinue}
                 >
-                  {A2M2_CONTINUE_LABEL[currentStep] ?? "Continue"}
+                  Done → Back to Time Audit
                 </button>
               )}
             </div>
@@ -37637,81 +37507,6 @@ function NewA2M2Container({
 // ─────────────────────────────────────────────────────────────────────────────
 // A2 Ship 2 · Mirror 3 (Named Truth) · room
 // ─────────────────────────────────────────────────────────────────────────────
-
-// 3-step indicator. Mirrors NewA2M2Stepper structurally; own na1-a2m3-* classes.
-function NewA2M3Stepper({
-  currentStep,
-  maxReached,
-  onJump,
-}: {
-  currentStep: number;
-  maxReached: number;
-  onJump: (step: number) => void;
-}) {
-  return (
-    <div
-      className="na1-a2m3-stepper"
-      role="list"
-      aria-label="Named Truth progress"
-    >
-      {A2M3_STEPS.map((s, i) => {
-        const num = s.num;
-        const isCurrent = num === currentStep;
-        const isComplete = num < maxReached && !isCurrent;
-        const isReached = num <= maxReached;
-        const dotCls = [
-          "na1-a2m3-dot",
-          isCurrent ? "is-current" : "",
-          isComplete ? "is-complete" : "",
-          isReached ? "is-reached" : "",
-        ]
-          .filter(Boolean)
-          .join(" ");
-        const clickable = num < currentStep;
-        const inner = (
-          <>
-            <span className={dotCls} aria-hidden>
-              {isComplete ? "✓" : num}
-            </span>
-            <span
-              className={`na1-a2m3-step-name ${isCurrent ? "is-current" : ""}`}
-            >
-              {s.name}
-            </span>
-          </>
-        );
-        return (
-          <React.Fragment key={num}>
-            {i > 0 && (
-              <span
-                className={`na1-a2m3-line ${num <= maxReached ? "is-reached" : ""}`}
-                aria-hidden
-              />
-            )}
-            {clickable ? (
-              <button
-                type="button"
-                className="na1-a2m3-step is-clickable"
-                onClick={() => onJump(num)}
-                aria-label={`Go back to ${s.name}`}
-              >
-                {inner}
-              </button>
-            ) : (
-              <div
-                className="na1-a2m3-step"
-                role="listitem"
-                aria-current={isCurrent ? "step" : undefined}
-              >
-                {inner}
-              </div>
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
 
 const A2M3_INTENT_FLAG: Record<A2M3Intent, string> = {
   yes: "Intentional",
@@ -38644,7 +38439,8 @@ function NewA2M3Container({
   }, []);
 
   const resuming = initialRoomKey === "namedtruth";
-  const launchVeil = !resuming && !m3.claimed;
+  // Fix 4 · every non-resume entry replays the veil, even a sealed mirror.
+  const launchVeil = !resuming;
   // A claimed re-entry that is NOT a room resume lands on the mirror overview
   // hub (the step-card list) rather than dropping straight into the room.
   // Snapshot the claimed flag AT ENTRY so claiming mid-session (first run) does
@@ -38675,7 +38471,9 @@ function NewA2M3Container({
     timers.push(
       window.setTimeout(() => {
         setVeilPhase("hold");
-        setRoomOpen(true);
+        // Fix 4 · a sealed re-entry replays the veil but lands on the overview
+        // hub (step-card list), not the room; only fresh/in-progress open it.
+        if (!claimedRevisit) setRoomOpen(true);
       }, NA1_VEIL_TIMING.holdAt),
     );
     timers.push(
@@ -38715,15 +38513,17 @@ function NewA2M3Container({
     if (currentStep > 1) goToStep(currentStep - 1);
     else closeRoom();
   };
-  // Fire the entry veil for a forward step transition, swapping the step
-  // content invisibly under the veil at the hold point (matching A1's
-  // "screen swap happens underneath" pattern). Reuses NA1_VEIL_TIMING exactly —
-  // no new constants or keyframes. Backward navigation (onBack / stepper) and
-  // in-step screen swaps never call this, so the veil fires on step ENTRY only.
-  const advanceWithVeil = (target: number) => {
-    const text = A2M3_STEP_VEIL_TEXT[target];
+  // Open a step from the list. Steps that carry an entry veil (2 = Rethink,
+  // 3 = Claim) play the veil first and reveal the room at the hold point —
+  // exactly matching the launch veil. Step 1 (no veil text) opens immediately.
+  // Reuses NA1_VEIL_TIMING; no new constants or keyframes. Backward navigation
+  // and in-step swaps never call this, so the veil fires on step ENTRY only.
+  const openStepFromList = (target: number) => {
+    const clamped = Math.max(1, Math.min(3, target));
+    goToStep(clamped);
+    const text = A2M3_STEP_VEIL_TEXT[clamped];
     if (!text) {
-      goToStep(target);
+      setRoomOpen(true);
       return;
     }
     stepVeilTimersRef.current.forEach((t) => window.clearTimeout(t));
@@ -38733,7 +38533,7 @@ function NewA2M3Container({
     stepVeilTimersRef.current.push(
       window.setTimeout(() => {
         setVeilPhase("hold");
-        goToStep(target);
+        setRoomOpen(true);
       }, NA1_VEIL_TIMING.holdAt),
       window.setTimeout(
         () => setVeilPhase("falling"),
@@ -38742,8 +38542,10 @@ function NewA2M3Container({
       window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt),
     );
   };
-  const onContinue = () => {
-    if (currentStep < 3) advanceWithVeil(currentStep + 1);
+  // Completing a step returns to the step-card list instead of auto-advancing.
+  const onDone = () => {
+    if (currentStep < 3) goToStep(currentStep + 1);
+    setRoomOpen(false);
   };
 
   // Step 1 intent.
@@ -38844,16 +38646,24 @@ function NewA2M3Container({
 
   return (
     <div className="na1-root">
-      {!roomOpen && veilPhase === "idle" && (
+      {/* Fix 4 · reveal the step list UNDER the veil (hold/falling) so a sealed
+          re-entry lands cleanly on the hub rather than popping in at idle. */}
+      {!roomOpen && veilPhase !== "rising" && (
         <NewA2MirrorHubView
           onBackToA2={onBackToA2}
-          onStart={(step) => {
-            goToStep(step ?? currentStep);
-            setRoomOpen(true);
-          }}
+          onStart={(step) => openStepFromList(step ?? currentStep)}
           currentStep={currentStep}
           maxReached={maxReached}
           claimed={m3.claimed}
+          stepDone={(num) =>
+            num === 1
+              ? Object.keys(m3.intentMap).length >= 1
+              : num === 2
+                ? Object.keys(m3.activityDecisions).length >= 1 ||
+                  m3.priorityCommitments.length >= 1 ||
+                  m3.moveText.trim() !== ""
+                : m3.claimed
+          }
           steps={A2M3_STEPS}
           eyebrow="A2 · Mirror 3 · Explore with Katherine"
           title="Named Truth"
@@ -38890,11 +38700,6 @@ function NewA2M3Container({
             >
               ×
             </button>
-            <NewA2M3Stepper
-              currentStep={currentStep}
-              maxReached={maxReached}
-              onJump={goToStep}
-            />
             <div className="na1-a2m3-body">
               {currentStep === 1 ? (
                 <NewA2M3Step1Body
@@ -38935,9 +38740,9 @@ function NewA2M3Container({
                 <button
                   type="button"
                   className="na1-btn-gold"
-                  onClick={onContinue}
+                  onClick={onDone}
                 >
-                  {A2M3_CONTINUE_LABEL[currentStep] ?? "Continue"}
+                  Done → Back to Named Truth
                 </button>
               )}
             </div>

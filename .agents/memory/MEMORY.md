@@ -1,3 +1,4 @@
 - [Mirror card gating](true-ownership-mirror-gating.md) — hub mirror cards must chain unlock booleans through the prior card's unlock, not its persisted completion, or downstream leaks unlocked after reset.
-- [App.tsx giant file](true-ownership-app-tsx.md) — True Ownership is one huge App.tsx; `read` reports stale line counts (use wc/sed/rg); filtered typecheck shows ~6000 errors (libs not built) — verify edits via TS17002/in-range grep, not a clean run; new A2 surfaces gated behind ?newA1/?newA2 + auth.
+- [App.tsx giant file](true-ownership-app-tsx.md) — one huge App.tsx; `read` line counts are stale (use wc/sed/rg); filtered typecheck shows ~6000 baseline errors — verify via in-range grep, not a clean run.
+- [A2 return-to-list nav](true-ownership-a2-nav-model.md) — A2 "Done" must advance the step pointer before closing (or fresh-run deadlock); hub status reads monotonic maxReached/data, never currentStep (revisit regresses it).
 - [A2 mirror revisit hubs](true-ownership-app-tsx.md) — claimed mirrors re-enter via a step-card overview hub (NewA2MirrorHubView); gate close-routing on a useRef snapshot of claimed-at-entry, not live state.
