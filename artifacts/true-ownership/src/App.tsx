@@ -79,6 +79,8 @@ import {
 // behavior helpers + types.
 import {
   M4_ROOMS,
+  m4IsClusterComplete,
+  m4RoomDone,
   EMPTY_MIRROR4,
   hasMirror4State,
   loadMirror4State,
@@ -2263,6 +2265,37 @@ html[data-theme="light"]{
 .na1-m4-back:hover{ color:var(--na1-text); }
 .na1-m4-back:disabled{ opacity:.3; cursor:not-allowed; }
 .na1-m4-continue{ background:var(--gold); color:#1a1407; border:none; padding:11px 22px; border-radius:100px; font-size:14px; cursor:pointer; font-family:var(--na1-sans); letter-spacing:.02em; font-weight:600; transition:filter .15s; }
+/* Phase 2 · Name-the-standards (user-driven grouping) */
+.na1-m4-ns-example-toggle{ background:transparent; border:none; color:var(--gold); font-family:var(--na1-sans); font-size:12px; font-weight:600; cursor:pointer; padding:4px 0; margin:0 0 12px; }
+.na1-m4-ns-example{ background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:10px; padding:12px 14px; margin:0 0 18px; font-family:var(--na1-serif); font-size:13.5px; line-height:1.55; color:var(--na1-text-sec); }
+.na1-m4-ns-example em{ color:var(--na1-text); font-style:italic; }
+.na1-m4-ns-example strong{ color:var(--gold); }
+.na1-m4-ns-pool{ margin:0 0 22px; }
+.na1-m4-ns-label{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--na1-text-mute); font-weight:700; margin:0 0 10px; }
+.na1-m4-ns-pool-empty{ font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-mute); font-style:italic; padding:6px 0; }
+.na1-m4-ns-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.na1-m4-ns-chipwrap{ position:relative; }
+.na1-m4-ns-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:100px; padding:7px 12px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text); cursor:pointer; transition:border-color .15s; }
+.na1-m4-ns-chip:hover{ border-color:var(--gold); }
+.na1-m4-ns-chip-caret{ color:var(--na1-text-mute); font-size:10px; }
+.na1-m4-ns-menu{ position:absolute; top:calc(100% + 4px); left:0; z-index:20; min-width:180px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:10px; padding:5px; box-shadow:0 8px 28px rgba(0,0,0,.28); display:flex; flex-direction:column; gap:2px; }
+.na1-m4-ns-menu-item{ text-align:left; background:transparent; border:none; border-radius:7px; padding:8px 10px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text); cursor:pointer; }
+.na1-m4-ns-menu-item:hover{ background:var(--na1-bg-soft); }
+.na1-m4-ns-menu-item.is-new{ color:var(--gold); font-weight:600; border-top:1px solid var(--na1-border); margin-top:2px; }
+.na1-m4-ns-standards{ display:flex; flex-direction:column; gap:14px; }
+.na1-m4-ns-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-left:3px solid var(--na1-border); border-radius:12px; padding:14px 16px; }
+.na1-m4-ns-card.is-complete{ border-color:var(--gold); }
+.na1-m4-ns-card-del{ position:absolute; top:10px; right:12px; background:transparent; border:none; color:var(--na1-text-mute); font-size:18px; line-height:1; cursor:pointer; }
+.na1-m4-ns-card-del:hover{ color:var(--na1-text); }
+.na1-m4-ns-name{ width:100%; background:transparent; border:none; border-bottom:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--na1-serif); font-size:18px; font-weight:600; padding:2px 0 6px; margin:0 0 12px; outline:none; }
+.na1-m4-ns-name:focus{ border-bottom-color:var(--gold); }
+.na1-m4-ns-card-empty{ font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-mute); font-style:italic; }
+.na1-m4-ns-evidence{ display:flex; flex-wrap:wrap; gap:7px; }
+.na1-m4-ns-ev{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:5px 9px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); }
+.na1-m4-ns-ev-x{ background:transparent; border:none; color:var(--na1-text-mute); font-size:14px; line-height:1; cursor:pointer; padding:0; }
+.na1-m4-ns-ev-x:hover{ color:var(--na1-text); }
+.na1-m4-ns-add{ align-self:flex-start; background:transparent; border:1px dashed var(--na1-border); border-radius:100px; padding:9px 16px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); cursor:pointer; transition:border-color .15s,color .15s; }
+.na1-m4-ns-add:hover{ border-color:var(--gold); color:var(--gold); }
 .na1-m4-continue:hover:not(:disabled){ filter:brightness(1.08); }
 .na1-m4-continue:disabled{ opacity:.4; cursor:not-allowed; background:var(--gold-soft); color:var(--gold); }
 
@@ -40588,7 +40621,11 @@ function NewA1M4RoomPlaceholderBody({ room }: { room: M4Room }) {
   // full map here so when later sections wire the same shell, the
   // copy is already correct.
   const sectionByKey: Record<M4RoomKey, number> = {
-    discover: 2,
+    admire: 2,
+    irks: 2,
+    portrait: 2,
+    flip: 3,
+    name: 5,
     operationalize: 4,
     rank: 6,
     claim: 7,
@@ -40655,31 +40692,57 @@ function NewA1M4HubView({
   // at least one cluster has ≥1 saved behavior. Claim (idx 3) stays
   // locked — it unlocks in a later ship after Rank's body ships.
   const m4State = loadMirror4State();
-  const hasCompleteCluster = m4State.clusters.some(
-    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
-  );
+  // Phase 2 · 8-rung ladder. Unlock chains through m4RoomDone of the
+  // prior REAL rung; Flip is the reserved "coming soon" rung — it never
+  // unlocks and is non-blocking (Name unlocks off Portrait, skipping it).
+  // The back half keeps its original gates: Behaviors on a complete
+  // cluster, Rank on any saved behavior, Claim on the pressure test.
+  const hasCompleteCluster = m4State.clusters.some(m4IsClusterComplete);
   const hasAnyBehavior = m4State.clusters.some(
     (c) => (m4State.operationalize[c.id]?.behaviors?.length ?? 0) > 0,
   );
-  // Ship 5.6j · Fix #1 — Claim hub card unlocks once the pressure-
-  // test completes. The Rank Continue gate already gates on this
-  // flag; the hub-card unlock was still using a placeholder check
-  // from Section 1, so Claim stayed locked even when pressureTest
-  // .complete was true. Body is still bodyShipped:false → click
-  // triggers the veil-bounce placeholder (Section 6 not shipped).
   const isPressureTestDone = m4State.pressureTest.complete === true;
-  // Ship 5.7 · Behaviors-room completion mirrors the Continue-to-Rank
-  // gate exactly (≥3 complete clusters, each with ≥3 behaviors AND a
-  // keystone). Used to drive the hub's per-room "Complete" treatment.
-  const m4CompleteClusters = m4State.clusters.filter(
-    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
-  );
-  const behaviorsComplete =
-    m4CompleteClusters.length >= 3 &&
-    m4CompleteClusters.every((c) => {
-      const op = m4State.operationalize[c.id];
-      return (op?.behaviors?.length ?? 0) >= 3 && !!op?.keystoneId;
-    });
+  const isClaimed = m4State.claimed === true;
+  const isRoomUnlocked = (room: (typeof M4_ROOMS)[number]): boolean => {
+    switch (room.key) {
+      case "admire":
+        return true;
+      case "irks":
+        return m4RoomDone(m4State, "admire");
+      case "portrait":
+        return m4RoomDone(m4State, "irks");
+      case "flip":
+        return false;
+      case "name":
+        return m4RoomDone(m4State, "portrait");
+      case "operationalize":
+        return hasCompleteCluster;
+      case "rank":
+        return hasAnyBehavior;
+      case "claim":
+        return isPressureTestDone;
+      default:
+        return false;
+    }
+  };
+  // Exactly one rung flashes: the first unlocked, not-yet-done, non-
+  // coming-soon rung. On a fully complete mirror nothing qualifies, so
+  // nothing flashes.
+  const currentRoomKey =
+    M4_ROOMS.find(
+      (r) => isRoomUnlocked(r) && !r.comingSoon && !m4RoomDone(m4State, r.key),
+    )?.key ?? null;
+  // Locked-row copy: the rung that actually gates each room (NOT idx-1).
+  // Name unlocks off Portrait — Flip is skipped/non-blocking — so the
+  // label must name the true predecessor, not the row above it.
+  const m4UnlockAfter: Partial<Record<M4RoomKey, string>> = {
+    irks: "Admire",
+    portrait: "Irks",
+    name: "Portrait",
+    operationalize: "Name the standards",
+    rank: "Behaviors",
+    claim: "Rank",
+  };
   return (
     <div
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
@@ -40701,7 +40764,7 @@ function NewA1M4HubView({
           className="na1-ex-sub"
           style={{ fontStyle: "italic", fontFamily: "var(--na1-serif)" }}
         >
-          Four rooms. Three to five values. One decision filter.
+          A step-by-step climb. Three to five values. One decision filter.
         </p>
         <p className="na1-ex-foot-sub">
           You can return any time to edit anything you've written.
@@ -40754,98 +40817,52 @@ function NewA1M4HubView({
         </div>
         <div className="na1-ex-list">
           {M4_ROOMS.map((room, idx) => {
-            // Ship 5.6g · gate per room key, not just idx.
-            const isUnlocked =
-              idx === 0 ||
-              (room.key === "operationalize" && hasCompleteCluster) ||
-              (room.key === "rank" && hasAnyBehavior) ||
-              // Ship 5.6j · Fix #1 — Claim unlocks on pressure-test
-              // completion. Body still falls back to placeholder.
-              (room.key === "claim" && isPressureTestDone);
+            const isUnlocked = isRoomUnlocked(room);
             const isLocked = !isUnlocked;
-            // "Up next" highlights the deepest unlocked room the user
-            // has yet to finish. Cheap approximation: the last room
-            // that's unlocked. Claim is "current" when reachable but
-            // not yet claimed (claim body ships in Section 6).
-            const isClaimed = m4State.claimed === true;
-            const isCurrent =
-              isUnlocked &&
-              (idx === 0
-                ? !hasCompleteCluster
-                : room.key === "operationalize"
-                  ? !hasAnyBehavior
-                  : room.key === "rank"
-                    ? !isPressureTestDone
-                    : // Ship 5.6l — Claim is "current" only until
-                      // sealed. After claimed=true the hub row
-                      // becomes a calm revisit affordance.
-                      room.key === "claim" && !isClaimed);
+            const isComingSoon = room.comingSoon === true;
+            const isRoomComplete = m4RoomDone(m4State, room.key);
+            const isCurrent = currentRoomKey === room.key;
             const isClaim = room.key === "claim";
-            // Ship 5.7 · M3-parity Complete state. Discover, Behaviors,
-            // and Rank earn a gold ✓ + is-complete border once they meet
-            // their threshold. Claim is excluded — it keeps its existing
-            // "Sealed" treatment when claimed.
-            const isRoomComplete =
-              room.key === "discover"
-                ? hasCompleteCluster
-                : room.key === "operationalize"
-                  ? behaviorsComplete
-                  : room.key === "rank"
-                    ? isPressureTestDone
-                    : false;
-            // Ship 5.9a · A sealed Claim card earns the same Complete
-            // treatment as the other three rooms (gold ✓ + complete
-            // border), while keeping its "Sealed" label and is-m4-claim
-            // accent. claimed=true is the sealed signal.
-            const isClaimComplete = isClaim && isClaimed;
             const cls = [
               "na1-ex-row",
               `tone-${room.tone}`,
-              isRoomComplete || isClaimComplete ? "is-complete" : "",
+              isRoomComplete ? "is-complete" : "",
               isCurrent ? "is-current" : "",
-              isLocked ? "is-locked" : "is-unlocked",
+              isUnlocked ? "is-unlocked" : "is-locked",
               isClaim ? "is-m4-claim" : "",
             ]
               .filter(Boolean)
               .join(" ");
-            const statusLabel = isClaim && isClaimed && isUnlocked
-              ? "Sealed · tap to revisit"
-              : isCurrent
-                ? "Up next · tap to begin"
-                : isClaim
-                  ? "The seal — unlocks after Rank"
+            const statusLabel = isComingSoon
+              ? "Coming soon"
+              : isClaim && isClaimed && isUnlocked
+                ? "Sealed · tap to revisit"
+                : isCurrent
+                  ? "Up next · tap to begin"
                   : isRoomComplete
                     ? "Complete"
                     : isUnlocked
                       ? "Open · tap to revisit"
-                      : `Unlocks after ${M4_ROOMS[idx - 1]?.name ?? "the previous room"}`;
+                      : `Unlocks after ${m4UnlockAfter[room.key] ?? "the previous rung"}`;
             const iconChar = isLocked
               ? "🔒"
-              : isRoomComplete || isClaimComplete
+              : isRoomComplete
                 ? "✓"
                 : String(room.n);
-            // Locked rooms remain clickable in M4 so the veil-falls-back
-            // pattern (room.bodyShipped === false → setOpenRoom(null) in
-            // the container's launch timer) fires. This mirrors the spec
-            // requirement that locked rooms play the veil then return
-            // rather than being inert. M3's hub disables locked rooms
-            // entirely; M4 deviates intentionally here.
             return (
               <button
                 type="button"
                 key={room.key}
                 className={cls}
                 onClick={() => {
-                  // Ship 5.6l — Claim is now bodyShipped:true, so the
-                  // veil-bounce safety net no longer covers a locked
-                  // click. Gate Claim launch on its unlock predicate
-                  // (pressureTest.complete). Other rooms keep the
-                  // existing veil-bounce-for-locked behavior.
-                  if (room.key === "claim" && isLocked) return;
+                  // Locked rungs (including the reserved "coming soon"
+                  // Flip) are inert — they do not open a room. Mirrors
+                  // the Purpose ladder; no veil-bounce.
+                  if (!isUnlocked) return;
                   onLaunchRoom(room);
                 }}
                 aria-label={`${room.name} — ${statusLabel}`}
-                aria-disabled={room.key === "claim" && isLocked ? true : undefined}
+                aria-disabled={isLocked ? true : undefined}
               >
                 <span className="na1-ex-icon" aria-hidden>
                   {iconChar}
@@ -40858,7 +40875,7 @@ function NewA1M4HubView({
                     {statusLabel}
                   </span>
                 </span>
-                {!isLocked && (
+                {isUnlocked && (
                   <span className="na1-ex-arrow" aria-hidden>
                     ›
                   </span>
@@ -40943,68 +40960,24 @@ function m4ValueIndexToStep(i: number): M4DiscoverStep {
   return (`v${i + 1}`) as M4DiscoverStep;
 }
 
-function NewA1M4DiscoverBody({
+// ─── Phase 2 · Values ladder section bodies (user-driven, no AI) ───
+// Each Discover-ladder rung (Admire / Irks / Portrait / Name the
+// standards) opens its own room. NewA1M4SectionBody is the shared state
+// wrapper: it owns the Mirror4State load/persist cycle and renders the
+// matching section component plus a Back / Done footer. "Done" stamps the
+// rung's discoverSections flag (Admire/Irks/Portrait) so the ladder reads
+// it complete even when the rung is legitimately empty, then returns to
+// the ladder. Name-the-standards derives its done state from clusters.
+function NewA1M4SectionBody({
+  sectionKey,
   onCloseRoom,
-  onContinueToBehaviors,
 }: {
-  // Ship 5.6d · Step 8 Continue closes the Discover overlay entirely.
-  // Optional so the existing prop-less call sites stay compatible.
-  onCloseRoom?: () => void;
-  // Ship 5.6g · When provided, Step 8 Continue routes via the
-  // container's launchRoom("operationalize") instead of plain close,
-  // so the user lands inside the Behaviors room (with veil).
-  onContinueToBehaviors?: () => void;
+  sectionKey: "admire" | "irks" | "portrait" | "name";
+  onCloseRoom: () => void;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
   );
-  // Restore step from currentStep. Section 2 steps (admire/irks/
-  // portrait) and Section 3a sub-steps (read/v1…v5/finish) all
-  // restore directly. Legacy "section3" placeholder + the M4_ROOM
-  // top-level "clusters" marker both remap to "read" (Step 4). All
-  // other top-level M4Step values come from rooms past Discover, so
-  // we land on Portrait — the last Section 2 screen — since the user
-  // already got past it.
-  const initStep: M4DiscoverStep = (() => {
-    // currentStep is the wider M4Step union (includes top-level rooms
-    // like "clusters"/"operationalize"). Cast through string for the
-    // legacy "section3" + Section 3a sub-step checks since they live
-    // in M4DiscoverStep, not M4Step.
-    const cs = state.currentStep as string;
-    if (cs === "admire" || cs === "irks" || cs === "portrait")
-      return cs as M4DiscoverStep;
-    if (
-      cs === "read" ||
-      cs === "v1" ||
-      cs === "v2" ||
-      cs === "v3" ||
-      cs === "v4" ||
-      cs === "v5" ||
-      cs === "finish"
-    )
-      return cs as M4DiscoverStep;
-    if (cs === "section3" || cs === "clusters") return "read";
-    return "portrait";
-  })();
-  const [step, setStep] = useState<M4DiscoverStep>(initStep);
-
-  // Ship 5.6d · Modal state hoisted to the body so the 280ms
-  // Name → Define handoff survives un-related re-renders, and so
-  // the Completed-card edit-links can reopen either modal without
-  // wiring callbacks through per-value props.
-  const [nameModal, setNameModal] = useState<{
-    clusterId: string;
-    isEdit: boolean;
-  } | null>(null);
-  const [defineModal, setDefineModal] = useState<{
-    clusterId: string;
-  } | null>(null);
-
-  // Persist mutations. status auto-promotes from "not_started" on
-  // first write so the hub card reflects in-progress. The state
-  // updater stays pure — saveMirror4State runs in a useEffect on
-  // [state] so React Strict Mode's double-invoked setter doesn't
-  // cause duplicate localStorage writes.
   const mutate = (fn: (s: Mirror4State) => Mirror4State) => {
     setMirrorState((prev) => {
       const next = fn(prev);
@@ -41013,9 +40986,8 @@ function NewA1M4DiscoverBody({
         : next;
     });
   };
-
-  // Skip persistence on first render (we just loaded from storage) to
-  // avoid a redundant write-back, then persist on every change.
+  // Skip the very first persist so simply opening a rung doesn't write
+  // (and flip status to in_progress) before the user does anything.
   const firstPersistRef = useRef(true);
   useEffect(() => {
     if (firstPersistRef.current) {
@@ -41025,294 +40997,268 @@ function NewA1M4DiscoverBody({
     saveMirror4State(state);
   }, [state]);
 
-  // Persist step changes. setState skips updates when shallow-equal,
-  // and we no-op via the functional updater when currentStep already
-  // matches, so this doesn't cause a duplicate write.
-  useEffect(() => {
-    // "section3" is legacy-only; never persist it back since the
-    // M4Step union (state.currentStep) no longer accepts it.
-    if (step === "section3") return;
-    setMirrorState((s) =>
-      (s.currentStep as string) === step
-        ? s
-        : { ...s, currentStep: step as Mirror4State["currentStep"] },
-    );
-  }, [step]);
-
-  // ── Navigation ─────────────────────────────────────────────
-  // Per-value Continue from "vN" advances to "v{N+1}" if that
-  // cluster exists, otherwise to "finish". Continue from "read"
-  // jumps to "v1" when at least one cluster has been created.
-  const goNext = () => {
-    if (step === "admire") setStep("irks");
-    else if (step === "irks") setStep("portrait");
-    else if (step === "portrait") setStep("read");
-    else if (step === "read") {
-      if (state.clusters.length > 0) setStep("v1");
-    } else {
-      const vi = m4StepToValueIndex(step);
-      if (vi != null) {
-        const nextI = vi + 1;
-        if (state.clusters[nextI]) setStep(m4ValueIndexToStep(nextI));
-        else setStep("finish");
-      }
-    }
-    // "finish" → handled by Step 8 itself (onContinue → onCloseRoom)
-  };
-  const goBack = () => {
-    if (step === "irks") setStep("admire");
-    else if (step === "portrait") setStep("irks");
-    else if (step === "read") setStep("portrait");
-    else if (step === "v1") setStep("read");
-    else {
-      const vi = m4StepToValueIndex(step);
-      if (vi != null && vi > 0) setStep(m4ValueIndexToStep(vi - 1));
-      else if (step === "finish") {
-        // Back from finish → last cluster's per-value screen.
-        const n = state.clusters.length;
-        if (n > 0) setStep(m4ValueIndexToStep(n - 1));
-        else setStep("read");
-      }
+  const markSectionDone = () => {
+    if (
+      sectionKey === "admire" ||
+      sectionKey === "irks" ||
+      sectionKey === "portrait"
+    ) {
+      const key = sectionKey;
+      mutate((s) => ({
+        ...s,
+        discoverSections: { ...s.discoverSections, [key]: true },
+      }));
     }
   };
 
-  // Per-value Continue is disabled until both userName AND
-  // userDefinition are present on the current cluster (spec). For
-  // other steps, the body's intrinsic Continue label/disable rules
-  // apply.
-  const currentValueCluster: M4Cluster | null = (() => {
-    const vi = m4StepToValueIndex(step);
-    if (vi == null) return null;
-    return state.clusters[vi] ?? null;
-  })();
-  const continueDisabled = (() => {
-    if (step === "admire" || step === "irks" || step === "portrait")
-      return false;
-    if (step === "read") return state.clusters.length === 0;
-    if (step === "finish") return false;
-    // Per-value: needs userName AND userDefinition non-empty
-    if (currentValueCluster) {
-      return (
-        !currentValueCluster.userName.trim() ||
-        !currentValueCluster.userDefinition.trim()
-      );
-    }
-    return true;
-  })();
-
-  const continueLabel = (() => {
-    if (step === "admire") return "Continue to irks →";
-    if (step === "irks") return "See your portrait →";
-    if (step === "portrait") return "Find values underneath →";
-    if (step === "read")
-      return state.clusters.length > 0 ? "Work cluster 1 →" : "—";
-    const vi = m4StepToValueIndex(step);
-    if (vi != null) {
-      const nextI = vi + 1;
-      if (state.clusters[nextI]) return `Work cluster ${nextI + 1} →`;
-      return "Confirm your values →";
-    }
-    // Ship 5.6e · Continue copy names the destination (Behaviors
-     // room is next in M4) rather than the mechanism (overlay close).
-     // Matches the pattern of every other M4 Continue.
-     if (step === "finish") return "Continue to Behaviors";
-    return "—";
-  })();
-
-  // Ship 5.6g · Section 4 hand-off — Step 8 Continue closes the
-  // Discover overlay AND signals the container to launch the
-  // Behaviors room. Container falls back to onCloseRoom when no
-  // handoff prop is wired (keeps the component composable / safe).
-  const handleFinishContinue = () => {
-    if (onContinueToBehaviors) onContinueToBehaviors();
-    else if (onCloseRoom) onCloseRoom();
+  const handleDone = () => {
+    markSectionDone();
+    onCloseRoom();
   };
 
-  // Footer renders Continue only when there is somewhere to go.
-  // For "finish", Continue's onClick is overridden to call onCloseRoom.
-  const handleContinue = () => {
-    if (step === "finish") {
-      handleFinishContinue();
-      return;
-    }
-    goNext();
+  return (
+    <div className="na1-m4-disc">
+      <div className="na1-m4-disc-content" key={sectionKey}>
+        {sectionKey === "admire" && (
+          <M4StepAdmireIrks kind="admire" state={state} mutate={mutate} />
+        )}
+        {sectionKey === "irks" && (
+          <M4StepAdmireIrks kind="irks" state={state} mutate={mutate} />
+        )}
+        {sectionKey === "portrait" && (
+          <M4StepPortrait state={state} mutate={mutate} />
+        )}
+        {sectionKey === "name" && (
+          <NewA1M4NameStandardsBody state={state} mutate={mutate} />
+        )}
+      </div>
+      <div className="na1-m4-disc-foot">
+        <button type="button" className="na1-m4-back" onClick={onCloseRoom}>
+          ← Back to ladder
+        </button>
+        <button type="button" className="na1-m4-continue" onClick={handleDone}>
+          Done · back to the ladder
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Name the standards — the user-driven grouping rung that replaces the AI
+// clustering + AI naming flow. The ungrouped pool (admired behaviors not
+// yet pulled into a standard) stays visible until grouped, and behaviors
+// return to it when removed from a standard, so nothing is ever lost.
+// Each standard is a cluster: an editable name + its evidence behaviors.
+function NewA1M4NameStandardsBody({
+  state,
+  mutate,
+}: {
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+}) {
+  const [exampleOpen, setExampleOpen] = useState(false);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+
+  const pool = state.admire.filter((b) => b.inUseByCluster == null);
+
+  const behaviorText = (id: string): string => {
+    const b = [...state.admire, ...state.irks].find((x) => x.id === id);
+    return b ? b.text : "";
   };
 
-  // Modal callbacks. Open Name modal (per-value Name CTA or
-  // Completed edit-link).
-  const openNameModal = (clusterId: string, isEdit: boolean) => {
-    setNameModal({ clusterId, isEdit });
-  };
-  const openDefineModal = (clusterId: string) => {
-    setDefineModal({ clusterId });
-  };
-
-  // Confirm Name: writes userName + status="named", then auto-opens
-  // Define after a 280ms beat ONLY when this was first-creation
-  // (isEdit=false). On edit, just close and return to the per-value
-  // screen (spec: 280ms beat is for first-creation flow only).
-  const confirmName = (clusterId: string, name: string, isEdit: boolean) => {
-    mutate((s) =>
-      m4UpdateCluster(s, clusterId, (c) => ({
-        ...c,
-        userName: name.trim(),
-        status:
-          c.status === "complete" ? c.status : ("named" as M4ClusterStatus),
-      })),
-    );
-    setNameModal(null);
-    if (!isEdit) {
-      window.setTimeout(() => {
-        setDefineModal({ clusterId });
-      }, 280);
-    }
-  };
-
-  // Confirm Define: writes userDefinition + status="complete", closes.
-  const confirmDefine = (clusterId: string, def: string) => {
-    mutate((s) =>
-      m4UpdateCluster(s, clusterId, (c) => ({
-        ...c,
-        userDefinition: def.trim(),
-        status: "complete" as M4ClusterStatus,
-      })),
-    );
-    setDefineModal(null);
-  };
-
-  // Add-another: create empty cluster + navigate to its per-value step.
-  const addAnotherValue = () => {
-    if (state.clusters.length >= 5) return;
+  const createStandard = () => {
     mutate((s) => {
-      const result = m4CreateCluster(s, {
+      const r = m4CreateCluster(s, {
         proposal: "",
         proposedNames: [],
         behaviorIds: [],
       });
-      return result.state;
+      return r.state;
     });
-    // Navigate after state settles. setStep is queued in next render
-    // when the new cluster will be at index = old length.
-    const newIndex = state.clusters.length;
-    window.setTimeout(() => setStep(m4ValueIndexToStep(newIndex)), 0);
   };
 
-  // Lookups for modal rendering. Re-resolved from latest state so a
-  // mid-flight cluster delete (none in 3a but defensive) doesn't crash.
-  const nameModalCluster = nameModal
-    ? state.clusters.find((c) => c.id === nameModal.clusterId) ?? null
-    : null;
-  const defineModalCluster = defineModal
-    ? state.clusters.find((c) => c.id === defineModal.clusterId) ?? null
-    : null;
+  const addToStandard = (behaviorId: string, clusterId: string) => {
+    mutate((s) => m4AddBehaviorToCluster(s, clusterId, behaviorId));
+    setMenuFor(null);
+  };
 
-  // Per-value screen color = locked cluster color from creation.
-  const rootClassName = (() => {
-    const base = "na1-m4-disc";
-    const cls: string[] = [base];
-    if (nameModal) cls.push("naming-open");
-    if (defineModal) cls.push("define-open");
-    return cls.join(" ");
-  })();
+  const addToNewStandard = (behaviorId: string) => {
+    mutate((s) => {
+      const r = m4CreateCluster(s, {
+        proposal: "",
+        proposedNames: [],
+        behaviorIds: [],
+      });
+      return m4AddBehaviorToCluster(r.state, r.cluster.id, behaviorId);
+    });
+    setMenuFor(null);
+  };
+
+  const removeFromStandard = (behaviorId: string, clusterId: string) => {
+    mutate((s) => m4RemoveBehaviorFromCluster(s, clusterId, behaviorId));
+  };
+
+  const renameStandard = (clusterId: string, name: string) => {
+    mutate((s) =>
+      m4UpdateCluster(s, clusterId, (c) => ({ ...c, userName: name })),
+    );
+  };
+
+  const deleteStandard = (clusterId: string) => {
+    mutate((s) => {
+      const cl = s.clusters.find((c) => c.id === clusterId);
+      if (!cl) return s;
+      let ns = s;
+      for (const bid of [...cl.behaviorIds]) {
+        ns = m4RemoveBehaviorFromCluster(ns, clusterId, bid);
+      }
+      return {
+        ...ns,
+        clusters: ns.clusters.filter((c) => c.id !== clusterId),
+      };
+    });
+  };
 
   return (
-    <div className={rootClassName}>
-      <div className="na1-room-eyebrow tone-gold">Mirror 4 · Discover</div>
-      <div className="na1-m4-disc-content" key={step}>
-        {step === "admire" && (
-          <M4StepAdmireIrks kind="admire" state={state} mutate={mutate} />
+    <>
+      <div className="na1-m4-step-eyebrow">Mirror 4 · Name the standards</div>
+      <h2 className="na1-m4-step-title">Name the standards underneath</h2>
+      <p className="na1-m4-step-sub">
+        Each behavior you admire points to a standard you hold. Group the ones
+        that belong together and name the standard in your own words — these
+        become your values.
+      </p>
+
+      <button
+        type="button"
+        className="na1-m4-ns-example-toggle"
+        onClick={() => setExampleOpen((v) => !v)}
+        aria-expanded={exampleOpen}
+      >
+        {exampleOpen ? "− Hide example" : "+ See a worked example"}
+      </button>
+      {exampleOpen && (
+        <div className="na1-m4-ns-example">
+          <p>
+            Say you admired{" "}
+            <em>&ldquo;keeps their word even when it costs them&rdquo;</em> and{" "}
+            <em>&ldquo;owns their mistakes without excuses.&rdquo;</em> Both
+            point to one standard. You might group them and name it{" "}
+            <strong>&ldquo;Own It.&rdquo;</strong>
+          </p>
+        </div>
+      )}
+
+      <div className="na1-m4-ns-pool">
+        <div className="na1-m4-ns-label">
+          Behaviors to group ({pool.length})
+        </div>
+        {pool.length === 0 ? (
+          <div className="na1-m4-ns-pool-empty">
+            {state.admire.length === 0
+              ? "No admired behaviors yet — add some on the Admire rung first."
+              : "Every behavior is grouped. Nice."}
+          </div>
+        ) : (
+          <div className="na1-m4-ns-chips">
+            {pool.map((b) => (
+              <div key={b.id} className="na1-m4-ns-chipwrap">
+                <button
+                  type="button"
+                  className="na1-m4-ns-chip"
+                  onClick={() =>
+                    setMenuFor((cur) => (cur === b.id ? null : b.id))
+                  }
+                >
+                  {b.text}
+                  <span className="na1-m4-ns-chip-caret" aria-hidden>
+                    ▾
+                  </span>
+                </button>
+                {menuFor === b.id && (
+                  <div className="na1-m4-ns-menu">
+                    {state.clusters.map((c) => (
+                      <button
+                        type="button"
+                        key={c.id}
+                        className="na1-m4-ns-menu-item"
+                        onClick={() => addToStandard(b.id, c.id)}
+                      >
+                        {c.userName.trim() || "Unnamed standard"}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="na1-m4-ns-menu-item is-new"
+                      onClick={() => addToNewStandard(b.id)}
+                    >
+                      + New standard
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         )}
-        {step === "irks" && (
-          <M4StepAdmireIrks kind="irks" state={state} mutate={mutate} />
-        )}
-        {step === "portrait" && (
-          <M4StepPortrait state={state} mutate={mutate} />
-        )}
-        {step === "read" && (
-          <M4StepKatherinesRead state={state} mutate={mutate} />
-        )}
-        {(step === "v1" ||
-          step === "v2" ||
-          step === "v3" ||
-          step === "v4" ||
-          step === "v5") &&
-          currentValueCluster && (
-            <M4PerValueScreen
-              state={state}
-              mutate={mutate}
-              cluster={currentValueCluster}
-              valueIndex={m4StepToValueIndex(step)! + 1}
-              isAddAnother={(m4StepToValueIndex(step) ?? 0) >= 3}
-              onOpenName={(isEdit) =>
-                openNameModal(currentValueCluster.id, isEdit)
-              }
-              onOpenDefine={() => openDefineModal(currentValueCluster.id)}
-            />
-          )}
-        {step === "finish" && (
-          <M4Step8Confirm
-            state={state}
-            mutate={mutate}
-            onAddAnother={addAnotherValue}
-          />
-        )}
-      </div>
-      <div className="na1-m4-disc-foot">
-        <button
-          type="button"
-          className="na1-m4-back"
-          disabled={step === "admire"}
-          onClick={goBack}
-        >
-          ← Back
-        </button>
-        <button
-          type="button"
-          className="na1-m4-continue"
-          disabled={continueDisabled}
-          onClick={handleContinue}
-        >
-          {continueLabel}
-        </button>
       </div>
 
-      {/* Modals: lifted over the per-value screen with blur. */}
-      {nameModalCluster && nameModal && (
-        <M4NamingModal
-          cluster={nameModalCluster}
-          state={state}
-          isEdit={nameModal.isEdit}
-          onClose={() => setNameModal(null)}
-          onConfirm={(name) =>
-            confirmName(nameModalCluster.id, name, nameModal.isEdit)
-          }
-          onPersistPeelChain={(chain) =>
-            mutate((s) =>
-              m4UpdateCluster(s, nameModalCluster.id, (c) => ({
-                ...c,
-                peelChain: chain,
-              })),
-            )
-          }
-        />
-      )}
-      {defineModalCluster && defineModal && (
-        <M4DefineModal
-          cluster={defineModalCluster}
-          state={state}
-          onClose={() => setDefineModal(null)}
-          onConfirm={(def) => confirmDefine(defineModalCluster.id, def)}
-          onEditName={() => {
-            // ← Edit name from Define modal: close Define, reopen
-            // Naming in State B (isEdit=true so peel UI is hidden
-            // AND so confirmName won't auto-reopen Define after).
-            const id = defineModalCluster.id;
-            setDefineModal(null);
-            setNameModal({ clusterId: id, isEdit: true });
-          }}
-        />
-      )}
-    </div>
+      <div className="na1-m4-ns-standards">
+        {state.clusters.map((c, i) => {
+          const complete = m4IsClusterComplete(c);
+          return (
+            <div
+              key={c.id}
+              className={`na1-m4-ns-card${complete ? " is-complete" : ""}`}
+              style={{ borderLeftColor: `var(--c${c.colorIndex})` }}
+            >
+              <button
+                type="button"
+                className="na1-m4-ns-card-del"
+                onClick={() => deleteStandard(c.id)}
+                aria-label="Delete standard"
+              >
+                ×
+              </button>
+              <input
+                className="na1-m4-ns-name"
+                type="text"
+                value={c.userName}
+                placeholder={`Name standard ${i + 1}…`}
+                onChange={(e) => renameStandard(c.id, e.target.value)}
+              />
+              {c.behaviorIds.length === 0 ? (
+                <div className="na1-m4-ns-card-empty">
+                  Add behaviors from the pool above.
+                </div>
+              ) : (
+                <div className="na1-m4-ns-evidence">
+                  {c.behaviorIds.map((bid) => (
+                    <span key={bid} className="na1-m4-ns-ev">
+                      {behaviorText(bid)}
+                      <button
+                        type="button"
+                        className="na1-m4-ns-ev-x"
+                        onClick={() => removeFromStandard(bid, c.id)}
+                        aria-label="Remove from standard"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        <button
+          type="button"
+          className="na1-m4-ns-add"
+          onClick={createStandard}
+        >
+          + New standard
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -41426,8 +41372,7 @@ function M4StepAdmireIrks({
   return (
     <>
       <div className="na1-m4-step-eyebrow">
-        Mirror 4 · Step {kind === "admire" ? 1 : 2} of 8 ·{" "}
-        {kind === "admire" ? "Admire" : "Irks"}
+        Mirror 4 · {kind === "admire" ? "Admire" : "Irks"}
       </div>
       <h2 className="na1-m4-step-title">
         {kind === "admire"
@@ -41486,17 +41431,12 @@ function M4InputRow({
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
 }) {
   const [text, setText] = useState("");
-  const [person, setPerson] = useState("");
-  const [personOpen, setPersonOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const personRef = useRef<HTMLInputElement>(null);
 
   const submit = (tier: M4BehaviorTier) => {
     if (!text.trim()) return;
-    mutate((s) => m4AddBehavior(s, kind, text, tier, person));
+    mutate((s) => m4AddBehavior(s, kind, text, tier, ""));
     setText("");
-    setPerson("");
-    setPersonOpen(false);
     inputRef.current?.focus();
   };
   const defaultTier: M4BehaviorTier =
@@ -41524,38 +41464,6 @@ function M4InputRow({
           }}
           placeholder={placeholder}
         />
-        {personOpen ? (
-          <div className="na1-m4-tag-person" style={{ borderStyle: "solid" }}>
-            <span style={{ color: "var(--na1-text-mute)" }}>·</span>
-            <input
-              ref={personRef}
-              autoFocus
-              type="text"
-              className="na1-m4-tag-person-input"
-              value={person}
-              onChange={(e) => setPerson(e.target.value)}
-              placeholder="who?"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  setPersonOpen(false);
-                  inputRef.current?.focus();
-                }
-              }}
-            />
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="na1-m4-tag-person"
-            onClick={() => {
-              setPersonOpen(true);
-              setTimeout(() => personRef.current?.focus(), 0);
-            }}
-          >
-            {person ? `· ${person}` : "+ tag a person"}
-          </button>
-        )}
       </div>
       {text.trim() && (
         <div className="na1-m4-intensity">
@@ -41812,9 +41720,7 @@ function M4StepPortrait({
 
   return (
     <>
-      <div className="na1-m4-step-eyebrow">
-        Mirror 4 · Step 3 of 8 · Portrait
-      </div>
+      <div className="na1-m4-step-eyebrow">Mirror 4 · Portrait</div>
       <h2 className="na1-m4-step-title">Your behavior portrait</h2>
       <p className="na1-m4-step-sub">
         Here's what you put down — sorted as you tagged it. Drag between
@@ -41860,1435 +41766,6 @@ function M4StepPortrait({
               </button>
             </div>
           </div>
-        </div>
-      )}
-    </>
-  );
-}
-
-// ── Ship 5.6d · Section 3a · Step 4 · Katherine's Read ─────────
-// Reads the user's portrait, calls Anthropic /api/claude once to
-// cluster the behaviors, applies the result via m4CreateCluster.
-// On API failure or malformed JSON, falls back to the deterministic
-// rule-based clustering. Strict-Mode-safe via fetchingRef + the
-// idempotency check inside applyClusters.
-function M4StepKatherinesRead({
-  state,
-  mutate,
-}: {
-  state: Mirror4State;
-  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
-}) {
-  const [loading, setLoading] = useState<boolean>(
-    state.clusters.length === 0,
-  );
-  const fetchingRef = useRef(false);
-
-  useEffect(() => {
-    // Only fetch when there are no clusters yet (handles re-cluster)
-    if (state.clusters.length > 0) {
-      setLoading(false);
-      return;
-    }
-    if (fetchingRef.current) return;
-    fetchingRef.current = true;
-    setLoading(true);
-
-    const allBehaviors = [...state.admire, ...state.irks];
-    const behaviorList = allBehaviors
-      .map((b) => {
-        const tier = b.tier.toUpperCase();
-        const person = b.person ? ` — (${b.person})` : "";
-        return `- [${tier}] ${b.text}${person} (id: ${b.id})`;
-      })
-      .join("\n");
-
-    const prompt = `You are Katherine Breuss, a values-work coach, reading a user's portrait of behaviors that light them up (LIGHTS, WARMS) and that bother them (BOTHERS, TURNS).
-
-Portrait:
-${behaviorList}
-
-Group these behaviors into 2-4 thematic clusters. Each cluster names a value underneath. Do NOT include every behavior — only group the ones that share a clear theme. Use the exact behavior ids from the portrait.
-
-Respond with ONLY a JSON object (no preamble, no markdown fence):
-{
-  "narrative": "1-2 sentences in Katherine's voice, warm and direct, introducing what you see",
-  "clusters": [
-    {
-      "proposal": "lowercase phrase, e.g. 'accountability — owning your impact'",
-      "proposedNames": ["Integrity", "Honor", "Responsibility"],
-      "behaviorIds": ["ad-1", "ir-3"]
-    }
-  ]
-}`;
-
-    (async () => {
-      try {
-        // eslint-disable-next-line no-console
-        console.log("[M4 clustering] prompt:", prompt);
-        const res = await fetch("/api/claude", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1200,
-            messages: [{ role: "user", content: prompt }],
-          }),
-        });
-        if (!res.ok) throw new Error(`claude ${res.status}`);
-        const data = await res.json();
-        // eslint-disable-next-line no-console
-        console.log("[M4 clustering] response:", data);
-        const text: string = Array.isArray(data.content)
-          ? data.content
-              .map((b: { text?: string }) => b.text ?? "")
-              .join("")
-          : "";
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("no JSON in response");
-        const parsed = JSON.parse(jsonMatch[0]);
-        if (
-          !Array.isArray(parsed.clusters) ||
-          parsed.clusters.length === 0
-        )
-          throw new Error("no clusters in response");
-        applyClusters(
-          typeof parsed.narrative === "string" ? parsed.narrative : "",
-          parsed.clusters,
-        );
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "[M4 clustering] failed, using rule-based fallback:",
-          err,
-        );
-        const fallback = m4RuleBasedClusters(state);
-        applyClusters(fallback.narrative, fallback.clusters);
-      } finally {
-        setLoading(false);
-        fetchingRef.current = false;
-      }
-    })();
-    // Re-run whenever the cluster list goes back to empty (e.g. dev
-    // re-cluster link). Reading the latest state.admire/irks each
-    // time keeps the prompt accurate if the portrait was edited.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.clusters.length]);
-
-  // Idempotency: if state already has clusters (Strict Mode double-
-  // fire of the success callback, or a stale fallback racing the
-  // real response), do nothing. Validate behaviorIds against the
-  // live portrait so a hallucinated id is silently dropped.
-  function applyClusters(
-    narrative: string,
-    rawClusters: Array<{
-      proposal?: string;
-      proposedNames?: string[];
-      behaviorIds?: string[];
-    }>,
-  ) {
-    mutate((s) => {
-      if (s.clusters.length > 0) return s; // already clustered
-      const validIds = new Set([
-        ...s.admire.map((b) => b.id),
-        ...s.irks.map((b) => b.id),
-      ]);
-      let next = s;
-      for (const r of rawClusters) {
-        const ids = Array.isArray(r.behaviorIds)
-          ? r.behaviorIds.filter((id) => validIds.has(id))
-          : [];
-        const result = m4CreateCluster(next, {
-          proposal: typeof r.proposal === "string" ? r.proposal : "",
-          proposedNames: Array.isArray(r.proposedNames)
-            ? r.proposedNames.filter((n) => typeof n === "string")
-            : [],
-          behaviorIds: ids,
-        });
-        next = result.state;
-      }
-      // 2-cluster soft prompt — prepended to Katherine's narrative
-      // so the user is gently nudged to consider a third without
-      // any UI gating (spec § Step 4 · "soft only").
-      const softNudge =
-        next.clusters.length === 2
-          ? "I see two — values usually run deeper than that. After we work these, look at what's left in your portrait. "
-          : "";
-      return {
-        ...next,
-        clustersNarrative: softNudge + (narrative || ""),
-      };
-    });
-  }
-
-  // Re-cluster: confirm, wipe clusters + narrative, reset fetchRef
-  // so the useEffect re-fires once state.clusters.length becomes 0.
-  const handleRecluster = () => {
-    if (
-      !window.confirm(
-        "Wipe all clusters and re-run clustering? Behaviors stay; named/defined values will be lost.",
-      )
-    )
-      return;
-    fetchingRef.current = false;
-    mutate((s) => m4ClearAllClusters(s));
-  };
-
-  return (
-    <>
-      <div className="na1-m4-step-eyebrow">
-        Mirror 4 · Step 4 of 8 · Katherine's read
-      </div>
-      <h2 className="na1-m4-step-title">Here's what I see</h2>
-      <p className="na1-m4-step-sub">
-        I read your portrait and grouped what fits together. Work each
-        cluster and see what value sits underneath.
-      </p>
-
-      <div className="na1-m4-katherine">
-        <div className="na1-m4-katherine-label">Katherine's read</div>
-        {loading ? (
-          <div className="na1-m4-katherine-loading">
-            Reading your portrait…
-          </div>
-        ) : (
-          <p className="na1-m4-katherine-body">
-            {state.clustersNarrative || "—"}
-          </p>
-        )}
-      </div>
-
-      {!loading && state.clusters.length > 0 && (
-        <>
-          <div className="na1-m4-pv-section-title">
-            {state.clusters.length}{" "}
-            {state.clusters.length === 1 ? "cluster" : "clusters"} to work
-          </div>
-          <div className="na1-m4-cluster-list">
-            {state.clusters.map((c, idx) => {
-              // Ship 5.6e · Named clusters turn the Step 4 card into
-              // a "done" marker: gold star + user name, definition in
-              // italic Georgia, faint gold border. Unnamed clusters
-              // render exactly as before (proposal text + count).
-              const isNamedCard =
-                c.status === "complete" && !!c.userName.trim();
-              return (
-                <div
-                  key={c.id}
-                  className={
-                    isNamedCard
-                      ? "na1-m4-cluster-card is-named"
-                      : "na1-m4-cluster-card"
-                  }
-                >
-                  <span
-                    className="na1-m4-cluster-dot"
-                    style={{ background: `var(--c${c.colorIndex})` }}
-                  />
-                  <div className="na1-m4-cluster-body">
-                    {isNamedCard ? (
-                      <>
-                        <div className="na1-m4-cluster-label-row is-named">
-                          ★ {c.userName.trim()}
-                        </div>
-                        <div className="na1-m4-cluster-definition">
-                          {c.userDefinition.trim()}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="na1-m4-cluster-label-row">
-                          Cluster {idx + 1}
-                        </div>
-                        <div className="na1-m4-cluster-proposal">
-                          {c.proposal || "(unnamed cluster)"}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <div className="na1-m4-cluster-count">
-                    {c.behaviorIds.length}{" "}
-                    {c.behaviorIds.length === 1
-                      ? "behavior"
-                      : "behaviors"}
-                  </div>
-                  {isNamedCard && (
-                    <span
-                      className="na1-m4-cluster-done"
-                      aria-label="Named"
-                      title="Named & defined"
-                    >
-                      ✓
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="na1-m4-recluster">
-            <button
-              type="button"
-              className="na1-m4-recluster-link"
-              onClick={handleRecluster}
-            >
-              Re-cluster from portrait
-            </button>
-          </div>
-        </>
-      )}
-    </>
-  );
-}
-
-// ── Ship 5.6d · Section 3a · Per-value screen (Steps 5/6/7 + v4/v5)
-// One screen per cluster. Shows the locked color, behaviors with
-// inline +add/+pick from portrait, irk→flip rows, and either the
-// gold Name CTA or the Completed card. Add-another mode (v4/v5)
-// pre-opens the mini-quadrant since the cluster starts empty.
-function M4PerValueScreen({
-  state,
-  mutate,
-  cluster,
-  valueIndex,
-  isAddAnother,
-  onOpenName,
-  onOpenDefine,
-}: {
-  state: Mirror4State;
-  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
-  cluster: M4Cluster;
-  valueIndex: number;
-  isAddAnother: boolean;
-  onOpenName: (isEdit: boolean) => void;
-  onOpenDefine: () => void;
-}) {
-  // Mini-quadrant open: defaults to true when the cluster is empty
-  // (add-another path lands here without any behaviors). Persists
-  // across re-renders via useState.
-  const [mqOpen, setMqOpen] = useState<boolean>(
-    isAddAnother || cluster.behaviorIds.length === 0,
-  );
-  // Inline "new behavior" composer (gold + button at bottom). When
-  // null, the +New button shows; when non-null, the input row shows.
-  const [newDraft, setNewDraft] = useState<string | null>(null);
-
-  const totalClusters = state.clusters.length;
-  const colorVar = `var(--c${cluster.colorIndex})`;
-  const isComplete = cluster.status === "complete";
-
-  // Resolve full behavior objects for the cluster (in order).
-  const allBehaviors = useMemo(
-    () => [...state.admire, ...state.irks],
-    [state.admire, state.irks],
-  );
-  const clusterBehaviors: M4Behavior[] = cluster.behaviorIds
-    .map((id) => allBehaviors.find((b) => b.id === id))
-    .filter((b): b is M4Behavior => !!b);
-  const irkBehaviors = clusterBehaviors.filter(
-    (b) => b.tier === "bothers" || b.tier === "turns",
-  );
-
-  // Ship 5.6e · "Named" treatment swaps the per-value surface to
-  // reflect the user's value once both Naming + Define are complete
-  // (status === "complete" && userName non-empty). The cluster
-  // pedigree (Cluster N) becomes a faint eyebrow suffix so users
-  // still know which cluster they're in.
-  const isNamed =
-    cluster.status === "complete" && !!cluster.userName.trim();
-
-  // Eyebrow text: "Mirror 4 · Step N of 8 · Value M". For v4/v5,
-  // we keep "Step 8 of 8" since these are reached via add-another
-  // from the confirm screen.
-  const eyebrowStep =
-    valueIndex <= 3 ? `${4 + valueIndex} of 8` : `8 of 8`;
-  const eyebrowExtra = isNamed
-    ? ` · cluster ${valueIndex} · named`
-    : isAddAnother && !cluster.proposal
-      ? " (additional)"
-      : "";
-
-  // Title + subtitle: default for clusters with a proposal; replaced
-  // for add-another empty clusters (spec § Step 8 · Add another).
-  // Once named, the title becomes "★ {userName}" — the cluster
-  // pedigree moves to the eyebrow above.
-  const title = isNamed
-    ? `★ ${cluster.userName.trim()}`
-    : cluster.proposal
-      ? `Cluster ${valueIndex}`
-      : "Add another value";
-  const subtitle =
-    isNamed || !cluster.proposal
-      ? ""
-      : `${cluster.proposal}`;
-
-  // Banner: shows count + cluster color block. Hidden for empty
-  // add-another clusters (no proposal yet). When named, the banner
-  // content is replaced with the user's definition shown as italic
-  // Georgia (reflects the named value back to the user).
-  const bannerVisible = !!cluster.proposal || isNamed;
-
-  // Add behavior to cluster (from mini-quadrant pick).
-  const handlePick = (behaviorId: string) => {
-    mutate((s) => m4AddBehaviorToCluster(s, cluster.id, behaviorId));
-  };
-  // Remove behavior from cluster (× chip on each row).
-  const handleRemove = (behaviorId: string) => {
-    mutate((s) => m4RemoveBehaviorFromCluster(s, cluster.id, behaviorId));
-  };
-  // Create a new behavior (tier="lights" by default since cluster is
-  // value-driven) and immediately attach it to this cluster.
-  const handleAddNew = () => {
-    const t = (newDraft ?? "").trim();
-    if (!t) return;
-    mutate((s) => {
-      // m4AddBehavior signature: (state, kind, text, tier, person?)
-      // Returns the new state with the behavior already appended;
-      // we re-derive its id via m4NextBehaviorId on the PRE-add
-      // state since it's deterministic ("ad-{n+1}").
-      const newId = m4NextBehaviorId(s, "admire");
-      // Spec § "+ Add new behavior" — typed behaviors land in admire
-      // with tier "warms" and chip source "NEW" (intensity is a
-      // soft default; the user can re-tier later from the portrait).
-      const afterAdd = m4AddBehavior(s, "admire", t, "warms");
-      // Stamp source="new" so the chip shows "NEW" not "WARMS".
-      const withSource: Mirror4State = {
-        ...afterAdd,
-        admire: afterAdd.admire.map((b) =>
-          b.id === newId ? { ...b, source: "new" } : b,
-        ),
-      };
-      return m4AddBehaviorToCluster(withSource, cluster.id, newId);
-    });
-    setNewDraft(null);
-  };
-
-  // Flip edit + accept/skip handlers. Edits write through to
-  // cluster.flips immediately; accept marks accepted=true; skip
-  // marks accepted=false. Per spec, the value moves to "owned"
-  // regardless — accept/skip is informational for 3b.
-  const updateFlipText = (irkId: string, toText: string) => {
-    mutate((s) =>
-      m4UpdateCluster(s, cluster.id, (c) => ({
-        ...c,
-        flips: c.flips.map((f) =>
-          f.irkId === irkId ? { ...f, toText } : f,
-        ),
-      })),
-    );
-  };
-  // Spec § Flip Accept/Skip:
-  // - Accept → creates a new behavior in admire with source="flipped"
-  //   carrying the user-edited flip text, attaches it to this
-  //   cluster, then removes the flip row (consumed). The original
-  //   irk stays in the cluster (its inUseByCluster was already set
-  //   when it joined).
-  // - Skip → removes the flip row entirely. The original irk stays
-  //   in the cluster unflipped; nothing else changes.
-  const acceptFlip = (irkId: string) => {
-    const flip = cluster.flips.find((f) => f.irkId === irkId);
-    if (!flip || !flip.toText.trim()) return;
-    mutate((s) => {
-      const newId = m4NextBehaviorId(s, "admire");
-      const afterAdd = m4AddBehavior(
-        s,
-        "admire",
-        flip.toText.trim(),
-        "lights",
-      );
-      const withSource: Mirror4State = {
-        ...afterAdd,
-        admire: afterAdd.admire.map((b) =>
-          b.id === newId ? { ...b, source: "flipped" } : b,
-        ),
-      };
-      const linked = m4AddBehaviorToCluster(
-        withSource,
-        cluster.id,
-        newId,
-      );
-      return m4UpdateCluster(linked, cluster.id, (c) => ({
-        ...c,
-        flips: c.flips.filter((f) => f.irkId !== irkId),
-      }));
-    });
-  };
-  const skipFlip = (irkId: string) => {
-    mutate((s) =>
-      m4UpdateCluster(s, cluster.id, (c) => ({
-        ...c,
-        flips: c.flips.filter((f) => f.irkId !== irkId),
-      })),
-    );
-  };
-
-  return (
-    <>
-      <div className="na1-m4-step-eyebrow">
-        Mirror 4 · Step {eyebrowStep}
-        <span
-          className="na1-m4-pv-eyebrow-dot"
-          style={{ background: colorVar }}
-        />
-        Value {valueIndex} of {totalClusters}
-        {eyebrowExtra}
-      </div>
-      <h2 className="na1-m4-step-title" style={{ color: colorVar }}>
-        {title}
-      </h2>
-      <p className="na1-m4-step-sub">{subtitle}</p>
-
-      {bannerVisible && (
-        <div className="na1-m4-pv-banner" style={{ color: colorVar }}>
-          {isNamed ? (
-            <span
-              style={{
-                fontFamily: "var(--na1-serif)",
-                fontStyle: "italic",
-                fontSize: "14px",
-                lineHeight: 1.55,
-                color: "var(--na1-text-sec)",
-              }}
-            >
-              &ldquo;{cluster.userDefinition.trim()}&rdquo;
-            </span>
-          ) : (
-            <>
-              <strong style={{ color: colorVar }}>
-                {clusterBehaviors.length}{" "}
-                {clusterBehaviors.length === 1
-                  ? "behavior"
-                  : "behaviors"}
-              </strong>{" "}
-              in this cluster · edit, add, or remove as you work it.
-            </>
-          )}
-        </div>
-      )}
-
-      <div className="na1-m4-pv-section-title">Behaviors</div>
-      <p className="na1-m4-pv-helper">
-        The shape of what you care about. Add what's missing; drop what
-        doesn't fit.
-      </p>
-      {clusterBehaviors.length > 0 ? (
-        <div className="na1-m4-pv-behaviors">
-          {clusterBehaviors.map((b) => {
-            const chipLabel = m4BehaviorChipLabel(b);
-            const chipKind = (b.source ?? b.tier).toLowerCase();
-            return (
-              <div key={b.id} className="na1-m4-pv-bitem">
-                <span
-                  className={`na1-m4-pv-chip is-${chipKind}`}
-                >
-                  {chipLabel}
-                </span>
-                <span className="na1-m4-pv-bitem-text">
-                  {b.text}
-                  {b.person ? (
-                    <span style={{ color: "var(--na1-text-mute)" }}>
-                      {" "}
-                      — {b.person}
-                    </span>
-                  ) : null}
-                </span>
-                <button
-                  type="button"
-                  className="na1-m4-pv-bdel"
-                  aria-label="Remove behavior from cluster"
-                  onClick={() => handleRemove(b.id)}
-                >
-                  ×
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="na1-m4-pv-empty">
-          No behaviors in this cluster yet. Pick from your portrait below.
-        </div>
-      )}
-
-      <div className="na1-m4-pv-addrow">
-        <button
-          type="button"
-          className="na1-m4-pv-addbtn"
-          onClick={() => setMqOpen((v) => !v)}
-        >
-          {mqOpen ? "✕ Close picker" : "+ Pick from portrait"}
-        </button>
-        {newDraft === null && (
-          <button
-            type="button"
-            className="na1-m4-pv-addbtn"
-            onClick={() => setNewDraft("")}
-          >
-            + New behavior
-          </button>
-        )}
-      </div>
-      {newDraft !== null && (
-        <div className="na1-m4-pv-newrow">
-          <input
-            type="text"
-            className="na1-m4-pv-newinput"
-            placeholder="e.g. tells the truth when it costs them"
-            value={newDraft}
-            autoFocus
-            onChange={(e) => setNewDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleAddNew();
-              if (e.key === "Escape") setNewDraft(null);
-            }}
-          />
-          <button
-            type="button"
-            className="na1-m4-pv-newadd"
-            disabled={!newDraft.trim()}
-            onClick={handleAddNew}
-          >
-            Add
-          </button>
-          <button
-            type="button"
-            className="na1-m4-pv-newcancel"
-            onClick={() => setNewDraft(null)}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-
-      {mqOpen && (
-        <M4MiniQuadrant
-          state={state}
-          currentClusterId={cluster.id}
-          onPick={(id) => handlePick(id)}
-          onClose={() => setMqOpen(false)}
-        />
-      )}
-
-      {cluster.flips.length > 0 && (
-        <div className="na1-m4-pv-flips">
-          <div className="na1-m4-pv-flip-title">Flips</div>
-          <div className="na1-m4-pv-flip-helper">
-            Each thing that bothers you points at a stand you'd take.
-            Edit the flip until it sounds like you, then Accept to add
-            it as a commitment — or Skip to leave the irk unflipped.
-          </div>
-          {cluster.flips.map((flip) => {
-            const b = allBehaviors.find((x) => x.id === flip.irkId);
-            if (!b) return null;
-            const canAccept = !!flip.toText.trim();
-            return (
-              <div key={flip.irkId} className="na1-m4-pv-flip">
-                <div className="na1-m4-pv-flip-from">
-                  <span className="na1-m4-pv-chip is-bothers">IRK</span>{" "}
-                  {b.text}
-                </div>
-                <div style={{ display: "flex", alignItems: "flex-start" }}>
-                  <span className="na1-m4-pv-flip-arrow">→</span>
-                  <textarea
-                    className="na1-m4-pv-flip-to"
-                    value={flip.toText}
-                    onChange={(e) =>
-                      updateFlipText(flip.irkId, e.target.value)
-                    }
-                    placeholder="Write the flip…"
-                  />
-                </div>
-                <div className="na1-m4-pv-flip-actions">
-                  <button
-                    type="button"
-                    className="na1-m4-pv-flip-skip"
-                    onClick={() => skipFlip(flip.irkId)}
-                  >
-                    Skip
-                  </button>
-                  <button
-                    type="button"
-                    className="na1-m4-pv-flip-accept"
-                    disabled={!canAccept}
-                    onClick={() => acceptFlip(flip.irkId)}
-                  >
-                    Accept ✓
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Footer block: gold dashed Name CTA OR Completed card */}
-      {isComplete ? (
-        <M4CompletedCard
-          cluster={cluster}
-          onEditName={() => onOpenName(true)}
-          onEditDefinition={() => onOpenDefine()}
-        />
-      ) : (
-        <div className="na1-m4-pv-namecta">
-          <p className="na1-m4-pv-namecta-helper">
-            {cluster.userName
-              ? "Looks ready. Add the meaning underneath?"
-              : "When this cluster has its shape, name what it points to."}
-          </p>
-          <button
-            type="button"
-            className="na1-m4-pv-namebtn"
-            onClick={() =>
-              cluster.userName ? onOpenDefine() : onOpenName(false)
-            }
-          >
-            {cluster.userName
-              ? `Define "${cluster.userName}" →`
-              : "Name this value →"}
-          </button>
-        </div>
-      )}
-    </>
-  );
-}
-
-// ── Mini-quadrant: portrait picker for the per-value screen ──────
-// Shows all four tiers as quadrants. Behaviors already used by ANY
-// cluster show greyed/struck. Behaviors used by THIS cluster are
-// hidden (already in the list above). Bothers/Turns warn that adding
-// will trigger a flip row.
-function M4MiniQuadrant({
-  state,
-  currentClusterId,
-  onPick,
-  onClose,
-}: {
-  state: Mirror4State;
-  currentClusterId: string;
-  onPick: (id: string) => void;
-  onClose: () => void;
-}) {
-  const tiers: { key: M4BehaviorTier; label: string }[] = [
-    { key: "lights", label: M4_TIER_LABEL.lights },
-    { key: "warms", label: M4_TIER_LABEL.warms },
-    { key: "bothers", label: M4_TIER_LABEL.bothers },
-    { key: "turns", label: M4_TIER_LABEL.turns },
-  ];
-  const allBehaviors = [...state.admire, ...state.irks];
-
-  return (
-    <div className="na1-m4-mq">
-      <div className="na1-m4-mq-head">
-        <span>Pick from portrait</span>
-        <button
-          type="button"
-          className="na1-m4-mq-close"
-          onClick={onClose}
-          aria-label="Close picker"
-        >
-          ✕
-        </button>
-      </div>
-      <div className="na1-m4-mq-grid">
-        {tiers.map((t) => {
-          const items = allBehaviors.filter((b) => b.tier === t.key);
-          const isIrk = t.key === "bothers" || t.key === "turns";
-          return (
-            <div key={t.key} className="na1-m4-mq-quad">
-              <div className="na1-m4-mq-tier-label">
-                <span>
-                  {M4_TIER_ICON[t.key]}
-                  {t.label}
-                </span>
-                {isIrk && (
-                  <span className="na1-m4-mq-tier-note">+ flip row</span>
-                )}
-              </div>
-              {items.length === 0 ? (
-                <div className="na1-m4-mq-empty">none</div>
-              ) : (
-                <div className="na1-m4-mq-chips">
-                  {items.map((b) => {
-                    // In current cluster — hide (already in the list
-                    // above the picker).
-                    if (b.inUseByCluster === currentClusterId) return null;
-                    // In a different cluster — show struck/disabled.
-                    const inOther =
-                      b.inUseByCluster != null &&
-                      b.inUseByCluster !== currentClusterId;
-                    // Bothers/Turns chips are disabled per spec
-                    // (these become commitments via the Flip section,
-                    // not direct picks).
-                    const disabled = inOther || isIrk;
-                    const cls = inOther
-                      ? "na1-m4-mq-chip is-used"
-                      : disabled
-                        ? "na1-m4-mq-chip is-disabled"
-                        : "na1-m4-mq-chip";
-                    const titleText = inOther
-                      ? "Already in another cluster"
-                      : isIrk
-                        ? "Use the flip section below — these become commitments"
-                        : "";
-                    return (
-                      <button
-                        key={b.id}
-                        type="button"
-                        className={cls}
-                        disabled={disabled}
-                        title={titleText}
-                        onClick={() => !disabled && onPick(b.id)}
-                      >
-                        {b.text.length > 28
-                          ? b.text.slice(0, 26) + "…"
-                          : b.text}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ── Ship 5.6f · Section 3b — Behaviors anchor (shared) ───────────
-// Compact chip row used at the top of both Naming and Define modals.
-// Re-resolves behavior text from state so renames upstream stay live.
-function M4ModalBehaviorsAnchor({
-  cluster,
-  state,
-}: {
-  cluster: M4Cluster;
-  state: Mirror4State;
-}) {
-  const lookup = new Map<string, M4Behavior>();
-  for (const b of [...state.admire, ...state.irks]) lookup.set(b.id, b);
-  const items = cluster.behaviorIds
-    .map((id) => lookup.get(id))
-    .filter((b): b is M4Behavior => !!b);
-  if (items.length === 0) return null;
-  return (
-    <>
-      <div className="na1-m4-mbeh-label">The behaviors behind it</div>
-      <div className="na1-m4-mbeh">
-        {items.map((b) => {
-          const chipKind = (b.source ?? b.tier).toLowerCase();
-          return (
-            <div key={b.id} className="na1-m4-mbeh-item">
-              <span className={`na1-m4-pv-chip is-${chipKind}`}>
-                {m4BehaviorChipLabel(b)}
-              </span>
-              <span className="na1-m4-mbeh-text">{b.text}</span>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-}
-
-// ── Real Naming modal · State A (peel) + State B (name) ──────────
-// Edit-mode opens directly in State B with `← Keep peeling` hidden.
-// peelChain persists on every Keep peeling → so it survives close/refresh.
-function M4NamingModal({
-  cluster,
-  state,
-  isEdit,
-  onClose,
-  onConfirm,
-  onPersistPeelChain,
-}: {
-  cluster: M4Cluster;
-  state: Mirror4State;
-  isEdit: boolean;
-  onClose: () => void;
-  onConfirm: (name: string) => void;
-  onPersistPeelChain: (chain: string[]) => void;
-}) {
-  type Phase = "peel" | "name";
-  const [phase, setPhase] = useState<Phase>(isEdit ? "name" : "peel");
-  const [peelChain, setPeelChain] = useState<string[]>(cluster.peelChain);
-  const [peelInput, setPeelInput] = useState<string>("");
-  const [nameDraft, setNameDraft] = useState<string>(cluster.userName);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [askLoading, setAskLoading] = useState(false);
-  const [askError, setAskError] = useState<string | null>(null);
-
-  const canPeel = !!peelInput.trim();
-  const canConfirmName = !!nameDraft.trim();
-
-  // Behavior text snapshot for prompts.
-  const behaviorsText = (() => {
-    const lookup = new Map<string, M4Behavior>();
-    for (const b of [...state.admire, ...state.irks]) lookup.set(b.id, b);
-    return cluster.behaviorIds
-      .map((id) => lookup.get(id))
-      .filter((b): b is M4Behavior => !!b)
-      .map((b) => `- (${(b.source ?? b.tier).toLowerCase()}) ${b.text}`)
-      .join("\n");
-  })();
-
-  const handleKeepPeeling = () => {
-    const word = peelInput.trim();
-    if (!word) return;
-    const next = [...peelChain, word];
-    setPeelChain(next);
-    setPeelInput("");
-    onPersistPeelChain(next);
-  };
-
-  const handleReady = () => {
-    setPhase("name");
-    // Pre-fill name with last peel word if no name yet.
-    if (!nameDraft.trim() && peelChain.length > 0) {
-      setNameDraft(peelChain[peelChain.length - 1]);
-    }
-  };
-
-  const handleAskSuggestion = async () => {
-    if (askLoading) return;
-    setAskLoading(true);
-    setAskError(null);
-    const proposedHint =
-      cluster.proposedNames.length > 0
-        ? `Earlier rough proposals (low signal): ${cluster.proposedNames.join(", ")}.`
-        : "";
-    const peelHint =
-      peelChain.length > 0
-        ? `The user has already peeled through: ${peelChain
-            .map((w, i) => `${i + 1}. ${w}`)
-            .join(" → ")}.`
-        : "The user has not peeled yet.";
-    const prompt = `You are Katherine, the warm and direct values coach inside True Ownership's Mirror 4. The user is naming a value they hold. They've described the behaviors below and started peeling toward the root.
-
-Behaviors clustered together:
-${behaviorsText}
-
-${peelHint}
-${proposedHint}
-
-Suggest 1–3 single-word (or two-word max) value names that best capture this cluster, given the behaviors AND the direction the peel is going. Respond ONLY with strict JSON of the form:
-{"suggestions": ["Name1", "Name2"]}`;
-    try {
-      // eslint-disable-next-line no-console
-      console.log("[M4 naming suggest] prompt:", prompt);
-      const res = await fetch("/api/claude", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1200,
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-      if (!res.ok) throw new Error(`claude ${res.status}`);
-      const data = await res.json();
-      // eslint-disable-next-line no-console
-      console.log("[M4 naming suggest] response:", data);
-      const text: string = Array.isArray(data.content)
-        ? data.content.map((b: { text?: string }) => b.text ?? "").join("")
-        : "";
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("no JSON in response");
-      const parsed = JSON.parse(jsonMatch[0]);
-      if (!Array.isArray(parsed.suggestions) || parsed.suggestions.length === 0)
-        throw new Error("no suggestions");
-      const clean = parsed.suggestions
-        .filter((s: unknown): s is string => typeof s === "string" && !!s.trim())
-        .slice(0, 3);
-      if (clean.length === 0) throw new Error("no usable suggestions");
-      setSuggestions(clean);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn("[M4 naming suggest] failed:", err);
-      setAskError("Couldn't reach Katherine. Try again, or name it yourself.");
-    } finally {
-      setAskLoading(false);
-    }
-  };
-
-  // Active peel question copy.
-  const lastWord = peelChain[peelChain.length - 1] || "";
-  const promptNode =
-    peelChain.length === 0 ? (
-      <div className="na1-m4-mprompt">
-        What do <span className="na1-m4-mprompt-accent">these behaviors</span>{" "}
-        give you?
-      </div>
-    ) : (
-      <div className="na1-m4-mprompt">
-        What does{" "}
-        <span className="na1-m4-mprompt-accent">{lastWord}</span> give you?
-      </div>
-    );
-
-  return (
-    <div
-      className="na1-m4-modal-back"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="na1-m4-modal" role="dialog" aria-modal="true">
-        <button
-          type="button"
-          className="na1-m4-modal-x"
-          aria-label="Close"
-          onClick={onClose}
-        >
-          ✕
-        </button>
-        <div className="na1-m4-modal-head">
-          {phase === "peel"
-            ? "★ Name your value · peel to the root"
-            : isEdit
-              ? "Rename your value"
-              : "★ Name your value · lock it in"}
-        </div>
-
-        <M4ModalBehaviorsAnchor cluster={cluster} state={state} />
-
-        {phase === "peel" ? (
-          <>
-            {/* Breadcrumb: anchor + each peel word + current question */}
-            <div className="na1-m4-mbreadcrumb-wrap">
-              <div className="na1-m4-mbreadcrumb">
-                <span
-                  className={`na1-m4-mbc-chip${peelChain.length === 0 ? " is-active" : ""}`}
-                >
-                  these behaviors{" "}
-                  <span className="na1-m4-mbc-accent">→</span> what do they
-                  give you?
-                </span>
-                {peelChain.map((word, i) => (
-                  <span key={i} style={{ display: "contents" }}>
-                    <span className="na1-m4-mbc-arrow">→</span>
-                    <span
-                      className={`na1-m4-mbc-chip is-user${
-                        i === peelChain.length - 1 ? " is-active" : ""
-                      }`}
-                    >
-                      <span className="na1-m4-mbc-accent">{word}</span>
-                      {i === peelChain.length - 1
-                        ? " → what does that give you?"
-                        : ""}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {promptNode}
-
-            <input
-              type="text"
-              className="na1-m4-modal-input"
-              value={peelInput}
-              autoFocus
-              placeholder="One word, or a short phrase…"
-              onChange={(e) => setPeelInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && canPeel) handleKeepPeeling();
-                if (e.key === "Escape") onClose();
-              }}
-            />
-
-            {suggestions.length > 0 && (
-              <div className="na1-m4-msuggest">
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className="na1-m4-msuggest-pill"
-                    onClick={() => {
-                      setNameDraft(s);
-                      setSuggestions([]);
-                      setPhase("name");
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-            {askError && <div className="na1-m4-merror">{askError}</div>}
-
-            <div className="na1-m4-modal-actions is-split">
-              <button
-                type="button"
-                className="na1-m4-modal-confirm"
-                disabled={!canPeel}
-                onClick={handleKeepPeeling}
-              >
-                Keep peeling →
-              </button>
-              <button
-                type="button"
-                className="na1-m4-mchip-secondary"
-                disabled={askLoading}
-                onClick={handleAskSuggestion}
-              >
-                {askLoading ? "Asking Katherine…" : "Ask Katherine for a name suggestion"}
-              </button>
-              <button
-                type="button"
-                className="na1-m4-mreadylink"
-                onClick={handleReady}
-              >
-                I'm ready to name this →
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <input
-              type="text"
-              className="na1-m4-modal-input"
-              value={nameDraft}
-              autoFocus
-              placeholder={
-                cluster.proposedNames[0] ||
-                peelChain[peelChain.length - 1] ||
-                "your word"
-              }
-              onChange={(e) => setNameDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && canConfirmName)
-                  onConfirm(nameDraft);
-                if (e.key === "Escape") onClose();
-              }}
-            />
-            <p className="na1-m4-modal-helper">
-              One word usually carries it best.
-            </p>
-            <div className="na1-m4-modal-actions is-split">
-              <button
-                type="button"
-                className="na1-m4-modal-confirm"
-                disabled={!canConfirmName}
-                onClick={() => onConfirm(nameDraft)}
-              >
-                {isEdit ? "Save name ★" : "Confirm name ★"}
-              </button>
-              {!isEdit && (
-                <button
-                  type="button"
-                  className="na1-m4-mback"
-                  onClick={() => setPhase("peel")}
-                >
-                  ← Keep peeling
-                </button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Real Define modal · named anchor + Katherine prompt + ask ────
-// `onEditName` closes Define and reopens Naming in State B (edit-mode).
-function M4DefineModal({
-  cluster,
-  state,
-  onClose,
-  onConfirm,
-  onEditName,
-}: {
-  cluster: M4Cluster;
-  state: Mirror4State;
-  onClose: () => void;
-  onConfirm: (def: string) => void;
-  onEditName: () => void;
-}) {
-  const [draft, setDraft] = useState<string>(cluster.userDefinition);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [askLoading, setAskLoading] = useState(false);
-  const [askError, setAskError] = useState<string | null>(null);
-  const canConfirm = !!draft.trim();
-
-  const { user: authUser } = useAuth();
-  const displayName = resolveDisplayName(null, authUser);
-  const greet = displayName ? `${displayName}, ` : "";
-
-  const behaviorsText = (() => {
-    const lookup = new Map<string, M4Behavior>();
-    for (const b of [...state.admire, ...state.irks]) lookup.set(b.id, b);
-    return cluster.behaviorIds
-      .map((id) => lookup.get(id))
-      .filter((b): b is M4Behavior => !!b)
-      .map((b) => `- (${(b.source ?? b.tier).toLowerCase()}) ${b.text}`)
-      .join("\n");
-  })();
-
-  const handleAskFeedback = async () => {
-    if (askLoading) return;
-    if (!draft.trim()) {
-      setAskError("Write a draft definition first — then I can react to it.");
-      return;
-    }
-    setAskLoading(true);
-    setAskError(null);
-    const peelHint =
-      cluster.peelChain.length > 0
-        ? `Their peel chain on this value: ${cluster.peelChain.join(" → ")}.`
-        : "They did not peel.";
-    const prompt = `You are Katherine, the warm and direct values coach inside True Ownership's Mirror 4. The user has named a value "${cluster.userName}" and written a draft definition. Give 2–3 sentences of feedback in plain prose, in your voice — warm, specific, never preachy. Notice what's strong and gently point at what could be sharper. Do NOT rewrite the definition. Do NOT add bullet points. Just speak.
-
-Value: ${cluster.userName}
-Their draft definition:
-"""
-${draft.trim()}
-"""
-
-Behaviors clustered under this value:
-${behaviorsText}
-
-${peelHint}
-
-Respond with the feedback paragraph only — no preamble, no headers, no JSON.`;
-    try {
-      // eslint-disable-next-line no-console
-      console.log("[M4 define feedback] prompt:", prompt);
-      const res = await fetch("/api/claude", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1200,
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-      if (!res.ok) throw new Error(`claude ${res.status}`);
-      const data = await res.json();
-      // eslint-disable-next-line no-console
-      console.log("[M4 define feedback] response:", data);
-      const text: string = Array.isArray(data.content)
-        ? data.content.map((b: { text?: string }) => b.text ?? "").join("")
-        : "";
-      const clean = text.trim();
-      if (!clean) throw new Error("empty feedback");
-      setFeedback(clean);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn("[M4 define feedback] failed:", err);
-      setAskError("Couldn't reach Katherine. Your draft is still saved here.");
-    } finally {
-      setAskLoading(false);
-    }
-  };
-
-  return (
-    <div
-      className="na1-m4-modal-back"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="na1-m4-modal" role="dialog" aria-modal="true">
-        <button
-          type="button"
-          className="na1-m4-modal-x"
-          aria-label="Close"
-          onClick={onClose}
-        >
-          ✕
-        </button>
-        <div className="na1-m4-modal-head">Define it · in your own words</div>
-
-        <div className="na1-m4-modal-anchor">
-          <div className="na1-m4-modal-anchor-star">★</div>
-          <div className="na1-m4-modal-anchor-name">
-            {cluster.userName || "—"}
-          </div>
-        </div>
-
-        <M4ModalBehaviorsAnchor cluster={cluster} state={state} />
-
-        <div className="na1-m4-mprompt">
-          {greet}what does{" "}
-          <span className="na1-m4-mprompt-accent">{cluster.userName || "this"}</span>{" "}
-          actually look like when you're living it?
-        </div>
-
-        <textarea
-          className="na1-m4-modal-textarea"
-          value={draft}
-          autoFocus
-          placeholder="What does it mean to you? Write one or two sentences."
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") onClose();
-          }}
-        />
-        <p className="na1-m4-modal-helper">
-          In your own words — not a dictionary.
-        </p>
-
-        {feedback && (
-          <div className="na1-m4-mkpanel">
-            <div className="na1-m4-mkpanel-label">Katherine</div>
-            <div className="na1-m4-mkpanel-body">{feedback}</div>
-          </div>
-        )}
-        {askError && <div className="na1-m4-merror">{askError}</div>}
-
-        <div className="na1-m4-modal-actions is-split">
-          <button
-            type="button"
-            className="na1-m4-modal-confirm"
-            disabled={!canConfirm}
-            onClick={() => onConfirm(draft)}
-          >
-            Confirm definition ★
-          </button>
-          <button
-            type="button"
-            className="na1-m4-mchip-secondary"
-            disabled={askLoading}
-            onClick={handleAskFeedback}
-          >
-            {askLoading ? "Asking Katherine…" : "+ Ask Katherine for feedback"}
-          </button>
-          <button
-            type="button"
-            className="na1-m4-mback"
-            onClick={onEditName}
-          >
-            ← Edit name
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Completed card · replaces the gold Name CTA when status=complete
-function M4CompletedCard({
-  cluster,
-  onEditName,
-  onEditDefinition,
-}: {
-  cluster: M4Cluster;
-  onEditName: () => void;
-  onEditDefinition: () => void;
-}) {
-  return (
-    <div className="na1-m4-completed">
-      <div className="na1-m4-completed-star">★</div>
-      <div
-        className="na1-m4-completed-name"
-        style={{ color: `var(--c${cluster.colorIndex})` }}
-      >
-        {cluster.userName || "—"}
-      </div>
-      <p
-        className={`na1-m4-completed-def${
-          cluster.userDefinition ? "" : " is-empty"
-        }`}
-      >
-        {cluster.userDefinition || "(no definition yet)"}
-      </p>
-      <div className="na1-m4-completed-foot">
-        <button
-          type="button"
-          className="na1-m4-completed-edit"
-          onClick={onEditName}
-        >
-          Rename
-        </button>
-        <button
-          type="button"
-          className="na1-m4-completed-edit"
-          onClick={onEditDefinition}
-        >
-          Edit definition
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Step 8 · Confirm your values ─────────────────────────────────
-// Lists every completed cluster as a card; offers Add Another (up
-// to 5 total) via the parent's addAnotherValue callback. Continue
-// (in the footer) closes the Discover overlay.
-function M4Step8Confirm({
-  state,
-  mutate: _mutate,
-  onAddAnother,
-}: {
-  state: Mirror4State;
-  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
-  onAddAnother: () => void;
-}) {
-  void _mutate; // not used in 3a; reserved for 3b operations
-  const n = state.clusters.length;
-  const word = M4_COUNT_WORD[n] || `${n}`;
-  const canAddMore = n < 5;
-  return (
-    <>
-      <div className="na1-m4-step-eyebrow">
-        Mirror 4 · Step 8 of 8 · Confirm
-      </div>
-      <h2 className="na1-m4-step-title">
-        Your {word} {n === 1 ? "value" : "values"}
-      </h2>
-      <p className="na1-m4-step-sub">
-        These are what you stand for. Add another if something's missing —
-        otherwise carry them into Behaviors.
-      </p>
-
-      <div className="na1-m4-step8-list">
-        {state.clusters.map((c, idx) => (
-          <div
-            key={c.id}
-            className="na1-m4-step8-card"
-            style={{ borderLeftColor: `var(--c${c.colorIndex})` }}
-          >
-            <div
-              className="na1-m4-step8-num"
-              style={{ color: `var(--c${c.colorIndex})` }}
-            >
-              {idx + 1}
-            </div>
-            <div className="na1-m4-step8-body">
-              <div
-                className="na1-m4-step8-name"
-                style={{ color: `var(--c${c.colorIndex})` }}
-              >
-                {c.userName || "(unnamed)"}
-              </div>
-              <div
-                className={`na1-m4-step8-def${
-                  c.userDefinition ? "" : " is-empty"
-                }`}
-              >
-                {c.userDefinition || "(no definition)"}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {canAddMore && (
-        <div className="na1-m4-step8-soft">
-          <div className="na1-m4-step8-soft-title">Anything missing?</div>
-          <p className="na1-m4-step8-soft-body">
-            Values usually run a little deeper than the first read.
-            Worth one more pass?
-          </p>
-          <button
-            type="button"
-            className="na1-m4-step8-addbtn"
-            onClick={onAddAnother}
-          >
-            + Add another value
-          </button>
         </div>
       )}
     </>
@@ -45274,21 +43751,10 @@ function NewA1M4Container({
   // read from the same loadMirror4State() source so the stepper never
   // duplicates or drifts from the hub's completion state.
   const m4StepState = loadMirror4State();
-  const m4CompleteClustersForStep = m4StepState.clusters.filter(
-    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
-  );
+  // Phase 2 · per-rung completion for the A1 step indicator, read from
+  // the same m4RoomDone predicate the hub uses so the two never drift.
   const m4DoneKeys = M4_ROOMS.filter((r) =>
-    r.key === "discover"
-      ? m4CompleteClustersForStep.length > 0
-      : r.key === "operationalize"
-        ? m4CompleteClustersForStep.length >= 3 &&
-          m4CompleteClustersForStep.every((c) => {
-            const op = m4StepState.operationalize[c.id];
-            return (op?.behaviors?.length ?? 0) >= 3 && !!op?.keystoneId;
-          })
-        : r.key === "rank"
-          ? m4StepState.pressureTest.complete === true
-          : m4StepState.claimed === true,
+    m4RoomDone(m4StepState, r.key),
   ).map((r) => r.key);
 
   return (
@@ -45305,14 +43771,15 @@ function NewA1M4Container({
           open={roomOpen}
           onClose={closeRoom}
         >
-          {openRoom.key === "discover" ? (
-            <NewA1M4DiscoverBody
+          {openRoom.key === "admire" ||
+          openRoom.key === "irks" ||
+          openRoom.key === "portrait" ||
+          openRoom.key === "name" ? (
+            <NewA1M4SectionBody
+              sectionKey={
+                openRoom.key as "admire" | "irks" | "portrait" | "name"
+              }
               onCloseRoom={closeRoom}
-              onContinueToBehaviors={() => {
-                // Unified nav: finishing Discover returns to the Values
-                // ladder (no auto-advance to Behaviors).
-                closeRoom();
-              }}
             />
           ) : openRoom.key === "operationalize" ? (
             <NewA1M4BehaviorsBody

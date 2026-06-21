@@ -163,6 +163,12 @@ export type Mirror4State = {
   // the Behaviors room with that value active. After that the
   // operationalize[clusterId] entry is the source of truth.
   behaviorsPrefilledFor: string[];
+  // Phase 2 · per-rung completion flags for the Discover ladder rungs
+  // (Admire / Irks / Portrait). Set true when the user taps Continue on
+  // that rung, so a rung can read "done" even when its content is
+  // legitimately empty (e.g. no irks). Name-the-standards derives done
+  // from clusters, not from a flag.
+  discoverSections: { admire: boolean; irks: boolean; portrait: boolean };
 };
 
 // Ship 5.6g · Section 4 — typed operationalize schema. The fifth
@@ -207,6 +213,7 @@ export const EMPTY_MIRROR4: Mirror4State = {
   claimedAt: null,
   behaviorsActiveClusterId: null,
   behaviorsPrefilledFor: [],
+  discoverSections: { admire: false, irks: false, portrait: false },
 };
 
 // ─── M4 room registry ───
@@ -215,7 +222,15 @@ export const EMPTY_MIRROR4: Mirror4State = {
 // (a "Coming in Section 2" placeholder). Operationalize/Rank/Claim
 // have bodyShipped:false → veil falls back to hub on click.
 // Claim has tone:"gold" + is rendered with a 3px gold left accent.
-export type M4RoomKey = "discover" | "operationalize" | "rank" | "claim";
+export type M4RoomKey =
+  | "admire"
+  | "irks"
+  | "portrait"
+  | "flip"
+  | "name"
+  | "operationalize"
+  | "rank"
+  | "claim";
 
 export const M4_ROOMS: ReadonlyArray<{
   n: number;
@@ -224,28 +239,67 @@ export const M4_ROOMS: ReadonlyArray<{
   tone: "burgundy" | "yellow" | "green" | "purple" | "silver" | "gold";
   threshold: string;
   bodyShipped: boolean;
+  // Phase 2 · "coming soon" rung (Flip the irks). Locked, non-blocking,
+  // never flashes. Body ships in Phase 3.
+  comingSoon?: boolean;
 }> = [
   {
     n: 1,
-    key: "discover",
-    name: "Discover",
+    key: "admire",
+    name: "Admire",
     tone: "burgundy",
     threshold: "Surfacing what you admire…",
     bodyShipped: true,
   },
   {
-    // Ship 5.6b · Part A polish: user-facing label is "Behaviors".
-    // Internal key stays "operationalize" so state.mirror4.operationalize
-    // remains stable (schema in production, no migration).
     n: 2,
-    key: "operationalize",
-    name: "Behaviors",
-    tone: "yellow",
-    threshold: "Naming the behaviors…",
+    key: "irks",
+    name: "Irks",
+    tone: "purple",
+    threshold: "Naming what irks you…",
     bodyShipped: true,
   },
   {
     n: 3,
+    key: "portrait",
+    name: "Portrait",
+    tone: "silver",
+    threshold: "Seeing the whole portrait…",
+    bodyShipped: true,
+  },
+  {
+    // Phase 2 · reserved rung. Flip the irks lands in Phase 3; until
+    // then it shows "coming soon", never flashes, and does NOT block
+    // the rungs after it (Name the standards unlocks off Portrait).
+    n: 4,
+    key: "flip",
+    name: "Flip the irks",
+    tone: "silver",
+    threshold: "Flipping what irks you…",
+    bodyShipped: false,
+    comingSoon: true,
+  },
+  {
+    n: 5,
+    key: "name",
+    name: "Name the standards",
+    tone: "yellow",
+    threshold: "Naming your standards…",
+    bodyShipped: true,
+  },
+  {
+    // User-facing label is "Behaviors". Internal key stays
+    // "operationalize" so state.mirror4.operationalize remains stable
+    // (schema in production, no migration).
+    n: 6,
+    key: "operationalize",
+    name: "Behaviors",
+    tone: "green",
+    threshold: "Naming the behaviors…",
+    bodyShipped: true,
+  },
+  {
+    n: 7,
     key: "rank",
     name: "Rank",
     tone: "green",
@@ -253,17 +307,63 @@ export const M4_ROOMS: ReadonlyArray<{
     bodyShipped: true,
   },
   {
-    n: 4,
+    n: 8,
     key: "claim",
     name: "Claim",
     tone: "gold",
     threshold: "The moment of claiming…",
-    // Ship 5.6l · Section 6 — Claim body is now shipped. The
-    // pressure-test gate (rooms whose key === "claim" requires
-    // pressureTest.complete) still controls unlock at the hub level.
     bodyShipped: true,
   },
 ];
+
+// ─── Phase 2 · completion helpers ───
+// "Complete" cluster = a named standard with at least one piece of
+// evidence (behavior). userDefinition is no longer required (kept on the
+// type as a vestigial field). Centralized so the hub, the A1 stepper,
+// and the Behaviors room all read the same predicate and never drift.
+export function m4IsClusterComplete(c: M4Cluster): boolean {
+  return c.userName.trim() !== "" && c.behaviorIds.length > 0;
+}
+
+// Per-rung "done" for the 8-rung Values ladder. Admire/Irks/Portrait read
+// their persisted discoverSections flag (set on Continue) OR fall back to
+// content so existing blobs that predate the flag still show as done.
+// Flip is the reserved "coming soon" rung — never done in Phase 2.
+export function m4RoomDone(state: Mirror4State, key: M4RoomKey): boolean {
+  const ds = state.discoverSections ?? {
+    admire: false,
+    irks: false,
+    portrait: false,
+  };
+  switch (key) {
+    case "admire":
+      return ds.admire === true || state.admire.length > 0;
+    case "irks":
+      return ds.irks === true || state.irks.length > 0;
+    case "portrait":
+      return ds.portrait === true || state.clusters.length > 0;
+    case "flip":
+      return false;
+    case "name":
+      return state.clusters.some(m4IsClusterComplete);
+    case "operationalize": {
+      const complete = state.clusters.filter(m4IsClusterComplete);
+      return (
+        complete.length >= 3 &&
+        complete.every((c) => {
+          const op = state.operationalize[c.id];
+          return (op?.behaviors?.length ?? 0) >= 3 && !!op?.keystoneId;
+        })
+      );
+    }
+    case "rank":
+      return state.pressureTest.complete === true;
+    case "claim":
+      return state.claimed === true;
+    default:
+      return false;
+  }
+}
 
 // ─── load / save helpers ───
 // Dedicated localStorage key (owner spec). Safe in non-DOM contexts and
@@ -296,6 +396,24 @@ export function loadMirror4State(): Mirror4State {
         merged.behaviorsPrefilledFor = [];
       if (typeof merged.behaviorsActiveClusterId === "undefined")
         merged.behaviorsActiveClusterId = null;
+      // Phase 2 · discoverSections default for older blobs. Coerce to
+      // strict booleans so a partial object can't leave a field undefined.
+      if (
+        !merged.discoverSections ||
+        typeof merged.discoverSections !== "object"
+      ) {
+        merged.discoverSections = {
+          admire: false,
+          irks: false,
+          portrait: false,
+        };
+      } else {
+        merged.discoverSections = {
+          admire: merged.discoverSections.admire === true,
+          irks: merged.discoverSections.irks === true,
+          portrait: merged.discoverSections.portrait === true,
+        };
+      }
       // Ship 5.6i · Section 5 — rank + pressureTest defensive defaults
       // for older blobs that predate the typed schema. activePairIdx
       // was added in 5.6i; older blobs default it to 0.

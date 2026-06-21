@@ -166,3 +166,19 @@ TS2448/TS2454. The whole container then crashes with a cascade of
 **How to apply:** add new room-model memos/handlers immediately after the
 `const [roomOpen, setRoomOpen] = useState(...)` block, before the veil/timer
 hooks and before `onBack`/`onContinue`.
+
+## Ladder with a skipped "coming soon" rung — label off the TRUE gater
+
+When a mirror ladder contains a reserved/locked, non-blocking rung (e.g. Mirror 4
+"Flip the irks": `comingSoon:true`, never unlocks, and the rung after it unlocks
+off the rung BEFORE the locked one), the locked-row status copy must name the
+rung that actually gates it via an explicit predecessor map — NOT the visual row
+above it (`M4_ROOMS[idx-1]`). Otherwise the copy lies ("Unlocks after Flip the
+irks" when it really unlocks off Portrait).
+**Why:** unlock chains and visual order diverge as soon as one rung is skipped;
+idx-1 silently tracks visual order, not the dependency.
+**How to apply:** centralize per-rung completion in one predicate
+(`m4RoomDone(state,key)` covering ALL keys, locked rung → always false) so the
+hub, the A1 stepper (`m4DoneKeys`), and the container never drift; drive unlock,
+single-flash "current" (first unlocked, non-coming-soon, not-done rung), and the
+locked label off that same source plus an explicit unlock-after map.

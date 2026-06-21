@@ -1,0 +1,49 @@
+# Phase 2 — Confirmation + scope additions
+## For Replit Agent
+
+Confirmed on both design decisions, plus two additions to fold into Phase 2. One of the additions changes the structure Phase 2 builds within, so please read before building and send a revised plan if it shifts your file map.
+
+---
+
+## Confirmed as planned
+
+1. **Pool holds admires only in Phase 2; irks become groupable in Phase 3 after the flip.** Approved — this is conceptually correct, not just interim convenience. An irk isn't groupable evidence until it's flipped into the behavior it points to, so raw irks should NOT be in the pool yet.
+
+2. **Drop the definition requirement; "complete" = name + at least one behavior.** Approved. The new model defines a value as name + its recognition behaviors, so a separate definition-prose field is redundant. Keep the old `userDefinition` field vestigial/optional for data safety, omit the empty line downstream, full relabel in Phase 4. Do NOT add an optional definition textarea per group — leave it out; it muddies the standard = name + evidence model.
+
+3. **Data-safety approach approved** — reuse existing cluster machinery (created empty + user-named instead of AI-proposed), keep `proposal`/`proposedNames`/`peelChain` vestigial-optional so no migration is needed, handle empty `flips` gracefully.
+
+---
+
+## Addition 1 — Remove "+ tag a person"
+
+Remove the "+ tag a person" affordance from the Admire and Irks behavior inputs entirely. Not wanted. Small change; fits this phase since you're already in the collection/grouping code. Ensure removing it doesn't disturb the inline-edit (Phase 1) or the tier tags.
+
+---
+
+## Addition 2 — Re-architect Discover into real ladder SECTIONS (this is the tracking fix)
+
+Decision on the tracking-model question: **go with re-architecture (A), not a counter patch (B).**
+
+The problem: today the Values ladder has 4 rungs (Discover / Behaviors / Rank / Claim) but "Discover" alone hides 8 internal steps tracked by a "STEP X OF 8" counter. That does NOT mirror Purpose, where each stage (Owned Symptoms / True Ownership / The Peel / Declare) is its own ladder rung. The stages inside Discover are genuinely distinct — they deserve to be sections, like Purpose's.
+
+What to do: make the Discover stages real ladder rungs (sections), mirroring Purpose. Build Phase 2's grouping step AS a section on the ladder, not as step-5-of-8 inside a monolithic "Discover." Use the in-section step counter only for genuine micro-steps WITHIN a section (the way Purpose uses "STEP 1 OF 2"), not as a running count across the whole flow. This re-sectioning IS the tracking fix — option B (just relabel the counter) is moot.
+
+Proposed final section list for the Values mirror ladder (post full redesign, Phases 2–4):
+
+  Admire → Irks → Flip the irks → Name the standards → Rank → Claim
+
+Notes:
+- "Flip the irks" lands in Phase 3 but reserve its place in the section model now so the ladder doesn't get re-architected twice.
+- Portrait: you decide whether it's its own rung or folds into the tail of Admire/Irks as a review step — propose what fits how Portrait is currently wired. Either is fine; just tell us which in the revised plan.
+- Each section returns to the ladder when complete; exercises within a section auto-flow; the next section flashes on the ladder — same model as Purpose/A2 (from #39/#40). Nothing flashes when revisiting a fully-complete mirror.
+
+---
+
+## What I need from you before building
+Because Addition 2 changes the structure Phase 2 builds within, please send a brief revised plan confirming:
+- The section list you'll implement (and where Portrait lands).
+- That the grouping step is built as a ladder section, not an internal step of a monolithic Discover.
+- That the in-section counter is per-section micro-steps only, not a global count.
+
+Everything else in your Phase 2 plan stands. Same working rules: plan-confirm, build one phase at a time, verify on spock under owner login both themes, tokens only, in-range typecheck.
