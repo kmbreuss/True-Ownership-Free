@@ -1,0 +1,65 @@
+# Brief — Unify navigation model across all mirrors (A1 + A2)
+## For Replit Agent — FOUNDATION TASK, build after #38 ships
+
+This establishes ONE navigation model for the entire app. It supersedes the earlier "A1 is the reference, never touch it" rule from #36/#37 — A1 is now converted to match. Ship #38 (Peel→Declare) first; this is the next foundation task. Plan first, verify each phase, do not bundle phases.
+
+---
+
+## The model (canonical — applies to every A, every mirror)
+
+The hierarchy is: **A (discipline) → Mirror → Section → Exercises.**
+
+### Gating
+1. **A-level:** The next A cannot be started until the previous A is fully complete. A locked A is VISIBLE but locked, and its locked card names where to go (pattern already built in #37: "Go to All In It →"). A1 → A2 → A3 → A4 → A5 in order.
+2. **Mirror-level:** Within an A, mirrors are sequential. Mirror N+1 is locked until Mirror N is complete/claimed. Locked mirror cards show their unlock condition (already the pattern: "Unlocks after [previous mirror]").
+3. **Section-level:** Within a mirror, sections are the rungs on the ladder. They unlock in order.
+
+### The ladder (home base)
+- Each mirror opens to its vertical step list — the LADDER — listing its SECTIONS with status (Up next / In progress / Complete / Open · tap to revisit / Sealed for the Claim rung).
+- The ladder is where the user lives BETWEEN sections.
+- Example (Purpose): Owned Symptoms → True Ownership → The Peel → Declare. Example (Values): Discover → Behaviors → Rank → Claim. (Each of these list items is a SECTION.)
+
+### Inside a section
+- A section may contain one or more EXERCISES.
+- Exercises WITHIN a section auto-flow: Exercise 1 → Exercise 2 → Exercise 3, advancing forward inside the section without returning to the ladder.
+- ONLY when the whole section is finished does the room close and return the user to the LADDER, with that section marked Complete and the next section shown as the active rung.
+- The user taps the next rung themselves. No auto-jump from one section to the next.
+
+### Progress indicators inside a section
+- KEEP: the contextual in-step line, e.g. "MIRROR 1 · EXERCISE 1 · OWNED SYMPTOMS" + "STEP 1 OF 2". This orients the user inside the current section's exercise sub-flow. It stays on every mirror.
+- REMOVE: the horizontal dots-and-connectors stepper at the top of the room (e.g. "Discover 1 — Behaviors 2 — Rank 3 — Claim ✓"). Remove from ALL mirrors in BOTH A1 and A2. It duplicates the ladder and competes with the in-step counter.
+
+### The one forward-advance exception
+The final Claim section, after claiming, advances forward OUT of the mirror to the next mirror (or, if last mirror, completes the A). This is leaving the mirror, not moving between sections within it — so it keeps a forward CTA ("Continue to [Next Mirror] →").
+
+---
+
+## Current state per area (what needs converting)
+
+- **A2 M2 / M3:** already return-to-ladder (from #36). Verify they also have NO horizontal stepper. Likely already done — confirm only.
+- **A2 M1 (Alignment Check):** verify ladder + no horizontal stepper; convert if not.
+- **A1 ALL mirrors (Purpose, Vision, Identity, Values):** THE BIG PIECE. Today A1 rooms (a) show the horizontal stepper and (b) auto-advance section→section without returning to the ladder. Convert: remove the horizontal stepper; make section completion return to the ladder; keep exercise-within-section auto-flow; keep the in-step counter.
+
+---
+
+## Phases (ship + verify each before next)
+
+**Phase 1 — Remove the horizontal stepper from all A1 mirror rooms.** Stop rendering the dots/connectors/labels row in Purpose, Vision, Identity, Values rooms. Leave breadcrumb, close, in-step counter, content, CTA. Verify no horizontal stepper in any A1 room; A2 unaffected; A1 content/flow otherwise unchanged.
+
+**Phase 2 — Convert A1 section-completion to return-to-ladder.** When a SECTION's exercises are all complete, the room closes and returns to the mirror ladder (do NOT auto-advance to the next section). Exercises WITHIN a section still auto-flow. The Claim section keeps its forward "Continue to [Next Mirror] →". The section's CTA on its last exercise reads "Done → Back to [Mirror Name]" (matching the A2 pattern). Verify: finishing a section lands on the ladder with that section Complete and the next section active; in-section exercise flow intact.
+
+**Phase 3 — Confirm A2 parity + ladder status correctness everywhere.** Verify A2 M1/M2/M3 match (no stepper, return-to-ladder, correct statuses on mount). Verify every mirror's ladder shows correct section statuses immediately on mount (no stale "in progress" when complete — the #36 Fix 3 rule, applied app-wide).
+
+---
+
+## Out of scope
+- Gating logic that is already correct (A→A, mirror→mirror) — verify, do not loosen. The #37 A2-M1-locked behaviour stays.
+- The Claim ceremony / seal / gold burst — unchanged.
+- Exercise CONTENT (questions, copy, behaviors) — unchanged; this is navigation only.
+- Values-specific bugs (broken AI suggestion, dropped behaviors, edit confirmed values, cluster previews) — SEPARATE briefs, after this foundation ships.
+- to_map / to_a2_state schema — read-only for status; no schema restructuring.
+
+## Working rules
+- Plan first, wait for approval. One phase at a time, verify each on spock.replit.dev (owner login), never the IDE webview.
+- Tokens only; both light and dark themes after every phase.
+- Giant single-file App.tsx — locate with rg/sed, verify with in-range typecheck grep.

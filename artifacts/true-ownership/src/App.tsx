@@ -29324,59 +29324,6 @@ function NewA1Veil({
   );
 }
 
-// Shared horizontal step indicator for the A1 mirror rooms. Unlike A2 (one
-// continuous multi-step room), each A1 "step" is its own room overlay, so this
-// renders at the top of every A1 exercise room — marking that room's exercise
-// as current, earlier ones done, later ones upcoming. Driven entirely by the
-// caller's canonical step array + completion keys (no duplicated state). Visual
-// pattern mirrors the A2 Time Audit stepper (na1-a2m2-*); tokens only.
-function NA1A1StepperView({
-  steps,
-  currentKey,
-  doneKeys,
-  ariaLabel,
-}: {
-  steps: ReadonlyArray<{ key: string; name: string }>;
-  currentKey: string;
-  doneKeys: string[];
-  ariaLabel: string;
-}) {
-  return (
-    <div className="na1-a1-stepper" role="list" aria-label={ariaLabel}>
-      {steps.map((s, i) => {
-        const isCurrent = s.key === currentKey;
-        const isDone = doneKeys.includes(s.key) && !isCurrent;
-        const stateCls = isDone
-          ? "na1-a1-step--done"
-          : isCurrent
-            ? "na1-a1-step--cur"
-            : "na1-a1-step--upcoming";
-        const prevDone = i > 0 && doneKeys.includes(steps[i - 1].key);
-        return (
-          <React.Fragment key={s.key}>
-            {i > 0 && (
-              <span
-                className={`na1-a1-step-line ${prevDone ? "is-done" : ""}`}
-                aria-hidden
-              />
-            )}
-            <div
-              className={`na1-a1-step ${stateCls}`}
-              role="listitem"
-              aria-current={isCurrent ? "step" : undefined}
-            >
-              <span className="na1-a1-step-dot" aria-hidden>
-                {isDone ? "✓" : i + 1}
-              </span>
-              <span className="na1-a1-step-lbl">{s.name}</span>
-            </div>
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
 function NewA1RoomShell({
   exercise,
   open,
@@ -39163,17 +39110,6 @@ function NewA1View({ name }: { name?: string }) {
             exercise={openEx}
             open={roomOpen}
             onClose={closeRoom}
-            stepper={
-              <NA1A1StepperView
-                steps={NA1_EXERCISES}
-                currentKey={openEx.key}
-                doneKeys={NA1_EXERCISES.filter(
-                  (_e, i) =>
-                    [progress.ex1, progress.ex2, progress.ex3, progress.ex4][i],
-                ).map((e) => e.key)}
-                ariaLabel="Purpose progress"
-              />
-            }
           >
             {openEx.key === "sym" ? (
               <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
@@ -39257,23 +39193,6 @@ function NewA1View({ name }: { name?: string }) {
             exercise={openM2Ex}
             open={roomOpen}
             onClose={closeRoom}
-            stepper={
-              <NA1A1StepperView
-                steps={M2_EXERCISES}
-                currentKey={openM2Ex.key}
-                doneKeys={M2_EXERCISES.filter(
-                  (_e, i) =>
-                    [
-                      m2Progress.ex1,
-                      m2Progress.ex2,
-                      m2Progress.ex3,
-                      m2Progress.ex4,
-                      m2Progress.ex5,
-                    ][i],
-                ).map((e) => e.key)}
-                ariaLabel="Vision progress"
-              />
-            }
           >
             {openM2Ex.key === "twoFutures" ? (
               <NewA2TwoFuturesBody onSaved={closeRoom} onClose={closeRoom} />
@@ -40529,14 +40448,6 @@ function NewA1M3Container({
           room={openRoom}
           open={roomOpen}
           onClose={closeRoom}
-          stepper={
-            <NA1A1StepperView
-              steps={M3_ROOMS}
-              currentKey={openRoom.key}
-              doneKeys={M3_ROOMS.filter((_r, i) => doneArr[i]).map((r) => r.key)}
-              ariaLabel="Identity progress"
-            />
-          }
         >
           {openRoom.key === "yourGifts" ? (
             <NewA1M3View embedded onBack={closeRoom} />
@@ -45323,14 +45234,6 @@ function NewA1M4Container({
           room={openRoom}
           open={roomOpen}
           onClose={closeRoom}
-          stepper={
-            <NA1A1StepperView
-              steps={M4_ROOMS}
-              currentKey={openRoom.key}
-              doneKeys={m4DoneKeys}
-              ariaLabel="Values progress"
-            />
-          }
         >
           {openRoom.key === "discover" ? (
             <NewA1M4DiscoverBody
