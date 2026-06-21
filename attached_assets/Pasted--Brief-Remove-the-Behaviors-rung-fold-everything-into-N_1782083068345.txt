@@ -1,0 +1,58 @@
+# Brief — Remove the Behaviors rung; fold everything into Name the standards
+## For Replit Agent — Values (A1 Mirror 4) structural simplification
+
+Design decision from the owner: the entire Values mirror is ONE thing — a value is a standard, and under each standard the user names the behaviors that are the evidence they (and others) are holding to that standard. There is NO "daily actions"/operationalize layer. That means the separate "Behaviors" rung is redundant: the evidence behaviors already live inside each standard in "Name the standards."
+
+## What to change
+
+### 1. Remove the Behaviors (operationalize) rung entirely
+- Drop "Behaviors" from the Values ladder, and remove/retire the `operationalize` room. Not hidden — removed from the ladder as a rung.
+- New ladder (7 rungs): **Admire → Irks → Portrait → Flip the irks → Name the standards → Rank → Claim.**
+- Re-point the unlock chain: Name the standards now unlocks **Rank** directly (Rank's "unlocks after" becomes Name the standards). Confirm the flash/continue rhythm: Name the standards' completion CTA becomes "Continue to Rank →".
+- Keep `operationalize` data/types migration-safe (leave vestigial if simpler), but it must no longer appear as a rung or gate the chain.
+
+### 2. Fold full behavior authoring into Name the standards
+Name the standards must be the single place the whole value is built — standard name + its evidence behaviors. It already supports grouping pool behaviors into a standard; add:
+- **Add a new behavior directly onto a standard** — beyond dragging/assigning from the pool, the user can type a fresh evidence behavior straight onto a standard (a "+ add behavior" affordance on each standard card). This new behavior is saved as evidence on that standard (and exists as a behavior record), without having to go back to Admire/Irks.
+- Existing assign-from-pool and remove-back-to-pool behavior stays.
+- Behaviors on a standard remain inline-editable (consistent with the rest of Values).
+
+### 3. The 3–5 guidance (soft, not enforced)
+- On each standard, gently suggest **up to ~5 behaviors** as evidence — e.g. helper text like "Name a few behaviors — up to 5 or so — that show you're living this." 
+- This is a SUGGESTION only. Do NOT hard-cap at 5, do not block adding a 6th, do not error. Just a gentle nudge toward 3–5.
+
+## Done looks like
+- The Values ladder shows 7 rungs, no "Behaviors" rung. Name the standards → Rank → Claim chains cleanly; completing Name the standards unlocks + flashes Rank; its CTA reads "Continue to Rank →".
+- In Name the standards, each standard card lets the user both (a) assign behaviors from the pool and (b) type a brand-new evidence behavior directly onto the standard; both persist.
+- Soft "up to 5" guidance appears; adding a 6th still works without error.
+- Rank operates on the named standards from Name the standards; Claim seals them. No break in the chain from removing Behaviors.
+- Existing data safe: standards created earlier (status "named") still load and rank/claim correctly; removing the Behaviors rung doesn't orphan or lose anything.
+- Both themes; clean load; no console errors.
+
+## Important context — coordinate with the open #44 follow-on
+There is a known issue (just reported): the Behaviors room showed "No values yet" because it didn't recognize the new `status:"named"` standards. Since Behaviors is being REMOVED, that detection bug becomes moot for Behaviors itself — BUT make sure the same `status:"named"` recognition is correct wherever it still matters: **Rank and Claim must recognize `named` standards as the values to rank and claim.** Verify Rank lists the named standards and Claim seals them. (This supersedes fixing the Behaviors "No values yet" detection, since Behaviors is going away.)
+
+## Out of scope
+- Phase 4 (copy relabel + post-claim editability) — still comes after, though removing Behaviors will reduce its surface.
+- The flip-into-behavior correction (separate) — only coordinate if the same save path is touched.
+
+## Working rules
+Plan-confirm first, build, verify on spock (owner login, ?newA1=1) both themes, tokens only, in-range typecheck. Single giant App.tsx — locate with rg/sed.
+
+---
+
+## ADDENDUM — two more items
+
+### 4. Rank pulls from Name the Standards (data, not just unlock order)
+Beyond rewiring the unlock chain (Name the Standards → Rank), Rank must populate its list FROM the named standards created in Name the Standards. The user ranks the STANDARDS (the values), each shown with its name (and optionally its evidence behaviors for context). Confirm: create 2+ named standards → open Rank → both standards appear as the rankable items, in a user-orderable list. Claim then seals those ranked standards. No separate/duplicate source.
+
+### 5. Capitalize section titles (title case)
+All Values rung/section titles use title case, consistently:
+- Admire
+- Irks
+- Portrait
+- Flip the Irks
+- Name the Standards
+- Rank
+- Claim
+Apply title case wherever these labels render — the ladder rungs, the in-room breadcrumb/heading, and any "Continue to [Section]" CTA (e.g. "Continue to Name the Standards →", "Continue to Rank →"). "Name the Standards" and "Flip the Irks" specifically should not appear as "Name the standards" / "Flip the irks".
