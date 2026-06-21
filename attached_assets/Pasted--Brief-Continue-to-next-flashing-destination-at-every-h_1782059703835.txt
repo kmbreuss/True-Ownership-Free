@@ -1,0 +1,62 @@
+# Brief — "Continue to [next]" + flashing destination, at every handoff level
+## For Replit Agent — Phase 2 follow-up, before Phase 3
+
+This adjusts the navigation handoff language and adds a flashing destination cue. It applies the SAME pattern at two levels: section→section (within a mirror) and mirror→mirror (within an A). It refines what Phase 2 just shipped — do not treat as a new model, it's a correction to the CTA labels + a new flash cue.
+
+Plan first, verify on spock.replit.dev (owner login, ?newA1=1&newA2=1), both themes. Do not bundle with Phase 3.
+
+---
+
+## The pattern (one rule, applied at two levels)
+
+At every handoff: **name the destination on the button, return the user to the home base for that level, and flash the next thing so they see where to go. The user taps the destination themselves to enter.**
+
+### Level 1 — Section → Section (within a mirror)
+- CURRENT (just shipped in Phase 2): finishing a non-Claim section shows "Done → Back to [Mirror Name]" and returns to the ladder.
+- CHANGE TO: finishing a non-Claim section shows **"Continue to [next section name]"** (e.g. finish Owned Symptoms → "Continue to True Ownership"). Tapping it returns to the **mirror ladder** (NOT into the next section). On the ladder, the **next section's rung flashes/pulses** to show where to go. The user taps that rung to enter.
+- In-section step buttons (between exercises within one section) keep "Continue…" and still auto-flow — unchanged.
+
+### Level 2 — Mirror → Mirror (within an A)
+- CURRENT: Purpose's Claim returns to the Purpose ladder (wrong — should leave the mirror). Vision/Identity/Values claim gets STUCK (no clean destination). A2 claim advances forward and lands on the A hub (closer to right, but no flash).
+- CHANGE TO: finishing a mirror (the Claim/seal) shows **"Continue to [next mirror name]"** (e.g. claim Purpose → "Continue to Vision"). Tapping it returns to the **A card page** (the four-mirror grid). On that page, the **next mirror's card flashes/pulses**. The user taps that card to enter.
+- This fixes the stuck state on Vision/Identity/Values and makes Purpose stop returning to its own ladder after claim.
+
+### Level 3 — A → A (top level) — apply the same pattern for consistency
+- Finishing an entire A (claiming its last mirror) shows **"Continue to [next A name]"** (e.g. finish A1 → "Continue to Align With It · A2"), returns to the **main A overview page**, and the **next A flashes**. (A2's claim already advances toward A2→A3 language; align it to this pattern and add the flash. If A3+ don't exist yet, the flash simply lands on the locked/visible next A per existing gating.)
+
+---
+
+## The flash cue
+- Only the NEXT thing flashes — the rung the user just completed and others do not.
+- Use a gentle, calm pulse (e.g. a soft glow/opacity or border pulse on the card/rung), NOT a harsh blink.
+- It pulses until the user enters that destination, then settles. Once entered/started, it stops flashing.
+- Tokens only (gold accent), works in both light and dark themes.
+
+---
+
+## The one exception — none
+Note: unlike the earlier model where "Claim is the only forward-advance," now EVERY completion uses "Continue to [next]" + flash. The difference is only WHICH home base they return to: section completion → mirror ladder; mirror completion → A card page; A completion → main A page. Claim is no longer special-cased in label — it says "Continue to [next mirror]" like the rest, it just returns to the A card page instead of the ladder.
+
+---
+
+## Specifics to get right
+- Section CTA must name the ACTUAL next section/rung label as shown on that mirror's ladder (e.g. "Continue to Declare" if the next rung is Declare).
+- Mirror CTA must name the ACTUAL next mirror (Purpose→Vision, Vision→Identity, Identity→Values, Values→[first A2 mirror / next A]).
+- The Peel: Phase 2 turned its declaration CTAs into "Done → Back to Purpose". Under this change, the Peel section's completion CTA becomes "Continue to Declare" (Declare is the next rung), returns to the Purpose ladder, flashes the Declare rung.
+- Verify the #38 Peel→Declare re-seed STILL works: finishing the Peel returns to the ladder; tapping the flashing Declare rung opens Declare showing the CURRENT Peel bottom, not a stale declaration.
+
+## Out of scope
+- Gating logic (A→A, mirror→mirror locks) — unchanged; the flash respects existing lock states (a locked next mirror still shows locked, just don't flash a locked card — flash only if it's unlocked and is the genuine next step).
+- Exercise content, Claim ceremony/seal/gold-burst visual — unchanged.
+- Values redesign — separate brief.
+
+## Verify
+On spock, both themes:
+1. Finish a non-Claim section (e.g. Owned Symptoms) → button reads "Continue to True Ownership" → lands on Purpose ladder → True Ownership rung is flashing → other rungs are not.
+2. Finish Purpose (claim/declare) → button reads "Continue to Vision" → lands on A1 card page → Vision card is flashing → tapping it enters Vision.
+3. Repeat for Vision→Identity, Identity→Values (confirm the stuck state is gone).
+4. #38 re-seed survives: Peel → "Continue to Declare" → ladder → flashing Declare → open → shows current Peel bottom.
+5. Flash is calm, gold, both themes; settles once destination entered.
+
+## Working rules
+Plan first, wait for approval. Verify live on spock, never IDE webview. Tokens only; both themes. App.tsx is one giant file — locate with rg/sed, in-range typecheck greps.

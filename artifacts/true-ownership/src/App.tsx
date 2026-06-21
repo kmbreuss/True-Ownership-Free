@@ -1959,6 +1959,29 @@ html[data-theme="light"]{
 .na1-mirror-card.is-vision-in-progress{ border-color:var(--m2-burgundy-chip); cursor:pointer; }
 .na1-mirror-card.is-vision-in-progress .na1-mirror-card-num{ color:var(--m2-burgundy-chip); }
 .na1-mirror-card.is-vision-in-progress .na1-mirror-card-status{ background:var(--m2-burgundy-chip-bg); color:var(--m2-burgundy-chip); border-color:var(--m2-burgundy-chip); }
+/* ─── Task #40 · Level-4 flash cue ───
+   A calm, on-brand gold pulse on EXACTLY the next destination at each home
+   base: the next unlocked rung on a mirror ladder (.na1-ex-row.is-current),
+   the "Up next" card on the A1 grid (.is-vision-up-next, plus Purpose's
+   .is-current), and the A2 hub's up-next card (.na1-mirror-card.is-current).
+   Driven entirely by the existing current/up-next markers, so it inherits
+   their gating (never locked; only the genuine next step) and self-settles
+   the instant a step is entered/started (the marker flips to in-progress or
+   complete). Token-only, rendered as a non-destructive ::after ring so it
+   never disturbs layout or the card's own accent. Disabled under
+   prefers-reduced-motion. */
+@keyframes na1-flash-pulse { 0%,100%{ opacity:0; } 50%{ opacity:0.55; } }
+@media (prefers-reduced-motion: no-preference){
+  .na1-ex-row.is-current{ position:relative; }
+  .na1-mirror-card.is-vision-up-next::after,
+  .na1-mirror-card.is-current::after,
+  .na1-ex-row.is-current::after{
+    content:""; position:absolute; inset:-1px; border-radius:inherit;
+    pointer-events:none; opacity:0;
+    box-shadow:0 0 0 1.5px var(--gold), 0 0 24px 2px var(--gold-glow);
+    animation:na1-flash-pulse 2.6s ease-in-out infinite;
+  }
+}
 
 /* ─── Mirror 3 · Step 1a · Pick ───────────────────────────────────────────── */
 .m3-pick{ max-width:880px; margin:0 auto; padding:48px 24px 120px; font-family:var(--na1-sans); color:var(--na1-text); }
@@ -29593,7 +29616,7 @@ function NewA1OwnedSymptomsBody({
               disabled={!step2Valid || saving}
               onClick={saveAndClose}
             >
-              {saving ? "Saving…" : "Done → Back to Purpose"}
+              {saving ? "Saving…" : "Continue to True Ownership"}
             </button>
           </div>
         </>
@@ -30029,7 +30052,7 @@ function NewA1TOActions({
           disabled={!allValid || saving}
           onClick={onSave}
         >
-          {saving ? "Saving…" : "Done → Back to Purpose"}
+          {saving ? "Saving…" : "Continue to The Peel"}
         </button>
       ) : (
         <button
@@ -30395,7 +30418,7 @@ function NewA1PeelBody({
               disabled={saving}
               onClick={readyToDeclare}
             >
-              {saving ? "Saving…" : "Done → Back to Purpose"}
+              {saving ? "Saving…" : "Continue to Declare"}
             </button>
           ) : canDeclare ? (
             <button
@@ -30404,7 +30427,7 @@ function NewA1PeelBody({
               disabled={saving}
               onClick={declareBottom}
             >
-              {saving ? "Saving…" : "Done → Back to Purpose"}
+              {saving ? "Saving…" : "Continue to Declare"}
             </button>
           ) : null}
           {!wasDone && !draftValid && (
@@ -31175,7 +31198,7 @@ function NewA2TwoFuturesBody({
     if (screen === 1 || screen === 5) return "Continue to Wealth →";
     if (screen === 2 || screen === 6) return "Continue to Self →";
     if (screen === 3 || screen === 7) return "Continue →";
-    if (screen === 8) return "Done → Back to Vision";
+    if (screen === 8) return "Continue to Time · 10-Year";
     return "Continue →";
   })();
   const goNext = async () => {
@@ -32017,7 +32040,7 @@ function NewA2TimeBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Done → Back to Vision
+              Continue to Wealth · 10-Year
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -32423,7 +32446,7 @@ function NewA2WealthBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Done → Back to Vision
+              Continue to Self · 10-Year
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -32828,7 +32851,7 @@ function NewA2SelfBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Done → Back to Vision
+              Continue to Vision Declaration
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -39128,20 +39151,21 @@ function NewA1View({ name }: { name?: string }) {
                   window.setTimeout(() => launchRoom(peelEx), 240);
                 }}
                 onContinueToVision={() => {
-                  // Close Declare and route to Mirror 2's Explore. We do
-                  // NOT call closeRoom() here because its 520ms cleanup
-                  // captures `roomOpen` from closure and can be cancelled
-                  // by a fast-follow launchRoomM2 → clearTimers() within
-                  // ~280ms (user taps a Mirror 2 card immediately after
-                  // Continue), which would leak a stale openEx="declare".
-                  // Since this transition is committed (we're leaving
-                  // Mirror 1 entirely), null openEx ourselves — race-free
-                  // and independent of clearTimers behavior. 240ms delay
-                  // on setView matches the modal fade-out so the view-swap
+                  // Unified nav (Level 2): claiming a mirror returns to the
+                  // A1 four-mirror grid (the A card page) — the user taps the
+                  // next mirror's card (Vision) to enter, which now gently
+                  // gold-pulses as the "Up next" card. We do NOT call
+                  // closeRoom() here because its 520ms cleanup captures
+                  // `roomOpen` from closure and can be cancelled by a
+                  // fast-follow launch → clearTimers() within ~280ms, which
+                  // would leak a stale openEx="declare". Since this transition
+                  // is committed (we're leaving Mirror 1 entirely), null openEx
+                  // ourselves — race-free and independent of clearTimers. 240ms
+                  // delay on setView matches the modal fade-out so the view-swap
                   // doesn't fight the close animation.
                   setRoomOpen(false);
                   window.setTimeout(() => {
-                    setView("explore2");
+                    setView("grid");
                     setOpenEx(null);
                   }, 240);
                 }}
@@ -39196,20 +39220,15 @@ function NewA1View({ name }: { name?: string }) {
                   window.setTimeout(() => launchRoomM2(timeEx), 240);
                 }}
                 onContinueToIdentity={() => {
-                  // M2 → M3 handoff. If the M3 flag/state qualifies, route
-                  // directly to the new Mirror 3 surface; otherwise fall
-                  // through to legacy behavior (close room → grid → user
-                  // taps the Identity card from the mirror grid).
-                  const cur = (loadDataSync(KEYS.map) as any) || {};
-                  if (shouldRouteToM3(cur)) {
-                    setRoomOpen(false);
-                    window.setTimeout(() => {
-                      setView("m3");
-                      closeRoom();
-                    }, 240);
-                  } else {
+                  // Unified nav (Level 2): claiming Vision returns to the A1
+                  // four-mirror grid; the user taps the Identity card (now the
+                  // gold-pulsing "Up next" card) to enter. 240ms delay matches
+                  // the modal fade-out.
+                  setRoomOpen(false);
+                  window.setTimeout(() => {
+                    setView("grid");
                     closeRoom();
-                  }
+                  }, 240);
                 }}
               />
             ) : (
@@ -41086,7 +41105,7 @@ function NewA1M4DiscoverBody({
     // Ship 5.6e · Continue copy names the destination (Behaviors
      // room is next in M4) rather than the mechanism (overlay close).
      // Matches the pattern of every other M4 Continue.
-     if (step === "finish") return "Done → Back to Values";
+     if (step === "finish") return "Continue to Behaviors";
     return "—";
   })();
 
@@ -43757,7 +43776,7 @@ function NewA1M4BehaviorsBody({
                 disabled={blocked}
                 aria-disabled={blocked || undefined}
               >
-                Done → Back to Values
+                Continue to Rank
               </button>
             </div>
             {helper && (
@@ -44053,7 +44072,7 @@ function NewA1M4ClaimBody({
             className="na1-btn-ghost"
             onClick={onGoToA2}
           >
-            Align With It · A2 →
+            Continue to Align With It · A2 →
           </button>
         </div>
       )}
@@ -44412,7 +44431,7 @@ function NewA1M4RankBody({
             onClick={onContinueToClaim}
             disabled={!ptComplete}
           >
-            Done → Back to Values
+            Continue to Claim
           </button>
           {!ptComplete && (
             <p className="na1-m4-beh-gate-helper" role="status">
@@ -46361,7 +46380,7 @@ function NewA1M3ShapeView({
           onClick={onSuperpowers}
           aria-label="Done, back to Identity"
         >
-          Done → Back to Identity
+          Continue to Under Pressure
         </button>
       </div>
       {browseCluster && (
@@ -46885,7 +46904,7 @@ function NewA1M3UnderPressureView({
   const isLast = activeIdx === clusters.length - 1;
   const nextName = isLast ? null : clusters[activeIdx + 1].animal || "next";
   const ctaLabel = isLast
-    ? "Done → Back to Identity"
+    ? "Continue to Own It"
     : `Continue to ${nextName} →`;
 
   const handleCta = () => {
@@ -47476,7 +47495,7 @@ function NewA1M3View({
               onBack();
             }}
           >
-            Done → Back to Identity
+            Continue to Superpowers
           </button>
         </div>
       </div>
