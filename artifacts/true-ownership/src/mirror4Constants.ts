@@ -403,9 +403,22 @@ export function loadMirror4State(): Mirror4State {
       // proposedNames from any user-created clusters that survive. Raw
       // admire/irks behaviors are preserved untouched. Idempotent.
       if (Array.isArray(merged.clusters)) {
+        // Only drop clusters that are UNAMBIGUOUSLY old AI proposals: the
+        // AI-only "proposed" status AND carrying an AI proposal/proposedNames
+        // AND with no user-entered name. A standard the user named or built
+        // must NEVER be deleted — even a legacy one mistakenly saved as
+        // "proposed" survives as long as it has a userName (best-effort
+        // recovery of standards lost to the earlier bug).
         const droppedClusterIds = new Set(
           merged.clusters
-            .filter((c) => c.status === "proposed")
+            .filter(
+              (c) =>
+                c.status === "proposed" &&
+                ((typeof c.proposal === "string" && c.proposal !== "") ||
+                  (Array.isArray(c.proposedNames) &&
+                    c.proposedNames.length > 0)) &&
+                !(typeof c.userName === "string" && c.userName.trim() !== ""),
+            )
             .map((c) => c.id),
         );
         if (droppedClusterIds.size > 0) {
@@ -980,7 +993,12 @@ export function createCluster(
     flips,
     userName: "",
     userDefinition: "",
-    status: "proposed",
+    // User-authored standard. Must NOT be "proposed" — that status is reserved
+    // for stale AI-generated groups, which the load-time migration deletes.
+    // Tagging a user-created cluster "proposed" caused it to be wiped on the
+    // next loadMirror4State() (data loss). Completion never reads status (only
+    // userName + behaviorIds), so this is purely a migration-safety marker.
+    status: "named",
     colorIndex,
     peelChain: [],
   };

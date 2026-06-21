@@ -1,0 +1,43 @@
+# Urgent — Name the standards: save + completion bugs (data loss)
+## For Replit Agent — diagnose and fix before anything else in Values
+
+Verified live on spock with DOM/localStorage inspection. The user reported "twice I named the standards and added behaviors and it didn't save," and "Behaviors doesn't unlock after Name the standards." Both reproduce. Here is the exact evidence.
+
+## Bug 1 — user-created standards are saved with status:"proposed"
+When the user creates a standard, names it, and assigns a behavior, the cluster persists to `to_mirror4_state_v1` with **`status: "proposed"`**. Example captured after naming "Integrity" and assigning behavior ad-1:
+```
+clusters: [ { name: "Integrity", behaviorIds: ["ad-1"], status: "proposed" } ]
+```
+This is wrong: a user-named standard with at least one behavior is a real, user-authored standard — it must NOT carry the same `"proposed"` status that the #42 migration treats as stale AI data to delete. This is almost certainly why the user's two earlier attempts "didn't save": the #42 load-time migration ("drop every cluster whose status is 'proposed'") can delete user-created standards because they are indistinguishable from old AI proposals by status. (In one reload during testing the cluster survived — so the migration's delete condition may be narrower than status alone, e.g. also requires proposal/proposedNames present — but the status is still wrong and is a latent data-loss trap. Make user-created standards carry a distinct non-"proposed" status, e.g. "user"/"named"/"complete", the moment the user names them or assigns a behavior.)
+
+FIX: a standard the user creates/names/populates must be saved with a user-authored status that the migration NEVER deletes. The migration should only ever drop clusters that are unambiguously old AI proposals (e.g. status "proposed" AND has proposal/proposedNames AND has no user-entered name) — never a cluster the user named or built.
+
+## Bug 2 — Name the standards never registers complete, so Behaviors stays locked
+After naming "Integrity" with a behavior, the ladder still shows:
+```
+Name the standards · Open · tap to revisit   (NOT Complete)
+Behaviors · Unlocks after Name the standards  (LOCKED)
+```
+And the persisted completion tracker shows:
+```
+discoverSections: { admire:false, irks:false, portrait:true }   // no nameStandards key, no flip key
+```
+So the new rungs (Flip the irks, Name the standards) are NOT wired into the per-section completion source that gates the ladder. Name the standards never flips to Complete, so Behaviors never unlocks — matching the user's report.
+
+FIX: wire Name the standards (and Flip) into the same per-rung completion source the other rungs use. Define Name-the-standards "complete" as: at least one user-created standard exists with a name + >=1 behavior (consistent with the Phase 2 "complete = name + >=1 behavior" rule). When that's true and the user taps "Continue to Behaviors," mark the rung complete, return to the ladder, unlock + flash Behaviors. Confirm the `discoverSections` (or equivalent) tracker gains the nameStandards and flip keys so the hub/step-indicator/rooms agree.
+
+## Bug 3 (confirm) — "Continue to Behaviors →" may not be marking complete
+The CTA "Continue to Behaviors →" is present in the Name-the-standards room, but using it does not appear to mark the rung complete / unlock Behaviors (see Bug 2). Confirm the CTA's completion-write actually fires for this rung and persists.
+
+## How to verify the fix on spock (owner login, ?newA1=1)
+1. Open Name the standards, create a standard, name it, assign >=1 behavior. Reload the page. The standard is STILL THERE (not wiped by migration), with a non-"proposed" user status in localStorage.
+2. With one named standard (name + >=1 behavior), the rung reads Complete (or the "Continue to Behaviors" CTA marks it complete), returns to the ladder, and Behaviors UNLOCKS and flashes.
+3. Open Behaviors — it opens (no longer locked).
+4. Existing-profile migration still clears genuine old AI proposals, but NEVER a user-named/built standard.
+5. Both themes; clean load; no console errors.
+
+## Out of scope
+Phase 4 (copy relabel + post-claim editability) and the separate flip-into-behavior correction — but if the flip-into-behavior change and these fixes touch the same save path, coordinate so a user's standards and accepted flips all persist with correct status.
+
+## Working rules
+Plan-confirm first (this is data loss — get the diagnosis right before editing), build, verify on spock both themes, in-range typecheck.
