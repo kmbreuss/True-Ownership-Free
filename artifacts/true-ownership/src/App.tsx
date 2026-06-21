@@ -87,6 +87,7 @@ import {
   deleteBehavior as m4DeleteBehavior,
   changeBehaviorTier as m4ChangeBehaviorTier,
   findBehavior as m4FindBehavior,
+  editBehaviorText as m4EditBehaviorText,
   M4_TIER_LABEL,
   M4_TIER_ICON,
   type M4RoomKey,
@@ -2319,6 +2320,9 @@ html[data-theme="light"]{
 .na1-m4-bul{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:8px; font-family:var(--na1-sans); font-size:13.5px; color:var(--na1-text); line-height:1.4; }
 .na1-m4-bul .na1-m4-pip{ width:8px; height:8px; flex-shrink:0; }
 .na1-m4-bul-text{ flex:1; font-weight:400; }
+.na1-m4-bul-text-edit{ cursor:text; border-radius:4px; padding:1px 3px; margin:-1px -3px; }
+.na1-m4-bul-text-edit:hover{ background:var(--na1-bg-card); }
+.na1-m4-bul-text-edit:focus{ outline:1px solid var(--gold-line); outline-offset:1px; }
 .na1-m4-bul-person{ font-family:var(--na1-serif); font-style:italic; font-size:12px; color:var(--na1-text-mute); }
 .na1-m4-bul-tag{ font-family:var(--na1-sans); font-size:9.5px; letter-spacing:.1em; padding:3px 9px; border-radius:100px; text-transform:uppercase; font-weight:600; white-space:nowrap; }
 .na1-m4-bul-tag.lights{ background:var(--gold); color:#1a1407; }
@@ -41312,6 +41316,102 @@ function NewA1M4DiscoverBody({
   );
 }
 
+// A single behavior row in the Admire/Irks collection lists. The text
+// is inline-editable: tap (or keyboard-activate) the text to swap it
+// for an input; Enter or blur saves, Escape cancels, empty input
+// reverts. The × still deletes. Tier/person/tag are read-only here —
+// tier moves happen on the Portrait step.
+function M4EditableBulRow({
+  b,
+  mutate,
+}: {
+  b: M4Behavior;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(b.text);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [editing]);
+
+  const startEdit = () => {
+    setDraft(b.text);
+    setEditing(true);
+  };
+  const commit = () => {
+    const t = draft.trim();
+    if (t && t !== b.text) mutate((s) => m4EditBehaviorText(s, b.id, t));
+    setEditing(false);
+  };
+  const cancel = () => {
+    setDraft(b.text);
+    setEditing(false);
+  };
+
+  return (
+    <div className="na1-m4-bul">
+      <span className={`na1-m4-pip ${b.tier}`}></span>
+      {editing ? (
+        <input
+          ref={inputRef}
+          type="text"
+          className="na1-m4-quad-inline-input"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              cancel();
+            }
+          }}
+        />
+      ) : (
+        <>
+          <span
+            className="na1-m4-bul-text na1-m4-bul-text-edit"
+            role="button"
+            tabIndex={0}
+            title="Tap to edit"
+            onClick={startEdit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                startEdit();
+              }
+            }}
+          >
+            {b.text}
+          </span>
+          {b.person && (
+            <span className="na1-m4-bul-person">· {b.person}</span>
+          )}
+          <span className={`na1-m4-bul-tag ${b.tier}`}>
+            {M4_TIER_ICON[b.tier]}
+            {M4_TIER_LABEL[b.tier]}
+          </span>
+        </>
+      )}
+      <button
+        type="button"
+        className="na1-m4-bul-x"
+        onClick={() => mutate((s) => m4DeleteBehavior(s, b.id))}
+        aria-label="Delete behavior"
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 function M4StepAdmireIrks({
   kind,
   state,
@@ -41366,25 +41466,7 @@ function M4StepAdmireIrks({
       <M4InputRow kind={kind} mutate={mutate} />
       <div className="na1-m4-blist">
         {list.map((b) => (
-          <div className="na1-m4-bul" key={b.id}>
-            <span className={`na1-m4-pip ${b.tier}`}></span>
-            <span className="na1-m4-bul-text">{b.text}</span>
-            {b.person && (
-              <span className="na1-m4-bul-person">· {b.person}</span>
-            )}
-            <span className={`na1-m4-bul-tag ${b.tier}`}>
-              {M4_TIER_ICON[b.tier]}
-              {M4_TIER_LABEL[b.tier]}
-            </span>
-            <button
-              type="button"
-              className="na1-m4-bul-x"
-              onClick={() => mutate((s) => m4DeleteBehavior(s, b.id))}
-              aria-label="Delete behavior"
-            >
-              ×
-            </button>
-          </div>
+          <M4EditableBulRow key={b.id} b={b} mutate={mutate} />
         ))}
       </div>
       <div className="na1-m4-counter">

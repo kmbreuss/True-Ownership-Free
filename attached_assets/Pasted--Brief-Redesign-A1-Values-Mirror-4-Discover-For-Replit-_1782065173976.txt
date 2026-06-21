@@ -1,0 +1,95 @@
+# Brief — Redesign A1 Values (Mirror 4) Discover
+## For Replit Agent — builds AFTER the navigation-conversion task lands
+
+This is a redesign of the A1 Values · Discover section, not a patch. It replaces the AI-clustering model with a user-driven one and makes the exercise conceptually honest about what a value is. It is a deliberate, scoped A1 change.
+
+PREREQUISITE: the navigation-conversion task (ladder home base, no horizontal stepper, exercises auto-flow within a section, return-to-ladder at section end) must be merged first. This brief assumes that model is already in place — Values uses the same ladder + no-stepper + in-step-counter pattern as every other mirror.
+
+Plan first, wait for approval, build in phases, verify each on spock.replit.dev, both themes.
+
+---
+
+## The conceptual model (the spine of the whole redesign)
+
+- A **value is a standard** — the abstract thing the person holds as right/important (e.g. Own It, Integrity, Respect).
+- **Behaviors are the evidence** — observable things that show someone (including the user themselves) living up to that standard. A value is abstract; behaviors make it visible.
+- Admires and irks are both just **behavior collection** — raw evidence. Neither is a value on its own.
+- **Grouping is where behaviors become a value:** when several behaviors point to the same standard, the standard underneath them is the value. The user discovers the value by recognizing what a cluster of behaviors has in common — they do NOT pick it from a list or invent it from nothing.
+
+Language must be explicit everywhere: steps that collect behaviors call them BEHAVIORS (never values); the grouping step names the STANDARD (the value) that a group of behaviors points to. Today the app blurs these two — the redesign must separate them in all copy.
+
+---
+
+## What's removed
+- AI clustering ("Katherine's read" auto-grouping) — gone. The user groups their own behaviors.
+- AI value-name suggestion ("Ask Katherine for a name suggestion") — gone. It was broken and is no longer needed; the user names the standard themselves.
+- AI irk-reframing — gone. The user reframes irks themselves.
+- The black-box cluster cards (name + count only) — gone.
+- Any path where a behavior can silently fail to land somewhere — gone (see grouping below).
+
+## What's kept
+- The four tiers: Lights me up / Warms me (admire) and Bothers me / Turns my stomach (irk). They are metadata on each behavior, shown as colored dots, helping the user during collection and grouping. Not structural — just signal.
+- The four-tier portrait view (current Step 3) as the place to review/move/edit collected behaviors before grouping.
+- Rank and Claim sections (unchanged in logic; relabelled to "standards/values" language where copy references them).
+
+---
+
+## The redesigned Discover flow (one section on the ladder, auto-flowing internal steps)
+
+### Step 1 — Admire (collect behaviors)
+"What behaviors do you admire?" Free-text add; each behavior tagged Lights me up (default, strong) or Warms me (softer). Optional "tag a person." Running count.
+- FIX: behaviors must be inline-editable (tap text to edit in place; Enter/blur saves). Today they are delete-only. Keep × for delete.
+- Copy must call these BEHAVIORS, not values.
+
+### Step 2 — Irks (collect behaviors)
+"What behaviors don't you admire?" Same input pattern; tagged Bothers me (daily friction) or Turns my stomach (gut reaction). Same inline-edit fix.
+
+### Step 3 — Portrait (review the evidence)
+The four-tier view (Lights / Warms / Bothers / Turns stomach). Drag between tiers, edit, delete, add. This is the review of collected behaviors before flipping/grouping. Largely as today; ensure edit works here too (it already does).
+
+### Step 4 — Flip the irks (NEW step, user-driven)
+"What are they doing instead?" For each irk, the user writes — in their OWN words — the behavior the irk points to. Framing copy: an irk points to a behavior you care about; if someone weren't doing the thing that bothers you, what would they be doing? That's the behavior you value.
+- The user does the flip. NO AI reframing.
+- Flips are OPTIONAL — the user can skip an irk that leads nowhere; a skipped irk simply adds no behavior.
+- A completed flip produces a new behavior that joins the pool for grouping.
+- NO automatic "matches an existing admire" detection — do not attempt fuzzy matching. Overlaps surface naturally at grouping (the user will see the reframed behavior sitting next to the admire one and group them). Keep it simple and AI-free.
+
+### Step 5 — Name the standards (NEW grouping, replaces AI clustering)
+"What standard do these point to?" The user groups behaviors into clusters; each cluster names the VALUE (standard) underneath it.
+- Layout: a POOL of ungrouped behaviors (admires + reframed irks) at top; the user's GROUPS below.
+- The user drags (or taps to assign) behaviors from the pool into a group.
+- Each group has TWO explicit parts: (a) "The standard" — an editable value name field; (b) "How you'd recognize it" — the behaviors in that group, each removable (×) back to the pool.
+- A worked EXAMPLE is shown before they start, demonstrating the relationship (not just a label): the behaviors "takes responsibility for mistakes / learns from mistakes / problem-solves under pressure" are how you'd recognize the standard "Own It" — that standard is the value. (Use Own It; it's a trademarked 5As term.)
+- "New standard" / "New group" button to add groups.
+- DROPPED-BEHAVIORS RULE: behaviors left in the pool are simply UNGROUPED — they stay visible in the pool, never hidden, never lost. There is no requirement that every behavior be grouped. Nothing disappears silently. (This directly fixes today's "Runs away from responsibilities is nowhere to be seen" bug.)
+
+### Step 6 — Rank
+Order the named standards. "One decision filter." Logic unchanged; copy uses standards/values language.
+
+### Step 7 — Claim
+Seal the value set. Exits the mirror (the one forward-advance per the nav model).
+- FIX: after claiming, values must remain EDITABLE — provide a re-open/edit path so a confirmed value's name and its behaviors can still be changed (consistent with Purpose's Declare "refine anytime" principle). Today confirmed values are locked.
+
+---
+
+## Editability rules (apply throughout)
+- Behaviors: inline-editable at every step they appear (admire, irks, portrait, inside a group).
+- Standard (value) names: editable at the grouping step and after claim.
+- Nothing in Values is write-once. Everything can be revised.
+
+## Out of scope
+- Other A1 mirrors (Purpose, Vision, Identity) and all of A2.
+- The navigation model itself (prerequisite task, already landed).
+- The Claim ceremony/seal/gold-burst visual (unchanged; only the post-claim edit path is added).
+- to_map schema: extend as needed for the new group structure (standard + behaviors), but keep changes minimal and migration-safe for existing Values data.
+
+## Phases (ship + verify each)
+1. Inline-edit behaviors on the input steps (Admire, Irks) — smallest, self-contained.
+2. Remove AI clustering + AI naming + AI reframe; build the user-driven grouping step (Step 5) with pool + groups + standard/evidence structure + Own It example + ungrouped-stays-visible rule.
+3. Add the Flip-the-irks step (Step 4), user-driven, optional, no auto-match.
+4. Relabel all copy to behavior/standard language across the section; add post-claim editability.
+
+## Working rules
+- Plan first, wait for approval. One phase at a time; verify on spock.replit.dev (owner login), never the IDE webview.
+- Tokens only; both light and dark themes after each phase.
+- Giant single-file App.tsx — locate with rg/sed, verify with in-range typecheck grep.

@@ -479,6 +479,26 @@ export function changeBehaviorTier(
   return next;
 }
 
+// Edit the free-text of a behavior in place (Admire/Irks/Portrait).
+// Tier and portrait membership are unchanged, so no portrait rebuild
+// is needed. Empty/whitespace text is rejected — the caller keeps the
+// original value.
+export function editBehaviorText(
+  state: Mirror4State,
+  id: string,
+  text: string,
+): Mirror4State {
+  const t = text.trim();
+  if (!t) return state;
+  const apply = (arr: M4Behavior[]): M4Behavior[] =>
+    arr.map((b) => (b.id === id ? { ...b, text: t } : b));
+  return {
+    ...state,
+    admire: apply(state.admire),
+    irks: apply(state.irks),
+  };
+}
+
 export function findBehavior(
   state: Mirror4State,
   id: string,
