@@ -41016,6 +41016,19 @@ function NewA1M4SectionBody({
     onCloseRoom();
   };
 
+  // Phase 2 fix · CTA rhythm. Match the Purpose/A2 (#40) model: the
+  // completion button names the next actionable rung, returns to the
+  // ladder, and that rung flashes. The locked "Flip the irks" rung is
+  // skipped — Portrait points straight at "Name the standards".
+  const continueLabel =
+    sectionKey === "admire"
+      ? "Continue to Irks →"
+      : sectionKey === "irks"
+        ? "Continue to Portrait →"
+        : sectionKey === "portrait"
+          ? "Continue to Name the standards →"
+          : "Continue to Behaviors →";
+
   return (
     <div className="na1-m4-disc">
       <div className="na1-m4-disc-content" key={sectionKey}>
@@ -41037,7 +41050,7 @@ function NewA1M4SectionBody({
           ← Back to ladder
         </button>
         <button type="button" className="na1-m4-continue" onClick={handleDone}>
-          Done · back to the ladder
+          {continueLabel}
         </button>
       </div>
     </div>
@@ -41608,17 +41621,18 @@ function M4StepPortrait({
           {ids.map((id) => {
             const b = byId.get(id);
             if (!b) return null;
-            const used = b.inUseByCluster != null;
+            // Phase 2 fix · the Portrait is a clean read/edit overview,
+            // not the grouping pool — never apply the struck-through
+            // "is-used" treatment here. Behaviors stay normal text and
+            // fully movable even when a standard already references them
+            // (tier is independent of cluster membership). Deleting a
+            // behavior that backs a standard is still guarded below.
             return (
               <div
                 key={id}
-                className={`na1-m4-qbul ${dragId === id ? "is-dragging" : ""} ${used ? "is-used" : ""}`}
-                draggable={!used}
+                className={`na1-m4-qbul ${dragId === id ? "is-dragging" : ""}`}
+                draggable
                 onDragStart={(e) => {
-                  if (used) {
-                    e.preventDefault();
-                    return;
-                  }
                   setDragId(id);
                   e.dataTransfer.setData("text/plain", id);
                   e.dataTransfer.effectAllowed = "move";
@@ -41641,7 +41655,6 @@ function M4StepPortrait({
                     e.stopPropagation();
                     setMoveMenu(moveMenu === id ? null : id);
                   }}
-                  disabled={used}
                 >
                   ⋮
                 </button>

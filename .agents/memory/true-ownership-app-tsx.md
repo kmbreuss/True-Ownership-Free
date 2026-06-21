@@ -182,3 +182,24 @@ idx-1 silently tracks visual order, not the dependency.
 hub, the A1 stepper (`m4DoneKeys`), and the container never drift; drive unlock,
 single-flash "current" (first unlocked, non-coming-soon, not-done rung), and the
 locked label off that same source plus an explicit unlock-after map.
+
+## Mirror 4 redesign DISCARDS legacy AI clusters on load (not migrate)
+
+The A1 Values redesign is user-driven (no AI grouping/naming). `loadMirror4State`
+intentionally DROPS every cluster with `status:"proposed"` (the old AI-generated
+groups), releases `inUseByCluster` on any admire/irks behavior that pointed at a
+dropped cluster (back to the ungrouped pool), and strips vestigial
+`proposal`/`proposedNames` from surviving user-named clusters. Raw `admire`/`irks`
+behavior records are NEVER removed — only the cluster grouping + AI name
+suggestions are thrown away, so existing profiles reopen with an empty grouping
+area + admires-only pool.
+**Why:** rendering AI-proposed groups as pre-made standards contradicts the
+"nothing is pre-decided for you" design; the explicit product ruling was to
+discard, not preserve, that old data. Do NOT "helpfully" re-add migration that
+keeps the old clusters.
+**How to apply:** the discard is load-time + idempotent in `loadMirror4State`.
+Tier moves are safe alongside it — `changeBehaviorTier` copies `inUseByCluster`
+and keeps the behavior id, so a behavior referenced by a standard stays
+referenced after moving Portrait tiers. The Portrait (`M4StepPortrait`) is a
+clean read/edit overview: it must NOT apply the struck-through `is-used` class
+(that styling belongs only to the Name-the-standards grouping pool).

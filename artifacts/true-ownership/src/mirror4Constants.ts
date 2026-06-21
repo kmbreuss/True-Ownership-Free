@@ -388,6 +388,42 @@ export function loadMirror4State(): Mirror4State {
             : { ...c, peelChain: [] as string[] },
         );
       }
+      // Phase 2 fix · discard legacy AI-proposed clusters on load. The
+      // user-driven redesign must start existing profiles with an empty
+      // grouping area + an admires-only pool — never pre-made standards
+      // or AI-suggested names. Drop every "proposed" cluster, release any
+      // behavior it claimed back to the ungrouped pool (clear the stored
+      // inUseByCluster pointer), and strip the vestigial proposal /
+      // proposedNames from any user-created clusters that survive. Raw
+      // admire/irks behaviors are preserved untouched. Idempotent.
+      if (Array.isArray(merged.clusters)) {
+        const droppedClusterIds = new Set(
+          merged.clusters
+            .filter((c) => c.status === "proposed")
+            .map((c) => c.id),
+        );
+        if (droppedClusterIds.size > 0) {
+          merged.clusters = merged.clusters.filter(
+            (c) => !droppedClusterIds.has(c.id),
+          );
+          const releaseRefs = (arr: M4Behavior[]): M4Behavior[] =>
+            arr.map((b) =>
+              b.inUseByCluster != null &&
+              droppedClusterIds.has(b.inUseByCluster)
+                ? { ...b, inUseByCluster: null }
+                : b,
+            );
+          if (Array.isArray(merged.admire))
+            merged.admire = releaseRefs(merged.admire);
+          if (Array.isArray(merged.irks))
+            merged.irks = releaseRefs(merged.irks);
+        }
+        merged.clusters = merged.clusters.map((c) =>
+          c.proposal === "" && c.proposedNames.length === 0
+            ? c
+            : { ...c, proposal: "", proposedNames: [] },
+        );
+      }
       // Ship 5.6g · Section 4 — defensive defaults for older blobs
       // that predate the operationalize / behaviors schema fields.
       if (!merged.operationalize || typeof merged.operationalize !== "object")
