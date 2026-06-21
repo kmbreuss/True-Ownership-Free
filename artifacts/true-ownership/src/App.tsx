@@ -36098,8 +36098,9 @@ function NewA2M1Container({
   onRoomChange,
 }: {
   onBackToA2: () => void;
-  // Launches Time Audit (Mirror 2) directly. Drives the claimed seal's forward
-  // CTA ("Continue to Time Audit →") so claiming M1 flows straight into M2.
+  // Returns to the A2 hub. Drives the claimed seal's forward CTA ("Continue to
+  // Time Audit →"); claiming M1 lands on the hub where Time Audit is the
+  // up-next (flashing) card, matching the A1 mirror→hub handoff model.
   onContinueToM2: () => void;
   // One-shot: "alignment" when restoring a saved room (resume — no veil).
   initialRoomKey: string | null;
@@ -36325,10 +36326,11 @@ function NewA2M1Container({
     else closeRoom();
   };
   // Primary room CTA. Step 2 pages forward through its rating sub-screens; at
-  // every step boundary the CTA instead reads "Done → Back to Alignment Check"
-  // and returns to the step-card list (closeRoom) rather than auto-advancing
-  // into the next step. The Step 2 completion gate still blocks "Done" until
-  // every item is rated (enforced by the button's disabled prop below).
+  // every step boundary the CTA instead reads "Continue to [next rung]" (naming
+  // the next ladder rung) and returns to the step-card list (closeRoom) rather
+  // than auto-advancing into the next step. The Step 2 completion gate still
+  // blocks the button until every item is rated (enforced by the disabled prop
+  // below).
   const onPrimary = () => {
     if (m1.currentStep === 2 && step2Index < lastIndex) {
       setStep2Index(step2Index + 1);
@@ -36349,8 +36351,9 @@ function NewA2M1Container({
   };
 
   // Forward CTA target for the Claim step. The registry carries the Time Audit
-  // (Mirror 2) label; onContinueToM2 launches the M2 room directly, so the
-  // claimed seal reads "Continue to Time Audit →" and flows straight into M2.
+  // (Mirror 2) label; onContinueToM2 returns to the A2 hub, so the claimed seal
+  // reads "Continue to Time Audit →" and lands on the hub with the Time Audit
+  // card flashing as up-next.
   const a2NextMirror = resolveA2NextMirror("m1", onContinueToM2);
 
   // Escape + scroll-lock while the room is open.
@@ -36484,7 +36487,9 @@ function NewA2M1Container({
                 >
                   {m1.currentStep === 2 && step2Index < lastIndex
                     ? "Continue"
-                    : "Done → Back to Alignment Check"}
+                    : `Continue to ${
+                        A2M1_STEPS[m1.currentStep]?.name ?? "Alignment Check"
+                      }`}
                 </button>
               )}
             </div>
@@ -37188,7 +37193,8 @@ function NewA2M2Container({
   onRoomChange,
 }: {
   onBackToA2: () => void;
-  // Forward route to the Mirror 3 (Named Truth) shell, fired from the Claim seal.
+  // Returns to the A2 hub, fired from the Claim seal's "Continue to Named
+  // Truth →" CTA; the hub then flashes Named Truth as the up-next card.
   onContinueToM3: () => void;
   // One-shot: "timeaudit" when restoring a saved room (resume — no veil).
   initialRoomKey: string | null;
@@ -37495,7 +37501,7 @@ function NewA2M2Container({
                   onClick={onDone}
                   disabled={!canContinue}
                 >
-                  Done → Back to Time Audit
+                  {`Continue to ${A2M2_STEPS[currentStep]?.name ?? "Time Audit"}`}
                 </button>
               )}
             </div>
@@ -38747,7 +38753,7 @@ function NewA2M3Container({
                   className="na1-btn-gold"
                   onClick={onDone}
                 >
-                  Done → Back to Named Truth
+                  {`Continue to ${A2M3_STEPS[currentStep]?.name ?? "Named Truth"}`}
                 </button>
               )}
             </div>
@@ -39328,7 +39334,7 @@ function NewA1View({ name }: { name?: string }) {
         )}
         <NewA2M1Container
           onBackToA2={() => setView("a2")}
-          onContinueToM2={() => setView("a2m2")}
+          onContinueToM2={() => setView("a2")}
           initialRoomKey={initialKey}
           onRoomChange={onA2M1RoomChange}
         />
@@ -39346,15 +39352,15 @@ function NewA1View({ name }: { name?: string }) {
     return (
       <NewA2M2Container
         onBackToA2={() => setView("a2")}
-        onContinueToM3={() => setView("a2m3")}
+        onContinueToM3={() => setView("a2")}
         initialRoomKey={initialKey}
         onRoomChange={onA2M2RoomChange}
       />
     );
   }
   // A2 Ship 1 · Named Truth (A2 Mirror 3) placeholder landing. Reached via the
-  // A2 hub's gated 03 Begin (unlocked once Mirror 2 is claimed) and the Mirror 2
-  // Claim forward CTA. Spine kept for consistent A2 chrome.
+  // A2 hub's gated 03 Begin (unlocked once Mirror 2 is claimed). Spine kept for
+  // consistent A2 chrome.
   if (view === "a2m3") {
     const initialKey = initialA2M3RoomKeyRef.current;
     initialA2M3RoomKeyRef.current = null;
