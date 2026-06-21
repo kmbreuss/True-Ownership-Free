@@ -1,0 +1,58 @@
+# Addendum to Brief #36 — Fix 5: A2 Locked-State When A1 Incomplete
+## For Replit Agent
+
+Add this as Fix 5 to ship #36. Same area (A2 hub / NewA2HubView), so fold it in. Same rules apply: plan first, verify after, do not bundle with Fixes 1–4.
+
+---
+
+## What & Why
+
+When A1 (All In It) is not fully complete, A2's Mirror 1 (Alignment Check) card is in a contradictory state: it shows the "UP NEXT" badge (signalling "this is available, go here") while its CTA button is greyed and disabled with body text "Complete A1 to begin." This is a dead/greyed CTA, which violates the locked rule: a dead/greyed button is never acceptable — it must name the next action and route there.
+
+The correct behaviour must mirror how A1 itself already works (verified live): when a mirror is claimed, the claim CTA **names the next mirror** ("Continue to Values →") and routes the user to the **hub** (the card grid), where the next mirror shows as the active "Up Next" with a live begin button. The pattern is: **name the destination, route to the hub.** A2's locked state must follow this same pattern.
+
+## The gating rule (confirm this is what's implemented)
+
+A2 is locked in its entirety until A1 is complete (all four A1 mirrors claimed: Purpose, Vision, Identity, Values). When A1 is incomplete:
+- M1 Alignment Check is LOCKED (not "Up Next")
+- M2 Time Audit is LOCKED
+- M3 Named Truth is LOCKED
+
+A2 only becomes enterable once A1 reads 4 of 4 claimed.
+
+## Done looks like
+
+When A1 is NOT complete, the A2 hub cards read:
+
+- **M1 Alignment Check** — badge: **LOCKED**. Body names the specific remaining A1 gap, e.g. *"Finish All In It first — one Mirror left: Values · The Order You Live By."* If more than one A1 mirror is incomplete, name the next incomplete one in A1's order (Purpose → Vision → Identity → Values). CTA button: **live and active**, reads **"Go to All In It →"**, routes the user to the **A1 hub** (the four-card grid) — NOT directly into a mirror's exercises. This matches A1's claim-routing pattern: name the destination, land on the hub.
+- **M2 Time Audit** — **LOCKED**. Body: *"Unlocks after Alignment Check."* (unchanged)
+- **M3 Named Truth** — **LOCKED**. Body: *"Unlocks after Time Audit."* (unchanged)
+
+When A1 IS complete (4 of 4 claimed):
+- **M1 Alignment Check** flips to **UP NEXT** with a live **"Begin Alignment Check →"** button. Normal A2 sequence resumes.
+- M2 and M3 follow their existing unlock-on-prior-claim logic.
+
+The key change: **M1 must never show "UP NEXT" with a dead button.** It is either LOCKED with a live "Go to All In It →" button (A1 incomplete), or UP NEXT with a live "Begin Alignment Check →" button (A1 complete). No third state.
+
+## How to determine "the next incomplete A1 mirror"
+
+Read A1 completion state. Walk A1's mirrors in order (Purpose, Vision, Identity, Values) and name the first one not claimed. Display that name in the M1 locked-card body. On this test profile, Purpose/Vision/Identity are claimed and Values is not — so the body should name **Values**.
+
+## Out of scope
+- A1 in any way (reference only)
+- The A1 hub itself and its routing (already correct — Fix 5 routes TO it, doesn't change it)
+- M2/M3 locked copy (unchanged)
+- The gating logic itself if already correct — only fix the M1 card's badge + body + button state. If the gate is NOT actually locking M1 (i.e. M1 was reachable with A1 incomplete), that is a separate finding — flag it, don't silently change it.
+
+## Verify
+On dev `?newA1=1&newA2=1` with A1 at 3 of 4 (Values unclaimed — current profile state):
+1. Go to A2 hub
+   - ✓ M1 shows **LOCKED**, body names **Values**, button reads **"Go to All In It →"** and is live
+   - ✓ Tapping it lands on the A1 hub with Values showing "Up Next"
+   - ✓ M2 and M3 show LOCKED
+   - ✓ No card shows "UP NEXT" with a dead button
+2. Then claim A1 Values to bring A1 to 4 of 4
+   - ✓ Return to A2 hub — M1 now shows **UP NEXT** with live **"Begin Alignment Check →"**
+3. A1 untouched, both themes correct
+
+— end of Fix 5 —

@@ -34161,6 +34161,9 @@ function NewA2HubView({
   name,
   onEntryHall,
   a1Complete,
+  nextA1MirrorName,
+  a1Remaining,
+  onGoToA1,
   onBeginM1,
   onBeginM2,
   onBeginM3,
@@ -34169,8 +34172,13 @@ function NewA2HubView({
   onEntryHall: () => void;
   // A2.1 · the 01 Alignment Check card is gated on the same a1Complete signal
   // the spine uses. Complete → Begin enabled, routes into the Alignment Check
-  // hub via onBeginM1; incomplete → Begin disabled + inline message.
+  // hub via onBeginM1. Fix 5 · incomplete → the card reads LOCKED, names the
+  // next unclaimed A1 mirror (nextA1MirrorName / a1Remaining), and offers a
+  // live "Go to All In It →" button that routes to the A1 hub via onGoToA1.
   a1Complete: boolean;
+  nextA1MirrorName: string | null;
+  a1Remaining: number;
+  onGoToA1: () => void;
   onBeginM1: () => void;
   // A2 Ship 1 · Time Audit (M2) and Named Truth (M3) launches. M2 routes into
   // the Time Audit room; M3 routes into the Named Truth placeholder shell.
@@ -34224,44 +34232,60 @@ function NewA2HubView({
           </div>
         </div>
         <div className="na1-mirror-grid">
-          {/* 01 · Alignment Check. A2.1 · Begin is enabled only when A1 is
-              complete (it routes into the Alignment Check hub); when A1 is
-              incomplete, Begin is disabled with an inline gate message. A2.5 ·
-              once m1.claimed, the card flips to the sealed treatment (reusing
-              A1's is-complete gold styling) — status "✓ Sealed" and the action
-              reads "Sealed · tap to revisit", matching A1's sealed-mirror
-              wording. Same route/click; counter still "1 of 4". */}
+          {/* 01 · Alignment Check. Two live states, never a dead button (Fix
+              5): A1 complete → status "Up next", live "Begin Alignment Check →"
+              routing into the Alignment Check hub (onBeginM1). A1 incomplete →
+              status "Locked", body names the next unclaimed A1 mirror, and a
+              live "Go to All In It →" button routes to the A1 hub (onGoToA1).
+              A2.5 · once m1.claimed (only reachable when A1 is complete), the
+              card flips to the sealed treatment (reusing A1's is-complete gold
+              styling) — status "✓ Sealed" and the action reads "Sealed · tap to
+              revisit", matching A1's sealed-mirror wording. */}
           <article
-            className={`na1-mirror-card ${m1Claimed ? "is-complete" : "is-current"}`}
+            className={`na1-mirror-card ${
+              m1Claimed ? "is-complete" : a1Complete ? "is-current" : ""
+            }`}
           >
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">01</span>
               <span className="na1-mirror-card-status">
-                {m1Claimed ? "✓ Sealed" : "Up next"}
+                {m1Claimed ? "✓ Sealed" : a1Complete ? "Up next" : "Locked"}
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 1</div>
             <h2 className="na1-mirror-card-name">Alignment Check</h2>
             <div className="na1-mirror-card-empty">
-              {m1Claimed ? "Sealed." : "Not yet explored."}
+              {m1Claimed ? "Sealed." : a1Complete ? "Not yet explored." : "Locked."}
             </div>
             {a1Complete ? null : (
               <p className="na1-mirror-card-sub">
-                Complete A1 to begin — Alignment Check reads your Purpose,
-                gifts, and values.
+                Finish All In It first —{" "}
+                {a1Remaining === 1
+                  ? "one Mirror"
+                  : `${a1Remaining} Mirrors`}{" "}
+                left: {nextA1MirrorName}.
               </p>
             )}
             <div className="na1-mirror-card-action">
-              <button
-                type="button"
-                className="na1-btn-gold na1-btn-block"
-                disabled={!a1Complete}
-                onClick={a1Complete ? onBeginM1 : undefined}
-              >
-                {m1Claimed
-                  ? "Sealed · tap to revisit →"
-                  : "Begin Alignment Check →"}
-              </button>
+              {a1Complete ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginM1}
+                >
+                  {m1Claimed
+                    ? "Sealed · tap to revisit →"
+                    : "Begin Alignment Check →"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onGoToA1}
+                >
+                  Go to All In It →
+                </button>
+              )}
             </div>
           </article>
           {/* 02 · Mirror 2 · Time Audit. A2 Ship 1 · locked until Mirror 1 is
@@ -39018,6 +39042,20 @@ function NewA1View({ name }: { name?: string }) {
   const visionComplete = m2Progress.complete;
   const a1Complete =
     purposeComplete && visionComplete && m3Complete && m4Complete;
+  // Fix 5 · A2 M1 locked-state copy. When A1 is incomplete the A2 hub's 01
+  // (Alignment Check) card must name the first unclaimed A1 mirror — walked in
+  // A1's order (Purpose → Vision → Identity → Values) — and offer a live route
+  // back to the A1 hub instead of a dead/greyed "Begin" button. Names mirror
+  // the A1 grid card titles so the copy matches the destination.
+  const a1MirrorOrder: Array<[boolean, string]> = [
+    [Boolean(purposeComplete), "Purpose"],
+    [Boolean(visionComplete), "Vision"],
+    [Boolean(m3Complete), "Identity · Superpowers"],
+    [Boolean(m4Complete), "Values · The Order You Live By"],
+  ];
+  const a1Remaining = a1MirrorOrder.filter(([done]) => !done).length;
+  const nextA1MirrorName =
+    a1MirrorOrder.find(([done]) => !done)?.[1] ?? null;
   // A2.1 · Defense in depth for the "no other entry into a2m1" rule. The
   // Alignment Check hub is only meant to be reachable via the A2 hub's 01
   // card, which is gated on a1Complete. A persisted view:"a2m1" can otherwise
@@ -39327,6 +39365,9 @@ function NewA1View({ name }: { name?: string }) {
           name={resolvedName}
           onEntryHall={() => setView("entry-hall")}
           a1Complete={a1Complete}
+          nextA1MirrorName={nextA1MirrorName}
+          a1Remaining={a1Remaining}
+          onGoToA1={() => setView("grid")}
           onBeginM1={() => setView("a2m1")}
           onBeginM2={() => setView("a2m2")}
           onBeginM3={() => setView("a2m3")}

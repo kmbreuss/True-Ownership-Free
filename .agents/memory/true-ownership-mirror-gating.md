@@ -60,3 +60,20 @@ reset would restore straight back into the hub on reload. Don't try to replicate
 state predicates synchronously in the initializer; guard at runtime instead.
 **How to apply:** the gate's redirect target is the parent hub (`"a2"`) so the
 user lands on the card that explains why it's locked, not a bare grid.
+
+## Locked-but-actionable cards must NOT use the `is-locked` class
+
+A card that is locked yet still offers a live CTA (e.g. the A2 hub's M1
+Alignment Check card when A1 is incomplete — it shows a "Locked" badge but a
+live "Go to All In It →" button that routes to the A1 hub) must use the
+*neutral base* `na1-mirror-card` class, NOT `is-locked`.
+
+**Why:** the CSS rule `.na1-mirror-card.is-locked .na1-mirror-card-action {
+opacity:0.6 }` dims the action button, so an `is-locked` card with a live button
+renders a half-faded CTA that reads as dead. Reserve `is-locked` (dashed border,
+0.65 opacity, dimmed action) for genuinely dead/disabled cards (A2 M2/M3 before
+their prereq is claimed). A "Locked" badge + neutral card + full-opacity gold
+button is the pattern for locked cards that still route somewhere.
+**How to apply:** the never-a-dead-button rule — a card is either Up next + live
+"Begin …" (prereq met) or Locked + live "Go to … →" (prereq unmet); never
+Up-next-with-a-disabled-button.
