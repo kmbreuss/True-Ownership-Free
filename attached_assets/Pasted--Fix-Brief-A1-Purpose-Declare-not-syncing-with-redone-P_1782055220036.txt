@@ -1,0 +1,63 @@
+# Fix Brief — A1 Purpose: Declare not syncing with redone Peel
+## For Replit Agent
+
+This is A1 (All In It), Mirror 1 (Purpose). NOTE: this is an exception to the "never touch A1" rule that applied to tasks #36/#37 — this is a deliberate, scoped A1 data-flow fix. Confirm before starting that you understand this touches A1 Purpose only.
+
+## What & Why
+
+In A1 Purpose, the exercise sequence is: Owned Symptoms → True Ownership → The Peel → Declare. The Peel asks the user to "peel" through layers to a bottom/deepest answer. Declare is where the user states their Purpose in one phrase, seeded from the Peel's bottom layer, then refines it.
+
+**Bug:** When a user redoes The Peel and reaches a NEW bottom layer, the Declare screen does NOT pick up the new bottom when arriving via the normal forward path ("Ready to Declare →"). It keeps showing the OLD declaration from a previous session. The re-seed only happens via the "Try the peel again" path on the Declare screen — not the forward path.
+
+**Confirmed in live data:**
+- `purpose_layers` = ["Writing","Freedom","Peace","lsjdlg","sdfgs","sdgf"] — current Peel, bottom = "sdgf"
+- `purpose_final` = "I am lighthouse" — stale declaration from a prior session (claimedAt 2026-05-24)
+- The two no longer match — the declaration is orphaned from the current Peel.
+
+## Root cause (confirmed by behaviour)
+
+`purpose_final` is effectively write-once. The forward "Ready to Declare →" handoff only seeds `purpose_final` from the Peel bottom when `purpose_final` is empty. If a declaration already exists from a previous session, the forward path skips the seed and Declare shows the stale value. The "Try the peel again" path explicitly re-seeds, which is why only that path works.
+
+## Intended behaviour (decided)
+
+Option B — **seed the new Peel bottom as the starting text in Declare, but let the user keep refining.** This matches the Declare screen's own copy ("Refine it any time") and treats Declare as a refinement of the Peel bottom, not a verbatim lock.
+
+Specifically:
+- When the user reaches Declare via "Ready to Declare →" AND the Peel bottom layer has CHANGED since the last time the declaration was seeded, Declare must seed its field from the new Peel bottom (so the user sees their new bottom as the starting point, ready to refine).
+- If the Peel bottom is unchanged since the declaration was last set, preserve the user's refined declaration (do not overwrite their wording with the raw bottom).
+- The existing "Try the peel again" re-seed path stays as-is (it already works).
+
+## How to detect "the Peel bottom changed"
+
+Compare the current Peel bottom layer (`purpose_layers[last]`) against the value the declaration was seeded from. Store the seeded-from value (e.g. a `purpose_seededFrom` field, or compare against a stored snapshot of the bottom at declare-time). If current bottom !== seededFrom, re-seed and update seededFrom. Do NOT restructure `to_map`'s schema beyond adding this one tracking field if needed.
+
+Avoid the naive `if (!purpose_final) seed()` condition — that is the current bug. The condition must be `if (currentBottom !== seededFrom) seed()`.
+
+## Edge cases to honour
+- First-ever pass (no prior declaration): seed from bottom as today. Unchanged.
+- User refined declaration, did NOT redo Peel, returns to Declare: keep their refined wording. Do not overwrite.
+- User redid Peel to a new bottom, comes forward: seed the new bottom, let them refine.
+- "Try the peel again" then forward: already works — verify it still does after the change.
+
+## Out of scope
+- The Peel exercise's own layer logic — unchanged
+- The Declare claim/seal — unchanged
+- Any other A1 mirror (Vision, Identity, Values)
+- A2 in any way
+- `to_map` schema beyond one optional tracking field
+
+## Verify
+On dev `?newA1=1&newA2=1`, A1 Purpose:
+1. With an existing declaration ("I am lighthouse") and a Peel whose bottom differs ("sdgf"): go into The Peel, confirm bottom is "sdgf", hit "Ready to Declare →"
+   - ✓ Declare now shows "sdgf" as the seeded starting text (not the stale "I am lighthouse")
+   - ✓ User can edit/refine it
+2. Refine the declaration to something custom, save, leave, return to Declare WITHOUT touching the Peel
+   - ✓ The refined custom text is preserved (not overwritten by the raw bottom)
+3. "Try the peel again" path still re-seeds correctly
+4. First-ever declaration (clear purpose_final) still seeds from bottom on forward path
+5. Both themes; no regression to the Peel or Declare claim
+
+## Working rules
+- Plan first, wait for approval, then build
+- Verify on spock.replit.dev, never the IDE webview
+- Tokens only; both themes

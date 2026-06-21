@@ -25898,6 +25898,7 @@ const EMPTY_MAP = {
   purpose_layers: [""],
   purpose_draft: "",
   purpose_final: "",
+  purpose_seededFrom: "",
   bag_year: "",
   life_areas: [],
   bag_retirement: "",
@@ -30498,6 +30499,12 @@ function NewA1DeclareBody({
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const peelLayers = normalizePeelLayers(initialMap.purpose_layers);
   const existingFinal = String(initialMap.purpose_final || "").trim();
+  // Fix · Declare re-seed: the Peel bottom this declaration was last
+  // established from. Empty for legacy/first-time records. Compared against the
+  // current bottom below to decide whether to re-seed (path-independent — does
+  // NOT rely on the volatile fromPeel one-shot, which is why the forward
+  // "Ready to Declare →" path used to show a stale declaration).
+  const seededFrom = String(initialMap.purpose_seededFrom || "").trim();
   // Ship 5.5g · Purpose personalization · resolve the user's display name
   // (intake → auth fallback) once at body mount. Used both for the vocative
   // prompt prefix (5.5g-A1) and the ceremony "this is your why." claim line
@@ -30521,21 +30528,21 @@ function NewA1DeclareBody({
     }
     return "";
   })();
-  // Pre-fill logic:
-  // - fromPeel (any wasDone): user just clicked ★ Ready to Declare → in Peel.
-  //   Pre-fill with the new peel bottom, but baseline initialValueRef to
-  //   existingFinal so `dirty` evaluates true automatically and the button
-  //   flips to "★ Declare Purpose again" (or stays "✓ Declare" first-time).
-  //   Fall back to existingFinal if every peel layer is empty.
-  // - wasDone (no fromPeel): restore the claimed purpose_final. Seal stays;
-  //   refinement is opt-in via edit + re-claim.
-  // - First-time (!wasDone, no fromPeel): legacy path — pre-fill from peel
-  //   bottom if no draft exists.
-  const initialValue = fromPeel
-    ? lastPeelLayer || existingFinal
-    : wasDone
-      ? existingFinal
-      : existingFinal || lastPeelLayer;
+  // Re-seed decision (Option B) — path-independent, replaces the old fromPeel
+  // branch. The declaration tracks the current Peel bottom:
+  // - bottomChanged (current bottom differs from the recorded seededFrom,
+  //   including legacy records that never stored one): seed the field with the
+  //   new bottom so the user sees their new bottom as the starting point, ready
+  //   to refine. This is what fixes the forward "Ready to Declare →" path.
+  // - bottom unchanged: preserve the user's refined declaration (existingFinal),
+  //   falling back to the bottom only when there is no declaration yet.
+  // The silent-overwrite guard (userEditedSinceMount, below) ensures a seeded
+  // value is never persisted unless the user actually edits or claims, so an
+  // orphaned legacy declaration is healed visually without destroying data.
+  const bottomChanged = !!lastPeelLayer && lastPeelLayer !== seededFrom;
+  const initialValue = bottomChanged
+    ? lastPeelLayer
+    : existingFinal || lastPeelLayer;
   const [value, setValue] = useState<string>(initialValue);
   const [working, setWorking] = useState(false);
   // Mode: "readback" (claim or edit) → "claiming" (gold burst) → "ceremony" (seal).
@@ -30543,31 +30550,37 @@ function NewA1DeclareBody({
     "readback",
   );
   const [showBurst, setShowBurst] = useState(false);
-  // fromPeel baseline: keep initialValueRef at existingFinal so the auto-
-  // populated peel bottom registers as dirty. Without this, the user lands
-  // on Declare and the button reads "Save changes" — the peel layer would
+  // Re-seed baseline: when bottomChanged, keep initialValueRef at existingFinal
+  // so the auto-populated peel bottom registers as dirty. Without this, the user
+  // lands on Declare and the button reads "Save changes" — the peel layer would
   // silently overwrite purpose_final via debounced auto-save with no seal.
   const initialValueRef = useRef<string>(
-    fromPeel ? existingFinal : initialValue,
+    bottomChanged ? existingFinal : initialValue,
   );
-  // Q1 mitigation (silent-overwrite guard): in fromPeel mode, the field is
+  // Q1 mitigation (silent-overwrite guard): when bottomChanged, the field is
   // pre-filled with a value the user did NOT type. If they close (× / Esc)
   // without manually editing AND without claiming, purpose_final must stay
   // untouched. Track first manual keystroke; auto-save is gated until then.
-  // Outside fromPeel, the value either is existingFinal (no-op) or came from
-  // user intent (typed peel bottom on first entry), so always allow save.
-  const userEditedSinceMount = useRef<boolean>(!fromPeel);
+  // When the bottom is unchanged, the value is existingFinal (no-op, the
+  // debounced effect early-returns), so it is safe to allow save.
+  const userEditedSinceMount = useRef<boolean>(!bottomChanged);
   const editMode = wasDone;
   const dirty = value.trim() !== initialValueRef.current.trim();
-  // Debounced auto-save of purpose_final. Keeps mid-edit drafts safe if the
-  // user navigates away before claiming. Gated by userEditedSinceMount in
-  // fromPeel mode — see Q1 mitigation above.
+  // Debounced auto-save of purpose_final (+ purpose_seededFrom in lockstep).
+  // Keeps mid-edit drafts safe if the user navigates away before claiming.
+  // Gated by userEditedSinceMount when bottomChanged — see Q1 mitigation above.
   useEffect(() => {
     if (value === initialValueRef.current) return;
     if (!userEditedSinceMount.current) return;
     const t = window.setTimeout(async () => {
       const cur = (await loadData(KEYS.map)) as any;
-      const merged = { ...(cur || initialMap), purpose_final: value };
+      const merged = {
+        ...(cur || initialMap),
+        purpose_final: value,
+        // Record the bottom this refinement is based on so a later return
+        // without redoing the Peel preserves the user's wording.
+        purpose_seededFrom: lastPeelLayer,
+      };
       await saveData(KEYS.map, merged);
     }, 500);
     return () => window.clearTimeout(t);
@@ -30594,7 +30607,13 @@ function NewA1DeclareBody({
     if (card) card.scrollTo({ top: 0, behavior: "smooth" });
     // Persist immediately so a crash/reload still keeps the claim.
     const cur = (await loadData(KEYS.map)) as any;
-    const merged = { ...(cur || initialMap), purpose_final: v };
+    const merged = {
+      ...(cur || initialMap),
+      purpose_final: v,
+      // Lockstep: record the Peel bottom this claim is based on so returning
+      // to Declare without redoing the Peel preserves the claimed wording.
+      purpose_seededFrom: lastPeelLayer,
+    };
     await saveData(KEYS.map, merged);
     await saveData("a1_ex4_done", true);
     // Reset the dirty baseline so a follow-up edit in the same session
