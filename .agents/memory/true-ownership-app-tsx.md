@@ -210,19 +210,36 @@ clean read/edit overview: it must NOT apply the struck-through `is-used` class
 An accepted flip does NOT live only in `state.flips` — it spawns a real behavior
 in `state.admire` with a *deterministic* id `af-<irkId>` (so re-accepting is
 idempotent), `tier:"warms"`, `source:"flipped"`. That lets the flipped standard
-flow into Name-the-standards grouping and Behaviors/operationalize through the
-existing machinery with zero new plumbing.
+flow into Name-the-standards grouping through the existing machinery with zero new
+plumbing.
 **Two invariants this creates — break either and you get leaks/double-counts:**
 - `rebuildPortrait` MUST `continue` on `source:"flipped"` behaviors, or they leak
   into the Admire/Irks Portrait quadrants (they belong only in the grouping pool).
 - Editing an accepted flip's text must keep `flips[].toText` and the spawned
   behavior's `text` in lockstep; blank text on an accepted flip is a **no-op**
   (the behavior must stay non-empty) — never persist a blank `toText` for an
-  accepted flip or the Flip UI and Name/Behaviors data desync. Skip releases the
+  accepted flip or the Flip UI and Name-the-standards data desync. Skip releases the
   behavior from any cluster (`removeBehaviorFromCluster`) THEN deletes the af- row.
 **Completion (`m4FlipsDone`)** is graceful: flippable = Bothers/Turns-tier irks
 only; done when every flippable irk is accepted-or-skipped, OR there are none.
 `loadMirror4State` coerces persisted `flips[].accepted` to strict boolean|null so
 a stray value can't read as "worked through". **Why:** reusing the behavior pool
-(vs a parallel flip model) was the whole point — one grouping/operationalize path,
+(vs a parallel flip model) was the whole point — one grouping path,
 no double-count (user clusters keep empty `cluster.flips`).
+
+## Mirror 4 is a 7-rung ladder — the "Behaviors"/operationalize rung was removed
+
+A1 Values ladder is Admire → Irks → Portrait → Flip the Irks → Name the Standards
+→ Rank → Claim. There is NO separate Behaviors/operationalize rung — behavior
+authoring was folded into Name the Standards (add/inline-edit/remove evidence on
+each standard card). A standard is "complete" via `m4IsClusterComplete` (name +
+≥1 behavior); Rank/Claim eligibility and the rank-unlock gate key off that, NOT
+the retired `userName`/`userDefinition` fields.
+**Why:** the operationalize rung was redundant once authoring lived on the
+standard card; removing it simplified the flow. Removal was done migration-safely:
+the rung was dropped from `M4_ROOMS` (making it unreachable) but the `M4RoomKey`
+`"operationalize"` value, its `m4RoomDone` case, and the container-switch branch
+were left vestigial so old persisted `initialRoomKey="operationalize"` can't crash.
+**How to apply:** don't "finish the cleanup" by ripping out the vestigial
+operationalize key/type/case unless you also handle migration of old saved state;
+and never reintroduce `userDefinition`-based gating for Rank/Claim.

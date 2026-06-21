@@ -280,32 +280,27 @@ export const M4_ROOMS: ReadonlyArray<{
     // Portrait), so a user with no irks is never gated by it.
     n: 4,
     key: "flip",
-    name: "Flip the irks",
+    name: "Flip the Irks",
     tone: "silver",
     threshold: "Flipping what irks you…",
     bodyShipped: true,
   },
   {
+    // Name the Standards is the single place the whole value is built:
+    // the standard name + its evidence behaviors (assign from pool or
+    // author fresh). The former "Behaviors" (operationalize) rung was
+    // removed — its evidence lives inside each standard here. The
+    // operationalize state/type is kept vestigial (migration-safe) but
+    // is no longer a rung and no longer gates the chain.
     n: 5,
     key: "name",
-    name: "Name the standards",
+    name: "Name the Standards",
     tone: "yellow",
     threshold: "Naming your standards…",
     bodyShipped: true,
   },
   {
-    // User-facing label is "Behaviors". Internal key stays
-    // "operationalize" so state.mirror4.operationalize remains stable
-    // (schema in production, no migration).
     n: 6,
-    key: "operationalize",
-    name: "Behaviors",
-    tone: "green",
-    threshold: "Naming the behaviors…",
-    bodyShipped: true,
-  },
-  {
-    n: 7,
     key: "rank",
     name: "Rank",
     tone: "green",
@@ -313,7 +308,7 @@ export const M4_ROOMS: ReadonlyArray<{
     bodyShipped: true,
   },
   {
-    n: 8,
+    n: 7,
     key: "claim",
     name: "Claim",
     tone: "gold",
@@ -1104,6 +1099,31 @@ export function removeBehaviorFromCluster(
       b.id === behaviorId ? { ...b, inUseByCluster: null } : b,
     );
   return { ...stripped, admire: clear(stripped.admire), irks: clear(stripped.irks) };
+}
+
+// Author a fresh evidence behavior straight onto a standard. Used by the
+// "+ add behavior" affordance in Name the Standards so the whole value
+// (name + evidence) is built in one place — no trip back to Admire/Irks.
+// The new behavior is a real admire-pool record (tier "lights") that is
+// immediately assigned to the cluster. Removing it back to the pool makes
+// it a normal admired behavior again, consistent with the rest of Values.
+export function addEvidenceBehaviorToCluster(
+  state: Mirror4State,
+  clusterId: string,
+  text: string,
+): Mirror4State {
+  const t = text.trim();
+  if (!t) return state;
+  const id = nextBehaviorId(state, "admire");
+  const b: M4Behavior = {
+    id,
+    text: t,
+    tier: "lights",
+    inUseByCluster: null,
+  };
+  let next: Mirror4State = { ...state, admire: [...state.admire, b] };
+  next.portrait = rebuildPortrait(next);
+  return addBehaviorToCluster(next, clusterId, id);
 }
 
 // Spelled-out count words for Step 8 title grammar.

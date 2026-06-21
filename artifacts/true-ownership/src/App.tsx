@@ -103,6 +103,7 @@ import {
   updateCluster as m4UpdateCluster,
   clearAllClusters as m4ClearAllClusters,
   addBehaviorToCluster as m4AddBehaviorToCluster,
+  addEvidenceBehaviorToCluster as m4AddEvidenceBehaviorToCluster,
   removeBehaviorFromCluster as m4RemoveBehaviorFromCluster,
   ruleBasedClusters as m4RuleBasedClusters,
   behaviorChipLabel as m4BehaviorChipLabel,
@@ -2301,6 +2302,15 @@ html[data-theme="light"]{
 .na1-m4-ns-ev{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:5px 9px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); }
 .na1-m4-ns-ev-x{ background:transparent; border:none; color:var(--na1-text-mute); font-size:14px; line-height:1; cursor:pointer; padding:0; }
 .na1-m4-ns-ev-x:hover{ color:var(--na1-text); }
+.na1-m4-ns-ev-text{ cursor:text; border-bottom:1px dashed transparent; }
+.na1-m4-ns-ev-text:hover{ border-bottom-color:var(--na1-border); }
+.na1-m4-ns-addbeh{ display:flex; align-items:center; gap:7px; margin-top:8px; }
+.na1-m4-ns-addbeh-input{ flex:1; min-width:0; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:7px 10px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text); }
+.na1-m4-ns-addbeh-input:focus{ outline:none; border-color:var(--gold); }
+.na1-m4-ns-addbeh-btn{ background:transparent; border:1px solid var(--na1-border); border-radius:8px; padding:7px 13px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-sec); cursor:pointer; transition:border-color .15s,color .15s; }
+.na1-m4-ns-addbeh-btn:hover:not(:disabled){ border-color:var(--gold); color:var(--gold); }
+.na1-m4-ns-addbeh-btn:disabled{ opacity:.45; cursor:not-allowed; }
+.na1-m4-ns-hint{ font-family:var(--na1-sans); font-size:11.5px; color:var(--na1-text-mute); font-style:italic; margin-top:7px; }
 .na1-m4-ns-add{ align-self:flex-start; background:transparent; border:1px dashed var(--na1-border); border-radius:100px; padding:9px 16px; font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-sec); cursor:pointer; transition:border-color .15s,color .15s; }
 .na1-m4-ns-add:hover{ border-color:var(--gold); color:var(--gold); }
 .na1-m4-continue:hover:not(:disabled){ filter:brightness(1.08); }
@@ -40723,12 +40733,10 @@ function NewA1M4HubView({
   // Phase 2 · 8-rung ladder. Unlock chains through m4RoomDone of the
   // prior REAL rung; Flip is the reserved "coming soon" rung — it never
   // unlocks and is non-blocking (Name unlocks off Portrait, skipping it).
-  // The back half keeps its original gates: Behaviors on a complete
-  // cluster, Rank on any saved behavior, Claim on the pressure test.
+  // The back half keeps its gates: Rank on a complete (named + evidenced)
+  // standard — the "Behaviors" rung was removed and Name the Standards now
+  // unlocks Rank directly — and Claim on the pressure test.
   const hasCompleteCluster = m4State.clusters.some(m4IsClusterComplete);
-  const hasAnyBehavior = m4State.clusters.some(
-    (c) => (m4State.operationalize[c.id]?.behaviors?.length ?? 0) > 0,
-  );
   const isPressureTestDone = m4State.pressureTest.complete === true;
   const isClaimed = m4State.claimed === true;
   const isRoomUnlocked = (room: (typeof M4_ROOMS)[number]): boolean => {
@@ -40744,9 +40752,11 @@ function NewA1M4HubView({
       case "name":
         return m4RoomDone(m4State, "portrait");
       case "operationalize":
+        // Vestigial — the Behaviors rung was removed from M4_ROOMS so this
+        // never renders, but the key remains on M4RoomKey (migration-safe).
         return hasCompleteCluster;
       case "rank":
-        return hasAnyBehavior;
+        return hasCompleteCluster;
       case "claim":
         return isPressureTestDone;
       default:
@@ -40768,8 +40778,7 @@ function NewA1M4HubView({
     portrait: "Irks",
     flip: "Portrait",
     name: "Portrait",
-    operationalize: "Name the standards",
-    rank: "Behaviors",
+    rank: "Name the Standards",
     claim: "Rank",
   };
   return (
@@ -41062,10 +41071,10 @@ function NewA1M4SectionBody({
       : sectionKey === "irks"
         ? "Continue to Portrait →"
         : sectionKey === "portrait"
-          ? "Continue to Flip the irks →"
+          ? "Continue to Flip the Irks →"
           : sectionKey === "flip"
-            ? "Continue to Name the standards →"
-            : "Continue to Behaviors →";
+            ? "Continue to Name the Standards →"
+            : "Continue to Rank →";
 
   return (
     <div className="na1-m4-disc">
@@ -41124,7 +41133,7 @@ function NewA1M4FlipBody({
   if (irks.length === 0) {
     return (
       <>
-        <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the irks</div>
+        <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the Irks</div>
         <h2 className="na1-m4-step-title">Flip what irks you</h2>
         <p className="na1-m4-step-sub">
           An irk is a boundary in disguise — what bothers you points at a
@@ -41138,7 +41147,7 @@ function NewA1M4FlipBody({
 
   return (
     <>
-      <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the irks</div>
+      <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the Irks</div>
       <h2 className="na1-m4-step-title">Turn each irk into a standard</h2>
       <p className="na1-m4-step-sub">
         An irk is a boundary in disguise — what bothers you points at a
@@ -41315,7 +41324,7 @@ function NewA1M4NameStandardsBody({
 
   return (
     <>
-      <div className="na1-m4-step-eyebrow">Mirror 4 · Name the standards</div>
+      <div className="na1-m4-step-eyebrow">Mirror 4 · Name the Standards</div>
       <h2 className="na1-m4-step-title">Name the standards underneath</h2>
       <p className="na1-m4-step-sub">
         Each behavior you admire points to a standard you hold. Group the ones
@@ -41420,27 +41429,29 @@ function NewA1M4NameStandardsBody({
                 placeholder={`Name standard ${i + 1}…`}
                 onChange={(e) => renameStandard(c.id, e.target.value)}
               />
-              {c.behaviorIds.length === 0 ? (
-                <div className="na1-m4-ns-card-empty">
-                  Add behaviors from the pool above.
-                </div>
-              ) : (
+              {c.behaviorIds.length > 0 && (
                 <div className="na1-m4-ns-evidence">
                   {c.behaviorIds.map((bid) => (
-                    <span key={bid} className="na1-m4-ns-ev">
-                      {behaviorText(bid)}
-                      <button
-                        type="button"
-                        className="na1-m4-ns-ev-x"
-                        onClick={() => removeFromStandard(bid, c.id)}
-                        aria-label="Remove from standard"
-                      >
-                        ×
-                      </button>
-                    </span>
+                    <M4NsEvidenceChip
+                      key={bid}
+                      text={behaviorText(bid)}
+                      onEdit={(t) =>
+                        mutate((s) => m4EditBehaviorText(s, bid, t))
+                      }
+                      onRemove={() => removeFromStandard(bid, c.id)}
+                    />
                   ))}
                 </div>
               )}
+              <M4NsAddBehavior
+                onAdd={(t) =>
+                  mutate((s) => m4AddEvidenceBehaviorToCluster(s, c.id, t))
+                }
+              />
+              <div className="na1-m4-ns-hint">
+                Name a few behaviors — up to 5 or so — that show you're living
+                this.
+              </div>
             </div>
           );
         })}
@@ -41453,6 +41464,132 @@ function NewA1M4NameStandardsBody({
         </button>
       </div>
     </>
+  );
+}
+
+// An evidence behavior chip on a standard card in Name the Standards.
+// Tap the text to edit inline (Enter/blur saves, Escape cancels, empty
+// reverts); the × removes it from the standard (back to the pool). Mirrors
+// the inline-edit affordance used everywhere else in Values.
+function M4NsEvidenceChip({
+  text,
+  onEdit,
+  onRemove,
+}: {
+  text: string;
+  onEdit: (t: string) => void;
+  onRemove: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(text);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [editing]);
+
+  const startEdit = () => {
+    setDraft(text);
+    setEditing(true);
+  };
+  const commit = () => {
+    const t = draft.trim();
+    if (t && t !== text) onEdit(t);
+    setEditing(false);
+  };
+  const cancel = () => {
+    setDraft(text);
+    setEditing(false);
+  };
+
+  return (
+    <span className="na1-m4-ns-ev">
+      {editing ? (
+        <input
+          ref={inputRef}
+          type="text"
+          className="na1-m4-quad-inline-input"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commit();
+            } else if (e.key === "Escape") {
+              e.preventDefault();
+              cancel();
+            }
+          }}
+        />
+      ) : (
+        <span
+          className="na1-m4-ns-ev-text"
+          role="button"
+          tabIndex={0}
+          title="Tap to edit"
+          onClick={startEdit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              startEdit();
+            }
+          }}
+        >
+          {text}
+        </span>
+      )}
+      <button
+        type="button"
+        className="na1-m4-ns-ev-x"
+        onClick={onRemove}
+        aria-label="Remove from standard"
+      >
+        ×
+      </button>
+    </span>
+  );
+}
+
+// "+ add behavior" affordance on a standard card. Type a fresh evidence
+// behavior straight onto the standard (no trip back to Admire/Irks).
+// Enter or the add button commits; empty input is a no-op. No hard cap —
+// the soft "up to 5 or so" guidance lives on the card.
+function M4NsAddBehavior({ onAdd }: { onAdd: (t: string) => void }) {
+  const [draft, setDraft] = useState("");
+  const commit = () => {
+    const t = draft.trim();
+    if (!t) return;
+    onAdd(t);
+    setDraft("");
+  };
+  return (
+    <div className="na1-m4-ns-addbeh">
+      <input
+        type="text"
+        className="na1-m4-ns-addbeh-input"
+        value={draft}
+        placeholder="+ add a behavior…"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commit();
+          }
+        }}
+      />
+      <button
+        type="button"
+        className="na1-m4-ns-addbeh-btn"
+        onClick={commit}
+        disabled={draft.trim() === ""}
+      >
+        Add
+      </button>
+    </div>
   );
 }
 
@@ -42584,10 +42721,10 @@ function NewA1M4ClaimBody({
 
   // Resolve ranked named values. If rank is empty (defensive — Claim
   // is gated on pressure-test completion which requires rank), fall
-  // back to cluster creation order over named clusters.
-  const namedClusters = state.clusters.filter(
-    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
-  );
+  // back to cluster creation order over named clusters. A standard
+  // counts when it is complete (named + ≥1 behavior) — userDefinition
+  // was retired in Phase 2 and the authoring UI never sets it.
+  const namedClusters = state.clusters.filter(m4IsClusterComplete);
   const rankIds = state.rank.length > 0
     ? state.rank.filter((id) => namedClusters.some((c) => c.id === id))
     : namedClusters.map((c) => c.id);
@@ -42900,11 +43037,10 @@ function NewA1M4RankBody({
   // Named clusters = "values" — the rank room only operates over
   // these. Use insertion order in state.clusters as the canonical
   // creation order (matches the cl-1, cl-2... ID sequence + locked
-  // color index). Filter on both userName and userDefinition so
-  // half-finished Step-7 entries don't accidentally rank.
-  const namedClusters = state.clusters.filter(
-    (c) => c.userName.trim() !== "" && c.userDefinition.trim() !== "",
-  );
+  // color index). A standard ranks once it is complete (named + ≥1
+  // behavior); userDefinition was retired in Phase 2 so it is no
+  // longer part of the gate.
+  const namedClusters = state.clusters.filter(m4IsClusterComplete);
   const namedIds = namedClusters.map((c) => c.id);
 
   // Effective rank: persisted order filtered to existing named
