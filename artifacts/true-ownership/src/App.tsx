@@ -29593,11 +29593,7 @@ function NewA1OwnedSymptomsBody({
               disabled={!step2Valid || saving}
               onClick={saveAndClose}
             >
-              {saving
-                ? "Saving…"
-                : wasDone
-                  ? "✓ Save changes"
-                  : "✓ Save & continue"}
+              {saving ? "Saving…" : "Done → Back to Purpose"}
             </button>
           </div>
         </>
@@ -30033,11 +30029,7 @@ function NewA1TOActions({
           disabled={!allValid || saving}
           onClick={onSave}
         >
-          {saving
-            ? "Saving…"
-            : wasDone
-              ? "✓ Save changes"
-              : "✓ Save & continue"}
+          {saving ? "Saving…" : "Done → Back to Purpose"}
         </button>
       ) : (
         <button
@@ -30403,7 +30395,7 @@ function NewA1PeelBody({
               disabled={saving}
               onClick={readyToDeclare}
             >
-              {saving ? "Saving…" : "★ Ready to Declare →"}
+              {saving ? "Saving…" : "Done → Back to Purpose"}
             </button>
           ) : canDeclare ? (
             <button
@@ -30412,7 +30404,7 @@ function NewA1PeelBody({
               disabled={saving}
               onClick={declareBottom}
             >
-              {saving ? "Saving…" : "✓ This is my bottom — declare"}
+              {saving ? "Saving…" : "Done → Back to Purpose"}
             </button>
           ) : null}
           {!wasDone && !draftValid && (
@@ -31183,7 +31175,7 @@ function NewA2TwoFuturesBody({
     if (screen === 1 || screen === 5) return "Continue to Wealth →";
     if (screen === 2 || screen === 6) return "Continue to Self →";
     if (screen === 3 || screen === 7) return "Continue →";
-    if (screen === 8) return "Continue to Time →";
+    if (screen === 8) return "Done → Back to Vision";
     return "Continue →";
   })();
   const goNext = async () => {
@@ -32025,7 +32017,7 @@ function NewA2TimeBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Continue to Wealth →
+              Done → Back to Vision
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -32431,7 +32423,7 @@ function NewA2WealthBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Continue to Self →
+              Done → Back to Vision
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -32836,7 +32828,7 @@ function NewA2SelfBody({
               disabled={!allFilled || advancing}
               onClick={tryContinue}
             >
-              Continue to Vision Declaration →
+              Done → Back to Vision
             </button>
             <div
               className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
@@ -39119,20 +39111,7 @@ function NewA1View({ name }: { name?: string }) {
               <NewA1PeelBody
                 onSaved={closeRoom}
                 onClose={closeRoom}
-                onReadyToDeclare={() => {
-                  const declareEx = NA1_EXERCISES.find(
-                    (e) => e.key === "declare",
-                  );
-                  if (!declareEx) {
-                    closeRoom();
-                    return;
-                  }
-                  setRoomOpen(false);
-                  window.setTimeout(() => {
-                    pendingFromPeelRef.current = true;
-                    launchRoom(declareEx);
-                  }, 240);
-                }}
+                onReadyToDeclare={closeRoom}
               />
             ) : openEx.key === "declare" ? (
               <NewA1DeclareBody
@@ -40455,35 +40434,19 @@ function NewA1M3Container({
             <NewA1M3ShapeView
               embedded
               onSuperpowers={() => {
-                // Step 2 (Superpowers) is deferred — Animals' Continue
-                // routes straight to Under Pressure. Close the Animals
-                // overlay then launch the next room normally (veil +
-                // body mount).
-                const next = M3_ROOMS.find((r) => r.key === "underPressure");
-                setRoomOpen(false);
-                timeoutsRef.current.push(
-                  window.setTimeout(() => {
-                    setOpenRoom(null);
-                    setRefreshTick((t) => t + 1);
-                    if (next) launchRoom(next);
-                  }, 520),
-                );
+                // Unified nav: finishing the Animals section returns to
+                // the Identity ladder (no auto-advance). closeRoom closes
+                // the overlay and refreshes ladder status.
+                closeRoom();
               }}
             />
           ) : openRoom.key === "underPressure" ? (
             <NewA1M3UnderPressureView
               embedded
               onComplete={() => {
-                // After the last animal, route to Own It (Seal · Ship 5).
-                const next = M3_ROOMS.find((r) => r.key === "ownIt");
-                setRoomOpen(false);
-                timeoutsRef.current.push(
-                  window.setTimeout(() => {
-                    setOpenRoom(null);
-                    setRefreshTick((t) => t + 1);
-                    if (next) launchRoom(next);
-                  }, 520),
-                );
+                // Unified nav: finishing Under Pressure returns to the
+                // Identity ladder (no auto-advance to Own It).
+                closeRoom();
               }}
             />
           ) : openRoom.key === "ownIt" ? (
@@ -41123,7 +41086,7 @@ function NewA1M4DiscoverBody({
     // Ship 5.6e · Continue copy names the destination (Behaviors
      // room is next in M4) rather than the mechanism (overlay close).
      // Matches the pattern of every other M4 Continue.
-     if (step === "finish") return "Continue to Behaviors →";
+     if (step === "finish") return "Done → Back to Values";
     return "—";
   })();
 
@@ -43794,7 +43757,7 @@ function NewA1M4BehaviorsBody({
                 disabled={blocked}
                 aria-disabled={blocked || undefined}
               >
-                Continue to Rank →
+                Done → Back to Values
               </button>
             </div>
             {helper && (
@@ -44449,7 +44412,7 @@ function NewA1M4RankBody({
             onClick={onContinueToClaim}
             disabled={!ptComplete}
           >
-            Continue to Claim →
+            Done → Back to Values
           </button>
           {!ptComplete && (
             <p className="na1-m4-beh-gate-helper" role="status">
@@ -45087,7 +45050,7 @@ function NewA1M4PressureTestModal({
                     className="na1-m4-rank-pt-btn"
                     onClick={handleDoneContinue}
                   >
-                    Continue to Claim →
+                    Done → Back to Values
                   </button>
                 </div>
                 {/* Ship 5.6k · Part A — Walk it again from Done. Same
@@ -45239,47 +45202,27 @@ function NewA1M4Container({
             <NewA1M4DiscoverBody
               onCloseRoom={closeRoom}
               onContinueToBehaviors={() => {
-                // Ship 5.6g · Section 4 hand-off — close Discover,
-                // then launch Behaviors after the overlay fade settles
-                // (520ms matches closeRoom's openRoom-clear timer).
+                // Unified nav: finishing Discover returns to the Values
+                // ladder (no auto-advance to Behaviors).
                 closeRoom();
-                const beh = M4_ROOMS.find((r) => r.key === "operationalize");
-                if (beh) {
-                  timeoutsRef.current.push(
-                    window.setTimeout(() => launchRoom(beh), 540),
-                  );
-                }
               }}
             />
           ) : openRoom.key === "operationalize" ? (
             <NewA1M4BehaviorsBody
               onCloseRoom={closeRoom}
               onContinueToRank={() => {
+                // Unified nav: finishing Behaviors returns to the Values
+                // ladder (no auto-advance to Rank).
                 closeRoom();
-                const rank = M4_ROOMS.find((r) => r.key === "rank");
-                if (rank) {
-                  timeoutsRef.current.push(
-                    window.setTimeout(() => launchRoom(rank), 540),
-                  );
-                }
               }}
             />
           ) : openRoom.key === "rank" ? (
             <NewA1M4RankBody
               onCloseRoom={closeRoom}
               onContinueToClaim={() => {
-                // Ship 5.6i · Section 5 hand-off — close Rank, then
-                // launch Claim after the overlay fade settles (540ms
-                // matches the Behaviors→Rank pattern). Ship 5.6l:
-                // Claim's bodyShipped is now true, so the veil lands
-                // on the Claim seal screen instead of bouncing back.
+                // Unified nav: finishing Rank returns to the Values
+                // ladder (no auto-advance to Claim).
                 closeRoom();
-                const claim = M4_ROOMS.find((r) => r.key === "claim");
-                if (claim) {
-                  timeoutsRef.current.push(
-                    window.setTimeout(() => launchRoom(claim), 540),
-                  );
-                }
               }}
             />
           ) : openRoom.key === "claim" ? (
@@ -46416,9 +46359,9 @@ function NewA1M3ShapeView({
           className="m3-shape-super-btn"
           disabled={!isValid}
           onClick={onSuperpowers}
-          aria-label="Continue to Under Pressure"
+          aria-label="Done, back to Identity"
         >
-          Continue to Under Pressure →
+          Done → Back to Identity
         </button>
       </div>
       {browseCluster && (
@@ -46942,7 +46885,7 @@ function NewA1M3UnderPressureView({
   const isLast = activeIdx === clusters.length - 1;
   const nextName = isLast ? null : clusters[activeIdx + 1].animal || "next";
   const ctaLabel = isLast
-    ? "Continue to Own It →"
+    ? "Done → Back to Identity"
     : `Continue to ${nextName} →`;
 
   const handleCta = () => {
@@ -47533,7 +47476,7 @@ function NewA1M3View({
               onBack();
             }}
           >
-            Continue to Superpowers →
+            Done → Back to Identity
           </button>
         </div>
       </div>

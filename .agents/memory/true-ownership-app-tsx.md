@@ -124,6 +124,32 @@ expected baseline, not a regression. To verify a JSX edit, grep the error list
 for TS17002/structural errors (must be 0) and for your edited line ranges (must
 be 0) rather than expecting a clean run.
 
+## Unified mirror nav model (A1 converted to A2's ladder model)
+
+There is ONE nav model across every discipline/mirror: A → Mirror → Section →
+Exercises. Sections are ladder rungs; exercises within a section auto-flow; only
+section completion closes the room back to the ladder (no auto-jump to the next
+section). The old "A1 is the reference, never touch it" rule is dead — A1 now
+matches A2.
+
+**CTA labelling rule:** a section's LAST-exercise (section-final) CTA reads
+`Done → Back to [Mirror]` (Purpose/Vision/Identity/Values, or the A2 mirror
+name). Within-section step CTAs stay `Continue` / `Continue to <next thing>`.
+The Claim section is the one exception: it advances OUT of the mirror, so it
+keeps a forward `Continue to [Next Mirror] →`. A section-final CTA is the button
+whose handler calls the section-completion callback (onSaved / onReadyToDeclare /
+onContinueTo* / onComplete / onSuperpowers) — all of which now route to
+`closeRoom`. **Why:** uniformity with A2 was the explicit ruling; ceremony
+wording (Peel "This is my bottom — declare", Rank "Order tested" CTA) was
+collapsed into the uniform Done-label deliberately, not by accident.
+
+**How to apply:** to relabel/verify, trace the button → its handler → confirm it
+hits a closeRoom-bound completion callback before calling it section-final. The
+multi-screen Vision bodies (NewA2TwoFuturesBody) compute the label per screen —
+only the final screen (the one whose goNext calls onSaved) is section-final.
+There is a LEGACY (non-`?newA1`) Purpose Peel (~line 26354, inline styles, `--`
+not em-dash) that is OUT of scope for this model — do not convert it.
+
 ## Container hook/derived-state ordering vs the resume-seed `roomOpen`
 
 In the per-Mirror room containers (e.g. `NewA2M1Container`) `roomOpen` is a
