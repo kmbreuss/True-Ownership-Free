@@ -2,4 +2,5 @@
 - [App.tsx giant file](true-ownership-app-tsx.md) — one huge App.tsx; `read` line counts are stale (use wc/sed/rg); filtered typecheck shows ~6000 baseline errors — verify via in-range grep, not a clean run.
 - [A2 return-to-list nav](true-ownership-a2-nav-model.md) — A2 "Done" must advance the step pointer before closing (or fresh-run deadlock); hub status reads monotonic maxReached/data, never currentStep (revisit regresses it).
 - [A2 mirror revisit hubs](true-ownership-app-tsx.md) — claimed mirrors re-enter via a step-card overview hub (NewA2MirrorHubView); gate close-routing on a useRef snapshot of claimed-at-entry, not live state.
+- [Flip-the-irks behaviors](true-ownership-app-tsx.md) — accepted flips spawn real `af-<irkId>` admire behaviors (source:"flipped") reused by grouping; rebuildPortrait must skip them; blank text on accepted flip = no-op.
 - [Purpose Declare re-seed](true-ownership-purpose-declare.md) — seed Declare from the current Peel bottom when it differs from persisted purpose_seededFrom, not the volatile fromPeel one-shot; write seededFrom in lockstep with purpose_final.

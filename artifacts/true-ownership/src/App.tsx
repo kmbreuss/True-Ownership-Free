@@ -107,6 +107,13 @@ import {
   ruleBasedClusters as m4RuleBasedClusters,
   behaviorChipLabel as m4BehaviorChipLabel,
   defaultFlipText as m4DefaultFlipText,
+  // Phase 3 · Flip-the-irks helpers
+  m4FlippableIrks,
+  m4FlipFor,
+  m4AcceptFlip,
+  m4SkipFlip,
+  m4SetFlipText,
+  m4FinalizeFlips,
   clusterColorForIndex as m4ClusterColorForIndex,
   nextBehaviorId as m4NextBehaviorId,
   COUNT_WORD as M4_COUNT_WORD,
@@ -2298,6 +2305,27 @@ html[data-theme="light"]{
 .na1-m4-ns-add:hover{ border-color:var(--gold); color:var(--gold); }
 .na1-m4-continue:hover:not(:disabled){ filter:brightness(1.08); }
 .na1-m4-continue:disabled{ opacity:.4; cursor:not-allowed; background:var(--gold-soft); color:var(--gold); }
+/* Phase 3 · Flip-the-irks rung */
+.na1-m4-flip-list{ display:flex; flex-direction:column; gap:14px; }
+.na1-m4-flip-empty{ font-family:var(--na1-sans); font-size:13px; color:var(--na1-text-mute); font-style:italic; padding:10px 0; }
+.na1-m4-flip-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-left:3px solid var(--burgundy-line); border-radius:12px; padding:14px 16px; transition:border-color .15s, opacity .15s; }
+.na1-m4-flip-card.is-accepted{ border-left-color:var(--gold); }
+.na1-m4-flip-card.is-skipped{ opacity:.55; border-left-color:var(--na1-border); }
+.na1-m4-flip-irk{ display:flex; align-items:flex-start; gap:8px; }
+.na1-m4-flip-irk-text{ font-family:var(--na1-serif); font-size:15px; color:var(--na1-text); line-height:1.4; }
+.na1-m4-flip-arrow{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.04em; color:var(--na1-text-mute); margin:8px 0 8px 2px; }
+.na1-m4-flip-text{ width:100%; box-sizing:border-box; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:9px; padding:9px 11px; font-family:var(--na1-sans); font-size:13.5px; line-height:1.45; color:var(--na1-text); resize:vertical; outline:none; transition:border-color .15s; }
+.na1-m4-flip-text:focus{ border-color:var(--gold); }
+.na1-m4-flip-skipped-note{ font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text-mute); font-style:italic; }
+.na1-m4-flip-actions{ display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+.na1-m4-flip-accept{ background:var(--gold); color:#1a1407; border:none; padding:8px 16px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; font-weight:600; cursor:pointer; transition:filter .15s; }
+.na1-m4-flip-accept:hover:not(:disabled){ filter:brightness(1.08); }
+.na1-m4-flip-accept:disabled{ opacity:.4; cursor:not-allowed; }
+.na1-m4-flip-skip{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 14px; border-radius:100px; font-family:var(--na1-sans); font-size:13px; cursor:pointer; transition:border-color .15s, color .15s; }
+.na1-m4-flip-skip:hover{ border-color:var(--na1-text-mute); color:var(--na1-text); }
+.na1-m4-flip-badge{ font-family:var(--na1-sans); font-size:12.5px; font-weight:600; color:var(--gold); }
+.na1-m4-flip-undo{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--na1-sans); font-size:12.5px; cursor:pointer; padding:4px 2px; text-decoration:underline; }
+.na1-m4-flip-undo:hover{ color:var(--na1-text); }
 
 .na1-m4-step-eyebrow{ font-family:var(--na1-sans); font-size:11px; letter-spacing:.2em; color:var(--gold); margin:0 0 14px; font-weight:700; text-transform:uppercase; text-align:center; }
 .na1-m4-step-title{ font-family:var(--na1-serif); font-size:30px; font-weight:600; line-height:1.2; margin:0 0 10px; color:var(--na1-text); text-align:center; }
@@ -40712,7 +40740,7 @@ function NewA1M4HubView({
       case "portrait":
         return m4RoomDone(m4State, "irks");
       case "flip":
-        return false;
+        return m4RoomDone(m4State, "portrait");
       case "name":
         return m4RoomDone(m4State, "portrait");
       case "operationalize":
@@ -40738,6 +40766,7 @@ function NewA1M4HubView({
   const m4UnlockAfter: Partial<Record<M4RoomKey, string>> = {
     irks: "Admire",
     portrait: "Irks",
+    flip: "Portrait",
     name: "Portrait",
     operationalize: "Name the standards",
     rank: "Behaviors",
@@ -40972,7 +41001,7 @@ function NewA1M4SectionBody({
   sectionKey,
   onCloseRoom,
 }: {
-  sectionKey: "admire" | "irks" | "portrait" | "name";
+  sectionKey: "admire" | "irks" | "portrait" | "flip" | "name";
   onCloseRoom: () => void;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
@@ -41012,7 +41041,14 @@ function NewA1M4SectionBody({
   };
 
   const handleDone = () => {
-    markSectionDone();
+    if (sectionKey === "flip") {
+      // Tapping Continue on the Flip rung means "I've worked through these":
+      // accepted flips are kept, any still-unanswered irk is treated as
+      // skipped so the rung reports done.
+      mutate((s) => m4FinalizeFlips(s));
+    } else {
+      markSectionDone();
+    }
     onCloseRoom();
   };
 
@@ -41026,8 +41062,10 @@ function NewA1M4SectionBody({
       : sectionKey === "irks"
         ? "Continue to Portrait →"
         : sectionKey === "portrait"
-          ? "Continue to Name the standards →"
-          : "Continue to Behaviors →";
+          ? "Continue to Flip the irks →"
+          : sectionKey === "flip"
+            ? "Continue to Name the standards →"
+            : "Continue to Behaviors →";
 
   return (
     <div className="na1-m4-disc">
@@ -41040,6 +41078,9 @@ function NewA1M4SectionBody({
         )}
         {sectionKey === "portrait" && (
           <M4StepPortrait state={state} mutate={mutate} />
+        )}
+        {sectionKey === "flip" && (
+          <NewA1M4FlipBody state={state} mutate={mutate} />
         )}
         {sectionKey === "name" && (
           <NewA1M4NameStandardsBody state={state} mutate={mutate} />
@@ -41054,6 +41095,146 @@ function NewA1M4SectionBody({
         </button>
       </div>
     </div>
+  );
+}
+
+// Flip the irks — Phase 3. An irk is a boundary in disguise: what bothers
+// you points at a standard you hold. This rung walks each Bothers / Turns
+// behavior and offers a rule-based (no-AI) suggested "flip" — the positive
+// standard it implies — that the user can rewrite, accept, or skip.
+// Accepted flips become source:"flipped" evidence in the
+// Name-the-standards pool; skipped irks add nothing. No irks → graceful
+// empty state. The rung is non-blocking (Name unlocks off Portrait).
+function NewA1M4FlipBody({
+  state,
+  mutate,
+}: {
+  state: Mirror4State;
+  mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+}) {
+  const irks = m4FlippableIrks(state);
+  const [drafts, setDrafts] = useState<Record<string, string>>(() => {
+    const d: Record<string, string> = {};
+    for (const irk of irks) d[irk.id] = m4FlipFor(state, irk).toText;
+    return d;
+  });
+  const setDraft = (id: string, v: string) =>
+    setDrafts((cur) => ({ ...cur, [id]: v }));
+
+  if (irks.length === 0) {
+    return (
+      <>
+        <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the irks</div>
+        <h2 className="na1-m4-step-title">Flip what irks you</h2>
+        <p className="na1-m4-step-sub">
+          An irk is a boundary in disguise — what bothers you points at a
+          standard you hold. You haven't named anything that bothers you yet,
+          so there's nothing to flip here.
+        </p>
+        <div className="na1-m4-flip-empty">Nothing to flip — you're clear.</div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the irks</div>
+      <h2 className="na1-m4-step-title">Turn each irk into a standard</h2>
+      <p className="na1-m4-step-sub">
+        An irk is a boundary in disguise — what bothers you points at a
+        standard you hold. For each one, keep or rewrite the standard it
+        implies, then accept it (it joins your behaviors to group) or skip it.
+      </p>
+      <div className="na1-m4-flip-list">
+        {irks.map((irk) => {
+          const flip = m4FlipFor(state, irk);
+          const decided = flip.accepted; // true | false | null
+          const draft = drafts[irk.id] ?? flip.toText;
+          const stateCls =
+            decided === true
+              ? "is-accepted"
+              : decided === false
+                ? "is-skipped"
+                : "is-open";
+          return (
+            <div key={irk.id} className={`na1-m4-flip-card ${stateCls}`}>
+              <div className="na1-m4-flip-irk">
+                <span className={`na1-m4-pv-chip is-${irk.tier}`} aria-hidden>
+                  {irk.tier.toUpperCase()}
+                </span>
+                <span className="na1-m4-flip-irk-text">{irk.text}</span>
+              </div>
+              <div className="na1-m4-flip-arrow" aria-hidden>
+                ↓ the standard underneath
+              </div>
+              {decided === false ? (
+                <div className="na1-m4-flip-skipped-note">
+                  Skipped — nothing added.
+                </div>
+              ) : (
+                <textarea
+                  className="na1-m4-flip-text"
+                  value={draft}
+                  rows={2}
+                  placeholder="Name the standard this points to…"
+                  onChange={(e) => setDraft(irk.id, e.target.value)}
+                  onBlur={() => {
+                    if (decided === true)
+                      mutate((s) => m4SetFlipText(s, irk.id, draft));
+                  }}
+                />
+              )}
+              <div className="na1-m4-flip-actions">
+                {decided === true ? (
+                  <>
+                    <span className="na1-m4-flip-badge">
+                      ✓ Kept as a standard
+                    </span>
+                    <button
+                      type="button"
+                      className="na1-m4-flip-undo"
+                      onClick={() => mutate((s) => m4SkipFlip(s, irk.id))}
+                    >
+                      Skip instead
+                    </button>
+                  </>
+                ) : decided === false ? (
+                  <button
+                    type="button"
+                    className="na1-m4-flip-undo"
+                    onClick={() => {
+                      const def = m4DefaultFlipText(irk.text);
+                      setDraft(irk.id, def);
+                      mutate((s) => m4AcceptFlip(s, irk, def));
+                    }}
+                  >
+                    Flip it instead
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="na1-m4-flip-accept"
+                      disabled={!draft.trim()}
+                      onClick={() => mutate((s) => m4AcceptFlip(s, irk, draft))}
+                    >
+                      Accept as standard
+                    </button>
+                    <button
+                      type="button"
+                      className="na1-m4-flip-skip"
+                      onClick={() => mutate((s) => m4SkipFlip(s, irk.id))}
+                    >
+                      Skip
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 
@@ -43787,10 +43968,16 @@ function NewA1M4Container({
           {openRoom.key === "admire" ||
           openRoom.key === "irks" ||
           openRoom.key === "portrait" ||
+          openRoom.key === "flip" ||
           openRoom.key === "name" ? (
             <NewA1M4SectionBody
               sectionKey={
-                openRoom.key as "admire" | "irks" | "portrait" | "name"
+                openRoom.key as
+                  | "admire"
+                  | "irks"
+                  | "portrait"
+                  | "flip"
+                  | "name"
               }
               onCloseRoom={closeRoom}
             />

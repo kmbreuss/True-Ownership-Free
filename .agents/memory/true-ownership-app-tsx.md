@@ -167,16 +167,17 @@ TS2448/TS2454. The whole container then crashes with a cascade of
 `const [roomOpen, setRoomOpen] = useState(...)` block, before the veil/timer
 hooks and before `onBack`/`onContinue`.
 
-## Ladder with a skipped "coming soon" rung — label off the TRUE gater
+## Ladder with a non-blocking rung — label off the TRUE gater
 
-When a mirror ladder contains a reserved/locked, non-blocking rung (e.g. Mirror 4
-"Flip the irks": `comingSoon:true`, never unlocks, and the rung after it unlocks
-off the rung BEFORE the locked one), the locked-row status copy must name the
-rung that actually gates it via an explicit predecessor map — NOT the visual row
-above it (`M4_ROOMS[idx-1]`). Otherwise the copy lies ("Unlocks after Flip the
-irks" when it really unlocks off Portrait).
-**Why:** unlock chains and visual order diverge as soon as one rung is skipped;
-idx-1 silently tracks visual order, not the dependency.
+Mirror 4 "Flip the irks" is now a LIVE rung (Phase 3), but it stays
+*non-blocking*: it unlocks off Portrait AND so does "Name the standards" — Name
+does NOT depend on Flip. So Name's locked-row copy must still name **Portrait**
+(its true gater) via an explicit predecessor map, NOT the visual row above it
+(`M4_ROOMS[idx-1]` = Flip). Otherwise the copy lies ("Unlocks after Flip" when it
+really unlocks off Portrait). (Earlier, Flip was a `comingSoon:true` locked rung;
+that flag was removed when its body shipped.)
+**Why:** unlock chains and visual order diverge as soon as one rung is
+non-linear; idx-1 silently tracks visual order, not the dependency.
 **How to apply:** centralize per-rung completion in one predicate
 (`m4RoomDone(state,key)` covering ALL keys, locked rung → always false) so the
 hub, the A1 stepper (`m4DoneKeys`), and the container never drift; drive unlock,
@@ -203,3 +204,25 @@ and keeps the behavior id, so a behavior referenced by a standard stays
 referenced after moving Portrait tiers. The Portrait (`M4StepPortrait`) is a
 clean read/edit overview: it must NOT apply the struck-through `is-used` class
 (that styling belongs only to the Name-the-standards grouping pool).
+
+## Flip-the-irks: accepted flips become real admire-pool behaviors
+
+An accepted flip does NOT live only in `state.flips` — it spawns a real behavior
+in `state.admire` with a *deterministic* id `af-<irkId>` (so re-accepting is
+idempotent), `tier:"warms"`, `source:"flipped"`. That lets the flipped standard
+flow into Name-the-standards grouping and Behaviors/operationalize through the
+existing machinery with zero new plumbing.
+**Two invariants this creates — break either and you get leaks/double-counts:**
+- `rebuildPortrait` MUST `continue` on `source:"flipped"` behaviors, or they leak
+  into the Admire/Irks Portrait quadrants (they belong only in the grouping pool).
+- Editing an accepted flip's text must keep `flips[].toText` and the spawned
+  behavior's `text` in lockstep; blank text on an accepted flip is a **no-op**
+  (the behavior must stay non-empty) — never persist a blank `toText` for an
+  accepted flip or the Flip UI and Name/Behaviors data desync. Skip releases the
+  behavior from any cluster (`removeBehaviorFromCluster`) THEN deletes the af- row.
+**Completion (`m4FlipsDone`)** is graceful: flippable = Bothers/Turns-tier irks
+only; done when every flippable irk is accepted-or-skipped, OR there are none.
+`loadMirror4State` coerces persisted `flips[].accepted` to strict boolean|null so
+a stray value can't read as "worked through". **Why:** reusing the behavior pool
+(vs a parallel flip model) was the whole point — one grouping/operationalize path,
+no double-count (user clusters keep empty `cluster.flips`).

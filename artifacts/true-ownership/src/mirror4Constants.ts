@@ -169,6 +169,12 @@ export type Mirror4State = {
   // legitimately empty (e.g. no irks). Name-the-standards derives done
   // from clusters, not from a flag.
   discoverSections: { admire: boolean; irks: boolean; portrait: boolean };
+  // Phase 3 · Flip-the-irks decisions, one entry per irk the user has
+  // worked through. accepted=true spawns a source:"flipped" behavior in
+  // the admire pool (id af-<irkId>); accepted=false = skipped (nothing
+  // added); absent = not yet worked through. Top-level (not per-cluster)
+  // because flipping happens before the user groups standards.
+  flips: M4Flip[];
 };
 
 // Ship 5.6g · Section 4 — typed operationalize schema. The fifth
@@ -214,6 +220,7 @@ export const EMPTY_MIRROR4: Mirror4State = {
   behaviorsActiveClusterId: null,
   behaviorsPrefilledFor: [],
   discoverSections: { admire: false, irks: false, portrait: false },
+  flips: [],
 };
 
 // ─── M4 room registry ───
@@ -268,16 +275,15 @@ export const M4_ROOMS: ReadonlyArray<{
     bodyShipped: true,
   },
   {
-    // Phase 2 · reserved rung. Flip the irks lands in Phase 3; until
-    // then it shows "coming soon", never flashes, and does NOT block
-    // the rungs after it (Name the standards unlocks off Portrait).
+    // Phase 3 · live rung. Flip the irks unlocks off Portrait and flashes
+    // as the next rung; it stays non-blocking (Name also unlocks off
+    // Portrait), so a user with no irks is never gated by it.
     n: 4,
     key: "flip",
     name: "Flip the irks",
     tone: "silver",
     threshold: "Flipping what irks you…",
-    bodyShipped: false,
-    comingSoon: true,
+    bodyShipped: true,
   },
   {
     n: 5,
@@ -343,7 +349,7 @@ export function m4RoomDone(state: Mirror4State, key: M4RoomKey): boolean {
     case "portrait":
       return ds.portrait === true || state.clusters.length > 0;
     case "flip":
-      return false;
+      return m4FlipsDone(state);
     case "name":
       return state.clusters.some(m4IsClusterComplete);
     case "operationalize": {
@@ -450,6 +456,26 @@ export function loadMirror4State(): Mirror4State {
           portrait: merged.discoverSections.portrait === true,
         };
       }
+      // Phase 3 · flips default for older blobs; drop malformed entries and
+      // coerce `accepted` to a strict boolean | null (a stray value must not
+      // read as "worked through" in m4FlipsDone).
+      if (!Array.isArray(merged.flips)) merged.flips = [];
+      else
+        merged.flips = merged.flips
+          .filter(
+            (f) =>
+              f &&
+              typeof f.irkId === "string" &&
+              typeof f.toText === "string",
+          )
+          .map((f) => ({
+            irkId: f.irkId,
+            toText: f.toText,
+            accepted:
+              f.accepted === true || f.accepted === false
+                ? f.accepted
+                : null,
+          }));
       // Ship 5.6i · Section 5 — rank + pressureTest defensive defaults
       // for older blobs that predate the typed schema. activePairIdx
       // was added in 5.6i; older blobs default it to 0.
@@ -561,6 +587,10 @@ export function rebuildPortrait(state: Mirror4State): M4Portrait {
     turns: [],
   };
   for (const b of [...state.admire, ...state.irks]) {
+    // Phase 3 · accepted flips live in the admire array (so they surface
+    // in the Name-the-standards pool) but are NOT part of the Admire/Irks
+    // portrait — skip them so they never leak into a quadrant.
+    if (b.source === "flipped") continue;
     portrait[b.tier].push(b.id);
   }
   return portrait;
@@ -718,6 +748,153 @@ export function defaultFlipText(irkText: string): string {
     return `Don't ${first.slice(0, -3)} — own it first.`;
   }
   return `Instead, do the opposite of: ${t}`;
+}
+
+// ─── Phase 3 · Flip-the-irks helpers (user-driven, no AI) ──────────
+// The irks the Flip rung walks: only Bothers / Turns behaviors (an irk
+// is a boundary in disguise). Lights/Warms admire behaviors are not
+// flippable.
+export function m4FlippableIrks(state: Mirror4State): M4Behavior[] {
+  return state.irks.filter(
+    (b) => b.tier === "bothers" || b.tier === "turns",
+  );
+}
+
+// Stable id for the source:"flipped" behavior an accepted flip spawns in
+// the admire pool. Deterministic so accept is idempotent and skip can
+// find + remove it.
+function flippedBehaviorId(irkId: string): string {
+  return `af-${irkId}`;
+}
+
+// The persisted flip for an irk, or a fresh unanswered default whose
+// suggested text is rule-based (no AI / no network).
+export function m4FlipFor(state: Mirror4State, irk: M4Behavior): M4Flip {
+  return (
+    state.flips.find((f) => f.irkId === irk.id) ?? {
+      irkId: irk.id,
+      toText: defaultFlipText(irk.text),
+      accepted: null,
+    }
+  );
+}
+
+// Upsert a flip entry, patching only the provided fields.
+function upsertFlip(
+  state: Mirror4State,
+  irkId: string,
+  patch: Partial<Omit<M4Flip, "irkId">>,
+): Mirror4State {
+  const exists = state.flips.some((f) => f.irkId === irkId);
+  const flips = exists
+    ? state.flips.map((f) => (f.irkId === irkId ? { ...f, ...patch } : f))
+    : [
+        ...state.flips,
+        {
+          irkId,
+          toText: patch.toText ?? "",
+          accepted: patch.accepted ?? null,
+        },
+      ];
+  return { ...state, flips };
+}
+
+// Edit a flip's suggested text. If the flip is already accepted, keep the
+// spawned flipped behavior's text in sync. For an accepted flip, blank text
+// is a no-op: the spawned behavior must stay non-empty, so we never persist
+// a blank that would desync flip.toText from the admire-pool behavior.
+export function m4SetFlipText(
+  state: Mirror4State,
+  irkId: string,
+  text: string,
+): Mirror4State {
+  const flip = state.flips.find((f) => f.irkId === irkId);
+  if (flip?.accepted === true && !text.trim()) return state;
+  let next = upsertFlip(state, irkId, { toText: text });
+  if (flip?.accepted === true) {
+    const bId = flippedBehaviorId(irkId);
+    const t = text.trim();
+    next = {
+      ...next,
+      admire: next.admire.map((b) => (b.id === bId ? { ...b, text: t } : b)),
+    };
+  }
+  return next;
+}
+
+// Accept a flip: persist accepted=true with the (edited) text and ensure a
+// source:"flipped" behavior exists in the admire pool so it can be grouped
+// into a standard. Empty text is a no-op (can't accept a blank flip).
+export function m4AcceptFlip(
+  state: Mirror4State,
+  irk: M4Behavior,
+  text: string,
+): Mirror4State {
+  const t = text.trim();
+  if (!t) return state;
+  const bId = flippedBehaviorId(irk.id);
+  let next = upsertFlip(state, irk.id, { toText: t, accepted: true });
+  const exists = next.admire.some((b) => b.id === bId);
+  if (exists) {
+    next = {
+      ...next,
+      admire: next.admire.map((b) =>
+        b.id === bId ? { ...b, text: t } : b,
+      ),
+    };
+  } else {
+    const beh: M4Behavior = {
+      id: bId,
+      text: t,
+      tier: "warms",
+      source: "flipped",
+      inUseByCluster: null,
+    };
+    next = { ...next, admire: [...next.admire, beh] };
+  }
+  return next;
+}
+
+// Skip a flip: persist accepted=false and remove the spawned flipped
+// behavior (releasing it from any standard first). Nothing is added to the
+// pool for a skipped irk.
+export function m4SkipFlip(
+  state: Mirror4State,
+  irkId: string,
+): Mirror4State {
+  const bId = flippedBehaviorId(irkId);
+  let next = state;
+  const beh = next.admire.find((b) => b.id === bId);
+  if (beh?.inUseByCluster) {
+    next = removeBehaviorFromCluster(next, beh.inUseByCluster, bId);
+  }
+  next = { ...next, admire: next.admire.filter((b) => b.id !== bId) };
+  return upsertFlip(next, irkId, { accepted: false });
+}
+
+// Mark every still-unanswered flippable irk as skipped. Called when the
+// user taps Continue on the Flip rung so the rung reports done (accepted
+// flips are kept; the rest are treated as skipped).
+export function m4FinalizeFlips(state: Mirror4State): Mirror4State {
+  let next = state;
+  for (const irk of m4FlippableIrks(next)) {
+    const f = next.flips.find((x) => x.irkId === irk.id);
+    if (!f || f.accepted === null) {
+      next = m4SkipFlip(next, irk.id);
+    }
+  }
+  return next;
+}
+
+// The Flip rung is done once every flippable irk has been worked through
+// (accepted or skipped). No flippable irks → done gracefully (empty state).
+export function m4FlipsDone(state: Mirror4State): boolean {
+  const irks = m4FlippableIrks(state);
+  if (irks.length === 0) return true;
+  return irks.every((irk) => {
+    const f = state.flips.find((x) => x.irkId === irk.id);
+    return f != null && f.accepted !== null;
+  });
 }
 
 // Rule-based fallback used when the Anthropic clustering call
