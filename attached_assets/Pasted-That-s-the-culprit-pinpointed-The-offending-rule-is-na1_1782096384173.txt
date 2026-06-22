@@ -1,0 +1,15 @@
+That's the culprit, pinpointed. The offending rule is:
+.na1-ex-row.is-m4-claim.is-complete { background: var(--na1-seal); border-left: 3px solid var(--na1-seal-text); }
+This gives the completed Values Claim rung a full dark "seal" background fill (--na1-seal) — that's the black bar in Image 1. The other mirrors (A2) don't have this; their completed claim rung keeps the normal card background and just changes the text color.
+So the fix is precise: the Values Claim should NOT apply the dark --na1-seal background on complete. It should keep the standard rung background like every other mirror, and only flip the title text from gold to the dark/ink color. Looking at the rules, the over-styling is in three places that need to come off for the complete state:
+
+background: var(--na1-seal) on the row → should stay the normal rung background
+the border-left: 3px solid var(--na1-seal-text) accent → remove (other rungs don't have it)
+the icon getting inverted (background: var(--na1-seal-text)) → should match other completed rungs (gold-soft bg)
+
+And the one thing it should do: set .na1-ex-name to the dark text color on complete (instead of gold).
+This is a code change for Replit. Here's the exact instruction to send:
+
+The Values Claim "black" fix over-corrected — it's filling the whole rung with a black background. It should match how the OTHER mirrors (e.g. A2) do it: the completed Claim rung looks like a normal rung (white card, gold border, gold-soft icon), and ONLY the title text flips from gold to black/ink. The "Sealed · tap to revisit" subtext can stay as-is.
+The problem rule is .na1-ex-row.is-m4-claim.is-complete — it's applying background: var(--na1-seal) (the dark fill) plus a border-left: 3px solid var(--na1-seal-text) and an inverted icon (background: var(--na1-seal-text)). Remove all three so the completed Values Claim rung uses the SAME background/border/icon treatment as every other completed rung. Keep only one change for the sealed state: set .na1-ex-row.is-m4-claim.is-complete .na1-ex-name to the dark/ink text color (not gold) — that's the gold→black text flip we want, matching A2.
+Net result: the Values Claim rung should be visually identical to the A2 Claim rung in the screenshots — normal card, black "Claim" title, gold subtext. No black background fill.

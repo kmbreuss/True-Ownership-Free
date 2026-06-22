@@ -523,7 +523,6 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   /* Surfaces */
   --na1-bg:#0d1b2e; --na1-bg-soft:#112240; --na1-bg-card:#13243d; --na1-bg-input:#0f1c30; --na1-bg-video:#0a1626;
   --na1-text:#f4f1eb; --na1-text-sec:#cfc8b9; --na1-text-mute:#7d8a98;
-  --na1-seal:#05080d; --na1-seal-text:#f4f1eb; --na1-seal-line:#2a3346;
   --na1-border:#1f3553;
   /* Ship 5.6d · Section 3a · cluster color tokens. Locked at cluster
      creation order (1→c1, 2→c2, 3→c3, 4→c1, 5→c2). --c1 mirrors --gold. */
@@ -546,7 +545,6 @@ html[data-theme="light"]{
   --cyan:#4a8a99; --cyan-soft:rgba(74,138,153,.12); --cyan-line:rgba(74,138,153,.40); --cyan-glow:rgba(74,138,153,.18);
   --na1-bg:#f5f3ef; --na1-bg-soft:#ece8df; --na1-bg-card:#fffdf8; --na1-bg-input:#fbf8f1; --na1-bg-video:#e8e3d6;
   --na1-text:#2a2620; --na1-text-sec:#534b3f; --na1-text-mute:#8a8170;
-  --na1-seal:#15110b; --na1-seal-text:#f5f3ef; --na1-seal-line:#3a342a;
   --na1-border:#d8d1c2;
   --c1:#b8892f; --c2:#4a8458; --c3:#7d63a8;
   /* Light mode · navy-as-text is the true navy; tint matches the mockup. */
@@ -837,15 +835,13 @@ html[data-theme="light"]{
    icon sizing/border. Declarations copied verbatim from
    .na1-ex-row.is-complete .na1-ex-icon above so they cannot drift. */
 .na1-ex-row.is-m4-claim.is-complete .na1-ex-icon{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); font-size:18px; }
-/* Keystone-per-value · a SEALED Claim (is-m4-claim + is-complete) renders
-   black, not gold — the value system is set, not in progress. Higher
-   specificity (3 classes) overrides the gold is-m4-claim base + the icon
-   rule above. Both themes via --na1-seal* tokens. */
-.na1-ex-row.is-m4-claim.is-complete{ background:var(--na1-seal); border-color:var(--na1-seal-line); border-left:3px solid var(--na1-seal-text); }
-.na1-ex-row.is-m4-claim.is-complete .na1-ex-icon{ background:var(--na1-seal-text); border-color:var(--na1-seal-text); color:var(--na1-seal); font-size:18px; }
-.na1-ex-row.is-m4-claim.is-complete .na1-ex-name{ color:var(--na1-seal-text); }
-.na1-ex-row.is-m4-claim.is-complete .na1-ex-status{ color:var(--na1-seal-text); opacity:0.7; }
-.na1-ex-row.is-m4-claim.is-complete .na1-ex-arrow{ color:var(--na1-seal-text); }
+/* Keystone-per-value · a SEALED Claim (is-m4-claim + is-complete) matches the
+   standard completed-rung look (normal card, gold border, gold-soft icon, gold
+   subtext) like every other mirror's Claim — ONLY the title flips from the
+   in-progress gold to the ink text color. No dark "seal" fill. */
+.na1-ex-row.is-m4-claim.is-complete{ background:var(--na1-bg-card); border-color:var(--gold-line); border-left:3px solid var(--gold); }
+.na1-ex-row.is-m4-claim.is-complete .na1-ex-name{ color:var(--na1-text); }
+.na1-ex-row.is-m4-claim.is-complete .na1-ex-status{ color:var(--gold); font-weight:600; }
 /* Status strip */
 .na1-status-strip{ position:sticky; top:80px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; font-family:var(--na1-sans); display:flex; flex-direction:column; gap:14px; }
 @media (max-width:900px){ .na1-status-strip{ position:static; } }

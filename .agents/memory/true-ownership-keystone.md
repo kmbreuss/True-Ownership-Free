@@ -34,8 +34,14 @@ Claim Beat 3 (the "what each one means" line) prints `userDefinition` only for
 clusters that have one and omits the whole clause if none do — otherwise it renders
 empty quotes.
 
-Sealed-Claim color split (owner ruling): the LADDER RUNG (`.na1-ex-row.is-m4-claim.is-complete`)
-renders black via `--na1-seal*` tokens. But the IN-ROOM Claim CTA button keeps its
-GOLD fill in every state and only its label is near-black (`#1a1206`) — same rule as
-the other mirrors' completed CTAs (gold fill + black label). Do NOT give the in-room
-CTA a seal/black background; the owner explicitly wants fill unchanged, label only.
+Sealed-Claim color (owner ruling, final): NO dark "seal" fill anywhere. The
+completed Values Claim must look identical to the other mirrors' (A2) completed Claim
+rung — normal card, gold border, gold-soft icon, gold subtext — and ONLY the title
+text flips from the in-progress gold to ink (`var(--na1-text)`).
+- Ladder rung `.na1-ex-row.is-m4-claim.is-complete`: bg `var(--na1-bg-card)`, gold
+  border, name → `var(--na1-text)`, status → gold. Do NOT reintroduce a seal/black
+  background, seal border-left accent, or inverted icon.
+- In-room Claim CTA button: gold fill in every state, label near-black (`#1a1206`).
+The `--na1-seal*` tokens were removed (fully unused after this).
+**Why:** an earlier "render sealed Claim black" pass over-corrected and filled the
+whole rung with a black bar — the owner only ever wanted the title color to flip.
