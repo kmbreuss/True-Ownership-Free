@@ -32,4 +32,10 @@ display "SFDS" and raw irks as "keystones").
 
 Claim Beat 3 (the "what each one means" line) prints `userDefinition` only for
 clusters that have one and omits the whole clause if none do — otherwise it renders
-empty quotes. A sealed Claim renders BLACK via `--na1-seal*` tokens, not gold.
+empty quotes.
+
+Sealed-Claim color split (owner ruling): the LADDER RUNG (`.na1-ex-row.is-m4-claim.is-complete`)
+renders black via `--na1-seal*` tokens. But the IN-ROOM Claim CTA button keeps its
+GOLD fill in every state and only its label is near-black (`#1a1206`) — same rule as
+the other mirrors' completed CTAs (gold fill + black label). Do NOT give the in-room
+CTA a seal/black background; the owner explicitly wants fill unchanged, label only.
