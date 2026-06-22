@@ -40863,7 +40863,7 @@ function NewA1M4HubView({
                 ▶
               </button>
               <div className="na1-video-stub-caption">
-                Katherine's Values intro · placeholder
+                Katherine's Values intro
               </div>
             </div>
           </div>
@@ -42751,11 +42751,17 @@ function NewA1M4BehaviorsBody({
 function NewA1M4ClaimBody({
   onCloseRoom,
   onGoToA2,
+  onEditValues,
 }: {
   onCloseRoom: () => void;
   // A2.0 · supplied only when ?newA2=1. Routes to the A2 "Align With It"
   // hub. Undefined → the button is not rendered.
   onGoToA2?: () => void;
+  // Post-claim editability · routes to the Name the Standards rung where a
+  // claimed value's name, behaviors, keystone, and meaning are all editable.
+  // The seal/ceremony stay intact (claimed/claimedAt are top-level fields);
+  // editing is additive. Undefined → the link is not rendered.
+  onEditValues?: () => void;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
@@ -43046,6 +43052,30 @@ function NewA1M4ClaimBody({
           ? `Sealed on ${formattedClaimedAt}.`
           : "You've claimed your Values. The seal stays."}
       </p>
+
+      {/* Post-claim edit affordance. Shown only once sealed — gives a clear
+          path straight to Name the Standards to edit a claimed value's name,
+          behaviors, keystone, or meaning. Additive: the seal stays. */}
+      {state.claimed && onEditValues && (
+        <div style={{ textAlign: "center", marginBottom: "10px" }}>
+          <button
+            type="button"
+            onClick={onEditValues}
+            style={{
+              background: "transparent",
+              border: "0",
+              padding: 0,
+              fontFamily: "var(--na1-sans)",
+              fontSize: "13px",
+              color: "var(--gold)",
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            Edit my values →
+          </button>
+        </div>
+      )}
 
       {/* Escape link. */}
       <div style={{ textAlign: "center", marginBottom: "24px" }}>
@@ -44187,7 +44217,17 @@ function NewA1M4Container({
               }}
             />
           ) : openRoom.key === "claim" ? (
-            <NewA1M4ClaimBody onCloseRoom={closeRoom} onGoToA2={onGoToA2} />
+            <NewA1M4ClaimBody
+              onCloseRoom={closeRoom}
+              onGoToA2={onGoToA2}
+              onEditValues={() => {
+                // Additive post-claim edit path: open the Name the Standards
+                // rung (name/behaviors/keystone/meaning all editable there).
+                // Same veil transition the hub uses; the seal is untouched.
+                const nameRoom = M4_ROOMS.find((r) => r.key === "name");
+                if (nameRoom) launchRoom(nameRoom);
+              }}
+            />
           ) : (
             <NewA1M4RoomPlaceholderBody room={openRoom} />
           )}

@@ -1,0 +1,34 @@
+# Brief — Values Phase 4: copy relabel + post-claim editability
+## For Replit Agent — the final Values (A1 Mirror 4) phase
+
+This is the closing polish phase, built AFTER the keystone/Claim fixes land. Two parts: a copy sweep and post-claim editability. No structural/mechanics changes — by now the flow (7-rung ladder, user-driven grouping, flip-into-behavior, keystone, optional meaning, Rank, Claim) is built and verified. This is polish on top of finished mechanics.
+
+## Part 1 — Copy relabel sweep
+Sweep ALL Values (Mirror 4) copy so the language is consistent and reads in the owner's voice. The governing model: a value IS a standard; behaviors are the EVIDENCE you (and others) are holding to that standard.
+- Collection steps (Admire, Irks) refer to BEHAVIORS, never "values."
+- The grouping step (Name the Standards) is where behaviors become a value: name the STANDARD a cluster points to.
+- Consistent vocabulary throughout: standard / value (the named thing), behavior / evidence (the observable thing), keystone (the one key behavior per value), meaning (the optional one-line definition).
+- Replace any remaining PLACEHOLDER copy — e.g. "Katherine's Values intro · placeholder" still shows in the room; either wire the real intro or use finished copy, not a "placeholder" string.
+- Title case on section names is already done (Admire, Irks, Portrait, Flip the Irks, Name the Standards, Rank, Claim) — confirm it held and fix any stragglers.
+- Tidy any lingering old AI-era phrasing or inconsistent labels surfaced during the redesign.
+- Owner copy preferences: benefits-driven, empowering, gender-neutral, not overly heavy/formal; keep it warm and plain.
+
+## Part 2 — Post-claim editability
+Consistent with Purpose's "you can return any time to edit anything you've written" principle, a CLAIMED value must remain editable after the Claim seal:
+- After claiming, the user can re-open and edit a claimed value's NAME, its BEHAVIORS (add/remove/edit evidence), its KEYSTONE (re-mark), and its optional MEANING.
+- This must be ADDITIVE — do NOT disturb the Claim ceremony/seal/gold-burst visual or the sealed-state styling. Editing is a path available from the claimed state, not a rewrite of the claim flow.
+- Re-claiming / re-sealing after an edit should behave gracefully (the seal re-applies; no data loss; ranked order and keystones preserved or updated as edited).
+- Confirm edits persist through reload (this mirror has had save-status bugs before — verify the edited claimed value saves with the correct user status, not a deletable one).
+
+## Done looks like
+- All Values copy reads consistently in the standard/evidence/value vocabulary; no "placeholder" strings; title case intact; warm/plain owner voice.
+- A claimed value can be re-opened and its name/behaviors/keystone/meaning edited; edits persist through reload; the seal/ceremony visual is unchanged.
+- Both themes; clean load; no console errors; in-range typecheck.
+
+## Out of scope
+- Any further structural change to the ladder/rooms/data model.
+- Other mirrors and A2.
+- Map of Me / Decision Maker (separate, designed in HTML first — see handover).
+
+## Working rules
+Plan-confirm first, build, verify on spock (owner login, ?newA1=1) both themes, tokens only, in-range typecheck. Single giant App.tsx + mirror4Constants.ts.
