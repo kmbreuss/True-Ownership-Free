@@ -1,0 +1,16 @@
+Approved — the diagnosis is exactly right and the plan is clean. Build it.
+The root cause Replit found is the key insight: the old keystone lived in state.operationalize[clusterId].keystoneId — the dead structure from the Behaviors room we retired — and both Claim and the pressure-test still read it, which is why you saw "SFDS" and a raw irk as "keystones." Moving keystone onto the cluster's own behaviorIds (via a new keystoneBehaviorId) is the correct fix, and it explains every symptom: the stale leftovers, the unsettable label, all of it.
+All four items map correctly to what we asked:
+
+Item 1 — keystoneBehaviorId on the cluster, ★ toggle per evidence chip in Name the Standards, toggle/move/clear semantics, clears if the behavior is removed ✓
+Item 2 — black/ink sealed treatment replacing gold on the sealed Claim rung + in-room CTA ✓
+Item 3 — repoint Claim's keystoneName and the pressure-test's keystoneNameFor to the real field; remove the unsettable Rank label ✓
+Item 4 — optional one-line meaning into userDefinition, Claim prints only values that have one and omits the clause entirely if none do (kills the empty quotes) ✓
+
+And keeping the vestigial operationalize/keystoneId intact for migration safety is the right call.
+On the one decision you flagged — Rank rows: keep keystone there as read-only context (your default), don't drop it entirely. Reasoning: the keystone behavior is genuinely useful context while you're ranking and pressure-testing values ("when Integrity and Respect collide, here's the core behavior each stands on") — that's the moment it's most relevant. Showing it read-only in Rank reinforces it without re-introducing a setter where it doesn't belong. The only thing to kill is the unsettable "not set" label; a real keystone shown read-only is helpful, not clutter. So keep it.
+What to send Replit:
+
+Approved — great diagnosis on the operationalize.keystoneId root cause; moving keystone onto the cluster's behaviorIds via keystoneBehaviorId is exactly right. Build all four items as planned.
+On your flagged decision: keep keystone in the Rank rows as read-only context (your default), don't drop it. It's useful while ranking/pressure-testing — just remove the unsettable "not set" label; a real keystone shown read-only is helpful.
+Verify on spock both themes: ★ toggle sets/moves/clears a keystone behavior in Name the Standards and persists through reload; the optional one-line meaning saves and is non-gating; Claim shows each value's meaning where present and omits cleanly (no empty quotes) where absent; Claim shows the real keystone behaviors (no more "SFDS"/raw irks); and the sealed Claim CTA renders black, not gold.

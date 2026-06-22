@@ -1,0 +1,65 @@
+# Brief — Keystone (key behavior per value), Claim sealed-state color, Claim contents
+## For Replit Agent — Values (A1 Mirror 4)
+
+Three related items, all verified live on spock.
+
+## Context / verified findings
+- The "keystone" concept currently appears in the Rank value rows and in the Rank pressure-test collision walk as a DISPLAY-ONLY label "★ Keystone: not set" / "KEYSTONE · No keystone set" (class `na1-m4-rank-key is-unset`). It is NOT a button and there is NO way to set it.
+- The persisted cluster (value) has NO keystone field at all (keys: id, proposal, proposedNames, behaviorIds, flips, userName, userDefinition, status, colorIndex, peelChain). So keystone is a half-built, unsettable feature.
+- Name the Standards has NO keystone/key-behavior control on its evidence chips (`na1-m4-ns-evidence` → `na1-m4-ns-ev-text`), only inline-edit + remove.
+- The Claim rung renders with class `na1-ex-row tone-gold is-complete is-lock` — i.e. it stays GOLD even when complete/sealed.
+
+## Item 1 — Keystone = the KEY BEHAVIOR within a value (build it properly)
+Correct definition (from owner): keystone is NOT about ranking the values. Within a single value (standard), the user marks ONE of its 3–5 evidence behaviors as the KEY behavior — the truest signal of that standard. Each value has its own keystone behavior.
+
+Build:
+- Add a keystone marker on each evidence behavior chip in **Name the Standards** (e.g. a ★ on each `na1-m4-ns-evidence` chip). Tapping it marks that behavior as the value's keystone; tapping a different behavior moves the keystone; one keystone per value. Keystone is OPTIONAL but encouraged (a value is still valid without one).
+- Add a real data field on the cluster, e.g. `keystoneBehaviorId` (the behavior id within that cluster's `behaviorIds`). Persist it; migration-safe (older values simply have none).
+- Remove / re-point the dead "★ Keystone: not set" display in Rank: keystone is a property of a behavior within the value, not of the value's rank. It should NOT show as an unsettable label on the rank rows. If useful, the value's keystone behavior MAY be shown (read-only) in Rank / the pressure-test for context (see Item 3) — but the SETTING happens only in Name the Standards.
+
+## Item 2 — Claim sealed state should be BLACK, not gold
+The Claim rung/CTA currently uses `tone-gold` even when complete/sealed, so it reads as gold while saying "sealed." When Claim is complete/sealed, switch its styling to the black/sealed treatment (not gold), so the color matches the sealed state. Keep tokens/both themes. (Confirm the same for the Claim button inside the room, not just the ladder rung.)
+
+## Item 3 — Surface the keystone behavior in Claim (and pressure-test)
+- The Rank pressure-test collision walk already has a slot per value for "KEYSTONE" — wire it to display each value's keystone behavior (from `keystoneBehaviorId`) so a collision shows the core behavior each value stands on. ("No keystone set" when none.)
+- In the **Claim** view, surface each claimed value WITH its keystone behavior (the key behavior), alongside its other evidence behaviors. 
+- NOTE: I could not open the live Claim room this session (it's gated behind completing Rank's pressure-test, which I avoided to not seal the owner's real Values). Please READ the current Claim room contents in code and report back what it shows today, then add the keystone display to it. Confirm what Claim currently lists (values? ranked order? behaviors?) so we know what we're adding to.
+
+## Done looks like
+- In Name the Standards, each evidence behavior chip has a keystone (★) toggle; marking one sets the value's keystone behavior (one per value, optional), persisted via `keystoneBehaviorId`, survives reload.
+- The dead unsettable "Keystone: not set" label no longer appears as a value-level control in Rank; any keystone shown there is read-only context from the real field.
+- The Rank pressure-test shows each value's keystone behavior (or "no keystone set").
+- The Claim view shows each claimed value with its keystone behavior surfaced.
+- The Claim rung/CTA renders BLACK (sealed treatment) when complete/sealed, not gold; both themes.
+- Migration-safe; clean load; no console errors.
+
+## Out of scope
+- Phase 4 copy relabel + post-claim editability (separate), though this overlaps the Claim view — coordinate so they don't collide.
+- The flip-into-behavior correction (separate, confirm landed).
+
+## Working rules
+Plan-confirm first, build, verify on spock (owner login, ?newA1=1) both themes, tokens only, in-range typecheck. Single giant App.tsx + mirror4Constants.ts.
+
+---
+
+## Item 4 — One-sentence value definition (captured in Name the Standards, shown in Claim)
+Verified from the live Claim screenshot: Claim already renders "You named what each one means: "", "", "", "", """ — FIVE EMPTY QUOTES, because Claim expects a one-line meaning per value but nothing in the flow captures it. (Phase 2 dropped the `userDefinition` requirement, but Claim still displays it — that's the source of the empty quotes.)
+
+Build:
+- In **Name the Standards**, on each standard card, add a single-line "What does this value mean to you?" field — ONE sentence that defines the value. Persist it (reuse the existing `userDefinition` field on the cluster — it's already in the schema, just unused).
+- This is OPTIONAL. It does NOT gate completion (completion stays name + ≥1 behavior). 
+- In **Claim**, surface each value's definition in the "you named what each one means: …" line. CRITICAL: when a value has NO definition, OMIT it gracefully — do NOT render empty quotes (""). If none of the values have definitions, omit the whole "what each one means" clause rather than showing a row of empty quotes.
+
+## Updated Done looks like (adds to the list above)
+- Name the Standards has an optional one-line "What does this value mean to you?" field per standard, persisted (userDefinition), not gating completion.
+- Claim shows each value's one-sentence meaning where present, and omits cleanly (no empty "") where absent — the current empty-quotes bug is gone.
+
+## Note on the live Claim contents (now confirmed from owner screenshot)
+The Claim room currently renders, in order:
+1. A star + "Katherine, this is the order you live by."
+2. The ranked values inline: "Integrity, then Own It, then Hope, then Love, then Evolve."
+3. "You named what each one means: "", "", "", "", """  ← EMPTY QUOTES BUG (Item 4 fixes this)
+4. "And you marked the one behavior you'd defend first for each: Owning mistakes, Runs away from responsibilities, SFDS"  ← this is the KEYSTONE behavior line (Item 1/3); note one of them shows a raw irk ("Runs away from responsibilities") and a placeholder ("SFDS"), reinforcing that keystone needs a real per-value setting control.
+5. "This is your decision filter. Use it when two values pull on the same moment / when the cost is real / when you'd rather not — that's when it counts most."
+6. CTA "Claim updated ✓" (GOLD — Item 2: should be black/sealed) + "Continue to Align With It · A2 →"
+So Claim is the payoff screen that displays: ranked order + each value's MEANING (Item 4) + each value's KEYSTONE behavior (Items 1/3). Build the capture for both in Name the Standards so Claim stops showing empty quotes and placeholder keystones.

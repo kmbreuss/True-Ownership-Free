@@ -4,3 +4,4 @@
 - [A2 mirror revisit hubs](true-ownership-app-tsx.md) — claimed mirrors re-enter via a step-card overview hub (NewA2MirrorHubView); gate close-routing on a useRef snapshot of claimed-at-entry, not live state.
 - [Flip-the-irks behaviors](true-ownership-app-tsx.md) — accepted flips spawn real `af-<irkId>` admire behaviors (source:"flipped") reused by grouping; rebuildPortrait must skip them; blank text on accepted flip = no-op.
 - [Purpose Declare re-seed](true-ownership-purpose-declare.md) — seed Declare from the current Peel bottom when it differs from persisted purpose_seededFrom, not the volatile fromPeel one-shot; write seededFrom in lockstep with purpose_final.
+- [Mirror 4 keystone-per-value](true-ownership-keystone.md) — keystone lives on cluster.keystoneBehaviorId (resolve via m4BehaviorTextById); old operationalize.keystoneId is dead/vestigial; A2 align-screen builder still reads it (out of A1 scope).

@@ -105,6 +105,8 @@ import {
   addBehaviorToCluster as m4AddBehaviorToCluster,
   addEvidenceBehaviorToCluster as m4AddEvidenceBehaviorToCluster,
   removeBehaviorFromCluster as m4RemoveBehaviorFromCluster,
+  m4SetKeystone,
+  m4BehaviorTextById,
   ruleBasedClusters as m4RuleBasedClusters,
   behaviorChipLabel as m4BehaviorChipLabel,
   defaultFlipText as m4DefaultFlipText,
@@ -521,6 +523,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   /* Surfaces */
   --na1-bg:#0d1b2e; --na1-bg-soft:#112240; --na1-bg-card:#13243d; --na1-bg-input:#0f1c30; --na1-bg-video:#0a1626;
   --na1-text:#f4f1eb; --na1-text-sec:#cfc8b9; --na1-text-mute:#7d8a98;
+  --na1-seal:#05080d; --na1-seal-text:#f4f1eb; --na1-seal-line:#2a3346;
   --na1-border:#1f3553;
   /* Ship 5.6d · Section 3a · cluster color tokens. Locked at cluster
      creation order (1→c1, 2→c2, 3→c3, 4→c1, 5→c2). --c1 mirrors --gold. */
@@ -543,6 +546,7 @@ html[data-theme="light"]{
   --cyan:#4a8a99; --cyan-soft:rgba(74,138,153,.12); --cyan-line:rgba(74,138,153,.40); --cyan-glow:rgba(74,138,153,.18);
   --na1-bg:#f5f3ef; --na1-bg-soft:#ece8df; --na1-bg-card:#fffdf8; --na1-bg-input:#fbf8f1; --na1-bg-video:#e8e3d6;
   --na1-text:#2a2620; --na1-text-sec:#534b3f; --na1-text-mute:#8a8170;
+  --na1-seal:#15110b; --na1-seal-text:#f5f3ef; --na1-seal-line:#3a342a;
   --na1-border:#d8d1c2;
   --c1:#b8892f; --c2:#4a8458; --c3:#7d63a8;
   /* Light mode · navy-as-text is the true navy; tint matches the mockup. */
@@ -833,6 +837,15 @@ html[data-theme="light"]{
    icon sizing/border. Declarations copied verbatim from
    .na1-ex-row.is-complete .na1-ex-icon above so they cannot drift. */
 .na1-ex-row.is-m4-claim.is-complete .na1-ex-icon{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold); font-size:18px; }
+/* Keystone-per-value · a SEALED Claim (is-m4-claim + is-complete) renders
+   black, not gold — the value system is set, not in progress. Higher
+   specificity (3 classes) overrides the gold is-m4-claim base + the icon
+   rule above. Both themes via --na1-seal* tokens. */
+.na1-ex-row.is-m4-claim.is-complete{ background:var(--na1-seal); border-color:var(--na1-seal-line); border-left:3px solid var(--na1-seal-text); }
+.na1-ex-row.is-m4-claim.is-complete .na1-ex-icon{ background:var(--na1-seal-text); border-color:var(--na1-seal-text); color:var(--na1-seal); font-size:18px; }
+.na1-ex-row.is-m4-claim.is-complete .na1-ex-name{ color:var(--na1-seal-text); }
+.na1-ex-row.is-m4-claim.is-complete .na1-ex-status{ color:var(--na1-seal-text); opacity:0.7; }
+.na1-ex-row.is-m4-claim.is-complete .na1-ex-arrow{ color:var(--na1-seal-text); }
 /* Status strip */
 .na1-status-strip{ position:sticky; top:80px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; font-family:var(--na1-sans); display:flex; flex-direction:column; gap:14px; }
 @media (max-width:900px){ .na1-status-strip{ position:static; } }
@@ -2304,6 +2317,13 @@ html[data-theme="light"]{
 .na1-m4-ns-ev-x:hover{ color:var(--na1-text); }
 .na1-m4-ns-ev-text{ cursor:text; border-bottom:1px dashed transparent; }
 .na1-m4-ns-ev-text:hover{ border-bottom-color:var(--na1-border); }
+.na1-m4-ns-ev-star{ background:transparent; border:none; color:var(--na1-text-mute); font-size:13px; line-height:1; cursor:pointer; padding:0; transition:color .15s ease; }
+.na1-m4-ns-ev-star:hover{ color:var(--gold); }
+.na1-m4-ns-ev-star.is-on{ color:var(--gold); }
+.na1-m4-ns-ev.is-keystone{ border-color:var(--gold-line); background:var(--gold-soft); }
+.na1-m4-ns-def{ width:100%; background:transparent; border:none; border-bottom:1px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--na1-serif); font-style:italic; font-size:13.5px; padding:3px 0 5px; margin-top:11px; outline:none; }
+.na1-m4-ns-def::placeholder{ color:var(--na1-text-mute); font-style:italic; }
+.na1-m4-ns-def:focus{ border-bottom-color:var(--gold); }
 .na1-m4-ns-addbeh{ display:flex; align-items:center; gap:7px; margin-top:8px; }
 .na1-m4-ns-addbeh-input{ flex:1; min-width:0; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:7px 10px; font-family:var(--na1-sans); font-size:12.5px; color:var(--na1-text); }
 .na1-m4-ns-addbeh-input:focus{ outline:none; border-color:var(--gold); }
@@ -2652,7 +2672,6 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,243,239,.78); }
 .na1-m4-rank-name{ font-family:var(--na1-serif); font-size:22px; font-weight:600; line-height:1.2; color:var(--na1-text); margin:0; }
 .na1-m4-rank-def{ font-family:var(--na1-serif); font-style:italic; font-size:13.5px; line-height:1.5; color:var(--na1-text-sec); margin:4px 0 0; }
 .na1-m4-rank-key{ font-family:var(--na1-sans); font-size:12px; color:var(--gold); margin:8px 0 0; letter-spacing:.01em; }
-.na1-m4-rank-key.is-unset{ color:var(--na1-text-mute); font-family:var(--na1-serif); font-style:italic; }
 .na1-m4-rank-controls{ display:flex; align-items:center; gap:6px; flex-shrink:0; padding-top:4px; }
 .na1-m4-rank-handle{ background:transparent; border:1px solid var(--na1-border); border-radius:6px; padding:6px 8px; color:var(--na1-text-mute); cursor:grab; font-size:14px; line-height:1; user-select:none; transition:color .15s, border-color .15s; }
 .na1-m4-rank-handle:hover{ color:var(--gold); border-color:var(--gold-line); }
@@ -41307,6 +41326,16 @@ function NewA1M4NameStandardsBody({
     );
   };
 
+  const setStandardDefinition = (clusterId: string, def: string) => {
+    mutate((s) =>
+      m4UpdateCluster(s, clusterId, (c) => ({ ...c, userDefinition: def })),
+    );
+  };
+
+  const toggleKeystone = (clusterId: string, behaviorId: string) => {
+    mutate((s) => m4SetKeystone(s, clusterId, behaviorId));
+  };
+
   const deleteStandard = (clusterId: string) => {
     mutate((s) => {
       const cl = s.clusters.find((c) => c.id === clusterId);
@@ -41439,6 +41468,8 @@ function NewA1M4NameStandardsBody({
                         mutate((s) => m4EditBehaviorText(s, bid, t))
                       }
                       onRemove={() => removeFromStandard(bid, c.id)}
+                      isKeystone={c.keystoneBehaviorId === bid}
+                      onToggleKeystone={() => toggleKeystone(c.id, bid)}
                     />
                   ))}
                 </div>
@@ -41450,8 +41481,15 @@ function NewA1M4NameStandardsBody({
               />
               <div className="na1-m4-ns-hint">
                 Name a few behaviors — up to 5 or so — that show you're living
-                this.
+                this. Tap a ☆ to mark the one you'd defend first.
               </div>
+              <input
+                className="na1-m4-ns-def"
+                type="text"
+                value={c.userDefinition}
+                placeholder="What does this value mean to you? (optional)"
+                onChange={(e) => setStandardDefinition(c.id, e.target.value)}
+              />
             </div>
           );
         })}
@@ -41475,10 +41513,14 @@ function M4NsEvidenceChip({
   text,
   onEdit,
   onRemove,
+  isKeystone,
+  onToggleKeystone,
 }: {
   text: string;
   onEdit: (t: string) => void;
   onRemove: () => void;
+  isKeystone: boolean;
+  onToggleKeystone: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text);
@@ -41506,7 +41548,20 @@ function M4NsEvidenceChip({
   };
 
   return (
-    <span className="na1-m4-ns-ev">
+    <span className={`na1-m4-ns-ev${isKeystone ? " is-keystone" : ""}`}>
+      <button
+        type="button"
+        className={`na1-m4-ns-ev-star${isKeystone ? " is-on" : ""}`}
+        onClick={onToggleKeystone}
+        aria-pressed={isKeystone}
+        title={
+          isKeystone
+            ? "Keystone — the one you'd defend first. Tap to unset."
+            : "Mark as keystone — the one behavior you'd defend first"
+        }
+      >
+        {isKeystone ? "★" : "☆"}
+      </button>
       {editing ? (
         <input
           ref={inputRef}
@@ -42743,10 +42798,8 @@ function NewA1M4ClaimBody({
   // Keystone behavior name per cluster id. Null = none chosen (skip
   // from Beat 4 rather than render an empty span).
   const keystoneName = (clusterId: string): string | null => {
-    const op = state.operationalize[clusterId];
-    if (!op || !op.keystoneId) return null;
-    const b = op.behaviors.find((b) => b.id === op.keystoneId);
-    return b?.name.trim() || null;
+    const c = state.clusters.find((x) => x.id === clusterId);
+    return m4BehaviorTextById(state, c?.keystoneBehaviorId ?? null);
   };
 
   // Format claimedAt as e.g. "May 27, 2026". Falls back to raw ISO
@@ -42864,21 +42917,29 @@ function NewA1M4ClaimBody({
         </p>
       )}
 
-      {/* Beat 3 — The definitions, summarized. */}
-      {rankedClusters.length > 0 && (
-        <p style={beatP}>
-          You named what each one means:{" "}
-          {rankedClusters.map((c, i) => (
-            <React.Fragment key={c.id}>
-              {i === 0 ? "" : ", "}
-              <span style={goldItalic}>
-                “{truncDef(c.userDefinition)}”
-              </span>
-            </React.Fragment>
-          ))}
-          .
-        </p>
-      )}
+      {/* Beat 3 — The definitions, summarized. Only values that carry a
+          meaning are printed; if none do, the whole clause is omitted so
+          Claim never shows empty quotes. */}
+      {(() => {
+        const defined = rankedClusters.filter(
+          (c) => c.userDefinition.trim() !== "",
+        );
+        if (defined.length === 0) return null;
+        return (
+          <p style={beatP}>
+            You named what each one means:{" "}
+            {defined.map((c, i) => (
+              <React.Fragment key={c.id}>
+                {i === 0 ? "" : ", "}
+                <span style={goldItalic}>
+                  “{truncDef(c.userDefinition)}”
+                </span>
+              </React.Fragment>
+            ))}
+            .
+          </p>
+        );
+      })()}
 
       {/* Beat 4 — The keystone behaviors. */}
       {(() => {
@@ -42943,12 +43004,12 @@ function NewA1M4ClaimBody({
             fontSize: "16px",
             fontFamily: "var(--na1-sans)",
             fontWeight: 500,
-            color: "#1a1206",
-            backgroundColor: "var(--gold)",
+            color: state.claimed ? "var(--na1-seal-text)" : "#1a1206",
+            backgroundColor: state.claimed ? "var(--na1-seal)" : "var(--gold)",
             border: "0",
             borderRadius: "999px",
             cursor: state.claimed ? "default" : "pointer",
-            opacity: state.claimed ? 0.85 : 1,
+            opacity: 1,
             transition: "transform .15s ease, opacity .15s ease",
           }}
         >
@@ -43064,10 +43125,8 @@ function NewA1M4RankBody({
   const clusterById = (id: string): M4Cluster | undefined =>
     state.clusters.find((c) => c.id === id);
   const keystoneNameFor = (id: string): string | null => {
-    const op = state.operationalize[id];
-    if (!op || !op.keystoneId) return null;
-    const beh = op.behaviors.find((b) => b.id === op.keystoneId);
-    return beh ? beh.name : null;
+    const c = state.clusters.find((x) => x.id === id);
+    return m4BehaviorTextById(state, c?.keystoneBehaviorId ?? null);
   };
 
   // Track which cluster IDs have appeared in any walked pair, so we
@@ -43242,12 +43301,8 @@ function NewA1M4RankBody({
                 {c.userDefinition.trim() !== "" && (
                   <p className="na1-m4-rank-def">{c.userDefinition}</p>
                 )}
-                {keyName ? (
+                {keyName && (
                   <p className="na1-m4-rank-key">★ Keystone: {keyName}</p>
-                ) : (
-                  <p className="na1-m4-rank-key is-unset">
-                    ★ Keystone: not set
-                  </p>
                 )}
               </div>
               <div className="na1-m4-rank-controls">

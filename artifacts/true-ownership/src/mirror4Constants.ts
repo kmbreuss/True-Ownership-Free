@@ -127,6 +127,9 @@ export type M4Cluster = {
   flips: M4Flip[];
   userName: string;
   userDefinition: string;
+  // The one evidence behavior the user marks as this standard's truest
+  // signal — an id within behaviorIds. null = no keystone (optional).
+  keystoneBehaviorId: string | null;
   status: M4ClusterStatus;
   colorIndex: 1 | 2 | 3;
   // Ship 5.6f · Section 3b — ordered list of peel words/phrases the
@@ -326,6 +329,39 @@ export function m4IsClusterComplete(c: M4Cluster): boolean {
   return c.userName.trim() !== "" && c.behaviorIds.length > 0;
 }
 
+// Keystone = the one evidence behavior the user marks as the truest signal
+// of a standard, stored as keystoneBehaviorId (an id within the cluster's
+// behaviorIds). Toggle semantics: marking the current keystone clears it,
+// marking another moves it. One keystone per value, optional. No-op if the
+// behavior is not part of the cluster.
+export function m4SetKeystone(
+  state: Mirror4State,
+  clusterId: string,
+  behaviorId: string,
+): Mirror4State {
+  return updateCluster(state, clusterId, (c) => {
+    if (!c.behaviorIds.includes(behaviorId)) return c;
+    return {
+      ...c,
+      keystoneBehaviorId:
+        c.keystoneBehaviorId === behaviorId ? null : behaviorId,
+    };
+  });
+}
+
+// Resolve an evidence behavior's display text from its id by scanning the
+// admire + irks pools. Returns null when the id is unknown (e.g. a stale
+// keystone pointer after the behavior was deleted). Used by Claim and the
+// Rank pressure-test to surface the real keystone behavior.
+export function m4BehaviorTextById(
+  state: Mirror4State,
+  id: string | null,
+): string | null {
+  if (!id) return null;
+  const b = [...state.admire, ...state.irks].find((x) => x.id === id);
+  return b ? b.text.trim() || null : null;
+}
+
 // Per-rung "done" for the 8-rung Values ladder. Admire/Irks/Portrait read
 // their persisted discoverSections flag (set on Continue) OR fall back to
 // content so existing blobs that predate the flag still show as done.
@@ -437,6 +473,18 @@ export function loadMirror4State(): Mirror4State {
             ? c
             : { ...c, proposal: "", proposedNames: [] },
         );
+        // Keystone-per-value · default keystoneBehaviorId on older blobs
+        // that predate the field (migration-safe → no keystone). Also drop
+        // a stale pointer if the behavior no longer belongs to the cluster.
+        merged.clusters = merged.clusters.map((c) => {
+          const k =
+            typeof c.keystoneBehaviorId === "string" ? c.keystoneBehaviorId : null;
+          return {
+            ...c,
+            keystoneBehaviorId:
+              k != null && c.behaviorIds.includes(k) ? k : null,
+          };
+        });
       }
       // Ship 5.6g · Section 4 — defensive defaults for older blobs
       // that predate the operationalize / behaviors schema fields.
@@ -988,6 +1036,7 @@ export function createCluster(
     flips,
     userName: "",
     userDefinition: "",
+    keystoneBehaviorId: null,
     // User-authored standard. Must NOT be "proposed" — that status is reserved
     // for stale AI-generated groups, which the load-time migration deletes.
     // Tagging a user-created cluster "proposed" caused it to be wiped on the
@@ -1089,6 +1138,8 @@ export function removeBehaviorFromCluster(
     ...c,
     behaviorIds: c.behaviorIds.filter((id) => id !== behaviorId),
     flips: c.flips.filter((f) => f.irkId !== behaviorId),
+    keystoneBehaviorId:
+      c.keystoneBehaviorId === behaviorId ? null : c.keystoneBehaviorId,
   }));
   const stillUsed = stripped.clusters.some((c) =>
     c.behaviorIds.includes(behaviorId),
