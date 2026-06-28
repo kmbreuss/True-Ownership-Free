@@ -57526,7 +57526,15 @@ function AuthedApp() {
         if (i) setIntake(i);
         // Defensive: never restore the user into "_admin" on next sign-in.
         const safe = p === "_admin" ? null : p;
-        setPhase(safe || (i ? "a1" : "intake"));
+        // Preview deep-link: ?phase=a1|a2|a3|done|intake jumps straight to a
+        // section on load. View-only — it does NOT overwrite saved progress.
+        let urlPhase = null;
+        try {
+          const q = new URLSearchParams(window.location.search).get("phase");
+          if (q && ["a1", "a2", "a3", "done", "intake"].includes(q))
+            urlPhase = q;
+        } catch {}
+        setPhase(urlPhase || safe || (i ? "a1" : "intake"));
       },
     );
   }, []);
