@@ -28601,6 +28601,29 @@ function shouldRouteToM3(mapState: any): boolean {
   return !!mapState?.vision?.complete;
 }
 
+// Task 46 · Mirror-card standard. Shared progress-mark row used by every A1 &
+// A2 mirror card. Pips fill `done` of `total`; the "N of N" caption shows only
+// when the mirror is COMPLETE (done === total), per the card standard — locked
+// renders empty pips, in-progress renders partial pips with no number.
+function MirrorPips({ done, total }: { done: number; total: number }) {
+  return (
+    <div className="na1-progress-mini">
+      {Array.from({ length: total }, (_, i) => i < done).map((filled, i) => (
+        <div
+          key={i}
+          className={`na1-progress-pip ${filled ? "is-done" : ""}`}
+          aria-label={`Exercise ${i + 1} ${filled ? "complete" : "incomplete"}`}
+        />
+      ))}
+      {total > 0 && done === total ? (
+        <span className="na1-progress-text">
+          {done} of {total}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 // ─── NEW A1: Mirror grid (4 cards · Purpose unlocked, BAG/Identity/Values locked) ───
 type NewA1GridM2Progress = {
   ex1: boolean;
@@ -28666,22 +28689,13 @@ function NewA1Grid({
   const purposeComplete = doneCount === 4;
   const purposeStarted = doneCount > 0 || !!progress.purposeFinal;
   const purposeInProgress = purposeStarted && !purposeComplete;
-  const purposeStatusLabel = purposeComplete
-    ? "Complete"
-    : purposeInProgress
-      ? "In progress"
-      : "Up next";
+  const purposeStatusLabel = purposeComplete ? "Complete" : "Up next";
   const purposeCtaLabel = purposeComplete
     ? "Review Purpose →"
     : purposeInProgress
       ? "Continue Purpose →"
       : "Begin Purpose →";
-  const purposeEmpty = purposeComplete
-    ? "Claimed."
-    : purposeInProgress
-      ? `${doneCount} of 4 exercises complete.`
-      : "Not yet explored.";
-  const pips = [progress.ex1, progress.ex2, progress.ex3, progress.ex4];
+  const purposeEmpty = purposeComplete ? "Claimed." : "";
 
   // M2 · Vision — unlocks the moment Purpose is declared.
   const visionUnlocked = purposeComplete && !!progress.purposeFinal;
@@ -28699,9 +28713,7 @@ function NewA1Grid({
     ? "Locked"
     : visionComplete
       ? "Complete"
-      : visionInProgress
-        ? "In progress"
-        : "Up next";
+      : "Up next";
   const visionCtaLabel = !visionUnlocked
     ? "Unlocks after Purpose"
     : visionComplete
@@ -28709,18 +28721,7 @@ function NewA1Grid({
       : visionInProgress
         ? "Continue Vision →"
         : "Begin Vision →";
-  const visionEmpty = visionComplete
-    ? "Claimed."
-    : visionInProgress
-      ? `${m2DoneCount} of 5 exercises complete.`
-      : "Not yet explored.";
-  const visionPips = [
-    m2Progress.ex1,
-    m2Progress.ex2,
-    m2Progress.ex3,
-    m2Progress.ex4,
-    m2Progress.ex5,
-  ];
+  const visionEmpty = visionComplete ? "Claimed." : "";
 
   // M3 · Identity — unlocks once Vision is complete. Chained through
   // `visionUnlocked` so the gate re-locks transitively when Purpose is reset
@@ -28735,9 +28736,7 @@ function NewA1Grid({
     ? "Locked"
     : identityComplete
       ? "Complete"
-      : identityInProgress
-        ? "In progress"
-        : "Up next";
+      : "Up next";
   const identityCtaLabel = !identityUnlocked
     ? "Unlocks after Vision"
     : identityComplete
@@ -28763,9 +28762,7 @@ function NewA1Grid({
     ? "Locked"
     : valuesComplete
       ? "Complete"
-      : valuesInProgress
-        ? "In progress"
-        : "Up next";
+      : "Up next";
   const valuesCtaLabel = !valuesUnlocked
     ? "Unlocks after Identity"
     : valuesComplete
@@ -28845,16 +28842,7 @@ function NewA1Grid({
             <p className="na1-mirror-card-sub">
               Your internal why — independent of role.
             </p>
-            <div className="na1-progress-mini">
-              {pips.map((done, i) => (
-                <div
-                  key={i}
-                  className={`na1-progress-pip ${done ? "is-done" : ""}`}
-                  aria-label={`Exercise ${i + 1} ${done ? "complete" : "incomplete"}`}
-                />
-              ))}
-              <span className="na1-progress-text">{doneCount} of 4</span>
-            </div>
+            <MirrorPips done={doneCount} total={4} />
             <div
               className="na1-mirror-card-empty"
               style={
@@ -28878,7 +28866,7 @@ function NewA1Grid({
                 {purposeCtaLabel}
               </button>
               <span className="na1-mirror-card-meta">
-                4 exercises · ~50 min · 4 videos
+                4 exercises · 4 videos
               </span>
             </div>
           </article>
@@ -28899,16 +28887,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 Who you've become in 10 years — across time, wealth, and self.
               </p>
-              <div className="na1-progress-mini">
-                {visionPips.map((done, i) => (
-                  <div
-                    key={i}
-                    className={`na1-progress-pip ${done ? "is-done" : ""}`}
-                    aria-label={`Exercise ${i + 1} ${done ? "complete" : "incomplete"}`}
-                  />
-                ))}
-                <span className="na1-progress-text">{m2DoneCount} of 5</span>
-              </div>
+              <MirrorPips done={m2DoneCount} total={5} />
               <div
                 className="na1-mirror-card-empty"
                 style={
@@ -28932,7 +28911,7 @@ function NewA1Grid({
                   {visionCtaLabel}
                 </button>
                 <span className="na1-mirror-card-meta">
-                  5 exercises · ~40 min · 5 videos
+                  5 exercises · 5 videos
                 </span>
               </div>
             </article>
@@ -28949,14 +28928,12 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 Who you've become in 10 years — across time, wealth, and self.
               </p>
+              <MirrorPips done={0} total={5} />
+              <div className="na1-mirror-card-empty">Unlocks after Purpose</div>
               <div className="na1-mirror-card-action">
-                <button
-                  type="button"
-                  className="na1-btn-gold na1-btn-block"
-                  disabled
-                >
-                  {visionCtaLabel}
-                </button>
+                <span className="na1-mirror-card-meta">
+                  5 exercises · 5 videos
+                </span>
               </div>
             </article>
           )}
@@ -28993,6 +28970,10 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
+              <MirrorPips
+                done={identityComplete ? 5 : identityStarted ? 1 : 0}
+                total={5}
+              />
               <div
                 className="na1-mirror-card-empty"
                 style={
@@ -29005,11 +28986,7 @@ function NewA1Grid({
                     : { fontStyle: "normal", color: "var(--na1-text-sec)" }
                 }
               >
-                {identityComplete
-                  ? "Claimed."
-                  : identityInProgress
-                    ? "In progress — keep shaping your gifts."
-                    : "Pick your gifts, shape your clusters, name what's true."}
+                {identityComplete ? "Claimed." : ""}
               </div>
               <div className="na1-mirror-card-action">
                 <button
@@ -29022,9 +28999,7 @@ function NewA1Grid({
                 >
                   {identityCtaLabel}
                 </button>
-                <span className="na1-mirror-card-meta">
-                  5 steps · gifts · animals · shadows
-                </span>
+                <span className="na1-mirror-card-meta">5 exercises</span>
               </div>
             </article>
           ) : (
@@ -29043,14 +29018,10 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
+              <MirrorPips done={0} total={5} />
+              <div className="na1-mirror-card-empty">Unlocks after Vision</div>
               <div className="na1-mirror-card-action">
-                <button
-                  type="button"
-                  className="na1-btn-gold na1-btn-block"
-                  disabled
-                >
-                  {identityCtaLabel}
-                </button>
+                <span className="na1-mirror-card-meta">5 exercises</span>
               </div>
             </article>
           )}
@@ -29084,6 +29055,10 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you stand for, in order.
               </p>
+              <MirrorPips
+                done={valuesComplete ? 4 : valuesStarted ? 1 : 0}
+                total={4}
+              />
               <div
                 className="na1-mirror-card-empty"
                 style={
@@ -29096,11 +29071,7 @@ function NewA1Grid({
                     : { fontStyle: "normal", color: "var(--na1-text-sec)" }
                 }
               >
-                {valuesComplete
-                  ? "Claimed."
-                  : valuesInProgress
-                    ? "In progress — keep ordering what you stand for."
-                    : "Four rooms. Three to five values. One decision filter."}
+                {valuesComplete ? "Claimed." : ""}
               </div>
               <div className="na1-mirror-card-action">
                 <button
@@ -29113,9 +29084,7 @@ function NewA1Grid({
                 >
                   {valuesCtaLabel}
                 </button>
-                <span className="na1-mirror-card-meta">
-                  4 rooms · discover · behaviors · rank · claim
-                </span>
+                <span className="na1-mirror-card-meta">4 exercises</span>
               </div>
             </article>
           ) : (
@@ -29134,14 +29103,12 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you stand for, in order.
               </p>
+              <MirrorPips done={0} total={4} />
+              <div className="na1-mirror-card-empty">
+                Unlocks after Identity
+              </div>
               <div className="na1-mirror-card-action">
-                <button
-                  type="button"
-                  className="na1-btn-gold na1-btn-block"
-                  disabled
-                >
-                  {valuesCtaLabel}
-                </button>
+                <span className="na1-mirror-card-meta">4 exercises</span>
               </div>
             </article>
           )}
@@ -33456,7 +33423,8 @@ function NewA2DeclarationBody({
         )}
         {editMode && !dirty && (
           <p className="na2-decl-footnote">
-            Click any italic phrase to refine it. The seal stays.
+            Click any italic phrase to refine it. You can come back and edit it
+            anytime.
           </p>
         )}
       </div>
@@ -34265,6 +34233,14 @@ function NewA2HubView({
   // mount — this view remounts on every hub↔room view switch, so a claim made
   // inside the room is reflected the moment the user returns here.
   const m1Claimed = useMemo(() => loadA2State().m1.claimed, []);
+  // Task 46 · Alignment Check progress marks. m1 is the only A2 mirror with a
+  // persisted step pointer (maxReached); the steps before the Claim step count
+  // as done, so done = claimed ? 4 : maxReached - 1. m2/m3 expose no step
+  // pointer, so their pips fall back to empty/full only (flagged in the
+  // mirror-card standard).
+  const m1Max = useMemo(() => loadA2State().m1.maxReached ?? 0, []);
+  const m1Done = m1Claimed ? 4 : Math.max(0, Math.min(m1Max - 1, 4));
+  const m1Started = m1Max > 1;
   // A2 Ship 1 · Mirror 2 completion is likewise driven solely by m2.claimed,
   // read once at mount; this view remounts on every hub↔room switch, so a claim
   // made inside the Time Audit room is reflected on return.
@@ -34320,13 +34296,14 @@ function NewA2HubView({
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">01</span>
               <span className="na1-mirror-card-status">
-                {m1Claimed ? "✓ Sealed" : a1Complete ? "Up next" : "Locked"}
+                {m1Claimed ? "Complete" : a1Complete ? "Up next" : "Locked"}
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 1</div>
             <h2 className="na1-mirror-card-name">Alignment Check</h2>
+            <MirrorPips done={m1Done} total={4} />
             <div className="na1-mirror-card-empty">
-              {m1Claimed ? "Sealed." : a1Complete ? "Not yet explored." : "Locked."}
+              {m1Claimed ? "Claimed." : ""}
             </div>
             {a1Complete ? null : (
               <p className="na1-mirror-card-sub">
@@ -34345,8 +34322,10 @@ function NewA2HubView({
                   onClick={onBeginM1}
                 >
                   {m1Claimed
-                    ? "Sealed · tap to revisit →"
-                    : "Begin Alignment Check →"}
+                    ? "Review Alignment Check →"
+                    : m1Started
+                      ? "Continue Alignment Check →"
+                      : "Begin Alignment Check →"}
                 </button>
               ) : (
                 <button
@@ -34357,6 +34336,7 @@ function NewA2HubView({
                   Go to All In It →
                 </button>
               )}
+              <span className="na1-mirror-card-meta">4 exercises</span>
             </div>
           </article>
           {/* 02 · Mirror 2 · Time Audit. A2 Ship 1 · locked until Mirror 1 is
@@ -34372,19 +34352,19 @@ function NewA2HubView({
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">02</span>
               <span className="na1-mirror-card-status">
-                {m2Claimed ? "✓ Sealed" : m1Claimed ? "Up next" : "Locked"}
+                {m2Claimed ? "Complete" : m1Claimed ? "Up next" : "Locked"}
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 2</div>
             <h2 className="na1-mirror-card-name">Time Audit</h2>
+            <MirrorPips done={m2Claimed ? 4 : 0} total={4} />
             <div className="na1-mirror-card-empty">
-              {m2Claimed ? "Sealed." : m1Claimed ? "Not yet explored." : "Locked."}
+              {m2Claimed
+                ? "Claimed."
+                : m1Claimed
+                  ? ""
+                  : "Unlocks after Alignment Check"}
             </div>
-            {m1Claimed ? null : (
-              <p className="na1-mirror-card-sub">
-                Unlocks after Alignment Check — claim Mirror 1 to begin.
-              </p>
-            )}
             <div className="na1-mirror-card-action">
               {m1Claimed ? (
                 <button
@@ -34392,19 +34372,10 @@ function NewA2HubView({
                   className="na1-btn-gold na1-btn-block"
                   onClick={onBeginM2}
                 >
-                  {m2Claimed
-                    ? "Sealed · tap to revisit →"
-                    : "Begin Time Audit →"}
+                  {m2Claimed ? "Review Time Audit →" : "Begin Time Audit →"}
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  className="na1-btn-ghost na1-btn-block"
-                  disabled
-                >
-                  Unlocks after Alignment Check
-                </button>
-              )}
+              ) : null}
+              <span className="na1-mirror-card-meta">4 exercises</span>
             </div>
           </article>
           {/* 03 · Mirror 3 · Named Truth. A2 Ship 2 · locked until Mirror 2 is
@@ -34423,23 +34394,19 @@ function NewA2HubView({
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">03</span>
               <span className="na1-mirror-card-status">
-                {m3Unlocked ? (m3Claimed ? "✓ Sealed" : "Up next") : "Locked"}
+                {m3Unlocked ? (m3Claimed ? "Complete" : "Up next") : "Locked"}
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 3</div>
             <h2 className="na1-mirror-card-name">Named Truth</h2>
+            <MirrorPips done={m3Claimed ? 3 : 0} total={3} />
             <div className="na1-mirror-card-empty">
               {m3Unlocked
                 ? m3Claimed
-                  ? "Sealed."
-                  : "Not yet explored."
-                : "Locked."}
+                  ? "Claimed."
+                  : ""
+                : "Unlocks after Time Audit"}
             </div>
-            {m3Unlocked ? null : (
-              <p className="na1-mirror-card-sub">
-                Unlocks after Time Audit — claim Mirror 2 to begin.
-              </p>
-            )}
             <div className="na1-mirror-card-action">
               {m3Unlocked ? (
                 <button
@@ -34447,17 +34414,10 @@ function NewA2HubView({
                   className="na1-btn-gold na1-btn-block"
                   onClick={onBeginM3}
                 >
-                  {m3Claimed ? "Sealed · tap to revisit" : "Begin Named Truth →"}
+                  {m3Claimed ? "Review Named Truth →" : "Begin Named Truth →"}
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  className="na1-btn-ghost na1-btn-block"
-                  disabled
-                >
-                  Unlocks after Time Audit
-                </button>
-              )}
+              ) : null}
+              <span className="na1-mirror-card-meta">3 exercises</span>
             </div>
           </article>
         </div>
@@ -34610,7 +34570,7 @@ function NewA2M1HubView({
               .filter(Boolean)
               .join(" ");
             const statusLabel = isSealed
-              ? "Sealed · tap to revisit"
+              ? "Claimed · tap to revisit"
               : isComplete
                 ? "Complete"
                 : isCurrent
@@ -34828,7 +34788,7 @@ function NewA2MirrorHubView({
               .filter(Boolean)
               .join(" ");
             const statusLabel = isSealed
-              ? "Sealed · tap to revisit"
+              ? "Claimed · tap to revisit"
               : isComplete
                 ? "Complete"
                 : isCurrent
@@ -36095,7 +36055,7 @@ function NewA2M1Step4Body({
           onClick={handleClaim}
           disabled={showBurst}
         >
-          Claim this — seal the mirror →
+          Claim this →
         </button>
       </div>
     </div>
@@ -40127,7 +40087,8 @@ function NewA1M3OwnItView({
         <h2 className="na2-decl-title">What lives in you</h2>
         {editMode && (
           <div className="m3-seal-revisit-banner">
-            ★ You've claimed your Identity. The seal stays.
+            ★ You've claimed your Identity. You can come back and edit it
+            anytime.
           </div>
         )}
         {(() => {
@@ -40381,7 +40342,7 @@ function NewA1M3OwnItView({
           className="na2-decl-footnote"
           style={{ marginTop: 18, textAlign: "center" }}
         >
-          You've claimed your Identity. The seal stays.
+          You've claimed your Identity. You can come back and edit it anytime.
         </p>
         {/* Revisit affordance: from a sealed ceremony state, drop back into
             readback so the user can re-read the triptychs + re-claim after
@@ -40889,7 +40850,7 @@ function NewA1M4HubView({
             const statusLabel = isComingSoon
               ? "Coming soon"
               : isClaim && isClaimed && isUnlocked
-                ? "Sealed · tap to revisit"
+                ? "Claimed · tap to revisit"
                 : isCurrent
                   ? "Up next · tap to begin"
                   : isRoomComplete
@@ -43049,8 +43010,8 @@ function NewA1M4ClaimBody({
         }}
       >
         {state.claimed && formattedClaimedAt
-          ? `Sealed on ${formattedClaimedAt}.`
-          : "You've claimed your Values. The seal stays."}
+          ? `Claimed on ${formattedClaimedAt}.`
+          : "You've claimed your Values. You can come back and edit it anytime."}
       </p>
 
       {/* Post-claim edit affordance. Shown only once sealed — gives a clear

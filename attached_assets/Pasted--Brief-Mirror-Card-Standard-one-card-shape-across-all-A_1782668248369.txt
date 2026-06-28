@@ -1,0 +1,51 @@
+# Brief — Mirror Card Standard (one card shape across all As)
+## For Replit Agent
+
+A copy + display-consistency pass on the **Mirror cards** (the A-card pages that list Purpose/Vision/Identity/Values for A1, and the mirrors for A2). Today these cards drift three ways — different tag words, progress marks on some cards but not others, and two different footer formats. This brings every Mirror card to ONE shape. No structural or data-model changes — display/strings only. The new standard is documented in `AG45_App_Standards.md` §5.
+
+## Why
+- A2 cards say `SEALED` / `Sealed.` / `Sealed · tap to revisit →`. "Sealed" tells the user the mirror is locked shut — but it isn't; they can always return and edit. The word works against the "return any time to edit" promise.
+- Within A1 alone the cards already disagree: Purpose & Vision show progress marks + an `N of N` count; Identity & Values show none. Purpose/Vision footers read `N exercises · ~N min · N videos`; Identity/Values use descriptive lists.
+
+## Done looks like
+Every Mirror card, in every A (A1, A2, and the shared component future As inherit), renders the SAME shape:
+
+**Three tag states — the tag is always one of these three words:**
+| Slot | LOCKED | UP NEXT | COMPLETE |
+|---|---|---|---|
+| Tag (top-right) | `LOCKED` | `UP NEXT` | `COMPLETE` |
+| Progress marks | empty | partly filled (real progress) | full · `N of N` |
+| Status line | `Unlocks after [previous Mirror]` | — | `Claimed.` |
+| Button | none (tap-inert) | `Begin [Mirror] →` (untouched) / `Continue [Mirror] →` (saved progress) | `Review [Mirror] →` |
+
+- **No "Sealed" anywhere the user can read it.** Apply this seal→claim string sweep (user-facing strings only — do NOT rename internal `seal*` identifiers/CSS):
+  | Currently | Becomes |
+  |---|---|
+  | `SEALED` (tag) | `COMPLETE` |
+  | `Sealed.` (status) | `Claimed.` |
+  | `Sealed · tap to revisit →` | `Review [Mirror] →` |
+  | `Sealed on [date].` | `Claimed on [date].` |
+  | `Claim this — seal the mirror →` | `Claim this →` |
+  | "…you've claimed your Identity. The seal stays." | "…you've claimed your Identity. You can come back and edit it anytime." |
+- **Progress marks shown on EVERY card and truthful:** add them to Identity & Values (currently missing). Empty when locked, partial when in progress, full `N of N` when complete.
+- **Locked cards get the `LOCKED` tag** (A2's locked mirrors currently show "Unlocks after …" with no top-right tag — add the tag).
+- **Footer unified to `[N] exercises · [N] videos`** on every card. Drop minutes entirely. Use each Mirror's own exercise/section count, labelled `exercises`. Video counts: use the real count where known; where unknown, show `[N] exercises` alone (no empty "· videos"). Flag any card where you can't source a count.
+- Both themes; clean load; no console errors; in-range typecheck.
+
+## Out of scope
+- Any structural / ladder / data-model change.
+- Renaming internal `seal*` code (functions, state keys, CSS classes) — invisible to the user, leave it.
+- The claim ceremony / gold-burst itself — the *felt* seal moment stays; only the *words the user reads* change.
+- Mirror internals, exercises, A2 flow logic.
+
+## Steps
+1. **Locate the Mirror-card renderer(s)** for A1 and A2 (and the shared component if one exists). Confirm whether A1 and A2 share one card component or have diverged into two — report which.
+2. **Tag states:** make the top-right tag render exactly `LOCKED` / `UP NEXT` / `COMPLETE` from card state. Replace `SEALED` with `COMPLETE`.
+3. **Status line + button:** `Claimed.` + `Review [Mirror] →` on complete; `Unlocks after [previous]` + no button on locked; `Begin`/`Continue [Mirror] →` on up-next per saved-progress check.
+4. **Progress marks:** ensure all cards render the marks + `N of N`, truthful to state. Add to Identity & Values.
+5. **Footer:** unify to `[N] exercises · [N] videos`; remove minutes; convert Identity/Values descriptive footers to the count format.
+6. **Seal→claim string sweep** per the table (user-facing only).
+7. **Verify** on spock, owner login, `?newA1=1&newA2=1`, both themes: every card matches the shape; no "Sealed" visible anywhere; locked cards tagged; progress marks on all four A1 cards and all A2 cards; footers unified; clean load + in-range typecheck.
+
+## Working rules
+Plan-confirm first. ONE ship. Tokens/strings + display only — no mechanics. Verify on spock both themes. `mark_task_complete` returning MERGED is the benign expected signal.
