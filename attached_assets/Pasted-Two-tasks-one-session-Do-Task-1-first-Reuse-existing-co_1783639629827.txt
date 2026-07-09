@@ -1,0 +1,13 @@
+Two tasks, one session. Do Task 1 first. Reuse existing code aggressively — you already mapped A3 in #47/#48 and just built the People room; do NOT re-investigate the shell, tokens, card component, pips helper, or breakpoints. Clone the People room as the template for Environment. One focused pass, no styling iteration, minimal recon.
+TASK 1 — Apply the approved #48 routing fix. When na3_optin is set, intercept the top-level phase === "a3" render (all setPhase("a3") paths and the ?phase=a3 deep-link) and mount the new A3 surface forced to the A3 hub, mirroring how A1 short-circuits to its new surface. Use a one-shot initial-view override that takes precedence over saved-route restore without clobbering an open People-room overlay resume. Flag off → old A3 unchanged everywhere.
+TASK 2 — Ship 2: Mirror 2 (Environment) room. Build by cloning the People room — same room shell, veil, stage model, claim ceremony, and A3-namespaced store. Differences from People, only these:
+
+Phase 1 "Name them" adds a Habit / Place tag per item (toggle, default Habit). Framing card: Habits are behaviours you repeat; Places are the environments that shape you — name the main ones, good and bad. Hero: "Your habits and your places."
+Phase 2 "Rate them": Advocate / Neutral / Anchor per item (identical to People).
+Add one Takeaway field before claim: "one habit or place to change, and one to protect" — free text, optional, does not gate the claim.
+Claim: summary counts + conditional seal (gentler variant when advocates = 0 or anchors > advocates) → gold burst → Environment card → Complete → Thoughts unlocks + flash → progress "2 of 6".
+Persist each item as { name, kind: "habit"|"place", rating } in the A3 store so Energy Map / The Move read it later.
+People room unchanged; Thoughts, Energy Map, The Board, The Move stay Locked (no rooms).
+Copy verbatim from the mockup A3_Full_Mockup_v3.html. Reuse the cyan is-current, the shared pips helper (N of N only when Complete), Georgia hub / Cormorant rooms, and existing breakpoints. Introduce no new fonts, colors, or breakpoints.
+
+Verification: leave it to the reviewer — do not spend actions manually testing in-browser. Just run a typecheck on the touched ranges only (the file has a large unrelated error baseline; verify in-range). Report back when the checkpoint is made.

@@ -41,9 +41,36 @@ export const EMPTY_A3_PEOPLE: A3PeopleState = {
   claimedAt: null,
 };
 
+// A3 Ship 2 · Mirror 2 (Environment). Same two-stage + Claim model as People,
+// but each item carries a kind tag (Habit = behaviour you repeat, Place = an
+// environment that shapes you) and the rating lives ON the item (not a side
+// map) so Energy Map / The Move can read { name, kind, rating } later.
+// `rating: null` = not yet rated. `takeaway` is the optional free-text
+// "one to change, one to protect" note captured on the Claim stage — it
+// never gates the claim.
+export type A3EnvKind = "habit" | "place";
+export type A3EnvItem = {
+  name: string;
+  kind: A3EnvKind;
+  rating: A3PeopleRating | null;
+};
+export type A3EnvState = {
+  items: A3EnvItem[];
+  takeaway: string;
+  claimed: boolean;
+  claimedAt: string | null;
+};
+
+export const EMPTY_A3_ENV: A3EnvState = {
+  items: [],
+  takeaway: "",
+  claimed: false,
+  claimedAt: null,
+};
+
 export type A3State = {
   m1: A3PeopleState; // People
-  m2: A3MirrorStub; // Environment
+  m2: A3EnvState; // Environment
   m3: A3MirrorStub; // Thoughts
   m4: A3MirrorStub; // Energy Map
   m5: A3MirrorStub; // The Board
@@ -52,7 +79,7 @@ export type A3State = {
 
 export const EMPTY_A3: A3State = {
   m1: { ...EMPTY_A3_PEOPLE },
-  m2: {},
+  m2: { ...EMPTY_A3_ENV },
   m3: {},
   m4: {},
   m5: {},
@@ -104,6 +131,41 @@ function normalizeA3People(raw: unknown): A3PeopleState {
   return { names, ratings, claimed, claimedAt };
 }
 
+// Coerce an unknown blob into a valid A3EnvState, mirroring
+// normalizeA3People: drop non-string/blank/duplicate names, coerce unknown
+// kinds to "habit" (the toggle default) and unknown ratings to null so a
+// corrupt store can't poison the Environment mirror.
+function normalizeA3Env(raw: unknown): A3EnvState {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<
+    string,
+    unknown
+  >;
+  const seen = new Set<string>();
+  const items: A3EnvItem[] = [];
+  if (Array.isArray(r.items)) {
+    for (const it of r.items) {
+      if (!it || typeof it !== "object") continue;
+      const o = it as Record<string, unknown>;
+      if (typeof o.name !== "string") continue;
+      const name = o.name.trim();
+      if (name === "" || seen.has(name)) continue;
+      seen.add(name);
+      const kind: A3EnvKind = o.kind === "place" ? "place" : "habit";
+      const rating = A3_PEOPLE_RATINGS.includes(o.rating as A3PeopleRating)
+        ? (o.rating as A3PeopleRating)
+        : null;
+      items.push({ name, kind, rating });
+    }
+  }
+  const takeaway = typeof r.takeaway === "string" ? r.takeaway : "";
+  const claimed = r.claimed === true;
+  const claimedAt =
+    typeof r.claimedAt === "string" && r.claimedAt.trim() !== ""
+      ? r.claimedAt
+      : null;
+  return { items, takeaway, claimed, claimedAt };
+}
+
 export function loadA3State(): A3State {
   try {
     if (typeof window === "undefined") return EMPTY_A3;
@@ -116,6 +178,7 @@ export function loadA3State(): A3State {
       // empty-object stub upgrades to the real People shape.
       const merged = { ...EMPTY_A3, ...parsed } as A3State;
       merged.m1 = normalizeA3People((parsed as { m1?: unknown }).m1);
+      merged.m2 = normalizeA3Env((parsed as { m2?: unknown }).m2);
       return merged;
     }
   } catch {}
