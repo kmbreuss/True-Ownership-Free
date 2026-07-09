@@ -1,0 +1,67 @@
+# A3 — Card & Room Operating Model (addendum to Ship 1 brief)
+
+How the mirror cards behave and how a mirror room's stages/"next" flow works. Reuse the existing A1/A2 mechanics — this documents them so the build is consistent. **The live A1/A2 wins wherever it differs.**
+
+---
+
+## 1. Card states (three, exactly)
+
+A mirror card is always in exactly one of: **Locked → Up next → Complete**. Accent is **gold** in every state (the app has no teal; gold `#b8892f` light / `#c9a84c` dark). States differ by tag, number, pips, status, and CTA — not by hue.
+
+| Element | Locked | Up next | Complete |
+|---|---|---|---|
+| **Tag** (exact text) | `Locked` — muted grey, no fill | `Up next` — gold text, pale-gold fill, gold border | `Complete` — gold text, pale-gold fill, gold border |
+| **Number (0N)** | muted grey | gold, Georgia italic | gold, Georgia italic |
+| **Pips** | empty (all off) | reflect progress; **no "N of N" count** | all filled + **"N of N"** count shown |
+| **Status line** | `Unlocks after [previous mirror]` | (blank, or brief progress) | `Claimed.` (Georgia italic) |
+| **CTA** | none (no button) | one gold pill: `Begin [Mirror] →` (or `Continue [Mirror] →` if partially done) | one ghost/gold-outline: `Review [Mirror] →` |
+| **Footer** | `[N] exercises` | `[N] exercises` | `[N] exercises` |
+| **Card body** | dimmed/reduced opacity | full; may carry a subtle gold highlight to signal "current" | full |
+
+Rules (from the mirror-card standard): tag text is **only** those three strings; the **"N of N" count appears only when Complete**; pips are truthful (never all-full unless complete); exactly **one** CTA per card.
+
+---
+
+## 2. State transitions (unlock chaining)
+
+- Cards unlock **in sequence**: People → Environment → Thoughts → Energy Map → The Board → The Move.
+- When mirror **N** is claimed: its card flips to **Complete**, and mirror **N+1** flips **Locked → Up next** with a brief **flash**, and the hub progress line increments ("X of 6 complete").
+- **Unlock must be driven by unlock booleans chained off the previous card's unlock — NOT off persisted completion.** (Per Replit's note: persisting completion causes downstream cards to stay unlocked/leak after a reset.) A reset should re-lock everything except People.
+- Only **one** card is "Up next" at a time; everything after it is Locked.
+
+---
+
+## 3. Room stages ("next" within a mirror)
+
+Tapping an available card runs the **veil transition** into the room (A2 room shell: spine sidebar, header pills, theme toggle). Inside, a mirror moves through **stages**, advanced by a single primary button:
+
+**Generic stage flow**
+1. **Enter** → veil → room opens on Stage 1. A small **phase stepper** shows the stages (e.g. "Name them → Rate them"), display-only.
+2. **Stage 1 … Stage N** → primary button reads **`Continue →`**; it's disabled until that stage's requirement is met, then advances to the next stage.
+3. **Claim stage** (always last) → summary + seal; primary button reads **`Claim →`**.
+4. **After claim** → gold **burst**; the primary button becomes **`Continue to [next mirror] →`**, which **closes the room** and applies the completion (card flips, next unlocks, progress increments).
+- **Back**: each stage past the first has a **← Back** link to the previous stage; the room's **×** closes back to the hub at any time. Reopening a **Complete** mirror via `Review →` re-enters at Stage 1 for review, with Back/Next working (no re-claim required).
+- The **veil fires on every entry**, including re-entries/reviews.
+
+---
+
+## 4. Mirror 1 · People — concrete stages
+
+1. **Veil** → room opens.
+2. **Stage 1 — Brain dump ("Name them")**: one textarea, one name per line; **live counter**; "if you're stuck" prompt chips; `Continue →` enabled at **≥ 1 name**.
+3. **Stage 2 — Rate them**: each name → **Advocate / Neutral / Anchor** single-select (gold / muted grey / burgundy). No role dropdown, no per-person action. `Continue →` enabled when **all names rated**. Stepper shows "Name them ✓ → Rate them".
+4. **Claim**: summary counts (Advocates / Neutral / Anchors); **seal** copy with the **gentler variant when advocates = 0 or anchors > advocates**, otherwise the standard "you looked" variant; `Claim →`.
+5. **After claim**: gold burst → People card → **Complete** ("Claimed.", pips full, "N of N") → **Environment** flips to **Up next** (flash) → progress "**1 of 6**". `Continue to Environment →` closes the room.
+6. **Persistence**: store People as `name → rating` in the **A3-namespaced** store so The Board (later ship) reads the **advocates** as its head-start pool.
+
+---
+
+## 5. Quick QA checklist (cards & stages)
+
+- Only one card Up next; all later cards Locked with correct "Unlocks after…" text.
+- Pips show "N of N" only on Complete; never before.
+- CTA text matches state: Begin/Continue (up next) · Review (complete) · none (locked).
+- Claim → burst → card flips → next flashes to Up next → progress +1.
+- Reset re-locks all but People (unlock via booleans, not persisted completion).
+- Review reopens a completed mirror at Stage 1 with working Back/Next, veil fires.
+- Accent is gold in all states (no teal); Advocate gold / Neutral grey / Anchor burgundy.

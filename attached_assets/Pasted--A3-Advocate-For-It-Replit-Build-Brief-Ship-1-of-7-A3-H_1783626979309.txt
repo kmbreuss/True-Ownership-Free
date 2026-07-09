@@ -1,0 +1,121 @@
+# A3 "Advocate For It" — Replit Build Brief
+## Ship 1 of 7: A3 Hub + Mirror 1 (People)
+
+Reference mockup (behaviour, copy, flow — NOT pixels): **A3_Full_Mockup_v3.html**
+Build one mirror at a time. This brief is **Ship 1 only**. Environment, Thoughts, Energy Map, The Board, and The Move are separate later ships.
+
+---
+
+## 0. How to use this brief (Agent)
+
+1. **Investigate read-only first.** Before writing any code, map how the *new* A1 and A2 are implemented and report back: the mirror-hub card component, the section-room shell, the CSS variables/fonts they use, how claim/unlock works, and how the `?newA1=1` / `?newA2=1` flags switch versions. Propose a plan and wait for approval.
+2. **One ship at a time.** Do not build ahead into other mirrors.
+3. **Diagnose before changing.** If something is unclear, ask rather than assume.
+
+---
+
+## 1. Context
+
+- The app already has an **OLD A3** (the teal "external ecosystem" horizon version). Do **not** delete or alter it yet.
+- Build the **NEW A3** behind a **`?newA3=1`** flag, mirroring the existing `?newA1=1` / `?newA2=1` pattern. Without the flag, users still see the old A3. We cut over later once all A3 ships are done.
+- The new A3 must look and feel like the **new A1 and A2** — same shell, same components, same tokens.
+
+---
+
+## 2. Architecture & consistency — READ BEFORE BUILDING (critical)
+
+This is the whole point of the ship. **Reuse; do not reinvent.**
+
+- **Cards:** the A3 hub cards must be the **same component and styles as the A1 mirror-hub cards.** Do not build a new card. Whatever A1 uses for number, state tag, MIRROR label, title, description, progress pips, status line, CTA, and footer meta — reuse it.
+- **Room shell:** the A3 section rooms must reuse the **A2 section-room shell** — top header (brand + A1–A5 pills + account + theme toggle), the **220px left section sidebar** (section list with gold-highlighted active item + VOICE dropdown), and the room content column. Do not build a new shell.
+- **Fonts — CONFIRMED against the live app (read directly):**
+  - Body / labels / buttons / eyebrow / sidebar = **DM Sans** (button text color `#1A1407`).
+  - **A3 hub cards + hub hero = Georgia**, matching A1 exactly. Reference: A1's card title "Purpose" is `Georgia` 21px / weight 600 / `#2A2620`; the "01" is Georgia *italic* 10px in gold `#b8892f`; the hero "Commit to the life you want to live." is Georgia 36px / 600.
+  - **A3 section-room heroes/quotes = Cormorant Garamond** (the existing `--serif` variable), matching A2's rooms.
+  - Net rule: **build the A3 hub to match A1 (Georgia); build the A3 rooms to match A2 (Cormorant via `--serif`). Introduce no other serif.**
+- **Colors / tokens — CONFIRMED:** `--gold` `#b8892f` (light) / `#c9a84c` (dark); light bg `#f5f3ef`; dark bg `#0d1b2e`; `--border` `#1e3554`; burgundy `#7A2E2E` (light) / `#A03B3B` (dark); `--rail-w` `220px`; `--na1-radius` `10px`, `--na1-radius-xl` `18px`. **Semantic (locked):** Advocate = gold, Neutral = muted grey, Anchor = burgundy. Add no new palette.
+- **Light default + dark toggle** — identical to A1/A2.
+- **Mobile — CONFIRMED (reuse the app's existing responsive system; do not re-create it):**
+  - **≥768px:** the left spine/rail (`.na1-spine`, width `--rail-w` = 220px) is `position:fixed` and content gets `padding-left:var(--rail-w)`. **<768px:** the rail collapses and content goes full-width.
+  - The mirror-card hub grid (`.na1-mirror-grid`) collapses to **1 column at ≤600px** (gap 14px).
+  - Room phase layouts (`.na1-phase-body`) collapse to **1 column at ≤640px**; button/action groups stack at ≤600px.
+  - Heroes downsize at ≤767px; `.na1-shell` padding tightens at ≤600px.
+  - So: build the A3 hub using `.na1-mirror-grid` and the A3 rooms inside the existing shell / phase-body classes — mobile is inherited automatically. Verify at 375px. Introduce **no new breakpoints**; if a genuinely new A3-only component needs one, match the existing set: **768 / 640 / 600**.
+- **Operating model / transitions:** hub → tap card → veil transition → room, exactly as A2. Claim ceremony consistent with A1/A2: validate inputs → seal message → Claim → card flips to **Complete** with a gold burst → next mirror unlocks and flashes.
+
+---
+
+## 3. Ship 1 scope
+
+### 3a. A3 hub (all six cards, gated)
+
+Header/intro block (reuse A1's):
+- Eyebrow: `A3 · ADVOCATE FOR IT · [Name]`
+- Serif hero (copy TBD — placeholder from mockup: "Surround the life you're building.")
+- Italic welcome: "Welcome back, [Name]."
+- Lead: "Six mirrors. Audit the people, places, and thoughts around you — then build your board and make one move."
+- Progress line: "**0 of 6** complete"
+
+Six cards, in this order, using the A1 card anatomy:
+
+| # | Mirror | Title | One-line description | Ship-1 state |
+|---|--------|-------|----------------------|--------------|
+| 01 | Mirror 1 | People | The people around you — and how each one shapes your energy. | **Up next** |
+| 02 | Mirror 2 | Environment | Your habits and your places — what lifts you, what drains you. | Locked · "Unlocks after People" |
+| 03 | Mirror 3 | Thoughts | The voice that runs when no one else is in the room. | Locked · "Unlocks after Environment" |
+| 04 | Mirror 4 | Energy Map | Everyone and everything you named, by how close you keep it. | Locked · "Unlocks after Thoughts" |
+| 05 | Mirror 5 | The Board | The people you want in your corner — name the roles, seat who fits. | Locked · "Unlocks after Energy Map" |
+| 06 | Mirror 6 | The Move | The single thing to act on now. Hand it to A4. | Locked · "Unlocks after The Board" |
+
+Only **People** is functional this ship; the rest are locked cards (no room behind them yet).
+
+### 3b. Mirror 1 — People (full room)
+
+Reuse the A2 room shell. Flow, copy, and interaction per the mockup:
+
+**Phase 1 — Brain dump**
+- Serif prompt: "Who's in your inner circle?"
+- Lead: "The people who shape your energy — on purpose or by default. Name them first. Rate them second. Don't censor."
+- One textarea, one name per line, live counter ("N names · most lists land between 10 and 25").
+- "If you're stuck" prompt chips (from mockup): Who did I talk to this week? / Who's in my group chats? / Who do I text when something big happens? / Who do I avoid calling back? / Whose opinion runs in my head?
+- Continue enabled once ≥ 1 name.
+
+**Phase 2 — Rate them**
+- Serif prompt: "Rate each one — honestly."
+- Legend: **Advocate** lifts you · **Neutral** is just there · **Anchor** holds you back.
+- Each name → single-select Advocate / Neutral / Anchor.
+- **No category/role dropdown. No per-person action.** (Action lives in The Move, a later ship.)
+- Continue enabled when all names rated.
+
+**Claim**
+- Summary: counts of Advocates / Neutral / Anchors.
+- Seal (two variants, per mockup): a gentler "thinner than you hoped" variant when advocates = 0 or anchors > advocates; otherwise the "you looked, that takes courage" variant.
+- Claim button → gold burst → People card flips to **Complete** ("Claimed.") → **Environment unlocks** (Up next, flash) → progress "1 of 6".
+
+**Data**
+- Persist People as `name → rating` (advocate / neutral / anchor), namespaced to A3, so **The Board** (later ship) can read the advocates. Advocate names are the head-start pool for the Board's seats.
+
+---
+
+## 4. Acceptance criteria (Ship 1)
+
+- `?newA3=1` renders the new A3 hub; **without** the flag the old A3 is unchanged.
+- Hub cards are visually identical to A1's cards (same fonts, colors, radii, spacing) — no new styles introduced.
+- People room uses the A2 room shell; both phases + claim work; claiming completes the card and unlocks Environment.
+- Light default + dark toggle both correct.
+- Mobile at 375px: single column, wrapping controls, no horizontal overflow.
+- Nothing hardcoded that duplicates an existing token/component.
+
+---
+
+## 5. Explicitly out of scope for Ship 1
+
+- Environment, Thoughts, Energy Map, The Board, The Move rooms (Ships 2–7).
+- Map of Me™ output.
+- Any change to the old A3.
+
+---
+
+## 6. Note
+
+Fonts are now confirmed against the live app: the **hub** (cards + hero) uses **Georgia**, the **rooms** use **Cormorant Garamond** (`--serif`). Reuse A1's card/hero styles for the A3 hub and A2's room styles for the A3 rooms, so everything inherits correctly. If the Agent finds A1/A2's live implementation differs from anything in this brief, **the live A1/A2 wins** — flag the difference and match the app.
