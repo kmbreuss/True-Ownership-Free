@@ -243,3 +243,9 @@ were left vestigial so old persisted `initialRoomKey="operationalize"` can't cra
 **How to apply:** don't "finish the cleanup" by ripping out the vestigial
 operationalize key/type/case unless you also handle migration of old saved state;
 and never reintroduce `userDefinition`-based gating for Rank/Claim.
+
+## Visual verification blocked by auth wall
+The dev preview lands on the email+password sign-in screen, so screenshot-based
+verification of inner views (hubs/rooms) is not possible without credentials.
+**How to apply:** verify new App.tsx surfaces via in-range typecheck grep +
+architect review; don't burn time on app_preview screenshots past the login.

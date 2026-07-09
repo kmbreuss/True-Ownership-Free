@@ -152,6 +152,15 @@ import {
   EMPTY_A2_M2,
 } from "./a2Constants";
 import {
+  loadA3State,
+  saveA3State,
+  hasA3State,
+  EMPTY_A3,
+  type A3State,
+  type A3PeopleState,
+  type A3PeopleRating,
+} from "./a3Constants";
+import {
   VIDEOS,
   isVideoReady,
   getVimeoEmbedUrl,
@@ -1354,6 +1363,7 @@ html[data-theme="light"]{
 .na1-completion-cell input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--na1-sans); font-size:16px; box-sizing:border-box; transition:border-color .18s, box-shadow .18s; }
 .na1-completion-cell input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-glow); }
 .na1-chip.tone-gold.is-selected{ background:var(--gold-warm); border-color:var(--gold); color:var(--gold); }
+.na1-chip.tone-grey.is-selected{ background:var(--na1-bg-soft); border-color:var(--na1-text-mute); color:var(--na1-text-sec); font-weight:600; }
 /* Peel (Ex3) — cyan tone */
 .na1-peel-milestone{ padding:14px 16px; border:1px solid var(--gold-line); background:var(--gold-warm); border-radius:var(--na1-radius); margin-bottom:12px; }
 .na1-peel-milestone-eyebrow{ font-size:10px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); margin-bottom:4px; font-family:var(--na1-sans); }
@@ -28546,6 +28556,7 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
 // module load; clearing site data resets the opt-in.
 const NEW_A1_OPTIN_KEY = "na1_optin";
 const NEW_A2_OPTIN_KEY = "na2_optin";
+const NEW_A3_OPTIN_KEY = "na3_optin";
 const NEW_A1_FLAG = (() => {
   try {
     const urlOn = new URLSearchParams(window.location.search).has("newA1");
@@ -28579,6 +28590,30 @@ const NEW_A2_FLAG = (() => {
       return true;
     }
     return window.localStorage.getItem(NEW_A2_OPTIN_KEY) === "1";
+  } catch {
+    return false;
+  }
+})();
+
+// ─── NEW A3 (?newA3=1) feature flag ───
+// A3 ("Advocate For It") hub + People room. Requires NEW_A2_FLAG — A3 lives
+// inside the NewA1View tree and only makes sense after the A2 surface, so we
+// AND it explicitly like NEW_A2_FLAG does with NEW_A1_FLAG. Sticky opt-in:
+// once enabled via ?newA3=1 it persists across hard reloads so a persisted
+// view:"a3"/"a3m1" route (and its open room overlay) restores instead of
+// falling back to the grid. Read once at module load. Without the flag the
+// old A3 (phase "a3") renders unchanged.
+const NEW_A3_FLAG = (() => {
+  try {
+    if (!NEW_A2_FLAG) return false;
+    const urlOn = new URLSearchParams(window.location.search).has("newA3");
+    if (urlOn) {
+      try {
+        window.localStorage.setItem(NEW_A3_OPTIN_KEY, "1");
+      } catch {}
+      return true;
+    }
+    return window.localStorage.getItem(NEW_A3_OPTIN_KEY) === "1";
   } catch {
     return false;
   }
@@ -33530,11 +33565,16 @@ type AppRouteView =
   | "a2m1"
   // A2 Ship 1 · Time Audit (a2m2) room + Named Truth (a2m3) placeholder shell.
   | "a2m2"
-  | "a2m3";
+  | "a2m3"
+  // A3 Ship 1 · Advocate For It hub (a3) + People room (a3m1), gated behind
+  // ?newA3=1.
+  | "a3"
+  | "a3m1";
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
   // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3";
+  // A3 Ship 1 · "a3m1" addresses the People room (roomId "people").
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -33552,6 +33592,8 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a2m1",
   "a2m2",
   "a2m3",
+  "a3",
+  "a3m1",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -33773,17 +33815,27 @@ function NewA1Spine({
   view,
   onNavigate,
   a2Enabled,
+  a3Enabled,
 }: {
   name?: string;
   a1Complete: boolean;
   view: AppRouteView;
   onNavigate: (v: AppRouteView) => void;
   a2Enabled: boolean;
+  // A3 Ship 1 · gates the Advocate vertebra's destination (?newA3=1). Like
+  // Align, gated on the flag only — NOT on A2 completion — so it's reachable
+  // mid-A2.
+  a3Enabled?: boolean;
 }) {
   // A2.1 · the Alignment Check hub (a2m1) lives under Align, so it lights the
-  // same vertebra as the A2 hub itself.
-  const current: "allin" | "align" =
-    view === "a2" || view === "a2m1" ? "align" : "allin";
+  // same vertebra as the A2 hub itself. A3 Ship 1 · the People room (a3m1)
+  // likewise lights the same Advocate vertebra as the A3 hub.
+  const current: "allin" | "align" | "advocate" =
+    view === "a2" || view === "a2m1"
+      ? "align"
+      : view === "a3" || view === "a3m1"
+        ? "advocate"
+        : "allin";
   const vertebrae: {
     num: string;
     label: string;
@@ -33809,8 +33861,8 @@ function NewA1Spine({
       num: "03",
       label: "Advocate",
       claimed: false,
-      isCurrent: false,
-      dest: null,
+      isCurrent: current === "advocate",
+      dest: a3Enabled ? "a3" : null,
     },
     { num: "04", label: "Act", claimed: false, isCurrent: false, dest: null },
     {
@@ -34664,6 +34716,7 @@ function NewA2M1HubView({
 // No veil here — like every mirror hub, only room launches fire the entry veil.
 function NewA2MirrorHubView({
   onBackToA2,
+  crumbLabel = "A2 · Align With It",
   onStart,
   currentStep,
   maxReached,
@@ -34679,6 +34732,9 @@ function NewA2MirrorHubView({
   resumeLabel,
 }: {
   onBackToA2: () => void;
+  // A3 Ship 1 · the section crumb is parameterized so the A3 People room can
+  // reuse this overview hub; defaults preserve the original A2 wording.
+  crumbLabel?: string;
   onStart?: (step?: number) => void;
   currentStep: number;
   maxReached: number;
@@ -34714,7 +34770,7 @@ function NewA2MirrorHubView({
         <div className="na1-breadcrumb">
           <a onClick={onBackToA2}>Entry Hall</a>
           <span className="sep">›</span>
-          <a onClick={onBackToA2}>A2 · Align With It</a>
+          <a onClick={onBackToA2}>{crumbLabel}</a>
           <span className="sep">›</span>
           <span className="current">{title}</span>
         </div>
@@ -38817,6 +38873,835 @@ function NewA2M3Container({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// A3 Ship 1 · Advocate For It · hub + Mirror 1 (People)
+// ─────────────────────────────────────────────────────────────────────────────
+// Gated behind NEW_A3_FLAG (?newA3=1). Reuses the A1 mirror-card anatomy, the
+// A2 room shell / veil / claim ceremony, and the existing tokens verbatim —
+// no new fonts, colors, or breakpoints. Old A3 (phase "a3") is untouched.
+
+const A3M1_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "Name them" },
+  { num: 2, name: "Rate them" },
+  { num: 3, name: "Claim" },
+];
+const A3M1_VEIL_TEXT = "Looking at who's around the life you're building…";
+// "If you're stuck" prompt chips — copy per the Ship 1 brief mockup.
+const A3M1_PROMPT_CHIPS = [
+  "Who did I talk to this week?",
+  "Who's in my group chats?",
+  "Who do I text when something big happens?",
+  "Who do I avoid calling back?",
+  "Whose opinion runs in my head?",
+];
+
+// Hub card copy (brief §3a). People is the only functional mirror this ship;
+// the rest are locked cards with no room behind them.
+const A3_MIRRORS: { num: string; title: string; sub: string }[] = [
+  {
+    num: "01",
+    title: "People",
+    sub: "The people around you — and how each one shapes your energy.",
+  },
+  {
+    num: "02",
+    title: "Environment",
+    sub: "Your habits and your places — what lifts you, what drains you.",
+  },
+  {
+    num: "03",
+    title: "Thoughts",
+    sub: "The voice that runs when no one else is in the room.",
+  },
+  {
+    num: "04",
+    title: "Energy Map",
+    sub: "Everyone and everything you named, by how close you keep it.",
+  },
+  {
+    num: "05",
+    title: "The Board",
+    sub: "The people you want in your corner — name the roles, seat who fits.",
+  },
+  {
+    num: "06",
+    title: "The Move",
+    sub: "The single thing to act on now. Hand it to A4.",
+  },
+];
+
+// Parse the brain-dump textarea: one name per line, trimmed, empties dropped,
+// case-preserving dedupe in first-seen order.
+function parseA3Names(text: string): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    const t = line.trim();
+    if (t === "" || seen.has(t)) continue;
+    seen.add(t);
+    names.push(t);
+  }
+  return names;
+}
+
+// ─── A3 · hub view ───
+// Mirrors NewA2HubView's structure (breadcrumb + hero + na1-mirror-card grid).
+// Card states follow the Task 46 mirror-card standard exactly: tag is only
+// Locked / Up next / Complete; up-next uses .is-current (cyan); locked is
+// dashed at 0.65 opacity; "N of N" pips caption only when Complete (enforced
+// by MirrorPips). Unlock chaining flows through unlock booleans off the
+// PREVIOUS card's unlock — never persisted completion alone — so a reset
+// re-locks everything except People (see Mirror-gating memory).
+function NewA3HubView({
+  name,
+  onEntryHall,
+  onBeginPeople,
+}: {
+  name?: string;
+  onEntryHall: () => void;
+  onBeginPeople: () => void;
+}) {
+  useEffect(() => {
+    if (!hasA3State()) {
+      saveA3State(EMPTY_A3);
+    }
+  }, []);
+  // Completion is driven solely by m1.claimed, read once at mount — this view
+  // remounts on every hub↔room view switch, so a claim made inside the People
+  // room is reflected the moment the user returns here.
+  const a3m1 = useMemo(() => loadA3State().m1, []);
+  const m1Claimed = a3m1.claimed;
+  const m1Names = a3m1.names;
+  const m1AllRated =
+    m1Names.length > 0 && m1Names.every((n) => a3m1.ratings[n] != null);
+  const m1Started = m1Names.length > 0;
+  const m1Done = m1Claimed
+    ? 3
+    : (m1Names.length >= 1 ? 1 : 0) + (m1AllRated ? 1 : 0);
+  // Unlock booleans, chained. People is always unlocked; each later mirror
+  // unlocks off the PREVIOUS unlock AND the previous mirror's claim. Mirrors
+  // 2–6 have no claim yet (stubs), so in Ship 1 only Environment can ever
+  // reach Up next.
+  const peopleUnlocked = true;
+  const envUnlocked = peopleUnlocked && m1Claimed;
+  const thoughtsUnlocked = envUnlocked && false; // m2.claimed — Ship 2
+  const mirrorsComplete = m1Claimed ? 1 : 0;
+  // Locked/stub cards 02–06, driven off the chained unlock booleans above.
+  const laterCards = [
+    { idx: 1, unlocked: envUnlocked, prev: "People" },
+    { idx: 2, unlocked: thoughtsUnlocked, prev: "Environment" },
+    { idx: 3, unlocked: false, prev: "Thoughts" },
+    { idx: 4, unlocked: false, prev: "Energy Map" },
+    { idx: 5, unlocked: false, prev: "The Board" },
+  ];
+  return (
+    <div className="na1-root">
+      <div className="na1-shell">
+        <div className="na1-breadcrumb">
+          <a onClick={onEntryHall}>Entry Hall</a>
+          <span className="sep">›</span>
+          <span className="current">A3 · Advocate For It</span>
+        </div>
+        <div className="na1-hero">
+          <div>
+            <div className="na1-hero-eyebrow">
+              A3 · Advocate For It{name ? ` · ${name}` : ""}
+            </div>
+            {/* Hero copy is a PLACEHOLDER (brief §3a — final copy TBD). Kept
+                as one plain string so it can be swapped with a one-line edit. */}
+            <h1 className="na1-hero-title">
+              Surround the life you&rsquo;re building.
+            </h1>
+            <p
+              style={{
+                fontFamily: "var(--na1-serif)",
+                fontStyle: "italic",
+                fontSize: 15,
+                color: "var(--na1-text-sec)",
+                margin: "0 0 10px",
+              }}
+            >
+              {name ? `Welcome back, ${name}.` : "Welcome back."}
+            </p>
+            <p className="na1-hero-sub">
+              Six mirrors. Audit the people, places, and thoughts around you —
+              then build your board and make one move.
+            </p>
+          </div>
+          <div className="na1-hero-meta">
+            <strong>{mirrorsComplete} of 6</strong> complete
+          </div>
+        </div>
+        <div className="na1-mirror-grid">
+          {/* 01 · People — the only functional mirror this ship. */}
+          <article
+            className={`na1-mirror-card ${
+              m1Claimed ? "is-complete" : "is-current"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">01</span>
+              <span className="na1-mirror-card-status">
+                {m1Claimed ? "Complete" : "Up next"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 1</div>
+            <h2 className="na1-mirror-card-name">People</h2>
+            <p className="na1-mirror-card-sub">{A3_MIRRORS[0].sub}</p>
+            <MirrorPips done={m1Done} total={3} />
+            <div
+              className="na1-mirror-card-empty"
+              style={
+                m1Claimed
+                  ? {
+                      fontStyle: "italic",
+                      color: "var(--na1-text-sec)",
+                      fontFamily: "var(--na1-serif)",
+                    }
+                  : undefined
+              }
+            >
+              {m1Claimed ? "Claimed." : ""}
+            </div>
+            <div className="na1-mirror-card-action">
+              <button
+                type="button"
+                className="na1-btn-gold na1-btn-block"
+                onClick={onBeginPeople}
+              >
+                {m1Claimed
+                  ? "Review People →"
+                  : m1Started
+                    ? "Continue People →"
+                    : "Begin People →"}
+              </button>
+              <span className="na1-mirror-card-meta">3 exercises</span>
+            </div>
+          </article>
+          {/* 02–06 · later ships. Locked cards only — no rooms behind them.
+              When a card's unlock boolean flips (02 Environment after the
+              People claim) it renders Up next (.is-current cyan + the shared
+              flash cue) with an inert Begin placeholder until its ship lands. */}
+          {laterCards.map(({ idx, unlocked, prev }) => {
+            const m = A3_MIRRORS[idx];
+            return (
+              <article
+                key={m.num}
+                className={`na1-mirror-card ${
+                  unlocked ? "is-current" : "is-locked"
+                }`}
+              >
+                <div className="na1-mirror-card-head">
+                  <span className="na1-mirror-card-num">{m.num}</span>
+                  <span className="na1-mirror-card-status">
+                    {unlocked ? "Up next" : "Locked"}
+                  </span>
+                </div>
+                <div className="na1-mirror-card-eyebrow">Mirror {idx + 1}</div>
+                <h2 className="na1-mirror-card-name">{m.title}</h2>
+                <p className="na1-mirror-card-sub">{m.sub}</p>
+                <MirrorPips done={0} total={3} />
+                <div className="na1-mirror-card-empty">
+                  {unlocked ? "" : `Unlocks after ${prev}`}
+                </div>
+                <div className="na1-mirror-card-action">
+                  {unlocked ? (
+                    <button
+                      type="button"
+                      className="na1-btn-gold na1-btn-block"
+                      disabled
+                    >
+                      Begin {m.title} →
+                    </button>
+                  ) : null}
+                  <span className="na1-mirror-card-meta">3 exercises</span>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 1 (People) · Stage 1 — Brain dump ───
+function NewA3M1Step1Body({
+  text,
+  onChangeText,
+  nameCount,
+}: {
+  text: string;
+  onChangeText: (t: string) => void;
+  nameCount: number;
+}) {
+  const taRef = useRef<HTMLTextAreaElement | null>(null);
+  // Chips are reflection QUESTIONS, not names — injecting their text into the
+  // one-name-per-line list would corrupt the data. Tapping one marks it as the
+  // active prompt (gold selection, toggleable) and returns focus to the
+  // textarea so the user can answer it.
+  const [activePrompt, setActivePrompt] = useState<string | null>(null);
+  const onPromptTap = (p: string) => {
+    setActivePrompt((cur) => (cur === p ? null : p));
+    taRef.current?.focus();
+  };
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 1 · STAGE 1</div>
+      <h2 className="na1-room-title">Who&rsquo;s in your inner circle?</h2>
+      <p className="na1-room-context">
+        The people who shape your energy — on purpose or by default. Name them
+        first. Rate them second. Don&rsquo;t censor.
+      </p>
+      <textarea
+        ref={taRef}
+        className="na1-textarea"
+        style={{ minHeight: 180 }}
+        value={text}
+        onChange={(e) => onChangeText(e.target.value)}
+        placeholder={"One name per line…"}
+        aria-label="Names, one per line"
+      />
+      <p
+        style={{
+          fontFamily: "var(--na1-sans)",
+          fontSize: 13,
+          color: "var(--na1-text-mute)",
+          margin: "8px 0 18px",
+        }}
+        aria-live="polite"
+      >
+        {nameCount} {nameCount === 1 ? "name" : "names"} · most lists land
+        between 10 and 25
+      </p>
+      <p
+        style={{
+          fontFamily: "var(--na1-sans)",
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "var(--na1-text-mute)",
+          margin: "0 0 8px",
+        }}
+      >
+        If you&rsquo;re stuck
+      </p>
+      <div className="na1-chip-grid">
+        {A3M1_PROMPT_CHIPS.map((p) => (
+          <button
+            type="button"
+            key={p}
+            className={`na1-chip tone-gold ${
+              activePrompt === p ? "is-selected" : ""
+            }`}
+            aria-pressed={activePrompt === p}
+            onClick={() => onPromptTap(p)}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 1 (People) · Stage 2 — Rate them ───
+// Advocate = gold · Neutral = muted grey · Anchor = burgundy (existing tokens
+// only: .na1-chip tone-gold / tone-grey / default burgundy selection).
+function NewA3M1Step2Body({
+  names,
+  ratings,
+  onRate,
+}: {
+  names: string[];
+  ratings: Record<string, A3PeopleRating>;
+  onRate: (name: string, rating: A3PeopleRating) => void;
+}) {
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 1 · STAGE 2</div>
+      <h2 className="na1-room-title">Rate each one — honestly.</h2>
+      <p className="na1-room-context">
+        <strong style={{ color: "var(--gold)" }}>Advocate</strong> lifts you ·{" "}
+        <strong style={{ color: "var(--na1-text-sec)" }}>Neutral</strong> is
+        just there ·{" "}
+        <strong style={{ color: "var(--burgundy)" }}>Anchor</strong> holds you
+        back.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {names.map((n) => {
+          const r = ratings[n];
+          return (
+            <div
+              key={n}
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 10,
+                padding: "12px 14px",
+                border: "1px solid var(--na1-border)",
+                borderRadius: "var(--na1-radius)",
+                background: "var(--na1-bg-soft)",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--na1-sans)",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: "var(--na1-text)",
+                  flex: "1 1 140px",
+                  minWidth: 0,
+                  overflowWrap: "anywhere",
+                }}
+              >
+                {n}
+              </span>
+              <div className="na1-a2m1-chips" role="radiogroup" aria-label={n}>
+                <button
+                  type="button"
+                  className={`na1-chip tone-gold ${
+                    r === "advocate" ? "is-selected" : ""
+                  }`}
+                  role="radio"
+                  aria-checked={r === "advocate"}
+                  onClick={() => onRate(n, "advocate")}
+                >
+                  Advocate
+                </button>
+                <button
+                  type="button"
+                  className={`na1-chip tone-grey ${
+                    r === "neutral" ? "is-selected" : ""
+                  }`}
+                  role="radio"
+                  aria-checked={r === "neutral"}
+                  onClick={() => onRate(n, "neutral")}
+                >
+                  Neutral
+                </button>
+                <button
+                  type="button"
+                  className={`na1-chip ${
+                    r === "anchor" ? "is-selected" : ""
+                  }`}
+                  role="radio"
+                  aria-checked={r === "anchor"}
+                  onClick={() => onRate(n, "anchor")}
+                >
+                  Anchor
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 1 (People) · Claim ───
+// Replicates the A2 claim ceremony exactly (burst portal, 2s, then persist).
+// Seal copy has a gentler variant when advocates = 0 or anchors > advocates.
+function NewA3M1ClaimBody({
+  names,
+  ratings,
+  claimed,
+  onClaim,
+  onFinish,
+  nextMirror,
+}: {
+  names: string[];
+  ratings: Record<string, A3PeopleRating>;
+  claimed: boolean;
+  onClaim: () => void;
+  onFinish: () => void;
+  nextMirror?: { label: string; go: () => void } | null;
+}) {
+  const advocates = names.filter((n) => ratings[n] === "advocate").length;
+  const neutral = names.filter((n) => ratings[n] === "neutral").length;
+  const anchors = names.filter((n) => ratings[n] === "anchor").length;
+  const gentle = advocates === 0 || anchors > advocates;
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onClaim();
+    }, 2000);
+  };
+  const counts = (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 10,
+        margin: "0 0 18px",
+      }}
+    >
+      <span className="na1-chip tone-gold is-selected" aria-hidden>
+        {advocates} {advocates === 1 ? "Advocate" : "Advocates"}
+      </span>
+      <span className="na1-chip tone-grey is-selected" aria-hidden>
+        {neutral} Neutral
+      </span>
+      <span className="na1-chip is-selected" aria-hidden>
+        {anchors} {anchors === 1 ? "Anchor" : "Anchors"}
+      </span>
+    </div>
+  );
+  // Sealed state — reached on claim, and on every re-entry once claimed.
+  if (claimed) {
+    return (
+      <div>
+        <div className="na1-room-eyebrow tone-gold">
+          A3 · Mirror 1 · Claim ★
+        </div>
+        <h2 className="na1-room-title">Claimed.</h2>
+        {counts}
+        <div className="na1-a2m1-seal" role="status">
+          <p className="na1-a2m1-seal-body">
+            {gentle
+              ? `${displayName ? `${displayName}, this` : "This"} circle is thinner than you hoped — and now you know it. That's not a verdict, it's a map. The next mirrors show you where to build.`
+              : `${displayName ? `${displayName}, you` : "You"} looked at your circle without flinching — that takes courage. You know who lifts you and who holds you back. Now we look at where you spend your days.`}
+          </p>
+          <p className="na1-a2m1-seal-by">— Katherine</p>
+        </div>
+        {showBurst &&
+          createPortal(
+            <div className="na1-gold-burst" aria-hidden>
+              <div className="na1-gold-burst-inner" />
+            </div>,
+            document.body,
+          )}
+        <div className="na1-a2m1-claim-actions">
+          <button
+            type="button"
+            className="na1-btn-gold"
+            onClick={nextMirror ? nextMirror.go : onFinish}
+          >
+            {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A3 →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  // Pre-claim read-back.
+  return (
+    <div>
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 1 · CLAIM</div>
+      <h2 className="na1-room-title">Claim</h2>
+      <p className="na1-room-context">
+        Your circle, as it stands. Read it back, then seal it.
+      </p>
+      {counts}
+      <div className="na1-a2m1-seal" role="note">
+        <p className="na1-a2m1-seal-body">
+          {gentle
+            ? "This circle is thinner than you hoped. Naming that is the first honest move — the next mirrors show you where to build."
+            : "You looked at your circle without flinching. That takes courage — and it's the raw material for everything A3 builds next."}
+        </p>
+        <p className="na1-a2m1-seal-by">— Katherine</p>
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button
+          type="button"
+          className="na1-btn-gold"
+          onClick={handleClaim}
+          disabled={showBurst}
+        >
+          Claim →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 1 (People) · container ───
+// Modeled on NewA2M2Container: veil on every hub entry, claimed re-entry
+// lands on the step-card overview hub, room overlay owns the view while open.
+function NewA3M1Container({
+  onBackToA3,
+  onContinueToEnv,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA3: () => void;
+  // Returns to the A3 hub, fired from the Claim seal's "Continue to
+  // Environment →" CTA; the hub then flashes Environment as the up-next card.
+  onContinueToEnv: () => void;
+  // One-shot: "people" when restoring a saved room (resume — no veil).
+  initialRoomKey: string | null;
+  // Reports the open room ("people") or null so the parent can persist it.
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a3State, setA3State] = useState<A3State>(() => loadA3State());
+  const m1 = a3State.m1;
+  const mutateM1 = useCallback((fn: (m: A3PeopleState) => A3PeopleState) => {
+    setA3State((prev) => {
+      const next = { ...prev, m1: fn(prev.m1) };
+      saveA3State(next);
+      return next;
+    });
+  }, []);
+
+  // A resume mount (refresh while the room was open) restores the room with no
+  // veil. Every other entry from the hub plays the launch veil — even a sealed
+  // mirror replays it, then lands on the overview hub (see launch effect).
+  const resuming = initialRoomKey === "people";
+  const launchVeil = !resuming;
+  // Snapshot the claimed flag AT ENTRY so claiming mid-session (first run)
+  // does not retroactively flip close routing toward the overview hub (see
+  // A2 mirror-revisit memory).
+  const claimedAtEntry = useRef(m1.claimed).current;
+  const claimedRevisit = claimedAtEntry && !resuming;
+
+  // Local, non-persisted stage navigation. Review re-enters at Stage 1 (the
+  // overview hub's onStart passes the tapped step); a claimed resume lands on
+  // Claim so a refresh mid-seal doesn't regress.
+  const [currentStep, setCurrentStep] = useState<number>(
+    resuming && m1.claimed ? 3 : 1,
+  );
+  const [maxReached, setMaxReached] = useState<number>(m1.claimed ? 3 : 1);
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    !launchVeil && !claimedRevisit,
+  );
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+
+  // Mount-once veil sequence for a fresh launch (same as A2 rooms).
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        // A sealed re-entry replays the veil but lands on the overview hub
+        // (step-card list), not the room; only fresh/in-progress open it.
+        if (!claimedRevisit) setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Report the open room up so the route persists it (overlay "people").
+  useEffect(() => {
+    onRoomChange(roomOpen ? "people" : null);
+  }, [roomOpen, onRoomChange]);
+
+  // Closing the room returns to the overview hub on a claimed revisit,
+  // otherwise straight back to the A3 hub (first-run flow has no overview).
+  const closeRoom = () => {
+    setRoomOpen(false);
+    if (!claimedRevisit) onBackToA3();
+  };
+
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(3, step));
+    setCurrentStep(clamped);
+    setMaxReached((m) => Math.max(m, clamped));
+  };
+  const onBack = () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+    else closeRoom();
+  };
+  const onDone = () => {
+    if (currentStep < 3) goToStep(currentStep + 1);
+  };
+
+  // Stage 1 · brain-dump text. Local raw text (preserves in-progress typing,
+  // blank lines, order) seeded from persisted names; parsed + persisted on
+  // every change. Ratings for names no longer present are pruned so the two
+  // structures never drift.
+  const [dumpText, setDumpText] = useState<string>(() =>
+    m1.names.join("\n"),
+  );
+  const onChangeDump = (t: string) => {
+    setDumpText(t);
+    const names = parseA3Names(t);
+    mutateM1((m) => {
+      const ratings: Record<string, A3PeopleRating> = {};
+      for (const n of names) {
+        if (m.ratings[n]) ratings[n] = m.ratings[n];
+      }
+      return { ...m, names, ratings };
+    });
+  };
+  const onRate = (name: string, rating: A3PeopleRating) =>
+    mutateM1((m) => ({ ...m, ratings: { ...m.ratings, [name]: rating } }));
+
+  const allRated =
+    m1.names.length > 0 && m1.names.every((n) => m1.ratings[n] != null);
+
+  // Per-stage Continue gate: Stage 1 needs ≥ 1 name; Stage 2 needs all rated.
+  const canContinue =
+    currentStep === 1 ? m1.names.length >= 1 : currentStep === 2 ? allRated : true;
+
+  const claimM1 = () =>
+    mutateM1((m) => ({
+      ...m,
+      claimed: true,
+      claimedAt: m.claimedAt ?? new Date().toISOString(),
+    }));
+
+  // Forward CTA target for the Claim stage: back to the A3 hub, where the
+  // Environment card flashes as up-next.
+  const a3NextMirror = { label: "Environment", go: onContinueToEnv };
+
+  // Escape + scroll-lock while the room is open.
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  return (
+    <div className="na1-root">
+      {/* Reveal the step list UNDER the veil (hold/falling) so a sealed
+          re-entry lands cleanly on the hub rather than popping in at idle. */}
+      {!roomOpen && veilPhase !== "rising" && (
+        <NewA2MirrorHubView
+          onBackToA2={onBackToA3}
+          crumbLabel="A3 · Advocate For It"
+          onStart={(step) => {
+            goToStep(step ?? 1);
+            setRoomOpen(true);
+          }}
+          currentStep={currentStep}
+          maxReached={maxReached}
+          claimed={m1.claimed}
+          stepDone={(num) =>
+            num === 1 ? m1.names.length >= 1 : num === 2 ? allRated : m1.claimed
+          }
+          steps={A3M1_STEPS}
+          eyebrow="A3 · Mirror 1 · Explore with Katherine"
+          title="People"
+          sub="The people around you — and how each one shapes your energy."
+          introEyebrow="Start here · Katherine introduces People"
+          introCaption="Katherine's People intro · placeholder"
+          beginLabel="Begin People"
+          resumeLabel="Resume People"
+        />
+      )}
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="People"
+        >
+          <div className="na1-room-card na1-a2m2-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>People</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A3M1_STEPS[currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="na1-a2m2-body">
+              {currentStep === 1 ? (
+                <NewA3M1Step1Body
+                  text={dumpText}
+                  onChangeText={onChangeDump}
+                  nameCount={m1.names.length}
+                />
+              ) : currentStep === 2 ? (
+                <NewA3M1Step2Body
+                  names={m1.names}
+                  ratings={m1.ratings}
+                  onRate={onRate}
+                />
+              ) : (
+                <NewA3M1ClaimBody
+                  names={m1.names}
+                  ratings={m1.ratings}
+                  claimed={m1.claimed}
+                  onClaim={claimM1}
+                  onFinish={closeRoom}
+                  nextMirror={a3NextMirror}
+                />
+              )}
+            </div>
+            <div className="na1-a2m2-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>
+                {currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              {currentStep < 3 && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onDone}
+                  disabled={!canContinue}
+                >
+                  {`Continue to ${A3M1_STEPS[currentStep]?.name ?? "People"}`}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A3M1_VEIL_TEXT} />
+      )}
+    </div>
+  );
+}
+
 function NewA1View({ name }: { name?: string }) {
   // Ship 5.5e · Personalization · resolve the display name with the
   // canonical intake → auth fallback. The legacy A1 wrapper only forwards
@@ -38865,6 +39750,11 @@ function NewA1View({ name }: { name?: string }) {
         // ?newA2=1 is dropped, matching a2/a2m1 above.
         if (saved.view === "a2m2" && !NEW_A2_FLAG) return "grid";
         if (saved.view === "a2m3" && !NEW_A2_FLAG) return "grid";
+        // A3 Ship 1 · the Advocate hub (a3) and People room (a3m1) only
+        // exist under ?newA3=1; a persisted view falls back to the grid
+        // when the flag is dropped, matching a2/a2m1 above.
+        if (saved.view === "a3" && !NEW_A3_FLAG) return "grid";
+        if (saved.view === "a3m1" && !NEW_A3_FLAG) return "grid";
         return saved.view;
       }
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -38906,6 +39796,11 @@ function NewA1View({ name }: { name?: string }) {
     if (saved.overlay.hubId === "a2m3") {
       if (saved.view === "a2m3" && NEW_A2_FLAG) return saved.overlay;
     }
+    // A3 Ship 1 · Restore the People room overlay only when the saved view
+    // matches and the A3 flag is on.
+    if (saved.overlay.hubId === "a3m1") {
+      if (saved.view === "a3m1" && NEW_A3_FLAG) return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -38926,6 +39821,9 @@ function NewA1View({ name }: { name?: string }) {
   const initialA2M3RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a2m3" ? overlayRoute.roomId : null,
   );
+  const initialA3M1RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a3m1" ? overlayRoute.roomId : null,
+  );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
   const firstRoutePersistRef = useRef(true);
@@ -38945,6 +39843,7 @@ function NewA1View({ name }: { name?: string }) {
       view !== "a2m1" &&
       view !== "a2m2" &&
       view !== "a2m3" &&
+      view !== "a3m1" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -38990,6 +39889,17 @@ function NewA1View({ name }: { name?: string }) {
   const onA2M2RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
       const next: AppRouteOverlay = roomId ? { hubId: "a2m2", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A3 Ship 1 · People room (single room "people") reports open/close.
+  const onA3M1RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a3m1", roomId } : null;
       if (prev === next) return prev;
       if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
         return prev;
@@ -39312,7 +40222,7 @@ function NewA1View({ name }: { name?: string }) {
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA1M3Container
           onBackToGrid={() => setView("grid")}
@@ -39331,7 +40241,7 @@ function NewA1View({ name }: { name?: string }) {
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA1M4Container
           onBackToGrid={() => setView("grid")}
@@ -39352,7 +40262,7 @@ function NewA1View({ name }: { name?: string }) {
   if (view === "a2") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA2HubView
           name={resolvedName}
           onEntryHall={() => setView("entry-hall")}
@@ -39380,7 +40290,7 @@ function NewA1View({ name }: { name?: string }) {
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA2M1Container
           onBackToA2={() => setView("a2")}
@@ -39423,10 +40333,47 @@ function NewA1View({ name }: { name?: string }) {
       />
     );
   }
+  // A3 Ship 1 · Advocate For It hub. Gated behind ?newA3=1 — the only entries
+  // are the spine's Advocate vertebra (flag-gated) and a persisted route.
+  if (view === "a3") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA3HubView
+          name={resolvedName}
+          onEntryHall={() => setView("entry-hall")}
+          onBeginPeople={() => setView("a3m1")}
+        />
+      </div>
+    );
+  }
+  // A3 Ship 1 · People (A3 Mirror 1) room. Reached only via the A3 hub's 01
+  // card. Spine shows on the claimed-revisit overview hub; suppressed while
+  // the room overlay owns the view (same treatment as a2m1).
+  if (view === "a3m1") {
+    // True one-shot: capture the saved room key, then null the ref so
+    // re-entering later in the session starts fresh (no auto-resume).
+    const initialKey = initialA3M1RoomKeyRef.current;
+    initialA3M1RoomKeyRef.current = null;
+    const showSpine = overlayRoute == null;
+    return (
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        )}
+        <NewA3M1Container
+          onBackToA3={() => setView("a3")}
+          onContinueToEnv={() => setView("a3")}
+          initialRoomKey={initialKey}
+          onRoomChange={onA3M1RoomChange}
+        />
+      </div>
+    );
+  }
   if (view === "entry-hall") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA1EntryHall
           name={resolvedName}
           onSeeFramework={() => setView("framework")}
@@ -39441,7 +40388,7 @@ function NewA1View({ name }: { name?: string }) {
   if (view === "framework") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA1Framework
           onEntryHall={() => setView("entry-hall")}
           onBeginA1={() => {
@@ -39454,7 +40401,7 @@ function NewA1View({ name }: { name?: string }) {
   }
   return (
     <div className="na1-spine-pad">
-      <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} />
+      <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
       <NewA1Grid
       // Ship 5.5e · Personalization · pass the canonically-resolved name
       // (intake → auth fallback) so the Entry Hall greeting in NewA1Grid
