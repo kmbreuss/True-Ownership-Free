@@ -67,7 +67,7 @@ This repo is pinned to Replit's **linux-x64** runtime. To run on macOS (arm64) w
 **Colors / CSS variables** (use the variables, not raw hex, wherever they exist)
 - **KB brand palette (light is the default theme).** Ice `#F5F5F7` · Umber `#353334` · Spruce `#036360` · Deepwater `#012325` · Bronze `#A5875E` · Powder `#B0CCDA` · Burgundy `#7A2E2E`. Variable names are unchanged from the AG45 build; only values moved.
 - **Buttons** = Spruce (`--btn`, `--btn-ink`, hairline `--btn-edge` in dark). **Honored moments** (claim seal, ★, claimed spine/dots, pips) = Bronze `--gold` (`#A5875E`). **Small bronze TEXT** = `--gold-text` (`#735F43` light / `#C4A87F` dark) — never `--gold` for small text. Text on a Bronze fill = `--on-gold` (Deepwater).
-- **Powder** `--cyan` (`#B0CCDA`) is for fills and borders only; Powder-family TEXT = `--cyan-text` (`#3C6B82` light / Powder dark). The "current / up next" accent (§4).
+- **Powder** `--cyan` (`#B0CCDA`) is for fills and borders only; Powder-family TEXT = `--cyan-text` (`#3C6B82` light / Powder dark). (No longer the up-next accent — that is Spruce, §4.)
 - **Burgundy** `--burgundy` = cost: `#7A2E2E` (light) / `#C29C9C` (dark text variant, `--burgundy-text`; `--burgundy` stays `#B68C8C` for lines); a solid burgundy fill uses `--burgundy-fill` (`#7A2E2E`).
 - **Surfaces** (`--na1-bg`, `-soft`, `-card`, `-input`, `-text`, `-text-sec`, `-text-mute`, `-border`): light Ice / `#EDEDEF` / white · Umber · `#5F5E5F` · `#696869` · `#DADADC`; dark Deepwater / `#0B2B2D` / `#123234` · Ice · `#BFC7C9` · `#8FA0A3` · `#024645`. Legacy dark-only screens (`--bg` family) map to Deepwater with no light version.
 - **Categorical:** lens (Time = Bronze, Wealth = Spruce, Self = Powder), values clusters `--c1/2/3` and the five pillars (`--pillar-*`) all derive from the palette via CSS variables. Never hardcode a hex for these; use the token (and never concatenate a hex alpha onto a `var()`).
@@ -91,7 +91,7 @@ These are the words the user reads (Energy Map stats/chips, and anywhere the thr
 Exactly one of three states per card. Reuse the existing card component and the shared pips helper — do not re-implement.
 
 - **Locked:** dashed border at ~0.65 opacity, muted number/tag, empty pips (no "N of N"), no CTA, status = `Unlocks after [prev mirror]`.
-- **Up next:** the `.na1-mirror-card.is-current` treatment = **cyan** (`--cyan`) border, soft top gradient, glow, number color, tag color. CTA = `Begin [Mirror] →` (or `Continue [Mirror] →`). No "N of N" count.
+- **Up next:** the `.na1-mirror-card.is-current` / `.is-vision-up-next` treatment = **Spruce** (`--spruce-line` border, `--spruce-soft` top gradient, `--spruce-glow`, number + status text `--spruce-text`: `#036360` light / `#7DB0B7` dark). The same Spruce marks the current exercise row (`.na1-ex-row.is-current`, gold and cyan tones) and the flash ring. Bronze is reserved for claimed / complete. CTA = `Begin [Mirror] →` (or `Continue [Mirror] →`). No "N of N" count.
 - **Complete:** gold accents, tag `Complete`, status `Claimed.` (Cormorant italic), pips full **with "N of N"**, CTA `Review [Mirror] →` (ghost).
 - **"N of N" appears only when Complete.** One CTA per card. Only one card is Up next at a time.
 
