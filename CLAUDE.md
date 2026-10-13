@@ -11,8 +11,8 @@ The #1 failure mode on this project is *drift*: a new session reinvents a card, 
 1. **Reuse, don't reinvent.** Every new mirror room reuses the existing room shell, card component, veil, claim ceremony, tokens, and helpers. If A1/A2/A3-People/A3-Environment already do it, clone that — do not write a new version.
 2. **Recon before building.** Open `App.tsx` and read the most similar existing room end-to-end first. State what you're cloning before you write code.
 3. **The live app wins over any doc.** If this file or a mockup disagrees with the running code's tokens/patterns, the running code is right — flag the difference, match the app.
-4. **One room at a time. Flag-gated.** Never bundle mirrors. Everything new stays behind its `?newA3=1`-style flag; the old surfaces stay untouched.
-5. **Verify at localhost before "done."** The reviewer walks the room at `http://localhost:5173/?newA1=1&newA2=1&newA3=1`. Don't self-declare done.
+4. **One room at a time.** Never bundle mirrors. The new A1/A2/A3 flows are the **default for everyone** — there are no `?newA…` flags any more. `?legacy=1` (testing only, this tab only, via sessionStorage; `?legacy=0` clears it) shows the old flows. New work that isn't ready for members must still be gated, but by its own switch, not the retired flags.
+5. **Verify at localhost before "done."** The reviewer walks the room at `http://localhost:5173/` (no flags needed). Don't self-declare done.
 
 ---
 
@@ -55,6 +55,14 @@ This repo is pinned to Replit's **linux-x64** runtime. To run on macOS (arm64) w
 
 - **Typecheck baseline:** the file has a **large pre-existing baseline of ~985 unrelated `TS7006` implicit-any errors scattered throughout** (it's a loosely-typed file; the ~56716–59403 `align_check_*`/`map_focus_text`/`align1_growth` cluster is just the visible tail, not the whole set). When building, **verify only the ranges you touched** (grep by identifier AND line-range) — do NOT try to clear the baseline, and don't assume a clean global typecheck.
 - **A2 hero counter quirk:** the A2 hub hero reads "{n} of 3" but its counter only tallies m1+m2 (forgets m3). Cosmetic; `a2Complete` correctly requires all three. Fix the hero counter someday, but it's separate from gating.
+
+### 2e. Saving to the member's account (new-flow data)
+
+- The server only ever accepted seven keys (`map, voice, mapofme_origin, intake, phase, step, done`). New-flow answers lived **only in the browser**. They now sync through four **versioned** keys: `a1progress` (A1 exercise ticks + answers: `a1_ex1..4_done`, `a1_to_curq`, `a1_to_answers`, `a1_sym_*`, `a1_peel_draft`), `a2state` (`to_a2_state_v1`), `a3state` (`to_a3_state_v1`), `m4state` (`to_mirror4_state_v1`).
+- Each is stored as `{ t, v }` (`t` = when it was last changed on the writing device, `v` = payload). **Rules (client `newFlowSync.ts` + server `lib/syncGuard.ts`, identical):** local has data & server none → push; server has data & this browser none → adopt; both → the **newer `t` wins and an older copy never replaces a newer one** (the server answers `409` with its copy, the client adopts it); a pristine `EMPTY_*` seed is never pushed or stamped; nothing is ever deleted. Reconciliation runs once in `ServerDataLoader`, **before** any screen renders.
+- State modules announce writes with `notifyLocalChange(key)` (`syncHook.ts`); `saveData()` does it for `a1_*` keys. **A new persisted new-flow store must be added to `STORES` in `newFlowSync.ts` and to `SYNC_KEYS` in `syncGuard.ts`**, or it stays browser-only.
+- `?syncstatus=1` shows, per store, what this browser vs. the account holds, plus **Export / Import** of this browser's answers (import never replaces data the browser already has, and keeps each store's own change time so it can never beat a newer account copy). The legacy items (`map`, `intake`, `voice`, `done`) carry no timestamps, so "account wins" would keep an older copy forever: after an import the panel shows file-vs-account sizes and offers a **member-confirmed** "Use the file's copy as my account copy", which first downloads a backup of the account's current copy. Moving answers from the Replit dev preview to the published site: dev and production are separate databases, so Export on the preview, then Import on the published address. The legacy `map/intake/voice/done` are pushed automatically on first open when the server has none; the server's copy always wins when both exist.
+- Local dev has no backend, so nothing syncs from `localhost:5173` — use export/import to move those answers to the deployed address.
 
 ---
 
@@ -146,7 +154,7 @@ Order: **People (M1) · Environment (M2) · Thoughts (M3) · Energy Map (M4) · 
 - **Thoughts (M3):** Listen phase is **one moment at a time** (not a scrolling list) — earlier moments show `Next →`; only the **last** moment offers `Shape what you found →`, so users can't skip the pacing. "+ Add your own" appears only on the last moment. Shape = mark each thought Coach/Critic, Critics get a reframe, then name the voice (now) + the best-friend voice. Gentler seal when `critics > coaches || (critics > 0 && reframed === 0)`.
 - **Energy Map (M4):** read-only synthesis — aggregates People + Environment + Thoughts (**coach→advocate, critic→anchor**); stores only `{claimed, claimedAt}`. Bullseye SVG (you at centre; advocates inner/gold, neutral middle, anchors outer/burgundy). **Percentages are integers summing to exactly 100 (largest-remainder); 0/0/0 when empty.** Detail-on-tap panel sits at the **TOP** (never below the fold). Stats show as a **single horizontal line** ("8 close · 50%  2 just there · 13%  6 weight · 37%") — count and % word-separated so they can't misread as decimals; **no collapse toggle**. On the Claim screen, the three chips reveal their item list on **hover (desktop) / tap (mobile)** — plain labels only (name, habit, place, or thought text), no icons or ratings.
 - **Data:** A3-namespaced store (`to_a3_state_v1`). People = name→rating. Environment items = `{name, kind:"habit"|"place", rating}`. These feed Energy Map and The Move later.
-- **Known bug (fix pending, "#48"):** `?phase=a3` routes to the OLD A3; the new hub only mounts at the base flag URL. Fix = short-circuit the old A3 entry point when `na3_optin` is set so `phase=a3` and the A3 pill/spine both mount the new hub (like A1/A2). Don't rebuild the hub — it's correct; only the routing is wrong.
+- **Phase hand-offs (resolved):** a saved phase of `a2`/`a3` mounts the new A2/A3 hub (`A2`/`A3` short-circuit into `NewA1View` with `initialView`), and a saved `done` lands on the new Entry Hall. Old-flow answers stay in storage untouched but the new flow does not read them (see §2e).
 
 ### 6a. Sequential gating (LOCKED rule)
 

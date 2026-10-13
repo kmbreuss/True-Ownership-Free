@@ -11,6 +11,8 @@
 // room list. Section 2+ will fill in admire/irks/portrait/clusters/etc.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { notifyLocalChange } from "./syncHook";
+
 export const M4_STORAGE_KEY = "to_mirror4_state_v1";
 
 export type M4Step =
@@ -589,6 +591,7 @@ export function saveMirror4State(state: Mirror4State): void {
   try {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(M4_STORAGE_KEY, JSON.stringify(state));
+    notifyLocalChange(M4_STORAGE_KEY);
   } catch {}
 }
 

@@ -12,6 +12,8 @@
 // persists per-mirror data + claimed flags; it never stores unlock state.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { notifyLocalChange } from "./syncHook";
+
 export const A3_STORAGE_KEY = "to_a3_state_v1";
 
 // Placeholder per-mirror state. Empty until each mirror's ship fills it in.
@@ -401,6 +403,7 @@ export function saveA3State(state: A3State): void {
   try {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(A3_STORAGE_KEY, JSON.stringify(state));
+    notifyLocalChange(A3_STORAGE_KEY);
   } catch {}
 }
 

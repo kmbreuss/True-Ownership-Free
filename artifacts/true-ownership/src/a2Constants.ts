@@ -9,6 +9,8 @@
 // A2MirrorStub with its real shape.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { notifyLocalChange } from "./syncHook";
+
 export const A2_STORAGE_KEY = "to_a2_state_v1";
 
 // Placeholder per-mirror state. Empty until A2.1+ fills each mirror in.
@@ -420,6 +422,7 @@ export function saveA2State(state: A2State): void {
   try {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(A2_STORAGE_KEY, JSON.stringify(state));
+    notifyLocalChange(A2_STORAGE_KEY);
   } catch {}
 }
 

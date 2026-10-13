@@ -29,7 +29,8 @@ app.use(
 );
 app.use(cors({ credentials: true, origin: true }));
 app.use(cookieParser());
-app.use(express.json());
+// New-flow progress blobs (Values, A2, A3) can exceed express's 100kb default.
+app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(authMiddleware);
 

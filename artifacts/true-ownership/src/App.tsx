@@ -173,6 +173,18 @@ import {
   type A3MoveState,
   type A3MoveLane,
 } from "./a3Constants";
+import { notifyLocalChange } from "./syncHook";
+import {
+  hydrateNewFlow,
+  autoPushLegacy,
+  syncStatus,
+  exportLocalAnswers,
+  importLocalAnswers,
+  legacyComparison,
+  replaceAccountCopy,
+  type LegacyRow,
+  type StatusRow,
+} from "./newFlowSync";
 import {
   VIDEOS,
   isVideoReady,
@@ -208,6 +220,7 @@ function saveData(k: string, v: any) {
   try {
     localStorage.setItem(k, JSON.stringify(v));
   } catch {}
+  if (k.startsWith("a1_")) notifyLocalChange(k);
   const sk = localKeyToServerKey(k);
   if (sk && serverDataCache) serverDataCache[sk] = v;
   if (sk && isAuthed) {
@@ -9611,6 +9624,11 @@ const A2_STEPS = [
 ];
 const A2_MAP_STEP = { id: "map", label: "My Map of Me™" };
 function A2({ intake, onDone, phase, setPhase }) {
+  // The new flow is the default: a member whose saved phase is "a2" lands on the
+  // new A2 hub (mirrors the phase-"a3" hand-off below). `?legacy=1` skips this.
+  if (NEW_A2_FLAG) {
+    return <NewA1View name={intake?.name} initialView="a2" />;
+  }
   const [a2Step, setA2Step] = useState("intro");
   const [a2Done, setA2Done] = useState([]);
   const a2Goto = (s) => {
@@ -28751,70 +28769,32 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
 // base path and drops the query string, which would otherwise re-disable the
 // flag on every refresh and bounce the user back to the grid. Read once at
 // module load; clearing site data resets the opt-in.
-const NEW_A1_OPTIN_KEY = "na1_optin";
-const NEW_A2_OPTIN_KEY = "na2_optin";
-const NEW_A3_OPTIN_KEY = "na3_optin";
-const NEW_A1_FLAG = (() => {
+// ─── Flow selection ───
+// The new A1 / A2 / A3 flows are the default for every member; no URL flags are
+// needed. `?legacy=1` switches THIS TAB back to the old flows (for testing only —
+// kept in sessionStorage so it ends with the tab and never sticks for a member);
+// `?legacy=0` turns it off again. Old saved answers are never deleted either way.
+const LEGACY_FLOW = (() => {
   try {
-    const urlOn = new URLSearchParams(window.location.search).has("newA1");
-    if (urlOn) {
-      try {
-        window.localStorage.setItem(NEW_A1_OPTIN_KEY, "1");
-      } catch {}
+    const q = new URLSearchParams(window.location.search).get("legacy");
+    if (q === "1") {
+      window.sessionStorage.setItem("to_legacy_flow", "1");
       return true;
     }
-    return window.localStorage.getItem(NEW_A1_OPTIN_KEY) === "1";
+    if (q === "0") window.sessionStorage.removeItem("to_legacy_flow");
+    return window.sessionStorage.getItem("to_legacy_flow") === "1";
   } catch {
     return false;
   }
 })();
-
-// ─── NEW A2 (?newA2=1) feature flag ───
-// A2 ("Align With It") hub scaffold. Requires NEW_A1_FLAG — A2 lives inside the
-// NewA1View tree, so newA1 is required transitively, but we AND it explicitly
-// so the flag's intent is self-documenting. Sticky opt-in like NEW_A1_FLAG:
-// once enabled via ?newA2=1 it persists across hard reloads so a persisted
-// view:"a2"/"a2m1" route (and its open room overlay) restores instead of
-// falling back to the grid. Read once at module load.
-const NEW_A2_FLAG = (() => {
-  try {
-    if (!NEW_A1_FLAG) return false;
-    const urlOn = new URLSearchParams(window.location.search).has("newA2");
-    if (urlOn) {
-      try {
-        window.localStorage.setItem(NEW_A2_OPTIN_KEY, "1");
-      } catch {}
-      return true;
-    }
-    return window.localStorage.getItem(NEW_A2_OPTIN_KEY) === "1";
-  } catch {
-    return false;
-  }
-})();
-
-// ─── NEW A3 (?newA3=1) feature flag ───
-// A3 ("Advocate For It") hub + People room. Requires NEW_A2_FLAG — A3 lives
-// inside the NewA1View tree and only makes sense after the A2 surface, so we
-// AND it explicitly like NEW_A2_FLAG does with NEW_A1_FLAG. Sticky opt-in:
-// once enabled via ?newA3=1 it persists across hard reloads so a persisted
-// view:"a3"/"a3m1" route (and its open room overlay) restores instead of
-// falling back to the grid. Read once at module load. Without the flag the
-// old A3 (phase "a3") renders unchanged.
-const NEW_A3_FLAG = (() => {
-  try {
-    if (!NEW_A2_FLAG) return false;
-    const urlOn = new URLSearchParams(window.location.search).has("newA3");
-    if (urlOn) {
-      try {
-        window.localStorage.setItem(NEW_A3_OPTIN_KEY, "1");
-      } catch {}
-      return true;
-    }
-    return window.localStorage.getItem(NEW_A3_OPTIN_KEY) === "1";
-  } catch {
-    return false;
-  }
-})();
+// Retire the old sticky opt-in markers (no longer read anywhere).
+try {
+  for (const k of ["na1_optin", "na2_optin", "na3_optin"]) window.localStorage.removeItem(k);
+} catch {}
+const NEW_A1_FLAG = !LEGACY_FLOW;
+// A2 and A3 live inside the NewA1View tree, so they follow A1.
+const NEW_A2_FLAG = NEW_A1_FLAG;
+const NEW_A3_FLAG = NEW_A2_FLAG;
 
 // ─── M3 / M4 routing (Ship 5.7) ───
 // The legacy ?newM3 / ?newM4 dev unlock flags have been removed. Both mirrors
@@ -45309,7 +45289,7 @@ function NewA1View({
   // precedence over the saved-route restore UNLESS the saved route is
   // already inside A3 (view "a3"/"a3m1"), so a persisted open People-room
   // overlay still resumes instead of being clobbered back to the hub.
-  initialView?: "a3";
+  initialView?: "a2" | "a3";
 }) {
   // Ship 5.5e · Personalization · resolve the display name with the
   // canonical intake → auth fallback. The legacy A1 wrapper only forwards
@@ -45330,6 +45310,17 @@ function NewA1View({
       // route is already inside A3 — then the normal restore runs so an
       // open People-room overlay (view "a3m1" + a3m1 overlay) resumes
       // instead of being clobbered back to the hub.
+      // Same hand-off for a saved phase "a2" → new A2 hub, unless the saved route
+      // is already inside A2 (so an open room still resumes).
+      if (initialView === "a2" && NEW_A2_FLAG) {
+        const savedInA2 =
+          saved != null &&
+          (saved.view === "a2" ||
+            saved.view === "a2m1" ||
+            saved.view === "a2m2" ||
+            saved.view === "a2m3");
+        if (!savedInA2) return "a2";
+      }
       if (initialView === "a3" && NEW_A3_FLAG) {
         const savedInA3 =
           saved != null &&
@@ -64388,7 +64379,10 @@ function AuthedApp() {
           if (q && ["a1", "a2", "a3", "done", "intake"].includes(q))
             urlPhase = q;
         } catch {}
-        setPhase(urlPhase || safe || (i ? "a1" : "intake"));
+        // The old terminal "done" screen belongs to the retired flow; the new flow
+        // never writes it, so a member saved there lands on the new Entry Hall.
+        const landing = !LEGACY_FLOW && safe === "done" ? "a1" : safe;
+        setPhase(urlPhase || landing || (i ? "a1" : "intake"));
       },
     );
   }, []);
@@ -66264,7 +66258,7 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetch("/api/userdata", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : {}))
-      .then((cache: Record<string, any>) => {
+      .then(async (cache: Record<string, any>) => {
         // Strip verification-test-* placeholder values from cache (they'll be overwritten on next save)
         for (const k of Object.keys(cache)) {
           const v = cache[k];
@@ -66272,10 +66266,15 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
             delete cache[k];
           }
         }
+        // First open on this browser: answers saved only here (map, intake, voice,
+        // done) go up to the account automatically when the server has none — the
+        // server's copy always wins when both exist, so nothing newer is overwritten.
+        await autoPushLegacy(cache);
         _setServerAuthState(true, cache);
-        const migrated = localStorage.getItem("to_migrated") === "true";
-        const candidates = detectMigrationCandidates(cache);
-        if (!migrated && candidates.length > 0) setShowMigration(true);
+        // Reconcile the new-flow stores (A1 progress, A2, A3, Values) with the
+        // account BEFORE any screen reads them: push if the server has none,
+        // load if this browser has none, otherwise the newer copy wins.
+        await hydrateNewFlow(cache);
         setReady(true);
       })
       .catch(() => {
@@ -66302,6 +66301,141 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
       <Footer />
       {showMigration && (
         <MigrationModal onClose={() => setShowMigration(false)} />
+      )}
+      {SYNC_STATUS_ON && <SyncStatusPanel />}
+    </div>
+  );
+}
+
+// `?syncstatus=1` shows what this browser holds vs. what the account holds, with an
+// export (and import) of this browser's answers as a safety net.
+const SYNC_STATUS_ON = (() => {
+  try {
+    return new URLSearchParams(window.location.search).has("syncstatus");
+  } catch {
+    return false;
+  }
+})();
+function SyncStatusPanel() {
+  const [rows, setRows] = useState<StatusRow[] | null>(null);
+  const [msg, setMsg] = useState("");
+  const [legacy, setLegacy] = useState<LegacyRow[] | null>(null);
+  const [done, setDone] = useState<Record<string, string>>({});
+  const download = (name: string, text: string) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    a.download = name;
+    a.click();
+  };
+  useEffect(() => {
+    syncStatus().then(setRows);
+  }, []);
+  const box: React.CSSProperties = {
+    position: "fixed",
+    right: 12,
+    bottom: 48,
+    zIndex: 9999,
+    maxWidth: 400,
+    maxHeight: "80vh",
+    overflowY: "auto",
+    background: "#012325",
+    color: "#F5F5F7",
+    border: "1px solid #A5875E",
+    borderRadius: 10,
+    padding: "14px 16px",
+    fontFamily: "var(--f-label)",
+    fontSize: 12,
+    lineHeight: 1.5,
+  };
+  const btn: React.CSSProperties = {
+    background: "#036360",
+    color: "#F5F5F7",
+    border: "1px solid rgba(176,204,218,.38)",
+    borderRadius: 100,
+    padding: "8px 14px",
+    fontFamily: "var(--f-label)",
+    fontSize: 12,
+    cursor: "pointer",
+    marginRight: 8,
+  };
+  return (
+    <div style={box} role="region" aria-label="Sync status">
+      <div style={{ letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 8 }}>
+        Answers · {location.host}
+      </div>
+      {!rows ? (
+        "Checking…"
+      ) : (
+        rows.map((r) => (
+          <div key={r.sk} style={{ marginBottom: 6 }}>
+            <strong style={{ fontWeight: 400 }}>{r.label}</strong>
+            <br />
+            this browser: {r.local ? "has answers" : "empty"} · account:{" "}
+            {r.server ? "has answers" : "none"} · last sync: {r.result}
+          </div>
+        ))
+      )}
+      <div style={{ marginTop: 10 }}>
+        <button
+          style={btn}
+          onClick={() => download(`true-ownership-answers-${location.hostname}.json`, exportLocalAnswers())}
+        >
+          Export this browser's answers
+        </button>
+        <label style={{ ...btn, display: "inline-block" }}>
+          Import
+          <input
+            type="file"
+            accept="application/json"
+            style={{ display: "none" }}
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              const r = importLocalAnswers(await f.text());
+              setMsg(r.message);
+              setLegacy(r.parsed ? await legacyComparison(r.parsed) : null);
+            }}
+          />
+        </label>
+      </div>
+      {msg && <div style={{ marginTop: 8 }}>{msg}</div>}
+      {legacy && legacy.length > 0 && (
+        <div style={{ marginTop: 12, borderTop: "1px solid rgba(165,135,94,.5)", paddingTop: 10 }}>
+          <div style={{ letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 6 }}>
+            Your account already holds these
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            The account's copy normally wins. If the file's copy is the one you want, replace
+            it — the current account copy is saved to a backup file first.
+          </div>
+          {legacy.map((r) => (
+            <div key={r.sk} style={{ marginBottom: 10 }}>
+              <strong style={{ fontWeight: 400 }}>{r.label}</strong>
+              <br />
+              file: {r.fileScore} answers · account:{" "}
+              {r.accountScore === null ? "none (it will be uploaded)" : `${r.accountScore} answers`}
+              {r.accountScore !== null && (
+                <div style={{ marginTop: 4 }}>
+                  {done[r.sk] ? (
+                    done[r.sk]
+                  ) : (
+                    <button
+                      style={btn}
+                      onClick={async () => {
+                        const res = await replaceAccountCopy(r);
+                        if (res.backup) download(`account-backup-${r.sk}-${Date.now()}.json`, res.backup);
+                        setDone((d) => ({ ...d, [r.sk]: res.message }));
+                      }}
+                    >
+                      Use the file's copy as my account copy
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+          <div>Then reload to finish syncing A1 progress, A2, A3 and Values.</div>
+        </div>
       )}
     </div>
   );
