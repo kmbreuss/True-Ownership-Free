@@ -6,7 +6,9 @@
 //   pages, content bottom on long-scroll pages).
 // - Mobile: text wraps naturally; iOS safe-area inset is respected.
 // - Excluded from modals structurally — modals overlay at higher z-index.
-export function Footer() {
+// - KB brand: label font is Questrial (KB Brand Guide). `tone="onDark"` is used
+//   by the sign-in screen, whose Spruce→Deepwater glow is always dark.
+export function Footer({ tone }: { tone?: "onDark" } = {}) {
   const year = new Date().getFullYear();
   return (
     <footer
@@ -15,15 +17,15 @@ export function Footer() {
         flexShrink: 0,
         padding: "16px 16px calc(20px + env(safe-area-inset-bottom, 0px))",
         textAlign: "center",
-        fontFamily: "'Inter', system-ui, sans-serif",
+        fontFamily: "'Questrial', system-ui, sans-serif",
         fontSize: 12,
-        color: "#7A7B8A",
-        letterSpacing: "0.02em",
+        color: tone === "onDark" ? "rgba(245,245,247,0.62)" : "var(--na1-text-mute, #696869)",
+        letterSpacing: "0.04em",
         lineHeight: 1.5,
       }}
     >
       <span style={{ display: "inline-block", maxWidth: "100%" }}>
-        True Ownership™ · © {year} AccelerateGrowth45 LLC · All rights reserved
+        True Ownership™ · © {year} Katherine Breuss · All rights reserved
       </span>
     </footer>
   );

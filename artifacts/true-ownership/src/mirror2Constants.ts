@@ -13,10 +13,10 @@ export type Lens = "time" | "wealth" | "self";
 export type SilverLens = Lens | "silver";
 
 export const LENS_COLORS: Record<SilverLens, { primary: string; soft: string; border: string }> = {
-  time:   { primary: "#D9A93C", soft: "rgba(217,169,60,0.16)",  border: "rgba(217,169,60,0.5)" },
-  wealth: { primary: "#5C9A6B", soft: "rgba(92,154,107,0.16)",  border: "rgba(92,154,107,0.5)" },
-  self:   { primary: "#9B7CC2", soft: "rgba(155,124,194,0.16)", border: "rgba(155,124,194,0.5)" },
-  silver: { primary: "#C5C9D1", soft: "rgba(197,201,209,0.16)", border: "rgba(197,201,209,0.5)" },
+  time:   { primary: "var(--lens-time)",   soft: "var(--lens-time-soft)",   border: "var(--lens-time-line)" },
+  wealth: { primary: "var(--lens-wealth)", soft: "var(--lens-wealth-soft)", border: "var(--lens-wealth-line)" },
+  self:   { primary: "var(--lens-self)",   soft: "var(--lens-self-soft)",   border: "var(--lens-self-line)" },
+  silver: { primary: "var(--lens-silver)", soft: "var(--lens-silver-soft)", border: "var(--lens-silver-line)" },
 };
 
 // 11 domains, 4 tiers each = 44 chips.

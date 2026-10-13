@@ -4,16 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>True Ownership</title>
+    <meta name="description" content="True Ownership™ — Own You. Own Your Life. Own Your Freedom." />
+    <meta name="theme-color" content="#012325" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="True Ownership™" />
+    <meta property="og:description" content="Own You. Own Your Life. Own Your Freedom." />
+    <meta property="og:image" content="https://map-of-me.com/opengraph.jpg" />
+    <meta name="twitter:image" content="https://map-of-me.com/opengraph.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- KB brand fonts (per the KB Brand Guide): Tenor Sans = headings,
+         Cormorant Garamond = body / reflective text, Questrial = labels +
+         buttons. Inter = Framework Phase 2 (AG45 Boardroom) body only. -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Tenor+Sans&family=Questrial&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
   </head>
   <body>
+    <script>
+      // Light is the default theme; apply the saved choice before first paint.
+      try {
+        var t = localStorage.getItem("na1_theme") === "dark" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", t);
+        if (t === "dark") document.documentElement.classList.add("dark");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

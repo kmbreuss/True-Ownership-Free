@@ -61,15 +61,18 @@ This repo is pinned to Replit's **linux-x64** runtime. To run on macOS (arm64) w
 ## 3. Design tokens — CONFIRMED against the live app. Use these; add nothing new.
 
 **Fonts**
-- Body / labels / buttons / eyebrows / sidebar = **DM Sans**. Button text color `#1A1407`.
-- **Hub (mirror-card grid + hub hero) = Georgia** (e.g. card title Georgia 21px/600 `#2A2620`; "01" Georgia italic gold; hero Georgia 36px/600). This is `--na1-serif`.
-- **Section rooms (heroes/quotes inside a mirror) = Cormorant Garamond** = `--serif`.
-- Rule: build the **hub** like A1 (Georgia); build the **rooms** like A2 (Cormorant). Introduce no other serif.
+- **KB fonts, by role (use the tokens):** headings = **Tenor Sans** `--f-display`; body + reflective text = **Cormorant Garamond** `--f-body` (about +2px over the old DM Sans sizes; lining numerals); labels, eyebrows, chips, buttons, breadcrumbs = **Questrial** `--f-label`. Tenor Sans and Questrial are single-weight with no italic: never set bold or italic on them — carry emphasis with size, caps or colour. Cormorant has real 400/500/600 and italic 400/500. Legacy `--sans/--na1-sans` alias body, `--serif` aliases body, `--na1-serif` aliases display. Exception: Framework Phase 2 stays Cormorant headings + **Inter** body. Primary button = Spruce fill via `--btn` / `--btn-ink` (white in light, Ice in dark).
+- Hub and room headings are Tenor Sans (`--f-display`); reflective quotes and seals are Cormorant italic. Introduce no other family.
 
 **Colors / CSS variables** (use the variables, not raw hex, wherever they exist)
-- Gold `--gold` `#b8892f` (light) / `#c9a84c` (dark). Light bg `#f5f3ef`; dark bg `#0d1b2e`; `--border` `#1e3554`.
-- Burgundy `#7A2E2E` (light) / `#A03B3B` (dark).
-- Cyan `--cyan` `#6aa9b8` (light) / `#4a8a99` (dark) — the "current / up next" accent (see §4).
+- **KB brand palette (light is the default theme).** Ice `#F5F5F7` · Umber `#353334` · Spruce `#036360` · Deepwater `#012325` · Bronze `#A5875E` · Powder `#B0CCDA` · Burgundy `#7A2E2E`. Variable names are unchanged from the AG45 build; only values moved.
+- **Buttons** = Spruce (`--btn`, `--btn-ink`, hairline `--btn-edge` in dark). **Honored moments** (claim seal, ★, claimed spine/dots, pips) = Bronze `--gold` (`#A5875E`). **Small bronze TEXT** = `--gold-text` (`#735F43` light / `#C4A87F` dark) — never `--gold` for small text. Text on a Bronze fill = `--on-gold` (Deepwater).
+- **Powder** `--cyan` (`#B0CCDA`) is for fills and borders only; Powder-family TEXT = `--cyan-text` (`#3C6B82` light / Powder dark). The "current / up next" accent (§4).
+- **Burgundy** `--burgundy` = cost: `#7A2E2E` (light) / `#C29C9C` (dark text variant, `--burgundy-text`; `--burgundy` stays `#B68C8C` for lines); a solid burgundy fill uses `--burgundy-fill` (`#7A2E2E`).
+- **Surfaces** (`--na1-bg`, `-soft`, `-card`, `-input`, `-text`, `-text-sec`, `-text-mute`, `-border`): light Ice / `#EDEDEF` / white · Umber · `#5F5E5F` · `#696869` · `#DADADC`; dark Deepwater / `#0B2B2D` / `#123234` · Ice · `#BFC7C9` · `#8FA0A3` · `#024645`. Legacy dark-only screens (`--bg` family) map to Deepwater with no light version.
+- **Categorical:** lens (Time = Bronze, Wealth = Spruce, Self = Powder), values clusters `--c1/2/3` and the five pillars (`--pillar-*`) all derive from the palette via CSS variables. Never hardcode a hex for these; use the token (and never concatenate a hex alpha onto a `var()`).
+- **The Framework page is the one exception to the tokens:** Phase 1 (Own It) is KB (Spruce→Deepwater glow, cream `#EFE6D6`, bronze `#A5875E` dots, `#CDB48E` small labels, Tenor Sans, KB signature) and Phase 2 (Build It) is frozen AG45 Boardroom (cream `#F9F6EE`, navy `#1A2A44`, gold `#C9A24B` for dots/rules, `#7F6528` for small gold text and deliverable pills, slate `#2C3E50`, Cormorant Garamond headings + Inter body, AG45 logo). Both skins are fixed literals in `.na1-fw[data-phase=…]` and look the same in light and dark.
+- Burgundy-line / tints are `--burgundy-soft|line|glow`; Bronze tints are `--gold-soft|warm|line|glow`.
 - Radii: `--na1-radius` `10px`, `--na1-radius-xl` `18px`. Rail width `--rail-w` `220px`.
 - **Semantic (locked):** Advocate = gold · Neutral = muted grey · Anchor = burgundy.
 
@@ -89,7 +92,7 @@ Exactly one of three states per card. Reuse the existing card component and the 
 
 - **Locked:** dashed border at ~0.65 opacity, muted number/tag, empty pips (no "N of N"), no CTA, status = `Unlocks after [prev mirror]`.
 - **Up next:** the `.na1-mirror-card.is-current` treatment = **cyan** (`--cyan`) border, soft top gradient, glow, number color, tag color. CTA = `Begin [Mirror] →` (or `Continue [Mirror] →`). No "N of N" count.
-- **Complete:** gold accents, tag `Complete`, status `Claimed.` (Georgia italic), pips full **with "N of N"**, CTA `Review [Mirror] →` (ghost).
+- **Complete:** gold accents, tag `Complete`, status `Claimed.` (Cormorant italic), pips full **with "N of N"**, CTA `Review [Mirror] →` (ghost).
 - **"N of N" appears only when Complete.** One CTA per card. Only one card is Up next at a time.
 
 **Card display precedence (LOCKED rules — learned the hard way):**

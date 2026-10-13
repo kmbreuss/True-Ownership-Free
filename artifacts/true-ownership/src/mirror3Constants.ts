@@ -26,12 +26,14 @@ export const THEME_TAGLINE: Record<Theme, string> = {
   hands: "what I do with",
 };
 
+// KB brand: the five pillars draw from the palette (Powder · Burgundy · Spruce ·
+// Bronze · Umber) as theme-aware CSS variables defined in App.tsx's token blocks.
 export const THEME_COLOR: Record<Theme, string> = {
-  mind: "#85B7EB",
-  heart: "#F09595",
-  spine: "#4FA8B5",
-  spark: "#AFA9EC",
-  hands: "#97C459",
+  mind: "var(--pillar-mind)",
+  heart: "var(--pillar-heart)",
+  spine: "var(--pillar-spine)",
+  spark: "var(--pillar-spark)",
+  hands: "var(--pillar-hands)",
 };
 
 // Ship 5 · all five themes now have locked owner-voice shadow libraries
