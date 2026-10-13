@@ -162,6 +162,15 @@ import {
   type A3EnvState,
   type A3EnvItem,
   type A3EnvKind,
+  type A3ThoughtsState,
+  type A3Thought,
+  type A3ThoughtVerdict,
+  type A3EnergyMapState,
+  type A3BoardState,
+  type A3BoardSeat,
+  type A3BoardInLife,
+  type A3MoveState,
+  type A3MoveLane,
 } from "./a3Constants";
 import {
   VIDEOS,
@@ -746,6 +755,12 @@ html[data-theme="light"]{
 /* ─── NEW A1: mirror grid ─── */
 .na1-mirror-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); grid-auto-rows:1fr; gap:16px; align-items:stretch; }
 @media (max-width:600px){ .na1-mirror-grid{ grid-template-columns:1fr; gap:14px; grid-auto-rows:auto; } }
+/* A3 Ship 5 · The Board seat grid — 2-col desktop, 1-col at the existing 600px
+   breakpoint (no new breakpoint). Cards are the per-seat editors. */
+.na1-a3board-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:8px; }
+@media (max-width:600px){ .na1-a3board-grid{ grid-template-columns:1fr; } }
+.na1-a3board-seat{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px; display:flex; flex-direction:column; }
+.na1-a3board-seat.is-filled{ border-color:var(--gold-line); background:var(--gold-warm); }
 .na1-mirror-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px; transition:border-color .18s, box-shadow .18s; display:flex; flex-direction:column; min-height:340px; height:100%; font-family:var(--na1-sans); }
 @media (max-width:600px){ .na1-mirror-card{ min-height:auto; padding:18px; } }
 .na1-mirror-card.is-current{ border-color:var(--cyan-line); background:linear-gradient(180deg, var(--cyan-soft) 0%, var(--na1-bg-card) 50%); box-shadow:0 0 0 1px var(--cyan-glow), 0 0 24px var(--cyan-glow); }
@@ -33581,16 +33596,26 @@ type AppRouteView =
   | "a2m2"
   | "a2m3"
   // A3 Ship 1 · Advocate For It hub (a3) + People room (a3m1), gated behind
-  // ?newA3=1. Ship 2 adds the Environment room (a3m2), same gate.
+  // ?newA3=1. Ship 2 adds the Environment room (a3m2); Ship 3 the Thoughts
+  // room (a3m3); Ship 4 the Energy Map room (a3m4); Ship 5 the Board room
+  // (a3m5); Ship 6 the Move room (a3m6), same gate.
   | "a3"
   | "a3m1"
-  | "a3m2";
+  | "a3m2"
+  | "a3m3"
+  | "a3m4"
+  | "a3m5"
+  | "a3m6";
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
   // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
   // A3 Ship 1 · "a3m1" addresses the People room (roomId "people").
   // A3 Ship 2 · "a3m2" addresses the Environment room (roomId "environment").
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2";
+  // A3 Ship 3 · "a3m3" addresses the Thoughts room (roomId "thoughts").
+  // A3 Ship 4 · "a3m4" addresses the Energy Map room (roomId "energymap").
+  // A3 Ship 5 · "a3m5" addresses the Board room (roomId "board").
+  // A3 Ship 6 · "a3m6" addresses the Move room (roomId "move").
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -33611,6 +33636,10 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a3",
   "a3m1",
   "a3m2",
+  "a3m3",
+  "a3m4",
+  "a3m5",
+  "a3m6",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -33829,6 +33858,8 @@ const NA1_FOOTER_TEXT =
 function NewA1Spine({
   name,
   a1Complete,
+  a2Complete,
+  a3Complete,
   view,
   onNavigate,
   a2Enabled,
@@ -33836,6 +33867,10 @@ function NewA1Spine({
 }: {
   name?: string;
   a1Complete: boolean;
+  // Spine vertebra completion is driven per-discipline from the same signal
+  // shape (all mirrors claimed): 01←a1Complete, 02←a2Complete, 03←a3Complete.
+  a2Complete: boolean;
+  a3Complete: boolean;
   view: AppRouteView;
   onNavigate: (v: AppRouteView) => void;
   a2Enabled: boolean;
@@ -33850,7 +33885,13 @@ function NewA1Spine({
   const current: "allin" | "align" | "advocate" =
     view === "a2" || view === "a2m1"
       ? "align"
-      : view === "a3" || view === "a3m1" || view === "a3m2"
+      : view === "a3" ||
+          view === "a3m1" ||
+          view === "a3m2" ||
+          view === "a3m3" ||
+          view === "a3m4" ||
+          view === "a3m5" ||
+          view === "a3m6"
         ? "advocate"
         : "allin";
   const vertebrae: {
@@ -33870,14 +33911,14 @@ function NewA1Spine({
     {
       num: "02",
       label: "Align",
-      claimed: false,
+      claimed: a2Complete,
       isCurrent: current === "align",
       dest: a2Enabled ? "a2" : null,
     },
     {
       num: "03",
       label: "Advocate",
-      claimed: false,
+      claimed: a3Complete,
       isCurrent: current === "advocate",
       dest: a3Enabled ? "a3" : null,
     },
@@ -34093,6 +34134,276 @@ function VideoCard({ surface }: { surface: VideoSurface }) {
 
 // Entry Hall — the first-visit home. "You write first" framing, the one
 // principle card, the welcome-video stub, and two CTAs (framework / skip).
+// ─── DEV-only reset bar ──────────────────────────────────────────────────
+// Guarded by DEV_TOOLS_ON (Vite dev server + VITE_LOCAL_DEV_TOOLS=true in the
+// local-only .env.local) — stripped from production builds and hidden in any
+// dev server that lacks the flag (e.g. Replit's preview). Gives local testing a click-to-reset
+// / click-to-seed control (no console needed). Writes the REAL state keys each
+// A-store reads, so seeded progress is genuine (not a display fake):
+//   A1 Purpose → a1_ex{1..4}_done + map.purpose_final
+//   A1 Vision  → map.vision.complete (+ per-section flags)
+//   A1 Mirror3 → map.mirror3.sealCompleted
+//   A1 Mirror4 → to_mirror4_state_v1 .claimed
+//   A2         → to_a2_state_v1 .m1/.m2/.m3 .claimed
+//   A3         → to_a3_state_v1 reset to EMPTY_A3 (fresh rooms)
+const DEV_RESET_BTN: React.CSSProperties = {
+  cursor: "pointer",
+  padding: "5px 10px",
+  borderRadius: 6,
+  border: "1px solid currentColor",
+  background: "transparent",
+  color: "inherit",
+  font: "inherit",
+};
+// Local-only dev tools switch. Requires BOTH a Vite dev server (DEV) AND an
+// explicit opt-in env flag, VITE_LOCAL_DEV_TOOLS=true, which lives only in the
+// untracked `artifacts/true-ownership/.env.local` on the local machine. Replit's
+// dev preview is also a Vite dev server (DEV is true there), so DEV alone is not
+// enough — without the flag the bar and every seed/jump helper stay hidden.
+// `import.meta.env.DEV` is listed first so production builds fold this to
+// `false` at compile time and strip everything gated on it.
+const DEV_TOOLS_ON =
+  import.meta.env.DEV && import.meta.env.VITE_LOCAL_DEV_TOOLS === "true";
+
+// DEV-only · session flag ("to_dev_claim_jump" in sessionStorage) telling a
+// room's container to open directly on its Claim step. Written by a "→ claim"
+// seed button below, read + cleared by the container on mount. Rooms whose step
+// lives in component state (A3 M6) honor it; store-step rooms (A2 M1) land on
+// Claim via the persisted currentStep. The key is deliberately written as an
+// inline literal at each use (all inside DEV_TOOLS_ON-gated code) rather than a
+// shared top-level const: an unused top-level const survives minification and
+// leaks the string into production bundles; gated inline literals are removed.
+
+function DevResetBar() {
+  if (!DEV_TOOLS_ON) return null;
+  const resetAll = () => {
+    if (!window.confirm("DEV: clear ALL A1/A2/A3 progress and reload?")) return;
+    try {
+      // Remove every progress store: all `to_*` keys (map/done/step/phase/voice,
+      // mirror4, A2, A3) plus the A1 Purpose done flags. Feature-flag opt-ins
+      // (na1/na2/na3_optin) and theme are NOT `to_*`, so they survive — the
+      // A2/A3 surfaces stay enabled for the next test run.
+      for (const k of Object.keys(window.localStorage)) {
+        if (k.startsWith("to_") || /^a1_ex\d_done$/.test(k)) {
+          window.localStorage.removeItem(k);
+        }
+      }
+    } catch {}
+    window.location.reload();
+  };
+  const seedA1A2 = () => {
+    try {
+      const now = new Date().toISOString();
+      // A1 · Purpose (Declare) — four explicit done flags + a purpose_final so
+      // visionUnlocked is satisfied.
+      saveData("a1_ex1_done", true);
+      saveData("a1_ex2_done", true);
+      saveData("a1_ex3_done", true);
+      saveData("a1_ex4_done", true);
+      // A1 · map blob carries Purpose final, Vision completion, and Mirror 3 seal.
+      const map = (loadDataSync(KEYS.map) as any) || {};
+      map.purpose_final = map.purpose_final || "DEV-seeded purpose.";
+      map.vision = {
+        ...(map.vision || {}),
+        twoFutures: {
+          ...((map.vision && map.vision.twoFutures) || {}),
+          complete: true,
+        },
+        time_complete: true,
+        wealth_complete: true,
+        self_complete: true,
+        complete: true,
+      };
+      map.mirror3 = { ...(map.mirror3 || {}), sealCompleted: true };
+      saveData(KEYS.map, map);
+      // A1 · Mirror 4 (Values) — its own store; `claimed` drives m4Complete.
+      saveMirror4State({ ...loadMirror4State(), claimed: true, claimedAt: now });
+      // A2 · all three mirrors genuinely claimed.
+      const a2 = loadA2State();
+      saveA2State({
+        ...a2,
+        m1: { ...a2.m1, claimed: true, claimedAt: now },
+        m2: { ...a2.m2, claimed: true, claimedAt: now },
+        m3: { ...a2.m3, claimed: true, claimedAt: now },
+      });
+      // A3 · cleared so People/Environment rooms are fresh for testing.
+      saveA3State(EMPTY_A3);
+    } catch (e) {
+      console.error("[DEV seed] failed", e);
+    }
+    window.location.reload();
+  };
+  // Shared A1-complete seed (real §2a derivations): four Purpose done flags +
+  // map (purpose_final / vision / mirror3 seal) + Mirror 4 claim. Makes
+  // a1Complete true AND leaves a purpose statement so the A2 rate model has its
+  // Purpose screen. Used by both "→ claim" seeds below.
+  const seedA1CompleteInto = (now: string) => {
+    saveData("a1_ex1_done", true);
+    saveData("a1_ex2_done", true);
+    saveData("a1_ex3_done", true);
+    saveData("a1_ex4_done", true);
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    map.purpose_final = map.purpose_final || "DEV-seeded purpose.";
+    map.vision = {
+      ...(map.vision || {}),
+      twoFutures: {
+        ...((map.vision && map.vision.twoFutures) || {}),
+        complete: true,
+      },
+      time_complete: true,
+      wealth_complete: true,
+      self_complete: true,
+      complete: true,
+    };
+    map.mirror3 = { ...(map.mirror3 || {}), sealCompleted: true };
+    saveData(KEYS.map, map);
+    saveMirror4State({ ...loadMirror4State(), claimed: true, claimedAt: now });
+  };
+  // "A2 M1 → claim": A1 complete (unlocks Alignment Check) + A2 Mirror 1 filled
+  // to the Claim step, UNCLAIMED. Purpose rated (the only rate-model item with
+  // just A1 seeded, so Step 2 is genuinely complete); no bottleneck override
+  // (Step 3 uses the live lowest-ranked default); currentStep 4 lands on Claim.
+  // The saved route re-opens the room directly on that step.
+  const seedA2M1Claim = () => {
+    try {
+      const now = new Date().toISOString();
+      seedA1CompleteInto(now);
+      const a2 = loadA2State();
+      saveA2State({
+        ...a2,
+        m1: {
+          ...a2.m1,
+          currentStep: 4,
+          maxReached: 4,
+          veilSeen: true,
+          ratings: {},
+          purposeRating: 7,
+          step2Index: 0,
+          bottleneck: null,
+          keepInFocus: null,
+          claimed: false,
+          claimedAt: undefined,
+        },
+      });
+      saveAppRoute({
+        view: "a2m1",
+        overlay: { hubId: "a2m1", roomId: "alignment" },
+      });
+    } catch (e) {
+      console.error("[DEV seed A2M1] failed", e);
+    }
+    window.location.reload();
+  };
+  // "A3 M6 → claim": A1 + A2 complete and A3 Mirrors 1–5 genuinely claimed with
+  // real Weight items (so The Move's pools are real), then Mirror 6's three
+  // picks made + the bottleneck starred, UNCLAIMED. The DEV jump flag makes the
+  // container open on the Claim step (its step is component state, not stored);
+  // the saved route re-opens the room directly.
+  const seedA3M6Claim = () => {
+    try {
+      const now = new Date().toISOString();
+      seedA1CompleteInto(now);
+      const a2 = loadA2State();
+      saveA2State({
+        ...a2,
+        m1: { ...a2.m1, claimed: true, claimedAt: now },
+        m2: { ...a2.m2, claimed: true, claimedAt: now },
+        m3: { ...a2.m3, claimed: true, claimedAt: now },
+      });
+      saveA3State({
+        ...EMPTY_A3,
+        m1: {
+          ...EMPTY_A3.m1,
+          names: ["Sample Anchor"],
+          ratings: { "Sample Anchor": "anchor" },
+          claimed: true,
+          claimedAt: now,
+        },
+        m2: {
+          ...EMPTY_A3.m2,
+          items: [{ name: "Doomscrolling", kind: "habit", rating: "anchor" }],
+          claimed: true,
+          claimedAt: now,
+        },
+        m3: {
+          ...EMPTY_A3.m3,
+          thoughts: [
+            { text: "I'm not doing enough", verdict: "critic", reframe: "" },
+          ],
+          voiceNow: "The Critic",
+          voiceWant: "A steadier voice",
+          claimed: true,
+          claimedAt: now,
+        },
+        m4: { claimed: true, claimedAt: now },
+        m5: {
+          ...EMPTY_A3.m5,
+          seats: [
+            {
+              role: "The Listener",
+              desc: "Hears you out — doesn't rush to fix",
+              name: "Sample Anchor",
+              inLife: "life",
+            },
+          ],
+          claimed: true,
+          claimedAt: now,
+        },
+        m6: {
+          person: "Sample Anchor",
+          env: "Doomscrolling",
+          thought: "I'm not doing enough",
+          bottleneck: "person",
+          claimed: false,
+          claimedAt: null,
+        },
+      });
+      try {
+        window.sessionStorage.setItem("to_dev_claim_jump", "a3m6");
+      } catch {}
+      saveAppRoute({
+        view: "a3m6",
+        overlay: { hubId: "a3m6", roomId: "move" },
+      });
+    } catch (e) {
+      console.error("[DEV seed A3M6] failed", e);
+    }
+    window.location.reload();
+  };
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 8,
+        alignItems: "center",
+        flexWrap: "wrap",
+        margin: "0 0 16px",
+        padding: "8px 12px",
+        border: "1px dashed #c0556a",
+        borderRadius: 8,
+        background: "rgba(192,85,106,0.08)",
+        color: "#c0556a",
+        fontFamily: "ui-monospace, Menlo, monospace",
+        fontSize: 12,
+      }}
+    >
+      <span style={{ fontWeight: 700, letterSpacing: "0.08em" }}>DEV</span>
+      <button type="button" onClick={resetAll} style={DEV_RESET_BTN}>
+        Reset all progress
+      </button>
+      <button type="button" onClick={seedA1A2} style={DEV_RESET_BTN}>
+        Seed A1+A2 complete
+      </button>
+      <button type="button" onClick={seedA2M1Claim} style={DEV_RESET_BTN}>
+        A2 M1 → claim
+      </button>
+      <button type="button" onClick={seedA3M6Claim} style={DEV_RESET_BTN}>
+        A3 M6 → claim
+      </button>
+    </div>
+  );
+}
+
 function NewA1EntryHall({
   name,
   onSeeFramework,
@@ -34106,6 +34417,7 @@ function NewA1EntryHall({
   return (
     <div className="na1-root">
       <main className="na1-eh-content">
+        <DevResetBar />
         <div className="na1-breadcrumb">
           <span className="current">Entry Hall</span>
         </div>
@@ -34374,7 +34686,10 @@ function NewA2HubView({
             <div className="na1-mirror-card-empty">
               {m1Claimed ? "Claimed." : ""}
             </div>
-            {a1Complete ? null : (
+            {/* Never shown once Mirror 1 is claimed — a claimed card reads
+                Complete regardless of a later A1 reset (mirrors the A3 People
+                card gate). */}
+            {!a1Complete && !m1Claimed ? (
               <p className="na1-mirror-card-sub">
                 Finish All In It first —{" "}
                 {a1Remaining === 1
@@ -34382,9 +34697,17 @@ function NewA2HubView({
                   : `${a1Remaining} Mirrors`}{" "}
                 left: {nextA1MirrorName}.
               </p>
-            )}
+            ) : null}
             <div className="na1-mirror-card-action">
-              {a1Complete ? (
+              {!a1Complete && !m1Claimed ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onGoToA1}
+                >
+                  Go to All In It →
+                </button>
+              ) : (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -34395,14 +34718,6 @@ function NewA2HubView({
                     : m1Started
                       ? "Continue Alignment Check →"
                       : "Begin Alignment Check →"}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="na1-btn-gold na1-btn-block"
-                  onClick={onGoToA1}
-                >
-                  Go to All In It →
                 </button>
               )}
               <span className="na1-mirror-card-meta">4 exercises</span>
@@ -36022,18 +36337,6 @@ function NewA2M1Step4Body({
       onClaim();
     }, 2000);
   };
-  // Re-claim from the sealed state: fire the same burst, then re-stamp the claim
-  // time (onReclaim) without flipping `claimed`, so the seal stays visible.
-  const handleReclaim = () => {
-    if (showBurst) return;
-    setShowBurst(true);
-    burstTimerRef.current = window.setTimeout(() => {
-      burstTimerRef.current = null;
-      setShowBurst(false);
-      onReclaim();
-    }, 2000);
-  };
-
   if (!bottleneckCand) {
     return (
       <div className="na1-a2m1-step4">
@@ -36071,14 +36374,9 @@ function NewA2M1Step4Body({
           )}
         <div className="na1-a2m1-reclaim">
           <p className="na1-a2m1-reclaim-note">
-            Changed your ratings? Re-commit your alignment.
+            Changed your ratings? Re-rate and re-claim.
           </p>
-          <button
-            type="button"
-            className="na1-btn-ghost"
-            onClick={handleReclaim}
-            disabled={showBurst}
-          >
+          <button type="button" className="na1-btn-ghost" onClick={onReclaim}>
             ↺ Re-claim
           </button>
         </div>
@@ -36128,7 +36426,7 @@ function NewA2M1Step4Body({
           onClick={handleClaim}
           disabled={showBurst}
         >
-          Claim this →
+          Claim →
         </button>
       </div>
     </div>
@@ -36352,14 +36650,13 @@ function NewA2M1Container({
     );
   }, [mutateM1]);
 
-  // A2.6 · Re-claim — re-commit an already-sealed mirror after the user changes
-  // their ratings. Re-stamps claimedAt only (the seal content already reflects
-  // the current bottleneck); claimed stays true so the hub card stays sealed.
-  // No-op when not yet claimed.
+  // A2.6 · Re-claim (Option B — consistent with every A3 mirror): un-seal the
+  // mirror and return to Step 1 so the user can change their ratings and
+  // bottleneck, then re-walk to Claim → to re-seal. unsealA2M1 clears
+  // claimed/claimedAt; currentStep resets to 1 (maxReached already spans the
+  // walked steps, so forward nav stays open).
   const onReclaim = useCallback(() => {
-    mutateM1((m) =>
-      m.claimed ? { ...m, claimedAt: new Date().toISOString() } : m,
-    );
+    mutateM1((m) => ({ ...unsealA2M1(m), currentStep: 1 }));
   }, [mutateM1]);
 
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
@@ -36427,6 +36724,10 @@ function NewA2M1Container({
     clearTimers();
     setVeilPhase("idle");
     setRoomOpen(false);
+    // A2 M1 renders its Alignment-Check hub (NewA2M1HubView) as a persistent
+    // base layer, so closing the overlay naturally reveals it — the correct
+    // "step back one level" here. (The other eight mirrors render either the
+    // room OR an overview, so they return to the discipline hub on close.)
   };
 
   const goToStep = (step: number) => {
@@ -37185,20 +37486,6 @@ function NewA2M2Step4Body({
       onClaim();
     }, 2000);
   };
-  // Re-claim from the sealed state: replay the burst, re-stamp the claim time
-  // (onReclaim keeps `claimed` true), and stay in the ceremony.
-  const handleReclaim = () => {
-    if (showBurst) return;
-    setShowBurst(true);
-    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
-    if (card) card.scrollTo({ top: 0, behavior: "smooth" });
-    burstTimerRef.current = window.setTimeout(() => {
-      burstTimerRef.current = null;
-      setShowBurst(false);
-      onReclaim();
-    }, 2000);
-  };
-
   // Minimal priorities summary — small and quiet, shown above the seal so it
   // never dominates the page (per the A1-style ceremonial layout).
   const miniSummary = (
@@ -37292,12 +37579,7 @@ function NewA2M2Step4Body({
           {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A2 →"}
         </button>
         <div className="na1-a2m2-reclaim">
-          <button
-            type="button"
-            className="na1-btn-ghost"
-            onClick={handleReclaim}
-            disabled={showBurst}
-          >
+          <button type="button" className="na1-btn-ghost" onClick={onReclaim}>
             ↺ Re-claim
           </button>
         </div>
@@ -37399,7 +37681,7 @@ function NewA2M2Container({
   // straight back to the A2 hub (first-run flow has no overview to return to).
   const closeRoom = () => {
     setRoomOpen(false);
-    if (!claimedRevisit) onBackToA2();
+    onBackToA2();
   };
 
   const goToStep = (step: number) => {
@@ -37484,17 +37766,19 @@ function NewA2M2Container({
       missingItems: m.missingItems.filter((it) => it.id !== id),
     }));
 
-  // Claim handlers. claimM2 seals + stamps; reclaimM2 re-stamps without
-  // un-sealing (the seal stays visible). Both are followed by the gold burst,
-  // fired inside the Step 4 body before these run.
+  // Claim handlers. claimM2 seals + stamps. reclaimM2 (Option B — consistent
+  // with A2 M1 and every A3 mirror): un-seal and return to Step 1 so the user
+  // can change their inputs, then re-walk to Claim → to re-seal.
   const claimM2 = () =>
     mutateM2((m) => ({
       ...m,
       claimed: true,
       claimedAt: new Date().toISOString(),
     }));
-  const reclaimM2 = () =>
-    mutateM2((m) => ({ ...m, claimedAt: new Date().toISOString() }));
+  const reclaimM2 = () => {
+    mutateM2((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
 
   // Forward CTA target for the Claim step — Named Truth (Mirror 3) shell. The
   // launcher always exists this ship (the shell ships alongside), so the seal's
@@ -38385,19 +38669,6 @@ function NewA2M3Step3Body({
       onClaim();
     }, 2000);
   };
-  // Re-claim from the sealed state: replay the burst, re-stamp the claim time
-  // (onReclaim keeps `claimed` true), and stay in the ceremony.
-  const handleReclaim = () => {
-    if (showBurst) return;
-    setShowBurst(true);
-    const card = document.querySelector(".na1-room-card") as HTMLElement | null;
-    if (card) card.scrollTo({ top: 0, behavior: "smooth" });
-    burstTimerRef.current = window.setTimeout(() => {
-      burstTimerRef.current = null;
-      setShowBurst(false);
-      onReclaim();
-    }, 2000);
-  };
 
   const burstPortal =
     showBurst &&
@@ -38534,12 +38805,7 @@ function NewA2M3Step3Body({
         </button>
         <p className="na1-a2m3-soon">A3 · Advocate For It — coming soon.</p>
         <div className="na1-a2m3-reclaim">
-          <button
-            type="button"
-            className="na1-btn-ghost"
-            onClick={handleReclaim}
-            disabled={showBurst}
-          >
+          <button type="button" className="na1-btn-ghost" onClick={onReclaim}>
             ↺ Re-claim
           </button>
         </div>
@@ -38636,7 +38902,7 @@ function NewA2M3Container({
   // straight back to the A2 hub (first-run flow has no overview to return to).
   const closeRoom = () => {
     setRoomOpen(false);
-    if (!claimedRevisit) onBackToA2();
+    onBackToA2();
   };
   const goToStep = (step: number) => {
     const clamped = Math.max(1, Math.min(3, step));
@@ -38760,8 +39026,13 @@ function NewA2M3Container({
         claimedAt: new Date().toISOString(),
       };
     });
-  const reclaimM3 = () =>
-    mutateM3((m) => ({ ...m, claimedAt: new Date().toISOString() }));
+  // reclaimM3 (Option B — consistent with A2 M1/M2 and every A3 mirror):
+  // un-seal and return to Step 1 so the user can change their inputs, then
+  // re-walk to Claim → to re-seal.
+  const reclaimM3 = () => {
+    mutateM3((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
 
   useEffect(() => {
     if (!roomOpen) return;
@@ -38971,14 +39242,39 @@ function parseA3Names(text: string): string[] {
 // re-locks everything except People (see Mirror-gating memory).
 function NewA3HubView({
   name,
+  a1Complete,
+  a2Complete,
+  nextA1MirrorName,
+  a1Remaining,
   onEntryHall,
   onBeginPeople,
   onBeginEnvironment,
+  onBeginThoughts,
+  onBeginEnergyMap,
+  onBeginBoard,
+  onBeginMove,
+  onGoToA1,
+  onGoToA2,
 }: {
   name?: string;
+  // A3.gate · the 01 People card is gated on BOTH A1 and A2 being complete,
+  // mirroring the A2 hub's 01 card (which gates on a1Complete). Complete →
+  // Begin enabled (onBeginPeople). Incomplete → the card reads LOCKED and
+  // offers a live button routing back to the first unfinished discipline:
+  // A1 (onGoToA1) if A1 isn't done, else A2 (onGoToA2).
+  a1Complete: boolean;
+  a2Complete: boolean;
+  nextA1MirrorName: string | null;
+  a1Remaining: number;
   onEntryHall: () => void;
   onBeginPeople: () => void;
   onBeginEnvironment: () => void;
+  onBeginThoughts: () => void;
+  onBeginEnergyMap: () => void;
+  onBeginBoard: () => void;
+  onBeginMove: () => void;
+  onGoToA1: () => void;
+  onGoToA2: () => void;
 }) {
   useEffect(() => {
     if (!hasA3State()) {
@@ -39008,24 +39304,65 @@ function NewA3HubView({
   const m2Done = m2Claimed
     ? 3
     : (m2Items.length >= 1 ? 1 : 0) + (m2AllRated ? 1 : 0);
+  // A3 Ship 3 · Thoughts (m3). Progress mirrors the People/Environment shape:
+  // Stage 1 (≥1 captured line) + Stage 2 (all lines marked AND the as-it-is
+  // voice named) each count one pip; a claim fills all three.
+  const a3m3 = a3.m3;
+  const m3Claimed = a3m3.claimed;
+  const m3Thoughts = a3m3.thoughts;
+  const m3AllVerdicts =
+    m3Thoughts.length > 0 && m3Thoughts.every((t) => t.verdict != null);
+  const m3ShapeReady = m3AllVerdicts && a3m3.voiceNow.trim() !== "";
+  const m3Started = m3Thoughts.length > 0;
+  const m3Done = m3Claimed
+    ? 3
+    : (m3Thoughts.length >= 1 ? 1 : 0) + (m3ShapeReady ? 1 : 0);
+  // A3 Ship 4 · Energy Map (m4). A see-it room — no partial progress; the card
+  // is Locked / Up next / Complete only, pips fill on claim.
+  const m4Claimed = a3.m4.claimed;
+  const m4Done = m4Claimed ? 3 : 0;
   // Unlock booleans, chained. People is always unlocked; each later mirror
   // unlocks off the PREVIOUS unlock AND the previous mirror's claim. Mirrors
   // 3–6 have no claim yet (stubs), so through Ship 2 only Thoughts can ever
   // reach Up next among the locked cards.
-  const peopleUnlocked = true;
+  // A3.gate · People (Mirror 1) is now gated on the full A1 + A2 sequence,
+  // mirroring the A2 card's a1Complete gate. Previously hardcoded to true,
+  // which let a user enter A3 before finishing A1/A2. envUnlocked and the
+  // downstream chain are unchanged — they still key off peopleUnlocked, so
+  // gating here transitively re-locks everything below when a prerequisite
+  // is reset.
+  const peopleUnlocked = a1Complete && a2Complete;
   const envUnlocked = peopleUnlocked && m1Claimed;
   const thoughtsUnlocked = envUnlocked && m2Claimed;
-  const mirrorsComplete = (m1Claimed ? 1 : 0) + (m2Claimed ? 1 : 0);
-  // Locked/stub cards 03–06, driven off the chained unlock booleans above.
-  const laterCards = [
-    { idx: 2, unlocked: thoughtsUnlocked, prev: "Environment" },
-    { idx: 3, unlocked: false, prev: "Thoughts" },
-    { idx: 4, unlocked: false, prev: "Energy Map" },
-    { idx: 5, unlocked: false, prev: "The Board" },
-  ];
+  // A3 Ship 3 · Energy Map (m4) unlocks off the Thoughts claim; A3 Ship 4 · The
+  // Board (m5) unlocks off the Energy Map claim, continuing the chain. Mirrors
+  // 5–6 remain stubs, so only The Board can reach Up next among the stubs.
+  const energyUnlocked = thoughtsUnlocked && m3Claimed;
+  const boardUnlocked = energyUnlocked && m4Claimed;
+  // A3 Ship 5 · The Board (m5). A real functional card as of this ship; The
+  // Move (m6) unlocks off the Board claim, continuing the chain.
+  const m5Claimed = a3.m5.claimed;
+  const m5Started = a3.m5.seats.some((s) => s.name.trim() !== "");
+  const m5Done = m5Claimed ? 3 : 0;
+  const moveUnlocked = boardUnlocked && m5Claimed;
+  // A3 Ship 6 · The Move (m6). The final A3 mirror — a real functional card as
+  // of this ship. `m6Started` = any of the three picks made. Claiming it
+  // completes A3 (all six claimed), filling the Advocate spine vertebra.
+  const m6 = a3.m6;
+  const m6Claimed = m6.claimed;
+  const m6Started = !!(m6.person || m6.env || m6.thought);
+  const m6Done = m6Claimed ? 3 : 0;
+  const mirrorsComplete =
+    (m1Claimed ? 1 : 0) +
+    (m2Claimed ? 1 : 0) +
+    (m3Claimed ? 1 : 0) +
+    (m4Claimed ? 1 : 0) +
+    (m5Claimed ? 1 : 0) +
+    (m6Claimed ? 1 : 0);
   return (
     <div className="na1-root">
       <div className="na1-shell">
+        <DevResetBar />
         <div className="na1-breadcrumb">
           <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
@@ -39065,13 +39402,13 @@ function NewA3HubView({
           {/* 01 · People — the only functional mirror this ship. */}
           <article
             className={`na1-mirror-card ${
-              m1Claimed ? "is-complete" : "is-current"
+              m1Claimed ? "is-complete" : peopleUnlocked ? "is-current" : ""
             }`}
           >
             <div className="na1-mirror-card-head">
               <span className="na1-mirror-card-num">01</span>
               <span className="na1-mirror-card-status">
-                {m1Claimed ? "Complete" : "Up next"}
+                {m1Claimed ? "Complete" : peopleUnlocked ? "Up next" : "Locked"}
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 1</div>
@@ -39092,18 +39429,44 @@ function NewA3HubView({
             >
               {m1Claimed ? "Claimed." : ""}
             </div>
+            {/* A3.gate · locked copy mirrors the A2 card. Name whichever
+                discipline must be finished first — A1 (with the specific next
+                mirror, exactly like the A2 card) if A1 is incomplete, else A2.
+                Never shown once People is claimed — a claimed card reads
+                Complete regardless of a later A1/A2 reset. */}
+            {!peopleUnlocked && !m1Claimed ? (
+              !a1Complete ? (
+                <p className="na1-mirror-card-sub">
+                  Finish All In It first —{" "}
+                  {a1Remaining === 1 ? "one Mirror" : `${a1Remaining} Mirrors`}{" "}
+                  left: {nextA1MirrorName}.
+                </p>
+              ) : (
+                <p className="na1-mirror-card-sub">Finish Align With It first.</p>
+              )
+            ) : null}
             <div className="na1-mirror-card-action">
-              <button
-                type="button"
-                className="na1-btn-gold na1-btn-block"
-                onClick={onBeginPeople}
-              >
-                {m1Claimed
-                  ? "Review People →"
-                  : m1Started
-                    ? "Continue People →"
-                    : "Begin People →"}
-              </button>
+              {!peopleUnlocked && !m1Claimed ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={!a1Complete ? onGoToA1 : onGoToA2}
+                >
+                  {!a1Complete ? "Go to All In It →" : "Go to Align With It →"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginPeople}
+                >
+                  {m1Claimed
+                    ? "Review People →"
+                    : m1Started
+                      ? "Continue People →"
+                      : "Begin People →"}
+                </button>
+              )}
               <span className="na1-mirror-card-meta">3 exercises</span>
             </div>
           </article>
@@ -39159,48 +39522,230 @@ function NewA3HubView({
               <span className="na1-mirror-card-meta">3 exercises</span>
             </div>
           </article>
-          {/* 03–06 · later ships. Locked cards only — no rooms behind them.
-              When a card's unlock boolean flips (03 Thoughts after the
-              Environment claim) it renders Up next (.is-current cyan + the
-              shared flash cue) with an inert Begin placeholder until its ship
-              lands. */}
-          {laterCards.map(({ idx, unlocked, prev }) => {
-            const m = A3_MIRRORS[idx];
-            return (
-              <article
-                key={m.num}
-                className={`na1-mirror-card ${
-                  unlocked ? "is-current" : "is-locked"
-                }`}
-              >
-                <div className="na1-mirror-card-head">
-                  <span className="na1-mirror-card-num">{m.num}</span>
-                  <span className="na1-mirror-card-status">
-                    {unlocked ? "Up next" : "Locked"}
-                  </span>
-                </div>
-                <div className="na1-mirror-card-eyebrow">Mirror {idx + 1}</div>
-                <h2 className="na1-mirror-card-name">{m.title}</h2>
-                <p className="na1-mirror-card-sub">{m.sub}</p>
-                <MirrorPips done={0} total={3} />
-                <div className="na1-mirror-card-empty">
-                  {unlocked ? "" : `Unlocks after ${prev}`}
-                </div>
-                <div className="na1-mirror-card-action">
-                  {unlocked ? (
-                    <button
-                      type="button"
-                      className="na1-btn-gold na1-btn-block"
-                      disabled
-                    >
-                      Begin {m.title} →
-                    </button>
-                  ) : null}
-                  <span className="na1-mirror-card-meta">3 exercises</span>
-                </div>
-              </article>
-            );
-          })}
+          {/* 03 · Thoughts — functional as of Ship 3. Same state model as
+              People/Environment, gated on the Environment claim via
+              thoughtsUnlocked; claiming it unlocks Energy Map. */}
+          <article
+            className={`na1-mirror-card ${
+              m3Claimed
+                ? "is-complete"
+                : thoughtsUnlocked
+                  ? "is-current"
+                  : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">03</span>
+              <span className="na1-mirror-card-status">
+                {m3Claimed ? "Complete" : thoughtsUnlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+            <h2 className="na1-mirror-card-name">Thoughts</h2>
+            <p className="na1-mirror-card-sub">{A3_MIRRORS[2].sub}</p>
+            <MirrorPips done={m3Done} total={3} />
+            <div
+              className="na1-mirror-card-empty"
+              style={
+                m3Claimed
+                  ? {
+                      fontStyle: "italic",
+                      color: "var(--na1-text-sec)",
+                      fontFamily: "var(--na1-serif)",
+                    }
+                  : undefined
+              }
+            >
+              {m3Claimed
+                ? "Claimed."
+                : thoughtsUnlocked
+                  ? ""
+                  : "Unlocks after Environment"}
+            </div>
+            <div className="na1-mirror-card-action">
+              {thoughtsUnlocked ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginThoughts}
+                >
+                  {m3Claimed
+                    ? "Review Thoughts →"
+                    : m3Started
+                      ? "Continue Thoughts →"
+                      : "Begin Thoughts →"}
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">3 exercises</span>
+            </div>
+          </article>
+          {/* 04 · Energy Map — functional as of Ship 4. A see-it synthesis of
+              People + Environment + Thoughts; gated on the Thoughts claim via
+              energyUnlocked; claiming it unlocks The Board. */}
+          <article
+            className={`na1-mirror-card ${
+              m4Claimed
+                ? "is-complete"
+                : energyUnlocked
+                  ? "is-current"
+                  : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">04</span>
+              <span className="na1-mirror-card-status">
+                {m4Claimed ? "Complete" : energyUnlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 4</div>
+            <h2 className="na1-mirror-card-name">Energy Map</h2>
+            <p className="na1-mirror-card-sub">{A3_MIRRORS[3].sub}</p>
+            <MirrorPips done={m4Done} total={3} />
+            <div
+              className="na1-mirror-card-empty"
+              style={
+                m4Claimed
+                  ? {
+                      fontStyle: "italic",
+                      color: "var(--na1-text-sec)",
+                      fontFamily: "var(--na1-serif)",
+                    }
+                  : undefined
+              }
+            >
+              {m4Claimed
+                ? "Claimed."
+                : energyUnlocked
+                  ? ""
+                  : "Unlocks after Thoughts"}
+            </div>
+            <div className="na1-mirror-card-action">
+              {energyUnlocked ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginEnergyMap}
+                >
+                  {m4Claimed ? "Review Energy Map →" : "Begin Energy Map →"}
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">See-it synthesis</span>
+            </div>
+          </article>
+          {/* 05 · The Board — functional as of Ship 5. Name the roles you want
+              in your corner and seat who fits; gated on the Energy Map claim via
+              boardUnlocked; claiming it unlocks The Move. */}
+          <article
+            className={`na1-mirror-card ${
+              m5Claimed
+                ? "is-complete"
+                : boardUnlocked
+                  ? "is-current"
+                  : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">05</span>
+              <span className="na1-mirror-card-status">
+                {m5Claimed ? "Complete" : boardUnlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 5</div>
+            <h2 className="na1-mirror-card-name">The Board</h2>
+            <p className="na1-mirror-card-sub">{A3_MIRRORS[4].sub}</p>
+            <MirrorPips done={m5Done} total={3} />
+            <div
+              className="na1-mirror-card-empty"
+              style={
+                m5Claimed
+                  ? {
+                      fontStyle: "italic",
+                      color: "var(--na1-text-sec)",
+                      fontFamily: "var(--na1-serif)",
+                    }
+                  : undefined
+              }
+            >
+              {m5Claimed
+                ? "Claimed."
+                : boardUnlocked
+                  ? ""
+                  : "Unlocks after Energy Map"}
+            </div>
+            <div className="na1-mirror-card-action">
+              {boardUnlocked ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginBoard}
+                >
+                  {m5Claimed
+                    ? "Review The Board →"
+                    : m5Started
+                      ? "Continue The Board →"
+                      : "Begin The Board →"}
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">3 exercises</span>
+            </div>
+          </article>
+          {/* 06 · The Move — functional as of Ship 6 (the final A3 mirror).
+              The decision room; gated on the Board claim via moveUnlocked;
+              claiming it completes A3 (6 of 6 + the Advocate vertebra fills). */}
+          <article
+            className={`na1-mirror-card ${
+              m6Claimed
+                ? "is-complete"
+                : moveUnlocked
+                  ? "is-current"
+                  : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">06</span>
+              <span className="na1-mirror-card-status">
+                {m6Claimed ? "Complete" : moveUnlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 6</div>
+            <h2 className="na1-mirror-card-name">The Move</h2>
+            <p className="na1-mirror-card-sub">{A3_MIRRORS[5].sub}</p>
+            <MirrorPips done={m6Done} total={3} />
+            <div
+              className="na1-mirror-card-empty"
+              style={
+                m6Claimed
+                  ? {
+                      fontStyle: "italic",
+                      color: "var(--na1-text-sec)",
+                      fontFamily: "var(--na1-serif)",
+                    }
+                  : undefined
+              }
+            >
+              {m6Claimed
+                ? "Claimed."
+                : moveUnlocked
+                  ? ""
+                  : "Unlocks after The Board"}
+            </div>
+            <div className="na1-mirror-card-action">
+              {moveUnlocked ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginMove}
+                >
+                  {m6Claimed
+                    ? "Review The Move →"
+                    : m6Started
+                      ? "Continue The Move →"
+                      : "Begin The Move →"}
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">The decision</span>
+            </div>
+          </article>
         </div>
       </div>
     </div>
@@ -39392,6 +39937,7 @@ function NewA3M1ClaimBody({
   ratings,
   claimed,
   onClaim,
+  onReclaim,
   onFinish,
   nextMirror,
 }: {
@@ -39399,6 +39945,7 @@ function NewA3M1ClaimBody({
   ratings: Record<string, A3PeopleRating>;
   claimed: boolean;
   onClaim: () => void;
+  onReclaim: () => void;
   onFinish: () => void;
   nextMirror?: { label: string; go: () => void } | null;
 }) {
@@ -39435,13 +39982,13 @@ function NewA3M1ClaimBody({
       }}
     >
       <span className="na1-chip tone-gold is-selected" aria-hidden>
-        {advocates} {advocates === 1 ? "Advocate" : "Advocates"}
+        {advocates} Close to you
       </span>
       <span className="na1-chip tone-grey is-selected" aria-hidden>
-        {neutral} Neutral
+        {neutral} Just there
       </span>
       <span className="na1-chip is-selected" aria-hidden>
-        {anchors} {anchors === 1 ? "Anchor" : "Anchors"}
+        {anchors} Weight
       </span>
     </div>
   );
@@ -39469,6 +40016,18 @@ function NewA3M1ClaimBody({
             </div>,
             document.body,
           )}
+        <div className="na1-a2m1-reclaim">
+          <p className="na1-a2m1-reclaim-note">
+            Changed how someone sits with you? Re-rate and re-claim.
+          </p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onReclaim}
+          >
+            ↺ Re-claim
+          </button>
+        </div>
         <div className="na1-a2m1-claim-actions">
           <button
             type="button"
@@ -39610,7 +40169,7 @@ function NewA3M1Container({
   // otherwise straight back to the A3 hub (first-run flow has no overview).
   const closeRoom = () => {
     setRoomOpen(false);
-    if (!claimedRevisit) onBackToA3();
+    onBackToA3();
   };
 
   const goToStep = (step: number) => {
@@ -39660,6 +40219,13 @@ function NewA3M1Container({
       claimed: true,
       claimedAt: m.claimedAt ?? new Date().toISOString(),
     }));
+  // Re-claim (Option B, shared across every mirror): un-seal the mirror (card
+  // flips back to in-progress) and return to Step 1 so the user can change
+  // their choices, then re-walk to Claim → to re-seal.
+  const reclaimM1 = () => {
+    mutateM1((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
 
   // Forward CTA target for the Claim stage: back to the A3 hub, where the
   // Environment card flashes as up-next.
@@ -39754,6 +40320,7 @@ function NewA3M1Container({
                   ratings={m1.ratings}
                   claimed={m1.claimed}
                   onClaim={claimM1}
+                  onReclaim={reclaimM1}
                   onFinish={closeRoom}
                   nextMirror={a3NextMirror}
                 />
@@ -40024,18 +40591,16 @@ function NewA3M2Step2Body({
 // a gentler variant when advocates = 0 or anchors > advocates.
 function NewA3M2ClaimBody({
   items,
-  takeaway,
-  onChangeTakeaway,
   claimed,
   onClaim,
+  onReclaim,
   onFinish,
   nextMirror,
 }: {
   items: A3EnvItem[];
-  takeaway: string;
-  onChangeTakeaway: (t: string) => void;
   claimed: boolean;
   onClaim: () => void;
+  onReclaim: () => void;
   onFinish: () => void;
   nextMirror?: { label: string; go: () => void } | null;
 }) {
@@ -40072,13 +40637,13 @@ function NewA3M2ClaimBody({
       }}
     >
       <span className="na1-chip tone-gold is-selected" aria-hidden>
-        {advocates} {advocates === 1 ? "Advocate" : "Advocates"}
+        {advocates} Close to you
       </span>
       <span className="na1-chip tone-grey is-selected" aria-hidden>
-        {neutral} Neutral
+        {neutral} Just there
       </span>
       <span className="na1-chip is-selected" aria-hidden>
-        {anchors} {anchors === 1 ? "Anchor" : "Anchors"}
+        {anchors} Weight
       </span>
     </div>
   );
@@ -40099,19 +40664,6 @@ function NewA3M2ClaimBody({
           </p>
           <p className="na1-a2m1-seal-by">— Katherine</p>
         </div>
-        {takeaway.trim() !== "" && (
-          <p
-            style={{
-              fontFamily: "var(--na1-serif)",
-              fontStyle: "italic",
-              fontSize: 15,
-              color: "var(--na1-text-sec)",
-              margin: "0 0 18px",
-            }}
-          >
-            Your takeaway: {takeaway}
-          </p>
-        )}
         {showBurst &&
           createPortal(
             <div className="na1-gold-burst" aria-hidden>
@@ -40119,6 +40671,18 @@ function NewA3M2ClaimBody({
             </div>,
             document.body,
           )}
+        <div className="na1-a2m1-reclaim">
+          <p className="na1-a2m1-reclaim-note">
+            Changed how a habit or place sits with you? Re-rate and re-claim.
+          </p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onReclaim}
+          >
+            ↺ Re-claim
+          </button>
+        </div>
         <div className="na1-a2m1-claim-actions">
           <button
             type="button"
@@ -40147,28 +40711,6 @@ function NewA3M2ClaimBody({
         Your habits and places, as they stand. Read them back, then seal them.
       </p>
       {counts}
-      <p
-        style={{
-          fontFamily: "var(--na1-sans)",
-          fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: "var(--na1-text-mute)",
-          margin: "0 0 8px",
-        }}
-      >
-        Takeaway · optional
-      </p>
-      <textarea
-        className="na1-textarea"
-        style={{ minHeight: 80 }}
-        value={takeaway}
-        onChange={(e) => onChangeTakeaway(e.target.value)}
-        placeholder={"One habit or place to change, and one to protect…"}
-        aria-label="One habit or place to change, and one to protect (optional)"
-      />
-      <div style={{ height: 18 }} />
       <div className="na1-a2m1-seal" role="note">
         <p className="na1-a2m1-seal-body">
           {gentle
@@ -40282,7 +40824,7 @@ function NewA3M2Container({
   // otherwise straight back to the A3 hub (first-run flow has no overview).
   const closeRoom = () => {
     setRoomOpen(false);
-    if (!claimedRevisit) onBackToA3();
+    onBackToA3();
   };
 
   const goToStep = (step: number) => {
@@ -40331,8 +40873,6 @@ function NewA3M2Container({
       ...m,
       items: m.items.map((it) => (it.name === name ? { ...it, rating } : it)),
     }));
-  const onChangeTakeaway = (t: string) =>
-    mutateM2((m) => ({ ...m, takeaway: t }));
 
   const allRated =
     m2.items.length > 0 && m2.items.every((it) => it.rating != null);
@@ -40352,6 +40892,10 @@ function NewA3M2Container({
       claimed: true,
       claimedAt: m.claimedAt ?? new Date().toISOString(),
     }));
+  const reclaimM2 = () => {
+    mutateM2((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
 
   // Forward CTA target for the Claim stage: back to the A3 hub, where the
   // Thoughts card flashes as up-next.
@@ -40440,10 +40984,9 @@ function NewA3M2Container({
               ) : (
                 <NewA3M2ClaimBody
                   items={m2.items}
-                  takeaway={m2.takeaway}
-                  onChangeTakeaway={onChangeTakeaway}
                   claimed={m2.claimed}
                   onClaim={claimM2}
+                  onReclaim={reclaimM2}
                   onFinish={closeRoom}
                   nextMirror={a3NextMirror}
                 />
@@ -40469,6 +41012,3799 @@ function NewA3M2Container({
       )}
       {veilPhase !== "idle" && (
         <NewA1Veil phase={veilPhase} text={A3M2_VEIL_TEXT} />
+      )}
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 3 (Thoughts) · Ship 3 ──────────────────────────────────────
+// Cloned from the Environment room (NewA3M2*): same room shell, veil, three
+// stages + Claim, claim ceremony, and A3-namespaced store. Differences from
+// Environment: Stage 1 (Listen) walks ONE prompt at a time (moment N of M)
+// rather than a single brain-dump; Stage 2 (Shape) marks each line Coach or
+// Critic and captures a friend's reframe for critics, then names the voice
+// as-it-is (required) and the best-friend voice (optional). Thoughts persist as
+// { text, verdict, reframe } so Energy Map (coach→advocate / critic→anchor) and
+// The Move (critics) can read them later.
+const A3M3_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "Listen" },
+  { num: 2, name: "Shape" },
+  { num: 3, name: "Claim" },
+];
+const A3M3_VEIL_TEXT = "Looking at what runs inside you…";
+
+// Seeded Listen prompts (the mockup's TH_SCENARIOS). Static triggers — never
+// persisted; only the user's answers (collapsed into `thoughts`) are stored.
+const TH_SCENARIOS: { q: string; eg: string }[] = [
+  {
+    q: "When you fail or mess up, what do you tell yourself?",
+    eg: 'e.g. "You should have known better…"',
+  },
+  {
+    q: "When life is hard, what do you say to yourself?",
+    eg: 'e.g. "Just push through — no one else will save you."',
+  },
+  {
+    q: "When you think about money, what's the story?",
+    eg: 'e.g. "There\'s never enough."',
+  },
+  {
+    q: "When you think about success, what runs in your head?",
+    eg: 'e.g. "Other people just get lucky."',
+  },
+  {
+    q: "When you look in the mirror, what's the voice?",
+    eg: 'e.g. "You\'re getting old. / You look tired."',
+  },
+];
+const TH_VOICE_NOW_CHIPS = [
+  "The Whip",
+  "Dr. Danger",
+  "Ms. Critic",
+  "The Judge",
+  "Never-Enough",
+  "The Drill Sergeant",
+];
+const TH_VOICE_WANT_CHIPS = [
+  "My Coach",
+  "My Advocate",
+  "Wise Friend",
+  "The Steady One",
+];
+const TH_INPUT_STYLE: React.CSSProperties = {
+  width: "100%",
+  background: "var(--na1-bg-soft)",
+  border: "1px solid var(--na1-border)",
+  borderRadius: "var(--na1-radius)",
+  color: "var(--na1-text)",
+  fontFamily: "var(--na1-sans)",
+  fontSize: 15,
+  padding: "10px 12px",
+  outline: "none",
+};
+
+// ─── A3 · Mirror 3 (Thoughts) · Stage 1 — Listen (one moment at a time) ───
+function NewA3M3Step1Body({
+  index,
+  total,
+  moment,
+  answer,
+  onAnswer,
+  onEditTrigger,
+  onPrev,
+  onNext,
+  onAddOwn,
+  onToShape,
+  canToShape,
+}: {
+  index: number;
+  total: number;
+  moment: { id: string; q: string; eg: string; custom: boolean };
+  answer: string;
+  onAnswer: (v: string) => void;
+  onEditTrigger: (v: string) => void;
+  onPrev: () => void;
+  onNext: () => void;
+  onAddOwn: () => void;
+  // Advancing to Shape is only offered on the LAST moment (mockup pacing);
+  // `canToShape` also requires ≥1 captured line. Earlier moments show Next →.
+  onToShape: () => void;
+  canToShape: boolean;
+}) {
+  const isLast = index === total - 1;
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">
+        A3 · MIRROR 3 · STAGE 1 · LISTEN
+      </div>
+      <h2 className="na1-room-title">Your Inner Landscape.</h2>
+      <p className="na1-room-context">
+        This is the voice that speaks even when no one else is in the room. Take
+        it one moment at a time — answer what comes up, then move on.
+      </p>
+      <div
+        style={{
+          textAlign: "center",
+          fontFamily: "var(--na1-sans)",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: "var(--na1-text-mute)",
+          margin: "0 0 14px",
+        }}
+      >
+        Moment {index + 1} of {total}
+      </div>
+      <div
+        style={{
+          border: "1px solid var(--na1-border)",
+          borderRadius: "var(--na1-radius-xl)",
+          padding: "22px 24px",
+          background: "var(--na1-bg-soft)",
+        }}
+      >
+        {moment.custom ? (
+          <input
+            value={moment.q}
+            onChange={(e) => onEditTrigger(e.target.value)}
+            placeholder="Your own trigger — when…"
+            aria-label="Your own trigger"
+            style={{
+              width: "100%",
+              background: "transparent",
+              border: "none",
+              borderBottom: "1px dashed var(--na1-border)",
+              color: "var(--na1-text)",
+              fontFamily: "var(--na1-serif)",
+              fontSize: 20,
+              paddingBottom: 6,
+              outline: "none",
+            }}
+          />
+        ) : (
+          <>
+            <div
+              style={{
+                fontFamily: "var(--na1-serif)",
+                fontSize: 21,
+                lineHeight: 1.25,
+                color: "var(--na1-text)",
+                marginBottom: 4,
+              }}
+            >
+              {moment.q}
+            </div>
+            {moment.eg && (
+              <div
+                style={{
+                  fontFamily: "var(--na1-serif)",
+                  fontStyle: "italic",
+                  fontSize: 13,
+                  color: "var(--na1-text-mute)",
+                }}
+              >
+                {moment.eg}
+              </div>
+            )}
+          </>
+        )}
+        <textarea
+          className="na1-textarea"
+          style={{ minHeight: 96, marginTop: 14 }}
+          value={answer}
+          onChange={(e) => onAnswer(e.target.value)}
+          placeholder="What do you actually say to yourself?"
+          aria-label="What you say to yourself"
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 10,
+          alignItems: "center",
+          marginTop: 14,
+        }}
+      >
+        <button
+          type="button"
+          className="na1-btn-ghost"
+          onClick={onPrev}
+          disabled={index === 0}
+        >
+          ← Previous
+        </button>
+        {isLast ? (
+          <>
+            <button type="button" className="na1-btn-ghost" onClick={onAddOwn}>
+              + Add your own
+            </button>
+            <button
+              type="button"
+              className="na1-btn-gold"
+              onClick={onToShape}
+              disabled={!canToShape}
+            >
+              Shape what you found →
+            </button>
+          </>
+        ) : (
+          <button type="button" className="na1-btn-gold" onClick={onNext}>
+            Next →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 3 (Thoughts) · Stage 2 — Shape (Coach/Critic + reframe) ───
+function NewA3M3Step2Body({
+  thoughts,
+  voiceNow,
+  voiceWant,
+  onVerdict,
+  onReframe,
+  onVoiceNow,
+  onVoiceWant,
+}: {
+  thoughts: A3Thought[];
+  voiceNow: string;
+  voiceWant: string;
+  onVerdict: (text: string, verdict: A3ThoughtVerdict) => void;
+  onReframe: (text: string, reframe: string) => void;
+  onVoiceNow: (v: string) => void;
+  onVoiceWant: (v: string) => void;
+}) {
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">
+        A3 · MIRROR 3 · STAGE 2 · SHAPE
+      </div>
+      <h2 className="na1-room-title">Coach, or critic?</h2>
+      <p className="na1-room-context">
+        For each line, is this voice on your side? Mark it — and where it's a{" "}
+        <strong style={{ color: "var(--burgundy)" }}>critic</strong>, say it back
+        the way someone in your corner would.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {thoughts.map((t) => (
+          <div
+            key={t.text}
+            style={{
+              padding: "13px 15px",
+              border: "1px solid var(--na1-border)",
+              borderRadius: "var(--na1-radius)",
+              background: "var(--na1-bg-soft)",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "var(--na1-serif)",
+                fontStyle: "italic",
+                fontSize: 15,
+                color: "var(--na1-text)",
+                marginBottom: 10,
+              }}
+            >
+              &ldquo;{t.text}&rdquo;
+            </div>
+            <div
+              className="na1-a2m1-chips"
+              role="radiogroup"
+              aria-label={t.text}
+            >
+              <button
+                type="button"
+                className={`na1-chip tone-gold ${
+                  t.verdict === "coach" ? "is-selected" : ""
+                }`}
+                role="radio"
+                aria-checked={t.verdict === "coach"}
+                onClick={() => onVerdict(t.text, "coach")}
+              >
+                Coach
+              </button>
+              <button
+                type="button"
+                className={`na1-chip ${
+                  t.verdict === "critic" ? "is-selected" : ""
+                }`}
+                role="radio"
+                aria-checked={t.verdict === "critic"}
+                onClick={() => onVerdict(t.text, "critic")}
+              >
+                Critic
+              </button>
+            </div>
+            {t.verdict === "critic" && (
+              <div style={{ marginTop: 11 }}>
+                <div
+                  style={{
+                    fontFamily: "var(--na1-sans)",
+                    fontSize: 12,
+                    color: "var(--burgundy)",
+                    marginBottom: 6,
+                  }}
+                >
+                  Say it the way you'd say it to someone you love — how would a{" "}
+                  <strong style={{ color: "var(--gold)" }}>friend</strong> put
+                  this?
+                </div>
+                <textarea
+                  className="na1-textarea"
+                  style={{ minHeight: 46 }}
+                  value={t.reframe}
+                  onChange={(e) => onReframe(t.text, e.target.value)}
+                  placeholder="Say it the way someone in your corner would…"
+                  aria-label={`Reframe for ${t.text}`}
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 22 }}>
+        <label
+          style={{
+            display: "block",
+            fontFamily: "var(--na1-sans)",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "var(--na1-text)",
+            marginBottom: 4,
+          }}
+        >
+          Step back from the lines above. Taken together, what's this voice like?
+        </label>
+        <p
+          style={{
+            fontFamily: "var(--na1-sans)",
+            fontSize: 13,
+            color: "var(--na1-text-mute)",
+            lineHeight: 1.55,
+            margin: "2px 0 8px",
+          }}
+        >
+          Not any single thought — the <em>character</em> behind all of them. The
+          tone it keeps taking, the pattern it repeats. Give <em>that</em> voice a
+          name, the way you'd name a person who spoke to you like this.
+        </p>
+        <input
+          value={voiceNow}
+          onChange={(e) => onVoiceNow(e.target.value)}
+          placeholder="name the voice as it is today…"
+          aria-label="The voice as it is"
+          style={TH_INPUT_STYLE}
+        />
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            marginTop: 10,
+          }}
+        >
+          {TH_VOICE_NOW_CHIPS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="na1-chip"
+              onClick={() => onVoiceNow(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <label
+          style={{
+            display: "block",
+            fontFamily: "var(--na1-sans)",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "var(--na1-text)",
+            margin: "22px 0 4px",
+          }}
+        >
+          Now name the voice that's on your side.
+        </label>
+        <p
+          style={{
+            fontFamily: "var(--na1-sans)",
+            fontSize: 13,
+            color: "var(--na1-text-mute)",
+            lineHeight: 1.5,
+            margin: "2px 0 4px",
+          }}
+        >
+          The one that talks to you the way you'd talk to your best friend when
+          they're struggling. You'd never say to them what the critic says to
+          you. <em>Name the voice that would.</em>
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--na1-serif)",
+            fontStyle: "italic",
+            fontSize: 12,
+            color: "var(--na1-text-mute)",
+            marginBottom: 10,
+          }}
+        >
+          Remember the gifts you claimed in Identity — your fierce, your wise,
+          your steady. That's the voice you're reaching for.
+        </p>
+        <input
+          value={voiceWant}
+          onChange={(e) => onVoiceWant(e.target.value)}
+          placeholder="name your best-friend voice…"
+          aria-label="The voice on your side"
+          style={TH_INPUT_STYLE}
+        />
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            marginTop: 10,
+          }}
+        >
+          {TH_VOICE_WANT_CHIPS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="na1-chip"
+              onClick={() => onVoiceWant(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 3 (Thoughts) · Claim ───
+// Replicates the Environment claim ceremony (burst portal, 2s, then persist).
+// Seal has a gentler variant when the inner voice skews critic: critics
+// outnumber coaches, OR critics are present with none reframed — so an
+// all-critic result still lands gently.
+function NewA3M3ClaimBody({
+  thoughts,
+  voiceNow,
+  voiceWant,
+  claimed,
+  onClaim,
+  onReclaim,
+  onFinish,
+  nextMirror,
+}: {
+  thoughts: A3Thought[];
+  voiceNow: string;
+  voiceWant: string;
+  claimed: boolean;
+  onClaim: () => void;
+  onReclaim: () => void;
+  onFinish: () => void;
+  nextMirror?: { label: string; go: () => void } | null;
+}) {
+  const coaches = thoughts.filter((t) => t.verdict === "coach").length;
+  const critics = thoughts.filter((t) => t.verdict === "critic").length;
+  const reframed = thoughts.filter(
+    (t) => t.verdict === "critic" && t.reframe.trim() !== "",
+  ).length;
+  const gentle = critics > coaches || (critics > 0 && reframed === 0);
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onClaim();
+    }, 2000);
+  };
+  const counts = (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 10,
+        margin: "0 0 14px",
+      }}
+    >
+      <span className="na1-chip is-selected" aria-hidden>
+        {thoughts.length} {thoughts.length === 1 ? "Thought" : "Thoughts"}
+      </span>
+      <span className="na1-chip tone-gold is-selected" aria-hidden>
+        {coaches} Coach
+      </span>
+      <span className="na1-chip is-selected" aria-hidden>
+        {critics} {critics === 1 ? "Critic" : "Critics"}
+      </span>
+      <span className="na1-chip tone-grey is-selected" aria-hidden>
+        {reframed} Reframed
+      </span>
+    </div>
+  );
+  const voices = (
+    <div style={{ margin: "0 0 18px" }}>
+      {voiceNow.trim() !== "" && (
+        <p
+          style={{
+            fontFamily: "var(--na1-serif)",
+            fontStyle: "italic",
+            fontSize: 15,
+            color: "var(--burgundy)",
+            margin: "0 0 4px",
+          }}
+        >
+          The voice as it is: &ldquo;{voiceNow}&rdquo;
+        </p>
+      )}
+      {voiceWant.trim() !== "" && (
+        <p
+          style={{
+            fontFamily: "var(--na1-serif)",
+            fontStyle: "italic",
+            fontSize: 15,
+            color: "var(--gold)",
+            margin: 0,
+          }}
+        >
+          The voice on your side: &ldquo;{voiceWant}&rdquo;
+        </p>
+      )}
+    </div>
+  );
+  // Sealed state — reached on claim, and on every re-entry once claimed.
+  if (claimed) {
+    return (
+      <div>
+        <div className="na1-room-eyebrow tone-gold">
+          A3 · Mirror 3 · Claim ★
+        </div>
+        <h2 className="na1-room-title">Claimed.</h2>
+        {counts}
+        {voices}
+        <div className="na1-a2m1-seal" role="status">
+          <p className="na1-a2m1-seal-body">
+            {gentle
+              ? `${displayName ? `${displayName}, the` : "The"} voice in there is harder on you than you'd let anyone else be — and you heard it without flinching. That voice isn't you. It's what you've been handed, repeated so long it sounds like truth. You don't have to believe it. The next time it speaks, you get to answer it — and that's exactly what we'll carry into The Move. Named, it already has less power than it did an hour ago.`
+              : `${displayName ? `${displayName}, you've` : "You've"} listened to the voice that runs your days — and you didn't look away. That voice isn't you. It's what you've been handed. Named, it loses power.`}
+          </p>
+          <p className="na1-a2m1-seal-by">— Katherine</p>
+        </div>
+        {showBurst &&
+          createPortal(
+            <div className="na1-gold-burst" aria-hidden>
+              <div className="na1-gold-burst-inner" />
+            </div>,
+            document.body,
+          )}
+        <div className="na1-a2m1-reclaim">
+          <p className="na1-a2m1-reclaim-note">
+            Hear that voice differently now? Re-shape and re-claim.
+          </p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onReclaim}
+          >
+            ↺ Re-claim
+          </button>
+        </div>
+        <div className="na1-a2m1-claim-actions">
+          <button
+            type="button"
+            className="na1-btn-gold"
+            onClick={nextMirror ? nextMirror.go : onFinish}
+          >
+            {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A3 →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  // Pre-claim read-back.
+  return (
+    <div>
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 3 · CLAIM</div>
+      <h2 className="na1-room-title">The voice that runs inside.</h2>
+      <p className="na1-room-context">
+        The lines you named and the voice behind them. Read it back, then seal it.
+      </p>
+      {counts}
+      {voices}
+      <div className="na1-a2m1-seal" role="note">
+        <p className="na1-a2m1-seal-body">
+          {gentle
+            ? "The voice in there is harder on you than you'd allow for anyone else. Naming it is the first move — and it already has less power than it did."
+            : "You've listened to the voice that runs your days without looking away. Named, it loses power — that's what we build on next."}
+        </p>
+        <p className="na1-a2m1-seal-by">— Katherine</p>
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button
+          type="button"
+          className="na1-btn-gold"
+          onClick={handleClaim}
+          disabled={showBurst}
+        >
+          Claim →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 3 (Thoughts) · container ───
+// Cloned from NewA3M2Container: veil on every hub entry, claimed re-entry lands
+// on the step-card overview hub, room overlay owns the view while open. Stage 1
+// (Listen) adds intra-stage moment navigation (Previous / Next / + Add) inside
+// the body; the shared bottom nav advances stages as in Environment.
+function NewA3M3Container({
+  onBackToA3,
+  onContinueToEnergyMap,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA3: () => void;
+  onContinueToEnergyMap: () => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a3State, setA3State] = useState<A3State>(() => loadA3State());
+  const m3 = a3State.m3;
+  const mutateM3 = useCallback((fn: (m: A3ThoughtsState) => A3ThoughtsState) => {
+    setA3State((prev) => {
+      const next = { ...prev, m3: fn(prev.m3) };
+      saveA3State(next);
+      return next;
+    });
+  }, []);
+
+  const resuming = initialRoomKey === "thoughts";
+  const launchVeil = !resuming;
+  const claimedAtEntry = useRef(m3.claimed).current;
+  const claimedRevisit = claimedAtEntry && !resuming;
+
+  const [currentStep, setCurrentStep] = useState<number>(
+    resuming && m3.claimed ? 3 : 1,
+  );
+  const [maxReached, setMaxReached] = useState<number>(m3.claimed ? 3 : 1);
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    !launchVeil && !claimedRevisit,
+  );
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        if (!claimedRevisit) setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    onRoomChange(roomOpen ? "thoughts" : null);
+  }, [roomOpen, onRoomChange]);
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA3();
+  };
+
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(3, step));
+    setCurrentStep(clamped);
+    setMaxReached((m) => Math.max(m, clamped));
+  };
+  const onBack = () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+    else closeRoom();
+  };
+  const onDone = () => {
+    if (currentStep < 3) goToStep(currentStep + 1);
+  };
+
+  // ── Stage 1 (Listen) local moment state. `seq` is the prompt sequence: on a
+  // fresh entry it's the seeded TH_SCENARIOS; on a return visit it's one
+  // editable moment per already-captured line. `answers` is id→text; each
+  // change collapses the non-empty lines into the store's `thoughts` array
+  // (preserving verdict/reframe by text match, like the mockup's thPhase2).
+  const [seq, setSeq] = useState<
+    { id: string; q: string; eg: string; custom: boolean }[]
+  >(() =>
+    m3.thoughts.length > 0
+      ? m3.thoughts.map((_, i) => ({
+          id: "seed" + i,
+          q: "A thought you named",
+          eg: "",
+          custom: false,
+        }))
+      : TH_SCENARIOS.map((s, i) => ({
+          id: "s" + i,
+          q: s.q,
+          eg: s.eg,
+          custom: false,
+        })),
+  );
+  const [answers, setAnswers] = useState<Record<string, string>>(() => {
+    const a: Record<string, string> = {};
+    m3.thoughts.forEach((t, i) => {
+      a["seed" + i] = t.text;
+    });
+    return a;
+  });
+  const [momentIdx, setMomentIdx] = useState(0);
+  const customCountRef = useRef(0);
+
+  const persistLines = (
+    curSeq: typeof seq,
+    curAnswers: Record<string, string>,
+  ) => {
+    const lines = curSeq
+      .filter((s) => (curAnswers[s.id] || "").trim() !== "")
+      .map((s) => (curAnswers[s.id] || "").trim());
+    mutateM3((m) => {
+      const prevByText = new Map(m.thoughts.map((t) => [t.text, t]));
+      const thoughts: A3Thought[] = lines.map(
+        (text) => prevByText.get(text) ?? { text, verdict: null, reframe: "" },
+      );
+      return { ...m, thoughts };
+    });
+  };
+  const onAnswer = (v: string) => {
+    const cur = seq[momentIdx];
+    if (!cur) return;
+    setAnswers((prev) => {
+      const next = { ...prev, [cur.id]: v };
+      persistLines(seq, next);
+      return next;
+    });
+  };
+  const onEditTrigger = (v: string) =>
+    setSeq((prev) => prev.map((s, i) => (i === momentIdx ? { ...s, q: v } : s)));
+  const prevMoment = () => setMomentIdx((i) => Math.max(0, i - 1));
+  const nextMoment = () => setMomentIdx((i) => Math.min(seq.length - 1, i + 1));
+  const addTrigger = () => {
+    const id = "c" + customCountRef.current++;
+    setSeq((prev) => {
+      const next = [...prev];
+      next.splice(momentIdx + 1, 0, { id, q: "", eg: "", custom: true });
+      return next;
+    });
+    setMomentIdx((i) => i + 1);
+  };
+
+  // ── Stage 2 (Shape) handlers — persist straight to the store by text key.
+  const onVerdict = (text: string, verdict: A3ThoughtVerdict) =>
+    mutateM3((m) => ({
+      ...m,
+      thoughts: m.thoughts.map((t) =>
+        t.text === text ? { ...t, verdict } : t,
+      ),
+    }));
+  const onReframe = (text: string, reframe: string) =>
+    mutateM3((m) => ({
+      ...m,
+      thoughts: m.thoughts.map((t) =>
+        t.text === text ? { ...t, reframe } : t,
+      ),
+    }));
+  const onVoiceNow = (v: string) => mutateM3((m) => ({ ...m, voiceNow: v }));
+  const onVoiceWant = (v: string) => mutateM3((m) => ({ ...m, voiceWant: v }));
+
+  const allVerdicts =
+    m3.thoughts.length > 0 && m3.thoughts.every((t) => t.verdict != null);
+  const shapeReady = allVerdicts && m3.voiceNow.trim() !== "";
+
+  // Per-stage Continue gate: Stage 1 needs ≥ 1 captured line; Stage 2 needs
+  // every line marked AND the as-it-is voice named.
+  const canContinue =
+    currentStep === 1
+      ? m3.thoughts.length >= 1
+      : currentStep === 2
+        ? shapeReady
+        : true;
+
+  const claimM3 = () =>
+    mutateM3((m) => ({
+      ...m,
+      claimed: true,
+      claimedAt: m.claimedAt ?? new Date().toISOString(),
+    }));
+  const reclaimM3 = () => {
+    mutateM3((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
+
+  const a3NextMirror = { label: "Energy Map", go: onContinueToEnergyMap };
+
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  const curMoment = seq[momentIdx] ?? seq[0];
+
+  return (
+    <div className="na1-root">
+      {!roomOpen && veilPhase !== "rising" && (
+        <NewA2MirrorHubView
+          onBackToA2={onBackToA3}
+          crumbLabel="A3 · Advocate For It"
+          onStart={(step) => {
+            goToStep(step ?? 1);
+            setRoomOpen(true);
+          }}
+          currentStep={currentStep}
+          maxReached={maxReached}
+          claimed={m3.claimed}
+          stepDone={(num) =>
+            num === 1
+              ? m3.thoughts.length >= 1
+              : num === 2
+                ? shapeReady
+                : m3.claimed
+          }
+          steps={A3M3_STEPS}
+          eyebrow="A3 · Mirror 3 · Explore with Katherine"
+          title="Thoughts"
+          sub="The voice that runs inside — listen to it, then shape it."
+          introEyebrow="Start here · Katherine introduces Thoughts"
+          introCaption="Katherine's Thoughts intro · placeholder"
+          beginLabel="Begin Thoughts"
+          resumeLabel="Resume Thoughts"
+        />
+      )}
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Thoughts"
+        >
+          <div className="na1-room-card na1-a2m2-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>Thoughts</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A3M3_STEPS[currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="na1-a2m2-body">
+              {currentStep === 1 ? (
+                <NewA3M3Step1Body
+                  index={momentIdx}
+                  total={seq.length}
+                  moment={curMoment}
+                  answer={answers[curMoment.id] || ""}
+                  onAnswer={onAnswer}
+                  onEditTrigger={onEditTrigger}
+                  onPrev={prevMoment}
+                  onNext={nextMoment}
+                  onAddOwn={addTrigger}
+                  onToShape={onDone}
+                  canToShape={m3.thoughts.length >= 1}
+                />
+              ) : currentStep === 2 ? (
+                <NewA3M3Step2Body
+                  thoughts={m3.thoughts}
+                  voiceNow={m3.voiceNow}
+                  voiceWant={m3.voiceWant}
+                  onVerdict={onVerdict}
+                  onReframe={onReframe}
+                  onVoiceNow={onVoiceNow}
+                  onVoiceWant={onVoiceWant}
+                />
+              ) : (
+                <NewA3M3ClaimBody
+                  thoughts={m3.thoughts}
+                  voiceNow={m3.voiceNow}
+                  voiceWant={m3.voiceWant}
+                  claimed={m3.claimed}
+                  onClaim={claimM3}
+                  onReclaim={reclaimM3}
+                  onFinish={closeRoom}
+                  nextMirror={a3NextMirror}
+                />
+              )}
+            </div>
+            <div className="na1-a2m2-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>
+                {currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              {/* Step 1 (Listen) advances via the per-moment "Shape what you
+                  found →" button in the body (last moment only), so the shared
+                  nav only carries the Stage 2 → Claim advance. */}
+              {currentStep === 2 && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onDone}
+                  disabled={!canContinue}
+                >
+                  {`Continue to ${A3M3_STEPS[currentStep]?.name ?? "Thoughts"}`}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A3M3_VEIL_TEXT} />
+      )}
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 4 (Energy Map) · Ship 4 ────────────────────────────────────
+// A "see-it" synthesis room: it READS People (m1) + Environment (m2) +
+// Thoughts (m3), aggregates every rated item into Advocate / Neutral / Anchor,
+// and draws a bullseye — advocates inner (gold), neutral middle, anchors outer
+// (burgundy). No new input; the only persisted state is the claim. Two phases:
+// The view → Claim. All aggregation/percentage/placement math is ported from
+// the A3_Full_Mockup_v3.html Energy Map (the source of truth).
+const A3M4_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "The view" },
+  { num: 2, name: "Claim" },
+];
+const A3M4_VEIL_TEXT = "Mapping what you carry…";
+
+type EMKind = "person" | "habit" | "place" | "thought";
+type EMItem = { id: string; kind: EMKind; label: string; rating: A3PeopleRating };
+
+// Fold all three prior mirrors into one item list. People + Environment use
+// their rating directly; Thoughts map coach→advocate, critic→anchor (thoughts
+// carry no neutral verdict, so no neutral thoughts arise).
+function emGather(a3: A3State): EMItem[] {
+  const items: EMItem[] = [];
+  a3.m1.names.forEach((nm) => {
+    const r = a3.m1.ratings[nm];
+    if (r) items.push({ id: "P_" + nm, kind: "person", label: nm, rating: r });
+  });
+  a3.m2.items.forEach((it, i) => {
+    if (it.rating)
+      items.push({
+        id: "E_" + i,
+        kind: it.kind,
+        label: it.name,
+        rating: it.rating,
+      });
+  });
+  a3.m3.thoughts.forEach((t, i) => {
+    if (t.verdict)
+      items.push({
+        id: "T_" + i,
+        kind: "thought",
+        label: t.text,
+        rating: t.verdict === "coach" ? "advocate" : "anchor",
+      });
+  });
+  return items;
+}
+
+// Largest-remainder integer percentages that sum to EXACTLY 100 for any
+// non-empty set (0/0/0 when there are no items). Ported verbatim from the
+// mockup — do not "simplify" into naive rounding, which can yield 99/101.
+function emPercents(
+  adv: number,
+  neu: number,
+  anc: number,
+): { advocate: number; neutral: number; anchor: number } {
+  const total = adv + neu + anc;
+  if (total === 0) return { advocate: 0, neutral: 0, anchor: 0 };
+  const raw = {
+    advocate: (adv / total) * 100,
+    neutral: (neu / total) * 100,
+    anchor: (anc / total) * 100,
+  };
+  const pct = {
+    advocate: Math.floor(raw.advocate),
+    neutral: Math.floor(raw.neutral),
+    anchor: Math.floor(raw.anchor),
+  };
+  const rem = 100 - (pct.advocate + pct.neutral + pct.anchor);
+  const ord = (
+    [
+      ["advocate", raw.advocate - pct.advocate],
+      ["neutral", raw.neutral - pct.neutral],
+      ["anchor", raw.anchor - pct.anchor],
+    ] as [keyof typeof pct, number][]
+  )
+    .sort((a, b) => b[1] - a[1])
+    .map((e) => e[0]);
+  for (let i = 0; i < rem; i++) pct[ord[i % 3]]++;
+  return pct;
+}
+
+function emColorVar(r: A3PeopleRating): string {
+  return r === "advocate"
+    ? "var(--gold)"
+    : r === "neutral"
+      ? "var(--na1-text-sec)"
+      : "var(--burgundy)";
+}
+function emFill(r: A3PeopleRating): string {
+  const base =
+    r === "advocate"
+      ? "var(--gold)"
+      : r === "neutral"
+        ? "var(--na1-text-sec)"
+        : "var(--burgundy)";
+  return `color-mix(in srgb, ${base} 22%, transparent)`;
+}
+function emInitials(n: string): string {
+  const p = (n || "").trim().split(/\s+/).filter(Boolean);
+  if (!p.length) return "?";
+  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+  return (p[0][0] + p[p.length - 1][0]).toUpperCase();
+}
+function emHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+const EM_SOURCE_LABEL: Record<EMKind, string> = {
+  person: "People",
+  habit: "Habit",
+  place: "Place",
+  thought: "Thought",
+};
+const EM_RATING_LABEL: Record<A3PeopleRating, string> = {
+  advocate: "Advocate",
+  neutral: "Neutral",
+  anchor: "Anchor",
+};
+
+// ─── A3 · Mirror 4 (Energy Map) · Stage 1 — The view (bullseye) ───
+function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
+  const [sel, setSel] = useState<string | null>(null);
+  const adv = items.filter((i) => i.rating === "advocate");
+  const neu = items.filter((i) => i.rating === "neutral");
+  const anc = items.filter((i) => i.rating === "anchor");
+  const pct = emPercents(adv.length, neu.length, anc.length);
+  const CX = 200,
+    CY = 200,
+    RA = 62,
+    RN = 104,
+    RC = 146;
+  // Even-angle placement per ring + deterministic hash jitter so dots don't
+  // stack; recomputed only when the item set changes.
+  const placed = useMemo(() => {
+    const out: Array<EMItem & { x: number; y: number }> = [];
+    const place = (list: EMItem[], rad: number) => {
+      const n = list.length;
+      if (!n) return;
+      const st = -Math.PI / 2 + (Math.PI / n) * 0.5;
+      list.forEach((it, i) => {
+        const base = st + i * ((2 * Math.PI) / n);
+        const h = emHash(it.id);
+        const rj = (h % 18) - 9;
+        const aj = (((h * 7) % 50) - 25) * (Math.PI / 180) * 0.15;
+        const rr = rad + rj;
+        const a = base + aj;
+        out.push({ ...it, x: CX + rr * Math.cos(a), y: CY + rr * Math.sin(a) });
+      });
+    };
+    place(adv, RA);
+    place(neu, RN);
+    place(anc, RC);
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
+
+  const renderNode = (it: EMItem & { x: number; y: number }) => {
+    const isSel = it.id === sel;
+    const stroke = emColorVar(it.rating);
+    const fill = emFill(it.rating);
+    const glow =
+      it.rating === "advocate"
+        ? "drop-shadow(0 0 7px var(--gold-glow))"
+        : undefined;
+    const sz = (it.rating === "advocate" ? 13 : 11) + (isSel ? 3 : 0);
+    const gProps = {
+      style: { cursor: "pointer", filter: glow } as React.CSSProperties,
+      onClick: () => setSel(isSel ? null : it.id),
+    };
+    if (it.kind === "person") {
+      return (
+        <g key={it.id} {...gProps}>
+          <circle
+            cx={it.x}
+            cy={it.y}
+            r={sz}
+            style={{
+              fill,
+              stroke,
+              strokeWidth: it.rating === "advocate" ? 2 : 1.5,
+            }}
+          />
+          <text
+            x={it.x}
+            y={it.y + 3}
+            textAnchor="middle"
+            fontSize={9}
+            fontWeight={600}
+            style={{ fill: stroke, pointerEvents: "none" }}
+          >
+            {emInitials(it.label)}
+          </text>
+        </g>
+      );
+    }
+    if (it.kind === "thought") {
+      const s = sz;
+      return (
+        <g key={it.id} {...gProps}>
+          <rect
+            x={it.x - s}
+            y={it.y - s}
+            width={s * 2}
+            height={s * 2}
+            rx={4}
+            style={{ fill, stroke, strokeWidth: 1.5 }}
+          />
+          <text
+            x={it.x}
+            y={it.y + 5}
+            textAnchor="middle"
+            fontSize={s + 2}
+            fontWeight={700}
+            style={{
+              fill: stroke,
+              pointerEvents: "none",
+              fontFamily: "var(--serif)",
+            }}
+          >
+            &ldquo;
+          </text>
+        </g>
+      );
+    }
+    const s = sz;
+    const pts = `${it.x},${it.y - s} ${it.x + s},${it.y} ${it.x},${it.y + s} ${it.x - s},${it.y}`;
+    return (
+      <g key={it.id} {...gProps}>
+        <polygon points={pts} style={{ fill, stroke, strokeWidth: 1.5 }} />
+        <text
+          x={it.x}
+          y={it.y + 3}
+          textAnchor="middle"
+          fontSize={8}
+          fontWeight={600}
+          style={{ fill: stroke, pointerEvents: "none" }}
+        >
+          {it.kind === "habit" ? "H" : "P"}
+        </text>
+      </g>
+    );
+  };
+
+  const selItem = items.find((i) => i.id === sel) ?? null;
+
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 4 · THE VIEW</div>
+      <h2 className="na1-room-title">What — and who — are you carrying?</h2>
+      <p className="na1-room-context">
+        Everything you named so far, arranged by how close you keep it. You at
+        the centre — advocates near you, anchors out on the edge. It starts with
+        you: nothing here is acting <em>on</em> you; every item is something you
+        chose to keep close, or haven't yet set down.
+      </p>
+      {/* Detail-on-tap panel — kept ABOVE the map so a tapped node's detail is
+          never hidden below the fold on mobile. */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: selItem ? "space-between" : "center",
+          gap: 10,
+          flexWrap: "wrap",
+          minHeight: 50,
+          padding: "13px 16px",
+          margin: "0 0 16px",
+          borderRadius: "var(--na1-radius)",
+          border: selItem
+            ? "1px solid var(--na1-border)"
+            : "1px dashed var(--na1-border)",
+          background: "var(--na1-bg-soft)",
+          fontFamily: "var(--na1-serif)",
+          fontStyle: selItem ? "normal" : "italic",
+          fontSize: 14,
+          color: selItem ? "var(--na1-text)" : "var(--na1-text-mute)",
+        }}
+        aria-live="polite"
+      >
+        {selItem ? (
+          <>
+            <span style={{ fontFamily: "var(--serif)", fontSize: 17 }}>
+              {selItem.kind === "thought"
+                ? `“${selItem.label}”`
+                : selItem.label}
+            </span>
+            <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <span
+                style={{
+                  fontFamily: "var(--na1-sans)",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  padding: "3px 9px",
+                  borderRadius: 40,
+                  color: "var(--gold)",
+                  background: "var(--gold-soft)",
+                }}
+              >
+                {EM_SOURCE_LABEL[selItem.kind]}
+              </span>
+              <span
+                style={{
+                  fontFamily: "var(--na1-sans)",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  padding: "3px 9px",
+                  borderRadius: 40,
+                  color: emColorVar(selItem.rating),
+                  border: `1px solid ${emColorVar(selItem.rating)}`,
+                }}
+              >
+                {EM_RATING_LABEL[selItem.rating]}
+              </span>
+            </span>
+          </>
+        ) : (
+          "Tap any node to see what it is →"
+        )}
+      </div>
+      {/* Single horizontal stats line — count + word + %, colour-coded. Each
+          count is followed by a word, so nothing reads as a decimal. */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "2px 12px",
+          alignItems: "baseline",
+          margin: "0 0 14px",
+          fontFamily: "var(--na1-sans)",
+          fontSize: 13,
+        }}
+      >
+        <span style={{ color: "var(--gold)" }}>
+          <b>{adv.length}</b> close · {pct.advocate}%
+        </span>
+        <span style={{ color: "var(--na1-text-sec)" }}>
+          <b>{neu.length}</b> just there · {pct.neutral}%
+        </span>
+        <span style={{ color: "var(--burgundy)" }}>
+          <b>{anc.length}</b> weight · {pct.anchor}%
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          flexWrap: "wrap",
+          fontFamily: "var(--na1-sans)",
+          fontSize: 12,
+          color: "var(--na1-text-mute)",
+          margin: "0 0 10px",
+        }}
+      >
+        <span>● Person</span>
+        <span>◆ Habit / Place</span>
+        <span>▪ Thought</span>
+      </div>
+      <div
+        style={{
+          background: "var(--na1-bg-card)",
+          border: "1px solid var(--na1-border)",
+          borderRadius: "var(--na1-radius-xl)",
+          padding: 18,
+          margin: "0 0 16px",
+        }}
+      >
+        <svg
+          viewBox="0 0 400 400"
+          style={{
+            display: "block",
+            width: "100%",
+            maxWidth: 400,
+            margin: "0 auto",
+            height: "auto",
+            fontFamily: "var(--na1-sans)",
+          }}
+          role="img"
+          aria-label="Energy map bullseye"
+        >
+          <circle
+            cx={CX}
+            cy={CY}
+            r={RC}
+            fill="none"
+            style={{
+              stroke: "color-mix(in srgb, var(--burgundy) 30%, transparent)",
+              strokeWidth: 1.5,
+            }}
+          />
+          <circle
+            cx={CX}
+            cy={CY}
+            r={RN}
+            fill="none"
+            style={{
+              stroke:
+                "color-mix(in srgb, var(--na1-text-sec) 30%, transparent)",
+              strokeWidth: 1.5,
+            }}
+          />
+          <circle
+            cx={CX}
+            cy={CY}
+            r={RA}
+            fill="none"
+            style={{ stroke: "var(--gold-line)", strokeWidth: 2 }}
+          />
+          <text
+            x={CX}
+            y={CY - RC - 7}
+            textAnchor="middle"
+            fontSize={9}
+            fontWeight={700}
+            letterSpacing={2}
+            style={{ fill: "var(--burgundy)", opacity: 0.75 }}
+          >
+            ANCHOR
+          </text>
+          <text
+            x={CX}
+            y={CY - RA - 7}
+            textAnchor="middle"
+            fontSize={9}
+            fontWeight={700}
+            letterSpacing={2}
+            style={{ fill: "var(--gold)", opacity: 0.9 }}
+          >
+            ADVOCATE
+          </text>
+          <circle
+            cx={CX}
+            cy={CY}
+            r={21}
+            style={{
+              fill: "var(--na1-bg-soft)",
+              stroke: "var(--gold)",
+              strokeWidth: 1.5,
+            }}
+          />
+          <text
+            x={CX}
+            y={CY + 5}
+            textAnchor="middle"
+            fontSize={14}
+            style={{
+              fill: "var(--na1-text-sec)",
+              fontFamily: "var(--serif)",
+              fontStyle: "italic",
+            }}
+          >
+            you
+          </text>
+          {placed.map(renderNode)}
+        </svg>
+      </div>
+      <div
+        style={{
+          background: "var(--gold-soft)",
+          borderLeft: "3px solid var(--gold)",
+          borderRadius: "var(--na1-radius)",
+          padding: "16px 18px",
+          fontFamily: "var(--na1-serif)",
+          fontStyle: "italic",
+          fontSize: 17,
+          color: "var(--na1-text-sec)",
+          lineHeight: 1.6,
+        }}
+      >
+        {items.length < 4
+          ? "Even with a few named, the shape starts to show."
+          : pct.advocate >= 55 && pct.anchor <= 20
+            ? "What's close is supporting you. Protect it on purpose."
+            : pct.anchor >= 40
+              ? "A lot's out on the edge. What would you set down this week?"
+              : "What are you keeping close — and what are you still carrying?"}
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 4 (Energy Map) · Claim ───
+// Same burst ceremony as the sibling rooms. Gentler seal when anchors > advocates.
+function NewA3M4ClaimBody({
+  items,
+  claimed,
+  onClaim,
+  onReclaim,
+  onFinish,
+  nextMirror,
+}: {
+  items: EMItem[];
+  claimed: boolean;
+  onClaim: () => void;
+  onReclaim: () => void;
+  onFinish: () => void;
+  nextMirror?: { label: string; go: () => void } | null;
+}) {
+  const advItems = items.filter((i) => i.rating === "advocate");
+  const neuItems = items.filter((i) => i.rating === "neutral");
+  const ancItems = items.filter((i) => i.rating === "anchor");
+  const gentle = ancItems.length > advItems.length;
+  // Which bucket's item-list popover is open (hover on desktop, tap on mobile —
+  // shared state, so clicking a hovered chip toggles it).
+  const [openBucket, setOpenBucket] = useState<A3PeopleRating | null>(null);
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onClaim();
+    }, 2000);
+  };
+  // A chip that reveals its bucket's item list (plain labels, one per line —
+  // no icons, no ratings) on hover (desktop) / tap (mobile). Pulls from the
+  // already-bucketed aggregate.
+  const chip = (
+    bucket: A3PeopleRating,
+    label: string,
+    list: EMItem[],
+    chipClass: string,
+  ) => (
+    <div
+      style={{ position: "relative", display: "inline-block" }}
+      onMouseEnter={() => setOpenBucket(bucket)}
+      onMouseLeave={() => setOpenBucket(null)}
+    >
+      <button
+        type="button"
+        className={`na1-chip ${chipClass} is-selected`}
+        style={{ cursor: "pointer" }}
+        aria-haspopup="true"
+        aria-expanded={openBucket === bucket}
+        onClick={() => setOpenBucket((c) => (c === bucket ? null : bucket))}
+        onFocus={() => setOpenBucket(bucket)}
+        onBlur={() => setOpenBucket(null)}
+      >
+        {list.length} {label}
+      </button>
+      {openBucket === bucket && list.length > 0 && (
+        <div
+          role="tooltip"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            zIndex: 40,
+            minWidth: 160,
+            maxWidth: 260,
+            maxHeight: 200,
+            overflowY: "auto",
+            padding: "6px 12px",
+            background: "var(--na1-bg-card)",
+            border: "1px solid var(--na1-border)",
+            borderRadius: "var(--na1-radius)",
+            boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
+            fontFamily: "var(--na1-sans)",
+            fontSize: 13,
+            color: "var(--na1-text)",
+            lineHeight: 1.5,
+            textAlign: "left",
+          }}
+        >
+          {list.map((it, idx) => (
+            <div
+              key={it.id}
+              style={{
+                padding: "3px 0",
+                overflowWrap: "anywhere",
+                borderTop:
+                  idx === 0 ? "none" : "1px solid var(--na1-border)",
+              }}
+            >
+              {it.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+  const counts = (
+    <div
+      style={{ display: "flex", flexWrap: "wrap", gap: 10, margin: "0 0 18px" }}
+    >
+      {chip("advocate", "Close to you", advItems, "tone-gold")}
+      {chip("neutral", "Just there", neuItems, "tone-grey")}
+      {chip("anchor", "Weight", ancItems, "")}
+    </div>
+  );
+  if (claimed) {
+    return (
+      <div>
+        <div className="na1-room-eyebrow tone-gold">
+          A3 · Mirror 4 · Claim ★
+        </div>
+        <h2 className="na1-room-title">Claimed.</h2>
+        {counts}
+        <div className="na1-a2m1-seal" role="status">
+          <p className="na1-a2m1-seal-body">
+            {gentle
+              ? `${displayName ? `${displayName}, there's` : "There's"} more on the edge than close in — and now you can see it in one picture instead of feeling it as a vague weight. That's the gift of looking. Nothing here is happening to you; it's what you've kept. Which means you get to choose what stays close and what you set down. The Move is where you pick the first thing to shift.`
+              : `${displayName ? `${displayName}, you` : "You"} can see the whole field now — who and what is close, what's drifting, what's still on your back. Most people carry this without ever seeing it laid out. You just did. The Move is where you choose what shifts first.`}
+          </p>
+          <p className="na1-a2m1-seal-by">— Katherine</p>
+        </div>
+        {showBurst &&
+          createPortal(
+            <div className="na1-gold-burst" aria-hidden>
+              <div className="na1-gold-burst-inner" />
+            </div>,
+            document.body,
+          )}
+        <div className="na1-a2m1-reclaim">
+          <p className="na1-a2m1-reclaim-note">
+            Want to look again? Re-open the map and re-claim.
+          </p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onReclaim}
+          >
+            ↺ Re-claim
+          </button>
+        </div>
+        <div className="na1-a2m1-claim-actions">
+          <button
+            type="button"
+            className="na1-btn-gold"
+            onClick={nextMirror ? nextMirror.go : onFinish}
+          >
+            {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A3 →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 4 · CLAIM</div>
+      <h2 className="na1-room-title">The shape of it.</h2>
+      <p className="na1-room-context">
+        The whole field in one picture — who and what is close, drifting, or
+        still on your back. Read it back, then seal it.
+      </p>
+      {counts}
+      <div className="na1-a2m1-seal" role="note">
+        <p className="na1-a2m1-seal-body">
+          {gentle
+            ? "There's more on the edge than close in — and seeing it laid out is the first move. Nothing here is happening to you; it's what you've kept."
+            : "You can see the whole field now. Most people carry this without ever seeing it laid out — you just did."}
+        </p>
+        <p className="na1-a2m1-seal-by">— Katherine</p>
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button
+          type="button"
+          className="na1-btn-gold"
+          onClick={handleClaim}
+          disabled={showBurst}
+        >
+          Claim →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 4 (Energy Map) · container ───
+// Cloned from NewA3M3Container, but a 2-step "see-it" room (The view → Claim)
+// with no input mutation. Reads m1/m2/m3 for aggregation; persists only m4's
+// claim. Forward CTA on the view stage reads "See what this shows →".
+function NewA3M4Container({
+  onBackToA3,
+  onContinueToBoard,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA3: () => void;
+  onContinueToBoard: () => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a3State, setA3State] = useState<A3State>(() => loadA3State());
+  const m4 = a3State.m4;
+  const items = useMemo(() => emGather(a3State), [a3State]);
+  const mutateM4 = useCallback((fn: (m: A3EnergyMapState) => A3EnergyMapState) => {
+    setA3State((prev) => {
+      const next = { ...prev, m4: fn(prev.m4) };
+      saveA3State(next);
+      return next;
+    });
+  }, []);
+
+  const resuming = initialRoomKey === "energymap";
+  const launchVeil = !resuming;
+  const claimedAtEntry = useRef(m4.claimed).current;
+  const claimedRevisit = claimedAtEntry && !resuming;
+
+  const STEP_COUNT = A3M4_STEPS.length;
+  const [currentStep, setCurrentStep] = useState<number>(
+    resuming && m4.claimed ? STEP_COUNT : 1,
+  );
+  const [maxReached, setMaxReached] = useState<number>(
+    m4.claimed ? STEP_COUNT : 1,
+  );
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    !launchVeil && !claimedRevisit,
+  );
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        if (!claimedRevisit) setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    onRoomChange(roomOpen ? "energymap" : null);
+  }, [roomOpen, onRoomChange]);
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA3();
+  };
+
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(STEP_COUNT, step));
+    setCurrentStep(clamped);
+    setMaxReached((m) => Math.max(m, clamped));
+  };
+  const onBack = () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+    else closeRoom();
+  };
+  const onDone = () => {
+    if (currentStep < STEP_COUNT) goToStep(currentStep + 1);
+  };
+
+  const claimM4 = () =>
+    mutateM4((m) => ({
+      ...m,
+      claimed: true,
+      claimedAt: m.claimedAt ?? new Date().toISOString(),
+    }));
+  // Energy Map is read-only, so Re-claim un-seals and lands on Step 1 (the map
+  // view) — the same unseal + goToStep(1) mechanic as every other mirror.
+  const reclaimM4 = () => {
+    mutateM4((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
+
+  const a3NextMirror = { label: "The Board", go: onContinueToBoard };
+
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  return (
+    <div className="na1-root">
+      {!roomOpen && veilPhase !== "rising" && (
+        <NewA2MirrorHubView
+          onBackToA2={onBackToA3}
+          crumbLabel="A3 · Advocate For It"
+          onStart={(step) => {
+            goToStep(step ?? 1);
+            setRoomOpen(true);
+          }}
+          currentStep={currentStep}
+          maxReached={maxReached}
+          claimed={m4.claimed}
+          stepDone={(num) => (num === 1 ? true : m4.claimed)}
+          steps={A3M4_STEPS}
+          eyebrow="A3 · Mirror 4 · Explore with Katherine"
+          title="Energy Map"
+          sub="Everyone and everything you named, by how close you keep it."
+          introEyebrow="Start here · Katherine introduces the Energy Map"
+          introCaption="Katherine's Energy Map intro · placeholder"
+          beginLabel="Begin Energy Map"
+          resumeLabel="Resume Energy Map"
+        />
+      )}
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Energy Map"
+        >
+          <div className="na1-room-card na1-a2m2-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>Energy Map</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A3M4_STEPS[currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="na1-a2m2-body">
+              {currentStep === 1 ? (
+                <NewA3M4ViewBody items={items} />
+              ) : (
+                <NewA3M4ClaimBody
+                  items={items}
+                  claimed={m4.claimed}
+                  onClaim={claimM4}
+                  onReclaim={reclaimM4}
+                  onFinish={closeRoom}
+                  nextMirror={a3NextMirror}
+                />
+              )}
+            </div>
+            <div className="na1-a2m2-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>
+                {currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              {currentStep < STEP_COUNT && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onDone}
+                >
+                  See what this shows →
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A3M4_VEIL_TEXT} />
+      )}
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 5 (The Board) · Ship 5 ─────────────────────────────────────
+// The people you want in your corner. Each seat is a ROLE with an editable name
+// + description; for each, the user seats the FIRST person they go to (advocate
+// chips from People/m1, or any typed name). Seats are deletable and addable;
+// one person may fill more than one seat; empty seats are allowed and
+// meaningful. Three phases: Fill the seats → Your table (oval SVG) → Claim.
+// Structure/copy/flow ported from A3_Full_Mockup_v3.html (source of truth);
+// tokens match the live app. Container cloned from NewA3M4Container.
+const A3M5_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "Fill the seats" },
+  { num: 2, name: "Your table" },
+  { num: 3, name: "Claim" },
+];
+const A3M5_VEIL_TEXT = "Building the team around you…";
+
+// Eight default seats — personal, not corporate. Verbatim from the mockup's
+// ROLES table. Seeded into the store on first entry so role/desc edits persist
+// and the "of N" seat count is correct; each is fully editable and deletable.
+const A3_BOARD_DEFAULT_SEATS: A3BoardSeat[] = [
+  { role: "The Listener", desc: "Hears you out — doesn't rush to fix", name: "", inLife: null },
+  { role: "The Challenger", desc: "Pushes you further than you'd go alone", name: "", inLife: null },
+  { role: "The Truth-Teller", desc: "Tells you what you need to hear, not what you want", name: "", inLife: null },
+  { role: "The Cheerleader", desc: "Believes in you, loudly", name: "", inLife: null },
+  { role: "The Steady One", desc: "Calm, grounded — keeps you from spinning out", name: "", inLife: null },
+  { role: "The Wise One", desc: "Has walked the path you're on", name: "", inLife: null },
+  { role: "The Connector", desc: "Opens doors, makes introductions", name: "", inLife: null },
+  { role: "The Healer", desc: "Tends to you when you're low", name: "", inLife: null },
+];
+
+// Initials for a seated name (ported from the mockup's emInitials) — used in the
+// filled chairs on the oval table.
+function boardInitials(n: string): string {
+  const p = (n || "").trim().split(/\s+/).filter(Boolean);
+  if (!p.length) return "?";
+  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+  return (p[0][0] + p[p.length - 1][0]).toUpperCase();
+}
+
+// ─── A3 · Mirror 5 (The Board) · Stage 1 — Fill the seats ───
+function NewA3M5FillBody({
+  seats,
+  advPool,
+  onRole,
+  onDesc,
+  onAssign,
+  onClear,
+  onInLife,
+  onAddSeat,
+  onDelSeat,
+}: {
+  seats: A3BoardSeat[];
+  advPool: string[];
+  onRole: (i: number, v: string) => void;
+  onDesc: (i: number, v: string) => void;
+  onAssign: (i: number, name: string) => void;
+  onClear: (i: number) => void;
+  onInLife: (i: number, v: A3BoardInLife) => void;
+  onAddSeat: () => void;
+  onDelSeat: (i: number) => void;
+}) {
+  // Which seat's picker is open — ephemeral UI state (not persisted).
+  const [openPicker, setOpenPicker] = useState<number | null>(null);
+  const filled = seats.filter((s) => s.name.trim() !== "").length;
+  const life = seats.filter(
+    (s) => s.name.trim() !== "" && s.inLife === "life",
+  ).length;
+  const total = seats.length;
+  const pct = total ? (filled / total) * 100 : 0;
+
+  const lifeBtn = (
+    i: number,
+    val: A3BoardInLife,
+    label: string,
+    on: boolean,
+  ) => (
+    <button
+      type="button"
+      onClick={() => onInLife(i, val)}
+      style={{
+        flex: 1,
+        padding: "6px 10px",
+        borderRadius: 40,
+        cursor: "pointer",
+        fontFamily: "var(--na1-sans)",
+        fontSize: 11,
+        fontWeight: 600,
+        border: on ? "1px solid var(--gold)" : "1px solid var(--na1-border)",
+        background: on ? "var(--gold-soft)" : "transparent",
+        color: on ? "var(--gold)" : "var(--na1-text-mute)",
+      }}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div>
+      <div className="na1-room-eyebrow">A3 · Mirror 5</div>
+      <h2 className="na1-room-title">Your Board.</h2>
+      <p className="na1-room-context">
+        Eight roles to start. For each, name the <b>first person you go to</b> in
+        that space — the one who actually fills that role for you right now.
+      </p>
+      <p
+        style={{
+          fontFamily: "var(--na1-sans)",
+          fontSize: 13,
+          lineHeight: 1.5,
+          color: "var(--na1-text-sec)",
+          margin: "0 0 18px",
+        }}
+      >
+        One person may fill more than one of these roles — that's completely
+        fine. Rename any seat to fit your life, leave a seat open if no one comes
+        to mind (that's information too), and add a seat if there's someone your
+        board is missing.
+      </p>
+
+      {/* Progress */}
+      <div
+        style={{
+          background: "var(--na1-bg-soft)",
+          border: "1px solid var(--na1-border)",
+          borderRadius: 12,
+          padding: "13px 16px",
+          marginBottom: 16,
+          fontFamily: "var(--na1-sans)",
+        }}
+      >
+        <div
+          style={{
+            height: 6,
+            borderRadius: 40,
+            background: "var(--na1-border)",
+            overflow: "hidden",
+            marginBottom: 9,
+          }}
+        >
+          <div
+            style={{
+              width: `${pct}%`,
+              height: "100%",
+              background: "var(--gold)",
+              transition: "width .25s",
+            }}
+          />
+        </div>
+        <div style={{ fontSize: 12, color: "var(--na1-text-sec)" }}>
+          <b style={{ color: "var(--na1-text)" }}>{filled}</b> of{" "}
+          <b style={{ color: "var(--na1-text)" }}>{total}</b> seats named ·{" "}
+          <b style={{ color: "var(--na1-text)" }}>{life}</b> already in your life
+        </div>
+      </div>
+
+      <div className="na1-a3board-grid">
+        {seats.map((b, i) => {
+          const seated = b.name.trim() !== "";
+          const pickerOpen = openPicker === i;
+          return (
+            <div
+              key={i}
+              className={`na1-a3board-seat${seated ? " is-filled" : ""}`}
+            >
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <input
+                  value={b.role}
+                  onChange={(e) => onRole(i, e.target.value)}
+                  aria-label="Role name"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: "1px dashed var(--na1-border)",
+                    color: "var(--gold)",
+                    fontFamily: "var(--na1-serif)",
+                    fontSize: 18,
+                    fontWeight: 600,
+                    padding: "0 0 4px",
+                    outline: "none",
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (openPicker === i) setOpenPicker(null);
+                    onDelSeat(i);
+                  }}
+                  title="Delete this seat"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--na1-text-mute)",
+                    fontSize: 17,
+                    lineHeight: 1,
+                    cursor: "pointer",
+                    padding: "2px 4px",
+                    flexShrink: 0,
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <input
+                value={b.desc}
+                onChange={(e) => onDesc(i, e.target.value)}
+                placeholder="what this role is for…"
+                aria-label="Role description"
+                style={{
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--na1-text-mute)",
+                  fontFamily: "var(--na1-sans)",
+                  fontStyle: "italic",
+                  fontSize: 11.5,
+                  lineHeight: 1.4,
+                  marginTop: 6,
+                  outline: "none",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setOpenPicker(pickerOpen ? null : i)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  marginTop: 9,
+                  padding: "9px 11px",
+                  borderRadius: 8,
+                  border: seated
+                    ? "1px solid var(--gold-line)"
+                    : "1px solid var(--na1-border)",
+                  background: seated ? "var(--gold-soft)" : "transparent",
+                  color: seated ? "var(--gold)" : "var(--na1-text-mute)",
+                  fontFamily: "var(--na1-sans)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {seated ? `${b.name}  ✎` : "+ Choose the first person you go to"}
+              </button>
+              {pickerOpen && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: 10,
+                    border: "1px solid var(--gold-line)",
+                    borderRadius: 9,
+                    background: "var(--na1-bg-soft)",
+                  }}
+                >
+                  {advPool.length ? (
+                    <>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--na1-text-mute)",
+                          marginBottom: 6,
+                          fontFamily: "var(--na1-sans)",
+                        }}
+                      >
+                        Your advocates — tap to seat (a person can take more than
+                        one seat):
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 5,
+                          marginBottom: 8,
+                        }}
+                      >
+                        {advPool.map((nm) => {
+                          const on = b.name === nm;
+                          return (
+                            <button
+                              type="button"
+                              key={nm}
+                              onClick={() => {
+                                onAssign(i, nm);
+                                setOpenPicker(null);
+                              }}
+                              style={{
+                                fontFamily: "var(--na1-sans)",
+                                fontSize: 11,
+                                fontWeight: 600,
+                                padding: "6px 11px",
+                                borderRadius: 40,
+                                cursor: "pointer",
+                                border: on
+                                  ? "1px solid var(--gold)"
+                                  : "1px solid var(--na1-border)",
+                                background: on ? "var(--gold)" : "transparent",
+                                color: on
+                                  ? "#1A1407"
+                                  : "var(--na1-text-sec)",
+                              }}
+                            >
+                              {nm}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "var(--na1-text-mute)",
+                        marginBottom: 8,
+                        fontStyle: "italic",
+                        fontFamily: "var(--na1-sans)",
+                      }}
+                    >
+                      No advocates named yet — type a name below.
+                    </div>
+                  )}
+                  <input
+                    placeholder="or type a name…"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const v = e.currentTarget.value.trim();
+                        if (v) {
+                          onAssign(i, v);
+                          setOpenPicker(null);
+                        }
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      background: "var(--na1-bg-card)",
+                      border: "1px solid var(--na1-border)",
+                      borderRadius: 7,
+                      padding: "7px 9px",
+                      color: "var(--na1-text)",
+                      fontFamily: "var(--na1-sans)",
+                      fontSize: 12,
+                      outline: "none",
+                    }}
+                  />
+                  {seated && (
+                    <button
+                      type="button"
+                      onClick={() => onClear(i)}
+                      style={{
+                        marginTop: 7,
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--na1-text-mute)",
+                        fontFamily: "var(--na1-sans)",
+                        fontSize: 11,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Clear this seat
+                    </button>
+                  )}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 6, marginTop: 9 }}>
+                {lifeBtn(i, "life", "In my life", b.inLife === "life")}
+                {lifeBtn(i, "asp", "Aspirational", b.inLife === "asp")}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        onClick={onAddSeat}
+        style={{
+          background: "transparent",
+          border: "1px dashed var(--na1-border)",
+          borderRadius: 8,
+          color: "var(--na1-text-sec)",
+          fontFamily: "var(--na1-sans)",
+          fontSize: 13,
+          fontWeight: 600,
+          padding: "9px 14px",
+          cursor: "pointer",
+        }}
+      >
+        + Add a seat
+      </button>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 5 (The Board) · Stage 2 — Your table (oval SVG) ───
+// Ported from the mockup's renderBoardTable: an oval table with a chair for
+// every seat around it. Full role names are written out for every chair (never
+// truncated), with the person's name under filled seats; empty seats show an
+// open chair. Scales via viewBox + width:100%.
+function NewA3M5TableBody({ seats }: { seats: A3BoardSeat[] }) {
+  const n = seats.length || 1;
+  const CX = 230,
+    CY = 175,
+    tRx = Math.min(150, 84 + n * 5),
+    tRy = 76,
+    rRx = tRx + 34,
+    rRy = tRy + 44,
+    lRx = rRx + 16,
+    lRy = rRy + 18;
+  const chairs = seats.map((s, i) => {
+    const a = -Math.PI / 2 + i * ((2 * Math.PI) / n);
+    const ca = Math.cos(a),
+      sa = Math.sin(a);
+    const x = CX + rRx * ca,
+      y = CY + rRy * sa,
+      lx = CX + lRx * ca,
+      ly = CY + lRy * sa;
+    const anchor = Math.abs(ca) < 0.25 ? "middle" : ca > 0 ? "start" : "end";
+    const filled = s.name.trim() !== "";
+    const fill = filled ? "var(--gold-soft)" : "var(--na1-bg-soft)";
+    const stroke = filled ? "var(--gold)" : "var(--na1-border)";
+    const role = (s.role || "").trim() || "Seat";
+    return (
+      <g key={i}>
+        <circle
+          cx={x}
+          cy={y}
+          r={18}
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={1.5}
+        />
+        {filled ? (
+          <text
+            x={x}
+            y={y + 4}
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight={600}
+            fill="var(--gold)"
+          >
+            {boardInitials(s.name)}
+          </text>
+        ) : (
+          <text
+            x={x}
+            y={y + 5}
+            textAnchor="middle"
+            fontFamily="var(--na1-serif)"
+            fontSize={14}
+            fill="var(--na1-text-mute)"
+          >
+            +
+          </text>
+        )}
+        <text
+          x={lx}
+          y={ly - 3}
+          textAnchor={anchor}
+          fontFamily="var(--serif)"
+          fontSize={12}
+          fontStyle="italic"
+          fill={filled ? "var(--gold)" : "var(--na1-text-mute)"}
+        >
+          {role}
+        </text>
+        {filled && (
+          <text
+            x={lx}
+            y={ly + 11}
+            textAnchor={anchor}
+            fontFamily="var(--na1-sans)"
+            fontSize={10}
+            fill="var(--na1-text-sec)"
+          >
+            {s.name}
+          </text>
+        )}
+      </g>
+    );
+  });
+  return (
+    <div>
+      <div className="na1-room-eyebrow">A3 · Mirror 5 · Your table</div>
+      <h2 className="na1-room-title">The people in your corner.</h2>
+      <p className="na1-room-context">
+        This is your Board — the roles you named, and the people seated around
+        the table. The empty chairs are the seats still open.
+      </p>
+      <div
+        style={{
+          background: "var(--na1-bg-card)",
+          border: "1px solid var(--na1-border)",
+          borderRadius: 16,
+          padding: 18,
+          marginTop: 16,
+        }}
+      >
+        {/* viewBox widened horizontally beyond the mockup's 460 (chair/table
+            geometry unchanged) so the start/end-anchored FULL role labels on the
+            left/right seats are never clipped — the explicit "write role names
+            out, no truncation" requirement. */}
+        <svg
+          viewBox="-55 0 570 360"
+          style={{
+            display: "block",
+            width: "100%",
+            maxWidth: 520,
+            margin: "0 auto",
+            height: "auto",
+          }}
+        >
+          <ellipse
+            cx={CX}
+            cy={CY}
+            rx={tRx}
+            ry={tRy}
+            fill="var(--na1-bg-soft)"
+            stroke="var(--na1-border)"
+            strokeWidth={1.5}
+          />
+          <ellipse
+            cx={CX}
+            cy={CY}
+            rx={tRx - 10}
+            ry={tRy - 10}
+            fill="none"
+            stroke="var(--na1-border)"
+            strokeDasharray="3 5"
+            opacity={0.55}
+          />
+          <text
+            x={CX}
+            y={CY + 3}
+            textAnchor="middle"
+            fontFamily="var(--serif)"
+            fontSize={17}
+            fontStyle="italic"
+            fill="var(--gold)"
+          >
+            Your Board
+          </text>
+          {chairs}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 5 (The Board) · Stage 3 — Claim ───
+// Cloned from NewA3M4ClaimBody: 2s gold burst → seal (gentle variant when very
+// few seats are filled) signed "— Katherine" → "Continue to The Move →".
+function NewA3M5ClaimBody({
+  seats,
+  claimed,
+  onClaim,
+  onReclaim,
+  onFinish,
+  nextMirror,
+}: {
+  seats: A3BoardSeat[];
+  claimed: boolean;
+  onClaim: () => void;
+  onReclaim: () => void;
+  onFinish: () => void;
+  nextMirror?: { label: string; go: () => void } | null;
+}) {
+  const total = seats.length;
+  const filled = seats.filter((s) => s.name.trim() !== "").length;
+  const life = seats.filter(
+    (s) => s.name.trim() !== "" && s.inLife === "life",
+  ).length;
+  const empty = total - filled;
+  const gentle = filled <= 2 || life === 0;
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onClaim();
+    }, 2000);
+  };
+  const sRow = (label: string, value: string, color: string, last?: boolean) => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 12,
+        padding: "10px 0",
+        borderBottom: last ? "none" : "1px solid var(--na1-border)",
+        fontFamily: "var(--na1-sans)",
+        fontSize: 14,
+        color,
+      }}
+    >
+      <span>{label}</span>
+      <span style={{ fontWeight: 600 }}>{value}</span>
+    </div>
+  );
+  const summary = (
+    <div
+      style={{
+        margin: "4px 0 18px",
+        padding: "6px 20px",
+        borderRadius: 12,
+        background: "var(--na1-bg-card)",
+        border: "1px solid var(--na1-border)",
+        textAlign: "left",
+      }}
+    >
+      {sRow("Seats named", `${filled} of ${total}`, "var(--gold)")}
+      {sRow("Already in your life", String(life), "var(--na1-text-sec)")}
+      {sRow(
+        "Open seats — yours to find",
+        String(empty),
+        "var(--burgundy)",
+        true,
+      )}
+    </div>
+  );
+  const gentleSeal = `${displayName ? `${displayName}, most` : "Most"} of the seats are still empty — and that's the most honest thing you could have found. You're not behind; you're building this corner from scratch, which means you get to choose every person in it. No one inherits a great board — they assemble one, on purpose. You've named the roles. Now you know exactly who to look for. Next, the one move that starts it.`;
+  const fullSeal = `${displayName ? `${displayName}, you've` : "You've"} done what most people never do — you've named who you want in your corner. ${filled} of ${total} seats named, and ${life} of them are already in your life. The rest are yours to find. Next, the one move that starts it.`;
+  if (claimed) {
+    return (
+      <div>
+        <div className="na1-room-eyebrow tone-gold">A3 · Mirror 5 · Claim ★</div>
+        <h2 className="na1-room-title">Claimed.</h2>
+        {summary}
+        <div className="na1-a2m1-seal" role="status">
+          <p className="na1-a2m1-seal-body">{gentle ? gentleSeal : fullSeal}</p>
+          <p className="na1-a2m1-seal-by">— Katherine</p>
+        </div>
+        {showBurst &&
+          createPortal(
+            <div className="na1-gold-burst" aria-hidden>
+              <div className="na1-gold-burst-inner" />
+            </div>,
+            document.body,
+          )}
+        <div className="na1-a2m1-reclaim">
+          <p className="na1-a2m1-reclaim-note">
+            Changed who's at your table? Re-seat and re-claim.
+          </p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onReclaim}
+          >
+            ↺ Re-claim
+          </button>
+        </div>
+        <div className="na1-a2m1-claim-actions">
+          <button
+            type="button"
+            className="na1-btn-gold"
+            onClick={nextMirror ? nextMirror.go : onFinish}
+          >
+            {nextMirror ? `Continue to ${nextMirror.label} →` : "Back to A3 →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 5 · CLAIM</div>
+      <h2 className="na1-room-title">Who you want in your corner.</h2>
+      <p className="na1-room-context">
+        The roles you named, and who's in each seat. Read it back, then seal it.
+      </p>
+      {summary}
+      <div className="na1-a2m1-seal" role="note">
+        <p className="na1-a2m1-seal-body">
+          {gentle
+            ? "Most of the seats are still empty — and that's the most honest thing you could have found. An empty corner isn't a failure; it's a brief for who to look for."
+            : "You've named who you want in your corner. Most people never do — you just did."}
+        </p>
+        <p className="na1-a2m1-seal-by">— Katherine</p>
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button
+          type="button"
+          className="na1-btn-gold"
+          onClick={handleClaim}
+          disabled={showBurst}
+        >
+          Claim →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 5 (The Board) · container ───
+// Cloned from NewA3M4Container: same room shell, veil on every entry, spine-
+// suppressed overlay, 3 working stages (Fill → Table → Claim). Seeds the 8
+// default seats into the store on first entry so role/desc edits persist.
+function NewA3M5Container({
+  onBackToA3,
+  onContinueToMove,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA3: () => void;
+  onContinueToMove: () => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a3State, setA3State] = useState<A3State>(() => loadA3State());
+  const m5 = a3State.m5;
+  const advPool = useMemo(
+    () => a3State.m1.names.filter((nm) => a3State.m1.ratings[nm] === "advocate"),
+    [a3State.m1],
+  );
+  const mutateM5 = useCallback(
+    (fn: (m: A3BoardState) => A3BoardState) => {
+      setA3State((prev) => {
+        const next = { ...prev, m5: fn(prev.m5) };
+        saveA3State(next);
+        return next;
+      });
+    },
+    [],
+  );
+
+  // Seed the 8 default seats once, on first-ever entry (empty + unclaimed) —
+  // so editable role/desc and the "of N" total persist from the first render.
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current) return;
+    seededRef.current = true;
+    if (!m5.claimed && m5.seats.length === 0) {
+      mutateM5((m) => ({
+        ...m,
+        seats: A3_BOARD_DEFAULT_SEATS.map((s) => ({ ...s })),
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const resuming = initialRoomKey === "board";
+  const launchVeil = !resuming;
+  const claimedAtEntry = useRef(m5.claimed).current;
+  const claimedRevisit = claimedAtEntry && !resuming;
+
+  const STEP_COUNT = A3M5_STEPS.length;
+  const [currentStep, setCurrentStep] = useState<number>(
+    resuming && m5.claimed ? STEP_COUNT : 1,
+  );
+  const [maxReached, setMaxReached] = useState<number>(
+    m5.claimed ? STEP_COUNT : 1,
+  );
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    !launchVeil && !claimedRevisit,
+  );
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        if (!claimedRevisit) setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    onRoomChange(roomOpen ? "board" : null);
+  }, [roomOpen, onRoomChange]);
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA3();
+  };
+
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(STEP_COUNT, step));
+    setCurrentStep(clamped);
+    setMaxReached((m) => Math.max(m, clamped));
+  };
+  const onBack = () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+    else closeRoom();
+  };
+  const onDone = () => {
+    if (currentStep < STEP_COUNT) goToStep(currentStep + 1);
+  };
+
+  // Seat mutators — all persist through mutateM5.
+  const onRole = (i: number, v: string) =>
+    mutateM5((m) => ({
+      ...m,
+      seats: m.seats.map((s, idx) => (idx === i ? { ...s, role: v } : s)),
+    }));
+  const onDesc = (i: number, v: string) =>
+    mutateM5((m) => ({
+      ...m,
+      seats: m.seats.map((s, idx) => (idx === i ? { ...s, desc: v } : s)),
+    }));
+  const onAssign = (i: number, name: string) =>
+    mutateM5((m) => ({
+      ...m,
+      seats: m.seats.map((s, idx) =>
+        idx === i ? { ...s, name, inLife: s.inLife ?? "life" } : s,
+      ),
+    }));
+  const onClear = (i: number) =>
+    mutateM5((m) => ({
+      ...m,
+      seats: m.seats.map((s, idx) => (idx === i ? { ...s, name: "" } : s)),
+    }));
+  const onInLife = (i: number, v: A3BoardInLife) =>
+    mutateM5((m) => ({
+      ...m,
+      seats: m.seats.map((s, idx) => (idx === i ? { ...s, inLife: v } : s)),
+    }));
+  const onAddSeat = () =>
+    mutateM5((m) => ({
+      ...m,
+      seats: [
+        ...m.seats,
+        {
+          role: "New seat",
+          desc: "A role you want in your corner",
+          name: "",
+          inLife: null,
+        },
+      ],
+    }));
+  const onDelSeat = (i: number) =>
+    mutateM5((m) => ({ ...m, seats: m.seats.filter((_, idx) => idx !== i) }));
+
+  const claimM5 = () =>
+    mutateM5((m) => ({
+      ...m,
+      claimed: true,
+      claimedAt: m.claimedAt ?? new Date().toISOString(),
+    }));
+  const reclaimM5 = () => {
+    mutateM5((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
+
+  const a3NextMirror = { label: "The Move", go: onContinueToMove };
+
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  return (
+    <div className="na1-root">
+      {!roomOpen && veilPhase !== "rising" && (
+        <NewA2MirrorHubView
+          onBackToA2={onBackToA3}
+          crumbLabel="A3 · Advocate For It"
+          onStart={(step) => {
+            goToStep(step ?? 1);
+            setRoomOpen(true);
+          }}
+          currentStep={currentStep}
+          maxReached={maxReached}
+          claimed={m5.claimed}
+          stepDone={(num) => (num === 1 ? true : m5.claimed)}
+          steps={A3M5_STEPS}
+          eyebrow="A3 · Mirror 5 · Explore with Katherine"
+          title="The Board"
+          sub="The people you want in your corner — name the roles, seat who fits."
+          introEyebrow="Start here · Katherine introduces The Board"
+          introCaption="Katherine's The Board intro · placeholder"
+          beginLabel="Begin The Board"
+          resumeLabel="Resume The Board"
+        />
+      )}
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="The Board"
+        >
+          <div className="na1-room-card na1-a2m2-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>The Board</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A3M5_STEPS[currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="na1-a2m2-body">
+              {currentStep === 1 ? (
+                <NewA3M5FillBody
+                  seats={m5.seats}
+                  advPool={advPool}
+                  onRole={onRole}
+                  onDesc={onDesc}
+                  onAssign={onAssign}
+                  onClear={onClear}
+                  onInLife={onInLife}
+                  onAddSeat={onAddSeat}
+                  onDelSeat={onDelSeat}
+                />
+              ) : currentStep === 2 ? (
+                <NewA3M5TableBody seats={m5.seats} />
+              ) : (
+                <NewA3M5ClaimBody
+                  seats={m5.seats}
+                  claimed={m5.claimed}
+                  onClaim={claimM5}
+                  onReclaim={reclaimM5}
+                  onFinish={closeRoom}
+                  nextMirror={a3NextMirror}
+                />
+              )}
+            </div>
+            <div className="na1-a2m2-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>
+                {currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              {currentStep < STEP_COUNT && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onDone}
+                >
+                  {currentStep === 1
+                    ? "See them at the table →"
+                    : "See your corner →"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A3M5_VEIL_TEXT} />
+      )}
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 6 (The Move) · Ship 6 · final A3 room ──────────────────────
+// Where the audit becomes a decision. Sequential — ONE decision per page
+// (ADHD-friendly, same pacing as Thoughts' Listen). Reads the draining People
+// (neutral/anchor), draining Environment (neutral/anchor), and critic Thoughts;
+// the user picks one of each, then stars the ONE bottleneck to move first
+// today — the other two wait. Language is action-oriented but GENTLE ("give
+// your attention to first", "what moves first", "the waiting room") — never
+// "handle"/"confront"/"cut out". Structure/copy/flow ported from the mockup;
+// tokens match the live app. Container cloned from NewA3M5Container. Claiming
+// completes A3 (a3Complete already requires m6), filling the Advocate vertebra.
+const A3M6_STEPS: { num: number; name: string }[] = [
+  { num: 1, name: "The people" },
+  { num: 2, name: "Your surroundings" },
+  { num: 3, name: "The inner voice" },
+  { num: 4, name: "The bottleneck" },
+  { num: 5, name: "Claim" },
+];
+const A3M6_VEIL_TEXT = "Choosing the one move…";
+
+// Steps 1–3 metadata (verbatim gentle copy from the mockup). `emptyLine` shows
+// when a pool has no candidates — a graceful "good news, move on" per lane.
+const A3M6_PICK_STEPS: {
+  lane: A3MoveLane;
+  eyebrow: string;
+  title: string;
+  prompt: string;
+  emptyLine: string;
+}[] = [
+  {
+    lane: "person",
+    eyebrow: "The people",
+    title: "Start gentle — with people.",
+    prompt:
+      "Of the people who drain more than they give right now, who's the one you'd give your attention to first? Just one. This isn't about confronting anyone — only noticing where to look.",
+    emptyLine:
+      "Nothing here is weighing on you — that's good news. You can move on.",
+  },
+  {
+    lane: "env",
+    eyebrow: "Your surroundings",
+    title: "Now your surroundings.",
+    prompt:
+      "Which one habit or place, if it shifted, would free you up the most?",
+    emptyLine:
+      "Nothing here is weighing on you — that's good news. You can move on.",
+  },
+  {
+    // The Move is a decision page about what to release or reframe, so this
+    // picks the costliest critic thought. Coaches serve you and never appear.
+    // When the user marked no critics, the pool is empty and the step shows the
+    // gentle line (no positive fallback, no dead end).
+    lane: "thought",
+    eyebrow: "Thoughts",
+    title: "Your thoughts.",
+    prompt:
+      "Which one thought is costing you the most — the one you'd most want to release or reframe? You're only choosing it here; the reframing itself comes later.",
+    emptyLine:
+      "Nothing here is weighing on you — that's good news. You can move on.",
+  },
+];
+
+type MoveCandidate = { id: string; label: string };
+
+// Human lane label for summaries and the bottleneck rows.
+function moveLaneName(k: A3MoveLane): string {
+  return k === "person" ? "Person" : k === "env" ? "Habit · Place" : "Thought";
+}
+
+// Build the three candidate pools from the prior mirrors — each pool reads ONLY
+// its own mirror, and only the WEIGHT (anchor) items, since The Move is a
+// decision page about what's costing you. People = m1 anchors; Environment =
+// m2 anchors; Thoughts = m3 critics (the Weight equivalent — coaches serve you
+// and never appear here). No neutrals, no coach fallback, no cross-mirror
+// items. Labels are the natural keys (name / item name / thought text). A pool
+// may be empty (no Weight in that mirror) — the step shows a gentle line and
+// lets the user continue.
+function moveGather(a3: A3State): Record<A3MoveLane, MoveCandidate[]> {
+  const person: MoveCandidate[] = a3.m1.names
+    .filter((nm) => a3.m1.ratings[nm] === "anchor")
+    .map((nm) => ({ id: nm, label: nm }));
+  const env: MoveCandidate[] = a3.m2.items
+    .filter((it) => it.rating === "anchor")
+    .map((it) => ({ id: it.name, label: it.name }));
+  const thought: MoveCandidate[] = a3.m3.thoughts
+    .filter((t) => t.verdict === "critic")
+    .map((t) => ({ id: t.text, label: t.text }));
+  return { person, env, thought };
+}
+
+// A view-only row in the "See everything you named" reveal: a label plus the
+// rating tag it carries in its mirror (People/Environment use the LOCKED
+// user-facing labels "Just there"/"Weight"; Thoughts use "Critic"/"Coach").
+type MoveRevealItem = { label: string; tag: string; isThought?: boolean };
+
+// ─── A3 · Mirror 6 (The Move) · Stages 1–3 — one pool per page ───
+function NewA3M6PickBody({
+  step,
+  stepNum,
+  pool,
+  selected,
+  onSelect,
+  reveal,
+  onEdit,
+  editLabel,
+}: {
+  step: (typeof A3M6_PICK_STEPS)[number];
+  stepNum: number;
+  pool: MoveCandidate[];
+  selected: string | null;
+  onSelect: (label: string) => void;
+  reveal: MoveRevealItem[];
+  onEdit: () => void;
+  editLabel: string;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          fontFamily: "var(--na1-sans)",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: "var(--na1-text-mute)",
+          marginBottom: 10,
+        }}
+      >
+        Step {stepNum} of 4 · {step.eyebrow}
+      </div>
+      <h2 className="na1-room-title">{step.title}</h2>
+      <p className="na1-room-context">{step.prompt}</p>
+      {pool.length ? (
+        <div style={{ marginTop: 4 }}>
+          {pool.map((it) => {
+            const on = selected === it.label;
+            return (
+              <button
+                type="button"
+                key={it.id}
+                onClick={() => onSelect(it.label)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 11,
+                  padding: "12px 14px",
+                  border: on
+                    ? "1px solid var(--gold-line)"
+                    : "1px solid var(--na1-border)",
+                  background: on ? "var(--gold-soft)" : "transparent",
+                  borderRadius: 11,
+                  marginBottom: 8,
+                  cursor: "pointer",
+                  fontFamily: "var(--na1-sans)",
+                }}
+              >
+                <span
+                  style={{
+                    width: 17,
+                    height: 17,
+                    borderRadius: "50%",
+                    border: on ? "2px solid var(--gold)" : "2px solid var(--na1-text-mute)",
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {on && (
+                    <span
+                      style={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: "50%",
+                        background: "var(--gold)",
+                        display: "block",
+                      }}
+                    />
+                  )}
+                </span>
+                <span style={{ fontSize: 14.5, color: "var(--na1-text)" }}>
+                  {step.lane === "thought" ? `“${it.label}”` : it.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p
+          style={{
+            fontFamily: "var(--serif)",
+            fontStyle: "italic",
+            fontSize: 16,
+            color: "var(--na1-text-sec)",
+            margin: "10px 0 0",
+          }}
+        >
+          {step.emptyLine}
+        </p>
+      )}
+      {/* View-only context: the Weight (and, for People/Environment, Just There)
+          items in this mirror, so they can choose with the whole picture in
+          front of them. Re-rating happens back in the mirror itself (link
+          below), never here. Native <details> keeps it lightweight + accessible. */}
+      {reveal.length > 0 && (
+        <details style={{ marginTop: 18 }}>
+          <summary
+            style={{
+              cursor: "pointer",
+              fontFamily: "var(--na1-sans)",
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: "var(--na1-text-sec)",
+              listStyle: "none",
+              padding: "4px 0",
+            }}
+          >
+            What's costing you here
+          </summary>
+          <div
+            style={{
+              marginTop: 8,
+              padding: "10px 14px",
+              border: "1px solid var(--na1-border)",
+              borderRadius: 10,
+              background: "var(--na1-bg-soft)",
+            }}
+          >
+            {reveal.map((r, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "7px 0",
+                  borderTop: i === 0 ? "none" : "1px solid var(--na1-border)",
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "var(--na1-sans)",
+                    fontSize: 13,
+                    color: "var(--na1-text)",
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {r.isThought ? `“${r.label}”` : r.label}
+                </span>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontFamily: "var(--na1-sans)",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "var(--na1-text-mute)",
+                  }}
+                >
+                  {r.tag}
+                </span>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={onEdit}
+              style={{
+                marginTop: 10,
+                background: "transparent",
+                border: "none",
+                padding: 0,
+                color: "var(--gold)",
+                fontFamily: "var(--na1-sans)",
+                fontSize: 12.5,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              {editLabel}
+            </button>
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 6 (The Move) · Stage 4 — the bottleneck ───
+function NewA3M6BottleneckBody({
+  chosen,
+  bottleneck,
+  onStar,
+}: {
+  chosen: { lane: A3MoveLane; label: string }[];
+  bottleneck: A3MoveLane | null;
+  onStar: (lane: A3MoveLane) => void;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          fontFamily: "var(--na1-sans)",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: "var(--na1-text-mute)",
+          marginBottom: 10,
+        }}
+      >
+        Step 4 of 4 · The bottleneck
+      </div>
+      <h2 className="na1-room-title">Of these, what moves first?</h2>
+      <p className="na1-room-context">
+        Here are your three. They can all move forward — but you act one at a
+        time, when you're ready. Choose the{" "}
+        <b style={{ color: "var(--gold)" }}>one bottleneck</b> you want to focus
+        on shifting <b>today</b>. The other two wait in the wings.
+      </p>
+      {chosen.length ? (
+        <div style={{ marginTop: 4 }}>
+          {chosen.map((c) => {
+            const on = bottleneck === c.lane;
+            return (
+              <button
+                type="button"
+                key={c.lane}
+                onClick={() => onStar(c.lane)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 11,
+                  padding: "14px 16px",
+                  border: on ? "1px solid var(--gold)" : "1px solid var(--na1-border)",
+                  background: on ? "var(--gold-soft)" : "transparent",
+                  borderRadius: 12,
+                  marginBottom: 9,
+                  cursor: "pointer",
+                  fontFamily: "var(--na1-sans)",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 18,
+                    color: on ? "var(--gold)" : "var(--na1-text-mute)",
+                  }}
+                >
+                  {on ? "★" : "☆"}
+                </span>
+                <span>
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--na1-text-mute)",
+                      marginBottom: 2,
+                    }}
+                  >
+                    {moveLaneName(c.lane)}
+                    {on ? " · today's focus" : ""}
+                  </span>
+                  <span style={{ fontSize: 14.5, color: "var(--na1-text)" }}>
+                    {c.lane === "thought" ? `“${c.label}”` : c.label}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p
+          style={{
+            fontFamily: "var(--serif)",
+            fontStyle: "italic",
+            fontSize: 16,
+            color: "var(--na1-text-sec)",
+            margin: "10px 0 0",
+          }}
+        >
+          Nothing to prioritise here — the fields you looked at were already in
+          good shape. You can still seal this and move on.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 6 (The Move) · Stage 5 — Claim ───
+// Cloned from NewA3M5ClaimBody. Shows ★ Today's focus + the waiting room, seal
+// (gentle variant when nothing was chosen). Claiming completes A3; the post-claim
+// CTA reads "Continue to A4 →" and routes to the hub (A4 isn't built yet).
+function NewA3M6ClaimBody({
+  chosen,
+  bottleneck,
+  claimed,
+  onClaim,
+  onReclaim,
+  onComplete,
+}: {
+  chosen: { lane: A3MoveLane; label: string }[];
+  bottleneck: A3MoveLane | null;
+  claimed: boolean;
+  onClaim: () => void;
+  onReclaim: () => void;
+  onComplete: () => void;
+}) {
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      onClaim();
+    }, 2000);
+  };
+  const focus = chosen.find((c) => c.lane === bottleneck) ?? null;
+  const waiting = chosen.filter((c) => c.lane !== bottleneck);
+  const fmt = (lane: A3MoveLane, label: string) =>
+    lane === "thought" ? `“${label}”` : label;
+  const summary = (
+    <div
+      style={{
+        margin: "4px 0 18px",
+        padding: "6px 20px",
+        borderRadius: 12,
+        background: "var(--na1-bg-card)",
+        border: "1px solid var(--na1-border)",
+        textAlign: "left",
+      }}
+    >
+      {focus ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            padding: "10px 0",
+            fontFamily: "var(--na1-sans)",
+            fontSize: 14,
+            color: "var(--gold)",
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>
+            ★ Today's focus · {moveLaneName(focus.lane)}
+          </span>
+          <span style={{ fontStyle: "italic" }}>
+            {fmt(focus.lane, focus.label)}
+          </span>
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: "10px 0",
+            fontFamily: "var(--serif)",
+            fontStyle: "italic",
+            fontSize: 15,
+            color: "var(--na1-text-sec)",
+          }}
+        >
+          No single move chosen yet — that's allowed.
+        </div>
+      )}
+      {waiting.length > 0 && (
+        <>
+          <div
+            style={{
+              fontFamily: "var(--na1-sans)",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "var(--na1-text-mute)",
+              margin: "16px 0 8px",
+            }}
+          >
+            The waiting room · act when you're ready
+          </div>
+          {waiting.map((w) => (
+            <div
+              key={w.lane}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                padding: "10px 0",
+                borderTop: "1px solid var(--na1-border)",
+                fontFamily: "var(--na1-sans)",
+                fontSize: 14,
+                color: "var(--na1-text-sec)",
+              }}
+            >
+              <span>{moveLaneName(w.lane)}</span>
+              <span style={{ fontStyle: "italic" }}>
+                {fmt(w.lane, w.label)}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+  const focusSeal = focus
+    ? `${displayName ? `${displayName}, that's` : "That's"} your bottleneck — ${fmt(
+        focus.lane,
+        focus.label,
+      )}. Not everything at once — this one first, because when it shifts the rest get easier. What you've done here is choose it. The acting on it — and the reframing itself — is the work of A4, when you're ready; the other two wait in the wings until then. Nothing is lost. Choosing where to start is the move.`
+    : `${displayName ? `${displayName}, you've` : "You've"} done the seeing, and that's real work. When you're ready, choosing the one that moves first is what carries into A4 — that's where the acting and the reframing happen. For now, nothing here is lost; it's waiting for you.`;
+  if (claimed) {
+    return (
+      <div>
+        <div className="na1-room-eyebrow tone-gold">A3 · Mirror 6 · Claim ★</div>
+        <h2 className="na1-room-title">The move that starts it.</h2>
+        {summary}
+        <div className="na1-a2m1-seal" role="status">
+          <p className="na1-a2m1-seal-body">{focusSeal}</p>
+          <p className="na1-a2m1-seal-by">— Katherine</p>
+        </div>
+        {showBurst &&
+          createPortal(
+            <div className="na1-gold-burst" aria-hidden>
+              <div className="na1-gold-burst-inner" />
+            </div>,
+            document.body,
+          )}
+        <div className="na1-a2m1-reclaim">
+          <p className="na1-a2m1-reclaim-note">
+            Changed your mind? Re-choose your move.
+          </p>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={onReclaim}
+          >
+            ↺ Re-claim
+          </button>
+        </div>
+        <div className="na1-a2m1-claim-actions">
+          <button type="button" className="na1-btn-gold" onClick={onComplete}>
+            Continue to A4 →
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      <div className="na1-room-eyebrow tone-gold">A3 · MIRROR 6 · CLAIM</div>
+      <h2 className="na1-room-title">The move that starts it.</h2>
+      <p className="na1-room-context">
+        Your focus for today, and the two waiting in the wings. This is the
+        choosing — the acting, and the reframing, happen in A4. Read it back,
+        then seal it.
+      </p>
+      {summary}
+      <div className="na1-a2m1-seal" role="note">
+        <p className="na1-a2m1-seal-body">
+          {focus
+            ? "This room is where you choose; A4 is where you act on it and do the reframing. One move, picked on purpose — that's enough for today."
+            : "You've done the seeing. When you're ready, the one that moves first is yours to choose — and A4 is where you'll act on it. Nothing here is lost."}
+        </p>
+        <p className="na1-a2m1-seal-by">— Katherine</p>
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button
+          type="button"
+          className="na1-btn-gold"
+          onClick={handleClaim}
+          disabled={showBurst}
+        >
+          Claim →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── A3 · Mirror 6 (The Move) · container ───
+// Cloned from NewA3M5Container: veil on every entry, spine-suppressed overlay,
+// 5 working stages (3 picks → bottleneck → claim). Selection is driven straight
+// off the store (persist-on-pick), so the payload A4 will read is always
+// current. Empty audits are valid — the bottleneck step advances to a
+// gentle-seal claim when nothing was chosen (never a dead end).
+function NewA3M6Container({
+  onBackToA3,
+  onCompleteA3,
+  onEditMirror,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA3: () => void;
+  onCompleteA3: () => void;
+  // Routes to a prior mirror (People/Environment/Thoughts) in Review so the
+  // user can change a rating; picks persist, so hopping out and back is safe.
+  onEditMirror: (lane: A3MoveLane) => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a3State, setA3State] = useState<A3State>(() => loadA3State());
+  const m6 = a3State.m6;
+  const pools = useMemo(() => moveGather(a3State), [a3State]);
+  // "What's costing you here" reveal lists — view-only context under each step.
+  // People/Environment show their Weight (anchor) AND Just There (neutral)
+  // items, tagged with the LOCKED user-facing labels. Thoughts show the Weight
+  // (critic) thoughts only — coaches serve you and don't belong on a decision
+  // page about what to release, so they're dropped entirely.
+  const reveal = useMemo(() => {
+    const drainTag = (r: A3PeopleRating): string =>
+      r === "neutral" ? "Just there" : "Weight";
+    const person: MoveRevealItem[] = a3State.m1.names
+      .filter((nm) => {
+        const r = a3State.m1.ratings[nm];
+        return r === "neutral" || r === "anchor";
+      })
+      .map((nm) => ({ label: nm, tag: drainTag(a3State.m1.ratings[nm]) }));
+    const env: MoveRevealItem[] = a3State.m2.items
+      .filter((it) => it.rating === "neutral" || it.rating === "anchor")
+      .map((it) => ({ label: it.name, tag: drainTag(it.rating as A3PeopleRating) }));
+    const thought: MoveRevealItem[] = a3State.m3.thoughts
+      .filter((t) => t.verdict === "critic")
+      .map((t) => ({ label: t.text, tag: "Weight", isThought: true }));
+    return { person, env, thought } as Record<A3MoveLane, MoveRevealItem[]>;
+  }, [a3State]);
+  const mutateM6 = useCallback((fn: (m: A3MoveState) => A3MoveState) => {
+    setA3State((prev) => {
+      const next = { ...prev, m6: fn(prev.m6) };
+      saveA3State(next);
+      return next;
+    });
+  }, []);
+
+  const resuming = initialRoomKey === "move";
+  const launchVeil = !resuming;
+  const claimedAtEntry = useRef(m6.claimed).current;
+  const claimedRevisit = claimedAtEntry && !resuming;
+
+  const STEP_COUNT = A3M6_STEPS.length;
+  // DEV-only · the "A3 M6 → claim" seed button opens this room directly on the
+  // Claim step (the step lives in component state, not the store, so a stored
+  // step can't carry it). Read once from the session flag; cleared on mount so
+  // it fires a single time. Gated on DEV_TOOLS_ON, so it is compiled out of
+  // production and inert without the local VITE_LOCAL_DEV_TOOLS flag.
+  const [devClaimJump] = useState<boolean>(() => {
+    try {
+      return (
+        import.meta.env.DEV &&
+        DEV_TOOLS_ON &&
+        window.sessionStorage.getItem("to_dev_claim_jump") === "a3m6"
+      );
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!import.meta.env.DEV || !DEV_TOOLS_ON || !devClaimJump) return;
+    try {
+      window.sessionStorage.removeItem("to_dev_claim_jump");
+    } catch {}
+  }, [devClaimJump]);
+  const [currentStep, setCurrentStep] = useState<number>(
+    (resuming && m6.claimed) || devClaimJump ? STEP_COUNT : 1,
+  );
+  const [maxReached, setMaxReached] = useState<number>(
+    m6.claimed || devClaimJump ? STEP_COUNT : 1,
+  );
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(
+    !launchVeil && !claimedRevisit,
+  );
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        if (!claimedRevisit) setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("falling");
+      }, NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("idle");
+      }, NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    onRoomChange(roomOpen ? "move" : null);
+  }, [roomOpen, onRoomChange]);
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA3();
+  };
+
+  const goToStep = (step: number) => {
+    const clamped = Math.max(1, Math.min(STEP_COUNT, step));
+    setCurrentStep(clamped);
+    setMaxReached((m) => Math.max(m, clamped));
+  };
+  const onBack = () => {
+    if (currentStep > 1) goToStep(currentStep - 1);
+    else closeRoom();
+  };
+  const onDone = () => {
+    if (currentStep < STEP_COUNT) goToStep(currentStep + 1);
+  };
+
+  // Selection persists straight to the store. Re-picking the same label clears
+  // it; clearing the lane that was starred also clears the bottleneck so the
+  // two never drift.
+  const onSelect = (lane: A3MoveLane, label: string) =>
+    mutateM6((m) => {
+      const next = m[lane] === label ? null : label;
+      const bottleneck =
+        next === null && m.bottleneck === lane ? null : m.bottleneck;
+      return { ...m, [lane]: next, bottleneck };
+    });
+  const onStar = (lane: A3MoveLane) =>
+    mutateM6((m) => ({
+      ...m,
+      bottleneck: m.bottleneck === lane ? null : lane,
+    }));
+
+  // The lanes that carry a pick, in canonical order — the material for the
+  // bottleneck step, the claim summary, and the forward-gate.
+  const chosen = useMemo(() => {
+    const lanes: A3MoveLane[] = ["person", "env", "thought"];
+    return lanes
+      .filter((k) => m6[k])
+      .map((k) => ({ lane: k, label: m6[k] as string }));
+  }, [m6]);
+
+  // Step 4 advances when a bottleneck is starred OR nothing was chosen at all
+  // (empty audit → gentle-seal claim, never a dead end). Steps 1–3 are always
+  // free to advance (picks are optional).
+  const canForward =
+    currentStep === 4 ? m6.bottleneck != null || chosen.length === 0 : true;
+
+  const claimM6 = () =>
+    mutateM6((m) => ({
+      ...m,
+      claimed: true,
+      claimedAt: m.claimedAt ?? new Date().toISOString(),
+    }));
+  // Re-claim returns to the picks (Step 1) so the user can re-choose their move
+  // and the bottleneck, then re-walk to Claim → to re-seal.
+  const reclaimM6 = () => {
+    mutateM6((m) => ({ ...m, claimed: false, claimedAt: null }));
+    goToStep(1);
+  };
+
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  const pickStep = currentStep <= 3 ? A3M6_PICK_STEPS[currentStep - 1] : null;
+
+  return (
+    <div className="na1-root">
+      {!roomOpen && veilPhase !== "rising" && (
+        <NewA2MirrorHubView
+          onBackToA2={onBackToA3}
+          crumbLabel="A3 · Advocate For It"
+          onStart={(step) => {
+            goToStep(step ?? 1);
+            setRoomOpen(true);
+          }}
+          currentStep={currentStep}
+          maxReached={maxReached}
+          claimed={m6.claimed}
+          stepDone={(num) => (num === 1 ? true : m6.claimed)}
+          steps={A3M6_STEPS}
+          eyebrow="A3 · Mirror 6 · Explore with Katherine"
+          title="The Move"
+          sub="Your three to carry forward — and the one that moves first."
+          introEyebrow="Start here · Katherine introduces The Move"
+          introCaption="Katherine's The Move intro · placeholder"
+          beginLabel="Begin The Move"
+          resumeLabel="Resume The Move"
+        />
+      )}
+      {roomOpen && (
+        <div
+          className="na1-room-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="The Move"
+        >
+          <div className="na1-room-card na1-a2m2-room-card">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>The Move</a>
+              <span className="sep">›</span>
+              <span className="current">
+                {A3M6_STEPS[currentStep - 1]?.name ?? ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <div className="na1-a2m2-body">
+              {pickStep ? (
+                <NewA3M6PickBody
+                  step={pickStep}
+                  stepNum={currentStep}
+                  pool={pools[pickStep.lane]}
+                  selected={m6[pickStep.lane]}
+                  onSelect={(label) => onSelect(pickStep.lane, label)}
+                  reveal={reveal[pickStep.lane]}
+                  onEdit={() => onEditMirror(pickStep.lane)}
+                  editLabel={
+                    pickStep.lane === "person"
+                      ? "Want to change a rating? Reopen People →"
+                      : pickStep.lane === "env"
+                        ? "Want to change a rating? Reopen Environment →"
+                        : "Want to change a rating? Reopen Thoughts →"
+                  }
+                />
+              ) : currentStep === 4 ? (
+                <NewA3M6BottleneckBody
+                  chosen={chosen}
+                  bottleneck={m6.bottleneck}
+                  onStar={onStar}
+                />
+              ) : (
+                <NewA3M6ClaimBody
+                  chosen={chosen}
+                  bottleneck={m6.bottleneck}
+                  claimed={m6.claimed}
+                  onClaim={claimM6}
+                  onReclaim={reclaimM6}
+                  onComplete={onCompleteA3}
+                />
+              )}
+            </div>
+            <div className="na1-a2m2-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onBack}>
+                {currentStep > 1 ? "← Back" : "Close"}
+              </button>
+              {currentStep < STEP_COUNT && (
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={onDone}
+                  disabled={!canForward}
+                >
+                  {currentStep === 4 ? "See your move →" : "Next →"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && (
+        <NewA1Veil phase={veilPhase} text={A3M6_VEIL_TEXT} />
       )}
     </div>
   );
@@ -40510,7 +44846,11 @@ function NewA1View({
           saved != null &&
           (saved.view === "a3" ||
             saved.view === "a3m1" ||
-            saved.view === "a3m2");
+            saved.view === "a3m2" ||
+            saved.view === "a3m3" ||
+            saved.view === "a3m4" ||
+            saved.view === "a3m5" ||
+            saved.view === "a3m6");
         if (!savedInA3) return "a3";
       }
       // Eligibility check for restoring m3/m4 — per spec, fall back to
@@ -40552,6 +44892,10 @@ function NewA1View({
         if (saved.view === "a3" && !NEW_A3_FLAG) return "grid";
         if (saved.view === "a3m1" && !NEW_A3_FLAG) return "grid";
         if (saved.view === "a3m2" && !NEW_A3_FLAG) return "grid";
+        if (saved.view === "a3m3" && !NEW_A3_FLAG) return "grid";
+        if (saved.view === "a3m4" && !NEW_A3_FLAG) return "grid";
+        if (saved.view === "a3m5" && !NEW_A3_FLAG) return "grid";
+        if (saved.view === "a3m6" && !NEW_A3_FLAG) return "grid";
         return saved.view;
       }
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -40602,6 +44946,22 @@ function NewA1View({
     if (saved.overlay.hubId === "a3m2") {
       if (saved.view === "a3m2" && NEW_A3_FLAG) return saved.overlay;
     }
+    // A3 Ship 3 · Restore the Thoughts room overlay the same way.
+    if (saved.overlay.hubId === "a3m3") {
+      if (saved.view === "a3m3" && NEW_A3_FLAG) return saved.overlay;
+    }
+    // A3 Ship 4 · Restore the Energy Map room overlay the same way.
+    if (saved.overlay.hubId === "a3m4") {
+      if (saved.view === "a3m4" && NEW_A3_FLAG) return saved.overlay;
+    }
+    // A3 Ship 5 · Restore the Board room overlay the same way.
+    if (saved.overlay.hubId === "a3m5") {
+      if (saved.view === "a3m5" && NEW_A3_FLAG) return saved.overlay;
+    }
+    // A3 Ship 6 · Restore the Move room overlay the same way.
+    if (saved.overlay.hubId === "a3m6") {
+      if (saved.view === "a3m6" && NEW_A3_FLAG) return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -40628,6 +44988,18 @@ function NewA1View({
   const initialA3M2RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a3m2" ? overlayRoute.roomId : null,
   );
+  const initialA3M3RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a3m3" ? overlayRoute.roomId : null,
+  );
+  const initialA3M4RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a3m4" ? overlayRoute.roomId : null,
+  );
+  const initialA3M5RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a3m5" ? overlayRoute.roomId : null,
+  );
+  const initialA3M6RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a3m6" ? overlayRoute.roomId : null,
+  );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
   const firstRoutePersistRef = useRef(true);
@@ -40649,6 +45021,10 @@ function NewA1View({
       view !== "a2m3" &&
       view !== "a3m1" &&
       view !== "a3m2" &&
+      view !== "a3m3" &&
+      view !== "a3m4" &&
+      view !== "a3m5" &&
+      view !== "a3m6" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -40716,6 +45092,50 @@ function NewA1View({
   const onA3M2RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
       const next: AppRouteOverlay = roomId ? { hubId: "a3m2", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A3 Ship 3 · Thoughts room (single room "thoughts") reports open/close.
+  const onA3M3RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a3m3", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A3 Ship 4 · Energy Map room (single room "energymap") reports open/close.
+  const onA3M4RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a3m4", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A3 Ship 5 · Board room (single room "board") reports open/close.
+  const onA3M5RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a3m5", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A3 Ship 6 · Move room (single room "move") reports open/close.
+  const onA3M6RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a3m6", roomId } : null;
       if (prev === next) return prev;
       if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
         return prev;
@@ -40805,6 +45225,29 @@ function NewA1View({
   const visionComplete = m2Progress.complete;
   const a1Complete =
     purposeComplete && visionComplete && m3Complete && m4Complete;
+  // A3 gate · A2 is "complete" once all three A2 mirrors are claimed — defined
+  // the same way a1Complete is (every constituent mirror's claim). Read on the
+  // same [view, roomOpen] cadence as the A1 mirror reads, so a claim made
+  // inside an A2 room is reflected the moment the user returns.
+  const a2Complete = useMemo(() => {
+    const a2 = loadA2State();
+    return !!(a2?.m1?.claimed && a2?.m2?.claimed && a2?.m3?.claimed);
+  }, [view, roomOpen]);
+  // Spine · A3 completion signal, defined the same way as a1Complete/a2Complete
+  // (every mirror claimed). m4–m6 are still stubs, so this reads false until
+  // those ships land — then the Advocate vertebra fills automatically. `as any`
+  // because the stub mirror types don't carry a `claimed` field yet.
+  const a3Complete = useMemo(() => {
+    const a3 = loadA3State() as any;
+    return !!(
+      a3?.m1?.claimed &&
+      a3?.m2?.claimed &&
+      a3?.m3?.claimed &&
+      a3?.m4?.claimed &&
+      a3?.m5?.claimed &&
+      a3?.m6?.claimed
+    );
+  }, [view, roomOpen]);
   // Fix 5 · A2 M1 locked-state copy. When A1 is incomplete the A2 hub's 01
   // (Alignment Check) card must name the first unclaimed A1 mirror — walked in
   // A1's order (Purpose → Vision → Identity → Values) — and offer a live route
@@ -40830,6 +45273,17 @@ function NewA1View({
       setView("a2");
     }
   }, [view, a1Complete]);
+  // A3 · Defense in depth mirroring the a2m1 guard. The People room (a3m1) is
+  // only meant to be reached via the A3 hub's 01 card, gated on
+  // a1Complete && a2Complete. A persisted view:"a3m1" can otherwise survive a
+  // later A1/A2 reset (the init-time guard only drops it when ?newA3 is off).
+  // If the prerequisites are no longer met, bounce back to the A3 hub, whose
+  // 01 card shows the locked gate.
+  useEffect(() => {
+    if (view === "a3m1" && !(a1Complete && a2Complete)) {
+      setView("a3");
+    }
+  }, [view, a1Complete, a2Complete]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -41038,7 +45492,7 @@ function NewA1View({
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA1M3Container
           onBackToGrid={() => setView("grid")}
@@ -41057,7 +45511,7 @@ function NewA1View({
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA1M4Container
           onBackToGrid={() => setView("grid")}
@@ -41078,7 +45532,7 @@ function NewA1View({
   if (view === "a2") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA2HubView
           name={resolvedName}
           onEntryHall={() => setView("entry-hall")}
@@ -41106,7 +45560,7 @@ function NewA1View({
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA2M1Container
           onBackToA2={() => setView("a2")}
@@ -41154,12 +45608,22 @@ function NewA1View({
   if (view === "a3") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA3HubView
           name={resolvedName}
+          a1Complete={a1Complete}
+          a2Complete={a2Complete}
+          nextA1MirrorName={nextA1MirrorName}
+          a1Remaining={a1Remaining}
           onEntryHall={() => setView("entry-hall")}
           onBeginPeople={() => setView("a3m1")}
           onBeginEnvironment={() => setView("a3m2")}
+          onBeginThoughts={() => setView("a3m3")}
+          onBeginEnergyMap={() => setView("a3m4")}
+          onBeginBoard={() => setView("a3m5")}
+          onBeginMove={() => setView("a3m6")}
+          onGoToA1={() => setView("grid")}
+          onGoToA2={() => setView("a2")}
         />
       </div>
     );
@@ -41176,7 +45640,7 @@ function NewA1View({
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA3M1Container
           onBackToA3={() => setView("a3")}
@@ -41200,7 +45664,7 @@ function NewA1View({
     return (
       <div className={showSpine ? "na1-spine-pad" : undefined}>
         {showSpine && (
-          <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         )}
         <NewA3M2Container
           onBackToA3={() => setView("a3")}
@@ -41211,10 +45675,109 @@ function NewA1View({
       </div>
     );
   }
+  // A3 Ship 3 · Thoughts (A3 Mirror 3) room. Reached only via the A3 hub's 03
+  // card (unlocked after the Environment claim). Spine shows on the
+  // claimed-revisit overview hub; suppressed while the room overlay owns the
+  // view (same treatment as a3m2).
+  if (view === "a3m3") {
+    const initialKey = initialA3M3RoomKeyRef.current;
+    initialA3M3RoomKeyRef.current = null;
+    const showSpine = overlayRoute == null;
+    return (
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        )}
+        <NewA3M3Container
+          onBackToA3={() => setView("a3")}
+          onContinueToEnergyMap={() => setView("a3")}
+          initialRoomKey={initialKey}
+          onRoomChange={onA3M3RoomChange}
+        />
+      </div>
+    );
+  }
+  // A3 Ship 4 · Energy Map (A3 Mirror 4) room. Reached only via the A3 hub's 04
+  // card (unlocked after the Thoughts claim). Spine shows on the claimed-revisit
+  // overview hub; suppressed while the room overlay owns the view.
+  if (view === "a3m4") {
+    const initialKey = initialA3M4RoomKeyRef.current;
+    initialA3M4RoomKeyRef.current = null;
+    const showSpine = overlayRoute == null;
+    return (
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        )}
+        <NewA3M4Container
+          onBackToA3={() => setView("a3")}
+          onContinueToBoard={() => setView("a3")}
+          initialRoomKey={initialKey}
+          onRoomChange={onA3M4RoomChange}
+        />
+      </div>
+    );
+  }
+  // A3 Ship 5 · The Board (A3 Mirror 5) room. Reached only via the A3 hub's 05
+  // card (unlocked after the Energy Map claim). Spine shows on the
+  // claimed-revisit overview hub; suppressed while the room overlay owns the
+  // view. Claiming unlocks The Move (m6); "Continue to The Move →" returns to
+  // the hub, where The Move then reads Up next.
+  if (view === "a3m5") {
+    const initialKey = initialA3M5RoomKeyRef.current;
+    initialA3M5RoomKeyRef.current = null;
+    const showSpine = overlayRoute == null;
+    return (
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        )}
+        <NewA3M5Container
+          onBackToA3={() => setView("a3")}
+          onContinueToMove={() => setView("a3")}
+          initialRoomKey={initialKey}
+          onRoomChange={onA3M5RoomChange}
+        />
+      </div>
+    );
+  }
+  // A3 Ship 6 · The Move (A3 Mirror 6) room — the final A3 mirror. Reached only
+  // via the A3 hub's 06 card (unlocked after the Board claim). Spine shows on
+  // the claimed-revisit overview hub; suppressed while the room overlay owns the
+  // view. Claiming completes A3 (6 of 6 + the Advocate vertebra fills), so
+  // "Continue to A4 →" returns to the hub. A4 isn't built — the payload is
+  // stored in m6 for A4 to read later.
+  if (view === "a3m6") {
+    const initialKey = initialA3M6RoomKeyRef.current;
+    initialA3M6RoomKeyRef.current = null;
+    const showSpine = overlayRoute == null;
+    return (
+      <div className={showSpine ? "na1-spine-pad" : undefined}>
+        {showSpine && (
+          <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        )}
+        <NewA3M6Container
+          onBackToA3={() => setView("a3")}
+          onCompleteA3={() => setView("a3")}
+          onEditMirror={(lane) =>
+            setView(
+              lane === "person"
+                ? "a3m1"
+                : lane === "env"
+                  ? "a3m2"
+                  : "a3m3",
+            )
+          }
+          initialRoomKey={initialKey}
+          onRoomChange={onA3M6RoomChange}
+        />
+      </div>
+    );
+  }
   if (view === "entry-hall") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA1EntryHall
           name={resolvedName}
           onSeeFramework={() => setView("framework")}
@@ -41229,7 +45792,7 @@ function NewA1View({
   if (view === "framework") {
     return (
       <div className="na1-spine-pad">
-        <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA1Framework
           onEntryHall={() => setView("entry-hall")}
           onBeginA1={() => {
@@ -41242,7 +45805,7 @@ function NewA1View({
   }
   return (
     <div className="na1-spine-pad">
-      <NewA1Spine name={resolvedName} a1Complete={a1Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+      <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
       <NewA1Grid
       // Ship 5.5e · Personalization · pass the canonically-resolved name
       // (intake → auth fallback) so the Entry Hall greeting in NewA1Grid
