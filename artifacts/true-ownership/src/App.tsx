@@ -173,6 +173,31 @@ import {
   type A3MoveState,
   type A3MoveLane,
 } from "./a3Constants";
+import {
+  loadA4State,
+  saveA4State,
+  hasA4State,
+  EMPTY_A4,
+  buildSelfGaps,
+  a4VisionLines,
+  a4VisionSentence,
+  a4TenYearLine,
+  a4ScreenReady,
+  a4KindLabel,
+  A4_OWN_KINDS,
+  A4_SLIPPING_MAX,
+  type A4State,
+  type A4MirrorState,
+  type A4Gap,
+  type A4GapKind,
+  type A4OwnGap,
+  type A4Sure,
+  type A4Sources,
+  type A4Creature,
+  type A4Value,
+  type A4VisionLine,
+  type A4MirrorKey,
+} from "./a4Constants";
 import { notifyLocalChange } from "./syncHook";
 import {
   hydrateNewFlow,
@@ -3005,6 +3030,130 @@ strong, b{ font-weight:600; }
 h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-eh-hero, .na1-phase-intro-headline,
 .na1-a2m1-step-title, .na1-a2m2-step-title, .na1-a2m3-step-title, .na1-m4-title, .na1-m4-step-title, .m3-pick-title,
 .na2-decl-title, .na1-mirror-card-name, .kb-auth-title{ text-wrap:balance; }
+/* ══════════════ A4 · Act On It (Ship A4-1) ══════════════
+   Map of Me panel = fixed-brand literals (Spruce → #024845 → Deepwater, cream text) that read the
+   same in light and dark, like the Framework skins. Everything else uses the shared tokens. */
+.na1-a4-map{ margin:0 0 30px; border-radius:18px; background:linear-gradient(160deg,#036360 0%,#024845 46%,#012325 100%); border:1px solid rgba(205,180,142,.38); box-shadow:0 18px 50px -26px rgba(1,35,37,.7); color:#EFE6D6; overflow:hidden; }
+.na1-a4-map-head{ display:flex; align-items:center; gap:14px; width:100%; min-height:60px; padding:16px 22px 6px; background:none; border:0; color:inherit; text-align:left; cursor:pointer; font:inherit; }
+.na1-a4-map-headtext{ display:flex; flex-direction:column; gap:4px; flex:1 1 auto; min-width:0; }
+.na1-a4-map-kicker{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:#E3D0AA; font-weight:400; }
+.na1-a4-map-title{ font-family:var(--f-display); font-size:24px; line-height:1.2; font-weight:400; color:#EFE6D6; }
+.na1-a4-map-toggle{ flex:0 0 auto; font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.06em; color:#EFE6D6; border:1px solid rgba(239,230,214,.45); border-radius:999px; padding:9px 18px; min-height:44px; display:inline-flex; align-items:center; font-weight:400; }
+.na1-a4-map-head:hover .na1-a4-map-toggle{ border-color:#EFE6D6; }
+.na1-a4-map-head:focus-visible, .na1-a4-map-item-btn:focus-visible{ outline:2px solid #E3D0AA; outline-offset:-3px; border-radius:10px; }
+.na1-a4-map-purpose-wrap{ padding:6px 22px 20px; }
+.na1-a4-map-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:#E3D0AA; margin:0 0 8px; font-weight:400; }
+.na1-a4-map-purpose{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(21px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:#EFE6D6; margin:0; font-weight:var(--b-w); }
+.na1-a4-map-empty{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:rgba(239,230,214,.9); margin:0 0 6px; font-weight:var(--b-w); }
+.na1-a4-map-body{ padding:0 22px 22px; }
+.na1-a4-map-sec{ border-top:1px solid rgba(239,230,214,.2); padding-top:16px; margin-top:6px; margin-bottom:10px; min-width:0; }
+@media (min-width:960px){
+  .na1-a4-map-body{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); column-gap:30px; }
+  .na1-a4-map-sig{ grid-column:1 / -1; }
+}
+.na1-a4-map-item{ border-bottom:1px solid rgba(239,230,214,.12); }
+.na1-a4-map-item:last-child{ border-bottom:0; }
+.na1-a4-map-item-btn{ display:flex; align-items:center; gap:12px; width:100%; min-height:48px; padding:6px 2px; background:none; border:0; color:#EFE6D6; text-align:left; cursor:pointer; font:inherit; }
+.na1-a4-map-item-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); font-weight:var(--b-w); color:#EFE6D6; }
+.na1-a4-map-item-chev{ flex:0 0 auto; width:28px; text-align:center; font-family:var(--f-label); font-size:20px; font-weight:400; color:#E3D0AA; }
+.na1-a4-map-emoji{ margin-right:10px; font-size:20px; }
+.na1-a4-map-rank{ display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; margin-right:12px; border-radius:50%; border:1px solid rgba(227,208,170,.7); color:#E3D0AA; font-family:var(--f-label); font-size:max(var(--l-min), 13px); font-weight:400; }
+.na1-a4-map-detail{ padding:2px 2px 14px 2px; }
+.na1-a4-map-chips{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 10px; }
+.na1-a4-map-chip{ display:inline-flex; align-items:center; border:1px solid rgba(239,230,214,.4); border-radius:999px; padding:7px 14px; font-family:var(--f-label); font-size:max(var(--l-min), 13px); color:#EFE6D6; font-weight:400; line-height:1.3; }
+.na1-a4-map-slip{ color:#F2CDCD; }
+.na1-a4-map-pressure{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:rgba(239,230,214,.9); margin:0; font-weight:var(--b-w); line-height:max(var(--b-lh), 1.45); }
+.na1-a4-map-behaviors{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+.na1-a4-map-behaviors li{ font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:#EFE6D6; font-weight:var(--b-w); }
+.na1-a4-map-dom{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.06em; font-weight:400; color:#E3D0AA; }
+.na1-a4-map-star{ color:#E3D0AA; }
+.na1-a4-map-sig{ display:block; width:min(150px,44%); height:auto; margin:10px 0 0 auto; opacity:.95; }
+/* Room: card over the dimmed + blurred hub (desktop), near-full-screen on phones. */
+.na1-room-overlay.na1-a4-overlay{ background:rgba(1,35,37,.6); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+[data-theme="light"] .na1-room-overlay.na1-a4-overlay{ background:rgba(245,245,247,.66); }
+.na1-a4-room{ max-width:820px; padding-bottom:0; }
+.na1-a4-room .na1-a2m2-nav{ position:sticky; bottom:0; z-index:2; margin:22px -24px 0; padding:14px 24px 22px; background:var(--na1-bg-card); border-top:1px solid var(--na1-border); }
+.na1-a4-progress{ margin:0 0 26px; }
+.na1-a4-progress .na1-a2m2-stepper{ margin-bottom:14px; }
+.na1-a4-stepper .na1-a2m2-step{ cursor:default; }
+.na1-a4-stepper .na1-a2m2-dot{ border-color:color-mix(in srgb, var(--na1-text-sec) 55%, transparent); }
+.na1-a4-stepper .na1-a2m2-line{ background:color-mix(in srgb, var(--na1-text-sec) 40%, transparent); }
+.na1-a4-stepper .na1-a2m2-line.is-reached{ background:var(--gold-line); }
+.na1-a4-pips .na1-a2m1-pip{ border-color:color-mix(in srgb, var(--na1-text-sec) 55%, transparent); }
+.na1-a4-pips .na1-a2m1-pip.is-past{ border-color:var(--gold-line); }
+.na1-a4-pips .na1-a2m1-pip.is-current{ border-color:var(--gold); }
+.na1-a4-stepper .na1-a2m2-step-name{ max-width:none; white-space:nowrap; }
+.na1-a4-stepper .na1-a2m2-dot.is-complete{ background:var(--gold); border-color:var(--gold); color:var(--on-gold); }
+.na1-a4-stepper .na1-a2m2-dot.is-current{ background:transparent; border-color:var(--gold); color:var(--gold-text); box-shadow:0 0 0 4px var(--gold-soft); }
+@media (max-width:600px){ .na1-a4-stepper .na1-a2m2-step-name{ display:block; font-size:max(var(--b-min), calc(13px + var(--b-bump))); } }
+.na1-a4-pips{ margin:0; }
+.na1-a4-pips .na1-a2m1-pip{ cursor:default; }
+.na1-a4-donenote{ display:flex; align-items:center; gap:10px; margin:0 0 18px; padding:11px 14px; border:1px solid var(--gold-line); border-radius:10px; background:var(--gold-warm); font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--gold-text); font-weight:var(--b-w); }
+.na1-a4-donenote-dot{ flex:0 0 auto; width:8px; height:8px; border-radius:50%; background:var(--gold); }
+.na1-a4-see{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:0 0 6px; }
+@media (max-width:700px){ .na1-a4-see{ grid-template-columns:1fr; } }
+.na1-a4-col{ border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); padding:16px 18px; min-width:0; }
+.na1-a4-room .na1-room-crumb a{ min-width:44px; justify-content:flex-start; }
+.na1-a4-col .na1-a2m1-value-rank{ font-family:var(--f-label); font-weight:400; font-size:max(var(--l-min), 13px); }
+.na1-a4-col .na1-chip{ cursor:default; min-height:0; }
+.na1-a4-col-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; font-weight:400; color:var(--na1-text-sec); margin:0 0 12px; }
+.na1-a4-values{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:16px; }
+.na1-a4-value-head{ display:flex; align-items:center; gap:12px; }
+.na1-a4-value-name{ font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w); line-height:max(var(--b-lh), 1.3); }
+.na1-a4-behaviors{ list-style:none; margin:8px 0 0 38px; padding:0; display:flex; flex-direction:column; gap:6px; }
+.na1-a4-behaviors li{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-a4-star{ color:var(--gold-text); }
+.na1-a4-creatures{ display:flex; flex-direction:column; gap:14px; }
+.na1-a4-slip{ color:var(--burgundy-text); }
+.na1-a4-pressure{ margin:10px 0 0; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-a4-gaps{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0 0 18px; }
+@media (max-width:640px){ .na1-a4-gaps{ grid-template-columns:1fr; } }
+.na1-a4-gap{ display:flex; flex-direction:column; gap:9px; text-align:left; min-height:44px; padding:16px 18px; border:1.5px solid var(--na1-border); border-radius:14px; background:var(--na1-bg-card); cursor:pointer; font:inherit; color:inherit; transition:border-color .18s, background .18s, box-shadow .18s; }
+.na1-a4-gap:hover{ border-color:var(--na1-text-mute); }
+.na1-a4-gap.is-picked{ border-color:var(--spruce-line); background:linear-gradient(180deg, var(--spruce-soft) 0%, var(--na1-bg-card) 70%); box-shadow:0 0 0 1px var(--spruce-glow); }
+.na1-a4-gap:focus-visible, .na1-a4-ownlink:focus-visible{ outline:2px solid var(--spruce-text); outline-offset:3px; }
+.na1-a4-gap-kind{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.14em; text-transform:uppercase; color:var(--na1-text-sec); font-weight:400; }
+.na1-a4-gap-flag{ color:var(--spruce-text); }
+.na1-a4-gap-said{ font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.35); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-gap-do{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--burgundy-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-gap-src{ font-family:var(--f-label); font-size:max(var(--l-min), 12px); letter-spacing:.04em; color:var(--na1-text-sec); font-weight:400; margin-top:auto; }
+.na1-a4-ownlink{ display:inline-flex; align-items:center; min-height:44px; padding:0 4px; background:none; border:0; cursor:pointer; font-family:var(--f-label); font-size:max(var(--l-min), 14px); letter-spacing:.04em; color:var(--spruce-text); font-weight:400; }
+.na1-a4-ownlink:hover{ text-decoration:underline; }
+.na1-a4-own{ border:1px solid var(--na1-border); border-radius:14px; padding:18px; background:var(--na1-bg-soft); margin:0 0 18px; }
+.na1-a4-own-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.14em; text-transform:uppercase; font-weight:400; color:var(--na1-text-sec); margin:0 0 10px; }
+.na1-a4-kind.is-selected{ background:var(--spruce-soft); border-color:var(--spruce-line); color:var(--spruce-text); font-weight:400; }
+.na1-a4-own-actions{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:6px; }
+.na1-a4-own-actions .na1-btn-gold:disabled{ opacity:.4; cursor:not-allowed; }
+.na1-a4-blank{ font-style:italic; }
+.na1-a4-context{ margin:0 0 24px; padding:14px 16px; border:1px solid var(--burgundy-line); border-left:3px solid var(--burgundy); border-radius:10px; background:var(--burgundy-soft); font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-context em{ display:block; margin-top:4px; font-style:italic; color:var(--burgundy-text); }
+.na1-a4-why{ margin:0 0 24px; padding:14px 18px; border:1px solid var(--gold-line); border-left:3px solid var(--gold); border-radius:10px; background:var(--gold-soft); }
+.na1-a4-why-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 6px; font-weight:400; }
+.na1-a4-why-line{ margin:0 0 6px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-why-line.is-ten{ font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text-sec); margin-bottom:0; }
+.na1-a4-helper{ margin:2px 0 0; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-a4-sure{ margin-top:26px; padding-top:20px; border-top:1px solid var(--na1-border); }
+.na1-a4-sure-q{ font-family:var(--f-display); font-size:20px; line-height:1.3; font-weight:400; color:var(--na1-text); margin:0 0 12px; }
+.na1-a4-promise-line{ margin:0 0 14px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-sure-btn.is-yes.is-selected{ background:var(--btn); border-color:var(--btn-edge); color:var(--btn-ink); font-weight:400; }
+.na1-a4-sure-btn.is-selected:not(.is-yes){ font-weight:400; }
+.na1-a4-smaller{ margin-top:6px; }
+.na1-a4-smaller-note{ margin:0 0 16px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--burgundy-text); font-weight:var(--b-w); }
+.na1-a4-promise{ margin:0 0 22px; padding:18px 22px; border:1px solid var(--na1-border); border-left:3px solid var(--gold); border-radius:12px; background:var(--na1-bg-card); }
+.na1-a4-promise-main{ margin:0; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(21px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-promise-year{ margin:12px 0 0; font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text-sec); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-promise-year-label{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.06em; color:var(--gold-text); font-weight:400; }
+/* Phones: the room card fills the screen; Back / Continue stay pinned at the bottom. */
+@media (max-width:767px){
+  .na1-room-overlay.na1-a4-overlay{ padding:0; }
+  .na1-a4-overlay .na1-a4-room{ max-width:none; width:100%; height:100%; max-height:100%; border-radius:0; border-left:0; border-right:0; padding:60px 18px 0; display:flex; flex-direction:column; }
+  .na1-a4-room .na1-a2m2-body{ flex:1 0 auto; }
+  .na1-a4-room .na1-a2m2-nav{ margin:18px -18px 0; padding:12px 18px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .na1-a4-map-head{ padding:14px 16px 4px; }
+  .na1-a4-map-purpose-wrap{ padding:6px 16px 18px; }
+  .na1-a4-map-body{ padding:0 16px 18px; }
+}
+.na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -33778,7 +33927,14 @@ type AppRouteView =
   | "a3m3"
   | "a3m4"
   | "a3m5"
-  | "a3m6";
+  | "a3m6"
+  // A4 · Act On It hub (a4) + its three mirror rooms: Self (a4m1) · Time (a4m2)
+  // · Wealth (a4m3). Ship A4-1 builds the hub and Self; a4m2/a4m3 are reserved
+  // route names for Ship A4-2 (a saved a4m2/a4m3 falls back to the hub).
+  | "a4"
+  | "a4m1"
+  | "a4m2"
+  | "a4m3";
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
   // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
@@ -33788,7 +33944,8 @@ type AppRouteOverlay = {
   // A3 Ship 4 · "a3m4" addresses the Energy Map room (roomId "energymap").
   // A3 Ship 5 · "a3m5" addresses the Board room (roomId "board").
   // A3 Ship 6 · "a3m6" addresses the Move room (roomId "move").
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6";
+  // A4-1 · "a4m1" addresses the Self room (roomId "self"); a4m2 → "time", a4m3 → "wealth".
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -33813,6 +33970,10 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a3m4",
   "a3m5",
   "a3m6",
+  "a4",
+  "a4m1",
+  "a4m2",
+  "a4m3",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -33874,7 +34035,16 @@ function loadAppRoute(): AppRoute | null {
           hubId === "m4" ||
           hubId === "a2m1" ||
           hubId === "a2m2" ||
-          hubId === "a2m3") &&
+          hubId === "a2m3" ||
+          hubId === "a3m1" ||
+          hubId === "a3m2" ||
+          hubId === "a3m3" ||
+          hubId === "a3m4" ||
+          hubId === "a3m5" ||
+          hubId === "a3m6" ||
+          hubId === "a4m1" ||
+          hubId === "a4m2" ||
+          hubId === "a4m3") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -34054,11 +34224,16 @@ function NewA1Spine({
   // mid-A2.
   a3Enabled?: boolean;
 }) {
+  // A4 · the Act vertebra fills once all three A4 promises are claimed. Read
+  // here (not threaded through every call site) on the view cadence.
+  const a4Complete = useMemo(() => loadA4State().a4.claimed, [view]);
   // A2.1 · the Alignment Check hub (a2m1) lives under Align, so it lights the
   // same vertebra as the A2 hub itself. A3 Ship 1 · the People room (a3m1)
   // likewise lights the same Advocate vertebra as the A3 hub.
-  const current: "allin" | "align" | "advocate" =
-    view === "a2" || view === "a2m1"
+  const current: "allin" | "align" | "advocate" | "act" =
+    view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3"
+      ? "act"
+      : view === "a2" || view === "a2m1"
       ? "align"
       : view === "a3" ||
           view === "a3m1" ||
@@ -34097,7 +34272,13 @@ function NewA1Spine({
       isCurrent: current === "advocate",
       dest: a3Enabled ? "a3" : null,
     },
-    { num: "04", label: "Act", claimed: false, isCurrent: false, dest: null },
+    {
+      num: "04",
+      label: "Act",
+      claimed: a4Complete,
+      isCurrent: current === "act",
+      dest: "a4",
+    },
     {
       num: "05",
       label: "Accountable",
@@ -34176,6 +34357,7 @@ type PhoneSpineSnapshot = {
   a1Complete: boolean;
   a2Complete: boolean;
   a3Complete: boolean;
+  a4Complete: boolean;
   navigate: (v: AppRouteView) => void;
 } | null;
 let phoneSpineSnap: PhoneSpineSnapshot = null;
@@ -34196,7 +34378,9 @@ function getPhoneSpine() {
 
 // Which discipline a view belongs to. (The rail's own mapping only knows a2/a2m1
 // and lumps a2m2/a2m3 under All In; the phone bar is correct for every view.)
-function na1DisciplineForView(view: AppRouteView): 1 | 2 | 3 {
+function na1DisciplineForView(view: AppRouteView): 1 | 2 | 3 | 4 {
+  if (view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3")
+    return 4;
   if (view === "a2" || view === "a2m1" || view === "a2m2" || view === "a2m3")
     return 2;
   if (
@@ -34239,7 +34423,7 @@ function NewA1PhoneSpine() {
       claimed: snap.a3Complete,
       dest: NEW_A3_FLAG ? "a3" : null,
     },
-    { n: 4, label: "Act", claimed: false, dest: null },
+    { n: 4, label: "Act", claimed: snap.a4Complete, dest: "a4" },
     { n: 5, label: "Accountable", claimed: false, dest: null },
   ];
   return (
@@ -45304,6 +45488,1515 @@ function NewA3M6Container({
   );
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// A4 · Act On It · Ship A4-1 (hub + Map of Me + Mirror 1 · Self)
+// ════════════════════════════════════════════════════════════════════════════
+// Built from the A3 patterns, nothing new invented: the hub copies NewA3HubView
+// (breadcrumb · hero · shared mirror card · unlock chain off the previous
+// claim), the room copies the A3 container (veil on ENTRY only · no veil on
+// resume · initialRoomKey/onRoomChange route persistence · burst → seal ·
+// ↺ Re-claim · forward CTA), and the claim reuses na1-gold-burst + the A3 seal
+// classes. Self is the only room built this ship; Time and Wealth cards read
+// Locked (flip A4_TIME_BUILT / A4_WEALTH_BUILT when Ship A4-2 lands).
+
+// Time and Wealth rooms arrive with Ship A4-2. Until then their cards stay Locked.
+const A4_TIME_BUILT = false;
+const A4_WEALTH_BUILT = false;
+
+const A4_SCREEN_COUNT = 6;
+const A4_PHASES: { num: number; name: string }[] = [
+  { num: 1, name: "See it" },
+  { num: 2, name: "Name it" },
+  { num: 3, name: "Promise it" },
+];
+const A4_SCREEN_PHASE = [0, 0, 1, 2, 2, 2];
+const A4_SCREEN_EYEBROW = [
+  "SEE IT · 1 OF 2",
+  "SEE IT · 2 OF 2",
+  "NAME IT",
+  "PROMISE IT · 1 OF 3",
+  "PROMISE IT · 2 OF 3",
+  "PROMISE IT · 3 OF 3",
+];
+const A4_CONTINUE_LABEL = [
+  "Continue →",
+  "Continue to Name it →",
+  "Continue to Promise it →",
+  "Continue →",
+  "Continue →",
+  "Claim this promise →",
+];
+
+const A4_MIRRORS: { num: string; title: string; sub: string }[] = [
+  {
+    num: "01",
+    title: "Self",
+    sub: "Where your inside doesn't match your outside.",
+  },
+  {
+    num: "02",
+    title: "Time",
+    sub: "Where your hours go vs. what matters.",
+  },
+  {
+    num: "03",
+    title: "Wealth",
+    sub: "The future you see vs. money today.",
+  },
+];
+
+// Read everything the A4 screens quote back, once, out of A1 (map · Values),
+// A2 and A3. Every read is guarded so a missing or malformed blob drops that
+// source instead of throwing — the gap builder never sees placeholder data.
+function readA4Sources(): A4Sources {
+  let purpose = "";
+  const creatures: A4Creature[] = [];
+  const values: A4Value[] = [];
+  let vision: Record<Lens, A4VisionLine[]> = { time: [], wealth: [], self: [] };
+  let a2: A2State | null = null;
+  try {
+    a2 = loadA2State();
+  } catch {
+    a2 = null;
+  }
+  try {
+    const map = (loadDataSync(KEYS.map) as any) || {};
+    purpose = String(map.purpose_final || map.purpose_draft || "").trim();
+    vision = a4VisionLines(map.vision);
+    const m3 = (map.mirror3 as any) || {};
+    const clusters: Cluster[] = Array.isArray(m3.clusters) ? m3.clusters : [];
+    const picked: PickedGift[] = Array.isArray(m3.pickedGifts)
+      ? m3.pickedGifts
+      : [];
+    const shadows: Record<string, ShadowsForGift> =
+      m3.shadows && typeof m3.shadows === "object" ? m3.shadows : {};
+    const giftById = new Map<string, string>(
+      picked.map((p) => [p.id, p.label] as const),
+    );
+    for (const c of clusters) {
+      const label = m3CreatureWithDescriptors(c);
+      const gifts = (c.giftIds ?? [])
+        .map((gid) => {
+          const l = giftById.get(gid);
+          if (typeof l !== "string" || l.trim() === "") return null;
+          const r = a2?.m1?.ratings?.[gid];
+          return {
+            id: gid,
+            label: l.trim(),
+            rating: typeof r === "number" ? r : null,
+          };
+        })
+        .filter((g): g is { id: string; label: string; rating: number | null } => g !== null);
+      if (label.trim() === "" && gifts.length === 0) continue;
+      const shadow = m3ClusterPrimaryShadow(c, shadows).trim();
+      const lead = (c.descriptorWord1 || c.animal || "").trim();
+      creatures.push({
+        id: c.id,
+        label,
+        emoji: (c.animalEmoji || "").trim(),
+        underPressure:
+          shadow && lead
+            ? `Under pressure: ${lead} turns ${shadow.toLowerCase()}.`
+            : "",
+        gifts,
+      });
+    }
+  } catch {
+    // keep whatever resolved before the throw
+  }
+  try {
+    const m4 = loadMirror4State() as any;
+    const named = (Array.isArray(m4.clusters) ? m4.clusters : []).filter(
+      (c: any) => (c?.userName || "").trim() !== "",
+    );
+    const rank: string[] = Array.isArray(m4.rank) ? m4.rank : [];
+    const ids: string[] =
+      rank.length > 0
+        ? rank.filter((id) => named.some((c: any) => c.id === id))
+        : named.map((c: any) => c.id);
+    const op: Record<string, any> =
+      m4.operationalize && typeof m4.operationalize === "object"
+        ? m4.operationalize
+        : {};
+    for (const id of ids) {
+      const c = named.find((x: any) => x.id === id);
+      if (!c) continue;
+      const ov = op[id] || {};
+      const keystoneId: string | null =
+        ov.keystoneId ?? c.keystoneBehaviorId ?? null;
+      const behaviors: { id: string; name: string; keystone: boolean }[] = [];
+      for (const b of Array.isArray(ov.behaviors) ? ov.behaviors : []) {
+        const bid = b?.id;
+        const nm = String(b?.name || "").trim();
+        if (typeof bid !== "string" || bid === "" || nm === "") continue;
+        behaviors.push({ id: bid, name: nm, keystone: bid === keystoneId });
+      }
+      values.push({ id, name: String(c.userName || "").trim(), behaviors });
+    }
+  } catch {
+    // leave values empty
+  }
+  const critics: string[] = [];
+  const envWeights: { name: string; kind: "habit" | "place" }[] = [];
+  try {
+    const a3 = loadA3State();
+    for (const t of a3.m3.thoughts) {
+      if (t.verdict === "critic" && t.text.trim() !== "") critics.push(t.text);
+    }
+    for (const it of a3.m2.items) {
+      if (it.rating === "anchor") envWeights.push({ name: it.name, kind: it.kind });
+    }
+  } catch {
+    // leave A3 sources empty
+  }
+  const pr = a2?.m1?.purposeRating;
+  return {
+    purpose,
+    creatures,
+    values,
+    critics,
+    envWeights,
+    purposeRating: typeof pr === "number" ? pr : null,
+    vision,
+  };
+}
+
+// ─── A4 · Map of Me (hub panel) ───
+// Pulled from A1 so the member never goes searching for it. A fixed-brand panel
+// (Spruce → #024845 → Deepwater glow, cream text, KB signature) that looks the
+// same in light and dark. One accordion item open at a time; the panel itself
+// starts collapsed on phones.
+function A4MapOfMe({ src }: { src: A4Sources }) {
+  const isPhone =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(max-width: 767px)").matches;
+  const [panelOpen, setPanelOpen] = useState<boolean>(!isPhone);
+  const [openItem, setOpenItem] = useState<string | null>(null);
+  const toggle = (k: string) => setOpenItem((cur) => (cur === k ? null : k));
+  const hasGifts = src.creatures.length > 0;
+  const hasValues = src.values.length > 0;
+  const lensList: { key: Lens; label: string }[] = [
+    { key: "self", label: "Self" },
+    { key: "time", label: "Time" },
+    { key: "wealth", label: "Wealth" },
+  ];
+  const hasVision = lensList.some((l) => src.vision[l.key].length > 0);
+  const Item = ({
+    id,
+    name,
+    meta,
+    children,
+  }: {
+    id: string;
+    name: React.ReactNode;
+    meta?: React.ReactNode;
+    children: React.ReactNode;
+  }) => {
+    const open = openItem === id;
+    return (
+      <div className={`na1-a4-map-item ${open ? "is-open" : ""}`}>
+        <button
+          type="button"
+          className="na1-a4-map-item-btn"
+          aria-expanded={open}
+          onClick={() => toggle(id)}
+        >
+          <span className="na1-a4-map-item-name">{name}</span>
+          {meta ? <span className="na1-a4-map-item-meta">{meta}</span> : null}
+          <span className="na1-a4-map-item-chev" aria-hidden>
+            {open ? "–" : "+"}
+          </span>
+        </button>
+        {open ? <div className="na1-a4-map-detail">{children}</div> : null}
+      </div>
+    );
+  };
+  return (
+    <section className="na1-a4-map" aria-label="Map of Me">
+      <button
+        type="button"
+        className="na1-a4-map-head"
+        aria-expanded={panelOpen}
+        onClick={() => setPanelOpen((o) => !o)}
+      >
+        <span className="na1-a4-map-headtext">
+          <span className="na1-a4-map-kicker">From A1 · in your words</span>
+          <span className="na1-a4-map-title">Map of Me</span>
+        </span>
+        <span className="na1-a4-map-toggle">{panelOpen ? "Close" : "Open"}</span>
+      </button>
+      <div className="na1-a4-map-purpose-wrap">
+        <div className="na1-a4-map-label">Purpose</div>
+        {src.purpose ? (
+          <p className="na1-a4-map-purpose">“{src.purpose}”</p>
+        ) : (
+          <p className="na1-a4-map-empty">No purpose captured yet.</p>
+        )}
+      </div>
+      {panelOpen ? (
+        <div className="na1-a4-map-body">
+          <div className="na1-a4-map-sec">
+            <div className="na1-a4-map-label">Who I am · My gifts</div>
+            {hasGifts ? (
+              src.creatures.map((c) => (
+                <Item
+                  key={c.id}
+                  id={`gift:${c.id}`}
+                  name={
+                    <>
+                      {c.emoji ? (
+                        <span className="na1-a4-map-emoji" aria-hidden>
+                          {c.emoji}
+                        </span>
+                      ) : null}
+                      {c.label}
+                    </>
+                  }
+                >
+                  {c.gifts.length > 0 ? (
+                    <div className="na1-a4-map-chips">
+                      {c.gifts.map((g) => (
+                        <span className="na1-a4-map-chip" key={g.id}>
+                          {g.label}
+                          {g.rating != null && g.rating <= A4_SLIPPING_MAX ? (
+                            <span className="na1-a4-map-slip">{"\u00A0· Slipping"}</span>
+                          ) : null}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="na1-a4-map-empty">No gifts captured yet.</p>
+                  )}
+                  {c.underPressure ? (
+                    <p className="na1-a4-map-pressure">{c.underPressure}</p>
+                  ) : null}
+                </Item>
+              ))
+            ) : (
+              <p className="na1-a4-map-empty">No gifts captured yet.</p>
+            )}
+          </div>
+          <div className="na1-a4-map-sec">
+            <div className="na1-a4-map-label">What I value</div>
+            {hasValues ? (
+              src.values.map((v, i) => (
+                <Item
+                  key={v.id}
+                  id={`val:${v.id}`}
+                  name={
+                    <>
+                      <span className="na1-a4-map-rank">{i + 1}</span>
+                      {v.name}
+                    </>
+                  }
+                >
+                  {v.behaviors.length > 0 ? (
+                    <ul className="na1-a4-map-behaviors">
+                      {v.behaviors.map((b) => (
+                        <li key={b.id}>
+                          {b.keystone ? (
+                            <span className="na1-a4-map-star" aria-label="keystone">
+                              ★{" "}
+                            </span>
+                          ) : null}
+                          {b.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="na1-a4-map-empty">No behaviors named yet.</p>
+                  )}
+                </Item>
+              ))
+            ) : (
+              <p className="na1-a4-map-empty">No values ranked yet.</p>
+            )}
+          </div>
+          <div className="na1-a4-map-sec">
+            <div className="na1-a4-map-label">Where I&rsquo;m going · 10 years</div>
+            {hasVision ? (
+              lensList.map((l) => {
+                const lines = src.vision[l.key];
+                if (lines.length === 0) return null;
+                return (
+                  <Item key={l.key} id={`vis:${l.key}`} name={l.label}>
+                    <ul className="na1-a4-map-behaviors">
+                      {lines.map((ln) => (
+                        <li key={ln.domain}>
+                          <strong className="na1-a4-map-dom">{ln.label}</strong>{" "}
+                          {a4VisionSentence(l.key, ln)}
+                        </li>
+                      ))}
+                    </ul>
+                  </Item>
+                );
+              })
+            ) : (
+              <p className="na1-a4-map-empty">No 10-year vision written yet.</p>
+            )}
+          </div>
+          <img
+            className="na1-a4-map-sig"
+            src={`${import.meta.env.BASE_URL}kb-signature-bronze.svg`}
+            alt="Katherine Breuss"
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+// ─── A4 · hub view ───
+// Mirrors NewA3HubView: breadcrumb + hero + the shared na1-mirror-card grid.
+// Tags are only Locked / Up next / Complete. Unlock chains off the previous
+// card's claim; Self itself opens once A3 (all six mirrors) is claimed.
+function NewA4HubView({
+  name,
+  a3Complete,
+  onEntryHall,
+  onBeginSelf,
+  onBeginTime,
+  onBeginWealth,
+  onGoToA3,
+}: {
+  name?: string;
+  a3Complete: boolean;
+  onEntryHall: () => void;
+  onBeginSelf: () => void;
+  onBeginTime: () => void;
+  onBeginWealth: () => void;
+  onGoToA3: () => void;
+}) {
+  useEffect(() => {
+    if (!hasA4State()) saveA4State(EMPTY_A4);
+  }, []);
+  // Read once at mount — this view remounts on every hub↔room switch, so a
+  // claim made inside a room shows the moment the member returns.
+  const a4 = useMemo(() => loadA4State(), []);
+  const src = useMemo(() => readA4Sources(), []);
+  const selfClaimed = a4.self.claimed;
+  const timeClaimed = a4.time.claimed;
+  const wealthClaimed = a4.wealth.claimed;
+  const selfUnlocked = a3Complete;
+  const timeUnlocked = selfClaimed && A4_TIME_BUILT;
+  const wealthUnlocked = timeClaimed && A4_WEALTH_BUILT;
+  const selfStarted = a4.self.step > 0 || a4.self.picked != null;
+  const timeStarted = a4.time.step > 0 || a4.time.picked != null;
+  const wealthStarted = a4.wealth.step > 0 || a4.wealth.picked != null;
+  const done = (m: A4MirrorState) =>
+    m.claimed ? A4_SCREEN_COUNT : Math.min(A4_SCREEN_COUNT - 1, m.step);
+  const complete =
+    (selfClaimed ? 1 : 0) + (timeClaimed ? 1 : 0) + (wealthClaimed ? 1 : 0);
+  const claimedNote = (claimed: boolean, fallback: string) => (
+    <div
+      className="na1-mirror-card-empty"
+      style={
+        claimed
+          ? {
+              fontWeight: "var(--b-w)",
+              fontStyle: "italic",
+              color: "var(--na1-text-sec)",
+              fontFamily: "var(--f-body)",
+            }
+          : undefined
+      }
+    >
+      {claimed ? "Claimed." : fallback}
+    </div>
+  );
+  return (
+    <div className="na1-root">
+      <div className="na1-shell">
+        <DevResetBar />
+        <div className="na1-breadcrumb">
+          <a onClick={onEntryHall}>Entry Hall</a>
+          <span className="sep">›</span>
+          <span className="current">A4 · Act On It</span>
+        </div>
+        <div className="na1-hero">
+          <div>
+            <div className="na1-hero-eyebrow">
+              A4 · Act On It{name ? ` · ${name}` : ""}
+            </div>
+            <h1 className="na1-hero-title">Move the life toward you.</h1>
+            <p
+              style={{
+                fontWeight: "var(--b-w)",
+                fontFamily: "var(--f-body)",
+                fontStyle: "italic",
+                fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                lineHeight: "max(var(--b-lh), 1.5)",
+                color: "var(--na1-text-sec)",
+                margin: "0 0 10px",
+              }}
+            >
+              Three mirrors. One promise each. Small enough to keep — and
+              that&rsquo;s the point.
+            </p>
+          </div>
+          <div className="na1-hero-meta">
+            <strong>{complete} of 3</strong> complete
+          </div>
+        </div>
+        <A4MapOfMe src={src} />
+        <div className="na1-mirror-grid">
+          {/* 01 · Self */}
+          <article
+            className={`na1-mirror-card ${
+              selfClaimed ? "is-complete" : selfUnlocked ? "is-current" : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">01</span>
+              <span className="na1-mirror-card-status">
+                {selfClaimed ? "Complete" : selfUnlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 1</div>
+            <h2 className="na1-mirror-card-name">Self</h2>
+            <p className="na1-mirror-card-sub">{A4_MIRRORS[0].sub}</p>
+            <MirrorPips done={done(a4.self)} total={A4_SCREEN_COUNT} />
+            {claimedNote(selfClaimed, "")}
+            {!selfUnlocked && !selfClaimed ? (
+              <p className="na1-mirror-card-sub">Finish Advocate For It first.</p>
+            ) : null}
+            <div className="na1-mirror-card-action">
+              {!selfUnlocked && !selfClaimed ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onGoToA3}
+                >
+                  Go to Advocate For It →
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginSelf}
+                >
+                  {selfClaimed
+                    ? "Review Self →"
+                    : selfStarted
+                      ? "Continue Self →"
+                      : "Begin Self →"}
+                </button>
+              )}
+              <span className="na1-mirror-card-meta">6 exercises</span>
+            </div>
+          </article>
+          {/* 02 · Time */}
+          <article
+            className={`na1-mirror-card ${
+              timeClaimed ? "is-complete" : timeUnlocked ? "is-current" : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">02</span>
+              <span className="na1-mirror-card-status">
+                {timeClaimed ? "Complete" : timeUnlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 2</div>
+            <h2 className="na1-mirror-card-name">Time</h2>
+            <p className="na1-mirror-card-sub">{A4_MIRRORS[1].sub}</p>
+            <MirrorPips done={done(a4.time)} total={A4_SCREEN_COUNT} />
+            {claimedNote(
+              timeClaimed,
+              timeUnlocked ? "" : selfClaimed ? "Coming soon" : "Unlocks after Self",
+            )}
+            <div className="na1-mirror-card-action">
+              {timeUnlocked || timeClaimed ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginTime}
+                >
+                  {timeClaimed
+                    ? "Review Time →"
+                    : timeStarted
+                      ? "Continue Time →"
+                      : "Begin Time →"}
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">6 exercises</span>
+            </div>
+          </article>
+          {/* 03 · Wealth */}
+          <article
+            className={`na1-mirror-card ${
+              wealthClaimed
+                ? "is-complete"
+                : wealthUnlocked
+                  ? "is-current"
+                  : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">03</span>
+              <span className="na1-mirror-card-status">
+                {wealthClaimed ? "Complete" : wealthUnlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+            <h2 className="na1-mirror-card-name">Wealth</h2>
+            <p className="na1-mirror-card-sub">{A4_MIRRORS[2].sub}</p>
+            <MirrorPips done={done(a4.wealth)} total={A4_SCREEN_COUNT} />
+            {claimedNote(
+              wealthClaimed,
+              wealthUnlocked
+                ? ""
+                : timeClaimed
+                  ? "Coming soon"
+                  : "Unlocks after Time",
+            )}
+            <div className="na1-mirror-card-action">
+              {wealthUnlocked || wealthClaimed ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginWealth}
+                >
+                  {wealthClaimed
+                    ? "Review Wealth →"
+                    : wealthStarted
+                      ? "Continue Wealth →"
+                      : "Begin Wealth →"}
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">6 exercises</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── A4 · shared room pieces ───
+
+// Horizontal stepper (See it · Name it · Promise it) + one pip per screen.
+// Display only — not clickable. Reuses the A2 room stepper classes.
+function A4Stepper({ screen }: { screen: number }) {
+  const phase = A4_SCREEN_PHASE[Math.min(screen, A4_SCREEN_COUNT - 1)];
+  const sealed = screen >= A4_SCREEN_COUNT;
+  return (
+    <div className="na1-a4-progress" aria-label="Where you are in this mirror">
+      <div className="na1-a2m2-stepper na1-a4-stepper" role="list">
+        {A4_PHASES.map((p, i) => {
+          const complete = sealed || i < phase;
+          const current = !sealed && i === phase;
+          const cls = [
+            "na1-a2m2-dot",
+            complete ? "is-complete" : "",
+            current ? "is-current" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          return (
+            <React.Fragment key={p.num}>
+              <div
+                className="na1-a2m2-step"
+                role="listitem"
+                aria-current={current ? "step" : undefined}
+              >
+                <div className={cls}>{p.num}</div>
+                <div className={`na1-a2m2-step-name ${current ? "is-current" : ""}`}>
+                  {p.name}
+                </div>
+              </div>
+              {i < A4_PHASES.length - 1 ? (
+                <div
+                  className={`na1-a2m2-line ${complete ? "is-reached" : ""}`}
+                />
+              ) : null}
+            </React.Fragment>
+          );
+        })}
+      </div>
+      <div
+        className="na1-a2m1-pips na1-a4-pips"
+        role="img"
+        aria-label={`Screen ${Math.min(screen + 1, A4_SCREEN_COUNT)} of ${A4_SCREEN_COUNT}`}
+      >
+        {Array.from({ length: A4_SCREEN_COUNT }).map((_, i) => (
+          <span
+            key={i}
+            className={[
+              "na1-a2m1-pip",
+              !sealed && i === screen ? "is-current" : "",
+              sealed || i < screen ? "is-past" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// One sentence-completion blank: the stem sits ABOVE its box (also on desktop),
+// placeholder italic + muted, the member's own words in Cormorant italic.
+// Saves on every change (so it also autosaves on blur).
+function A4Blank({
+  stem,
+  value,
+  onChange,
+  placeholder,
+  label,
+}: {
+  stem: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  label?: string;
+}) {
+  return (
+    <div className="na2-prose-blank-wrap">
+      <p className="na2-prose-blank-stem">{stem}</p>
+      <textarea
+        className="na2-blank-input na1-a4-blank"
+        rows={2}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={label ?? stem}
+      />
+    </div>
+  );
+}
+
+function A4DoneNote({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <div className="na1-a4-donenote" role="note">
+      <span className="na1-a4-donenote-dot" aria-hidden />
+      You already explored this · edit any time.
+    </div>
+  );
+}
+
+// Screen 1 · Self · "What you say vs. what you do."
+function A4SelfSeeBody({ src, done }: { src: A4Sources; done: boolean }) {
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[0]}</div>
+      <h2 className="na1-room-title">What you say vs. what you do.</h2>
+      <A4DoneNote show={done} />
+      <div className="na1-a4-see">
+        <section className="na1-a4-col" aria-label="What I value">
+          <h3 className="na1-a4-col-label">What I value</h3>
+          {src.values.length > 0 ? (
+            <ol className="na1-a4-values">
+              {src.values.map((v, i) => (
+                <li key={v.id}>
+                  <div className="na1-a4-value-head">
+                    <span className="na1-a2m1-value-rank">{i + 1}</span>
+                    <span className="na1-a4-value-name">{v.name}</span>
+                  </div>
+                  {v.behaviors.length > 0 ? (
+                    <ul className="na1-a4-behaviors">
+                      {v.behaviors.map((b) => (
+                        <li key={b.id}>
+                          {b.keystone ? (
+                            <span className="na1-a4-star" aria-label="keystone">
+                              ★{" "}
+                            </span>
+                          ) : null}
+                          {b.name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="na1-a2m1-empty">No values ranked yet.</p>
+          )}
+        </section>
+        <section className="na1-a4-col" aria-label="Who I am · my gifts">
+          <h3 className="na1-a4-col-label">Who I am · my gifts</h3>
+          {src.creatures.length > 0 ? (
+            <div className="na1-a4-creatures">
+              {src.creatures.map((c) => (
+                <div className="na1-a2m1-creature" key={c.id}>
+                  <div className="na1-a2m1-creature-head">
+                    {c.emoji ? (
+                      <span className="na1-a2m1-creature-emoji" aria-hidden>
+                        {c.emoji}
+                      </span>
+                    ) : null}
+                    <span className="na1-a2m1-creature-name">{c.label}</span>
+                  </div>
+                  {c.gifts.length > 0 ? (
+                    <div className="na1-a2m1-chips">
+                      {c.gifts.map((g) => (
+                        <span className="na1-chip" key={g.id}>
+                          {g.label}
+                          {g.rating != null && g.rating <= A4_SLIPPING_MAX ? (
+                            <span className="na1-a4-slip">{"\u00A0· Slipping"}</span>
+                          ) : null}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  {c.underPressure ? (
+                    <p className="na1-a4-pressure">{c.underPressure}</p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="na1-a2m1-empty">No gifts captured yet.</p>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+// "Choose your own" form → becomes the picked gap.
+function A4OwnForm({
+  initial,
+  onSave,
+  onCancel,
+}: {
+  initial: A4OwnGap | null;
+  onSave: (g: A4OwnGap) => void;
+  onCancel: () => void;
+}) {
+  const [kind, setKind] = useState<A4GapKind>(initial?.kind ?? "own");
+  const [said, setSaid] = useState(initial?.said ?? "");
+  const [evidence, setEvidence] = useState(initial?.evidence ?? "");
+  const ok = said.trim() !== "" && evidence.trim() !== "";
+  return (
+    <div className="na1-a4-own" role="group" aria-label="Choose your own gap">
+      <p className="na1-a4-own-label">What kind of gap is it?</p>
+      <div className="na1-chip-grid">
+        {A4_OWN_KINDS.map((k) => (
+          <button
+            type="button"
+            key={k.kind}
+            className={`na1-chip na1-a4-kind ${kind === k.kind ? "is-selected" : ""}`}
+            aria-pressed={kind === k.kind}
+            onClick={() => setKind(k.kind)}
+          >
+            {k.label}
+          </button>
+        ))}
+      </div>
+      <A4Blank
+        stem="What I say"
+        value={said}
+        onChange={setSaid}
+        placeholder="What you tell yourself or others…"
+      />
+      <A4Blank
+        stem="What I actually do"
+        value={evidence}
+        onChange={setEvidence}
+        placeholder="What actually happens, honestly…"
+      />
+      <div className="na1-a4-own-actions">
+        <button
+          type="button"
+          className="na1-btn-gold"
+          disabled={!ok}
+          onClick={() =>
+            onSave({ kind, said: said.trim(), evidence: evidence.trim() })
+          }
+        >
+          Use this gap →
+        </button>
+        <button type="button" className="na1-btn-ghost" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Screen 2 · "Where your inside doesn't match your outside." — gap cards.
+function A4GapBody({
+  title,
+  gaps,
+  m,
+  onPick,
+  onPickOwn,
+  done,
+}: {
+  title: string;
+  gaps: A4Gap[];
+  m: A4MirrorState;
+  onPick: (g: A4Gap) => void;
+  onPickOwn: (g: A4OwnGap) => void;
+  done: boolean;
+}) {
+  // Fewer than two real gaps → lead with "choose your own".
+  const sparse = gaps.length < 2;
+  const [ownOpen, setOwnOpen] = useState<boolean>(sparse && m.own == null);
+  const ownGap: A4Gap | null = m.own
+    ? {
+        id: "own",
+        kind: m.own.kind,
+        tag: "",
+        said: m.own.said,
+        evidence: m.own.evidence,
+        source: "Your own words",
+      }
+    : null;
+  const cards = ownGap ? [...gaps, ownGap] : gaps;
+  const ownBlock = ownOpen ? (
+    <A4OwnForm
+      initial={m.own}
+      onSave={(g) => {
+        onPickOwn(g);
+        setOwnOpen(false);
+      }}
+      onCancel={() => setOwnOpen(false)}
+    />
+  ) : null;
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[1]}</div>
+      <h2 className="na1-room-title">{title}</h2>
+      <A4DoneNote show={done} />
+      <p className="na1-room-context">
+        {sparse
+          ? "Your answers don't show a clear gap yet — name one in your own words."
+          : "Pick the one that stings most. You'll make one small promise about it."}
+      </p>
+      {sparse ? ownBlock : null}
+      {cards.length > 0 ? (
+        <div className="na1-a4-gaps" role="radiogroup" aria-label="Gaps">
+          {cards.map((g) => {
+            const picked = m.picked === g.id;
+            return (
+              <button
+                type="button"
+                key={g.id}
+                role="radio"
+                aria-checked={picked}
+                className={`na1-a4-gap ${picked ? "is-picked" : ""}`}
+                onClick={() => (g.id === "own" ? onPickOwn(m.own!) : onPick(g))}
+              >
+                <span className="na1-a4-gap-kind">
+                  {a4KindLabel(g.kind)}
+                  {g.tag ? ` · ${g.tag}` : ""}
+                  {picked ? <span className="na1-a4-gap-flag"> · Picked</span> : null}
+                </span>
+                <span className="na1-a4-gap-said">{g.said}</span>
+                <span className="na1-a4-gap-do">{g.evidence}</span>
+                <span className="na1-a4-gap-src">{g.source}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      {!sparse ? (
+        ownOpen ? (
+          ownBlock
+        ) : (
+          <button
+            type="button"
+            className="na1-a4-ownlink"
+            onClick={() => setOwnOpen(true)}
+          >
+            {m.own ? "Edit your own →" : "Or choose your own →"}
+          </button>
+        )
+      ) : null}
+      {sparse && !ownOpen ? (
+        <button
+          type="button"
+          className="na1-a4-ownlink"
+          onClick={() => setOwnOpen(true)}
+        >
+          {m.own ? "Edit your own →" : "Choose your own →"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+// Screen 3 · NAME IT · "What it's proving to you."
+function A4NameBody({
+  m,
+  onField,
+  done,
+}: {
+  m: A4MirrorState;
+  onField: (k: "every" | "prove", v: string) => void;
+  done: boolean;
+}) {
+  const gap = m.gap;
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[2]}</div>
+      <h2 className="na1-room-title">What it&rsquo;s proving to you.</h2>
+      <A4DoneNote show={done} />
+      {gap ? (
+        <p className="na1-a4-context">
+          <span className="na1-a4-context-said">You say: &ldquo;{gap.said}&rdquo;</span>{" "}
+          <em>What you do: {gap.evidence}</em>
+        </p>
+      ) : null}
+      <A4Blank
+        stem="Every time I…"
+        value={m.every}
+        onChange={(v) => onField("every", v)}
+        placeholder="the thing you do that goes against what you say"
+      />
+      <A4Blank
+        stem="…I prove to myself…"
+        value={m.prove}
+        onChange={(v) => onField("prove", v)}
+        placeholder="what it teaches you about whether you can trust yourself"
+      />
+    </div>
+  );
+}
+
+// Screen 4 · PROMISE IT · 1 OF 3 — "your why" strip + "I will ___ when ___."
+function A4WillBody({
+  m,
+  purpose,
+  tenYear,
+  onField,
+  done,
+}: {
+  m: A4MirrorState;
+  purpose: string;
+  tenYear: string;
+  onField: (k: "will" | "when", v: string) => void;
+  done: boolean;
+}) {
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[3]}</div>
+      <h2 className="na1-room-title">One promise, small enough to keep.</h2>
+      <A4DoneNote show={done} />
+      {purpose || tenYear ? (
+        <div className="na1-a4-why">
+          <div className="na1-a4-why-label">Your why</div>
+          {purpose ? <p className="na1-a4-why-line">&ldquo;{purpose}&rdquo;</p> : null}
+          {tenYear ? <p className="na1-a4-why-line is-ten">{tenYear}</p> : null}
+        </div>
+      ) : null}
+      <A4Blank
+        stem="I will…"
+        value={m.will}
+        onChange={(v) => onField("will", v)}
+        placeholder="one specific, small thing"
+      />
+      <A4Blank
+        stem="…when…"
+        value={m.when}
+        onChange={(v) => onField("when", v)}
+        placeholder="the moment it happens — e.g. right after I notice it"
+      />
+    </div>
+  );
+}
+
+// Screen 5 · PROMISE IT · 2 OF 3 — "Where it takes you."
+function A4YearBody({
+  m,
+  onField,
+  done,
+}: {
+  m: A4MirrorState;
+  onField: (k: "year" | "gives", v: string) => void;
+  done: boolean;
+}) {
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[4]}</div>
+      <h2 className="na1-room-title">Where it takes you.</h2>
+      <A4DoneNote show={done} />
+      <A4Blank
+        stem="A year from now, because I kept this…"
+        value={m.year}
+        onChange={(v) => onField("year", v)}
+        placeholder="what is different in your life"
+      />
+      <A4Blank
+        stem="Keeping this gives me…"
+        value={m.gives}
+        onChange={(v) => onField("gives", v)}
+        placeholder="what you get back — in how you feel, what you trust"
+      />
+      <p className="na1-a4-helper">
+        A5 will send these words back to you as your reminder.
+      </p>
+    </div>
+  );
+}
+
+// Screen 6 · PROMISE IT · 3 OF 3 — what might stop you, your plan, "100% sure?"
+function A4StopBody({
+  m,
+  onField,
+  onSure,
+  done,
+}: {
+  m: A4MirrorState;
+  onField: (k: "stop" | "plan" | "will" | "when", v: string) => void;
+  onSure: (s: A4Sure) => void;
+  done: boolean;
+}) {
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[5]}</div>
+      <h2 className="na1-room-title">What might stop you — and your plan.</h2>
+      <A4DoneNote show={done} />
+      <A4Blank
+        stem="What's most likely to stop me is…"
+        value={m.stop}
+        onChange={(v) => onField("stop", v)}
+        placeholder="the honest obstacle"
+      />
+      <A4Blank
+        stem="When that happens, I will…"
+        value={m.plan}
+        onChange={(v) => onField("plan", v)}
+        placeholder="what you'll do instead"
+      />
+      <div className="na1-a4-sure">
+        {m.will.trim() !== "" ? (
+          <p className="na1-a4-promise-line">
+            I will {m.will.trim()}
+            {m.when.trim() !== "" ? ` when ${m.when.trim()}` : ""}.
+          </p>
+        ) : null}
+        <h3 className="na1-a4-sure-q">Are you 100% sure you&rsquo;ll keep this?</h3>
+        <div className="na1-chip-grid" role="radiogroup" aria-label="Are you sure">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={m.sure === "yes"}
+            className={`na1-chip na1-a4-sure-btn is-yes ${m.sure === "yes" ? "is-selected" : ""}`}
+            onClick={() => onSure("yes")}
+          >
+            Yes, I&rsquo;m sure
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={m.sure === "not-yet"}
+            className={`na1-chip na1-a4-sure-btn ${m.sure === "not-yet" ? "is-selected" : ""}`}
+            onClick={() => onSure("not-yet")}
+          >
+            Not yet
+          </button>
+        </div>
+        {m.sure === "not-yet" ? (
+          <div className="na1-a4-smaller">
+            <p className="na1-a4-smaller-note">
+              Make it smaller until the answer is yes. Two mornings? Fifteen
+              minutes? Certainty is the point.
+            </p>
+            <A4Blank
+              stem="I will…"
+              value={m.will}
+              onChange={(v) => onField("will", v)}
+              placeholder="make it smaller"
+            />
+            <A4Blank
+              stem="…when…"
+              value={m.when}
+              onChange={(v) => onField("when", v)}
+              placeholder="the moment it happens"
+            />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+// Seal · after the claim. Their promise read back, personalised.
+function A4SealBody({
+  cfg,
+  m,
+  onReclaim,
+  onFinish,
+  next,
+}: {
+  cfg: A4RoomCfg;
+  m: A4MirrorState;
+  onReclaim: () => void;
+  onFinish: () => void;
+  next: { label: string; go: () => void } | null;
+}) {
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">
+        A4 · Mirror {cfg.num} · Claim ★
+      </div>
+      <h2 className="na1-room-title">Claimed.</h2>
+      <div className="na1-a2m1-seal" role="status">
+        <p className="na1-a2m1-seal-body">{cfg.seal(displayName)}</p>
+        <p className="na1-a2m1-seal-by">— Katherine</p>
+      </div>
+      <div className="na1-a4-promise" aria-label="Your promise">
+        <p className="na1-a4-promise-main">
+          I will {m.will.trim()}
+          {m.when.trim() !== "" ? ` when ${m.when.trim()}` : ""}.
+        </p>
+        {m.year.trim() !== "" ? (
+          <p className="na1-a4-promise-year">
+            <span className="na1-a4-promise-year-label">A year from now:</span>{" "}
+            {m.year.trim()}
+          </p>
+        ) : null}
+      </div>
+      <div className="na1-a2m1-reclaim">
+        <p className="na1-a2m1-reclaim-note">
+          Want to change the promise? Edit it and re-claim.
+        </p>
+        <button type="button" className="na1-btn-ghost" onClick={onReclaim}>
+          ↺ Re-claim
+        </button>
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button
+          type="button"
+          className="na1-btn-gold"
+          onClick={next ? next.go : onFinish}
+        >
+          {next ? `Continue to ${next.label} →` : "Back to A4 →"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── A4 · one mirror room (Self today; Time and Wealth in A4-2) ───
+type A4RoomCfg = {
+  key: A4MirrorKey;
+  roomId: string; // route overlay id
+  num: number; // mirror number
+  title: string; // crumb root + dialog label
+  veil: string;
+  lens: Lens; // which 10-year vision feeds the "your why" strip
+  needSayNo: boolean;
+  gapTitle: string; // screen 2 H1
+  gaps: (src: A4Sources) => A4Gap[];
+  seeBody: (src: A4Sources, done: boolean) => React.ReactNode;
+  seal: (name: string | null | undefined) => string;
+};
+
+const A4_SELF_CFG: A4RoomCfg = {
+  key: "self",
+  roomId: "self",
+  num: 1,
+  title: "Self",
+  veil: "Looking at who you say you are…",
+  lens: "self",
+  needSayNo: false,
+  gapTitle: "Where your inside doesn't match your outside.",
+  gaps: buildSelfGaps,
+  seeBody: (src, done) => <A4SelfSeeBody src={src} done={done} />,
+  seal: (name) =>
+    `${name ? `${name}, you` : "You"} looked at the gap between who you say you are and how you treat yourself — and you made one promise to close it. That's how self-trust starts: one kept word at a time.`,
+};
+
+function NewA4MirrorContainer({
+  cfg,
+  onBackToA4,
+  onNext,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  cfg: A4RoomCfg;
+  onBackToA4: () => void;
+  // Forward CTA on the seal ("Continue to Time →"); null while the next room
+  // isn't built yet → the seal offers "Back to A4 →".
+  onNext: { label: string; go: () => void } | null;
+  // One-shot: the room id when restoring a saved room (resume — no veil).
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a4State, setA4State] = useState<A4State>(() => loadA4State());
+  const m = a4State[cfg.key] as A4MirrorState;
+  const mutate = useCallback(
+    (fn: (m: A4MirrorState) => A4MirrorState) => {
+      setA4State((prev) => {
+        const nextM = fn(prev[cfg.key] as A4MirrorState);
+        const next = { ...prev, [cfg.key]: nextM } as A4State;
+        saveA4State(next);
+        return next;
+      });
+    },
+    [cfg.key],
+  );
+  const src = useMemo(() => readA4Sources(), []);
+  const gaps = useMemo(() => cfg.gaps(src), [cfg, src]);
+  const tenYear = useMemo(
+    () => a4TenYearLine(src.vision, cfg.lens),
+    [src, cfg.lens],
+  );
+
+  // A resume mount (refresh while the room was open) restores the room — and the
+  // screen — with no veil. Every other entry from the hub plays the launch veil,
+  // a claimed mirror included (it then lands on its seal).
+  const resuming = initialRoomKey === cfg.roomId;
+  const launchVeil = !resuming;
+  // Snapshot the claim AT ENTRY so claiming mid-session doesn't change how this
+  // visit behaves.
+  const claimedAtEntry = useRef(m.claimed).current;
+  const [screen, setScreen] = useState<number>(() =>
+    claimedAtEntry ? A4_SCREEN_COUNT : m.step,
+  );
+  // Screens already finished when the room opened → "You already explored this".
+  const doneAtEntry = useRef<boolean[]>(
+    Array.from({ length: A4_SCREEN_COUNT }, (_, i) =>
+      i === 0
+        ? m.step > 0 || m.claimed
+        : a4ScreenReady(m, i, { needSayNo: cfg.needSayNo }),
+    ),
+  ).current;
+
+  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(
+    launchVeil ? "rising" : "idle",
+  );
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+
+  // Mount-once veil sequence for a fresh launch (same as every other room).
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(
+      window.setTimeout(() => setVeilPhase("falling"), NA1_VEIL_TIMING.fallingAt),
+    );
+    timers.push(
+      window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Report the open room up so the route persists it.
+  useEffect(() => {
+    onRoomChange(roomOpen ? cfg.roomId : null);
+  }, [roomOpen, onRoomChange, cfg.roomId]);
+
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA4();
+  };
+  const goTo = (n: number) => {
+    const clamped = Math.max(0, Math.min(A4_SCREEN_COUNT - 1, n));
+    setScreen(clamped);
+    mutate((x) => (x.step === clamped ? x : { ...x, step: clamped }));
+  };
+
+  const setField = <K extends keyof A4MirrorState>(k: K, v: A4MirrorState[K]) =>
+    mutate((x) => (x[k] === v ? x : { ...x, [k]: v }));
+  const pickGap = (g: A4Gap) =>
+    mutate((x) => ({ ...x, picked: g.id, gap: g }));
+  const pickOwn = (g: A4OwnGap) =>
+    mutate((x) => ({
+      ...x,
+      picked: "own",
+      own: g,
+      gap: {
+        id: "own",
+        kind: g.kind,
+        tag: "",
+        said: g.said,
+        evidence: g.evidence,
+        source: "Your own words",
+      },
+    }));
+
+  const ready = a4ScreenReady(m, screen, { needSayNo: cfg.needSayNo });
+
+  // Claim: burst (no replay on re-entry) → seal.
+  const handleClaim = () => {
+    if (showBurst || m.claimed || !ready) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      mutate((x) => ({
+        ...x,
+        claimed: true,
+        claimedAt: x.claimedAt ?? new Date().toISOString(),
+      }));
+      setScreen(A4_SCREEN_COUNT);
+    }, 2000);
+  };
+  // Re-claim (shared across every mirror): un-seal and go back to the first
+  // screen so the member can change anything, then re-walk to the claim.
+  const reclaim = () => {
+    setA4State((prev) => {
+      const next = {
+        ...prev,
+        [cfg.key]: {
+          ...(prev[cfg.key] as A4MirrorState),
+          claimed: false,
+          claimedAt: null,
+          step: 0,
+        },
+        a4: { claimed: false, claimedAt: null },
+      } as A4State;
+      saveA4State(next);
+      return next;
+    });
+    setScreen(0);
+  };
+
+  // Escape + scroll-lock while the room is open.
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  const sealed = screen >= A4_SCREEN_COUNT;
+  const body = sealed ? (
+    <A4SealBody
+      cfg={cfg}
+      m={m}
+      onReclaim={reclaim}
+      onFinish={closeRoom}
+      next={onNext}
+    />
+  ) : screen === 0 ? (
+    cfg.seeBody(src, doneAtEntry[0])
+  ) : screen === 1 ? (
+    <A4GapBody
+      title={cfg.gapTitle}
+      gaps={gaps}
+      m={m}
+      onPick={pickGap}
+      onPickOwn={pickOwn}
+      done={doneAtEntry[1]}
+    />
+  ) : screen === 2 ? (
+    <A4NameBody
+      m={m}
+      onField={(k, v) => setField(k, v)}
+      done={doneAtEntry[2]}
+    />
+  ) : screen === 3 ? (
+    <A4WillBody
+      m={m}
+      purpose={src.purpose}
+      tenYear={tenYear}
+      onField={(k, v) => setField(k, v)}
+      done={doneAtEntry[3]}
+    />
+  ) : screen === 4 ? (
+    <A4YearBody
+      m={m}
+      onField={(k, v) => setField(k, v)}
+      done={doneAtEntry[4]}
+    />
+  ) : (
+    <A4StopBody
+      m={m}
+      onField={(k, v) => setField(k, v)}
+      onSure={(s) => setField("sure", s)}
+      done={doneAtEntry[5]}
+    />
+  );
+  const crumbStage = sealed ? "Claim" : A4_PHASES[A4_SCREEN_PHASE[screen]].name;
+
+  return (
+    <div className="na1-root">
+      {roomOpen && (
+        <div
+          className="na1-room-overlay na1-a4-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={cfg.title}
+        >
+          <div className="na1-room-card na1-a2m2-room-card na1-a4-room">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>{cfg.title}</a>
+              <span className="sep">›</span>
+              <span className="current">{crumbStage}</span>
+            </div>
+            <button
+              type="button"
+              className="na1-room-close"
+              onClick={closeRoom}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <A4Stepper screen={screen} />
+            <div className="na1-a2m2-body">{body}</div>
+            {!sealed && (
+              <div className="na1-a2m2-nav">
+                <button
+                  type="button"
+                  className="na1-btn-ghost"
+                  onClick={() => (screen > 0 ? goTo(screen - 1) : closeRoom())}
+                >
+                  {screen > 0 ? "← Back" : "Close"}
+                </button>
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={screen === A4_SCREEN_COUNT - 1 ? handleClaim : () => goTo(screen + 1)}
+                  disabled={!ready || showBurst}
+                >
+                  {A4_CONTINUE_LABEL[screen]}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      {veilPhase !== "idle" && <NewA1Veil phase={veilPhase} text={cfg.veil} />}
+    </div>
+  );
+}
+
 function NewA1View({
   name,
   initialView,
@@ -45401,6 +47094,9 @@ function NewA1View({
         if (saved.view === "a3m4" && !NEW_A3_FLAG) return "grid";
         if (saved.view === "a3m5" && !NEW_A3_FLAG) return "grid";
         if (saved.view === "a3m6" && !NEW_A3_FLAG) return "grid";
+        // A4-1 · Time (a4m2) and Wealth (a4m3) rooms arrive with Ship A4-2; a
+        // saved route to either lands on the A4 hub for now.
+        if (saved.view === "a4m2" || saved.view === "a4m3") return "a4";
         return saved.view;
       }
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -45467,6 +47163,11 @@ function NewA1View({
     if (saved.overlay.hubId === "a3m6") {
       if (saved.view === "a3m6" && NEW_A3_FLAG) return saved.overlay;
     }
+    // A4-1 · Restore the Self room overlay the same way (refresh mid-room
+    // resumes on the same screen, no veil).
+    if (saved.overlay.hubId === "a4m1") {
+      if (saved.view === "a4m1") return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -45505,6 +47206,9 @@ function NewA1View({
   const initialA3M6RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a3m6" ? overlayRoute.roomId : null,
   );
+  const initialA4M1RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a4m1" ? overlayRoute.roomId : null,
+  );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
   const firstRoutePersistRef = useRef(true);
@@ -45530,6 +47234,7 @@ function NewA1View({
       view !== "a3m4" &&
       view !== "a3m5" &&
       view !== "a3m6" &&
+      view !== "a4m1" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -45648,6 +47353,17 @@ function NewA1View({
       return next;
     });
   }, []);
+  // A4-1 · Self room (single room "self") reports open/close.
+  const onA4M1RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a4m1", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
   // A2 Ship 2 · Named Truth room (single room "namedtruth") reports open/close.
   const onA2M3RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
@@ -45753,6 +47469,9 @@ function NewA1View({
       a3?.m6?.claimed
     );
   }, [view, roomOpen]);
+  // Spine · A4 completion signal: all three A4 promises claimed (the a4.claimed
+  // flag set by the A4 claim in Ship A4-2). Same [view, roomOpen] cadence.
+  const a4Complete = useMemo(() => loadA4State().a4.claimed, [view, roomOpen]);
   // Phone spine (<768px): publish where the user is + each discipline's
   // completion so the root-mounted <NewA1PhoneSpine> can render without every
   // view having to include it. Cleared when this router unmounts (e.g. back to
@@ -45763,9 +47482,10 @@ function NewA1View({
       a1Complete,
       a2Complete,
       a3Complete,
+      a4Complete,
       navigate: setView,
     });
-  }, [view, a1Complete, a2Complete, a3Complete]);
+  }, [view, a1Complete, a2Complete, a3Complete, a4Complete]);
   useEffect(() => () => setPhoneSpine(null), []);
   // Fix 5 · A2 M1 locked-state copy. When A1 is incomplete the A2 hub's 01
   // (Alignment Check) card must name the first unclaimed A1 mirror — walked in
@@ -45803,6 +47523,14 @@ function NewA1View({
       setView("a3");
     }
   }, [view, a1Complete, a2Complete]);
+  // A4 · the Self room (a4m1) is only reached through the A4 hub's 01 card,
+  // gated on A3 being fully claimed. A persisted view:"a4m1" can survive a later
+  // A3 reset — bounce back to the hub, whose 01 card shows the locked gate.
+  useEffect(() => {
+    if (view === "a4m1" && !a3Complete) {
+      setView("a4");
+    }
+  }, [view, a3Complete]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -46277,7 +48005,7 @@ function NewA1View({
         )}
         <NewA3M6Container
           onBackToA3={() => setView("a3")}
-          onCompleteA3={() => setView("a3")}
+          onCompleteA3={() => setView("a4")}
           onEditMirror={(lane) =>
             setView(
               lane === "person"
@@ -46289,6 +48017,59 @@ function NewA1View({
           }
           initialRoomKey={initialKey}
           onRoomChange={onA3M6RoomChange}
+        />
+      </div>
+    );
+  }
+  // A4 · Act On It hub. The only entries are the spine's Act vertebra, the A3
+  // seal's "Continue to A4 →", and a persisted route.
+  if (view === "a4") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA4HubView
+          key="a4-hub"
+          name={resolvedName}
+          a3Complete={a3Complete}
+          onEntryHall={() => setView("entry-hall")}
+          onBeginSelf={() => setView("a4m1")}
+          onBeginTime={() => setView("a4m2")}
+          onBeginWealth={() => setView("a4m3")}
+          onGoToA3={() => setView("a3")}
+        />
+      </div>
+    );
+  }
+  // A4-1 · Self (A4 Mirror 1). The hub stays mounted behind the room card
+  // (dimmed + blurred) — the overlay owns the interaction. Claiming returns to
+  // the hub; Time is the next mirror but isn't built until A4-2, so the seal's
+  // forward CTA is "Back to A4 →" for now.
+  if (view === "a4m1") {
+    const initialKey = initialA4M1RoomKeyRef.current;
+    initialA4M1RoomKeyRef.current = null;
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA4HubView
+          key="a4-hub-room"
+          name={resolvedName}
+          a3Complete={a3Complete}
+          onEntryHall={() => setView("entry-hall")}
+          onBeginSelf={() => {}}
+          onBeginTime={() => {}}
+          onBeginWealth={() => {}}
+          onGoToA3={() => setView("a3")}
+        />
+        <NewA4MirrorContainer
+          cfg={A4_SELF_CFG}
+          onBackToA4={() => setView("a4")}
+          onNext={
+            A4_TIME_BUILT
+              ? { label: "Time", go: () => setView("a4") }
+              : null
+          }
+          initialRoomKey={initialKey}
+          onRoomChange={onA4M1RoomChange}
         />
       </div>
     );

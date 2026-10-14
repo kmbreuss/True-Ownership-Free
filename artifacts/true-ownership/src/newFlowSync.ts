@@ -1,5 +1,5 @@
 // ─── New-flow progress → server sync ─────────────────────────────────────────
-// A1 exercise progress, A2, A3 and Values (Mirror 4) answers used to live only in
+// A1 exercise progress, A2, A3, A4 and Values (Mirror 4) answers used to live only in
 // the browser. This module mirrors them to the member's account so they follow
 // the member to any device (and to map-of-me.com).
 //
@@ -16,6 +16,7 @@
 import { setChangeHandler } from "./syncHook";
 import { EMPTY_A2 } from "./a2Constants";
 import { EMPTY_A3 } from "./a3Constants";
+import { EMPTY_A4 } from "./a4Constants";
 import { EMPTY_MIRROR4 } from "./mirror4Constants";
 
 export const A1_PROGRESS_KEYS = [
@@ -36,6 +37,7 @@ export const STORES: Store[] = [
   { sk: "a1progress", label: "A1 exercise progress", lks: A1_PROGRESS_KEYS },
   { sk: "a2state", label: "A2 · Align With It", lks: ["to_a2_state_v1"], empty: EMPTY_A2 },
   { sk: "a3state", label: "A3 · Advocate For It", lks: ["to_a3_state_v1"], empty: EMPTY_A3 },
+  { sk: "a4state", label: "A4 · Act On It", lks: ["to_a4_state_v1"], empty: EMPTY_A4 },
   { sk: "m4state", label: "Values (Mirror 4)", lks: ["to_mirror4_state_v1"], empty: EMPTY_MIRROR4 },
 ];
 const META_KEY = "to_sync_meta_v1";
