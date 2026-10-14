@@ -18,8 +18,8 @@ export function Footer({ tone }: { tone?: "onDark" } = {}) {
         padding: "16px 16px calc(20px + env(safe-area-inset-bottom, 0px))",
         textAlign: "center",
         fontFamily: "'Questrial', system-ui, sans-serif",
-        fontSize: 12,
-        color: tone === "onDark" ? "rgba(245,245,247,0.62)" : "var(--na1-text-mute, #696869)",
+        fontSize: "max(var(--l-min), 12px)",
+        color: tone === "onDark" ? "rgba(245,245,247,0.8)" : "var(--na1-text-sec, #4F4D4E)",
         letterSpacing: "0.04em",
         lineHeight: 1.5,
       }}

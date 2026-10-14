@@ -507,7 +507,7 @@ const CSS = `
 *{box-sizing:border-box;margin:0;padding:0;}
 /* KB brand · legacy dark-only screens map to Deepwater (no light version). */
 :root{--bg:#012325;--bg2:#0B2B2D;--bg3:#123234;--bg4:#163C3E;--text:#F5F5F7;--text2:#D5DBDC;--text3:#9CAEB1;--text4:#6F8588;--border:#024645;--border2:#0C5553;--warm:#C4A87F;--accent:#C4A87F;--serif:var(--f-body);--sans:var(--f-body);}
-body{background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:18px;font-variant-numeric:lining-nums;}
+body{background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:max(var(--b-min), 18px);font-variant-numeric:lining-nums;}
 html[data-theme="light"] body{background:var(--na1-bg);color:var(--na1-text);}
 html[data-theme="dark"] body{background:var(--na1-bg);color:var(--na1-text);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
@@ -515,7 +515,7 @@ html[data-theme="dark"] body{background:var(--na1-bg);color:var(--na1-text);}
 @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 .fade-up{animation:fadeUp .55s cubic-bezier(.22,1,.36,1) both}
 .fade-in{animation:fadeIn .35s ease both}
-.to-field{background:var(--bg4);border:1px solid var(--border2);border-radius:10px;color:var(--warm);font-family:var(--f-body);font-size:15px;line-height:1.7;padding:13px 15px;width:100%;outline:none;transition:border-color .2s;resize:none;}
+.to-field{background:var(--bg4);border:1px solid var(--border2);border-radius:10px;color:var(--warm);font-family:var(--f-body);font-size:max(var(--b-min), calc(15px + var(--b-bump)));line-height:max(var(--b-lh), 1.7);padding:13px 15px;width:100%;outline:none;transition:border-color .2s;resize:none; font-weight:var(--b-w);}
 .to-field:focus{border-color:var(--warm);box-shadow:0 0 0 3px rgba(165,135,94,0.18);}
 .to-field::placeholder{color:var(--text3);opacity:.7;}
 input[type=range]{width:100%;cursor:pointer;height:5px;appearance:none;-webkit-appearance:none;border-radius:4px;outline:none;background:var(--bg4);border:1px solid var(--border2);}
@@ -525,9 +525,9 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .btn{background:#036360;box-shadow:inset 0 0 0 1px rgba(176,204,218,.38);border:none;border-radius:60px;color:#F5F5F7;cursor:pointer;font-family:var(--f-label);font-size:13px;font-weight:400;letter-spacing:1.5px;padding:13px 30px;text-transform:uppercase;transition:all .22s;display:inline-flex;align-items:center;gap:8px;}
 .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
 .btn:disabled{background:var(--bg4);color:var(--text4);cursor:not-allowed;transform:none;filter:none;}
-.btn-g{background:none;border:1px solid var(--border2);border-radius:60px;color:var(--text2);cursor:pointer;font-family:var(--f-label);font-size:13px;padding:10px 22px;transition:all .2s;}
+.btn-g{background:none;border:1px solid var(--border2);border-radius:60px;color:var(--text2);cursor:pointer;font-family:var(--f-label);font-size:13px;padding:10px 22px;transition:all .2s; font-weight:400;}
 .btn-g:hover{border-color:var(--text4);color:var(--text2);}
-.lbl{color:var(--accent);font-size:12px;font-weight:400;letter-spacing:2px;text-transform:uppercase;font-family:var(--f-label);}
+.lbl{color:var(--accent);font-size:max(var(--e-min), 12px);font-weight:400;letter-spacing:2px;text-transform:uppercase;font-family:var(--f-label);}
 .dot-l span{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 1.2s ease-in-out infinite;margin:0 2px;}
 .dot-l span:nth-child(2){animation-delay:.2s}.dot-l span:nth-child(3){animation-delay:.4s}
 .vid-block{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:17px 20px;display:flex;align-items:flex-start;gap:13px;margin-bottom:22px;}
@@ -535,11 +535,11 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .mirror-side{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:20px;}
 .mirror-div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
 .mirror-line{flex:1;width:1px;background:var(--border);opacity:.4;}
-.sidebar-btn{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;text-align:left;font-family:var(--f-label);border:1px solid transparent;background:transparent;transition:all .18s;}
+.sidebar-btn{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;text-align:left;font-family:var(--f-label);border:1px solid transparent;background:transparent;transition:all .18s; font-weight:400;}
 .sidebar-btn.active{background:rgba(165,135,94,.1);border-color:rgba(165,135,94,.3);}
-.to-field.summary-field::placeholder{font-family:var(--f-body);font-style:normal;font-size:15px;color:var(--text3);opacity:.6;}
-.to-field.summary-field{font-family:var(--f-body);font-style:italic;font-size:15px;line-height:1.7;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-family:var(--f-label);font-size:12px;transition:all .15s;user-select:none;}
+.to-field.summary-field::placeholder{font-family:var(--f-body);font-style:normal;font-size:max(var(--b-min), calc(15px + var(--b-bump)));color:var(--text3);opacity:.6; font-weight:var(--b-w);}
+.to-field.summary-field{font-family:var(--f-body);font-style:italic;font-size:max(var(--b-min), calc(15px + var(--b-bump)));line-height:max(var(--b-lh), 1.7); font-weight:var(--b-w);}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-family:var(--f-label);font-size:max(var(--l-min), 12px);transition:all .15s;user-select:none; font-weight:400;}
 .chip-gold{background:rgba(165,135,94,.12);border:1px solid rgba(165,135,94,.35);color:var(--warm);}
 .chip-green{background:rgba(107,162,169,.12);border:1px solid rgba(107,162,169,.35);color:#6BA2A9;}
 .chip-red{background:rgba(182,140,140,.12);border:1px solid rgba(182,140,140,.35);color:#B68C8C;cursor:pointer;}
@@ -570,10 +570,14 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   /* Up next = Spruce (Bronze is reserved for claimed / complete) */
   --spruce-soft:rgba(3,99,96,.07); --spruce-line:rgba(3,99,96,.45); --spruce-glow:rgba(3,99,96,.20); --spruce-text:#036360;
   --na1-bg:#F5F5F7; --na1-bg-soft:#EDEDEF; --na1-bg-card:#FFFFFF; --na1-bg-input:#FAFAFB; --na1-bg-video:#E7E7EA; --na1-bg-deeper:rgba(53,51,52,.05);
-  --na1-text:#353334; --na1-text-sec:#5F5E5F; --na1-text-mute:#696869;
+  --na1-text:#353334; --na1-text-sec:#4F4D4E; --na1-text-mute:#4F4D4E;
   --na1-border:#DADADC;
   --c1:#735F43; --c2:#036360; --c3:#3C6B82;
   --on-pillar:#FFFFFF; --on-lens:#FFFFFF;
+  /* Readability tokens — Cormorant body (min size, phone bump, weight, line-height) and
+     Questrial label floors. Desktop: body min 18px. Phones (<768px): body min 19px, +3px,
+     weight 500, line-height 1.5; labels min 13px, tracked eyebrows 12px. */
+  --b-min:18px; --b-bump:0px; --b-w:400; --b-lh:0; --l-min:0px; --e-min:0px;
   --pillar-mind:#3C6B82; --pillar-heart:#7A2E2E; --pillar-spine:#036360; --pillar-spark:#735F43; --pillar-hands:#5F5E5F;
   --lens-time:#735F43; --lens-time-soft:rgba(165,135,94,.16); --lens-time-line:rgba(165,135,94,.5);
   --lens-wealth:#036360; --lens-wealth-soft:rgba(3,99,96,.12); --lens-wealth-line:rgba(3,99,96,.42);
@@ -611,7 +615,7 @@ html[data-theme="dark"]{
   --cyan-text:#B0CCDA;
   --spruce-soft:rgba(3,99,96,.28); --spruce-line:rgba(107,162,169,.55); --spruce-glow:rgba(3,99,96,.60); --spruce-text:#7DB0B7;
   --na1-bg:#012325; --na1-bg-soft:#0B2B2D; --na1-bg-card:#123234; --na1-bg-input:#0B2B2D; --na1-bg-video:#011B1D; --na1-bg-deeper:rgba(0,0,0,.18);
-  --na1-text:#F5F5F7; --na1-text-sec:#BFC7C9; --na1-text-mute:#8FA0A3;
+  --na1-text:#F5F5F7; --na1-text-sec:#C9D1D3; --na1-text-mute:#B3BEC1;
   --na1-border:#024645;
   --c1:#C4A87F; --c2:#6BA2A9; --c3:#B0CCDA;
   --on-pillar:#012325; --on-lens:#012325;
@@ -629,7 +633,7 @@ html[data-theme="dark"]{
   --m2-burgundy-chip:#B68C8C; --m2-burgundy-chip-bg:rgba(182,140,140,.16);
   --m2-gold-chip:#C4A87F; --m2-gold-chip-bg:rgba(165,135,94,.18);
 }
-.na1-root{ background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); min-height:100vh; }
+.na1-root{ background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); min-height:100vh; font-weight:var(--b-w);}
 .na1-root *{ -webkit-tap-highlight-color: transparent; }
 .na1-theme-toggle{
   position:fixed; top:14px; right:14px; z-index:90;
@@ -637,14 +641,13 @@ html[data-theme="dark"]{
   min-height:44px; padding:0 14px; border-radius:100px;
   background:transparent; border:1px solid var(--na1-border, #024645);
   color:var(--na1-text, #353334); font-family:var(--f-label); font-size:13px;
-  cursor:pointer; transition:border-color .18s, background .18s;
-}
+  cursor:pointer; transition:border-color .18s, background .18s; font-weight:400;}
 .na1-theme-toggle:hover{ border-color: var(--gold, #A5875E); }
 @media (max-width: 900px){ .na1-theme-toggle .label{ display:none; } .na1-theme-toggle{ padding:0 12px; } }
 /* ─── NEW A1: page shell ─── */
 .na1-shell{ max-width:760px; margin:0 auto; padding:36px 28px 96px; }
 @media (max-width:600px){ .na1-shell{ padding:32px 16px 60px; } }
-.na1-breadcrumb{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px; font-size:13px; color:var(--na1-text-mute); font-family:var(--f-label); }
+.na1-breadcrumb{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px; font-size:13px; color:var(--na1-text-sec); font-family:var(--f-label); font-weight:400;}
 .na1-breadcrumb a{ color:var(--na1-text-sec); text-decoration:none; cursor:pointer; }
 .na1-breadcrumb a:hover{ color:var(--na1-text); }
 .na1-breadcrumb .sep{ color:var(--na1-text-mute); }
@@ -666,8 +669,8 @@ html[data-theme="dark"]{
     z-index:50; pointer-events:none;
   }
 }
-.na1-spine-brand{ font-family:var(--f-body); font-size:16px; color:var(--na1-text); margin-bottom:2px; pointer-events:auto; }
-.na1-spine-brand-sub{ font-family:var(--f-label); font-size:11px; color:var(--na1-text-mute); letter-spacing:.16em; text-transform:uppercase; margin-bottom:56px; pointer-events:auto; }
+.na1-spine-brand{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text); margin-bottom:2px; pointer-events:auto; font-weight:var(--b-w);}
+.na1-spine-brand-sub{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); color:var(--na1-text-sec); letter-spacing:.16em; text-transform:uppercase; margin-bottom:56px; pointer-events:auto; font-weight:400;}
 .na1-spine-thread{ position:absolute; left:50%; top:168px; bottom:56px; width:1px; transform:translateX(-50%); pointer-events:none; }
 .na1-spine-thread::before{ content:""; position:absolute; inset:0; background:linear-gradient(to bottom, var(--gold-line) 0%, var(--gold-line) 20%, var(--gold-warm) 22%, var(--gold-warm) 100%); }
 .na1-vertebra{ position:relative; display:flex; flex-direction:column; align-items:center; margin-bottom:42px; z-index:2; pointer-events:auto; }
@@ -675,10 +678,10 @@ html[data-theme="dark"]{
 .na1-bone{ width:22px; height:22px; border-radius:50%; background:var(--na1-bg); border:1.5px solid var(--na1-text-mute); margin-bottom:6px; transition:all .3s; }
 .na1-vertebra.is-claimed .na1-bone{ background:var(--gold); border-color:var(--gold); }
 .na1-vertebra.is-here .na1-bone{ background:var(--gold); border-color:var(--gold); box-shadow:0 0 0 5px var(--gold-soft), 0 0 16px var(--gold-glow); }
-.na1-vertebra-num{ font-family:var(--f-body); font-style:italic; font-size:13px; color:var(--gold-text); letter-spacing:.06em; font-weight:500; margin-bottom:1px; }
-.na1-vertebra-label{ font-family:var(--f-body); font-size:15.5px; font-weight:600; color:var(--na1-text-mute); transition:color .3s; }
+.na1-vertebra-num{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--gold-text); letter-spacing:.06em; font-weight:500; margin-bottom:1px; }
+.na1-vertebra-label{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); font-weight:600; color:var(--na1-text-sec); transition:color .3s; }
 .na1-vertebra.is-claimed .na1-vertebra-label, .na1-vertebra.is-here .na1-vertebra-label{ color:var(--na1-text); }
-.na1-vertebra-status{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); margin-top:4px; opacity:0; transition:opacity .3s; }
+.na1-vertebra-status{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); margin-top:4px; opacity:0; transition:opacity .3s; }
 .na1-vertebra.is-here .na1-vertebra-status{ opacity:1; }
 /* A2.S · spine nav. Claimed-but-not-current vertebrae still surface their
    "Claimed" label (current uses is-here for "You are here"). Interactive
@@ -694,28 +697,28 @@ html[data-theme="dark"]{
    ════════════════════════════════════════════════════════════════════ */
 .na1-eh-content, .na1-fw-content{ padding:72px 64px 120px; max-width:1080px; }
 @media (max-width:767px){ .na1-eh-content, .na1-fw-content{ padding:40px 20px 96px; } }
-.na1-eh-eyebrow, .na1-fw-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.22em; text-transform:uppercase; color:var(--gold-text); margin-bottom:14px; }
+.na1-eh-eyebrow, .na1-fw-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.22em; text-transform:uppercase; color:var(--gold-text); margin-bottom:14px; }
 
 /* Entry Hall */
-.na1-eh-quote{ font-family:var(--f-body); font-style:italic; font-size:22px; line-height:1.45; color:var(--na1-text-sec); max-width:600px; margin-bottom:36px; position:relative; padding-left:24px; }
+.na1-eh-quote{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(22px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:var(--na1-text); max-width:600px; margin-bottom:36px; position:relative; padding-left:24px; font-weight:var(--b-w);}
 .na1-eh-quote::before{ content:""; position:absolute; left:0; top:8px; bottom:8px; width:2px; background:var(--gold); }
 .na1-eh-hero{ font-family:var(--f-display); font-size:48px; line-height:1.08; font-weight:400; color:var(--na1-text); letter-spacing:-0.4px; margin-bottom:16px; max-width:760px; }
 @media (max-width:767px){ .na1-eh-hero{ font-size:34px; } }
-.na1-eh-hero-italic{ font-family:var(--f-body); font-style:italic; font-size:18px; color:var(--na1-text-sec); margin-bottom:28px; }
-.na1-eh-lead{ font-size:17px; line-height:1.55; color:var(--na1-text-sec); max-width:620px; margin-bottom:48px; }
-.na1-eh-lead em{ font-family:var(--f-body); font-style:italic; color:var(--na1-text); }
+.na1-eh-hero-italic{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); color:var(--na1-text); margin-bottom:28px; font-weight:var(--b-w);}
+.na1-eh-lead{ font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text-sec); max-width:620px; margin-bottom:48px; }
+.na1-eh-lead em{ font-family:var(--f-body); font-style:italic; color:var(--na1-text); font-weight:var(--b-w);}
 .na1-eh-principle-card{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:12px; padding:32px 36px; max-width:760px; margin-bottom:36px; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
 .na1-eh-principle-card .na1-eh-eyebrow{ margin-bottom:12px; }
-.na1-eh-principle{ font-family:var(--f-body); font-style:italic; font-size:21px; line-height:1.5; color:var(--na1-text); margin-bottom:20px; }
-.na1-eh-principle-meta{ font-size:15px; line-height:1.6; color:var(--na1-text-sec); }
-.na1-eh-principle-meta strong{ color:var(--na1-text); font-weight:600; }
-.na1-eh-ai-note{ font-family:var(--f-body); font-style:italic; font-size:18px; line-height:1.6; color:var(--na1-text-sec); max-width:640px; margin-bottom:48px; padding-left:24px; border-left:2px solid var(--gold-line); }
+.na1-eh-principle{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(21px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin-bottom:20px; font-weight:var(--b-w);}
+.na1-eh-principle-meta{ font-size:max(var(--b-min), calc(15px + var(--b-bump))); font-weight:var(--b-w); line-height:max(var(--b-lh), 1.6); color:var(--na1-text-sec); }
+.na1-eh-principle-meta strong{ color:var(--na1-text); font-weight:600; font-size:inherit; }
+.na1-eh-ai-note{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text-sec); max-width:640px; margin-bottom:48px; padding-left:24px; border-left:2px solid var(--gold-line); font-weight:var(--b-w);}
 .na1-video-card{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:12px; padding:24px 28px; display:flex; align-items:center; gap:22px; max-width:480px; margin-bottom:48px; cursor:pointer; transition:transform .2s, box-shadow .2s; box-shadow:0 1px 0 var(--gold-warm), 0 8px 32px -16px rgba(0,0,0,0.08); }
 .na1-video-card:hover{ transform:translateY(-1px); box-shadow:0 1px 0 var(--gold-warm), 0 12px 36px -14px rgba(0,0,0,0.12); }
 .na1-video-play-btn{ width:48px; height:48px; border-radius:50%; background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:14px; padding-left:3px; }
-.na1-video-num{ font-family:var(--f-body); font-style:italic; font-size:13px; color:var(--gold-text); letter-spacing:.06em; margin-bottom:2px; }
+.na1-video-num{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--gold-text); letter-spacing:.06em; margin-bottom:2px; font-weight:var(--b-w);}
 .na1-video-title{ font-family:var(--f-display); font-size:17px; font-weight:400; color:var(--na1-text); margin-bottom:2px; }
-.na1-video-sub{ font-size:12px; color:var(--na1-text-mute); letter-spacing:.04em; }
+.na1-video-sub{ font-size:max(var(--l-min), 12px); color:var(--na1-text-mute); letter-spacing:.04em; }
 /* Ship 5.8 · Entry Hall video player — paused card expands in place (desktop)
    or opens a full-screen overlay (mobile). Reuses the card tokens. */
 .na1-video-card{ position:relative; }
@@ -725,7 +728,7 @@ html[data-theme="dark"]{
 .na1-video-iframe{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
 .na1-video-close{ position:absolute; top:10px; right:10px; z-index:3; width:32px; height:32px; border-radius:50%; background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:0; font-size:18px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .18s; }
 .na1-video-close:hover{ filter:brightness(1.12); }
-.na1-video-toast{ position:absolute; bottom:-34px; left:0; font-family:var(--f-label); font-size:12px; color:var(--na1-text-sec); background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:6px 12px; white-space:nowrap; }
+.na1-video-toast{ position:absolute; bottom:-34px; left:0; font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:6px 12px; white-space:nowrap; font-weight:400;}
 .na1-video-overlay{ position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; padding:0; background:rgba(1,35,37,0.96); }
 [data-theme="light"] .na1-video-overlay{ background:rgba(1,35,37,0.94); }
 .na1-video-overlay-inner{ width:100%; }
@@ -742,7 +745,7 @@ html[data-theme="dark"]{
 .na1-fw-hero{ font-family:var(--f-display); font-size:52px; line-height:1.04; font-weight:400; color:var(--na1-text); letter-spacing:-0.5px; margin-bottom:16px; max-width:780px; }
 @media (max-width:767px){ .na1-fw-hero{ font-size:36px; } }
 .na1-fw-hero em{ font-style:normal; color:var(--gold-text); }
-.na1-fw-sub{ font-size:17px; line-height:1.55; color:var(--na1-text-sec); max-width:620px; margin-bottom:48px; }
+.na1-fw-sub{ font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text-sec); max-width:620px; margin-bottom:48px; }
 .na1-fw-sub strong{ color:var(--na1-text); font-weight:600; }
 /* ── The Framework · two fixed-brand skins (identical in light and dark) ──────
    Phase 1 · Own It   = KB: Spruce→Deepwater glow, cream #EFE6D6, bronze dots,
@@ -754,9 +757,9 @@ html[data-theme="dark"]{
 .na1-phase-tabs{ display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--na1-border); border-bottom:0; border-radius:12px 12px 0 0; overflow:hidden; max-width:880px; }
 .na1-phase-tab{ border:0; background:var(--na1-bg-soft); padding:22px 28px; text-align:left; cursor:pointer; transition:background .3s; border-right:1px solid var(--na1-border); }
 .na1-phase-tab:last-child{ border-right:0; }
-.na1-phase-tab-eyebrow{ display:block; font-family:'Questrial',var(--na1-sans); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:6px; transition:color .3s; }
+.na1-phase-tab-eyebrow{ display:block; font-family:'Questrial',var(--na1-sans); font-size:max(var(--e-min), 11px); letter-spacing:.2em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:6px; transition:color .3s; font-weight:400;}
 .na1-phase-tab-title{ display:block; font-size:20px; font-weight:400; color:var(--na1-text-mute); transition:color .3s; }
-.na1-phase-tab[data-phase="p1"] .na1-phase-tab-title{ font-family:'Tenor Sans',Georgia,serif; }
+.na1-phase-tab[data-phase="p1"] .na1-phase-tab-title{ font-family:'Tenor Sans',Georgia,serif; font-weight:400;}
 .na1-phase-tab[data-phase="p2"] .na1-phase-tab-title{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:600; font-size:22px; }
 .na1-phase-tab[data-phase="p2"] .na1-phase-tab-eyebrow{ font-family:'Inter',system-ui,sans-serif; }
 .na1-phase-tab:hover .na1-phase-tab-title{ color:var(--na1-text); }
@@ -772,16 +775,16 @@ html[data-theme="dark"]{
 .na1-phase-cards{ padding:36px 36px 36px 40px; }
 .na1-phase-bar-col{ padding:36px 0; display:flex; flex-direction:column; align-items:center; position:relative; }
 .na1-phase-intro{ margin-bottom:28px; }
-.na1-phase-intro-tag{ font-family:var(--f-label); font-size:11px; letter-spacing:.2em; text-transform:uppercase; margin-bottom:8px; }
+.na1-phase-intro-tag{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.2em; text-transform:uppercase; margin-bottom:8px; font-weight:400;}
 .na1-phase-intro-headline{ font-size:28px; line-height:1.2; }
 .na1-phase-intro-headline em{ font-style:italic; }
 .na1-a-card{ display:grid; grid-template-columns:56px 1fr; gap:16px; padding:22px 0; border-bottom:1px solid; align-items:start; }
 .na1-a-card:nth-last-child(2){ border-bottom:0; }
 .na1-a-num{ font-size:32px; line-height:1; padding-top:4px; }
 .na1-a-name{ margin-bottom:2px; }
-.na1-a-shift{ font-family:var(--f-label); font-size:11px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
+.na1-a-shift{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; font-weight:400;}
 .na1-a-deliverable{ display:inline-block; font-style:italic; padding:4px 12px; border-radius:4px; }
-.na1-spine-badge-day{ font-family:var(--f-label); font-size:11px; letter-spacing:.18em; text-transform:uppercase; padding:5px 9px; writing-mode:vertical-rl; transform:rotate(180deg); }
+.na1-spine-badge-day{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.18em; text-transform:uppercase; padding:5px 9px; writing-mode:vertical-rl; transform:rotate(180deg); font-weight:400;}
 .na1-spine-line-inner{ flex:1; width:2px; }
 .na1-spine-dot-inner{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
 /* Phase 1 · Own It (KB) */
@@ -791,9 +794,9 @@ html[data-theme="dark"]{
 .na1-fw[data-phase="p1"] .na1-a-card{ border-bottom-color:rgba(165,135,94,.38); }
 .na1-fw[data-phase="p1"] .na1-a-num{ font-family:'Tenor Sans',Georgia,serif; font-weight:400; color:#CDB48E; }
 .na1-fw[data-phase="p1"] .na1-a-name{ font-family:'Tenor Sans',Georgia,serif; font-weight:400; font-size:20px; color:#EFE6D6; }
-.na1-fw[data-phase="p1"] .na1-a-desc{ font-family:'Cormorant Garamond',Georgia,serif; font-size:18px; line-height:1.4; color:#EFE6D6; margin-bottom:10px; }
-.na1-fw[data-phase="p1"] .na1-a-deliverable{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:500; font-size:16px; color:#CDB48E; background:rgba(165,135,94,.16); border:1px solid rgba(165,135,94,.45); }
-.na1-fw[data-phase="p1"] .na1-spine-badge-day{ font-family:'Questrial',var(--na1-sans); background:#A5875E; color:#012325; }
+.na1-fw[data-phase="p1"] .na1-a-desc{ font-family:'Cormorant Garamond',Georgia,serif; font-size:max(var(--b-min), calc(18px + var(--b-bump))); font-weight:var(--b-w); line-height:max(var(--b-lh), 1.4); color:#EFE6D6; margin-bottom:10px; }
+.na1-fw[data-phase="p1"] .na1-a-deliverable{ font-family:'Cormorant Garamond',Georgia,serif; font-weight:500; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:#CDB48E; background:rgba(165,135,94,.16); border:1px solid rgba(165,135,94,.45); }
+.na1-fw[data-phase="p1"] .na1-spine-badge-day{ font-family:'Questrial',var(--na1-sans); background:#A5875E; color:#012325; font-weight:400;}
 .na1-fw[data-phase="p1"] .na1-spine-line-inner, .na1-fw[data-phase="p1"] .na1-spine-dot-inner{ background:#A5875E; }
 /* Phase 2 · Build It (AG45 Boardroom, frozen) */
 .na1-fw[data-phase="p2"] .na1-phase-intro-tag, .na1-fw[data-phase="p2"] .na1-a-shift{ font-family:'Inter',system-ui,sans-serif; font-weight:700; color:#7F6528; }
@@ -808,11 +811,11 @@ html[data-theme="dark"]{
 .na1-fw[data-phase="p2"] .na1-spine-line-inner, .na1-fw[data-phase="p2"] .na1-spine-dot-inner{ background:#C9A24B; }
 /* Day 46 handover (end of Phase 1) + brand marks */
 .na1-phase-handover{ margin-top:6px; padding-top:26px; border-top:1px solid rgba(165,135,94,.38); text-align:center; }
-.na1-phase-handover-day{ font-family:'Questrial',var(--na1-sans); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:#EFE6D6; margin-bottom:10px; }
-.na1-phase-handover-line{ font-family:'Tenor Sans',Georgia,serif; font-size:24px; line-height:1.3; color:#EFE6D6; margin:0 auto 22px; max-width:520px; }
+.na1-phase-handover-day{ font-family:'Questrial',var(--na1-sans); font-size:max(var(--e-min), 11px); letter-spacing:.2em; text-transform:uppercase; color:#EFE6D6; margin-bottom:10px; font-weight:400;}
+.na1-phase-handover-line{ font-family:'Tenor Sans',Georgia,serif; font-size:24px; line-height:1.3; color:#EFE6D6; margin:0 auto 22px; max-width:520px; font-weight:400;}
 .na1-phase-sig{ display:block; margin:0 auto; width:min(210px,60%); height:auto; }
-.na1-phase-brand{ margin-top:6px; padding-top:20px; border-top:1px solid rgba(201,162,75,.45); text-align:center; }
-.na1-phase-brand img{ width:112px; height:112px; object-fit:contain; display:inline-block; }
+.na1-phase-brand{ margin-top:6px; padding:24px 0 8px; border-top:1px solid rgba(201,162,75,.45); text-align:center; }
+.na1-phase-brand img{ display:block; margin:0 auto; width:min(200px,62%); height:auto; aspect-ratio:1000/595; }
 .na1-fw[data-phase="p2"] .na1-eh-btn-gold{ background:#1A2A44; color:#F9F6EE; box-shadow:none; }
 .na1-fw-cta-row{ margin-top:40px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 @media (max-width:1100px){
@@ -830,14 +833,14 @@ html[data-theme="dark"]{
 }
 
 /* Fixed footer · Entry Hall + Framework only */
-.na1-app-footer{ position:fixed; bottom:0; left:0; right:0; height:36px; background:var(--footer-ink); color:rgba(245,245,247,0.6); display:flex; align-items:center; justify-content:center; font-size:12px; letter-spacing:.02em; z-index:40; }
+.na1-app-footer{ position:fixed; bottom:0; left:0; right:0; height:36px; background:var(--footer-ink); color:rgba(245,245,247,0.82); display:flex; align-items:center; justify-content:center; font-size:max(var(--l-min), 12px); letter-spacing:.02em; z-index:40; }
 .na1-breadcrumb .current{ color:var(--na1-text); }
 .na1-hero{ margin-bottom:28px; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; }
-.na1-hero-eyebrow{ font-size:11px; font-weight:400; letter-spacing:0.22em; color:var(--gold-text); text-transform:uppercase; margin-bottom:10px; font-family:var(--f-label); }
+.na1-hero-eyebrow{ font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.22em; color:var(--gold-text); text-transform:uppercase; margin-bottom:10px; font-family:var(--f-label); }
 .na1-hero-title{ font-family:var(--f-display); font-size:36px; font-weight:400; line-height:1.15; letter-spacing:-0.005em; margin:0 0 6px; color:var(--na1-text); }
 @media (max-width:600px){ .na1-hero-title{ font-size:28px; } }
-.na1-hero-sub{ font-size:16.5px; color:var(--na1-text-sec); margin:0; max-width:580px; font-family:var(--f-body); line-height:1.5; }
-.na1-hero-meta{ font-size:13px; color:var(--na1-text-sec); text-align:right; font-family:var(--f-label); }
+.na1-hero-sub{ font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); color:var(--na1-text); margin:0; max-width:580px; font-family:var(--f-body); line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
+.na1-hero-meta{ font-size:13px; color:var(--na1-text-sec); text-align:right; font-family:var(--f-label); font-weight:400;}
 .na1-hero-meta strong{ color:var(--na1-text); font-weight:400; }
 /* ─── NEW A1: mirror grid ─── */
 .na1-mirror-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(290px, 1fr)); grid-auto-rows:1fr; gap:16px; align-items:stretch; }
@@ -849,30 +852,30 @@ html[data-theme="dark"]{
 .na1-a3board-seat{ min-width:0; }
 .na1-a3board-seat{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px; display:flex; flex-direction:column; }
 .na1-a3board-seat.is-filled{ border-color:var(--gold-line); background:var(--gold-warm); }
-.na1-mirror-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px; transition:border-color .18s, box-shadow .18s; display:flex; flex-direction:column; min-height:340px; height:100%; font-family:var(--f-body); }
+.na1-mirror-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px; transition:border-color .18s, box-shadow .18s; display:flex; flex-direction:column; min-height:340px; height:100%; font-family:var(--f-body); font-weight:var(--b-w);}
 @media (max-width:600px){ .na1-mirror-card{ min-height:auto; padding:18px; } }
 .na1-mirror-card.is-current{ border-color:var(--spruce-line); background:linear-gradient(180deg, var(--spruce-soft) 0%, var(--na1-bg-card) 50%); box-shadow:0 0 0 1px var(--spruce-glow), 0 0 24px var(--spruce-glow); }
 .na1-mirror-card.is-complete{ border-color:var(--gold-line); }
 .na1-mirror-card.is-locked{ border-style:dashed; border-color:var(--na1-border); background:transparent; opacity:0.65; }
 .na1-mirror-card-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
-.na1-mirror-card-num{ font-family:var(--f-body); font-size:19px; color:var(--na1-text-mute); font-variant-numeric:tabular-nums; }
+.na1-mirror-card-num{ font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); color:var(--na1-text-sec); font-variant-numeric:tabular-nums; font-weight:var(--b-w);}
 .na1-mirror-card.is-current .na1-mirror-card-num, .na1-mirror-card.is-vision-up-next .na1-mirror-card-num{ color:var(--spruce-text); }
 .na1-mirror-card.is-complete .na1-mirror-card-num{ color:var(--gold-text); }
-.na1-mirror-card-status{ font-family:var(--f-label); margin-left:auto; font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; padding:3px 9px; border-radius:100px; background:var(--na1-bg-soft); color:var(--na1-text-mute); border:1px solid var(--na1-border); }
+.na1-mirror-card-status{ font-family:var(--f-label); margin-left:auto; font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; padding:3px 9px; border-radius:100px; background:var(--na1-bg-soft); color:var(--na1-text-sec); border:1px solid var(--na1-border); }
 .na1-mirror-card.is-current .na1-mirror-card-status, .na1-mirror-card.is-vision-up-next .na1-mirror-card-status{ background:var(--spruce-soft); color:var(--spruce-text); border-color:var(--spruce-line); }
 .na1-mirror-card.is-complete .na1-mirror-card-status{ background:var(--gold-soft); color:var(--gold-text); border-color:var(--gold-line); }
-.na1-mirror-card-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:5px; }
+.na1-mirror-card-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-sec); margin-bottom:5px; }
 .na1-mirror-card-name{ font-family:var(--f-display); font-size:21px; font-weight:400; line-height:1.25; margin:0 0 6px; color:var(--na1-text); }
-.na1-mirror-card-sub{ font-size:13px; color:var(--na1-text-sec); line-height:1.5; margin:0 0 16px; }
+.na1-mirror-card-sub{ font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-sec); line-height:max(var(--b-lh), 1.5); margin:0 0 16px; }
 .na1-progress-mini{ margin-bottom:14px; display:flex; align-items:center; gap:6px; }
 .na1-progress-pip{ width:14px; height:4px; background:var(--na1-border); border-radius:100px; transition:background .2s; }
 .na1-progress-pip.is-done{ background:var(--gold); }
 .na1-progress-pip.is-active{ background:var(--cyan); box-shadow:0 0 8px var(--cyan-glow); }
-.na1-progress-text{ font-size:11px; color:var(--na1-text-mute); margin-left:auto; font-variant-numeric:tabular-nums; }
-.na1-mirror-card-empty{ font-size:13px; color:var(--na1-text-mute); font-style:italic; margin-bottom:auto; padding-bottom:14px; }
+.na1-progress-text{ font-size:max(var(--l-min), 11px); color:var(--na1-text-mute); margin-left:auto; font-variant-numeric:tabular-nums; }
+.na1-mirror-card-empty{ font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-mute); font-style:italic; margin-bottom:auto; padding-bottom:14px; }
 .na1-mirror-card-action{ margin-top:auto; display:flex; flex-direction:column; gap:8px; }
 .na1-mirror-card.is-locked .na1-mirror-card-action{ opacity:0.6; }
-.na1-mirror-card-meta{ font-size:11.5px; color:var(--na1-text-mute); text-align:center; }
+.na1-mirror-card-meta{ font-size:max(var(--l-min), 11.5px); color:var(--na1-text-mute); text-align:center; }
 .na1-btn-gold{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 18px; border-radius:100px; background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; font-family:var(--f-label); font-size:14px; font-weight:400; letter-spacing:0.02em; cursor:pointer; transition:filter .18s, transform .12s; }
 .na1-btn-gold:hover{ filter:brightness(1.08); }
 .na1-btn-gold:active{ transform:translateY(1px); }
@@ -882,32 +885,32 @@ html[data-theme="dark"]{
 /* ─── NEW A1: Explore page ─── */
 .na1-explore-layout{ display:grid; grid-template-columns:minmax(0, 1fr) 280px; gap:36px; align-items:start; }
 @media (max-width:900px){ .na1-explore-layout{ grid-template-columns:1fr; gap:24px; } }
-.na1-ex-eyebrow{ font-size:11px; font-weight:400; letter-spacing:0.22em; color:var(--gold-text); text-transform:uppercase; margin-bottom:12px; font-family:var(--f-label); }
+.na1-ex-eyebrow{ font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.22em; color:var(--gold-text); text-transform:uppercase; margin-bottom:12px; font-family:var(--f-label); }
 .na1-ex-title{ font-family:var(--f-display); font-size:36px; font-weight:400; line-height:1.2; margin:0 0 14px; color:var(--na1-text); }
 @media (max-width:600px){ .na1-ex-title{ font-size:28px; } }
-.na1-ex-sub{ font-size:18px; line-height:1.7; color:var(--na1-text-sec); margin:0 0 8px; max-width:580px; font-family:var(--f-body); }
+.na1-ex-sub{ font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.7); color:var(--na1-text); margin:0 0 8px; max-width:580px; font-family:var(--f-body); font-weight:var(--b-w);}
 .na1-ex-sub em{ font-style:italic; color:var(--na1-text); }
-.na1-ex-foot-sub{ font-size:16px; line-height:1.7; color:var(--na1-text-mute); margin:0; max-width:580px; font-family:var(--f-body); }
+.na1-ex-foot-sub{ font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.7); color:var(--na1-text-sec); margin:0; max-width:580px; font-family:var(--f-body); font-weight:var(--b-w);}
 /* Intro video */
-.na1-intro-video{ margin:24px 0; border-radius:var(--na1-radius); overflow:hidden; background:var(--na1-bg-video); border:1px solid var(--na1-border); font-family:var(--f-body); }
+.na1-intro-video{ margin:24px 0; border-radius:var(--na1-radius); overflow:hidden; background:var(--na1-bg-video); border:1px solid var(--na1-border); font-family:var(--f-body); font-weight:var(--b-w);}
 .na1-intro-video.is-collapsed .na1-intro-video-body{ max-height:0; }
 .na1-intro-video-head{ padding:14px 18px; background:var(--na1-bg-card); display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:12px; }
 .na1-intro-video:not(.is-collapsed) .na1-intro-video-head{ border-bottom:1px solid var(--na1-border); }
 .na1-intro-video-left{ display:flex; align-items:center; gap:12px; min-width:0; }
-.na1-intro-video-play-mini{ width:32px; height:32px; border-radius:50%; background:var(--gold-soft); border:1.5px solid var(--gold); color:var(--gold-text); display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+.na1-intro-video-play-mini{ width:32px; height:32px; border-radius:50%; background:var(--gold-soft); border:1.5px solid var(--gold); color:var(--gold-text); display:flex; align-items:center; justify-content:center; font-size:max(var(--l-min), 11px); flex-shrink:0; }
 .na1-intro-video-title-row{ display:flex; flex-direction:column; line-height:1.2; min-width:0; }
-.na1-intro-video-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; color:var(--gold-text); text-transform:uppercase; }
+.na1-intro-video-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; color:var(--gold-text); text-transform:uppercase; }
 .na1-intro-video-title{ font-family:var(--f-display); font-size:15px; font-weight:400; color:var(--na1-text); margin-top:2px; }
-.na1-intro-video-meta{ font-size:12px; color:var(--na1-text-mute); white-space:nowrap; }
+.na1-intro-video-meta{ font-size:max(var(--l-min), 12px); color:var(--na1-text-mute); white-space:nowrap; }
 .na1-intro-video-chev{ color:var(--na1-text-mute); transition:transform .3s; font-size:13px; }
 .na1-intro-video:not(.is-collapsed) .na1-intro-video-chev{ transform:rotate(180deg); }
 .na1-intro-video-body{ max-height:500px; overflow:hidden; transition:max-height .4s ease; }
 .na1-video-stub{ aspect-ratio:16/9; background:var(--na1-bg-video); position:relative; display:flex; align-items:center; justify-content:center; }
 .na1-video-stub::before{ content:""; position:absolute; inset:0; background:radial-gradient(ellipse at center, var(--gold-glow) 0%, transparent 70%); opacity:0.5; }
 .na1-video-stub-play{ width:64px; height:64px; border-radius:50%; background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); display:flex; align-items:center; justify-content:center; font-size:24px; cursor:pointer; position:relative; z-index:1; border:none; }
-.na1-video-stub-caption{ position:absolute; bottom:12px; left:16px; font-family:var(--f-body); font-size:14px; font-style:italic; color:var(--na1-text); opacity:0.85; z-index:1; }
+.na1-video-stub-caption{ position:absolute; bottom:12px; left:16px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); font-style:italic; color:var(--na1-text); opacity:0.85; z-index:1; font-weight:var(--b-w);}
 /* Exercise rows */
-.na1-ex-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:24px; font-family:var(--f-body); }
+.na1-ex-list{ display:flex; flex-direction:column; gap:12px; margin-bottom:24px; font-family:var(--f-body); font-weight:var(--b-w);}
 .na1-ex-row{ background:var(--na1-bg-card); border:1.5px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 20px; display:flex; align-items:center; gap:14px; min-height:80px; cursor:default; transition:transform .2s, border-color .18s, box-shadow .18s; text-align:left; width:100%; font-family:inherit; color:inherit; }
 .na1-ex-row.is-unlocked{ cursor:pointer; }
 .na1-ex-row.is-unlocked:hover{ transform:translateY(-1px); border-color:var(--na1-text-mute); }
@@ -925,7 +928,7 @@ html[data-theme="dark"]{
 .na1-ex-text{ flex:1; min-width:0; }
 .na1-ex-name{ font-family:var(--f-display); font-size:18px; font-weight:400; color:var(--na1-text); margin:0 0 3px; line-height:1.3; }
 .na1-ex-row.is-locked .na1-ex-name{ color:var(--na1-text-mute); font-weight:500; }
-.na1-ex-status{ font-size:12px; color:var(--na1-text-mute); margin:0; }
+.na1-ex-status{ font-size:max(var(--l-min), 12px); color:var(--na1-text-mute); margin:0; }
 .na1-ex-row.is-current.tone-burgundy .na1-ex-status{ color:var(--burgundy-text); font-weight:600; }
 .na1-ex-row.is-current.tone-gold .na1-ex-status{ color:var(--spruce-text); font-weight:600; }
 .na1-ex-row.is-current.tone-cyan .na1-ex-status{ color:var(--spruce-text); font-weight:600; }
@@ -958,24 +961,24 @@ html[data-theme="dark"]{
 .na1-ex-row.is-m4-claim.is-complete .na1-ex-name{ color:var(--na1-text); }
 .na1-ex-row.is-m4-claim.is-complete .na1-ex-status{ color:var(--gold-text); font-weight:600; }
 /* Status strip */
-.na1-status-strip{ position:sticky; top:80px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; font-family:var(--f-label); display:flex; flex-direction:column; gap:14px; }
+.na1-status-strip{ position:sticky; top:80px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; font-family:var(--f-label); display:flex; flex-direction:column; gap:14px; font-weight:400;}
 @media (max-width:900px){ .na1-status-strip{ position:static; } }
-.na1-status-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:2px; }
+.na1-status-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-sec); margin-bottom:2px; }
 .na1-status-row{ display:flex; flex-direction:column; gap:3px; padding-bottom:12px; border-bottom:1px solid var(--na1-border); }
 .na1-status-row:last-child{ border-bottom:none; padding-bottom:0; }
-.na1-status-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.12em; text-transform:uppercase; color:var(--na1-text-mute); }
+.na1-status-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.12em; text-transform:uppercase; color:var(--na1-text-sec); }
 .na1-status-value{ font-size:13.5px; color:var(--na1-text); line-height:1.45; word-break:break-word; }
 .na1-status-value.is-empty{ color:var(--na1-text-mute); font-style:italic; }
-.na1-status-value.is-declaration{ font-family:var(--f-body); font-style:italic; color:var(--gold-text); font-size:16.5px; }
+.na1-status-value.is-declaration{ font-family:var(--f-body); font-style:italic; color:var(--gold-text); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); font-weight:var(--b-w);}
 /* ── Veil (entry transition) ── */
 .na1-veil{ position:fixed; inset:0; z-index:100; pointer-events:none; background:rgba(1,35,37,0.55); backdrop-filter:blur(8px) saturate(120%); -webkit-backdrop-filter:blur(8px) saturate(120%); transform:translateY(100%); transition:transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
 [data-theme="light"] .na1-veil{ background:rgba(245,245,247,0.55); }
 .na1-veil.is-rising, .na1-veil.is-hold{ transform:translateY(0); }
 .na1-veil.is-falling{ transform:translateY(-100%); transition:transform 700ms cubic-bezier(0.65, 0, 0.35, 1); }
-.na1-veil-text{ position:absolute; top:50%; left:50%; transform:translate(-50%, calc(-50% + 14px)); font-family:var(--f-body); font-style:italic; color:var(--gold-text); font-size:22px; line-height:1.4; text-align:center; padding:0 24px; max-width:540px; opacity:0; transition:opacity 500ms ease 400ms, transform 500ms ease 400ms; text-shadow:0 0 24px rgba(165,135,94,0.4); }
+.na1-veil-text{ position:absolute; top:50%; left:50%; transform:translate(-50%, calc(-50% + 14px)); font-family:var(--f-body); font-style:italic; color:var(--gold-text); font-size:max(var(--b-min), calc(22px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); text-align:center; padding:0 24px; max-width:540px; opacity:0; transition:opacity 500ms ease 400ms, transform 500ms ease 400ms; text-shadow:0 0 24px rgba(165,135,94,0.4); font-weight:var(--b-w);}
 .na1-veil.is-rising .na1-veil-text, .na1-veil.is-hold .na1-veil-text{ opacity:1; transform:translate(-50%, -50%); }
 .na1-veil.is-falling .na1-veil-text{ opacity:0; transform:translate(-50%, calc(-50% - 14px)); transition:opacity 300ms ease, transform 300ms ease; }
-@media (max-width:600px){ .na1-veil-text{ font-size:18px; } }
+@media (max-width:600px){ .na1-veil-text{ font-size:max(var(--b-min), calc(18px + var(--b-bump))); } }
 /* ── Explore page dim/blur underneath open Room ── */
 .na1-explore-dimmed{ filter:blur(2px); opacity:0.32; transition:filter 400ms ease, opacity 400ms ease; pointer-events:none; }
 /* ── Room shell (View A — card on dim bg) ── */
@@ -992,13 +995,13 @@ html[data-theme="dark"]{
 .na1-room-overlay{ position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; padding:24px; visibility:hidden; pointer-events:none; background:rgb(1,35,37); }
 [data-theme="light"] .na1-room-overlay{ background:rgb(245,245,247); }
 .na1-room-overlay.is-open{ visibility:visible; pointer-events:auto; }
-.na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--gold); box-shadow:0 0 80px var(--gold-glow), 0 24px 60px rgba(0,0,0,0.32); border-radius:var(--na1-radius-xl); max-width:720px; width:100%; max-height:90vh; overflow:auto; padding:80px 24px 40px; position:relative; font-family:var(--f-body); transform:translateY(20px); transition:transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+.na1-room-card{ background:var(--na1-bg-card); border:1px solid var(--gold); box-shadow:0 0 80px var(--gold-glow), 0 24px 60px rgba(0,0,0,0.32); border-radius:var(--na1-radius-xl); max-width:720px; width:100%; max-height:90vh; overflow:auto; padding:80px 24px 40px; position:relative; font-family:var(--f-body); transform:translateY(20px); transition:transform 500ms cubic-bezier(0.22, 1, 0.36, 1); font-weight:var(--b-w);}
 .na1-room-overlay.is-open .na1-room-card{ transform:translateY(0); }
 @media (max-width:600px){ .na1-room-card{ max-height:95vh; padding:60px 16px 24px; } }
 .na1-room-close{ position:absolute; top:18px; right:18px; width:36px; height:36px; border-radius:50%; background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; transition:color .18s, border-color .18s; }
 .na1-room-close:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); }
-.na1-room-crumb{ position:absolute; top:24px; left:28px; right:60px; font-family:var(--f-label); font-size:12px; color:var(--na1-text-mute); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-@media (max-width:600px){ .na1-room-crumb{ left:18px; right:50px; top:18px; font-size:11px; } }
+.na1-room-crumb{ position:absolute; top:24px; left:28px; right:60px; font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-weight:400;}
+@media (max-width:600px){ .na1-room-crumb{ left:18px; right:50px; top:18px; font-size:max(var(--l-min), 11px); } }
 .na1-room-crumb a{ color:var(--na1-text-sec); cursor:pointer; text-decoration:none; }
 .na1-room-crumb a:hover{ color:var(--gold-text); }
 .na1-room-crumb .sep{ color:var(--na1-text-mute); }
@@ -1011,20 +1014,20 @@ html[data-theme="dark"]{
 .na1-a2m1-step{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto; }
 .na1-a2m1-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
 .na1-a2m1-line.is-reached{ background:var(--gold-line); }
-.na1-a2m1-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a2m1-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-sec); transition:all .2s; }
 .na1-a2m1-dot.is-reached{ border-color:var(--gold-line); color:var(--na1-text-sec); }
 .na1-a2m1-dot.is-complete{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold-text); }
 .na1-a2m1-dot.is-current{ background:var(--gold); border-color:var(--gold); color:var(--on-gold); box-shadow:0 0 14px var(--gold-glow); }
-.na1-a2m1-step-name{ font-family:var(--f-body); font-size:13px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:78px; }
+.na1-a2m1-step-name{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); line-height:max(var(--b-lh), 1.2); color:var(--na1-text-sec); text-align:center; max-width:78px; font-weight:var(--b-w);}
 .na1-a2m1-step-name.is-current{ color:var(--gold-text); font-weight:600; }
 @media (max-width:600px){ .na1-a2m1-step-name{ display:none; } }
 .na1-a2m1-body{ min-height:160px; }
 .na1-a2m1-step-title{ font-family:var(--f-display); font-size:26px; font-weight:400; line-height:1.2; color:var(--na1-text); margin:0 0 10px; }
-.na1-a2m1-step-lede{ font-family:var(--f-body); font-size:16.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 24px; }
+.na1-a2m1-step-lede{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0 0 24px; font-weight:var(--b-w);}
 .na1-a2m1-block{ margin:0 0 24px; }
-.na1-a2m1-block-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
-.na1-a2m1-purpose{ font-family:var(--f-body); font-size:20px; font-style:italic; line-height:1.5; color:var(--na1-text); margin:0; }
-.na1-a2m1-empty{ font-family:var(--f-body); font-size:15.5px; color:var(--na1-text-mute); font-style:italic; margin:0; }
+.na1-a2m1-block-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
+.na1-a2m1-purpose{ font-family:var(--f-body); font-size:max(var(--b-min), calc(20px + var(--b-bump))); font-style:italic; line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
+.na1-a2m1-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; margin:0; font-weight:var(--b-w);}
 .na1-a2m1-creatures{ display:flex; flex-direction:column; gap:16px; }
 .na1-a2m1-creature{ border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; background:var(--na1-bg-soft); }
 .na1-a2m1-creature-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
@@ -1032,7 +1035,7 @@ html[data-theme="dark"]{
 .na1-a2m1-creature-name{ font-family:var(--f-display); font-size:16px; font-weight:400; color:var(--na1-text); text-transform:capitalize; }
 .na1-a2m1-chips{ display:flex; flex-wrap:wrap; gap:8px; }
 .na1-a2m1-values{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
-.na1-a2m1-values li{ display:flex; align-items:center; gap:12px; font-family:var(--f-body); font-size:17px; color:var(--na1-text); }
+.na1-a2m1-values li{ display:flex; align-items:center; gap:12px; font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-a2m1-value-rank{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; }
 .na1-a2m1-shell{ padding:32px 0; }
 .na1-a2m1-nav{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:28px; padding-top:20px; border-top:1px solid var(--na1-border); }
@@ -1044,15 +1047,15 @@ html[data-theme="dark"]{
 .na1-a2m1-pip.is-current{ background:var(--gold); border-color:var(--gold); box-shadow:0 0 8px var(--gold-glow); transform:scale(1.18); }
 .na1-a2m1-pip.is-incomplete{ border-color:var(--burgundy); border-style:dashed; }
 .na1-a2m1-pip.is-incomplete.is-current{ border-style:solid; }
-.na1-a2m1-subprog-label{ font-family:var(--f-label); font-size:11px; letter-spacing:.06em; color:var(--na1-text-mute); text-transform:capitalize; }
+.na1-a2m1-subprog-label{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); letter-spacing:.06em; color:var(--na1-text-sec); text-transform:capitalize; font-weight:400;}
 .na1-a2m1-step2 .na1-a2m1-step-lede{ margin-bottom:22px; }
 .na1-a2m1-rate-head{ margin:0 0 24px; padding-bottom:15px; border-bottom:1px solid var(--na1-border); }
 .na1-a2m1-rate-head.is-creature{ display:flex; align-items:center; gap:10px; }
 .na1-a2m1-value-name{ font-family:var(--f-display); font-size:20px; font-weight:400; color:var(--na1-text); }
-.na1-a2m1-value-def{ font-family:var(--f-body); font-size:15.5px; line-height:1.6; color:var(--na1-text-sec); margin-top:7px; }
+.na1-a2m1-value-def{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); margin-top:7px; font-weight:var(--b-w);}
 .na1-a2m1-rate-list{ display:flex; flex-direction:column; gap:28px; }
 .na1-a2m1-slider-anchors{ display:flex; justify-content:space-between; align-items:baseline; gap:14px; margin-bottom:9px; }
-.na1-a2m1-anchor{ font-family:var(--f-body); font-size:15px; display:inline-flex; align-items:center; gap:6px; }
+.na1-a2m1-anchor{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); display:inline-flex; align-items:center; gap:6px; font-weight:var(--b-w);}
 .na1-a2m1-anchor.is-left{ color:var(--na1-text-mute); }
 .na1-a2m1-anchor.is-right{ color:var(--na1-text); font-weight:600; text-align:right; }
 .na1-a2m1-shadow-dot{ width:8px; height:8px; border-radius:50%; background:var(--burgundy-fill); flex:0 0 auto; }
@@ -1063,8 +1066,8 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m1-slider.is-unrated input[type=range].na1-a2m1-range{ background:var(--na1-border); }
 .na1-a2m1-slider.is-unrated .na1-a2m1-range::-webkit-slider-thumb{ background:transparent; border-color:var(--na1-text-mute); box-shadow:none; }
 .na1-a2m1-slider.is-unrated .na1-a2m1-range::-moz-range-thumb{ background:transparent; border-color:var(--na1-text-mute); box-shadow:none; }
-.na1-a2m1-pos{ font-family:var(--f-label); font-size:12px; font-weight:400; letter-spacing:.04em; margin-top:9px; text-align:center; min-height:16px; }
-.na1-a2m1-blocked-hint{ font-family:var(--f-body); font-size:14.5px; line-height:1.5; color:var(--burgundy-text); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:var(--na1-radius); padding:10px 13px; margin-top:18px; }
+.na1-a2m1-pos{ font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; letter-spacing:.04em; margin-top:9px; text-align:center; min-height:16px; }
+.na1-a2m1-blocked-hint{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--burgundy-text); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:var(--na1-radius); padding:10px 13px; margin-top:18px; font-weight:var(--b-w);}
 @media (max-width:600px){ .na1-a2m1-anchor{ font-size:12px; } .na1-a2m1-rate-list{ gap:24px; } }
 /* ── A2.4 · clickable-back stepper ── */
 .na1-a2m1-step.is-clickable{ background:none; border:none; padding:0; margin:0; font:inherit; cursor:pointer; transition:transform .15s; }
@@ -1073,13 +1076,13 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m1-step.is-clickable:focus-visible{ outline:2px solid var(--gold); outline-offset:4px; border-radius:8px; }
 /* ── A2.4 · Purpose sub-screen ── */
 .na1-a2m1-rate-head.is-purpose{ display:flex; flex-direction:column; gap:9px; }
-.na1-a2m1-purpose-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); }
-.na1-a2m1-purpose-quote{ font-family:var(--f-body); font-style:italic; font-size:20px; line-height:1.5; color:var(--na1-text); margin:0; padding-left:16px; border-left:2px solid var(--gold-line); }
+.na1-a2m1-purpose-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); }
+.na1-a2m1-purpose-quote{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(20px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:0; padding-left:16px; border-left:2px solid var(--gold-line); font-weight:var(--b-w);}
 /* ── A2.4 · Step 3 · Key Misalignment ── */
 .na1-a2m1-km-legend{ display:flex; flex-direction:column; gap:8px; margin:-12px 0 22px; padding:13px 15px; border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); }
-.na1-a2m1-km-legend-row{ display:flex; align-items:flex-start; gap:11px; margin:0; font-family:var(--f-label); font-size:12.5px; line-height:1.5; color:var(--na1-text-sec); }
+.na1-a2m1-km-legend-row{ display:flex; align-items:flex-start; gap:11px; margin:0; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); line-height:1.5; color:var(--na1-text-sec); font-weight:400;}
 .na1-a2m1-km-legend-glyph{ flex:0 0 auto; width:16px; text-align:center; font-size:14px; line-height:1.5; }
-.na1-a2m1-km-legend-glyph.is-bottleneck{ color:var(--gold-text); font-size:15px; }
+.na1-a2m1-km-legend-glyph.is-bottleneck{ color:var(--gold-text); font-size:max(var(--b-min), calc(15px + var(--b-bump))); }
 .na1-a2m1-km-legend-glyph.is-keep{ color:var(--na1-text-mute); }
 .na1-a2m1-km-legend-text strong{ color:var(--na1-text); font-weight:600; }
 .na1-a2m1-km-list{ display:flex; flex-direction:column; gap:10px; }
@@ -1091,35 +1094,35 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m1-km-score{ flex:0 0 auto; font-family:var(--f-display); font-size:15px; font-weight:400; color:var(--burgundy-text); min-width:38px; text-align:center; }
 .na1-a2m1-km-text{ display:flex; flex-direction:column; gap:3px; min-width:0; flex:1 1 auto; }
 .na1-a2m1-km-label{ display:flex; align-items:center; gap:9px; font-family:var(--f-display); font-size:16px; font-weight:400; color:var(--na1-text); }
-.na1-a2m1-km-badge{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--burgundy-text); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:999px; padding:2px 8px; }
-.na1-a2m1-km-sub{ font-family:var(--f-body); font-size:14.5px; line-height:1.45; color:var(--na1-text-sec); }
+.na1-a2m1-km-badge{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--burgundy-text); background:var(--burgundy-soft); border:1px solid var(--burgundy-line); border-radius:999px; padding:2px 8px; }
+.na1-a2m1-km-sub{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-a2m1-km-mark{ flex:0 0 auto; font-size:17px; color:var(--na1-text-mute); }
 .na1-a2m1-km-row.is-selected .na1-a2m1-km-mark{ color:var(--gold-text); }
-.na1-a2m1-km-keep{ flex:0 0 auto; width:44px; display:flex; align-items:center; justify-content:center; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); color:var(--na1-text-mute); font-size:16px; cursor:pointer; transition:color .15s, border-color .15s; }
+.na1-a2m1-km-keep{ flex:0 0 auto; width:44px; display:flex; align-items:center; justify-content:center; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); color:var(--na1-text-mute); font-size:max(var(--b-min), calc(16px + var(--b-bump))); cursor:pointer; transition:color .15s, border-color .15s; }
 .na1-a2m1-km-keep:hover{ color:var(--gold-text); border-color:var(--gold-line); }
 .na1-a2m1-km-keep:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
 .na1-a2m1-km-keep.is-kept{ color:var(--gold-text); border-color:var(--gold); background:var(--gold-soft); }
 .na1-a2m1-km-more{ align-self:flex-start; margin-top:13px; background:none; border:none; padding:0; font-family:var(--f-label); font-size:13px; font-weight:400; color:var(--gold-text); cursor:pointer; }
 .na1-a2m1-km-more:hover{ text-decoration:underline; }
 .na1-a2m1-km-more:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; border-radius:4px; }
-.na1-a2m1-km-summary{ font-family:var(--f-body); font-size:15px; line-height:1.6; color:var(--na1-text-sec); margin:22px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); }
+.na1-a2m1-km-summary{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); margin:22px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); font-weight:var(--b-w);}
 .na1-a2m1-km-summary strong{ color:var(--gold-text); font-weight:600; }
 /* A2.5 · Step 4 (Claim). Pre-claim read-back + Katherine's seal. Tokens only. */
 .na1-a2m1-step4{ display:flex; flex-direction:column; }
 .na1-a2m1-claim-readback{ margin:4px 0 26px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
-.na1-a2m1-claim-line{ font-family:var(--f-body); font-size:16.5px; line-height:1.6; color:var(--na1-text-sec); margin:0; }
+.na1-a2m1-claim-line{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
 .na1-a2m1-claim-line strong{ color:var(--gold-text); font-weight:600; }
-.na1-a2m1-claim-keep{ font-family:var(--f-body); font-size:15px; line-height:1.6; color:var(--na1-text-mute); margin:10px 0 0; }
+.na1-a2m1-claim-keep{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text-sec); margin:10px 0 0; font-weight:var(--b-w);}
 .na1-a2m1-claim-keep strong{ color:var(--gold-text); font-weight:600; }
 .na1-a2m1-seal{ margin:6px 0 26px; padding:22px 24px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
-.na1-a2m1-seal-body{ font-family:var(--f-body); font-style:italic; font-size:19px; line-height:1.7; color:var(--gold-text); margin:0; }
+.na1-a2m1-seal-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.7); color:var(--gold-text); margin:0; font-weight:var(--b-w);}
 .na1-a2m1-seal-body strong{ font-weight:700; color:var(--gold-text); }
-.na1-a2m1-seal-by{ font-family:var(--f-body); font-style:italic; font-size:16px; color:var(--gold-text); margin:14px 0 0; text-align:right; }
+.na1-a2m1-seal-by{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--gold-text); margin:14px 0 0; text-align:right; font-weight:var(--b-w);}
 .na1-a2m1-claim-actions{ display:flex; }
 .na1-a2m1-claim-actions .na1-btn-gold{ width:100%; }
 .na1-a2m1-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
-.na1-a2m1-reclaim-note{ margin:0; font-family:var(--f-body); font-size:15px; line-height:1.5; color:var(--na1-text-mute); text-align:center; }
-@media (max-width:600px){ .na1-a2m1-purpose-quote{ font-size:16px; } .na1-a2m1-km-label{ font-size:15px; } .na1-a2m1-seal-body{ font-size:16px; } }
+.na1-a2m1-reclaim-note{ margin:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text-sec); text-align:center; font-weight:var(--b-w);}
+@media (max-width:600px){ .na1-a2m1-purpose-quote{ font-size:max(var(--b-min), calc(16px + var(--b-bump))); } .na1-a2m1-km-label{ font-size:15px; } .na1-a2m1-seal-body{ font-size:max(var(--b-min), calc(16px + var(--b-bump))); } }
 /* ── A2 Ship 1 · Mirror 2 (Time Audit · a2m2) room. Mirrors a2m1; tokens only. ── */
 .na1-a2m2-room-card{ max-width:780px; }
 .na1-a2m2-stepper{ display:flex; align-items:center; gap:6px; margin:0 0 28px; }
@@ -1127,35 +1130,35 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m2-step.is-clickable{ cursor:pointer; }
 .na1-a2m2-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
 .na1-a2m2-line.is-reached{ background:var(--gold-line); }
-.na1-a2m2-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a2m2-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-sec); transition:all .2s; }
 .na1-a2m2-dot.is-reached{ border-color:var(--gold-line); color:var(--na1-text-sec); }
 .na1-a2m2-dot.is-complete{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold-text); }
 .na1-a2m2-dot.is-current{ background:var(--gold); border-color:var(--gold); color:var(--on-gold); box-shadow:0 0 14px var(--gold-glow); }
-.na1-a2m2-step-name{ font-family:var(--f-body); font-size:13px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:84px; }
+.na1-a2m2-step-name{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); line-height:max(var(--b-lh), 1.2); color:var(--na1-text-sec); text-align:center; max-width:84px; font-weight:var(--b-w);}
 .na1-a2m2-step-name.is-current{ color:var(--gold-text); font-weight:600; }
 @media (max-width:600px){ .na1-a2m2-step-name{ display:none; } }
 .na1-a1-stepper{ display:flex; align-items:center; gap:6px; margin:0 0 28px; }
 .na1-a1-step{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto; }
 .na1-a1-step-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
 .na1-a1-step-line.is-done{ background:var(--gold-line); }
-.na1-a1-step-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a1-step-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-sec); transition:all .2s; }
 .na1-a1-step--done .na1-a1-step-dot{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold-text); }
 .na1-a1-step--cur .na1-a1-step-dot{ background:transparent; border-color:var(--gold); color:var(--gold-text); box-shadow:0 0 14px var(--gold-glow); }
-.na1-a1-step-lbl{ font-family:var(--f-body); font-size:13px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:84px; }
+.na1-a1-step-lbl{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); line-height:max(var(--b-lh), 1.2); color:var(--na1-text-sec); text-align:center; max-width:84px; font-weight:var(--b-w);}
 .na1-a1-step--done .na1-a1-step-lbl{ color:var(--na1-text-sec); }
 .na1-a1-step--cur .na1-a1-step-lbl{ color:var(--gold-text); font-weight:600; }
 @media (max-width:600px){ .na1-a1-step-lbl{ display:none; } }
 .na1-a2m2-body{ min-height:200px; }
 .na1-a2m2-step-title{ font-family:var(--f-display); font-size:26px; font-weight:400; line-height:1.2; color:var(--na1-text); margin:0 0 10px; }
 .na1-a2m2-step-title em{ font-style:normal; color:var(--gold-text); }
-.na1-a2m2-step-lede{ font-family:var(--f-body); font-size:16.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 24px; }
-.na1-a2m2-block-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 12px; }
-.na1-a2m2-count{ font-family:var(--f-label); font-size:12.5px; color:var(--na1-text-mute); margin:14px 0 0; }
-.na1-a2m2-empty{ font-family:var(--f-body); font-size:15.5px; color:var(--na1-text-mute); font-style:italic; margin:0; }
-.na1-a2m2-input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:16.5px; outline:none; transition:border-color .15s; }
+.na1-a2m2-step-lede{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0 0 24px; font-weight:var(--b-w);}
+.na1-a2m2-block-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 12px; }
+.na1-a2m2-count{ font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); color:var(--na1-text-sec); margin:14px 0 0; font-weight:400;}
+.na1-a2m2-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; margin:0; font-weight:var(--b-w);}
+.na1-a2m2-input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); outline:none; transition:border-color .15s; font-weight:var(--b-w);}
 .na1-a2m2-input:focus{ border-color:var(--gold); }
 .na1-a2m2-input::placeholder{ color:var(--na1-text-mute); }
-.na1-a2m2-select{ min-height:40px; padding:8px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-label); font-size:13.5px; outline:none; cursor:pointer; transition:border-color .15s; }
+.na1-a2m2-select{ min-height:40px; padding:8px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-label); font-size:13.5px; outline:none; cursor:pointer; transition:border-color .15s; font-weight:400;}
 .na1-a2m2-select:focus{ border-color:var(--gold); }
 .na1-a2m2-select[data-feeling="love"]{ color:var(--gold-text); border-color:var(--gold-line); }
 .na1-a2m2-select[data-feeling="like"]{ color:var(--c2); border-color:var(--c2); }
@@ -1179,8 +1182,8 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m2-rank-row.is-dragging{ opacity:0.5; border-color:var(--gold); }
 .na1-a2m2-rank-row.is-drop-target{ border-color:var(--gold); }
 .na1-a2m2-drag{ flex:0 0 auto; cursor:grab; color:var(--na1-text-mute); font-size:15px; line-height:1; user-select:none; }
-.na1-a2m2-rank-num{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:12px; font-weight:400; display:flex; align-items:center; justify-content:center; }
-.na1-a2m2-rank-name{ flex:1 1 auto; font-family:var(--f-body); font-size:16.5px; color:var(--na1-text); min-width:0; }
+.na1-a2m2-rank-num{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; display:flex; align-items:center; justify-content:center; }
+.na1-a2m2-rank-name{ flex:1 1 auto; font-family:var(--f-body); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); color:var(--na1-text); min-width:0; font-weight:var(--b-w);}
 .na1-a2m2-rank-actions{ flex:0 0 auto; display:flex; align-items:center; gap:4px; }
 .na1-a2m2-arrow{ width:30px; height:30px; border-radius:var(--na1-radius-sm); background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
 .na1-a2m2-arrow:hover:not(:disabled){ color:var(--gold-text); border-color:var(--gold-line); }
@@ -1193,7 +1196,7 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m2-activity-top .na1-a2m2-input{ flex:1 1 auto; }
 .na1-a2m2-activity-fields{ display:flex; flex-wrap:wrap; gap:10px; }
 .na1-a2m2-field{ display:flex; flex-direction:column; gap:5px; flex:1 1 140px; min-width:0; }
-.na1-a2m2-field-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.1em; text-transform:uppercase; color:var(--na1-text-mute); }
+.na1-a2m2-field-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.1em; text-transform:uppercase; color:var(--na1-text-sec); }
 .na1-a2m2-field .na1-a2m2-input, .na1-a2m2-field .na1-a2m2-select{ width:100%; }
 /* Compound selector (0,3,0) is required to beat the descendant width:100%
    rule (0,2,0) and the base na1-a2m2-input padding/min-height — otherwise
@@ -1203,17 +1206,17 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m2-add-activity:hover{ background:var(--gold-soft); }
 .na1-a2m2-totals{ margin:24px 0 0; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
 .na1-a2m2-totals-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:14px; }
-.na1-a2m2-totals-title{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0; }
-.na1-a2m2-totals-sum{ font-family:var(--f-body); font-size:15px; color:var(--na1-text-sec); }
+.na1-a2m2-totals-title{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0; }
+.na1-a2m2-totals-sum{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-a2m2-total-row{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:6px 12px; margin:0 0 10px; }
-.na1-a2m2-total-name{ font-family:var(--f-body); font-size:15.5px; color:var(--na1-text); }
-.na1-a2m2-total-val{ font-family:var(--f-body); font-size:15px; color:var(--na1-text-sec); white-space:nowrap; }
+.na1-a2m2-total-name{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
+.na1-a2m2-total-val{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); white-space:nowrap; font-weight:var(--b-w);}
 .na1-a2m2-total-bar{ grid-column:1 / -1; height:6px; border-radius:3px; background:var(--na1-border); overflow:hidden; }
 .na1-a2m2-total-fill{ height:100%; border-radius:3px; background:var(--gold); transition:width .4s ease; }
 .na1-a2m2-total-row.is-unaccounted .na1-a2m2-total-name{ color:var(--na1-text-mute); font-style:italic; }
 .na1-a2m2-total-fill.is-unaccounted{ background:var(--burgundy-fill); }
 .na1-a2m2-benchmark{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin:24px 0 0; padding:14px 16px; border-radius:12px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
-.na1-a2m2-benchmark-label{ flex:1 1 200px; font-family:var(--f-label); font-size:13.5px; line-height:1.45; color:var(--na1-text-sec); }
+.na1-a2m2-benchmark-label{ flex:1 1 200px; font-family:var(--f-label); font-size:13.5px; line-height:1.45; color:var(--na1-text-sec); font-weight:400;}
 .na1-a2m2-benchmark .na1-a2m2-input{ flex:0 0 96px; height:40px; min-height:40px; text-align:center; }
 /* Step 3 · What's missing */
 .na1-a2m2-missing-list{ display:flex; flex-direction:column; gap:10px; }
@@ -1221,33 +1224,33 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m2-missing-dot{ flex:0 0 auto; width:10px; height:10px; border-radius:50%; background:var(--burgundy-fill); }
 .na1-a2m2-missing-row .na1-a2m2-input{ flex:1 1 auto; }
 .na1-a2m2-missing-tag{ flex:0 0 auto; max-width:150px; }
-.na1-a2m2-missing-note{ font-family:var(--f-body); font-style:italic; font-size:16px; line-height:1.6; color:var(--na1-text-sec); margin:18px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); }
+.na1-a2m2-missing-note{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text-sec); margin:18px 0 0; padding-top:16px; border-top:1px solid var(--na1-border); font-weight:var(--b-w);}
 /* Step 4 · Claim */
 .na1-a2m2-claim-mini{ max-width:360px; margin:0 auto 22px; }
-.na1-a2m2-claim-mini-head{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); text-align:center; margin:0 0 10px; }
-.na1-a2m2-claim-mini-row{ display:flex; justify-content:space-between; align-items:center; gap:14px; padding:5px 0; font-family:var(--f-body); font-size:15px; color:var(--na1-text-sec); border-bottom:1px solid var(--gold-line); }
+.na1-a2m2-claim-mini-head{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-sec); text-align:center; margin:0 0 10px; }
+.na1-a2m2-claim-mini-row{ display:flex; justify-content:space-between; align-items:center; gap:14px; padding:5px 0; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); border-bottom:1px solid var(--gold-line); font-weight:var(--b-w);}
 .na1-a2m2-claim-mini-row:last-child{ border-bottom:none; }
 .na1-a2m2-claim-mini-name{ display:inline-flex; align-items:center; gap:7px; }
 .na1-a2m2-claim-mini-glyph{ color:var(--gold-text); font-size:12px; }
 .na1-a2m2-claim-mini-val{ color:var(--na1-text-mute); font-variant-numeric:tabular-nums; white-space:nowrap; }
 .na1-a2m2-claim-mini.is-sealed .na1-a2m2-claim-mini-row{ border-bottom-color:var(--na1-border); }
 .na1-a2m2-claim-mini.is-sealed .na1-a2m2-claim-mini-glyph{ color:var(--na1-text); }
-.na1-a2m2-claim-missing-line{ font-family:var(--f-body); font-size:14.5px; font-style:italic; line-height:1.5; color:var(--na1-text-mute); text-align:center; margin:0 auto 24px; max-width:360px; }
-.na1-a2m2-cer-by{ font-family:var(--f-body); font-style:italic; font-size:16px; color:var(--gold-text); margin:16px 0 0; text-align:center; }
+.na1-a2m2-claim-missing-line{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); font-style:italic; line-height:max(var(--b-lh), 1.5); color:var(--na1-text-sec); text-align:center; margin:0 auto 24px; max-width:360px; font-weight:var(--b-w);}
+.na1-a2m2-cer-by{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--gold-text); margin:16px 0 0; text-align:center; font-weight:var(--b-w);}
 .na1-a2m2-claim .na1-a2m2-reclaim{ margin-top:18px; }
-.na1-a2m2-claim .na1-decl-cer-para{ color:var(--gold-text); font-size:19px; }
-@media (max-width:600px){ .na1-a2m2-claim .na1-decl-cer-para{ font-size:17px; } }
+.na1-a2m2-claim .na1-decl-cer-para{ color:var(--gold-text); font-size:max(var(--b-min), calc(19px + var(--b-bump))); }
+@media (max-width:600px){ .na1-a2m2-claim .na1-decl-cer-para{ font-size:max(var(--b-min), calc(17px + var(--b-bump))); } }
 .na1-a2m2-claim-actions{ display:flex; }
 .na1-a2m2-claim-actions .na1-btn-gold{ width:100%; }
 .na1-a2m2-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
 @media (max-width:600px){ .na1-a2m2-step-title{ font-size:23px; } }
 /* Step body wrappers + shared helpers */
 .na1-a2m2-step1, .na1-a2m2-step2, .na1-a2m2-step3{ display:flex; flex-direction:column; }
-.na1-a2m2-help{ font-family:var(--f-body); font-size:15px; line-height:1.6; color:var(--na1-text-mute); margin:0 0 16px; }
+.na1-a2m2-help{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text-sec); margin:0 0 16px; font-weight:var(--b-w);}
 .na1-a2m2-activity-name{ flex:1 1 auto; min-width:0; }
 .na1-a2m2-missing-name{ flex:1 1 auto; min-width:0; }
 .na1-a2m2-missing-card-name{ flex:1 1 auto; min-width:0; }
-.na1-a2m2-total-num{ flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:11px; font-weight:400; display:inline-flex; align-items:center; justify-content:center; }
+.na1-a2m2-total-num{ flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; display:inline-flex; align-items:center; justify-content:center; }
 .na1-a2m2-remove{ flex:0 0 auto; width:30px; height:30px; border-radius:var(--na1-radius-sm); background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); font-size:14px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
 .na1-a2m2-remove:hover{ color:var(--burgundy-text); border-color:var(--burgundy-line); }
 .na1-a2m2-add-missing{ align-self:flex-start; margin-top:14px; background:none; border:1px dashed var(--gold-line); border-radius:var(--na1-radius); padding:10px 16px; font-family:var(--f-label); font-size:13px; font-weight:400; color:var(--gold-text); cursor:pointer; transition:all .15s; }
@@ -1261,13 +1264,13 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m3-body{ min-height:200px; }
 .na1-a2m3-step-title{ font-family:var(--f-display); font-size:26px; font-weight:400; line-height:1.2; color:var(--na1-text); margin:8px 0 10px; }
 .na1-a2m3-step-title em{ font-style:normal; color:var(--gold-text); }
-.na1-a2m3-step-lede{ font-family:var(--f-body); font-size:16.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 24px; }
+.na1-a2m3-step-lede{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0 0 24px; font-weight:var(--b-w);}
 .na1-a2m3-step1, .na1-a2m3-step2, .na1-a2m3-step3{ display:flex; flex-direction:column; }
 .na1-a2m3-nav{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:28px; padding-top:22px; border-top:1px solid var(--na1-border); }
 .na1-a2m3-nav .na1-btn-gold:disabled{ opacity:0.4; cursor:not-allowed; }
-.na1-a2m3-rank{ flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:11px; font-weight:400; display:flex; align-items:center; justify-content:center; }
+.na1-a2m3-rank{ flex:0 0 auto; width:24px; height:24px; border-radius:50%; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; display:flex; align-items:center; justify-content:center; }
 .na1-a2m3-miss-dot{ flex:0 0 auto; width:10px; height:10px; border-radius:50%; background:var(--burgundy-fill); }
-.na1-a2m3-flag{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.04em; text-transform:uppercase; }
+.na1-a2m3-flag{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; letter-spacing:0.04em; text-transform:uppercase; }
 .na1-a2m3-flag.is-yes{ background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); }
 .na1-a2m3-flag.is-no{ background:var(--burgundy-soft); border:1px solid var(--burgundy-line); color:var(--burgundy-text); }
 .na1-a2m3-flag.is-unsure{ background:var(--na1-bg-soft); border:1px solid var(--na1-border); color:var(--na1-text-mute); }
@@ -1280,32 +1283,32 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m3-step.is-clickable{ cursor:pointer; }
 .na1-a2m3-line{ flex:1 1 auto; height:2px; background:var(--na1-border); border-radius:1px; margin-top:-18px; transition:background .2s; }
 .na1-a2m3-line.is-reached{ background:var(--gold-line); }
-.na1-a2m3-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-mute); transition:all .2s; }
+.na1-a2m3-dot{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--f-label); font-size:13px; font-weight:400; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-sec); transition:all .2s; }
 .na1-a2m3-dot.is-reached{ border-color:var(--gold-line); color:var(--na1-text-sec); }
 .na1-a2m3-dot.is-complete{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold-text); }
 .na1-a2m3-dot.is-current{ background:var(--gold); border-color:var(--gold); color:var(--on-gold); box-shadow:0 0 14px var(--gold-glow); }
-.na1-a2m3-step-name{ font-family:var(--f-body); font-size:13px; line-height:1.2; color:var(--na1-text-mute); text-align:center; max-width:110px; }
+.na1-a2m3-step-name{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); line-height:max(var(--b-lh), 1.2); color:var(--na1-text-sec); text-align:center; max-width:110px; font-weight:var(--b-w);}
 .na1-a2m3-step-name.is-current{ color:var(--gold-text); font-weight:600; }
 @media (max-width:600px){ .na1-a2m3-step-name{ display:none; } .na1-a2m3-step-title{ font-size:23px; } }
 /* Step 1 · The gap */
 .na1-a2m3-context{ display:flex; flex-wrap:wrap; gap:12px; margin:0 0 20px; }
 .na1-a2m3-ctx-card{ flex:1 1 220px; min-width:0; padding:16px 18px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
-.na1-a2m3-ctx-head{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 12px; }
-.na1-a2m3-ctx-empty{ font-family:var(--f-body); font-size:15px; color:var(--na1-text-mute); font-style:italic; margin:0; }
+.na1-a2m3-ctx-head{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 12px; }
+.na1-a2m3-ctx-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; margin:0; font-weight:var(--b-w);}
 .na1-a2m3-ctx-row{ display:flex; align-items:center; gap:9px; margin:0 0 9px; }
 .na1-a2m3-ctx-row:last-child{ margin-bottom:0; }
-.na1-a2m3-ctx-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:15.5px; color:var(--na1-text); }
-.na1-a2m3-ctx-hrs{ flex:0 0 auto; font-family:var(--f-body); font-size:14.5px; color:var(--na1-text-sec); }
+.na1-a2m3-ctx-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
+.na1-a2m3-ctx-hrs{ flex:0 0 auto; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-a2m3-insight{ margin:0 0 22px; padding:18px 20px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
-.na1-a2m3-insight-text{ font-family:var(--f-body); font-style:italic; font-size:17.5px; line-height:1.7; color:var(--gold-text); margin:0; }
+.na1-a2m3-insight-text{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.7); color:var(--gold-text); margin:0; font-weight:var(--b-w);}
 .na1-a2m3-gap-card{ margin:0 0 14px; padding:16px 18px; border-radius:12px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
 .na1-a2m3-gap-top{ display:flex; align-items:center; gap:10px; margin:0 0 10px; }
 .na1-a2m3-gap-name{ flex:1 1 auto; min-width:0; font-family:var(--f-label); font-size:15px; font-weight:400; color:var(--na1-text); }
-.na1-a2m3-gap-hrs{ flex:0 0 auto; font-family:var(--f-body); font-size:15px; color:var(--na1-text-sec); }
+.na1-a2m3-gap-hrs{ flex:0 0 auto; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-a2m3-bar{ height:8px; border-radius:4px; background:var(--na1-border); overflow:hidden; }
 .na1-a2m3-bar-fill{ height:100%; border-radius:4px; background:var(--gold); transition:width .4s ease; }
 .na1-a2m3-bar-fill.is-burgundy{ background:var(--burgundy-fill); }
-.na1-a2m3-bar-label{ font-family:var(--f-label); font-size:11.5px; color:var(--na1-text-mute); margin:7px 0 0; }
+.na1-a2m3-bar-label{ font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); color:var(--na1-text-sec); margin:7px 0 0; font-weight:400;}
 .na1-a2m3-gap-card.is-unaccounted .na1-a2m3-gap-name{ font-style:italic; color:var(--na1-text-mute); }
 .na1-a2m3-intent-btns{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 0; }
 .na1-a2m3-intent-btn{ flex:1 1 auto; min-height:40px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; transition:all .15s; }
@@ -1314,63 +1317,63 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m3-intent-btn.is-no.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy-text); }
 .na1-a2m3-intent-btn.is-unsure.is-selected{ background:var(--na1-bg-soft); border-color:var(--na1-text-mute); color:var(--na1-text); }
 /* Step 2 · Rethink your time */
-.na1-a2m3-note{ font-family:var(--f-body); font-size:15px; line-height:1.6; color:var(--na1-text-mute); margin:0 0 20px; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px dashed var(--na1-border); }
+.na1-a2m3-note{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text-sec); margin:0 0 20px; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px dashed var(--na1-border); font-weight:var(--b-w);}
 .na1-a2m3-freed-hero{ display:flex; flex-direction:column; align-items:center; gap:2px; margin:0 0 24px; padding:22px 20px; border-radius:14px; background:var(--gold-soft); border:1px solid var(--gold-line); }
 .na1-a2m3-freed-num{ font-family:var(--f-display); font-size:52px; font-weight:400; line-height:1; color:var(--gold-text); }
-.na1-a2m3-freed-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); }
+.na1-a2m3-freed-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); }
 .na1-a2m3-accordion{ margin:0 0 12px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); overflow:hidden; }
 .na1-a2m3-accordion.is-open{ border-color:var(--gold-line); }
-.na1-a2m3-acc-head{ display:flex; align-items:center; gap:10px; width:100%; padding:14px 16px; background:none; border:none; cursor:pointer; text-align:left; font-family:var(--f-body); }
+.na1-a2m3-acc-head{ display:flex; align-items:center; gap:10px; width:100%; padding:14px 16px; background:none; border:none; cursor:pointer; text-align:left; font-family:var(--f-body); font-weight:var(--b-w);}
 .na1-a2m3-acc-label{ flex:0 0 auto; font-size:14.5px; font-weight:700; color:var(--na1-text); }
-.na1-a2m3-acc-note{ flex:1 1 auto; font-size:12px; font-style:italic; color:var(--na1-text-mute); }
-.na1-a2m3-acc-meta{ flex:0 0 auto; font-size:12px; color:var(--na1-text-sec); }
-.na1-a2m3-acc-chevron{ flex:0 0 auto; color:var(--na1-text-mute); font-size:12px; }
+.na1-a2m3-acc-note{ flex:1 1 auto; font-size:max(var(--b-min), calc(12px + var(--b-bump))); font-style:italic; color:var(--na1-text-mute); }
+.na1-a2m3-acc-meta{ flex:0 0 auto; font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); }
+.na1-a2m3-acc-chevron{ flex:0 0 auto; color:var(--na1-text-mute); font-size:max(var(--b-min), calc(12px + var(--b-bump))); }
 .na1-a2m3-acc-body{ padding:0 16px 16px; display:flex; flex-direction:column; gap:14px; }
 .na1-a2m3-act{ padding:14px 16px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
 .na1-a2m3-act-top{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 12px; }
 .na1-a2m3-act-name{ flex:1 1 140px; min-width:0; font-family:var(--f-label); font-size:14.5px; font-weight:400; color:var(--na1-text); }
-.na1-a2m3-act-feel{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--f-label); font-size:11px; font-weight:400; text-transform:uppercase; letter-spacing:0.04em; background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text-mute); }
+.na1-a2m3-act-feel{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; text-transform:uppercase; letter-spacing:0.04em; background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text-sec); }
 .na1-a2m3-act-feel[data-feeling="love"]{ color:var(--gold-text); border-color:var(--gold-line); }
 .na1-a2m3-act-feel[data-feeling="like"]{ color:var(--c2); border-color:var(--c2); }
 .na1-a2m3-act-feel[data-feeling="despise"]{ color:var(--burgundy-text); border-color:var(--burgundy-line); }
-.na1-a2m3-act-pri{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--f-label); font-size:11px; font-weight:400; }
+.na1-a2m3-act-pri{ flex:0 0 auto; padding:2px 9px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; }
 .na1-a2m3-act-pri.is-tagged{ background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); }
 .na1-a2m3-act-pri.is-none{ background:var(--burgundy-soft); border:1px solid var(--burgundy-line); color:var(--burgundy-text); font-style:italic; }
-.na1-a2m3-act-hrs{ flex:0 0 auto; font-family:var(--f-body); font-size:15px; color:var(--na1-text-sec); }
+.na1-a2m3-act-hrs{ flex:0 0 auto; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-a2m3-dec-btns{ display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
 .na1-a2m3-dec-btn{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:9px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); cursor:pointer; transition:all .15s; text-align:left; }
 .na1-a2m3-dec-btn:hover{ border-color:var(--gold-line); }
 .na1-a2m3-dec-main{ font-family:var(--f-label); font-size:13px; font-weight:400; color:var(--na1-text); }
-.na1-a2m3-dec-sub{ font-family:var(--f-body); font-size:13px; color:var(--na1-text-mute); }
+.na1-a2m3-dec-sub{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w);}
 .na1-a2m3-dec-btn.is-selected{ background:var(--gold-soft); border-color:var(--gold); }
 .na1-a2m3-dec-btn.is-selected .na1-a2m3-dec-main{ color:var(--gold-text); }
 .na1-a2m3-dec-btn.is-cut.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); }
 .na1-a2m3-dec-btn.is-cut.is-selected .na1-a2m3-dec-main{ color:var(--burgundy-text); }
 .na1-a2m3-detail{ margin:12px 0 0; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-card); border:1px solid var(--na1-border); display:flex; flex-direction:column; gap:12px; }
 .na1-a2m3-detail-row{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
-.na1-a2m3-detail-label{ flex:0 0 auto; font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.06em; text-transform:uppercase; color:var(--na1-text-mute); }
-.na1-a2m3-detail-input{ flex:0 0 80px; width:80px; height:38px; padding:0 10px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:16px; outline:none; }
+.na1-a2m3-detail-label{ flex:0 0 auto; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; letter-spacing:0.06em; text-transform:uppercase; color:var(--na1-text-sec); }
+.na1-a2m3-detail-input{ flex:0 0 80px; width:80px; height:38px; padding:0 10px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); outline:none; font-weight:var(--b-w);}
 .na1-a2m3-detail-input:focus{ border-color:var(--gold); }
-.na1-a2m3-detail-text{ flex:1 1 180px; min-width:0; height:38px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:16px; outline:none; }
+.na1-a2m3-detail-text{ flex:1 1 180px; min-width:0; height:38px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); outline:none; font-weight:var(--b-w);}
 .na1-a2m3-detail-text:focus{ border-color:var(--gold); }
 .na1-a2m3-detail-text::placeholder, .na1-a2m3-detail-input::placeholder{ color:var(--na1-text-mute); }
-.na1-a2m3-detail-freed{ flex:0 0 auto; font-family:var(--f-label); font-size:12px; font-weight:400; color:var(--gold-text); }
-.na1-a2m3-act-suggest{ font-family:var(--f-body); font-style:italic; font-size:15.5px; line-height:1.6; color:var(--na1-text-sec); margin:12px 0 0; padding-top:11px; border-top:1px solid var(--na1-border); }
+.na1-a2m3-detail-freed{ flex:0 0 auto; font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; color:var(--gold-text); }
+.na1-a2m3-act-suggest{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); margin:12px 0 0; padding-top:11px; border-top:1px solid var(--na1-border); font-weight:var(--b-w);}
 .na1-a2m3-trade{ margin:18px 0 0; padding:18px 20px; border-radius:14px; background:var(--na1-bg-card); border:1px solid var(--na1-border); }
 .na1-a2m3-trade.is-muted{ opacity:0.75; }
 .na1-a2m3-trade-head{ font-family:var(--f-display); font-size:18px; font-weight:400; color:var(--na1-text); margin:0 0 4px; }
-.na1-a2m3-trade-sub{ font-family:var(--f-body); font-size:15px; line-height:1.55; color:var(--na1-text-sec); margin:0 0 16px; }
+.na1-a2m3-trade-sub{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); margin:0 0 16px; font-weight:var(--b-w);}
 .na1-a2m3-trade-sec{ margin:0 0 16px; }
-.na1-a2m3-trade-sec-head{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
+.na1-a2m3-trade-sec-head{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
 .na1-a2m3-trade-row{ display:flex; flex-wrap:wrap; align-items:center; gap:9px; padding:9px 11px; border-radius:var(--na1-radius); background:var(--na1-bg-soft); border:1px solid var(--na1-border); margin:0 0 8px; }
 .na1-a2m3-trade-row.is-active{ border-color:var(--gold-line); }
-.na1-a2m3-trade-name{ flex:1 1 120px; min-width:0; font-family:var(--f-body); font-size:15.5px; color:var(--na1-text); }
-.na1-a2m3-trade-tag{ flex:0 0 auto; padding:2px 8px; border-radius:100px; font-family:var(--f-label); font-size:11px; font-weight:400; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); }
-.na1-a2m3-trade-input{ flex:0 0 70px; width:70px; height:36px; padding:0 9px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:16px; outline:none; }
+.na1-a2m3-trade-name{ flex:1 1 120px; min-width:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
+.na1-a2m3-trade-tag{ flex:0 0 auto; padding:2px 8px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); }
+.na1-a2m3-trade-input{ flex:0 0 70px; width:70px; height:36px; padding:0 9px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); outline:none; font-weight:var(--b-w);}
 .na1-a2m3-trade-input:focus{ border-color:var(--gold); }
-.na1-a2m3-trade-unit{ flex:0 0 auto; font-family:var(--f-body); font-size:13.5px; color:var(--na1-text-mute); }
+.na1-a2m3-trade-unit{ flex:0 0 auto; font-family:var(--f-body); font-size:max(var(--b-min), calc(13.5px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w);}
 .na1-a2m3-trade-add{ display:flex; gap:8px; margin:0 0 12px; }
-.na1-a2m3-trade-select{ flex:1 1 auto; min-height:40px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-label); font-size:13.5px; outline:none; cursor:pointer; }
+.na1-a2m3-trade-select{ flex:1 1 auto; min-height:40px; padding:0 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-label); font-size:13.5px; outline:none; cursor:pointer; font-weight:400;}
 .na1-a2m3-trade-select:focus{ border-color:var(--gold); }
 .na1-a2m3-trade-addbtn{ flex:0 0 auto; }
 .na1-a2m3-trade-addbtn:disabled{ opacity:0.4; cursor:not-allowed; }
@@ -1378,62 +1381,62 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-a2m3-commit-top{ display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin:0 0 9px; }
 .na1-a2m3-commit-dot{ flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:var(--gold); }
 .na1-a2m3-commit-name{ flex:1 1 100px; min-width:0; font-family:var(--f-label); font-size:13.5px; font-weight:400; color:var(--na1-text); }
-.na1-a2m3-commit-x{ flex:0 0 auto; width:28px; height:28px; border-radius:var(--na1-radius-sm); background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); font-size:15px; line-height:1; cursor:pointer; transition:all .15s; }
+.na1-a2m3-commit-x{ flex:0 0 auto; width:28px; height:28px; border-radius:var(--na1-radius-sm); background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1); cursor:pointer; transition:all .15s; }
 .na1-a2m3-commit-x:hover{ color:var(--burgundy-text); border-color:var(--burgundy-line); }
-.na1-a2m3-commit-activity{ width:100%; min-height:40px; padding:9px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:15.5px; outline:none; }
+.na1-a2m3-commit-activity{ width:100%; min-height:40px; padding:9px 12px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); outline:none; font-weight:var(--b-w);}
 .na1-a2m3-commit-activity:focus{ border-color:var(--gold); }
 .na1-a2m3-commit-activity::placeholder{ color:var(--na1-text-mute); }
 .na1-a2m3-remain{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:16px 0 0; padding:14px 18px; border-radius:12px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); }
-.na1-a2m3-remain-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-mute); }
+.na1-a2m3-remain-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--na1-text-sec); }
 .na1-a2m3-remain-num{ font-family:var(--f-display); font-size:30px; font-weight:400; line-height:1; color:var(--gold-text); }
 .na1-a2m3-remain-num.is-zero{ color:var(--c2); }
 .na1-a2m3-remain-num.is-over{ color:var(--burgundy-text); }
 .na1-a2m3-move{ margin:18px 0 0; }
-.na1-a2m3-move-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
-.na1-a2m3-move-preview{ font-family:var(--f-body); font-style:italic; font-size:16.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 10px; }
-.na1-a2m3-move-text{ width:100%; min-height:80px; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:16px; line-height:1.6; outline:none; resize:vertical; }
+.na1-a2m3-move-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
+.na1-a2m3-move-preview{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0 0 10px; font-weight:var(--b-w);}
+.na1-a2m3-move-text{ width:100%; min-height:80px; padding:12px 14px; border-radius:var(--na1-radius); background:var(--na1-bg-input); border:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); outline:none; resize:vertical; font-weight:var(--b-w);}
 .na1-a2m3-move-text:focus{ border-color:var(--gold); }
 .na1-a2m3-feedback{ margin:18px 0 0; }
 .na1-a2m3-feedback-btn{ width:100%; }
 .na1-a2m3-feedback-btn:disabled{ opacity:0.6; cursor:progress; }
-.na1-a2m3-feedback-err{ font-family:var(--f-label); font-size:12.5px; color:var(--burgundy-text); margin:10px 0 0; }
+.na1-a2m3-feedback-err{ font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); color:var(--burgundy-text); margin:10px 0 0; font-weight:400;}
 .na1-a2m3-feedback-card{ margin:18px 0 0; padding:20px 22px; border-radius:12px; background:var(--gold-soft); border:1px solid var(--gold-line); border-left:3px solid var(--gold); }
-.na1-a2m3-feedback-head{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 12px; }
-.na1-a2m3-feedback-text{ font-family:var(--f-body); font-style:italic; font-size:17.5px; line-height:1.7; color:var(--gold-text); margin:0; }
-.na1-a2m3-feedback-note{ font-family:var(--f-label); font-size:11.5px; line-height:1.5; color:var(--na1-text-mute); margin:12px 0 0; }
+.na1-a2m3-feedback-head{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 12px; }
+.na1-a2m3-feedback-text{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.7); color:var(--gold-text); margin:0; font-weight:var(--b-w);}
+.na1-a2m3-feedback-note{ font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); line-height:1.5; color:var(--na1-text-sec); margin:12px 0 0; font-weight:400;}
 /* Step 3 · Claim */
 .na1-a2m3-summary{ margin:4px 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); text-align:left; }
-.na1-a2m3-summary-head{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 14px; }
+.na1-a2m3-summary-head{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 14px; }
 .na1-a2m3-summary-row{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--na1-border); }
 .na1-a2m3-summary-row:last-child{ border-bottom:none; }
-.na1-a2m3-summary-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:16px; color:var(--na1-text); text-align:left; }
-.na1-a2m3-summary-hrs{ flex:0 0 auto; min-width:36px; font-family:var(--f-body); font-size:15px; color:var(--na1-text-sec); text-align:right; }
+.na1-a2m3-summary-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text); text-align:left; font-weight:var(--b-w);}
+.na1-a2m3-summary-hrs{ flex:0 0 auto; min-width:36px; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); text-align:right; font-weight:var(--b-w);}
 .na1-a2m3-summary-row .na1-a2m3-flag{ flex:0 0 auto; min-width:100px; text-align:center; margin-left:10px; }
 .na1-a2m3-missing-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--burgundy-soft); border:1px solid var(--burgundy-line); }
-.na1-a2m3-missing-card-head{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--burgundy-text); margin:0 0 12px; }
+.na1-a2m3-missing-card-head{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--burgundy-text); margin:0 0 12px; }
 .na1-a2m3-missing-card-row{ display:flex; align-items:center; gap:9px; margin:0 0 8px; }
 .na1-a2m3-missing-card-row:last-child{ margin-bottom:0; }
-.na1-a2m3-missing-card-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:16px; color:var(--na1-text); }
+.na1-a2m3-missing-card-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-a2m3-move-card{ margin:0 0 18px; padding:18px 20px; border-radius:12px; background:var(--na1-bg-card); border:1px solid var(--gold-line); }
-.na1-a2m3-move-card-head{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
-.na1-a2m3-move-card-text{ font-family:var(--f-body); font-style:italic; font-size:17px; line-height:1.65; color:var(--na1-text); margin:0; }
+.na1-a2m3-move-card-head{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
+.na1-a2m3-move-card-text{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
 .na1-a2m3-reclaim{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 0 20px; }
 .na1-a2m3-claim-actions{ display:flex; flex-direction:column; gap:10px; }
 .na1-a2m3-claim-actions .na1-btn-gold{ width:100%; }
 .na1-a2m3-claim-btn{ width:100%; }
-.na1-a2m3-soon{ font-family:var(--f-label); font-size:12px; color:var(--na1-text-mute); text-align:center; margin:0; }
-.na1-a2m3-claim .na1-decl-cer-para{ color:var(--gold-text); font-size:19px; }
-.na1-a2m3-cer-by{ font-family:var(--f-body); font-style:italic; font-size:16px; color:var(--gold-text); margin:16px 0 0; text-align:center; }
+.na1-a2m3-soon{ font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); text-align:center; margin:0; font-weight:400;}
+.na1-a2m3-claim .na1-decl-cer-para{ color:var(--gold-text); font-size:max(var(--b-min), calc(19px + var(--b-bump))); }
+.na1-a2m3-cer-by{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--gold-text); margin:16px 0 0; text-align:center; font-weight:var(--b-w);}
 .na1-a2m3-claim .na1-a2m3-reclaim{ margin-top:18px; }
-@media (max-width:600px){ .na1-a2m3-claim .na1-decl-cer-para{ font-size:17px; } .na1-a2m3-freed-num{ font-size:44px; } .na1-a2m3-dec-btns{ grid-template-columns:1fr; } }
+@media (max-width:600px){ .na1-a2m3-claim .na1-decl-cer-para{ font-size:max(var(--b-min), calc(17px + var(--b-bump))); } .na1-a2m3-freed-num{ font-size:44px; } .na1-a2m3-dec-btns{ grid-template-columns:1fr; } }
 /* ── Room body building blocks (shared by all 4 Rooms) ── */
-.na1-room-eyebrow{ font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--f-label); }
+.na1-room-eyebrow{ font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px; font-family:var(--f-label); }
 .na1-room-eyebrow.tone-burgundy{ color:var(--burgundy-text); }
 .na1-room-eyebrow.tone-gold{ color:var(--gold-text); }
 .na1-room-eyebrow.tone-cyan{ color:var(--cyan-text); }
 .na1-room-title{ font-family:var(--f-display); font-size:28px; font-weight:400; line-height:1.2; color:var(--na1-text); margin:0 0 12px; }
 @media (max-width:600px){ .na1-room-title{ font-size:23px; } }
-.na1-room-context{ font-family:var(--f-body); font-size:16.5px; line-height:1.65; color:var(--na1-text-sec); margin:0 0 22px; }
+.na1-room-context{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0 0 22px; font-weight:var(--b-w);}
 .na1-room-context em{ font-style:italic; color:var(--na1-text); }
 .na1-room-actions{ display:flex; justify-content:flex-end; gap:12px; margin-top:24px; flex-wrap:wrap; }
 .na1-room-actions.is-split{ justify-content:space-between; align-items:center; }
@@ -1442,42 +1445,42 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-substep-dot{ width:26px; height:4px; border-radius:2px; background:var(--na1-border); transition:background .2s; }
 .na1-substep-dot.is-active{ background:var(--burgundy-fill); }
 .na1-substep-dot.is-done{ background:var(--burgundy-fill); opacity:0.7; }
-.na1-substep-meta{ font-size:11px; color:var(--na1-text-mute); letter-spacing:0.1em; text-transform:uppercase; margin-left:6px; font-family:var(--f-label); }
+.na1-substep-meta{ font-size:max(var(--e-min), 11px); color:var(--na1-text-sec); letter-spacing:0.1em; text-transform:uppercase; margin-left:6px; font-family:var(--f-label); font-weight:400;}
 .na1-chip-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
-.na1-chip{ display:inline-flex; align-items:center; min-height:40px; padding:8px 14px; border-radius:100px; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--f-label); font-size:13.5px; cursor:pointer; transition:background .18s, border-color .18s, color .18s; }
+.na1-chip{ display:inline-flex; align-items:center; min-height:40px; padding:8px 14px; border-radius:100px; background:transparent; border:1.5px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--f-label); font-size:13.5px; cursor:pointer; transition:background .18s, border-color .18s, color .18s; font-weight:400;}
 .na1-chip:hover{ border-color:var(--na1-text-mute); color:var(--na1-text); }
 .na1-chip.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy-text); font-weight:600; }
 .na1-chip.is-selected:hover{ border-color:var(--burgundy); }
-.na1-textarea{ width:100%; min-height:96px; padding:12px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--f-body); font-size:18px; line-height:1.55; resize:vertical; transition:border-color .18s, box-shadow .18s; box-sizing:border-box; }
+.na1-textarea{ width:100%; min-height:96px; padding:12px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); resize:vertical; transition:border-color .18s, box-shadow .18s; box-sizing:border-box; font-weight:var(--b-w);}
 .na1-textarea:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-glow); }
 .na1-textarea::placeholder{ color:var(--na1-text-mute); }
-.na1-field-label{ display:block; font-size:11px; font-weight:400; letter-spacing:0.12em; text-transform:uppercase; color:var(--na1-text-mute); margin:0 0 8px; font-family:var(--f-label); }
-.na1-edit-banner{ padding:10px 14px; background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); font-family:var(--f-body); font-size:14.5px; line-height:1.5; color:var(--gold-text); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+.na1-field-label{ display:block; font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.12em; text-transform:uppercase; color:var(--na1-text-sec); margin:0 0 8px; font-family:var(--f-label); }
+.na1-edit-banner{ padding:10px 14px; background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--gold-text); margin-bottom:18px; display:flex; align-items:center; gap:8px; font-weight:var(--b-w);}
 .na1-edit-banner-dot{ width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; }
-.na1-save-hint{ font-size:13.5px; color:var(--na1-text-mute); font-family:var(--f-body); font-style:italic; }
-.na1-q1-callout{ padding:14px 16px; background:var(--burgundy-soft); border-left:3px solid var(--burgundy); border-radius:6px; font-family:var(--f-body); font-size:15.5px; line-height:1.55; color:var(--na1-text); margin-bottom:18px; }
+.na1-save-hint{ font-size:max(var(--b-min), calc(13.5px + var(--b-bump))); color:var(--na1-text-sec); font-family:var(--f-body); font-style:italic; font-weight:var(--b-w);}
+.na1-q1-callout{ padding:14px 16px; background:var(--burgundy-soft); border-left:3px solid var(--burgundy); border-radius:6px; font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); margin-bottom:18px; font-weight:var(--b-w);}
 .na1-q1-callout .quoted{ color:var(--burgundy-text); font-weight:600; font-style:italic; }
-.na1-q-stem-lead{ display:block; font-family:var(--f-body); font-size:15px; font-weight:500; letter-spacing:0.02em; color:var(--na1-text-mute); margin-bottom:6px; text-transform:none; }
+.na1-q-stem-lead{ display:block; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); font-weight:500; letter-spacing:0.02em; color:var(--na1-text-sec); margin-bottom:6px; text-transform:none; }
 .na1-chip.is-other{ border-style:dashed; }
 .na1-chip.is-other.is-selected{ border-style:solid; }
-.na1-other-input{ width:100%; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--gold); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--f-body); font-size:18px; box-sizing:border-box; margin:-8px 0 18px; box-shadow:0 0 0 3px var(--gold-glow); }
+.na1-other-input{ width:100%; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--gold); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); box-sizing:border-box; margin:-8px 0 18px; box-shadow:0 0 0 3px var(--gold-glow); font-weight:var(--b-w);}
 .na1-other-input:focus{ outline:none; }
 .na1-completion-row{ display:grid; grid-template-columns:1fr; gap:14px; margin-bottom:18px; }
 @media (min-width:720px){ .na1-completion-row{ grid-template-columns:1fr 1fr; gap:16px; } }
-.na1-completion-cell label{ display:block; font-family:var(--f-label); font-size:13.5px; color:var(--na1-text-sec); margin-bottom:6px; line-height:1.4; }
+.na1-completion-cell label{ display:block; font-family:var(--f-label); font-size:13.5px; color:var(--na1-text-sec); margin-bottom:6px; line-height:1.4; font-weight:400;}
 .na1-completion-cell .blank{ font-style:italic; color:var(--gold-text); font-weight:600; }
-.na1-completion-cell input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--f-body); font-size:18px; box-sizing:border-box; transition:border-color .18s, box-shadow .18s; }
+.na1-completion-cell input{ width:100%; min-height:44px; padding:10px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); box-sizing:border-box; transition:border-color .18s, box-shadow .18s; font-weight:var(--b-w);}
 .na1-completion-cell input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-glow); }
 .na1-chip.tone-gold.is-selected{ background:rgba(165,135,94,.05); border-color:var(--gold); color:var(--gold-text); }
 .na1-chip.tone-grey.is-selected{ background:var(--na1-bg-soft); border-color:var(--na1-text-mute); color:var(--na1-text-sec); font-weight:600; }
 /* Peel (Ex3) — cyan tone */
 .na1-peel-milestone{ padding:14px 16px; border:1px solid var(--gold-line); background:var(--gold-warm); border-radius:var(--na1-radius); margin-bottom:12px; }
-.na1-peel-milestone-eyebrow{ font-size:11px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold-text); margin-bottom:4px; font-family:var(--f-label); }
-.na1-peel-milestone-prompt{ font-family:var(--f-body); font-size:14.5px; font-style:italic; color:var(--na1-text-mute); margin:0 0 6px; line-height:1.5; }
-.na1-peel-milestone-answer{ font-family:var(--f-body); font-size:18px; line-height:1.5; color:var(--na1-text); margin:0; }
+.na1-peel-milestone-eyebrow{ font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold-text); margin-bottom:4px; font-family:var(--f-label); }
+.na1-peel-milestone-prompt{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); font-style:italic; color:var(--na1-text-sec); margin:0 0 6px; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
+.na1-peel-milestone-answer{ font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
 .na1-peel-current{ padding:18px; border:1.5px solid var(--cyan); border-radius:var(--na1-radius); background:var(--na1-bg-soft); margin:18px 0 14px; }
 .na1-peel-current-prompt{ font-family:var(--f-display); font-size:21px; font-weight:400; line-height:1.3; color:var(--na1-text); margin:0 0 12px; }
-.na1-peel-textarea{ width:100%; min-height:110px; padding:12px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); font-size:18px; line-height:1.55; resize:vertical; box-sizing:border-box; transition:border-color .18s, box-shadow .18s; }
+.na1-peel-textarea{ width:100%; min-height:110px; padding:12px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--na1-border); background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); resize:vertical; box-sizing:border-box; transition:border-color .18s, box-shadow .18s; font-weight:var(--b-w);}
 .na1-peel-textarea:focus{ outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px var(--cyan-glow, rgba(176,204,218,0.25)); }
 .na1-btn-cyan{ display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:10px 20px; border-radius:var(--na1-radius); border:1.5px solid var(--cyan); background:var(--cyan); color:#012325; font-family:var(--f-label); font-size:14px; font-weight:400; cursor:pointer; transition:filter .18s, opacity .18s; }
 .na1-btn-cyan:hover{ filter:brightness(1.08); }
@@ -1495,10 +1498,10 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-icon-btn:hover{ background:var(--na1-bg); }
 .na1-icon-btn.is-edit:hover{ color:var(--gold-text); border-color:var(--gold-line); }
 .na1-icon-btn.is-trash:hover{ color:var(--burgundy-text); border-color:var(--burgundy-line, rgba(122,46,46,0.35)); }
-.na1-peel-edit-input{ width:100%; min-height:80px; padding:10px 12px; border-radius:var(--na1-radius); border:1.5px solid var(--gold); background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); font-size:18px; line-height:1.5; resize:vertical; box-sizing:border-box; margin-top:4px; }
+.na1-peel-edit-input{ width:100%; min-height:80px; padding:10px 12px; border-radius:var(--na1-radius); border:1.5px solid var(--gold); background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); resize:vertical; box-sizing:border-box; margin-top:4px; font-weight:var(--b-w);}
 .na1-peel-edit-input:focus{ outline:none; box-shadow:0 0 0 3px var(--gold-glow); }
 .na1-peel-edit-actions{ display:flex; gap:8px; margin-top:10px; }
-.na1-peel-delete-confirm{ margin-top:10px; padding:10px 12px; border:1px solid var(--burgundy-line, rgba(122,46,46,0.35)); background:var(--burgundy-soft, rgba(122,46,46,0.08)); border-radius:var(--na1-radius); font-family:var(--f-label); font-size:13px; color:var(--na1-text); display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.na1-peel-delete-confirm{ margin-top:10px; padding:10px 12px; border:1px solid var(--burgundy-line, rgba(122,46,46,0.35)); background:var(--burgundy-soft, rgba(122,46,46,0.08)); border-radius:var(--na1-radius); font-family:var(--f-label); font-size:13px; color:var(--na1-text); display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-weight:400;}
 .na1-peel-delete-confirm > span{ flex:1 1 100%; }
 .na1-btn-burgundy-ghost{ display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:6px 14px; border-radius:var(--na1-radius); border:1.5px solid var(--burgundy); background:transparent; color:var(--burgundy-text); font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; transition:background .18s; }
 .na1-btn-burgundy-ghost:hover{ background:var(--burgundy-soft, rgba(122,46,46,0.1)); }
@@ -1506,31 +1509,31 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-btn-burgundy:hover{ filter:brightness(1.08); }
 .na1-btn-sm{ min-height:32px; padding:4px 12px; font-size:12.5px; }
 /* Peel — Start fresh */
-.na1-start-fresh{ position:absolute; top:18px; right:64px; display:inline-flex; align-items:center; gap:4px; min-height:32px; padding:4px 12px; border-radius:var(--na1-radius); border:1px solid var(--burgundy); background:transparent; color:var(--burgundy-text); font-family:var(--f-label); font-size:12.5px; font-weight:400; cursor:pointer; z-index:2; transition:background .18s; }
+.na1-start-fresh{ position:absolute; top:18px; right:64px; display:inline-flex; align-items:center; gap:4px; min-height:32px; padding:4px 12px; border-radius:var(--na1-radius); border:1px solid var(--burgundy); background:transparent; color:var(--burgundy-text); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; z-index:2; transition:background .18s; }
 .na1-start-fresh:hover{ background:var(--burgundy-soft, rgba(122,46,46,0.1)); }
-.na1-start-fresh-confirm{ margin:12px 0 18px; padding:14px 16px; border:1px solid var(--burgundy); background:var(--burgundy-soft, rgba(122,46,46,0.08)); border-radius:var(--na1-radius); font-family:var(--f-label); font-size:14px; color:var(--na1-text); }
+.na1-start-fresh-confirm{ margin:12px 0 18px; padding:14px 16px; border:1px solid var(--burgundy); background:var(--burgundy-soft, rgba(122,46,46,0.08)); border-radius:var(--na1-radius); font-family:var(--f-label); font-size:14px; color:var(--na1-text); font-weight:400;}
 .na1-start-fresh-confirm p{ margin:0 0 10px; line-height:1.5; }
 .na1-start-fresh-confirm-actions{ display:flex; gap:10px; flex-wrap:wrap; }
 @media (max-width:600px){
-  .na1-start-fresh{ top:14px; right:56px; padding:4px 10px; font-size:12px; }
+  .na1-start-fresh{ top:14px; right:56px; padding:4px 10px; font-size:max(var(--l-min), 12px); }
   .na1-start-fresh-confirm-actions > button{ flex:1 1 100%; }
 }
 /* Declare (Ex4) — gold input + ceremony */
 .na1-declare-wrap{ text-align:center; padding:6px 0 4px; }
-.na1-declare-input{ width:100%; max-width:560px; padding:14px 8px 12px; border:none; border-bottom:2px solid var(--gold); background:transparent; color:var(--na1-text); font-family:var(--f-body); font-size:28px; font-style:italic; line-height:1.3; text-align:center; box-sizing:border-box; caret-color:var(--gold); transition:border-color .18s; }
+.na1-declare-input{ width:100%; max-width:560px; padding:14px 8px 12px; border:none; border-bottom:2px solid var(--gold); background:transparent; color:var(--na1-text); font-family:var(--f-body); font-size:28px; font-style:italic; line-height:max(var(--b-lh), 1.3); text-align:center; box-sizing:border-box; caret-color:var(--gold); transition:border-color .18s; font-weight:var(--b-w);}
 .na1-declare-input:focus{ outline:none; border-bottom-color:var(--gold); box-shadow:0 4px 0 -2px var(--gold-glow); }
 .na1-declare-input::placeholder{ color:var(--na1-text-mute); font-style:italic; opacity:0.7; }
-.na1-declare-helper{ font-family:var(--f-body); font-size:14.5px; color:var(--na1-text-mute); margin:14px 0 22px; font-style:italic; }
+.na1-declare-helper{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text-sec); margin:14px 0 22px; font-style:italic; font-weight:var(--b-w);}
 .na1-declare-actions{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .na1-declare-actions .na1-btn-cyan-ghost{ min-height:36px; padding:6px 14px; font-size:13px; }
 @media (max-width:600px){
-  .na1-declare-input{ font-size:24px; }
+  .na1-declare-input{ font-size:max(var(--b-min), calc(24px + var(--b-bump))); }
   .na1-declare-actions{ flex-direction:column-reverse; align-items:stretch; }
   .na1-declare-actions > *{ width:100%; }
 }
 .na1-ceremony{ position:fixed; inset:0; z-index:120; display:flex; align-items:center; justify-content:center; padding:32px; background:radial-gradient(ellipse at center, var(--gold-warm) 0%, var(--gold-warm) 35%, var(--na1-bg) 90%); opacity:0; pointer-events:none; transition:opacity 320ms ease-out; }
 .na1-ceremony.is-on{ opacity:1; }
-.na1-ceremony-text{ font-family:var(--f-body); font-style:italic; font-size:48px; line-height:1.2; color:var(--gold-text); text-align:center; max-width:880px; transform:translateY(8px); opacity:0; transition:opacity 420ms ease-out 120ms, transform 420ms ease-out 120ms; text-shadow:0 0 24px var(--gold-glow); }
+.na1-ceremony-text{ font-family:var(--f-body); font-style:italic; font-size:48px; line-height:max(var(--b-lh), 1.2); color:var(--gold-text); text-align:center; max-width:880px; transform:translateY(8px); opacity:0; transition:opacity 420ms ease-out 120ms, transform 420ms ease-out 120ms; text-shadow:0 0 24px var(--gold-glow); font-weight:var(--b-w);}
 .na1-ceremony.is-on .na1-ceremony-text{ opacity:1; transform:translateY(0); }
 @media (max-width:600px){ .na1-ceremony-text{ font-size:32px; } }
 
@@ -1581,15 +1584,14 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
   background:transparent;
   color:var(--na1-text-sec);
   font-family:var(--f-label);
-  font-size:12px;
+  font-size:max(var(--l-min), 12px);
   line-height:1.3;
   padding:7px 12px;
   min-height:44px;
   border-radius:18px;
   cursor:pointer;
   transition:border-color .15s, background .15s, color .15s, transform .12s;
-  text-align:left;
-}
+  text-align:left; font-weight:400;}
 .na2-chip:hover{ border-color:var(--na1-border-strong, var(--na1-border)); color:var(--na1-text); }
 .na2-chip.is-burgundy{
   border-color:var(--m2-burgundy-chip);
@@ -1607,7 +1609,7 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 /* Domain row in chip-pick screens. */
 .na2-domain-row{ padding:14px 0 16px; border-top:1px solid var(--na1-border); }
 .na2-domain-row:first-of-type{ border-top:none; padding-top:6px; }
-.na2-domain-name{ font-family:var(--f-display); font-size:15px; color:var(--na1-text); margin:0 0 10px; transition:color .25s; }
+.na2-domain-name{ font-family:var(--f-display); font-size:15px; color:var(--na1-text); margin:0 0 10px; transition:color .25s; font-weight:400;}
 .na2-domain-name.is-pulsing{ animation:na2DomainPulse 0.6s ease-in-out 2; }
 @keyframes na2DomainPulse{ 0%,100%{ color:var(--na1-text); } 50%{ color:var(--m2-pulse-color, var(--burgundy)); } }
 .na2-chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
@@ -1621,7 +1623,7 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na2-pip.is-green{ background:var(--m2-green); }
 .na2-pip.is-purple{ background:var(--m2-purple); }
 .na2-pip.is-silver{ background:var(--m2-silver); }
-.na2-pip-meta{ font-family:var(--f-label); font-size:11px; color:var(--na1-text-mute); letter-spacing:0.08em; text-transform:uppercase; margin-left:8px; }
+.na2-pip-meta{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); color:var(--na1-text-sec); letter-spacing:0.08em; text-transform:uppercase; margin-left:8px; font-weight:400;}
 
 /* Continue button — disabled vs lens-colored enabled. */
 .na2-btn-continue{
@@ -1645,11 +1647,10 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na2-continue-tip{
   position:absolute; bottom:calc(100% + 8px); right:0;
   background:var(--na1-text); color:var(--na1-bg);
-  font-family:var(--f-label); font-size:12px; line-height:1.4;
+  font-family:var(--f-label); font-size:max(var(--l-min), 12px); line-height:1.4;
   padding:8px 12px; border-radius:6px; white-space:nowrap;
   pointer-events:none; opacity:0; transform:translateY(4px);
-  transition:opacity .18s, transform .18s;
-}
+  transition:opacity .18s, transform .18s; font-weight:400;}
 .na2-continue-tip.is-on{ opacity:1; transform:translateY(0); }
 
 /* Mirror 2 prose-room blank inputs (Time/Wealth/Self). */
@@ -1661,13 +1662,12 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
   color:var(--na1-text);
   padding:10px 12px;
   font-family:var(--f-body);
-  font-size:17px;
-  line-height:1.5;
+  font-size:max(var(--b-min), calc(17px + var(--b-bump)));
+  line-height:max(var(--b-lh), 1.5);
   border-radius:6px 6px 0 0;
   transition:background .15s, border-bottom-color .15s, border-bottom-width .15s;
   box-sizing:border-box;
-  resize:vertical;
-}
+  resize:vertical; font-weight:var(--b-w);}
 .na2-blank-input:focus{
   outline:none;
   background:rgba(255,255,255,0.04);
@@ -1681,12 +1681,11 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
   border-bottom:1px solid var(--m2-lens-color, var(--gold));
   color:var(--m2-lens-color, var(--gold));
   padding:10px 12px;
-  font-family:var(--f-body); font-style:italic; font-size:17px; line-height:1.5;
+  font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.5);
   border-radius:6px 6px 0 0;
   cursor:text;
-  box-sizing:border-box;
-}
-.na2-blank-saved{ font-family:var(--f-body); font-size:13px; color:var(--na1-text-mute); margin-top:4px; font-style:italic; }
+  box-sizing:border-box; font-weight:var(--b-w);}
+.na2-blank-saved{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-sec); margin-top:4px; font-style:italic; font-weight:var(--b-w);}
 
 /* Silver radial expansion for Vision Declaration ceremony. */
 @keyframes na2SilverRadial{
@@ -1724,22 +1723,22 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na2-prose.tone-yellow{ --m2-lens-color: var(--m2-yellow); --m2-lens-soft: var(--m2-yellow-soft); --m2-lens-line: var(--m2-yellow-line); }
 .na2-prose.tone-green{ --m2-lens-color: var(--m2-green); --m2-lens-soft: var(--m2-green-soft); --m2-lens-line: var(--m2-green-line); }
 .na2-prose.tone-purple{ --m2-lens-color: var(--m2-purple); --m2-lens-soft: var(--m2-purple-soft); --m2-lens-line: var(--m2-purple-line); }
-.na2-prose-subtitle{ font-family:var(--f-body); font-style:italic; font-size:17px; color:var(--m2-lens-color); margin:0 0 10px; line-height:1.55; }
+.na2-prose-subtitle{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); color:var(--m2-lens-color); margin:0 0 10px; line-height:max(var(--b-lh), 1.55); font-weight:var(--b-w);}
 .na2-prose-section{ padding:22px 0 8px; border-top:1px solid var(--na1-border); margin-top:18px; }
 .na2-prose-section:first-of-type{ border-top:none; padding-top:6px; margin-top:8px; }
 .na2-prose-section-head{ display:flex; align-items:center; gap:10px; margin:0 0 12px; }
 .na2-prose-section-head .icon{ width:20px; height:20px; color:var(--m2-lens-color); flex-shrink:0; }
-.na2-prose-section-head .label{ font-family:var(--f-label); font-size:12px; color:var(--na1-text); letter-spacing:0.12em; text-transform:uppercase; font-weight:400; }
+.na2-prose-section-head .label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); color:var(--na1-text); letter-spacing:0.12em; text-transform:uppercase; font-weight:400; }
 .na2-prose-section-head .label.is-pulsing{ animation:na2DomainPulse 0.6s ease-in-out 2; --m2-pulse-color: var(--m2-lens-color); }
-.na2-prose-section-head .tag{ font-family:var(--f-label); font-size:11px; color:var(--m2-lens-color); letter-spacing:0.14em; text-transform:uppercase; padding:2px 8px; border:1px solid var(--m2-lens-line); border-radius:10px; margin-left:6px; }
-.na2-prose-chip-pill{ display:inline-block; padding:6px 14px; border-radius:18px; background:var(--m2-lens-soft); border:1px solid var(--m2-lens-line); color:var(--m2-lens-color); font-family:var(--f-label); font-size:12.5px; font-weight:400; margin:0 0 16px; }
+.na2-prose-section-head .tag{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); color:var(--m2-lens-color); letter-spacing:0.14em; text-transform:uppercase; padding:2px 8px; border:1px solid var(--m2-lens-line); border-radius:10px; margin-left:6px; font-weight:400;}
+.na2-prose-chip-pill{ display:inline-block; padding:6px 14px; border-radius:18px; background:var(--m2-lens-soft); border:1px solid var(--m2-lens-line); color:var(--m2-lens-color); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; margin:0 0 16px; }
 .na2-prose-chip-pill.is-empty{ background:transparent; border-style:dashed; color:var(--na1-text-mute); font-style:italic; }
-.na2-prose-stem-lead{ font-family:var(--f-body); font-style:italic; font-size:17.5px; color:var(--na1-text); margin:0 0 14px; line-height:1.55; }
+.na2-prose-stem-lead{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17.5px + var(--b-bump))); color:var(--na1-text); margin:0 0 14px; line-height:max(var(--b-lh), 1.55); font-weight:var(--b-w);}
 .na2-prose-stem-lead .chip-echo{ color:var(--m2-lens-color); }
 .na2-prose-blank-wrap{ margin:0 0 16px; }
-.na2-prose-blank-stem{ font-family:var(--f-body); font-style:italic; font-size:16px; color:var(--na1-text-sec); margin:0 0 6px; line-height:1.45; }
+.na2-prose-blank-stem{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text); margin:0 0 6px; line-height:max(var(--b-lh), 1.45); font-weight:var(--b-w);}
 .na2-prose-foot{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-top:18px; padding-top:14px; border-top:1px solid var(--na1-border); }
-.na2-prose-foot-meta{ display:flex; flex-direction:column; gap:2px; font-family:var(--f-label); font-size:11.5px; color:var(--na1-text-mute); }
+.na2-prose-foot-meta{ display:flex; flex-direction:column; gap:2px; font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); color:var(--na1-text-sec); font-weight:400;}
 .na2-prose-foot-meta .counter{ color:var(--m2-lens-color); font-weight:500; letter-spacing:0.04em; }
 .na2-prose-actions{ display:flex; gap:12px; align-items:center; }
 
@@ -1756,20 +1755,20 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
    there's no absolute/relative swap and no layout jolt at the mode flip. */
 .na2-decl-ceremony{ opacity:0; pointer-events:none; transition:opacity 380ms ease 380ms; padding:24px 8px 24px; text-align:center; display:none; }
 .na2-decl-ceremony.is-on{ opacity:1; pointer-events:auto; display:block; }
-.na2-decl-edit-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--gold); background:var(--gold-soft); border-radius:10px; margin:0 0 16px; font-family:var(--f-body); font-size:14.5px; color:var(--gold-text); letter-spacing:0.02em; }
-.na2-decl-eyebrow{ text-align:center; font-family:var(--f-label); font-size:11.5px; letter-spacing:0.22em; text-transform:uppercase; color:var(--m2-silver); margin:6px 0 14px; }
-.na2-decl-title{ font-family:var(--f-display); font-size:34px; line-height:1.2; text-align:center; color:var(--na1-text); margin:0 0 10px; }
-.na2-decl-scope{ font-family:var(--f-body); font-size:14.5px; text-align:center; color:var(--na1-text-mute); letter-spacing:0.04em; margin:0 0 12px; }
-.na2-decl-subtitle{ font-family:var(--f-body); font-style:italic; font-size:17px; text-align:center; color:var(--na1-text-sec); max-width:520px; margin:0 auto 22px; line-height:1.55; }
+.na2-decl-edit-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid var(--gold); background:var(--gold-soft); border-radius:10px; margin:0 0 16px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--gold-text); letter-spacing:0.02em; font-weight:var(--b-w);}
+.na2-decl-eyebrow{ text-align:center; font-family:var(--f-label); font-size:max(var(--e-min), 11.5px); letter-spacing:0.22em; text-transform:uppercase; color:var(--m2-silver); margin:6px 0 14px; font-weight:400;}
+.na2-decl-title{ font-family:var(--f-display); font-size:34px; line-height:1.2; text-align:center; color:var(--na1-text); margin:0 0 10px; font-weight:400;}
+.na2-decl-scope{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); text-align:center; color:var(--na1-text-sec); letter-spacing:0.04em; margin:0 0 12px; font-weight:var(--b-w);}
+.na2-decl-subtitle{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); text-align:center; color:var(--na1-text); max-width:520px; margin:0 auto 22px; line-height:max(var(--b-lh), 1.55); font-weight:var(--b-w);}
 .na2-decl-purpose{ border:1px solid var(--gold); background:var(--gold-soft); border-radius:12px; padding:16px 18px; margin:0 0 22px; }
-.na2-decl-purpose .your-why{ font-family:var(--f-label); font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold-text); margin:0 0 6px; }
-.na2-decl-purpose .purpose-text{ font-family:var(--f-body); font-style:italic; font-size:19px; color:var(--gold-text); line-height:1.5; margin:0 0 8px; }
-.na2-decl-purpose .purpose-link{ display:inline-block; font-family:var(--f-label); font-size:12px; color:var(--na1-text-mute); text-decoration:underline; background:transparent; border:0; padding:0; cursor:pointer; }
+.na2-decl-purpose .your-why{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:0.22em; text-transform:uppercase; color:var(--gold-text); margin:0 0 6px; font-weight:400;}
+.na2-decl-purpose .purpose-text{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(19px + var(--b-bump))); color:var(--gold-text); line-height:max(var(--b-lh), 1.5); margin:0 0 8px; font-weight:var(--b-w);}
+.na2-decl-purpose .purpose-link{ display:inline-block; font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); text-decoration:underline; background:transparent; border:0; padding:0; cursor:pointer; font-weight:400;}
 .na2-decl-purpose .purpose-link:hover{ color:var(--gold-text); }
-.na2-decl-divider{ display:flex; align-items:center; justify-content:center; gap:14px; margin:24px 0; color:var(--m2-silver); font-size:14px; }
+.na2-decl-divider{ display:flex; align-items:center; justify-content:center; gap:14px; margin:24px 0; color:var(--m2-silver); font-size:max(var(--b-min), calc(14px + var(--b-bump))); }
 .na2-decl-divider .rule{ flex:1; height:1px; background:var(--na1-border); max-width:140px; }
 .na2-decl-lens{ margin:0 0 8px; }
-.na2-decl-lens-title{ font-family:var(--f-display); font-size:22px; margin:0 0 14px; }
+.na2-decl-lens-title{ font-family:var(--f-display); font-size:22px; margin:0 0 14px; font-weight:400;}
 .na2-decl-lens.tone-yellow .na2-decl-lens-title{ color:var(--m2-yellow); }
 .na2-decl-lens.tone-green  .na2-decl-lens-title{ color:var(--m2-green); }
 .na2-decl-lens.tone-purple .na2-decl-lens-title{ color:var(--m2-purple); }
@@ -1777,8 +1776,8 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na2-decl-lens.tone-yellow .na2-decl-stmt{ border-left-color:var(--m2-yellow); }
 .na2-decl-lens.tone-green  .na2-decl-stmt{ border-left-color:var(--m2-green); }
 .na2-decl-lens.tone-purple .na2-decl-stmt{ border-left-color:var(--m2-purple); }
-.na2-decl-stmt-tag{ display:block; font-family:var(--f-label); font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--na1-text-mute); margin:0 0 6px; }
-.na2-decl-stmt-body{ font-family:var(--f-body); font-size:19px; line-height:1.65; color:var(--na1-text); margin:0; }
+.na2-decl-stmt-tag{ display:block; font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:0.18em; text-transform:uppercase; color:var(--na1-text-sec); margin:0 0 6px; font-weight:400;}
+.na2-decl-stmt-body{ font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
 .na2-decl-stmt em.user{ font-style:italic; font-weight:500; }
 .na2-decl-lens.tone-yellow .na2-decl-stmt em.user{ color:var(--m2-yellow); }
 .na2-decl-lens.tone-green  .na2-decl-stmt em.user{ color:var(--m2-green); }
@@ -1786,24 +1785,24 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na2-decl-stmt em.user.is-empty{ color:var(--na1-text-mute); font-style:italic; font-weight:400; }
 .na2-decl-question{ border:1px solid var(--na1-border); border-radius:12px; padding:18px 18px; margin:22px 0; text-align:center; background:rgba(255,255,255,0.02); }
 .na1-light .na2-decl-question{ background:rgba(0,0,0,0.02); }
-.na2-decl-question .q{ font-family:var(--f-body); font-style:italic; font-size:20px; color:var(--na1-text); margin:0 0 8px; line-height:1.45; }
+.na2-decl-question .q{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(20px + var(--b-bump))); color:var(--na1-text); margin:0 0 8px; line-height:max(var(--b-lh), 1.45); font-weight:var(--b-w);}
 .na2-decl-question .q .quote{ color:var(--gold-text); }
-.na2-decl-question .sub{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin:0; line-height:1.5; }
+.na2-decl-question .sub{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); margin:0; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
 .na2-decl-actions{ display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; }
-.na2-decl-btn-revise{ display:inline-flex; align-items:center; min-height:44px; padding:0 22px; background:transparent; color:var(--na1-text); border:1px solid var(--na1-text-mute); border-radius:100px; font-family:var(--f-label); font-size:13px; cursor:pointer; transition:background .18s, border-color .18s; }
+.na2-decl-btn-revise{ display:inline-flex; align-items:center; min-height:44px; padding:0 22px; background:transparent; color:var(--na1-text); border:1px solid var(--na1-text-mute); border-radius:100px; font-family:var(--f-label); font-size:13px; cursor:pointer; transition:background .18s, border-color .18s; font-weight:400;}
 .na2-decl-btn-revise:hover{ background:var(--gold-warm); border-color:var(--na1-text); }
 .na2-decl-btn-claim{ display:inline-flex; align-items:center; gap:8px; min-height:48px; padding:0 32px; background:var(--btn); color:var(--btn-ink); border:0; border-radius:100px; font-family:var(--f-label); font-size:14px; font-weight:400; letter-spacing:0.02em; cursor:pointer; box-shadow:0 0 0 4px rgba(197,201,209,0.35); transition:box-shadow .22s, transform .12s; }
 .na2-decl-btn-claim:hover{ box-shadow:0 0 0 6px rgba(197,201,209,0.5); }
 .na2-decl-btn-claim:active{ transform:translateY(1px); }
 .na2-decl-btn-claim:disabled{ opacity:0.5; cursor:not-allowed; box-shadow:0 0 0 4px rgba(197,201,209,0.2); }
-.na2-decl-footnote{ text-align:center; font-family:var(--f-body); font-size:13.5px; color:var(--na1-text-mute); margin:14px 0 0; letter-spacing:0.02em; }
+.na2-decl-footnote{ text-align:center; font-family:var(--f-body); font-size:max(var(--b-min), calc(13.5px + var(--b-bump))); color:var(--na1-text-sec); margin:14px 0 0; letter-spacing:0.02em; font-weight:var(--b-w);}
 /* Ceremony — sized to fit 90vh on a 720p viewport without scrolling. */
 .na2-decl-cer-star{ font-size:36px; color:var(--m2-silver); margin:16px 0 12px; line-height:1; }
 .na2-decl-cer-body{ max-width:480px; margin:0 auto; }
-.na2-decl-cer-para{ font-family:var(--f-body); font-style:italic; font-size:20px; line-height:1.5; color:var(--na1-text); margin:0 0 14px; }
+.na2-decl-cer-para{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(20px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:0 0 14px; font-weight:var(--b-w);}
 .na2-decl-cer-para .seal-gold{ color:var(--gold-text); font-style:normal; font-weight:500; }
 .na2-decl-cer-divider{ width:48px; height:1px; background:var(--m2-silver); margin:20px auto; }
-.na2-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold-text); border:1px solid var(--gold); border-radius:100px; font-family:var(--f-label); font-size:12px; font-weight:400; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
+.na2-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold-text); border:1px solid var(--gold); border-radius:100px; font-family:var(--f-label); font-size:max(var(--e-min), 12px); font-weight:400; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
 .na2-decl-cer-cta:hover{ background:var(--gold-soft); }
 .na2-decl-cer-cta:active{ transform:translateY(1px); }
 /* Ship 5.5c · M3 Own It seal — per-creature triptych (Power card · pairing
@@ -1813,27 +1812,27 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
    Shadow sentence cards share padding (16px/22px), border weight (1px),
    and label-then-body internal layout — only the tint + label glyph
    differ so they read as siblings flanking the pairing grid. */
-.m3-seal-star{ text-align:center; color:var(--gold-text); font-size:24px; line-height:1; margin:14px 0 10px; text-shadow:0 0 12px var(--gold-glow); }
-.m3-seal-subhead{ font-family:var(--f-body); font-style:italic; font-size:20px; line-height:1.55; text-align:center; max-width:620px; margin:6px auto 32px; color:var(--na1-text-sec); }
+.m3-seal-star{ text-align:center; color:var(--gold-text); font-size:max(var(--b-min), calc(24px + var(--b-bump))); line-height:max(var(--b-lh), 1); margin:14px 0 10px; text-shadow:0 0 12px var(--gold-glow); }
+.m3-seal-subhead{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(20px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); text-align:center; max-width:620px; margin:6px auto 32px; color:var(--na1-text); font-weight:var(--b-w);}
 .m3-seal-subhead .count{ font-style:normal; font-weight:600; color:var(--gold-text); }
-.m3-seal-revisit-banner{ font-family:var(--f-body); font-style:italic; font-size:16px; line-height:1.5; color:var(--gold-text); text-align:center; padding:10px 16px; margin:0 auto 20px; max-width:560px; border-top:1px solid var(--gold-line); border-bottom:1px solid var(--gold-line); }
+.m3-seal-revisit-banner{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--gold-text); text-align:center; padding:10px 16px; margin:0 auto 20px; max-width:560px; border-top:1px solid var(--gold-line); border-bottom:1px solid var(--gold-line); font-weight:var(--b-w);}
 .m3-seal-cluster{ background:var(--na1-bg-deeper, rgba(0,0,0,0.18)); border:1px solid var(--gold-line); border-radius:12px; padding:32px; margin:0 0 22px; }
-.m3-seal-creature-name{ font-family:var(--f-body); font-style:italic; font-size:26px; font-weight:500; color:var(--gold-text); text-align:center; margin:0 0 4px; line-height:1.2; }
-.m3-seal-creature-sublabel{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; color:var(--na1-text-faint, rgba(232,226,211,0.4)); text-align:center; margin:0 0 28px; }
+.m3-seal-creature-name{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(26px + var(--b-bump))); font-weight:500; color:var(--gold-text); text-align:center; margin:0 0 4px; line-height:max(var(--b-lh), 1.2); }
+.m3-seal-creature-sublabel{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.2em; text-transform:uppercase; color:var(--na1-text-faint, rgba(232,226,211,0.4)); text-align:center; margin:0 0 28px; }
 .m3-seal-sentence-card{ border-radius:8px; padding:16px 22px; text-align:center; }
 .m3-seal-sentence-card.is-power{ background:var(--gold-warm); border:1px solid var(--gold-line); margin:0 0 24px; }
 .m3-seal-sentence-card.is-shadow{ background:var(--burgundy-soft); border:1px solid var(--burgundy-line); margin:24px 0 0; }
-.m3-seal-sentence-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; margin:0 0 8px; }
+.m3-seal-sentence-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.2em; text-transform:uppercase; margin:0 0 8px; }
 .m3-seal-sentence-card.is-power .m3-seal-sentence-label{ color:var(--gold-text); opacity:0.7; }
 .m3-seal-sentence-card.is-shadow .m3-seal-sentence-label{ color:var(--burgundy-text); opacity:0.8; }
 .m3-seal-sentence-card.is-power .m3-seal-sentence-label::before{ content:"★ "; color:var(--gold-text); opacity:1; }
 .m3-seal-sentence-card.is-shadow .m3-seal-sentence-label::before{ content:"● "; color:var(--burgundy-text); opacity:1; }
-.m3-seal-sentence-text{ font-family:var(--f-body); font-style:italic; font-size:19px; line-height:1.6; margin:0; }
+.m3-seal-sentence-text{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); margin:0; font-weight:var(--b-w);}
 .m3-seal-sentence-card.is-power .m3-seal-sentence-text{ color:var(--gold-text); }
 .m3-seal-sentence-card.is-shadow .m3-seal-sentence-text{ color:var(--burgundy-text); }
 .m3-seal-sentence-text.is-empty{ color:var(--na1-text-faint, rgba(232,226,211,0.45)); opacity:0.7; }
 .m3-seal-pairing{ display:grid; grid-template-columns:1fr 50px 1fr; gap:0; align-items:center; }
-.m3-seal-pair-header{ padding:0 0 14px; font-family:var(--f-body); font-size:13px; }
+.m3-seal-pair-header{ padding:0 0 14px; font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); font-weight:var(--b-w);}
 .m3-seal-pair-header.is-shadow{ text-align:right; color:var(--burgundy-text); opacity:0.75; font-style:italic; text-transform:lowercase; letter-spacing:0.05em; }
 .m3-seal-pair-header.is-power{ font-family:var(--f-label); text-align:left; color:var(--gold-text); text-transform:uppercase; font-weight:400; letter-spacing:0.2em; }
 .m3-seal-pair-spacer{ }
@@ -1847,11 +1846,11 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .m3-seal-bigclaim-divider{ display:flex; align-items:center; gap:16px; margin:36px 0 28px; }
 .m3-seal-bigclaim-divider::before,
 .m3-seal-bigclaim-divider::after{ content:""; flex:1; height:1px; background:var(--gold-line); }
-.m3-seal-bigclaim-divider .star{ color:var(--gold-text); font-size:16px; }
+.m3-seal-bigclaim-divider .star{ color:var(--gold-text); font-size:max(var(--b-min), calc(16px + var(--b-bump))); }
 .m3-seal-bigclaim{ background:var(--na1-bg-deeper, rgba(0,0,0,0.18)); border:1px solid rgba(165,135,94,0.4); border-radius:12px; padding:32px; margin:0; }
-.m3-seal-bigclaim-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold-text); text-align:center; margin:0 0 20px; }
-.m3-seal-bigclaim-power{ font-family:var(--f-body); font-style:italic; font-size:21px; font-weight:500; color:var(--gold-text); line-height:1.55; text-align:center; margin:0 0 14px; }
-.m3-seal-bigclaim-shadow{ font-family:var(--f-body); font-style:italic; font-size:19px; color:var(--burgundy-text); line-height:1.55; text-align:center; margin:0 0 22px; }
+.m3-seal-bigclaim-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold-text); text-align:center; margin:0 0 20px; }
+.m3-seal-bigclaim-power{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(21px + var(--b-bump))); font-weight:500; color:var(--gold-text); line-height:max(var(--b-lh), 1.55); text-align:center; margin:0 0 14px; }
+.m3-seal-bigclaim-shadow{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(19px + var(--b-bump))); color:var(--burgundy-text); line-height:max(var(--b-lh), 1.55); text-align:center; margin:0 0 22px; font-weight:var(--b-w);}
 .m3-seal-bigclaim-final{ font-family:var(--f-display); font-size:22px; font-weight:400; color:var(--gold-text); line-height:1.5; text-align:center; padding-top:14px; border-top:1px solid rgba(165,135,94,0.2); margin:0; }
 /* Ship 5.5c.1 · Collapsible creature cards.
    The header (creature name + sublabel) becomes the toggle target. The
@@ -1880,8 +1879,8 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
   top:18px;
   color:var(--gold-text);
   opacity:0.55;
-  font-size:14px;
-  line-height:1;
+  font-size:max(var(--b-min), calc(14px + var(--b-bump)));
+  line-height:max(var(--b-lh), 1);
   transition:opacity 200ms ease-out;
 }
 .m3-seal-cluster-header:hover .m3-seal-cluster-chevron{ opacity:0.9; }
@@ -1899,10 +1898,10 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
   .m3-seal-cluster-header{ padding:4px 18px; margin:0 -18px; }
   .m3-seal-cluster-chevron{ right:4px; top:14px; }
   .m3-seal-bigclaim{ padding:22px 18px; }
-  .m3-seal-creature-name{ font-size:22px; }
-  .m3-seal-sentence-text{ font-size:15.5px; }
-  .m3-seal-bigclaim-power{ font-size:19px; }
-  .m3-seal-bigclaim-shadow{ font-size:15.5px; }
+  .m3-seal-creature-name{ font-size:max(var(--b-min), calc(22px + var(--b-bump))); }
+  .m3-seal-sentence-text{ font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); }
+  .m3-seal-bigclaim-power{ font-size:max(var(--b-min), calc(19px + var(--b-bump))); }
+  .m3-seal-bigclaim-shadow{ font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); }
   .m3-seal-bigclaim-final{ font-size:19px; }
   /* Collapse the 3-col pairing to a stacked layout: shadow row → arrow row → gift row */
   .m3-seal-pairing{ grid-template-columns:1fr; gap:0; }
@@ -1932,14 +1931,14 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-decl-ceremony.is-on{ opacity:1; pointer-events:auto; display:block; }
 .na1-decl-cer-star{ font-size:36px; color:var(--gold-text); margin:16px 0 12px; line-height:1; text-shadow:0 0 16px var(--gold-glow); }
 .na1-decl-cer-body{ max-width:520px; margin:0 auto; }
-.na1-decl-cer-para{ font-family:var(--f-body); font-style:italic; font-size:20px; line-height:1.55; color:var(--na1-text); margin:0 0 14px; }
+.na1-decl-cer-para{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(20px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); margin:0 0 14px; font-weight:var(--b-w);}
 .na1-decl-cer-para .seal-gold{ color:var(--gold-text); font-style:normal; font-weight:500; }
 .na1-decl-cer-divider{ width:48px; height:1px; background:var(--gold); margin:20px auto; }
-.na1-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold-text); border:1px solid var(--gold); border-radius:100px; font-family:var(--f-label); font-size:12px; font-weight:400; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
+.na1-decl-cer-cta{ display:inline-flex; align-items:center; min-height:46px; padding:0 30px; background:transparent; color:var(--gold-text); border:1px solid var(--gold); border-radius:100px; font-family:var(--f-label); font-size:max(var(--e-min), 12px); font-weight:400; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background .18s, transform .12s; }
 .na1-decl-cer-cta:hover{ background:var(--gold-soft); }
 .na1-decl-cer-cta:active{ transform:translateY(1px); }
 @media (max-width:600px){
-  .na1-decl-cer-para{ font-size:16px; line-height:1.5; }
+  .na1-decl-cer-para{ font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); }
   .na1-decl-cer-star{ font-size:30px; margin:8px 0 8px; }
 }
 
@@ -1978,7 +1977,7 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na2-decl-stmt textarea.na2-decl-blank-edit{
   display:inline-block; vertical-align:baseline;
   font-family:var(--f-body); font-style:italic; font-weight:500;
-  font-size:19px; line-height:1.65;
+  font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.65);
   background:rgba(197,201,209,0.10); border:1px solid var(--na1-border);
   border-radius:6px; padding:2px 8px; margin:0 2px;
   min-width:160px; max-width:100%; width:auto;
@@ -1990,51 +1989,51 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na2-decl-stmt textarea.na2-decl-blank-edit:focus{ outline:none; box-shadow:0 0 0 2px var(--m2-lens-glow, rgba(197,201,209,0.35)); }
 @media (max-width: 700px){
   .na2-decl-title{ font-size:28px; }
-  .na2-decl-cer-para{ font-size:16px; line-height:1.45; }
+  .na2-decl-cer-para{ font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); }
   .na2-decl-cer-star{ font-size:30px; margin:8px 0 8px; }
 }
 
 /* Two Futures · wake-up moment (screen 4). Held, slightly darker than chip screens. */
 .na2-wakeup{ background:linear-gradient(180deg, rgba(1,35,37,0.6) 0%, transparent 100%); border-radius:var(--na1-radius-lg); padding:56px 36px; margin:6px 0 8px; }
 .na1-light .na2-wakeup{ background:linear-gradient(180deg, rgba(245,245,247,0.7) 0%, transparent 100%); }
-.na2-wakeup-callback-label{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin:0 0 6px; }
+.na2-wakeup-callback-label{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); margin:0 0 6px; font-weight:var(--b-w);}
 /* B1 — soft-gold pill anchors the callback in light mode (no more wash). */
-.na2-wakeup-callback-quote{ display:inline-block; font-family:var(--f-body); font-style:italic; font-size:17px; font-weight:500; color:var(--gold-text); background:var(--gold-soft); border-left:3px solid var(--gold); padding:8px 14px; border-radius:8px; margin:0 0 36px; }
+.na2-wakeup-callback-quote{ display:inline-block; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); font-weight:500; color:var(--gold-text); background:var(--gold-soft); border-left:3px solid var(--gold); padding:8px 14px; border-radius:8px; margin:0 0 36px; }
 /* B2 — block spacing 22→36px for held-moment pacing. */
-.na2-wakeup-block{ font-family:var(--f-body); font-style:italic; font-size:21px; line-height:1.55; color:var(--na1-text); margin:0 0 36px; }
-.na2-wakeup-low-tier{ font-family:var(--f-body); font-style:italic; font-size:16.5px; color:var(--na1-text-mute); line-height:1.55; margin:0 0 36px; }
+.na2-wakeup-block{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(21px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); margin:0 0 36px; font-weight:var(--b-w);}
+.na2-wakeup-low-tier{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); color:var(--na1-text-sec); line-height:max(var(--b-lh), 1.55); margin:0 0 36px; font-weight:var(--b-w);}
 /* Compound lines pace together (22px between consecutive), 36px after the chain via next block. */
-.na2-wakeup-compound{ font-family:var(--f-body); font-style:italic; font-size:17.5px; color:var(--na1-text-sec); line-height:1.6; margin:0 0 22px; }
+.na2-wakeup-compound{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17.5px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.6); margin:0 0 22px; font-weight:var(--b-w);}
 .na2-wakeup-compound + .na2-wakeup-compound{ margin-top:0; }
-.na2-wakeup-dagger{ font-family:var(--f-body); font-style:italic; font-size:21px; font-weight:500; line-height:1.5; color:var(--na1-text); margin:14px 0 0; }
+.na2-wakeup-dagger{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(21px + var(--b-bump))); font-weight:500; line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:14px 0 0; }
 .na2-wakeup-dagger .accent{ color:var(--burgundy-text); font-style:italic; }
 .na2-wakeup-divider{ width:48px; height:1px; background:var(--gold); margin:36px 0; }
-.na2-wakeup-purpose{ font-family:var(--f-body); font-style:italic; font-size:19px; color:var(--na1-text-mute); margin:0 0 36px; }
+.na2-wakeup-purpose{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(19px + var(--b-bump))); color:var(--na1-text-sec); margin:0 0 36px; font-weight:var(--b-w);}
 .na2-wakeup-purpose .quote{ display:inline-block; color:var(--gold-text); font-weight:500; background:var(--gold-soft); border-left:3px solid var(--gold); padding:6px 12px; border-radius:8px; }
 /* B3 — "Now own it." lands as a directive, not body. */
 .na2-wakeup-imperative{ font-family:var(--f-display); font-size:26px; font-weight:400; letter-spacing:-0.01em; color:var(--gold-text); margin:0 0 10px; line-height:1.2; }
-.na2-wakeup-prompt{ font-family:var(--f-body); font-style:italic; font-size:17px; color:var(--na1-text-mute); margin:0 0 36px; }
+.na2-wakeup-prompt{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); color:var(--na1-text-sec); margin:0 0 36px; font-weight:var(--b-w);}
 .na2-wakeup-cta{ display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 28px; border-radius:100px; background:transparent; color:var(--gold-text); border:1.5px solid var(--gold); font-family:var(--f-label); font-size:14px; font-weight:400; letter-spacing:0.02em; cursor:pointer; transition:background .18s, transform .12s; }
 .na2-wakeup-cta:hover{ background:var(--gold-soft); }
 .na2-wakeup-cta:active{ transform:translateY(1px); }
 
 /* Two Futures · climb table (screen 8). Side-by-side ladder. */
 .na2-climb-headers{ display:grid; grid-template-columns:80px 1fr 22px 1fr; column-gap:14px; padding:10px 0 14px; border-bottom:1px solid var(--na1-border); margin-bottom:12px; }
-.na2-climb-headers .h-col-a{ font-family:var(--f-label); font-size:11px; color:var(--m2-burgundy-chip); letter-spacing:0.1em; text-transform:uppercase; grid-column:2; }
-.na2-climb-headers .h-col-b{ font-family:var(--f-label); font-size:11px; color:var(--m2-gold-chip); letter-spacing:0.1em; text-transform:uppercase; grid-column:4; }
+.na2-climb-headers .h-col-a{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); color:var(--m2-burgundy-chip); letter-spacing:0.1em; text-transform:uppercase; grid-column:2; font-weight:400;}
+.na2-climb-headers .h-col-b{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); color:var(--m2-gold-chip); letter-spacing:0.1em; text-transform:uppercase; grid-column:4; font-weight:400;}
 .na2-climb-lens{ margin:18px 0; }
-.na2-climb-lens-title{ font-family:var(--f-display); font-size:16px; color:var(--na1-text); letter-spacing:0.02em; margin:0 0 4px; }
+.na2-climb-lens-title{ font-family:var(--f-display); font-size:16px; color:var(--na1-text); letter-spacing:0.02em; margin:0 0 4px; font-weight:400;}
 .na2-climb-lens-rule{ height:1px; background:var(--na1-border); margin-bottom:10px; }
 .na2-climb-row{ display:grid; grid-template-columns:80px 1fr 22px 1fr; column-gap:14px; align-items:center; padding:8px 0; }
-.na2-climb-domain{ font-family:var(--f-body); font-size:14px; color:var(--na1-text-mute); }
-.na2-climb-cell{ padding:8px 12px; border-radius:10px; font-family:var(--f-body); font-size:14.5px; line-height:1.35; }
-.na2-climb-cell .tier-label{ font-family:var(--f-label); display:block; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:3px; }
+.na2-climb-domain{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w);}
+.na2-climb-cell{ padding:8px 12px; border-radius:10px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.35); font-weight:var(--b-w);}
+.na2-climb-cell .tier-label{ font-family:var(--f-label); display:block; font-size:max(var(--e-min), 11px); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:3px; font-weight:400;}
 .na2-climb-cell.tone-burgundy{ background:var(--m2-burgundy-chip-bg); color:var(--na1-text); }
 .na2-climb-cell.tone-burgundy .tier-label{ color:var(--burgundy-text); }
 .na2-climb-cell.tone-gold{ background:var(--m2-gold-chip-bg); color:var(--na1-text); }
 .na2-climb-cell.tone-gold .tier-label{ color:var(--gold-text); }
 .na2-climb-arrow{ text-align:center; color:var(--na1-text-mute); font-size:13px; }
-.na2-climb-closing{ font-family:var(--f-body); font-style:italic; font-size:17px; color:var(--gold-text); line-height:1.6; margin:22px 0 18px; padding-top:18px; border-top:1px solid var(--na1-border); }
+.na2-climb-closing{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); color:var(--gold-text); line-height:max(var(--b-lh), 1.6); margin:22px 0 18px; padding-top:18px; border-top:1px solid var(--na1-border); font-weight:var(--b-w);}
 @media (max-width:560px){
   .na2-climb-headers, .na2-climb-row{ grid-template-columns:1fr 1fr; column-gap:8px; }
   .na2-climb-headers .h-col-a{ grid-column:1; }
@@ -2073,32 +2072,32 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 }
 
 /* ─── Mirror 3 · Step 1a · Pick ───────────────────────────────────────────── */
-.m3-pick{ max-width:880px; margin:0 auto; padding:48px 24px 120px; font-family:var(--f-body); color:var(--na1-text); }
+.m3-pick{ max-width:880px; margin:0 auto; padding:48px 24px 120px; font-family:var(--f-body); color:var(--na1-text); font-weight:var(--b-w);}
 @media (max-width:600px){ .m3-pick{ padding:32px 16px 100px; } }
-.m3-pick-back{ display:inline-flex; align-items:center; gap:6px; background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--f-label); font-size:13px; cursor:pointer; padding:0; margin-bottom:24px; }
+.m3-pick-back{ display:inline-flex; align-items:center; gap:6px; background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:13px; cursor:pointer; padding:0; margin-bottom:24px; font-weight:400;}
 .m3-pick-back:hover{ color:var(--na1-text); }
-.m3-pick-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:0.22em; color:var(--burgundy-text); text-transform:uppercase; margin-bottom:10px; }
+.m3-pick-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:0.22em; color:var(--burgundy-text); text-transform:uppercase; margin-bottom:10px; }
 .m3-pick-title{ font-family:var(--f-display); font-size:36px; font-weight:400; line-height:1.2; margin:0 0 12px; color:var(--na1-text); }
 @media (max-width:600px){ .m3-pick-title{ font-size:28px; } }
-.m3-pick-sub{ font-family:var(--f-body); font-style:italic; font-size:19px; line-height:1.6; color:var(--na1-text-sec); margin:0 0 22px; max-width:640px; }
-.m3-pick-legend{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:0 0 36px; font-size:12.5px; color:var(--na1-text-mute); }
+.m3-pick-sub{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); margin:0 0 22px; max-width:640px; font-weight:var(--b-w);}
+.m3-pick-legend{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:0 0 36px; font-size:max(var(--b-min), calc(12.5px + var(--b-bump))); color:var(--na1-text-mute); }
 .m3-pick-legend-chip{ display:inline-flex; align-items:center; gap:6px; }
-.m3-pick-legend-swatch{ display:inline-flex; align-items:center; justify-content:center; min-height:28px; padding:4px 12px; border-radius:100px; font-family:var(--f-label); font-size:12px; font-weight:400; }
+.m3-pick-legend-swatch{ display:inline-flex; align-items:center; justify-content:center; min-height:28px; padding:4px 12px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; }
 .m3-pick-legend-swatch.is-owned{ background:var(--gold); color:var(--on-gold); border:1.5px solid var(--gold); }
 .m3-pick-legend-swatch.is-emerging{ background:transparent; color:var(--gold-text); border:1.5px solid var(--gold); }
 /* Ship 4.5 · Pick helper card, per-theme counter, migration banner, shake + toast. */
-.m3-pick-helper-card{ margin:0 0 28px; padding:14px 18px; border:1px solid var(--gold-line); border-radius:12px; background:var(--na1-bg-card); font-family:var(--f-body); font-style:italic; font-size:16.5px; line-height:1.55; color:var(--na1-text-sec); text-align:center; }
-.m3-pick-migration-banner{ margin:0 0 22px; padding:12px 16px; border:1px solid var(--burgundy-line); border-radius:10px; background:rgba(122,46,46,0.08); color:var(--burgundy); font-family:var(--f-body); font-size:15px; line-height:1.5; text-align:center; }
-.m3-pick-section-count{ font-family:var(--f-label); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin-left:auto; padding-left:8px; }
+.m3-pick-helper-card{ margin:0 0 28px; padding:14px 18px; border:1px solid var(--gold-line); border-radius:12px; background:var(--na1-bg-card); font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text-sec); text-align:center; font-weight:var(--b-w);}
+.m3-pick-migration-banner{ margin:0 0 22px; padding:12px 16px; border:1px solid var(--burgundy-line); border-radius:10px; background:rgba(122,46,46,0.08); color:var(--burgundy); font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); text-align:center; font-weight:var(--b-w);}
+.m3-pick-section-count{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin-left:auto; padding-left:8px; font-weight:400;}
 @keyframes m3PickShake{ 0%,100%{ transform:translateX(0);} 20%,60%{ transform:translateX(-4px);} 40%,80%{ transform:translateX(4px);} }
 .m3-pick-chip.is-shake{ animation:m3PickShake .32s ease-in-out; border-color:var(--burgundy)!important; }
 .m3-pick-add-form.is-shake{ animation:m3PickShake .32s ease-in-out; }
-.m3-pick-toast{ position:fixed; left:50%; bottom:32px; transform:translateX(-50%); padding:10px 18px; border-radius:100px; background:rgba(1,35,37,0.94); color:#BC9E75; font-family:var(--f-label); font-size:12.5px; letter-spacing:.02em; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.4); pointer-events:none; animation:m3ToastIn .18s ease-out; }
+.m3-pick-toast{ position:fixed; left:50%; bottom:32px; transform:translateX(-50%); padding:10px 18px; border-radius:100px; background:rgba(1,35,37,0.94); color:#BC9E75; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); letter-spacing:.02em; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.4); pointer-events:none; animation:m3ToastIn .18s ease-out; font-weight:400;}
 @keyframes m3ToastIn{ from{ opacity:0; transform:translate(-50%, 8px);} to{ opacity:1; transform:translate(-50%, 0);} }
 .m3-pick-section{ margin:0 0 32px; }
 .m3-pick-section-head{ display:flex; align-items:baseline; gap:10px; margin:0 0 14px; flex-wrap:wrap; }
 .m3-pick-section-name{ font-family:var(--f-display); font-size:22px; font-weight:400; color:var(--theme-color, var(--na1-text)); margin:0; line-height:1; }
-.m3-pick-section-tag{ font-family:var(--f-body); font-style:italic; font-size:16px; color:var(--na1-text-mute); }
+.m3-pick-section-tag{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w);}
 .m3-pick-chips{ display:flex; flex-wrap:wrap; gap:8px; }
 .m3-pick-chip{ display:inline-flex; align-items:center; gap:6px; min-height:38px; padding:6px 14px; border-radius:100px; background:transparent; border:1.5px solid var(--theme-color, var(--na1-border)); color:var(--theme-color, var(--na1-text-sec)); font-family:var(--f-label); font-size:13.5px; font-weight:400; cursor:pointer; transition:background .15s ease, color .15s ease, border-color .15s ease, transform .08s ease; user-select:none; }
 .m3-pick-chip:hover{ filter:brightness(1.05); }
@@ -2109,10 +2108,10 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .m3-pick-add{ display:inline-flex; align-items:center; gap:6px; min-height:38px; padding:6px 14px; border-radius:100px; background:transparent; border:1.5px dashed var(--theme-color, var(--na1-border)); color:var(--theme-color, var(--na1-text-mute)); font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; opacity:0.75; transition:opacity .15s; }
 .m3-pick-add:hover{ opacity:1; }
 .m3-pick-add-form{ display:inline-flex; align-items:center; gap:6px; }
-.m3-pick-add-input{ min-height:38px; padding:6px 12px; border-radius:100px; background:var(--na1-bg-card); border:1.5px solid var(--theme-color, var(--na1-border)); color:var(--na1-text); font-family:var(--f-body); font-size:15.5px; outline:none; min-width:140px; }
+.m3-pick-add-input{ min-height:38px; padding:6px 12px; border-radius:100px; background:var(--na1-bg-card); border:1.5px solid var(--theme-color, var(--na1-border)); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); outline:none; min-width:140px; font-weight:var(--b-w);}
 .m3-pick-add-input:focus{ border-color:var(--theme-color, var(--gold)); }
 .m3-pick-add-confirm{ display:inline-flex; align-items:center; justify-content:center; min-height:38px; padding:0 14px; border-radius:100px; background:var(--theme-color, var(--gold)); color:var(--on-pillar); border:none; font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; }
-.m3-pick-add-cancel{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--f-label); font-size:13px; cursor:pointer; padding:0 6px; }
+.m3-pick-add-cancel{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:13px; cursor:pointer; padding:0 6px; font-weight:400;}
 .m3-pick-counter-bar{ position:sticky; bottom:0; margin:40px -24px -120px; padding:18px 24px 28px; background:linear-gradient(180deg, transparent 0%, var(--na1-bg) 30%); display:flex; flex-direction:column; gap:6px; align-items:center; }
 @media (max-width:600px){ .m3-pick-counter-bar{ margin:32px -16px -100px; padding:16px 16px 24px; } }
 /* Embedded mode: Pick view rendered inside an na1-room-card overlay (M3 hub
@@ -2123,37 +2122,37 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 @media (max-width:600px){ .m3-pick.is-embedded .m3-pick-counter-bar{ margin:24px -16px -24px; } }
 /* ─── M3 · Step 1b · Shape · Superpowers (renamed Ship 5.5a from "Animals as Anchors") ─── */
 .m3-shape{ display:flex; flex-direction:column; gap:24px; }
-.m3-shape-eyebrow{ display:block; font-family:var(--f-label); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); text-align:center; margin:0 0 12px; }
+.m3-shape-eyebrow{ display:block; font-family:var(--f-label); font-size:max(var(--e-min), 11.5px); letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); text-align:center; margin:0 0 12px; font-weight:400;}
 .m3-shape-title{ font-family:var(--f-display); font-size:30px; line-height:1.15; color:var(--na1-text); text-align:center; margin:0 0 10px; font-weight:400; }
-.m3-shape-subhead{ font-family:var(--f-body); font-style:italic; font-size:17.5px; line-height:1.55; color:var(--gold-text); text-align:center; margin:0 auto 18px; max-width:620px; padding:0 12px; }
-.m3-shape-help{ border:1px solid var(--gold-line); border-radius:14px; background:var(--na1-bg-card); padding:14px 18px; margin:0 auto 22px; max-width:680px; font-family:var(--f-body); font-size:15.5px; line-height:1.55; color:var(--na1-text-sec); display:flex; gap:12px; align-items:flex-start; }
-.m3-shape-help-star{ color:var(--gold-text); font-size:16px; line-height:1; padding-top:1px; flex:0 0 auto; }
-@media (max-width:600px){ .m3-shape-title{ font-size:24px; } .m3-shape-subhead{ font-size:14px; } .m3-shape-help{ font-size:12.5px; padding:12px 14px; } }
+.m3-shape-subhead{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--gold-text); text-align:center; margin:0 auto 18px; max-width:620px; padding:0 12px; font-weight:var(--b-w);}
+.m3-shape-help{ border:1px solid var(--gold-line); border-radius:14px; background:var(--na1-bg-card); padding:14px 18px; margin:0 auto 22px; max-width:680px; font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text-sec); display:flex; gap:12px; align-items:flex-start; font-weight:var(--b-w);}
+.m3-shape-help-star{ color:var(--gold-text); font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1); padding-top:1px; flex:0 0 auto; }
+@media (max-width:600px){ .m3-shape-title{ font-size:24px; } .m3-shape-subhead{ font-size:max(var(--b-min), calc(14px + var(--b-bump))); } .m3-shape-help{ font-size:max(var(--b-min), calc(12.5px + var(--b-bump))); padding:12px 14px; } }
 .m3-shape-list{ display:flex; flex-direction:column; gap:18px; }
 .m3-cluster-card{ background:var(--na1-bg-card); border:1.5px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:18px 18px 16px; display:flex; flex-direction:column; gap:14px; position:relative; }
 .m3-cluster-head{ display:flex; align-items:flex-start; gap:10px; }
 .m3-cluster-name-wrap{ flex:1; display:flex; flex-direction:column; gap:2px; }
 .m3-cluster-name-input{ width:100%; background:transparent; border:none; outline:none; color:var(--na1-text); font-family:var(--f-display); font-size:22px; font-weight:400; padding:0 0 4px; border-bottom:1px dashed transparent; transition:border-color .18s; }
 .m3-cluster-name-input:focus,.m3-cluster-name-input:hover{ border-bottom-color:var(--na1-border); }
-.m3-cluster-name-meta{ font-family:var(--f-label); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); opacity:.85; }
+.m3-cluster-name-meta{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); opacity:.85; font-weight:400;}
 .m3-cluster-remove{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; line-height:1; flex-shrink:0; transition:color .18s, border-color .18s; }
 .m3-cluster-remove:hover{ color:var(--burgundy-text); border-color:var(--burgundy-line); }
 .m3-animal-row{ background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:12px; padding:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .m3-animal-emoji{ font-size:28px; line-height:1; cursor:pointer; user-select:none; padding:4px 8px; border-radius:8px; transition:background .18s; flex-shrink:0; }
 .m3-animal-emoji:hover{ background:var(--na1-bg-card); }
-.m3-animal-input{ flex:1 1 80px; min-width:80px; background:transparent; border:none; border-bottom:1px solid var(--na1-border); padding:6px 4px; color:var(--na1-text); font-family:var(--f-body); font-size:15.5px; outline:none; transition:border-color .18s; }
+.m3-animal-input{ flex:1 1 80px; min-width:80px; background:transparent; border:none; border-bottom:1px solid var(--na1-border); padding:6px 4px; color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); outline:none; transition:border-color .18s; font-weight:var(--b-w);}
 .m3-animal-input::placeholder{ color:var(--na1-text-mute); font-style:italic; }
 .m3-animal-input:focus{ border-color:var(--gold); }
 .m3-animal-input.is-needs-fill{ background:rgba(165,135,94,0.10); border-bottom-color:var(--gold-line); padding:6px 8px; border-radius:6px; }
 .m3-animal-name{ flex:1 1 110px; min-width:110px; font-weight:500; }
-.m3-browse-link{ background:transparent; border:none; color:var(--gold-text); font-family:var(--f-label); font-size:12px; cursor:pointer; padding:0 4px; flex-shrink:0; text-decoration:none; }
+.m3-browse-link{ background:transparent; border:none; color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 12px); cursor:pointer; padding:0 4px; flex-shrink:0; text-decoration:none; font-weight:400;}
 .m3-browse-link:hover{ text-decoration:underline; }
-.m3-animal-help{ font-family:var(--f-body); font-size:14px; color:var(--na1-text-mute); margin:0; padding:0 4px; font-style:italic; }
+.m3-animal-help{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); margin:0; padding:0 4px; font-style:italic; font-weight:var(--b-w);}
 .m3-animal-help .m3-help-star{ color:var(--gold-text); margin-right:4px; }
 .m3-cluster-gifts{ display:flex; flex-direction:column; gap:8px; }
-.m3-cluster-gifts-label{ font-family:var(--f-label); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--na1-text-mute); margin:0; }
+.m3-cluster-gifts-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.1em; text-transform:uppercase; color:var(--na1-text-sec); margin:0; font-weight:400;}
 .m3-cluster-chips{ display:flex; flex-wrap:wrap; gap:6px; }
-.m3-cluster-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg); border:1px solid var(--na1-border); color:var(--na1-text-sec); border-radius:100px; padding:6px 12px; font-family:var(--f-label); font-size:12.5px; cursor:pointer; transition:border-color .18s, color .18s; position:relative; }
+.m3-cluster-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg); border:1px solid var(--na1-border); color:var(--na1-text-sec); border-radius:100px; padding:6px 12px; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); cursor:pointer; transition:border-color .18s, color .18s; position:relative; font-weight:400;}
 .m3-cluster-chip:hover{ border-color:var(--gold-line); color:var(--na1-text); }
 .m3-cluster-chip.is-moving{ opacity:.55; }
 .m3-shape-actions{ display:flex; justify-content:center; padding:8px 0 4px; }
@@ -2164,41 +2163,41 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .m3-inv{ position:sticky; top:-80px; z-index:30; margin:0 -24px 20px; padding:14px 24px 10px; background:linear-gradient(180deg, var(--na1-bg-card) 0%, var(--na1-bg-card) 88%, rgba(0,0,0,0) 100%); border-bottom:1px solid var(--gold-line); }
 @media (max-width:600px){ .m3-inv{ margin:0 -16px 16px; padding:12px 16px 8px; } }
 .m3-inv-header{ display:flex; justify-content:space-between; align-items:baseline; margin:0 0 8px; }
-.m3-inv-title{ font-family:var(--f-label); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin:0; }
-.m3-inv-count{ font-family:var(--f-label); font-size:11px; color:var(--na1-text-mute); }
+.m3-inv-title{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin:0; font-weight:400;}
+.m3-inv-count{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); color:var(--na1-text-sec); font-weight:400;}
 .m3-inv-row{ display:flex; align-items:center; gap:8px; padding:5px 0; flex-wrap:wrap; }
 .m3-inv-row + .m3-inv-row{ border-top:1px dashed rgba(165,135,94,0.18); }
-.m3-inv-theme{ display:inline-flex; align-items:center; gap:6px; font-family:var(--f-label); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--na1-text-sec); min-width:64px; flex-shrink:0; }
+.m3-inv-theme{ display:inline-flex; align-items:center; gap:6px; font-family:var(--f-label); font-size:max(var(--l-min), 11px); letter-spacing:.08em; text-transform:uppercase; color:var(--na1-text-sec); min-width:64px; flex-shrink:0; font-weight:400;}
 .m3-inv-dot{ width:8px; height:8px; border-radius:50%; background:var(--m3inv-color, var(--gold)); flex-shrink:0; }
 .m3-inv-chips{ display:flex; flex-wrap:wrap; gap:5px; flex:1; min-width:0; align-items:center; }
-.m3-inv-chip{ display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:100px; background:transparent; border:1px solid var(--m3inv-color, var(--na1-border)); color:var(--m3inv-color, var(--na1-text-sec)); font-family:var(--f-label); font-size:12px; font-weight:400; cursor:pointer; transition:transform .08s, filter .15s; }
+.m3-inv-chip{ display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:100px; background:transparent; border:1px solid var(--m3inv-color, var(--na1-border)); color:var(--m3inv-color, var(--na1-text-sec)); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; cursor:pointer; transition:transform .08s, filter .15s; }
 .m3-inv-chip:not(:disabled):hover{ filter:brightness(1.18); }
 .m3-inv-chip:not(:disabled):active{ transform:translateY(1px); }
 .m3-inv-chip:disabled{ cursor:default; opacity:.85; }
 .m3-inv-chip.is-owned{ background:var(--m3inv-color, var(--gold)); color:var(--on-pillar); }
 .m3-inv-chip-mark{ font-size:11px; line-height:1; opacity:.85; }
-.m3-inv-add{ display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:100px; border:1px dashed var(--m3inv-color, var(--na1-border)); background:transparent; color:var(--m3inv-color, var(--na1-text-mute)); font-family:var(--f-label); font-size:11.5px; cursor:pointer; flex-shrink:0; }
+.m3-inv-add{ display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:100px; border:1px dashed var(--m3inv-color, var(--na1-border)); background:transparent; color:var(--m3inv-color, var(--na1-text-mute)); font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); cursor:pointer; flex-shrink:0; font-weight:400;}
 .m3-inv-add:hover{ filter:brightness(1.18); }
-.m3-inv-empty{ font-family:var(--f-body); font-size:13.5px; color:var(--na1-text-mute); font-style:italic; }
+.m3-inv-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13.5px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; font-weight:var(--b-w);}
 /* Inline "+ add" library panel under inventory bar (per owner note B) */
 .m3-inv-lib{ margin-top:10px; padding:12px 14px; background:var(--na1-bg); border:1px solid var(--m3inv-color, var(--gold-line)); border-radius:12px; }
 .m3-inv-lib-head{ display:flex; align-items:center; justify-content:space-between; margin:0 0 8px; }
-.m3-inv-lib-title{ font-family:var(--f-label); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--m3inv-color, var(--gold)); }
+.m3-inv-lib-title{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.1em; text-transform:uppercase; color:var(--m3inv-color, var(--gold)); font-weight:400;}
 .m3-inv-lib-close{ background:transparent; border:none; color:var(--na1-text-mute); font-size:18px; cursor:pointer; padding:0 4px; line-height:1; }
 .m3-inv-lib-grid{ display:flex; flex-wrap:wrap; gap:6px; }
-.m3-inv-lib-chip{ display:inline-flex; padding:5px 11px; border-radius:100px; background:transparent; border:1px solid var(--m3inv-color, var(--na1-border)); color:var(--m3inv-color, var(--na1-text-sec)); font-family:var(--f-label); font-size:12px; cursor:pointer; transition:transform .08s, filter .15s; }
+.m3-inv-lib-chip{ display:inline-flex; padding:5px 11px; border-radius:100px; background:transparent; border:1px solid var(--m3inv-color, var(--na1-border)); color:var(--m3inv-color, var(--na1-text-sec)); font-family:var(--f-label); font-size:max(var(--l-min), 12px); cursor:pointer; transition:transform .08s, filter .15s; font-weight:400;}
 .m3-inv-lib-chip:not(:disabled):hover{ filter:brightness(1.18); }
 .m3-inv-lib-chip.is-already{ opacity:.4; cursor:not-allowed; }
 
 /* ─── Which-creature? picker (anchored popover; mobile bottom-sheet <480px) ─── */
 .m3-picker-back{ position:fixed; inset:0; z-index:9998; background:transparent; }
 .m3-picker{ position:fixed; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:14px; padding:8px; min-width:220px; max-width:300px; box-shadow:0 10px 32px rgba(0,0,0,0.5); z-index:9999; overflow-y:auto; }
-.m3-picker-title{ font-family:var(--f-label); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); padding:4px 10px 6px; }
-.m3-picker-opt{ display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; background:transparent; border:none; color:var(--na1-text); font-family:var(--f-label); font-size:13px; cursor:pointer; border-radius:8px; text-align:left; }
+.m3-picker-title{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); padding:4px 10px 6px; font-weight:400;}
+.m3-picker-opt{ display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; background:transparent; border:none; color:var(--na1-text); font-family:var(--f-label); font-size:13px; cursor:pointer; border-radius:8px; text-align:left; font-weight:400;}
 .m3-picker-opt:not(:disabled):hover{ background:var(--na1-bg); }
 .m3-picker-opt.is-origin{ opacity:.45; cursor:not-allowed; }
 .m3-picker-emoji{ font-size:18px; line-height:1; }
-.m3-picker-cancel{ display:block; width:100%; padding:7px 10px; margin-top:4px; background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--f-label); font-size:11.5px; cursor:pointer; text-align:left; border-top:1px solid var(--na1-border); }
+.m3-picker-cancel{ display:block; width:100%; padding:7px 10px; margin-top:4px; background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); cursor:pointer; text-align:left; border-top:1px solid var(--na1-border); font-weight:400;}
 @media (max-width:480px){
   .m3-picker-back{ background:rgba(0,0,0,0.45); }
   .m3-picker{ left:0!important; right:0!important; top:auto!important; bottom:0; max-width:none; min-width:0; border-radius:14px 14px 0 0; border-bottom:none; padding:14px 12px 22px; max-height:64vh; overflow:auto; }
@@ -2207,10 +2206,10 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 
 /* ─── Per-cluster Superpower sentence (Ship 5.5a · 3 inline blanks) ─── */
 .m3-super{ margin-top:6px; padding-top:14px; border-top:1px solid var(--na1-border); display:flex; flex-direction:column; gap:8px; }
-.m3-super-label{ font-family:var(--f-label); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); }
-.m3-super-sentence{ font-family:var(--f-body); font-size:18px; line-height:1.95; color:var(--na1-text); }
-@media (max-width:600px){ .m3-super-sentence{ font-size:14.5px; line-height:1.85; } }
-.m3-super-blank{ display:inline-block; min-width:120px; max-width:100%; padding:3px 10px; margin:0 2px; border:none; border-bottom:1px dashed var(--gold-line); background:var(--gold-soft); color:var(--gold-text); font-family:var(--f-body); font-style:italic; font-size:inherit; line-height:1.4; outline:none; border-radius:4px 4px 0 0; transition:background .15s, border-color .15s; }
+.m3-super-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); font-weight:400;}
+.m3-super-sentence{ font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.95); color:var(--na1-text); font-weight:var(--b-w);}
+@media (max-width:600px){ .m3-super-sentence{ font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.85); } }
+.m3-super-blank{ display:inline-block; min-width:120px; max-width:100%; padding:3px 10px; margin:0 2px; border:none; border-bottom:1px dashed var(--gold-line); background:var(--gold-soft); color:var(--gold-text); font-family:var(--f-body); font-style:italic; font-size:inherit; line-height:max(var(--b-lh), 1.4); outline:none; border-radius:4px 4px 0 0; transition:background .15s, border-color .15s; font-weight:var(--b-w);}
 .m3-super-blank::placeholder{ color:var(--na1-text-mute); font-style:italic; opacity:.7; }
 .m3-super-blank:focus{ background:var(--gold-warm); border-bottom-color:var(--gold); }
 .m3-super-blank.is-filled{ background:transparent; color:var(--na1-text); border-bottom-color:var(--gold-line); }
@@ -2219,17 +2218,17 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 
 /* ─── "+ Add another creature" footer (cap 5) ─── */
 .m3-add-creature{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 0 4px; }
-.m3-add-creature-btn{ display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:100px; border:1px dashed var(--gold-line); background:transparent; color:var(--gold-text); font-family:var(--f-label); font-size:13px; cursor:pointer; transition:background .18s; }
+.m3-add-creature-btn{ display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:100px; border:1px dashed var(--gold-line); background:transparent; color:var(--gold-text); font-family:var(--f-label); font-size:13px; cursor:pointer; transition:background .18s; font-weight:400;}
 .m3-add-creature-btn:hover:not(:disabled){ background:var(--gold-soft); }
 .m3-add-creature-btn:disabled{ opacity:.4; cursor:not-allowed; }
-.m3-add-creature-count{ font-family:var(--f-label); font-size:11px; color:var(--na1-text-mute); }
+.m3-add-creature-count{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); color:var(--na1-text-sec); font-weight:400;}
 
 /* ─── Custom-creature panel (inside browse modal) ─── */
 .m3-custom-panel{ margin-top:18px; padding-top:16px; border-top:1px solid var(--na1-border); display:flex; flex-direction:column; gap:10px; }
-.m3-custom-title{ font-family:var(--f-label); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); }
+.m3-custom-title{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.1em; text-transform:uppercase; color:var(--gold-text); font-weight:400;}
 .m3-custom-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
 .m3-custom-emoji-preview{ font-size:28px; line-height:1; padding:6px 12px; border-radius:10px; background:var(--na1-bg); border:1px solid var(--gold-line); flex-shrink:0; }
-.m3-custom-name-input{ flex:1; min-width:140px; background:transparent; border:none; border-bottom:1px solid var(--na1-border); padding:8px 4px; color:var(--na1-text); font-family:var(--f-body); font-size:16px; outline:none; transition:border-color .18s; }
+.m3-custom-name-input{ flex:1; min-width:140px; background:transparent; border:none; border-bottom:1px solid var(--na1-border); padding:8px 4px; color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); outline:none; transition:border-color .18s; font-weight:var(--b-w);}
 .m3-custom-name-input:focus{ border-bottom-color:var(--gold); }
 .m3-custom-emoji-grid{ display:grid; grid-template-columns:repeat(10, 1fr); gap:6px; padding:4px 0; }
 @media (max-width:480px){ .m3-custom-emoji-grid{ grid-template-columns:repeat(8, 1fr); } }
@@ -2237,10 +2236,10 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .m3-custom-emoji-cell:hover{ background:var(--na1-bg); }
 .m3-custom-emoji-cell.is-selected{ border-color:var(--gold); background:var(--gold-soft); }
 .m3-custom-actions{ display:flex; gap:8px; justify-content:flex-end; align-items:center; }
-.m3-custom-more{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--f-label); font-size:11.5px; font-style:italic; cursor:default; margin-right:auto; }
-.m3-custom-apply{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; border-radius:100px; padding:8px 16px; font-family:var(--f-label); font-size:12.5px; font-weight:400; cursor:pointer; }
+.m3-custom-more{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); font-style:italic; cursor:default; margin-right:auto; font-weight:400;}
+.m3-custom-apply{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; border-radius:100px; padding:8px 16px; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; }
 .m3-custom-apply:disabled{ opacity:.4; cursor:not-allowed; }
-.m3-custom-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); border-radius:100px; padding:8px 14px; font-family:var(--f-label); font-size:12.5px; cursor:pointer; }
+.m3-custom-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); border-radius:100px; padding:8px 14px; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); cursor:pointer; font-weight:400;}
 
 /* ─── Single-cluster auto-place toast (minimal, no infra; per owner note C) ─── */
 .m3-toast{ position:fixed; left:50%; bottom:18%; transform:translateX(-50%); padding:10px 18px; background:var(--na1-bg-card); border:1px solid var(--gold); border-radius:100px; color:var(--gold-text); font-family:var(--f-label); font-size:13px; font-weight:400; box-shadow:0 6px 20px rgba(0,0,0,0.4); z-index:9999; pointer-events:none; animation:m3ToastIO 2.28s ease forwards; }
@@ -2251,46 +2250,46 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
   0%, 100% { box-shadow: 0 0 0 0 rgba(165,135,94, 0.35); border-color: var(--gold); }
   50%      { box-shadow: 0 0 0 8px rgba(165,135,94, 0.18), 0 0 30px rgba(165,135,94, 0.25); border-color: var(--gold); }
 }
-.m3-inv-hint{ display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:100px; background:var(--gold-soft); border:1px solid var(--gold); color:var(--gold-text); font-family:var(--f-label); font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:400; margin-left:10px; animation:m3HintFade .35s ease-out; }
+.m3-inv-hint{ display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:100px; background:var(--gold-soft); border:1px solid var(--gold); color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 11px); letter-spacing:.08em; text-transform:uppercase; font-weight:400; margin-left:10px; animation:m3HintFade .35s ease-out; }
 @keyframes m3HintFade { from { opacity:0; transform:translateY(-2px); } to { opacity:1; transform:translateY(0); } }
 
 /* ─── Fix 8 · custom-gift input inside inline library panel ─── */
 .m3-inv-lib-custom{ display:flex; gap:6px; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed var(--gold-line); }
-.m3-inv-lib-input{ flex:1; min-width:120px; padding:6px 12px; background:transparent; border:1px solid var(--m3inv-color, var(--gold-line)); border-radius:100px; color:var(--na1-text); font-family:var(--f-body); font-size:14.5px; outline:none; transition:border-color .15s; }
+.m3-inv-lib-input{ flex:1; min-width:120px; padding:6px 12px; background:transparent; border:1px solid var(--m3inv-color, var(--gold-line)); border-radius:100px; color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); outline:none; transition:border-color .15s; font-weight:var(--b-w);}
 .m3-inv-lib-input::placeholder{ color:var(--na1-text-mute); opacity:.7; }
 .m3-inv-lib-input:focus{ border-color:var(--m3inv-color, var(--gold)); }
-.m3-inv-lib-add{ padding:6px 14px; background:var(--m3inv-color, var(--gold)); color:var(--on-pillar); border:none; border-radius:100px; font-family:var(--f-label); font-size:11.5px; font-weight:400; cursor:pointer; flex-shrink:0; }
+.m3-inv-lib-add{ padding:6px 14px; background:var(--m3inv-color, var(--gold)); color:var(--on-pillar); border:none; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); font-weight:400; cursor:pointer; flex-shrink:0; }
 .m3-inv-lib-add:disabled{ opacity:.4; cursor:not-allowed; }
 @keyframes m3ToastIO{ 0%{ opacity:0; transform:translate(-50%, 10px); } 10.5%{ opacity:1; transform:translate(-50%, 0); } 89.5%{ opacity:1; transform:translate(-50%, 0); } 100%{ opacity:0; transform:translate(-50%, -10px); } }
 
 /* Browse modal */
 .m3-browse-overlay{ position:fixed; inset:0; background:rgba(1,20,22,0.72); display:flex; align-items:center; justify-content:center; z-index:60; padding:20px; }
 .m3-browse-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:24px; max-width:480px; width:100%; max-height:78vh; overflow:auto; position:relative; }
-.m3-browse-title{ font-family:var(--f-display); font-size:18px; color:var(--na1-text); margin:0 0 4px; }
-.m3-browse-sub{ font-family:var(--f-body); font-size:14px; color:var(--na1-text-mute); margin:0 0 16px; }
+.m3-browse-title{ font-family:var(--f-display); font-size:18px; color:var(--na1-text); margin:0 0 4px; font-weight:400;}
+.m3-browse-sub{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); margin:0 0 16px; font-weight:var(--b-w);}
 .m3-browse-close{ position:absolute; top:14px; right:14px; background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:16px; line-height:1; }
 .m3-browse-grid{ display:flex; flex-direction:column; gap:6px; }
-.m3-browse-row{ display:flex; align-items:center; gap:12px; padding:10px 12px; background:transparent; border:1px solid var(--na1-border); border-radius:12px; color:var(--na1-text); font-family:var(--f-label); font-size:13px; cursor:pointer; text-align:left; transition:border-color .18s, background .18s; }
+.m3-browse-row{ display:flex; align-items:center; gap:12px; padding:10px 12px; background:transparent; border:1px solid var(--na1-border); border-radius:12px; color:var(--na1-text); font-family:var(--f-label); font-size:13px; cursor:pointer; text-align:left; transition:border-color .18s, background .18s; font-weight:400;}
 .m3-browse-row:hover{ border-color:var(--gold-line); background:var(--na1-bg); }
 .m3-browse-row.is-current{ border-color:var(--gold); background:var(--na1-bg); }
 .m3-browse-row-emoji{ font-size:22px; line-height:1; }
 .m3-browse-row-text{ flex:1; display:flex; flex-direction:column; gap:1px; }
 .m3-browse-row-name{ font-weight:600; }
-.m3-browse-row-arch{ font-size:11.5px; color:var(--na1-text-mute); font-style:italic; }
+.m3-browse-row-arch{ font-size:max(var(--b-min), calc(11.5px + var(--b-bump))); color:var(--na1-text-mute); font-style:italic; }
 @media (max-width:600px){
   .m3-animal-row{ flex-direction:column; align-items:stretch; }
   .m3-animal-emoji{ align-self:center; }
   .m3-animal-input{ width:100%; }
 }
-.m3-pick-counter{ font-family:var(--f-label); font-size:14px; color:var(--na1-text); font-variant-numeric:tabular-nums; }
+.m3-pick-counter{ font-family:var(--f-label); font-size:14px; color:var(--na1-text); font-variant-numeric:tabular-nums; font-weight:400;}
 .m3-pick-counter strong{ color:var(--na1-text); font-weight:700; }
-.m3-pick-hint{ font-family:var(--f-body); font-size:14px; color:var(--na1-text-mute); font-style:italic; margin:0 0 12px; }
+.m3-pick-hint{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; margin:0 0 12px; font-weight:var(--b-w);}
 .m3-pick-actions{ display:flex; gap:12px; align-items:center; justify-content:center; }
 /* ─── M3 · Step 3 · Under Pressure ─── */
 .m3-under{ display:flex; flex-direction:column; gap:20px; }
-.m3-under-eyebrow{ display:block; font-family:var(--f-label); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--burgundy, var(--burgundy)); text-align:center; margin:0 0 8px; }
+.m3-under-eyebrow{ display:block; font-family:var(--f-label); font-size:max(var(--e-min), 11.5px); letter-spacing:.18em; text-transform:uppercase; color:var(--burgundy, var(--burgundy)); text-align:center; margin:0 0 8px; font-weight:400;}
 .m3-under-pip-bar{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin:0 0 6px; }
-.m3-under-pip{ display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; font-family:var(--f-label); font-size:12px; letter-spacing:.06em; color:var(--na1-text-mute); cursor:default; text-transform:none; }
+.m3-under-pip{ display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; font-family:var(--f-label); font-size:max(var(--l-min), 12px); letter-spacing:.06em; color:var(--na1-text-sec); cursor:default; text-transform:none; font-weight:400;}
 .m3-under-pip-dot{ width:8px; height:8px; border-radius:50%; background:var(--na1-text-mute); }
 .m3-under-pip.is-done{ color:var(--na1-text-sec); border-color:var(--gold-line); }
 .m3-under-pip.is-done .m3-under-pip-dot{ background:var(--gold); }
@@ -2298,28 +2297,28 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .m3-under-pip.is-active .m3-under-pip-dot{ background:var(--burgundy-fill); }
 .m3-under-card{ background:var(--na1-bg-card); border:1.5px solid var(--na1-border); border-radius:var(--na1-radius-lg); padding:22px 22px 20px; display:flex; flex-direction:column; gap:18px; }
 .m3-under-head{ display:flex; flex-direction:column; gap:6px; text-align:center; padding-bottom:6px; border-bottom:1px solid var(--na1-border); }
-.m3-under-creature{ font-family:var(--f-display); font-size:26px; color:var(--gold-text); margin:0; line-height:1.1; display:flex; align-items:center; justify-content:center; gap:10px; }
-.m3-under-version{ font-family:var(--f-label); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--na1-text-mute); margin:0; }
+.m3-under-creature{ font-family:var(--f-display); font-size:26px; color:var(--gold-text); margin:0; line-height:1.1; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:400;}
+.m3-under-version{ font-family:var(--f-label); font-size:max(var(--e-min), 11.5px); letter-spacing:.18em; text-transform:uppercase; color:var(--na1-text-sec); margin:0; font-weight:400;}
 .m3-under-gift-rows{ display:flex; flex-direction:column; gap:14px; }
 .m3-under-row{ display:grid; grid-template-columns:minmax(120px, 1fr) auto minmax(0, 2.4fr); align-items:center; gap:12px; padding:8px 0; border-bottom:1px dashed var(--na1-border); }
 .m3-under-row:last-child{ border-bottom:none; }
 .m3-under-gift-chip{ display:inline-flex; align-items:center; justify-content:center; padding:8px 14px; border-radius:100px; background:var(--gold); color:var(--on-gold); font-family:var(--f-label); font-size:13px; font-weight:400; letter-spacing:.02em; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.m3-under-arrow{ color:var(--na1-text-mute); font-family:var(--f-label); font-size:18px; line-height:1; user-select:none; }
+.m3-under-arrow{ color:var(--na1-text-sec); font-family:var(--f-label); font-size:18px; line-height:1; user-select:none; font-weight:400;}
 .m3-under-shadow-bin{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-height:36px; }
-.m3-under-shadow-chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:12.5px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; user-select:none; }
+.m3-under-shadow-chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); cursor:pointer; transition:background .15s, border-color .15s, color .15s; user-select:none; font-weight:400;}
 .m3-under-shadow-chip:hover{ border-color:rgba(122,46,46,0.5); }
 .m3-under-shadow-chip.is-picked{ background:var(--burgundy-fill); border-color:var(--gold); color:#fff; box-shadow:0 0 0 1px var(--gold) inset; }
 .m3-under-shadow-chip.is-primary::before{ content:""; width:7px; height:7px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px var(--burgundy) inset; }
 .m3-under-shadow-chip.is-primary:not(.is-picked)::before{ background:var(--burgundy-fill); box-shadow:none; }
-.m3-under-add-btn{ display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border-radius:100px; border:1px dashed var(--na1-border); background:transparent; color:var(--na1-text-mute); font-family:var(--f-label); font-size:12px; cursor:pointer; }
+.m3-under-add-btn{ display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border-radius:100px; border:1px dashed var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12px); cursor:pointer; font-weight:400;}
 .m3-under-add-btn:hover{ color:var(--na1-text-sec); border-color:var(--na1-text-mute); }
-.m3-under-add-input{ padding:6px 12px; border-radius:100px; border:1px solid var(--gold-line); background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); font-size:14.5px; min-width:120px; outline:none; }
+.m3-under-add-input{ padding:6px 12px; border-radius:100px; border:1px solid var(--gold-line); background:var(--na1-bg); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); min-width:120px; outline:none; font-weight:var(--b-w);}
 .m3-under-add-input:focus{ border-color:var(--gold); }
-.m3-under-primary-hint{ font-family:var(--f-body); font-size:13px; color:var(--na1-text-mute); font-style:italic; padding:0 0 4px; }
+.m3-under-primary-hint{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; padding:0 0 4px; font-weight:var(--b-w);}
 /* 3-blank sentence completion (Ship 4.5 — replaces free-text story). */
-.m3-under-sentence{ display:block; padding-top:14px; border-top:1px solid var(--na1-border); font-family:var(--f-body); font-size:19px; line-height:1.9; color:var(--na1-text); }
-@media (max-width:600px){ .m3-under-sentence{ font-size:15.5px; line-height:1.85; } }
-.m3-under-blank{ display:inline-block; min-width:120px; max-width:100%; padding:4px 10px; margin:0 2px; border:none; border-bottom:1px dashed var(--gold-line); background:var(--gold-soft); color:var(--burgundy); font-family:var(--f-body); font-style:italic; font-size:inherit; line-height:1.4; outline:none; border-radius:4px 4px 0 0; transition:background .15s, border-color .15s; }
+.m3-under-sentence{ display:block; padding-top:14px; border-top:1px solid var(--na1-border); font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.9); color:var(--na1-text); font-weight:var(--b-w);}
+@media (max-width:600px){ .m3-under-sentence{ font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.85); } }
+.m3-under-blank{ display:inline-block; min-width:120px; max-width:100%; padding:4px 10px; margin:0 2px; border:none; border-bottom:1px dashed var(--gold-line); background:var(--gold-soft); color:var(--burgundy); font-family:var(--f-body); font-style:italic; font-size:inherit; line-height:max(var(--b-lh), 1.4); outline:none; border-radius:4px 4px 0 0; transition:background .15s, border-color .15s; font-weight:var(--b-w);}
 .m3-under-blank::placeholder{ color:var(--na1-text-mute); font-style:italic; opacity:.7; }
 .m3-under-blank:focus{ background:var(--gold-warm); border-bottom-color:var(--gold); }
 .m3-under-blank.is-filled{ background:transparent; border-bottom-color:var(--gold-line); color:var(--burgundy); }
@@ -2352,100 +2351,100 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-m4-back:disabled{ opacity:.3; cursor:not-allowed; }
 .na1-m4-continue{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; padding:11px 22px; border-radius:100px; font-size:14px; cursor:pointer; font-family:var(--f-label); letter-spacing:.02em; font-weight:400; transition:filter .15s; }
 /* Phase 2 · Name-the-standards (user-driven grouping) */
-.na1-m4-ns-example-toggle{ background:transparent; border:none; color:var(--gold-text); font-family:var(--f-label); font-size:12px; font-weight:400; cursor:pointer; padding:4px 0; margin:0 0 12px; }
-.na1-m4-ns-example{ background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:10px; padding:12px 14px; margin:0 0 18px; font-family:var(--f-body); font-size:15.5px; line-height:1.55; color:var(--na1-text-sec); }
+.na1-m4-ns-example-toggle{ background:transparent; border:none; color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; cursor:pointer; padding:4px 0; margin:0 0 12px; }
+.na1-m4-ns-example{ background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:10px; padding:12px 14px; margin:0 0 18px; font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-m4-ns-example em{ color:var(--na1-text); font-style:italic; }
 .na1-m4-ns-example strong{ color:var(--gold-text); }
 .na1-m4-ns-pool{ margin:0 0 22px; }
-.na1-m4-ns-label{ font-family:var(--f-label); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--na1-text-mute); font-weight:400; margin:0 0 10px; }
-.na1-m4-ns-pool-empty{ font-family:var(--f-body); font-size:15px; color:var(--na1-text-mute); font-style:italic; padding:6px 0; }
+.na1-m4-ns-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.16em; text-transform:uppercase; color:var(--na1-text-sec); font-weight:400; margin:0 0 10px; }
+.na1-m4-ns-pool-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; padding:6px 0; font-weight:var(--b-w);}
 .na1-m4-ns-chips{ display:flex; flex-wrap:wrap; gap:8px; }
 .na1-m4-ns-chipwrap{ position:relative; }
-.na1-m4-ns-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:100px; padding:7px 12px; font-family:var(--f-label); font-size:13px; color:var(--na1-text); cursor:pointer; transition:border-color .15s; }
+.na1-m4-ns-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:100px; padding:7px 12px; font-family:var(--f-label); font-size:13px; color:var(--na1-text); cursor:pointer; transition:border-color .15s; font-weight:400;}
 .na1-m4-ns-chip:hover{ border-color:var(--gold); }
 .na1-m4-ns-chip-caret{ color:var(--na1-text-mute); font-size:11px; }
 .na1-m4-ns-menu{ position:absolute; top:calc(100% + 4px); left:0; z-index:20; min-width:180px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:10px; padding:5px; box-shadow:0 8px 28px rgba(0,0,0,.28); display:flex; flex-direction:column; gap:2px; }
-.na1-m4-ns-menu-item{ text-align:left; background:transparent; border:none; border-radius:7px; padding:8px 10px; font-family:var(--f-label); font-size:13px; color:var(--na1-text); cursor:pointer; }
+.na1-m4-ns-menu-item{ text-align:left; background:transparent; border:none; border-radius:7px; padding:8px 10px; font-family:var(--f-label); font-size:13px; color:var(--na1-text); cursor:pointer; font-weight:400;}
 .na1-m4-ns-menu-item:hover{ background:var(--na1-bg-soft); }
 .na1-m4-ns-menu-item.is-new{ color:var(--gold-text); font-weight:600; border-top:1px solid var(--na1-border); margin-top:2px; }
 .na1-m4-ns-standards{ display:flex; flex-direction:column; gap:14px; }
 .na1-m4-ns-card{ position:relative; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-left:3px solid var(--na1-border); border-radius:12px; padding:14px 16px; }
 .na1-m4-ns-card.is-complete{ border-color:var(--gold); }
-.na1-m4-ns-card-del{ position:absolute; top:10px; right:12px; background:transparent; border:none; color:var(--na1-text-mute); font-size:18px; line-height:1; cursor:pointer; }
+.na1-m4-ns-card-del{ position:absolute; top:10px; right:12px; background:transparent; border:none; color:var(--na1-text-mute); font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1); cursor:pointer; }
 .na1-m4-ns-card-del:hover{ color:var(--na1-text); }
 .na1-m4-ns-name{ width:100%; background:transparent; border:none; border-bottom:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-display); font-size:18px; font-weight:400; padding:2px 0 6px; margin:0 0 12px; outline:none; }
 .na1-m4-ns-name:focus{ border-bottom-color:var(--gold); }
-.na1-m4-ns-card-empty{ font-family:var(--f-body); font-size:14.5px; color:var(--na1-text-mute); font-style:italic; }
+.na1-m4-ns-card-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; font-weight:var(--b-w);}
 .na1-m4-ns-evidence{ display:flex; flex-wrap:wrap; gap:7px; }
-.na1-m4-ns-ev{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:5px 9px; font-family:var(--f-body); font-size:14.5px; color:var(--na1-text-sec); }
-.na1-m4-ns-ev-x{ background:transparent; border:none; color:var(--na1-text-mute); font-size:14px; line-height:1; cursor:pointer; padding:0; }
+.na1-m4-ns-ev{ display:inline-flex; align-items:center; gap:6px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:5px 9px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
+.na1-m4-ns-ev-x{ background:transparent; border:none; color:var(--na1-text-mute); font-size:max(var(--b-min), calc(14px + var(--b-bump))); line-height:max(var(--b-lh), 1); cursor:pointer; padding:0; }
 .na1-m4-ns-ev-x:hover{ color:var(--na1-text); }
 .na1-m4-ns-ev-text{ cursor:text; border-bottom:1px dashed transparent; }
 .na1-m4-ns-ev-text:hover{ border-bottom-color:var(--na1-border); }
-.na1-m4-ns-ev-star{ background:transparent; border:none; color:var(--na1-text-mute); font-size:13px; line-height:1; cursor:pointer; padding:0; transition:color .15s ease; }
+.na1-m4-ns-ev-star{ background:transparent; border:none; color:var(--na1-text-mute); font-size:max(var(--b-min), calc(13px + var(--b-bump))); line-height:max(var(--b-lh), 1); cursor:pointer; padding:0; transition:color .15s ease; }
 .na1-m4-ns-ev-star:hover{ color:var(--gold-text); }
 .na1-m4-ns-ev-star.is-on{ color:var(--gold-text); }
 .na1-m4-ns-ev.is-keystone{ border-color:var(--gold-line); background:var(--gold-soft); }
-.na1-m4-ns-def{ width:100%; background:transparent; border:none; border-bottom:1px solid var(--na1-border); color:var(--na1-text-sec); font-family:var(--f-body); font-style:italic; font-size:15.5px; padding:3px 0 5px; margin-top:11px; outline:none; }
+.na1-m4-ns-def{ width:100%; background:transparent; border:none; border-bottom:1px solid var(--na1-border); color:var(--na1-text); font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); padding:3px 0 5px; margin-top:11px; outline:none; font-weight:var(--b-w);}
 .na1-m4-ns-def::placeholder{ color:var(--na1-text-mute); font-style:italic; }
 .na1-m4-ns-def:focus{ border-bottom-color:var(--gold); }
 .na1-m4-ns-addbeh{ display:flex; align-items:center; gap:7px; margin-top:8px; }
-.na1-m4-ns-addbeh-input{ flex:1; min-width:0; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:7px 10px; font-family:var(--f-body); font-size:14.5px; color:var(--na1-text); }
+.na1-m4-ns-addbeh-input{ flex:1; min-width:0; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:8px; padding:7px 10px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-m4-ns-addbeh-input:focus{ outline:none; border-color:var(--gold); }
-.na1-m4-ns-addbeh-btn{ background:transparent; border:1px solid var(--na1-border); border-radius:8px; padding:7px 13px; font-family:var(--f-label); font-size:12.5px; color:var(--na1-text-sec); cursor:pointer; transition:border-color .15s,color .15s; }
+.na1-m4-ns-addbeh-btn{ background:transparent; border:1px solid var(--na1-border); border-radius:8px; padding:7px 13px; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); color:var(--na1-text-sec); cursor:pointer; transition:border-color .15s,color .15s; font-weight:400;}
 .na1-m4-ns-addbeh-btn:hover:not(:disabled){ border-color:var(--gold); color:var(--gold-text); }
 .na1-m4-ns-addbeh-btn:disabled{ opacity:.45; cursor:not-allowed; }
-.na1-m4-ns-hint{ font-family:var(--f-body); font-size:13.5px; color:var(--na1-text-mute); font-style:italic; margin-top:7px; }
-.na1-m4-ns-add{ align-self:flex-start; background:transparent; border:1px dashed var(--na1-border); border-radius:100px; padding:9px 16px; font-family:var(--f-label); font-size:13px; color:var(--na1-text-sec); cursor:pointer; transition:border-color .15s,color .15s; }
+.na1-m4-ns-hint{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13.5px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; margin-top:7px; font-weight:var(--b-w);}
+.na1-m4-ns-add{ align-self:flex-start; background:transparent; border:1px dashed var(--na1-border); border-radius:100px; padding:9px 16px; font-family:var(--f-label); font-size:13px; color:var(--na1-text-sec); cursor:pointer; transition:border-color .15s,color .15s; font-weight:400;}
 .na1-m4-ns-add:hover{ border-color:var(--gold); color:var(--gold-text); }
 .na1-m4-continue:hover:not(:disabled){ filter:brightness(1.08); }
 .na1-m4-continue:disabled{ opacity:.4; cursor:not-allowed; background:var(--gold-soft); color:var(--gold-text); }
 /* Phase 3 · Flip-the-irks rung */
 .na1-m4-flip-list{ display:flex; flex-direction:column; gap:14px; }
-.na1-m4-flip-empty{ font-family:var(--f-body); font-size:15px; color:var(--na1-text-mute); font-style:italic; padding:10px 0; }
+.na1-m4-flip-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; padding:10px 0; font-weight:var(--b-w);}
 .na1-m4-flip-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-left:3px solid var(--burgundy-line); border-radius:12px; padding:14px 16px; transition:border-color .15s, opacity .15s; }
 .na1-m4-flip-card.is-accepted{ border-left-color:var(--gold); }
 .na1-m4-flip-card.is-skipped{ opacity:.55; border-left-color:var(--na1-border); }
 .na1-m4-flip-irk{ display:flex; align-items:flex-start; gap:8px; }
-.na1-m4-flip-irk-text{ font-family:var(--f-body); font-size:17px; color:var(--na1-text); line-height:1.4; }
-.na1-m4-flip-arrow{ font-family:var(--f-label); font-size:11px; letter-spacing:.04em; color:var(--na1-text-mute); margin:8px 0 8px 2px; }
-.na1-m4-flip-text{ width:100%; box-sizing:border-box; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:9px; padding:9px 11px; font-family:var(--f-body); font-size:15.5px; line-height:1.45; color:var(--na1-text); resize:vertical; outline:none; transition:border-color .15s; }
+.na1-m4-flip-irk-text{ font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.4); font-weight:var(--b-w);}
+.na1-m4-flip-arrow{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); letter-spacing:.04em; color:var(--na1-text-sec); margin:8px 0 8px 2px; font-weight:400;}
+.na1-m4-flip-text{ width:100%; box-sizing:border-box; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:9px; padding:9px 11px; font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:var(--na1-text); resize:vertical; outline:none; transition:border-color .15s; font-weight:var(--b-w);}
 .na1-m4-flip-text:focus{ border-color:var(--gold); }
-.na1-m4-flip-skipped-note{ font-family:var(--f-label); font-size:12.5px; color:var(--na1-text-mute); font-style:italic; }
+.na1-m4-flip-skipped-note{ font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); color:var(--na1-text-sec); font-style:italic; font-weight:400;}
 .na1-m4-flip-actions{ display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
 .na1-m4-flip-accept{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; padding:8px 16px; border-radius:100px; font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; transition:filter .15s; }
 .na1-m4-flip-accept:hover:not(:disabled){ filter:brightness(1.08); }
 .na1-m4-flip-accept:disabled{ opacity:.4; cursor:not-allowed; }
-.na1-m4-flip-skip{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 14px; border-radius:100px; font-family:var(--f-label); font-size:13px; cursor:pointer; transition:border-color .15s, color .15s; }
+.na1-m4-flip-skip{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 14px; border-radius:100px; font-family:var(--f-label); font-size:13px; cursor:pointer; transition:border-color .15s, color .15s; font-weight:400;}
 .na1-m4-flip-skip:hover{ border-color:var(--na1-text-mute); color:var(--na1-text); }
-.na1-m4-flip-badge{ font-family:var(--f-label); font-size:12.5px; font-weight:400; color:var(--gold-text); }
-.na1-m4-flip-undo{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--f-label); font-size:12.5px; cursor:pointer; padding:4px 2px; text-decoration:underline; }
+.na1-m4-flip-badge{ font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; color:var(--gold-text); }
+.na1-m4-flip-undo{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); cursor:pointer; padding:4px 2px; text-decoration:underline; font-weight:400;}
 .na1-m4-flip-undo:hover{ color:var(--na1-text); }
 
-.na1-m4-step-eyebrow{ font-family:var(--f-label); font-size:11px; letter-spacing:.2em; color:var(--gold-text); margin:0 0 14px; font-weight:400; text-transform:uppercase; text-align:center; }
+.na1-m4-step-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.2em; color:var(--gold-text); margin:0 0 14px; font-weight:400; text-transform:uppercase; text-align:center; }
 .na1-m4-step-title{ font-family:var(--f-display); font-size:30px; font-weight:400; line-height:1.2; margin:0 0 10px; color:var(--na1-text); text-align:center; }
-.na1-m4-step-sub{ font-family:var(--f-body); font-style:italic; font-size:18px; color:var(--na1-text-sec); line-height:1.55; margin:0 auto 22px; max-width:560px; font-weight:400; text-align:center; }
+.na1-m4-step-sub{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.55); margin:0 auto 22px; max-width:560px; font-weight:var(--b-w); text-align:center; }
 /* Ship 5.6k · Part C — Rank room header used these unprefixed
    classes (no step-screens). They were invisible in light mode
    because the cream fallback color matched the cream card. Bind
    to the same theme-aware tokens the step- versions use. */
-.na1-m4-eyebrow{ font-family:var(--f-label); font-size:11px; letter-spacing:.2em; color:var(--gold-text); margin:0 0 14px; font-weight:400; text-transform:uppercase; text-align:center; }
+.na1-m4-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.2em; color:var(--gold-text); margin:0 0 14px; font-weight:400; text-transform:uppercase; text-align:center; }
 .na1-m4-title{ font-family:var(--f-display); font-size:30px; font-weight:400; line-height:1.2; margin:0 0 10px; color:var(--na1-text); text-align:center; }
-.na1-m4-subtitle{ font-family:var(--f-body); font-style:italic; font-size:18px; color:var(--na1-text-sec); line-height:1.55; margin:0 auto 22px; max-width:560px; font-weight:400; text-align:center; }
+.na1-m4-subtitle{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.55); margin:0 auto 22px; max-width:560px; font-weight:var(--b-w); text-align:center; }
 /* Ship 5.6k · Part B — Scenario card + intro banner + cleared
    banner styles. Border/typography reuse the existing pt-example
    pattern; the cleared banner is a faint gold italic strip above
    the Intro eyebrow that fades after 4s or on Got-it-start. */
-.na1-m4-pt-cleared{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--gold-text); text-align:center; padding:8px 12px; margin:0 auto 14px; opacity:.85; transition:opacity 600ms ease; }
+.na1-m4-pt-cleared{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--gold-text); text-align:center; padding:8px 12px; margin:0 auto 14px; opacity:.85; transition:opacity 600ms ease; font-weight:var(--b-w);}
 .na1-m4-pt-cleared.is-fading{ opacity:0; }
 .na1-m4-pt-scenario{ border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:18px 22px; margin:24px auto 16px; max-width:560px; background:transparent; }
-.na1-m4-pt-scenario-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
-.na1-m4-pt-scenario-body{ font-family:var(--f-body); font-style:italic; font-size:18px; line-height:1.6; color:var(--na1-text-sec); margin:0; }
-.na1-m4-pt-scenario-attr{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin:10px 0 0; text-align:right; }
-.na1-m4-pt-walkagain{ display:inline-block; margin:14px auto 0; padding:6px 4px; font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--gold-text); background:transparent; border:0; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.na1-m4-pt-scenario-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.18em; text-transform:uppercase; color:var(--gold-text); margin:0 0 10px; }
+.na1-m4-pt-scenario-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
+.na1-m4-pt-scenario-attr{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); margin:10px 0 0; text-align:right; font-weight:var(--b-w);}
+.na1-m4-pt-walkagain{ display:inline-block; margin:14px auto 0; padding:6px 4px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--gold-text); background:transparent; border:0; cursor:pointer; text-decoration:underline; text-underline-offset:3px; font-weight:var(--b-w);}
 .na1-m4-pt-walkagain:hover{ opacity:.8; }
 
-.na1-m4-legend{ display:flex; justify-content:center; gap:18px; margin-bottom:22px; font-family:var(--f-label); font-size:12.5px; color:var(--na1-text-sec); flex-wrap:wrap; font-weight:400; }
+.na1-m4-legend{ display:flex; justify-content:center; gap:18px; margin-bottom:22px; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); color:var(--na1-text-sec); flex-wrap:wrap; font-weight:400; }
 .na1-m4-legend-pill{ display:inline-flex; align-items:center; gap:6px; }
 .na1-m4-pip{ width:9px; height:9px; border-radius:50%; display:inline-block; flex-shrink:0; }
 .na1-m4-pip.lights{ background:var(--gold); }
@@ -2455,14 +2454,14 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 
 .na1-m4-input-row{ display:flex; align-items:stretch; gap:8px; background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:10px; padding:11px 14px; margin-bottom:14px; transition:border-color .15s; }
 .na1-m4-input-row:focus-within{ border-color:var(--gold-line); }
-.na1-m4-input{ flex:1; background:transparent; border:none; color:var(--na1-text); font-size:16px; outline:none; font-family:var(--f-body); font-weight:400; }
-.na1-m4-input::placeholder{ color:var(--na1-text-mute); font-style:italic; font-family:var(--f-body); }
-.na1-m4-tag-person{ font-family:var(--f-label); font-size:11px; letter-spacing:.04em; color:var(--na1-text-mute); border:1px dashed var(--na1-border); padding:5px 10px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; background:transparent; font-weight:400; }
+.na1-m4-input{ flex:1; background:transparent; border:none; color:var(--na1-text); font-size:max(var(--b-min), calc(16px + var(--b-bump))); outline:none; font-family:var(--f-body); font-weight:var(--b-w); }
+.na1-m4-input::placeholder{ color:var(--na1-text-sec); font-style:italic; font-family:var(--f-body); font-weight:var(--b-w);}
+.na1-m4-tag-person{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); letter-spacing:.04em; color:var(--na1-text-sec); border:1px dashed var(--na1-border); padding:5px 10px; border-radius:100px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; background:transparent; font-weight:400; }
 .na1-m4-tag-person:hover{ color:var(--na1-text-sec); border-color:var(--na1-text-mute); }
-.na1-m4-tag-person-input{ width:80px; border:none; background:transparent; color:var(--na1-text); font-family:var(--f-body); font-size:13px; margin-left:4px; outline:none; }
+.na1-m4-tag-person-input{ width:80px; border:none; background:transparent; color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); margin-left:4px; outline:none; font-weight:var(--b-w);}
 
 .na1-m4-intensity{ display:flex; gap:8px; margin-bottom:18px; padding-left:4px; align-items:center; flex-wrap:wrap; animation:na1-m4-fade 180ms ease-out; }
-.na1-m4-intensity-label{ font-family:var(--f-body); font-size:15px; color:var(--na1-text-mute); font-style:italic; margin-right:4px; }
+.na1-m4-intensity-label{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; margin-right:4px; font-weight:var(--b-w);}
 .na1-m4-int-btn{ background:transparent; border:1.5px solid var(--gold-line); color:var(--gold-text); padding:7px 14px; border-radius:100px; font-size:13px; cursor:pointer; font-family:var(--f-label); font-weight:400; letter-spacing:.02em; display:inline-flex; align-items:center; gap:5px; transition:filter .15s, background .15s; }
 .na1-m4-int-btn.deep{ border-color:var(--gold); background:var(--gold); color:var(--on-gold); }
 .na1-m4-int-btn.deep:hover{ filter:brightness(1.08); }
@@ -2473,22 +2472,22 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-m4-int-btn.b-soft:hover{ background:var(--burgundy-soft); }
 
 .na1-m4-blist{ margin-bottom:18px; min-height:30px; display:flex; flex-direction:column; gap:6px; }
-.na1-m4-bul{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:8px; font-family:var(--f-body); font-size:15.5px; color:var(--na1-text); line-height:1.4; }
+.na1-m4-bul{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--na1-bg); border:1px solid var(--na1-border); border-radius:8px; font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.4); font-weight:var(--b-w);}
 .na1-m4-bul .na1-m4-pip{ width:8px; height:8px; flex-shrink:0; }
 .na1-m4-bul-text{ flex:1; font-weight:400; }
 .na1-m4-bul-text-edit{ cursor:text; border-radius:4px; padding:1px 3px; margin:-1px -3px; }
 .na1-m4-bul-text-edit:hover{ background:var(--na1-bg-card); }
 .na1-m4-bul-text-edit:focus{ outline:1px solid var(--gold-line); outline-offset:1px; }
-.na1-m4-bul-person{ font-family:var(--f-body); font-style:italic; font-size:14px; color:var(--na1-text-mute); }
-.na1-m4-bul-tag{ font-family:var(--f-label); font-size:11px; letter-spacing:.1em; padding:3px 9px; border-radius:100px; text-transform:uppercase; font-weight:400; white-space:nowrap; }
+.na1-m4-bul-person{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w);}
+.na1-m4-bul-tag{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.1em; padding:3px 9px; border-radius:100px; text-transform:uppercase; font-weight:400; white-space:nowrap; }
 .na1-m4-bul-tag.lights{ background:var(--gold); color:var(--on-gold); }
 .na1-m4-bul-tag.warms{ background:var(--gold-soft); color:var(--gold-text); border:1px solid var(--gold-line); }
 .na1-m4-bul-tag.bothers{ background:var(--burgundy-soft); color:var(--burgundy-text); border:1px solid var(--burgundy-line); }
 .na1-m4-bul-tag.turns{ background:var(--burgundy-fill); color:#fff; }
-.na1-m4-bul-x{ color:var(--na1-text-mute); font-size:18px; cursor:pointer; background:none; border:none; font-family:var(--f-body); padding:0 4px; line-height:1; }
+.na1-m4-bul-x{ color:var(--na1-text-sec); font-size:max(var(--b-min), calc(18px + var(--b-bump))); cursor:pointer; background:none; border:none; font-family:var(--f-body); padding:0 4px; line-height:max(var(--b-lh), 1); font-weight:var(--b-w);}
 .na1-m4-bul-x:hover{ color:var(--burgundy-text); }
 
-.na1-m4-counter{ text-align:center; font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin-top:6px; }
+.na1-m4-counter{ text-align:center; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); margin-top:6px; font-weight:var(--b-w);}
 
 .na1-m4-quad-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
 @media (max-width:600px){ .na1-m4-quad-wrap{ grid-template-columns:1fr; } }
@@ -2499,201 +2498,201 @@ input[type=range].na1-a2m1-range{ -webkit-appearance:none; appearance:none; widt
 .na1-m4-quad.turns{ border-color:var(--burgundy); background:rgba(179,77,82,0.12); }
 .na1-m4-quad.is-drop-target{ outline:2px dashed var(--gold); outline-offset:-2px; }
 .na1-m4-quad-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.na1-m4-quad-label{ font-family:var(--f-label); font-size:11px; letter-spacing:.16em; font-weight:400; text-transform:uppercase; }
+.na1-m4-quad-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); letter-spacing:.16em; font-weight:400; text-transform:uppercase; }
 .na1-m4-quad.lights .na1-m4-quad-label, .na1-m4-quad.warms .na1-m4-quad-label{ color:var(--gold-text); }
 .na1-m4-quad.bothers .na1-m4-quad-label, .na1-m4-quad.turns .na1-m4-quad-label{ color:var(--burgundy-text); }
-.na1-m4-quad-add{ font-family:var(--f-label); font-size:11px; letter-spacing:.04em; color:var(--na1-text-mute); cursor:pointer; background:none; border:none; font-weight:400; padding:2px 6px; }
+.na1-m4-quad-add{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); letter-spacing:.04em; color:var(--na1-text-sec); cursor:pointer; background:none; border:none; font-weight:400; padding:2px 6px; }
 .na1-m4-quad-add:hover{ color:var(--na1-text-sec); }
 .na1-m4-qbul-list{ display:flex; flex-direction:column; gap:4px; }
-.na1-m4-qbul{ display:flex; align-items:center; gap:6px; font-family:var(--f-body); font-size:14.5px; color:var(--na1-text); padding:6px 10px; background:rgba(255,255,255,0.04); border-radius:6px; line-height:1.4; cursor:grab; user-select:none; touch-action:none; }
+.na1-m4-qbul{ display:flex; align-items:center; gap:6px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text); padding:6px 10px; background:rgba(255,255,255,0.04); border-radius:6px; line-height:max(var(--b-lh), 1.4); cursor:grab; user-select:none; touch-action:none; font-weight:var(--b-w);}
 .na1-m4-qbul:active{ cursor:grabbing; }
 .na1-m4-qbul.is-dragging{ opacity:.45; }
 .na1-m4-qbul.is-used{ opacity:.45; text-decoration:line-through; cursor:not-allowed; }
 .na1-m4-qb-text{ flex:1; }
-.na1-m4-qb-person{ font-family:var(--f-body); font-style:italic; font-size:13px; color:var(--na1-text-mute); }
-.na1-m4-qb-move{ background:none; border:none; color:var(--na1-text-mute); font-size:13px; cursor:pointer; padding:0 4px; line-height:1; }
+.na1-m4-qb-person{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w);}
+.na1-m4-qb-move{ background:none; border:none; color:var(--na1-text-mute); font-size:max(var(--b-min), calc(13px + var(--b-bump))); cursor:pointer; padding:0 4px; line-height:max(var(--b-lh), 1); }
 .na1-m4-qb-move:hover{ color:var(--na1-text); }
-.na1-m4-qb-x{ color:var(--na1-text-mute); font-size:13px; cursor:pointer; background:none; border:none; padding:0 4px; line-height:1; }
+.na1-m4-qb-x{ color:var(--na1-text-mute); font-size:max(var(--b-min), calc(13px + var(--b-bump))); cursor:pointer; background:none; border:none; padding:0 4px; line-height:max(var(--b-lh), 1); }
 .na1-m4-qb-x:hover{ color:var(--burgundy-text); }
-.na1-m4-quad-empty{ font-family:var(--f-body); font-style:italic; font-size:14px; color:var(--na1-text-mute); padding:6px 4px; }
+.na1-m4-quad-empty{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); padding:6px 4px; font-weight:var(--b-w);}
 .na1-m4-quad-inline-add{ display:flex; gap:6px; margin-top:6px; }
-.na1-m4-quad-inline-input{ flex:1; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:6px; padding:6px 10px; font-family:var(--f-body); font-size:14.5px; color:var(--na1-text); outline:none; }
+.na1-m4-quad-inline-input{ flex:1; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:6px; padding:6px 10px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text); outline:none; font-weight:var(--b-w);}
 .na1-m4-quad-inline-input:focus{ border-color:var(--gold-line); }
-.na1-m4-quad-inline-go{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; border-radius:6px; padding:4px 10px; font-family:var(--f-label); font-size:11px; font-weight:400; cursor:pointer; }
+.na1-m4-quad-inline-go{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; border-radius:6px; padding:4px 10px; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; cursor:pointer; }
 
 .na1-m4-quad-move-menu{ position:absolute; z-index:50; background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:10px; padding:6px; box-shadow:0 8px 24px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:2px; min-width:160px; }
-.na1-m4-quad-move-item{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:12px; padding:6px 10px; cursor:pointer; text-align:left; border-radius:6px; display:flex; align-items:center; gap:8px; }
+.na1-m4-quad-move-item{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12px); padding:6px 10px; cursor:pointer; text-align:left; border-radius:6px; display:flex; align-items:center; gap:8px; font-weight:400;}
 .na1-m4-quad-move-item:hover{ background:var(--na1-bg); color:var(--na1-text); }
 
-.na1-m4-hint{ text-align:center; font-family:var(--f-body); font-style:italic; font-size:14px; color:var(--na1-text-mute); margin:4px 0 8px; }
+.na1-m4-hint{ text-align:center; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); margin:4px 0 8px; font-weight:var(--b-w);}
 
 .na1-m4-confirm-backdrop{ position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; padding:20px; }
 .na1-m4-confirm-card{ background:var(--na1-bg-card); border:1px solid var(--burgundy-line); border-radius:12px; padding:24px; max-width:380px; width:100%; }
-.na1-m4-confirm-title{ font-family:var(--f-display); font-size:18px; color:var(--na1-text); margin:0 0 10px; }
-.na1-m4-confirm-body{ font-family:var(--f-label); font-size:13.5px; color:var(--na1-text-sec); line-height:1.5; margin:0 0 18px; }
+.na1-m4-confirm-title{ font-family:var(--f-display); font-size:18px; color:var(--na1-text); margin:0 0 10px; font-weight:400;}
+.na1-m4-confirm-body{ font-family:var(--f-label); font-size:13.5px; color:var(--na1-text-sec); line-height:1.5; margin:0 0 18px; font-weight:400;}
 .na1-m4-confirm-actions{ display:flex; justify-content:flex-end; gap:8px; }
-.na1-m4-confirm-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 16px; border-radius:100px; font-family:var(--f-label); font-size:13px; cursor:pointer; }
+.na1-m4-confirm-cancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 16px; border-radius:100px; font-family:var(--f-label); font-size:13px; cursor:pointer; font-weight:400;}
 .na1-m4-confirm-delete{ background:var(--burgundy-fill); border:none; color:#fff; padding:8px 18px; border-radius:100px; font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; }
 
 /* ── Ship 5.6d · Section 3a · Discover Steps 4–8 ── */
 .na1-m4-katherine{ background:var(--cyan-soft); border:1px solid var(--cyan-line); border-left:3px solid var(--cyan); border-radius:var(--na1-radius-lg); padding:18px 20px; margin:14px 0 22px; }
-.na1-m4-katherine-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--cyan-text); margin-bottom:8px; }
-.na1-m4-katherine-body{ font-family:var(--f-body); font-style:italic; font-size:17.5px; line-height:1.6; color:var(--na1-text-sec); margin:0; }
-.na1-m4-katherine-loading{ font-family:var(--f-body); font-style:italic; color:var(--na1-text-mute); padding:14px 0; text-align:left; font-size:16px; }
+.na1-m4-katherine-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--cyan-text); margin-bottom:8px; }
+.na1-m4-katherine-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
+.na1-m4-katherine-loading{ font-family:var(--f-body); font-style:italic; color:var(--na1-text-sec); padding:14px 0; text-align:left; font-size:max(var(--b-min), calc(16px + var(--b-bump))); font-weight:var(--b-w);}
 
 .na1-m4-cluster-list{ display:flex; flex-direction:column; gap:10px; margin:8px 0 16px; }
 .na1-m4-cluster-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; display:flex; align-items:center; gap:14px; position:relative; }
 .na1-m4-cluster-card.is-named{ border-color:var(--gold-line); box-shadow:0 0 0 1px var(--gold-soft) inset; }
-.na1-m4-cluster-label-row.is-named{ font-family:var(--f-body); font-size:19px; font-weight:400; font-style:normal; letter-spacing:.01em; text-transform:none; color:var(--gold-text); margin-bottom:4px; }
-.na1-m4-cluster-definition{ font-family:var(--f-body); font-size:15.5px; font-style:italic; color:var(--na1-text-sec); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.na1-m4-cluster-done{ position:absolute; top:8px; right:10px; color:var(--gold-text); font-size:13px; line-height:1; opacity:.85; }
+.na1-m4-cluster-label-row.is-named{ font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); font-weight:var(--b-w); font-style:normal; letter-spacing:.01em; text-transform:none; color:var(--gold-text); margin-bottom:4px; }
+.na1-m4-cluster-definition{ font-family:var(--f-body); font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); font-style:italic; color:var(--na1-text); line-height:max(var(--b-lh), 1.45); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font-weight:var(--b-w);}
+.na1-m4-cluster-done{ position:absolute; top:8px; right:10px; color:var(--gold-text); font-size:max(var(--b-min), calc(13px + var(--b-bump))); line-height:max(var(--b-lh), 1); opacity:.85; }
 .na1-m4-cluster-dot{ width:14px; height:14px; border-radius:50%; flex-shrink:0; }
 .na1-m4-cluster-body{ flex:1; min-width:0; }
-.na1-m4-cluster-label-row{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:4px; }
-.na1-m4-cluster-proposal{ font-family:var(--f-body); font-size:17px; font-style:italic; color:var(--na1-text); line-height:1.4; }
-.na1-m4-cluster-count{ font-family:var(--f-label); font-size:11px; color:var(--na1-text-mute); white-space:nowrap; }
+.na1-m4-cluster-label-row{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--na1-text-sec); margin-bottom:4px; }
+.na1-m4-cluster-proposal{ font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); font-style:italic; color:var(--na1-text); line-height:max(var(--b-lh), 1.4); font-weight:var(--b-w);}
+.na1-m4-cluster-count{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); color:var(--na1-text-sec); white-space:nowrap; font-weight:400;}
 
 .na1-m4-recluster{ margin-top:18px; text-align:center; }
-.na1-m4-recluster-link{ background:none; border:none; padding:0; font-family:var(--f-label); font-size:11px; color:var(--gold-text); text-decoration:underline; cursor:pointer; opacity:.55; letter-spacing:.02em; }
+.na1-m4-recluster-link{ background:none; border:none; padding:0; font-family:var(--f-label); font-size:max(var(--l-min), 11px); color:var(--gold-text); text-decoration:underline; cursor:pointer; opacity:.55; letter-spacing:.02em; font-weight:400;}
 .na1-m4-recluster-link:hover{ opacity:1; }
 
 /* Per-value screen */
 .na1-m4-pv-eyebrow-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin:0 8px; vertical-align:middle; }
-.na1-m4-pv-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--na1-bg-soft); border-left:3px solid currentColor; border-radius:var(--na1-radius-sm); margin:6px 0 18px; font-family:var(--f-body); font-size:14.5px; color:var(--na1-text-sec); }
+.na1-m4-pv-banner{ display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--na1-bg-soft); border-left:3px solid currentColor; border-radius:var(--na1-radius-sm); margin:6px 0 18px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-m4-pv-banner strong{ color:var(--na1-text); font-weight:600; }
 
-.na1-m4-pv-section-title{ font-family:var(--f-label); font-size:12px; font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--na1-text-sec); margin:18px 0 6px; }
-.na1-m4-pv-helper{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin:0 0 12px; line-height:1.5; }
+.na1-m4-pv-section-title{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--na1-text-sec); margin:18px 0 6px; }
+.na1-m4-pv-helper{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); margin:0 0 12px; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
 
 .na1-m4-pv-behaviors{ display:flex; flex-direction:column; gap:6px; }
 .na1-m4-pv-bitem{ display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); }
-.na1-m4-pv-bitem-text{ flex:1; font-family:var(--f-body); font-size:16px; color:var(--na1-text); line-height:1.4; }
-.na1-m4-pv-chip{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.1em; padding:3px 7px; border-radius:100px; flex-shrink:0; }
+.na1-m4-pv-bitem-text{ flex:1; font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.4); font-weight:var(--b-w);}
+.na1-m4-pv-chip{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; letter-spacing:.1em; padding:3px 7px; border-radius:100px; flex-shrink:0; }
 .na1-m4-pv-chip.is-lights{ background:rgba(165,135,94,.20); color:var(--gold-text); }
 .na1-m4-pv-chip.is-warms{ background:rgba(165,135,94,.10); color:var(--gold-text); }
 .na1-m4-pv-chip.is-bothers{ background:var(--burgundy-soft); color:var(--burgundy-text); }
 .na1-m4-pv-chip.is-turns{ background:var(--burgundy-line); color:var(--burgundy-text); }
 .na1-m4-pv-chip.is-flipped{ background:var(--cyan-soft); color:var(--cyan-text); }
 .na1-m4-pv-chip.is-new{ background:var(--m2-green-soft); color:var(--c2); }
-.na1-m4-pv-bdel{ background:none; border:none; color:var(--na1-text-mute); font-size:14px; cursor:pointer; padding:4px 6px; border-radius:4px; line-height:1; }
+.na1-m4-pv-bdel{ background:none; border:none; color:var(--na1-text-mute); font-size:max(var(--b-min), calc(14px + var(--b-bump))); cursor:pointer; padding:4px 6px; border-radius:4px; line-height:max(var(--b-lh), 1); }
 .na1-m4-pv-bdel:hover{ color:var(--burgundy-text); background:var(--burgundy-soft); }
-.na1-m4-pv-empty{ font-family:var(--f-body); font-style:italic; color:var(--na1-text-mute); font-size:15px; padding:12px 0; }
+.na1-m4-pv-empty{ font-family:var(--f-body); font-style:italic; color:var(--na1-text-sec); font-size:max(var(--b-min), calc(15px + var(--b-bump))); padding:12px 0; font-weight:var(--b-w);}
 
 .na1-m4-pv-addrow{ display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
-.na1-m4-pv-addbtn{ background:transparent; border:1px dashed var(--na1-border); border-radius:100px; padding:7px 14px; font-family:var(--f-label); font-size:12px; color:var(--na1-text-sec); cursor:pointer; }
+.na1-m4-pv-addbtn{ background:transparent; border:1px dashed var(--na1-border); border-radius:100px; padding:7px 14px; font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); cursor:pointer; font-weight:400;}
 .na1-m4-pv-addbtn:hover{ border-color:var(--gold-line); color:var(--gold-text); }
 .na1-m4-pv-newrow{ margin-top:10px; display:flex; gap:8px; }
-.na1-m4-pv-newinput{ flex:1; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:8px 12px; font-family:var(--f-body); font-size:16px; color:var(--na1-text); outline:none; }
+.na1-m4-pv-newinput{ flex:1; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:8px 12px; font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text); outline:none; font-weight:var(--b-w);}
 .na1-m4-pv-newinput:focus{ border-color:var(--gold-line); }
-.na1-m4-pv-newadd{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); border:none; color:var(--btn-ink); padding:8px 14px; border-radius:100px; font-family:var(--f-label); font-size:12px; font-weight:400; cursor:pointer; }
+.na1-m4-pv-newadd{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); border:none; color:var(--btn-ink); padding:8px 14px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; cursor:pointer; }
 .na1-m4-pv-newadd:disabled{ opacity:.4; cursor:not-allowed; }
-.na1-m4-pv-newcancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); padding:8px 12px; border-radius:100px; font-family:var(--f-label); font-size:12px; cursor:pointer; }
+.na1-m4-pv-newcancel{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:8px 12px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 12px); cursor:pointer; font-weight:400;}
 
 /* Mini-quadrant */
 .na1-m4-mq{ margin-top:14px; border:1px solid var(--gold-line); border-radius:var(--na1-radius); background:var(--gold-warm); padding:14px; }
-.na1-m4-mq-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-text); }
+.na1-m4-mq-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-text); }
 .na1-m4-mq-close{ background:none; border:none; color:var(--na1-text-mute); font-size:14px; cursor:pointer; padding:2px 6px; }
 .na1-m4-mq-close:hover{ color:var(--na1-text); }
 .na1-m4-mq-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .na1-m4-mq-quad{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:10px; min-height:80px; }
-.na1-m4-mq-tier-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.1em; text-transform:uppercase; color:var(--na1-text-mute); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:6px; }
-.na1-m4-mq-tier-note{ font-family:var(--f-label); font-size:11px; font-style:italic; text-transform:none; color:var(--burgundy-text); letter-spacing:0; font-weight:400; }
+.na1-m4-mq-tier-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.1em; text-transform:uppercase; color:var(--na1-text-sec); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:6px; }
+.na1-m4-mq-tier-note{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-style:italic; text-transform:none; color:var(--burgundy-text); letter-spacing:0; font-weight:400; }
 .na1-m4-mq-chips{ display:flex; flex-wrap:wrap; gap:4px; }
-.na1-m4-mq-chip{ font-family:var(--f-label); font-size:11.5px; padding:4px 9px; border-radius:100px; background:var(--na1-bg-soft); color:var(--na1-text-sec); border:1px solid var(--na1-border); cursor:pointer; }
+.na1-m4-mq-chip{ font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); padding:4px 9px; border-radius:100px; background:var(--na1-bg-soft); color:var(--na1-text-sec); border:1px solid var(--na1-border); cursor:pointer; font-weight:400;}
 .na1-m4-mq-chip:hover:not(.is-disabled):not(.is-used){ background:var(--gold-soft); color:var(--gold-text); border-color:var(--gold-line); }
 .na1-m4-mq-chip.is-disabled{ opacity:.45; cursor:not-allowed; }
 .na1-m4-mq-chip.is-used{ opacity:.4; text-decoration:line-through; cursor:not-allowed; }
-.na1-m4-mq-empty{ font-family:var(--f-body); font-size:13px; color:var(--na1-text-mute); font-style:italic; }
+.na1-m4-mq-empty{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-sec); font-style:italic; font-weight:var(--b-w);}
 
 /* Flips */
 .na1-m4-pv-flips{ margin-top:18px; padding:14px 16px; background:var(--burgundy-soft); border-left:3px solid var(--burgundy); border-radius:var(--na1-radius-sm); }
-.na1-m4-pv-flip-title{ font-family:var(--f-label); font-size:11.5px; font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--burgundy-text); margin-bottom:4px; }
-.na1-m4-pv-flip-helper{ font-family:var(--f-body); font-style:italic; font-size:14.5px; color:var(--na1-text-mute); margin-bottom:12px; line-height:1.5; }
+.na1-m4-pv-flip-title{ font-family:var(--f-label); font-size:max(var(--e-min), 11.5px); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--burgundy-text); margin-bottom:4px; }
+.na1-m4-pv-flip-helper{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text-sec); margin-bottom:12px; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
 .na1-m4-pv-flip{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:10px 12px; margin-bottom:8px; }
-.na1-m4-pv-flip-from{ font-family:var(--f-body); font-style:italic; color:var(--burgundy-text); font-size:15px; margin-bottom:6px; line-height:1.5; }
-.na1-m4-pv-flip-arrow{ font-family:var(--f-label); font-size:14px; color:var(--na1-text-mute); margin:0 6px; }
-.na1-m4-pv-flip-to{ width:100%; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:8px 10px; font-family:var(--f-body); font-size:15px; color:var(--na1-text); margin-bottom:8px; resize:vertical; min-height:38px; outline:none; }
+.na1-m4-pv-flip-from{ font-family:var(--f-body); font-style:italic; color:var(--burgundy-text); font-size:max(var(--b-min), calc(15px + var(--b-bump))); margin-bottom:6px; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
+.na1-m4-pv-flip-arrow{ font-family:var(--f-label); font-size:14px; color:var(--na1-text-sec); margin:0 6px; font-weight:400;}
+.na1-m4-pv-flip-to{ width:100%; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:8px 10px; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); margin-bottom:8px; resize:vertical; min-height:38px; outline:none; font-weight:var(--b-w);}
 .na1-m4-pv-flip-to:focus{ border-color:var(--gold-line); }
 .na1-m4-pv-flip-actions{ display:flex; gap:6px; justify-content:flex-end; }
-.na1-m4-pv-flip-accept{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); border:none; color:var(--btn-ink); padding:6px 14px; border-radius:100px; font-family:var(--f-label); font-size:11.5px; font-weight:400; cursor:pointer; }
-.na1-m4-pv-flip-skip{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-mute); padding:6px 12px; border-radius:100px; font-family:var(--f-label); font-size:11.5px; cursor:pointer; }
+.na1-m4-pv-flip-accept{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); border:none; color:var(--btn-ink); padding:6px 14px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); font-weight:400; cursor:pointer; }
+.na1-m4-pv-flip-skip{ background:transparent; border:1px solid var(--na1-border); color:var(--na1-text-sec); padding:6px 12px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); cursor:pointer; font-weight:400;}
 
 /* Name CTA wrap */
 .na1-m4-pv-namecta{ margin-top:22px; padding:22px 24px; border:1.5px dashed var(--gold-line); border-radius:var(--na1-radius); text-align:center; background:var(--gold-warm); }
-.na1-m4-pv-namecta-helper{ font-family:var(--f-body); font-style:italic; font-size:15.5px; color:var(--na1-text-sec); margin:0 0 14px; }
+.na1-m4-pv-namecta-helper{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text-sec); margin:0 0 14px; font-weight:var(--b-w);}
 .na1-m4-pv-namebtn{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); border:none; color:var(--btn-ink); padding:11px 26px; border-radius:100px; font-family:var(--f-label); font-size:14px; font-weight:400; cursor:pointer; letter-spacing:.02em; }
 
 /* Completed card */
 .na1-m4-completed{ margin-top:22px; padding:24px 28px; border-left:3px solid var(--gold); border-radius:var(--na1-radius); background:linear-gradient(90deg, var(--gold-warm) 0%, transparent 100%); text-align:center; }
-.na1-m4-completed-star{ font-size:14px; color:var(--gold-text); margin-bottom:4px; }
+.na1-m4-completed-star{ font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--gold-text); margin-bottom:4px; }
 .na1-m4-completed-name{ font-family:var(--f-display); font-size:42px; font-weight:400; color:var(--gold-text); line-height:1.1; margin:4px 0 10px; letter-spacing:.01em; }
-.na1-m4-completed-def{ font-family:var(--f-body); font-style:italic; font-size:18px; color:var(--na1-text-sec); line-height:1.5; max-width:480px; margin:0 auto 10px; }
+.na1-m4-completed-def{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.5); max-width:480px; margin:0 auto 10px; font-weight:var(--b-w);}
 .na1-m4-completed-def.is-empty{ color:var(--na1-text-mute); }
 .na1-m4-completed-foot{ display:flex; justify-content:center; gap:16px; margin-top:10px; }
-.na1-m4-completed-edit{ background:none; border:none; padding:0; font-family:var(--f-body); font-size:13px; color:var(--na1-text-mute); text-decoration:underline; letter-spacing:.04em; cursor:pointer; }
+.na1-m4-completed-edit{ background:none; border:none; padding:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text-sec); text-decoration:underline; letter-spacing:.04em; cursor:pointer; font-weight:var(--b-w);}
 .na1-m4-completed-edit:hover{ color:var(--gold-text); }
 
 /* Modals — Naming + Define */
 .na1-m4-modal-back{ position:fixed; inset:0; background:rgba(1,35,37,.72); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:120; display:flex; align-items:center; justify-content:center; padding:20px; animation:na1-m4-fade 180ms ease-out; }
 html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
 .na1-m4-modal{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:var(--na1-radius-lg); padding:30px 32px 26px; max-width:580px; width:100%; box-shadow:0 18px 60px rgba(0,0,0,.4); position:relative; }
-.na1-m4-modal-x{ position:absolute; top:10px; right:12px; background:none; border:none; color:var(--na1-text-mute); font-size:22px; cursor:pointer; padding:4px 10px; line-height:1; }
+.na1-m4-modal-x{ position:absolute; top:10px; right:12px; background:none; border:none; color:var(--na1-text-mute); font-size:max(var(--b-min), calc(22px + var(--b-bump))); cursor:pointer; padding:4px 10px; line-height:max(var(--b-lh), 1); }
 .na1-m4-modal-x:hover{ color:var(--na1-text); }
 .na1-m4-modal-head{ font-family:var(--f-label); font-size:14px; font-weight:400; color:var(--gold-text); margin-bottom:18px; letter-spacing:.02em; text-align:center; }
-.na1-m4-modal-input{ width:100%; background:transparent; border:none; border-bottom:1.5px dotted var(--gold-line); padding:10px 4px; font-family:var(--f-display); font-size:32px; color:var(--gold-text); text-align:center; outline:none; }
+.na1-m4-modal-input{ width:100%; background:transparent; border:none; border-bottom:1.5px dotted var(--gold-line); padding:10px 4px; font-family:var(--f-display); font-size:32px; color:var(--gold-text); text-align:center; outline:none; font-weight:400;}
 .na1-m4-modal-input:focus{ border-bottom-color:var(--gold); }
 .na1-m4-modal-input::placeholder{ color:var(--na1-text-mute); font-size:18px; font-style:italic; }
-.na1-m4-modal-textarea{ width:100%; min-height:120px; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:12px 14px; font-family:var(--f-body); font-size:17px; color:var(--na1-text); line-height:1.5; resize:vertical; outline:none; }
+.na1-m4-modal-textarea{ width:100%; min-height:120px; background:var(--na1-bg-input); border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); padding:12px 14px; font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.5); resize:vertical; outline:none; font-weight:var(--b-w);}
 .na1-m4-modal-textarea:focus{ border-color:var(--gold-line); }
-.na1-m4-modal-helper{ font-family:var(--f-body); font-style:italic; font-size:14px; color:var(--na1-text-mute); margin-top:8px; line-height:1.5; }
+.na1-m4-modal-helper{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); margin-top:8px; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
 .na1-m4-modal-actions{ display:flex; justify-content:center; margin-top:22px; }
 .na1-m4-modal-confirm{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); border:none; color:var(--btn-ink); padding:11px 28px; border-radius:100px; font-family:var(--f-label); font-size:14px; font-weight:400; cursor:pointer; letter-spacing:.02em; }
 .na1-m4-modal-confirm:disabled{ opacity:.4; cursor:not-allowed; }
 .na1-m4-modal-anchor{ background:linear-gradient(180deg, var(--gold-warm) 0%, transparent 100%); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:14px 16px; margin-bottom:16px; text-align:center; }
-.na1-m4-modal-anchor-star{ font-size:12px; color:var(--gold-text); }
+.na1-m4-modal-anchor-star{ font-size:max(var(--b-min), calc(12px + var(--b-bump))); color:var(--gold-text); }
 .na1-m4-modal-anchor-name{ font-family:var(--f-display); font-size:38px; color:var(--gold-text); font-weight:400; line-height:1.1; }
 /* Ship 5.6f · Section 3b — Real Naming + Define modals */
-.na1-m4-mbeh-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin:0 0 8px; text-align:center; }
+.na1-m4-mbeh-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin:0 0 8px; text-align:center; }
 .na1-m4-mbeh{ display:flex; flex-wrap:wrap; gap:6px 8px; justify-content:center; padding:10px 12px; border:1px solid var(--na1-border); border-radius:var(--na1-radius-sm); background:var(--na1-bg-soft); margin-bottom:18px; max-height:120px; overflow-y:auto; }
-.na1-m4-mbeh-item{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border:1px solid var(--na1-border); border-radius:100px; background:var(--na1-bg-card); font-family:var(--f-body); font-size:13px; color:var(--na1-text); max-width:100%; }
-.na1-m4-mbeh-item .na1-m4-pv-chip{ font-size:11px; padding:2px 5px; }
-.na1-m4-mbeh-text{ font-family:var(--f-body); font-size:14px; color:var(--na1-text); line-height:1.3; max-height:3.9em; overflow:hidden; text-overflow:ellipsis; }
+.na1-m4-mbeh-item{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border:1px solid var(--na1-border); border-radius:100px; background:var(--na1-bg-card); font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--na1-text); max-width:100%; font-weight:var(--b-w);}
+.na1-m4-mbeh-item .na1-m4-pv-chip{ font-size:max(var(--l-min), 11px); padding:2px 5px; }
+.na1-m4-mbeh-text{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.3); max-height:3.9em; overflow:hidden; text-overflow:ellipsis; font-weight:var(--b-w);}
 .na1-m4-mbreadcrumb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; padding:2px 0 6px; margin-bottom:10px; }
 .na1-m4-mbreadcrumb{ display:flex; align-items:center; gap:6px; flex-wrap:nowrap; min-width:max-content; padding:0 2px; }
-.na1-m4-mbc-chip{ display:inline-flex; align-items:center; padding:6px 12px; border-radius:100px; border:1px solid var(--na1-border); background:var(--na1-bg-soft); font-family:var(--f-body); font-style:italic; font-size:14px; color:var(--na1-text-mute); white-space:nowrap; max-width:280px; overflow:hidden; text-overflow:ellipsis; }
+.na1-m4-mbc-chip{ display:inline-flex; align-items:center; padding:6px 12px; border-radius:100px; border:1px solid var(--na1-border); background:var(--na1-bg-soft); font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); white-space:nowrap; max-width:280px; overflow:hidden; text-overflow:ellipsis; font-weight:var(--b-w);}
 .na1-m4-mbc-chip.is-active{ border-color:var(--gold); color:var(--gold-text); background:var(--gold-warm); }
 .na1-m4-mbc-chip.is-user{ border-color:var(--gold-line); color:var(--gold-text); background:transparent; }
 .na1-m4-mbc-chip .na1-m4-mbc-accent{ color:var(--gold-text); font-weight:600; font-style:normal; margin:0 2px; }
 .na1-m4-mbc-arrow{ color:var(--na1-text-mute); font-size:12px; flex-shrink:0; }
-.na1-m4-mprompt{ font-family:var(--f-body); font-style:italic; font-size:22px; line-height:1.35; color:var(--na1-text); text-align:center; max-width:480px; margin:18px auto 14px; }
+.na1-m4-mprompt{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(22px + var(--b-bump))); line-height:max(var(--b-lh), 1.35); color:var(--na1-text); text-align:center; max-width:480px; margin:18px auto 14px; font-weight:var(--b-w);}
 .na1-m4-mprompt .na1-m4-mprompt-accent{ color:var(--gold-text); font-style:normal; font-weight:500; }
 .na1-m4-modal-actions.is-split{ flex-direction:column; gap:14px; align-items:center; }
-.na1-m4-mchip-secondary{ display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border:1px solid var(--cyan-line); border-radius:100px; background:transparent; color:var(--cyan-text); font-family:var(--f-label); font-size:12px; font-weight:400; cursor:pointer; transition:background .18s; }
+.na1-m4-mchip-secondary{ display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border:1px solid var(--cyan-line); border-radius:100px; background:transparent; color:var(--cyan-text); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; cursor:pointer; transition:background .18s; }
 .na1-m4-mchip-secondary:hover:not(:disabled){ background:var(--cyan-soft); }
 .na1-m4-mchip-secondary:disabled{ opacity:.55; cursor:not-allowed; }
-.na1-m4-mreadylink{ display:inline-block; margin:8px auto 0; padding:6px 4px; background:none; border:none; color:var(--gold-text); font-family:var(--f-label); font-size:12px; font-weight:400; letter-spacing:.02em; cursor:pointer; }
+.na1-m4-mreadylink{ display:inline-block; margin:8px auto 0; padding:6px 4px; background:none; border:none; color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; letter-spacing:.02em; cursor:pointer; }
 .na1-m4-mreadylink:hover{ text-decoration:underline; }
 .na1-m4-mkpanel{ margin:14px 0 4px; padding:14px 16px; background:var(--cyan-soft); border:1px solid var(--cyan-line); border-left:3px solid var(--cyan); border-radius:var(--na1-radius); }
-.na1-m4-mkpanel-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--cyan-text); margin-bottom:6px; }
-.na1-m4-mkpanel-body{ font-family:var(--f-body); font-style:italic; font-size:16px; line-height:1.5; color:var(--na1-text); }
+.na1-m4-mkpanel-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--cyan-text); margin-bottom:6px; }
+.na1-m4-mkpanel-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); font-weight:var(--b-w);}
 .na1-m4-msuggest{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:10px 0 4px; }
-.na1-m4-msuggest-pill{ padding:6px 14px; border:1px solid var(--gold-line); border-radius:100px; background:transparent; color:var(--gold-text); font-family:var(--f-label); font-size:12px; font-weight:400; cursor:pointer; transition:background .18s; }
+.na1-m4-msuggest-pill{ padding:6px 14px; border:1px solid var(--gold-line); border-radius:100px; background:transparent; color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; cursor:pointer; transition:background .18s; }
 .na1-m4-msuggest-pill:hover{ background:var(--gold-warm); }
-.na1-m4-merror{ font-family:var(--f-body); font-size:13px; color:var(--burgundy-text); margin-top:8px; text-align:center; }
-.na1-m4-mback{ background:none; border:none; color:var(--na1-text-mute); font-family:var(--f-label); font-size:12px; font-weight:400; cursor:pointer; padding:4px 8px; }
+.na1-m4-merror{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13px + var(--b-bump))); color:var(--burgundy-text); margin-top:8px; text-align:center; font-weight:var(--b-w);}
+.na1-m4-mback{ background:none; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; cursor:pointer; padding:4px 8px; }
 .na1-m4-mback:hover{ color:var(--gold-text); }
 
 /* Step 8 Confirm */
 .na1-m4-step8-list{ display:flex; flex-direction:column; gap:10px; margin:14px 0 18px; }
 .na1-m4-step8-card{ display:flex; align-items:flex-start; gap:14px; padding:14px 16px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-left:3px solid var(--gold); border-radius:var(--na1-radius); }
-.na1-m4-step8-num{ font-family:var(--f-display); font-size:24px; color:var(--gold-text); width:32px; flex-shrink:0; line-height:1.1; }
+.na1-m4-step8-num{ font-family:var(--f-display); font-size:24px; color:var(--gold-text); width:32px; flex-shrink:0; line-height:1.1; font-weight:400;}
 .na1-m4-step8-body{ flex:1; min-width:0; }
 .na1-m4-step8-name{ font-family:var(--f-display); font-size:22px; color:var(--gold-text); font-weight:400; line-height:1.2; }
-.na1-m4-step8-def{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-sec); line-height:1.5; margin-top:4px; }
+.na1-m4-step8-def{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); line-height:max(var(--b-lh), 1.5); margin-top:4px; font-weight:var(--b-w);}
 .na1-m4-step8-def.is-empty{ color:var(--na1-text-mute); }
 .na1-m4-step8-soft{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:18px 20px; margin:10px 0 18px; text-align:center; }
-.na1-m4-step8-soft-title{ font-family:var(--f-display); font-size:18px; color:var(--gold-text); margin-bottom:6px; }
-.na1-m4-step8-soft-body{ font-family:var(--f-body); font-style:italic; font-size:15.5px; color:var(--na1-text-sec); margin:0 0 12px; line-height:1.5; }
+.na1-m4-step8-soft-title{ font-family:var(--f-display); font-size:18px; color:var(--gold-text); margin-bottom:6px; font-weight:400;}
+.na1-m4-step8-soft-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); color:var(--na1-text); margin:0 0 12px; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
 .na1-m4-step8-addbtn{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); border:none; color:var(--btn-ink); padding:10px 22px; border-radius:100px; font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; }
 
 /* Ship 5.6g · Section 4 · Behaviors room
@@ -2701,7 +2700,7 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
    na1-bg-card, na1-text-*, na1-radius, na1-serif, na1-sans, c1-c5
    cluster color vars). No new design tokens. */
 .na1-m4-beh-chiprow{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 22px; }
-.na1-m4-beh-chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:100px; border:1.5px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:12.5px; font-weight:400; cursor:pointer; transition:border-color .18s, background .18s, color .18s; }
+.na1-m4-beh-chip{ display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:100px; border:1.5px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; transition:border-color .18s, background .18s, color .18s; }
 .na1-m4-beh-chip:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); }
 .na1-m4-beh-chip.is-active{ background:var(--gold); border-color:var(--gold); color:var(--on-gold); font-weight:600; }
 .na1-m4-beh-chip.is-complete{ border-color:var(--cyan); color:var(--cyan); }
@@ -2712,21 +2711,21 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
 .na1-m4-beh-chip-dot.is-on{ background:var(--gold); opacity:1; }
 .na1-m4-beh-chip.is-active .na1-m4-beh-chip-dot.is-on{ background:currentColor; }
 .na1-m4-beh-chip-check{ font-size:11px; font-weight:700; line-height:1; }
-.na1-m4-beh-helper{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:9px 14px; font-family:var(--f-body); font-style:italic; font-size:15px; line-height:1.5; color:var(--na1-text-sec); margin:0 0 18px; }
-.na1-m4-beh-empty-ribbon{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:10px 14px; font-family:var(--f-body); font-size:14.5px; color:var(--gold-text); margin:0 0 16px; }
-.na1-m4-beh-prac-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.06em; text-transform:uppercase; color:var(--na1-text-mute); margin:10px 0 4px; }
-.na1-m4-beh-prac-del{ background:transparent; border:none; cursor:pointer; font-size:14px; line-height:1; padding:2px 6px; color:var(--na1-text-mute); border-radius:4px; flex-shrink:0; transition:color .18s; }
+.na1-m4-beh-helper{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:9px 14px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text-sec); margin:0 0 18px; font-weight:var(--b-w);}
+.na1-m4-beh-empty-ribbon{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:10px 14px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--gold-text); margin:0 0 16px; font-weight:var(--b-w);}
+.na1-m4-beh-prac-label{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; letter-spacing:.06em; text-transform:uppercase; color:var(--na1-text-sec); margin:10px 0 4px; }
+.na1-m4-beh-prac-del{ background:transparent; border:none; cursor:pointer; font-size:max(var(--b-min), calc(14px + var(--b-bump))); line-height:max(var(--b-lh), 1); padding:2px 6px; color:var(--na1-text-mute); border-radius:4px; flex-shrink:0; transition:color .18s; }
 .na1-m4-beh-prac-del:hover{ color:var(--burgundy); }
 .na1-m4-beh-key{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:16px 18px; margin:0 0 18px; text-align:center; }
 .na1-m4-beh-key.is-collapsed{ padding:9px 14px; text-align:left; }
 .na1-m4-beh-key-icon{ font-size:18px; color:var(--gold-text); margin:0 0 6px; }
-.na1-m4-beh-key-collapsed{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--gold-text); }
-.na1-m4-beh-gate-helper{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-mute); margin:8px 0 0; text-align:right; }
+.na1-m4-beh-key-collapsed{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--gold-text); font-weight:var(--b-w);}
+.na1-m4-beh-gate-helper{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); margin:8px 0 0; text-align:right; font-weight:var(--b-w);}
 /* ─── Ship 5.6i · Section 5 · Rank room + Pressure-test modal ───
    Re-uses existing --gold*, --burgundy*, --na1-* tokens. No new
    tokens introduced. Drag affordances follow Section 2's portrait
    drag pattern (HTML5 dnd + ▲▼ touch/keyboard fallback). */
-.na1-m4-rank-phase-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin:18px 0 10px; }
+.na1-m4-rank-phase-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); margin:18px 0 10px; }
 .na1-m4-rank-stack{ display:flex; flex-direction:column; gap:10px; margin:0 0 22px; }
 .na1-m4-rank-row{ display:flex; align-items:flex-start; gap:14px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 14px 14px 12px; transition:border-color .18s, background .18s, opacity .15s; }
 .na1-m4-rank-row.is-tested{ background:var(--gold-warm); border-color:var(--gold-line); }
@@ -2735,57 +2734,57 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
 .na1-m4-rank-num{ font-family:var(--f-display); font-size:42px; line-height:1; color:var(--gold-text); font-weight:400; min-width:42px; text-align:center; flex-shrink:0; padding-top:2px; }
 .na1-m4-rank-body{ flex:1; min-width:0; }
 .na1-m4-rank-name{ font-family:var(--f-display); font-size:22px; font-weight:400; line-height:1.2; color:var(--na1-text); margin:0; }
-.na1-m4-rank-def{ font-family:var(--f-body); font-style:italic; font-size:15.5px; line-height:1.5; color:var(--na1-text-sec); margin:4px 0 0; }
-.na1-m4-rank-key{ font-family:var(--f-body); font-size:14px; color:var(--gold-text); margin:8px 0 0; letter-spacing:.01em; }
+.na1-m4-rank-def{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:4px 0 0; font-weight:var(--b-w);}
+.na1-m4-rank-key{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--gold-text); margin:8px 0 0; letter-spacing:.01em; font-weight:var(--b-w);}
 .na1-m4-rank-controls{ display:flex; align-items:center; gap:6px; flex-shrink:0; padding-top:4px; }
 .na1-m4-rank-handle{ background:transparent; border:1px solid var(--na1-border); border-radius:6px; padding:6px 8px; color:var(--na1-text-mute); cursor:grab; font-size:14px; line-height:1; user-select:none; transition:color .15s, border-color .15s; }
 .na1-m4-rank-handle:hover{ color:var(--gold-text); border-color:var(--gold-line); }
 .na1-m4-rank-handle:active{ cursor:grabbing; }
-.na1-m4-rank-arrow{ background:transparent; border:1px solid var(--na1-border); border-radius:6px; padding:5px 8px; color:var(--na1-text-mute); cursor:pointer; font-size:11px; line-height:1; transition:color .15s, border-color .15s; }
+.na1-m4-rank-arrow{ background:transparent; border:1px solid var(--na1-border); border-radius:6px; padding:5px 8px; color:var(--na1-text-mute); cursor:pointer; font-size:max(var(--l-min), 11px); line-height:1; transition:color .15s, border-color .15s; }
 .na1-m4-rank-arrow:hover:not(:disabled){ color:var(--gold-text); border-color:var(--gold-line); }
 .na1-m4-rank-arrow:disabled{ opacity:.3; cursor:not-allowed; }
 .na1-m4-rank-pt-card{ background:var(--gold-warm); border:1px dashed var(--gold); border-radius:var(--na1-radius); padding:24px 26px; margin:0 0 18px; text-align:center; }
 .na1-m4-rank-pt-title{ font-family:var(--f-display); font-size:22px; font-weight:400; color:var(--na1-text); margin:8px 0 6px; }
-.na1-m4-rank-pt-sub{ font-family:var(--f-body); font-style:italic; font-size:16px; line-height:1.5; color:var(--na1-text-sec); margin:0 0 16px; max-width:480px; margin-left:auto; margin-right:auto; }
-.na1-m4-rank-pt-status{ font-family:var(--f-body); font-style:italic; font-size:14px; color:var(--na1-text-mute); margin:10px 0 0; }
+.na1-m4-rank-pt-sub{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:0 0 16px; max-width:480px; margin-left:auto; margin-right:auto; font-weight:var(--b-w);}
+.na1-m4-rank-pt-status{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); margin:10px 0 0; font-weight:var(--b-w);}
 .na1-m4-rank-pt-btn{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; padding:11px 22px; border-radius:100px; font-size:14px; cursor:pointer; font-family:var(--f-label); letter-spacing:.02em; font-weight:400; transition:filter .15s; }
 .na1-m4-rank-pt-btn:hover{ filter:brightness(1.08); }
 /* Pressure-test modal */
 .na1-m4-pt-backdrop{ position:fixed; inset:0; background:rgba(1,20,22,.72); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:120; padding:24px; }
 .na1-m4-pt-modal{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:var(--na1-radius); box-shadow:0 18px 48px rgba(0,0,0,.5); width:100%; max-width:680px; max-height:calc(100vh - 48px); overflow-y:auto; position:relative; }
-.na1-m4-pt-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--na1-border); font-family:var(--f-body); font-size:14.5px; letter-spacing:.04em; color:var(--gold-text); }
+.na1-m4-pt-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--na1-border); font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); letter-spacing:.04em; color:var(--gold-text); font-weight:var(--b-w);}
 .na1-m4-pt-close{ background:transparent; border:none; color:var(--na1-text-mute); font-size:20px; line-height:1; cursor:pointer; padding:4px 8px; }
 .na1-m4-pt-close:hover{ color:var(--gold-text); }
 .na1-m4-pt-body{ padding:28px 32px 24px; min-height:380px; display:flex; flex-direction:column; }
-.na1-m4-pt-eyebrow{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); text-align:center; margin:0 0 12px; }
-.na1-m4-pt-title{ font-family:var(--f-display); font-size:24px; line-height:1.25; color:var(--na1-text); text-align:center; margin:0 0 14px; }
-.na1-m4-pt-sub{ font-family:var(--f-body); font-style:italic; font-size:17px; line-height:1.6; color:var(--na1-text-sec); text-align:center; max-width:480px; margin:0 auto 22px; }
-.na1-m4-pt-prompt{ font-family:var(--f-body); font-style:italic; font-size:22px; line-height:1.4; color:var(--na1-text); text-align:center; max-width:540px; margin:0 auto 6px; }
+.na1-m4-pt-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-text); text-align:center; margin:0 0 12px; }
+.na1-m4-pt-title{ font-family:var(--f-display); font-size:24px; line-height:1.25; color:var(--na1-text); text-align:center; margin:0 0 14px; font-weight:400;}
+.na1-m4-pt-sub{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.6); color:var(--na1-text); text-align:center; max-width:480px; margin:0 auto 22px; font-weight:var(--b-w);}
+.na1-m4-pt-prompt{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(22px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text); text-align:center; max-width:540px; margin:0 auto 6px; font-weight:var(--b-w);}
 .na1-m4-pt-prompt b{ color:var(--gold-text); font-style:normal; font-weight:500; }
-.na1-m4-pt-helper{ font-family:var(--f-body); font-size:14px; color:var(--na1-text-mute); text-align:center; margin:0 0 22px; }
+.na1-m4-pt-helper{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); text-align:center; margin:0 0 22px; font-weight:var(--b-w);}
 .na1-m4-pt-example{ border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:18px 22px; background:var(--gold-warm); margin:0 auto 22px; max-width:540px; }
-.na1-m4-pt-example-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-text); margin:0 0 8px; }
-.na1-m4-pt-example-body{ font-family:var(--f-body); font-style:italic; font-size:17px; line-height:1.65; color:var(--na1-text-sec); margin:0; }
+.na1-m4-pt-example-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-text); margin:0 0 8px; }
+.na1-m4-pt-example-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
 .na1-m4-pt-example-body b{ font-style:normal; font-weight:500; color:var(--na1-text); }
-.na1-m4-pt-example-close{ font-family:var(--f-label); font-size:12.5px; color:var(--na1-text-sec); margin:14px 0 0; padding-top:12px; border-top:1px solid var(--gold-line); }
+.na1-m4-pt-example-close{ font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); color:var(--na1-text-sec); margin:14px 0 0; padding-top:12px; border-top:1px solid var(--gold-line); font-weight:400;}
 .na1-m4-pt-cards{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:0 0 14px; }
 @media (max-width:540px){ .na1-m4-pt-cards{ grid-template-columns:1fr; } }
 .na1-m4-pt-card{ background:transparent; border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:20px 22px; cursor:pointer; text-align:left; position:relative; transition:border-color .18s, background .18s, transform .15s; font-family:inherit; }
 .na1-m4-pt-card:hover:not(:disabled){ border-color:var(--gold); transform:translateY(-2px); }
 .na1-m4-pt-card.is-picked{ border-color:var(--gold); background:var(--gold-warm); }
-.na1-m4-pt-card.is-picked::after{ content:"★"; position:absolute; top:10px; right:14px; color:var(--gold-text); font-size:16px; }
+.na1-m4-pt-card.is-picked::after{ content:"★"; position:absolute; top:10px; right:14px; color:var(--gold-text); font-size:max(var(--b-min), calc(16px + var(--b-bump))); }
 .na1-m4-pt-card:disabled{ cursor:default; opacity:.55; }
 .na1-m4-pt-card-name{ font-family:var(--f-display); font-size:24px; font-weight:400; color:var(--gold-text); margin:0 0 6px; }
-.na1-m4-pt-card-def{ font-family:var(--f-body); font-style:italic; font-size:16px; line-height:1.5; color:var(--na1-text-sec); margin:0 0 14px; }
+.na1-m4-pt-card-def{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); margin:0 0 14px; font-weight:var(--b-w);}
 .na1-m4-pt-card-key{ border-top:1px solid var(--gold-line); padding-top:10px; margin-top:8px; }
-.na1-m4-pt-card-keylab{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-text); margin:0 0 4px; }
-.na1-m4-pt-card-keybody{ font-family:var(--f-body); font-size:14.5px; color:var(--na1-text-sec); margin:0; }
-.na1-m4-pt-card-keybody.is-unset{ color:var(--na1-text-mute); font-family:var(--f-body); font-style:italic; }
-.na1-m4-pt-skip{ display:block; background:transparent; border:none; color:var(--gold-text); text-decoration:underline; font-family:var(--f-label); font-size:12.5px; cursor:pointer; margin:6px auto 0; padding:6px 10px; }
+.na1-m4-pt-card-keylab{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-text); margin:0 0 4px; }
+.na1-m4-pt-card-keybody{ font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--na1-text); margin:0; font-weight:var(--b-w);}
+.na1-m4-pt-card-keybody.is-unset{ color:var(--na1-text-sec); font-family:var(--f-body); font-style:italic; font-weight:var(--b-w);}
+.na1-m4-pt-skip{ display:block; background:transparent; border:none; color:var(--gold-text); text-decoration:underline; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); cursor:pointer; margin:6px auto 0; padding:6px 10px; font-weight:400;}
 .na1-m4-pt-skip:hover{ filter:brightness(1.15); }
 .na1-m4-pt-conflict{ border:1px solid var(--burgundy); border-radius:var(--na1-radius); background:var(--burgundy-soft); padding:16px 18px; margin:16px 0 0; }
-.na1-m4-pt-conflict-label{ font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--burgundy); margin:0 0 8px; }
-.na1-m4-pt-conflict-body{ font-family:var(--f-body); font-style:italic; font-size:16.5px; line-height:1.55; color:var(--na1-text-sec); margin:0 0 14px; }
+.na1-m4-pt-conflict-label{ font-family:var(--f-label); font-size:max(var(--e-min), 11px); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--burgundy); margin:0 0 8px; }
+.na1-m4-pt-conflict-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); margin:0 0 14px; font-weight:var(--b-w);}
 .na1-m4-pt-conflict-body b{ font-style:normal; font-weight:500; color:var(--na1-text); }
 .na1-m4-pt-conflict-btns{ display:flex; gap:10px; flex-wrap:wrap; }
 .na1-m4-pt-conflict-btn{ background:var(--btn); box-shadow:inset 0 0 0 1px var(--btn-edge); color:var(--btn-ink); border:none; padding:9px 18px; border-radius:100px; font-family:var(--f-label); font-size:13px; font-weight:400; cursor:pointer; transition:filter .15s; }
@@ -2794,20 +2793,20 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
 .na1-m4-pt-conflict-btn.is-outline:hover{ background:var(--gold-warm); filter:none; }
 .na1-m4-pt-footer{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:auto; padding-top:18px; flex-wrap:wrap; }
 .na1-m4-pt-footer.is-center{ justify-content:center; }
-.na1-m4-pt-footer-status{ font-family:var(--f-label); font-style:italic; font-size:12.5px; color:var(--na1-text-mute); }
+.na1-m4-pt-footer-status{ font-family:var(--f-label); font-style:italic; font-size:max(var(--l-min), 12.5px); color:var(--na1-text-sec); font-weight:400;}
 .na1-m4-pt-done-star{ font-size:30px; color:var(--gold-text); text-align:center; margin:0 0 10px; }
 .na1-m4-beh-vhead{ border-left:3px solid var(--clusterColor, var(--gold)); padding:6px 0 6px 14px; margin:0 0 18px; }
-.na1-m4-beh-vname{ font-family:var(--f-display); font-size:24px; line-height:1.15; color:var(--clusterColor, var(--gold)); margin:0; }
-.na1-m4-beh-vdef{ font-family:var(--f-body); font-style:italic; font-size:15.5px; line-height:1.55; color:var(--na1-text-sec); margin:6px 0 0; }
-.na1-m4-beh-prompt{ font-family:var(--f-body); font-style:italic; font-size:16.5px; line-height:1.55; color:var(--na1-text-sec); margin:0 0 14px; }
-.na1-m4-beh-trim{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:10px 14px; font-family:var(--f-body); font-size:14.5px; color:var(--gold-text); margin:0 0 16px; }
+.na1-m4-beh-vname{ font-family:var(--f-display); font-size:24px; line-height:1.15; color:var(--clusterColor, var(--gold)); margin:0; font-weight:400;}
+.na1-m4-beh-vdef{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); margin:6px 0 0; font-weight:var(--b-w);}
+.na1-m4-beh-prompt{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); margin:0 0 14px; font-weight:var(--b-w);}
+.na1-m4-beh-trim{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:10px 14px; font-family:var(--f-body); font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); color:var(--gold-text); margin:0 0 16px; font-weight:var(--b-w);}
 .na1-m4-beh-cards{ display:flex; flex-direction:column; gap:12px; margin:0 0 14px; }
 .na1-m4-beh-card{ background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); padding:14px 16px; transition:border-color .18s; }
 .na1-m4-beh-card.is-keystone{ border-color:var(--gold-line); box-shadow:0 0 0 1px var(--gold-glow); }
 .na1-m4-beh-card-head{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
 .na1-m4-beh-card-name{ flex:1; min-width:0; background:transparent; border:none; font-family:var(--f-display); font-size:16px; font-weight:400; color:var(--na1-text); padding:4px 0; outline:none; border-bottom:1px solid transparent; transition:border-color .18s; }
 .na1-m4-beh-card-name:focus{ border-bottom-color:var(--na1-text-mute); }
-.na1-m4-beh-srcchip{ display:inline-flex; align-items:center; padding:3px 9px; border-radius:100px; font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.06em; text-transform:uppercase; border:1px solid var(--na1-border); color:var(--na1-text-sec); background:transparent; flex-shrink:0; }
+.na1-m4-beh-srcchip{ display:inline-flex; align-items:center; padding:3px 9px; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; letter-spacing:.06em; text-transform:uppercase; border:1px solid var(--na1-border); color:var(--na1-text-sec); background:transparent; flex-shrink:0; }
 .na1-m4-beh-srcchip.is-lights{ color:var(--gold-text); border-color:var(--gold-line); background:var(--gold-soft); }
 .na1-m4-beh-srcchip.is-warms,.na1-m4-beh-srcchip.is-bothers,.na1-m4-beh-srcchip.is-turns{ color:var(--na1-text); border-color:var(--na1-text-mute); }
 .na1-m4-beh-srcchip.is-flipped{ color:var(--gold-text); border-color:var(--gold-line); }
@@ -2818,28 +2817,28 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
 .na1-m4-beh-iconbtn.is-delete:hover{ color:var(--burgundy); }
 .na1-m4-beh-prac{ list-style:none; padding:0; margin:8px 0 0; display:flex; flex-direction:column; gap:6px; }
 .na1-m4-beh-prac-row{ display:flex; align-items:center; gap:8px; }
-.na1-m4-beh-prac-bullet{ color:var(--na1-text-mute); font-size:14px; flex-shrink:0; }
-.na1-m4-beh-prac-input{ flex:1; min-width:0; background:transparent; border:none; border-bottom:1px solid transparent; font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-sec); padding:3px 0; outline:none; transition:border-color .18s, color .18s; }
+.na1-m4-beh-prac-bullet{ color:var(--na1-text-mute); font-size:max(var(--b-min), calc(14px + var(--b-bump))); flex-shrink:0; }
+.na1-m4-beh-prac-input{ flex:1; min-width:0; background:transparent; border:none; border-bottom:1px solid transparent; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); padding:3px 0; outline:none; transition:border-color .18s, color .18s; font-weight:var(--b-w);}
 .na1-m4-beh-prac-input:focus{ border-bottom-color:var(--na1-text-mute); color:var(--na1-text); }
 .na1-m4-beh-prac-input::placeholder{ color:var(--na1-text-mute); font-style:italic; }
-.na1-m4-beh-prac-add{ background:transparent; border:1px dashed var(--na1-border); color:var(--na1-text-mute); font-family:var(--f-label); font-size:11.5px; padding:5px 10px; border-radius:100px; cursor:pointer; margin-top:8px; align-self:flex-start; transition:color .18s, border-color .18s; }
+.na1-m4-beh-prac-add{ background:transparent; border:1px dashed var(--na1-border); color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); padding:5px 10px; border-radius:100px; cursor:pointer; margin-top:8px; align-self:flex-start; transition:color .18s, border-color .18s; font-weight:400;}
 .na1-m4-beh-prac-add:hover{ color:var(--na1-text); border-color:var(--na1-text-mute); border-style:solid; }
 .na1-m4-beh-addrow{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin:6px 0 22px; }
 .na1-m4-beh-addbtn{ background:transparent; border:1px dashed var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:13px; font-weight:400; padding:9px 18px; border-radius:100px; cursor:pointer; transition:background .18s; }
 .na1-m4-beh-addbtn:hover:not(:disabled){ background:var(--gold-soft); }
 .na1-m4-beh-addbtn:disabled{ opacity:.4; cursor:not-allowed; }
-.na1-m4-beh-cap{ font-family:var(--f-body); font-size:13.5px; color:var(--na1-text-mute); }
+.na1-m4-beh-cap{ font-family:var(--f-body); font-size:max(var(--b-min), calc(13.5px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w);}
 .na1-m4-beh-key{ background:var(--gold-warm); border:1px solid var(--gold-line); border-radius:var(--na1-radius); padding:16px 18px; margin:0 0 18px; }
-.na1-m4-beh-key-title{ font-family:var(--f-display); font-size:16px; color:var(--gold-text); margin:0 0 4px; }
-.na1-m4-beh-key-body{ font-family:var(--f-body); font-style:italic; font-size:15px; color:var(--na1-text-sec); margin:0 0 10px; line-height:1.5; }
+.na1-m4-beh-key-title{ font-family:var(--f-display); font-size:16px; color:var(--gold-text); margin:0 0 4px; font-weight:400;}
+.na1-m4-beh-key-body{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text); margin:0 0 10px; line-height:max(var(--b-lh), 1.5); font-weight:var(--b-w);}
 .na1-m4-beh-key-pickrow{ display:flex; flex-wrap:wrap; gap:6px; }
-.na1-m4-beh-key-pick{ background:transparent; border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:11.5px; padding:5px 11px; border-radius:100px; cursor:pointer; transition:background .18s; }
+.na1-m4-beh-key-pick{ background:transparent; border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); padding:5px 11px; border-radius:100px; cursor:pointer; transition:background .18s; font-weight:400;}
 .na1-m4-beh-key-pick:hover{ background:var(--gold-soft); }
 .na1-m4-beh-key-pick.is-current{ background:var(--gold); color:var(--on-gold); border-color:var(--gold); }
-.na1-m4-beh-key-skip{ background:transparent; border:none; color:var(--na1-text-mute); font-family:var(--f-label); font-size:11.5px; text-decoration:underline; cursor:pointer; padding:0; margin-top:8px; }
-.na1-m4-beh-empty{ text-align:center; padding:40px 20px; font-family:var(--f-body); }
+.na1-m4-beh-key-skip{ background:transparent; border:none; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 11.5px); text-decoration:underline; cursor:pointer; padding:0; margin-top:8px; font-weight:400;}
+.na1-m4-beh-empty{ text-align:center; padding:40px 20px; font-family:var(--f-body); font-weight:var(--b-w);}
 .na1-m4-beh-empty-title{ font-size:20px; color:var(--gold-text); margin:0 0 8px; }
-.na1-m4-beh-empty-body{ font-style:italic; font-size:14px; color:var(--na1-text-sec); margin:0; line-height:1.55; }
+.na1-m4-beh-empty-body{ font-style:italic; font-size:max(var(--b-min), calc(14px + var(--b-bump))); color:var(--na1-text-sec); margin:0; line-height:max(var(--b-lh), 1.55); }
 /* ══════════════ MOBILE PASS ══════════════
    Phone spine · keyboard-aware overlays · 44px tap targets. Everything here is
    scoped to phones/touch (max-width:767px or coarse pointer) so desktop is
@@ -2853,8 +2852,8 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
   .na1-pspine-item.is-nav{ cursor:pointer; }
   .na1-pspine-top{ display:inline-flex; align-items:center; gap:6px; }
   .na1-pspine-dot{ width:12px; height:12px; border-radius:50%; border:1.5px solid var(--na1-text-mute); box-sizing:border-box; transition:background .2s, border-color .2s, box-shadow .2s; }
-  .na1-pspine-num{ font-family:var(--f-body); font-size:16px; font-weight:600; letter-spacing:.04em; }
-  .na1-pspine-state{ font-family:var(--f-label); font-size:11px; letter-spacing:.04em; line-height:1.2; }
+  .na1-pspine-num{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); font-weight:600; letter-spacing:.04em; }
+  .na1-pspine-state{ font-family:var(--f-label); font-size:max(var(--l-min), 11px); letter-spacing:.04em; line-height:1.2; font-weight:400;}
   .na1-pspine-item.is-claimed{ color:var(--na1-text-sec); }
   .na1-pspine-item.is-claimed .na1-pspine-dot{ background:var(--gold); border-color:var(--gold); }
   .na1-pspine-item.is-here{ color:var(--na1-text); }
@@ -2925,13 +2924,13 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
   .na1-em-svg{ cursor:pointer; touch-action:manipulation; }
   .na1-em-glyph{ display:none; }
   .na1-em-ring-label{ font-size:22px; letter-spacing:1px; }
-  .na1-em-you{ font-size:22px; }
+  .na1-em-you{ font-size:max(var(--b-min), calc(22px + var(--b-bump))); }
   .na1-em-list{ display:flex; flex-direction:column; gap:6px; margin:0 0 16px; }
-  .na1-em-list-row{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; min-height:44px; padding:8px 12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); color:var(--na1-text); font-family:var(--f-body); font-size:17px; line-height:1.3; cursor:pointer; }
+  .na1-em-list-row{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; min-height:44px; padding:8px 12px; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:var(--na1-radius); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); cursor:pointer; font-weight:var(--b-w);}
   .na1-em-list-row.is-sel{ border-color:var(--gold); background:var(--gold-warm); }
   .na1-em-list-glyph{ flex:0 0 auto; font-size:14px; }
   .na1-em-list-label{ flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
-  .na1-em-list-rating{ flex:0 0 auto; font-family:var(--f-label); font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; }
+  .na1-em-list-rating{ flex:0 0 auto; font-family:var(--f-label); font-size:max(var(--l-min), 11px); font-weight:400; letter-spacing:.08em; text-transform:uppercase; }
 }
 /* Count badges that are display-only (aria-hidden) aren't buttons — no pointer. */
 .na1-chip[aria-hidden]{ cursor:default; }
@@ -2950,10 +2949,10 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
   .na1-board-list{ display:flex; flex-direction:column; gap:6px; list-style:none; margin:14px 0 0; padding:0; }
   .na1-board-row{ display:grid; grid-template-columns:26px 1fr; grid-template-areas:"num role" "num who"; column-gap:10px; align-items:center; padding:9px 12px; border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); }
   .na1-board-row.is-filled{ border-color:var(--gold-line); background:var(--gold-warm); }
-  .na1-board-row-num{ grid-area:num; font-family:var(--f-display); font-size:20px; color:var(--na1-text-mute); text-align:center; }
+  .na1-board-row-num{ grid-area:num; font-family:var(--f-display); font-size:20px; color:var(--na1-text-mute); text-align:center; font-weight:400;}
   .na1-board-row.is-filled .na1-board-row-num{ color:var(--gold-text); }
   .na1-board-row-role{ grid-area:role; font-family:var(--f-display); font-size:16px; font-weight:400; color:var(--na1-text); }
-  .na1-board-row-who{ grid-area:who; font-family:var(--f-label); font-size:13px; color:var(--na1-text-sec); }
+  .na1-board-row-who{ grid-area:who; font-family:var(--f-label); font-size:13px; color:var(--na1-text-sec); font-weight:400;}
   .na1-board-row:not(.is-filled) .na1-board-row-who{ font-style:italic; color:var(--na1-text-mute); }
 }
 /* The fixed legal footer wraps instead of clipping on narrow phones. */
@@ -2977,9 +2976,35 @@ strong, b{ font-weight:600; }
 .na1-completion-cell .blank{ font-weight:500; }
 .na1-progress-text, .na1-ex-status, .na1-mirror-card-meta, .na1-video-sub, .na1-intro-video-meta, .na1-intro-video-play-mini,
 .na1-intro-video-chev, .na1-video-num, .na1-eh-btn-quiet, .na1-app-footer, .na1-a2m1-anchor, .na1-a2m2-arrow, .na1-m4-rank-arrow{ font-family:var(--f-label); font-style:normal; font-weight:400; }
-.na1-mirror-card-empty, .na1-mirror-card-sub{ font-size:15px; }
+.na1-mirror-card-empty, .na1-mirror-card-sub{ font-size:max(var(--b-min), calc(15px + var(--b-bump))); font-weight:var(--b-w); color:var(--na1-text-sec); }
 .na1-ex-status, .na1-a2m1-anchor, .na1-a2m1-anchor.is-left, .na1-a2m1-anchor.is-right{ font-weight:400 !important; }
-.na1-vertebra-num{ font-size:14px; }
+.na1-vertebra-num{ font-size:max(var(--b-min), calc(14px + var(--b-bump))); }
+/* ══════════════ READABILITY (phones) ══════════════ */
+@media (max-width:767px){
+  :root, html[data-theme="light"], html[data-theme="dark"]{ --b-min:19px; --b-bump:3px; --b-w:500; --b-lh:1.5; --l-min:13px; --e-min:12px; }
+  body, .na1-root{ line-height:1.5; }
+}
+/* Phone floors for small text whose size comes from the elements' own rules (labels at 13px;
+   tracked eyebrows/status pills at 12px). Kept as one explicit list so nothing else is forced. */
+@media (max-width:767px){
+  .na1-breadcrumb, .na1-breadcrumb a, .na1-breadcrumb .sep, .na1-breadcrumb .current,
+  .na1-room-crumb, .na1-room-crumb a, .na1-room-crumb .sep, .na1-room-crumb .current,
+  .na1-progress-text, .tier-label, .na1-a2m2-field-label, .na1-mirror-card-meta, .na1-video-sub,
+  .na1-ex-status, .na1-app-footer, .na1-a2m1-anchor, .na1-intro-video-meta, .na1-a2m2-count,
+  .na1-a2m3-bar-label, .na1-pspine-state, .na1-em-list-rating, .na1-a2m3-flag, .na1-a2m2-chip,
+  .na1-board-row-who, .na1-m4-rank-arrow, .na1-a2m3-ctx-head, .na1-a2m3-summary-head{ font-size:13px !important; }
+  .na1-mirror-card-status, .na1-mirror-card-eyebrow, .na1-hero-eyebrow, .na1-ex-eyebrow, .na1-room-eyebrow,
+  .na1-a-shift, .na1-phase-intro-tag, .na1-phase-tab-eyebrow, .na1-fw-eyebrow, .na1-phase-handover-day,
+  .na1-m4-rank-phase-eyebrow, .na1-a2m1-subprog-label, .na1-a2m1-purpose-eyebrow, .h-col-a, .h-col-b{ font-size:12px !important; }
+}
+/* Inherit-based label/heading classes: never pick up the phone body weight (Questrial/Tenor Sans are single-weight). */
+.sep, .tier-label, .na1-a2m2-count, .na1-a2m3-bar-label, .na1-a2m2-benchmark-label, .h-col-a, .h-col-b,
+.na1-a2m1-subprog-label, .na1-pspine-state, .na1-hero-meta, .na2-climb-lens-title, .na1-board-row-num, .na1-board-row-who,
+.na1-phase-handover-line, .na1-phase-handover-day{ font-weight:400 !important; }
+/* Headings (Tenor Sans): balance the lines so a single word is never left alone on the last line. */
+h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-eh-hero, .na1-phase-intro-headline,
+.na1-a2m1-step-title, .na1-a2m2-step-title, .na1-a2m3-step-title, .na1-m4-title, .na1-m4-step-title, .m3-pick-title,
+.na2-decl-title, .na1-mirror-card-name, .kb-auth-title{ text-wrap:balance; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -3189,7 +3214,7 @@ function WealthChipSelector({ selected, onToggle, onAddCustom }) {
                   : "1px solid var(--border2)",
                 background: isSelected ? "rgba(107,162,169,0.12)" : "var(--bg2)",
                 color: isSelected ? "#6BA2A9" : "var(--text3)",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 fontFamily: "var(--f-label)",
                 cursor: "pointer",
@@ -3216,7 +3241,7 @@ function WealthChipSelector({ selected, onToggle, onAddCustom }) {
                 border: "1px solid #6BA2A9",
                 background: "rgba(107,162,169,0.12)",
                 color: "#6BA2A9",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 fontFamily: "var(--f-label)",
                 cursor: "pointer",
@@ -3229,13 +3254,13 @@ function WealthChipSelector({ selected, onToggle, onAddCustom }) {
         {!showCustom && (
           <button
             onClick={() => setShowCustom(true)}
-            style={{
+            style={{ fontWeight: 400,
               padding: "7px 12px",
               borderRadius: 20,
               border: "1px dashed var(--border2)",
               background: "transparent",
               color: "var(--text4)",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               fontFamily: "var(--f-label)",
               cursor: "pointer",
             }}
@@ -3252,14 +3277,14 @@ function WealthChipSelector({ selected, onToggle, onAddCustom }) {
             onChange={(e) => setCustomInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addCustom()}
             placeholder="e.g. Crypto, Collectibles, Trust..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               flex: 1,
               padding: "7px 12px",
               borderRadius: 6,
               border: "1px solid var(--border2)",
               background: "var(--bg2)",
               color: "var(--text)",
-              fontSize: 14,
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               fontFamily: "var(--f-body)",
               outline: "none",
             }}
@@ -3324,7 +3349,7 @@ function WealthItemCard({ area, onRemove, onChange }) {
           <span style={{ fontSize: 14 }}>{area.icon}</span>
           <label
             style={{
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               fontWeight: 400,
               color: "#6BA2A9",
               fontFamily: "var(--f-label)",
@@ -3335,11 +3360,11 @@ function WealthItemCard({ area, onRemove, onChange }) {
         </div>
         <button
           onClick={onRemove}
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             background: "transparent",
             border: "none",
             color: "var(--text4)",
-            fontSize: 13,
+            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
             cursor: "pointer",
             fontFamily: "var(--f-body)",
           }}
@@ -3381,7 +3406,7 @@ function WealthItemCard({ area, onRemove, onChange }) {
               : "var(--bg3)",
           border: "1px solid rgba(107,162,169,0.3)",
           color: "#6BA2A9",
-          fontSize: 13,
+          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
           fontWeight: 500,
           fontFamily: "var(--f-body)",
           cursor: area.text && area.text.trim() ? "pointer" : "not-allowed",
@@ -3402,7 +3427,7 @@ function WealthItemCard({ area, onRemove, onChange }) {
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--l-min), 11px)",
               fontWeight: 400,
               color: "#6BA2A9",
               textTransform: "uppercase",
@@ -3413,12 +3438,12 @@ function WealthItemCard({ area, onRemove, onChange }) {
             Goal
           </div>
           <div
-            style={{
-              fontSize: 12,
+            style={{ fontWeight: "var(--b-w)",
+              fontSize: "max(var(--b-min), calc(12px + var(--b-bump)))",
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
               color: "var(--text)",
-              lineHeight: 1.5,
+              lineHeight: "max(var(--b-lh), 1.5)",
             }}
           >
             {area.goal}
@@ -3487,7 +3512,7 @@ function CollapsibleSegment_v2({
           <div
             style={{
               fontFamily: "var(--f-body)",
-              fontSize: 20,
+              fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
               fontWeight: 500,
               color: "var(--text)",
               flexShrink: 0,
@@ -3497,7 +3522,7 @@ function CollapsibleSegment_v2({
           </div>
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 1.2,
               textTransform: "uppercase",
               fontWeight: 400,
@@ -3527,15 +3552,15 @@ function CollapsibleSegment_v2({
       {!isOpen && confirmedSummary && (
         <div style={{ padding: "0 16px 14px" }}>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               padding: "10px 14px",
               background: "rgba(0,0,0,.2)",
               borderRadius: 6,
               fontFamily: "var(--f-body)",
-              fontSize: 15,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               fontStyle: "italic",
               color: "var(--text)",
-              lineHeight: 1.5,
+              lineHeight: "max(var(--b-lh), 1.5)",
             }}
           >
             "{confirmedSummary}"
@@ -3644,13 +3669,13 @@ function CardPicker_v2({ cards, picked, onToggle, onAddCustom, color }) {
             }
           }}
           placeholder="Type and press Enter..."
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             padding: "8px 14px",
             borderRadius: 18,
             background: "transparent",
             color: "var(--text)",
             border: `1px dashed ${color}`,
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             fontFamily: "var(--f-body)",
             outline: "none",
             minWidth: 180,
@@ -3697,18 +3722,18 @@ function SynthesizeError({ message, onRetry, color = "#B68C8C" }) {
     >
       <span style={{ fontSize: 13 }}>⚠️</span>
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           flex: 1,
           minWidth: 140,
-          fontSize: 13,
+          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.5,
+          lineHeight: "max(var(--b-lh), 1.5)",
           fontFamily: "var(--f-body)",
         }}
       >
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 1.2,
             textTransform: "uppercase",
@@ -3729,7 +3754,7 @@ function SynthesizeError({ message, onRetry, color = "#B68C8C" }) {
           color: "var(--warm)",
           border: "1px solid var(--warm)",
           cursor: "pointer",
-          fontSize: 11,
+          fontSize: "max(var(--l-min), 11px)",
           fontWeight: 400,
           fontFamily: "var(--f-label)",
         }}
@@ -3803,7 +3828,7 @@ function PriorityItemCard_v2({
         <div
           style={{
             fontFamily: "var(--f-body)",
-            fontSize: 19,
+            fontSize: "max(var(--b-min), calc(19px + var(--b-bump)))",
             fontWeight: 500,
             color: "var(--text)",
           }}
@@ -3827,7 +3852,7 @@ function PriorityItemCard_v2({
         onChange={(e) => onTextChange(e.target.value)}
         placeholder="Write freely here..."
         rows={3}
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           width: "100%",
           background: "rgba(0,0,0,.2)",
           border: "1px solid var(--border2)",
@@ -3835,8 +3860,8 @@ function PriorityItemCard_v2({
           padding: "10px 12px",
           color: "var(--text)",
           fontFamily: "var(--f-body)",
-          fontSize: 16,
-          lineHeight: 1.6,
+          fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+          lineHeight: "max(var(--b-lh), 1.6)",
           resize: "vertical",
           outline: "none",
         }}
@@ -3885,7 +3910,7 @@ function PriorityItemCard_v2({
           >
             <span
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 1.2,
                 textTransform: "uppercase",
                 color,
@@ -3923,7 +3948,7 @@ function SHFField_v2({ label, placeholder, value, onChange }) {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={2}
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           width: "100%",
           background: "rgba(0,0,0,.2)",
           border: "1px solid var(--border2)",
@@ -3931,8 +3956,8 @@ function SHFField_v2({ label, placeholder, value, onChange }) {
           padding: "8px 10px",
           color: "var(--text)",
           fontFamily: "var(--f-body)",
-          fontSize: 14,
-          lineHeight: 1.5,
+          fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
+          lineHeight: "max(var(--b-lh), 1.5)",
           resize: "vertical",
           outline: "none",
         }}
@@ -3954,7 +3979,7 @@ function SeeHearFeelBlock_v2({ title, subtitle, color, values, onChange }) {
     >
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           letterSpacing: 2,
           textTransform: "uppercase",
           color,
@@ -4071,7 +4096,7 @@ function SummaryGenerator_v2({
             right: 14,
             background: "#6BA2A9",
             color: "var(--bg)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             letterSpacing: 1.5,
             textTransform: "uppercase",
             fontWeight: 400,
@@ -4083,7 +4108,7 @@ function SummaryGenerator_v2({
         </div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "#6BA2A9",
@@ -4094,10 +4119,10 @@ function SummaryGenerator_v2({
           {bottomTitle || `${label} summary`}
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 17,
-            lineHeight: 1.5,
+            fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+            lineHeight: "max(var(--b-lh), 1.5)",
             color: "var(--text)",
             fontStyle: "italic",
             marginBottom: 10,
@@ -4135,7 +4160,7 @@ function SummaryGenerator_v2({
     >
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           letterSpacing: 1.5,
           textTransform: "uppercase",
           color,
@@ -4191,7 +4216,7 @@ function SummaryGenerator_v2({
         <div>
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 1.5,
               textTransform: "uppercase",
               color: "var(--text3)",
@@ -4205,7 +4230,7 @@ function SummaryGenerator_v2({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             rows={3}
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               width: "100%",
               background: "rgba(0,0,0,.3)",
               border: `1px solid ${color}60`,
@@ -4213,8 +4238,8 @@ function SummaryGenerator_v2({
               padding: "10px 12px",
               color: "var(--text)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
-              lineHeight: 1.5,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.5)",
               resize: "vertical",
               outline: "none",
               marginBottom: 10,
@@ -4366,7 +4391,7 @@ function TierRankingSection_v2({
           </div>
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 1.2,
               textTransform: "uppercase",
               fontWeight: 400,
@@ -4411,7 +4436,7 @@ function TierRankingSection_v2({
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
                 color: "#B68C8C",
@@ -4590,7 +4615,7 @@ function TierRankingSection_v2({
                       >
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             letterSpacing: 1.2,
                             textTransform: "uppercase",
                             color: segColor(item.segment),
@@ -4625,7 +4650,7 @@ function TierRankingSection_v2({
                               background: `${tierObj.color}20`,
                               color: tierObj.color,
                               border: `1px solid ${tierObj.color}60`,
-                              fontSize: 12,
+                              fontSize: "max(var(--l-min), 12px)",
                               fontWeight: 400,
                               cursor: "pointer",
                               fontFamily: "var(--f-label)",
@@ -4716,7 +4741,7 @@ function TierRankingSection_v2({
               <div style={{ marginTop: 24 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     letterSpacing: 2,
                     textTransform: "uppercase",
                     color: "var(--text3)",
@@ -4745,7 +4770,7 @@ function TierRankingSection_v2({
                     >
                       <div
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           letterSpacing: 2,
                           textTransform: "uppercase",
                           color: tier.color,
@@ -4924,7 +4949,7 @@ function SimpleItemCard_v2({
         <div
           style={{
             fontFamily: "var(--f-body)",
-            fontSize: 16,
+            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
             fontWeight: 500,
             color: "var(--text)",
           }}
@@ -4941,7 +4966,7 @@ function SimpleItemCard_v2({
               border: "none",
               cursor: "pointer",
               padding: 0,
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 1.2,
               textTransform: "uppercase",
@@ -4958,17 +4983,17 @@ function SimpleItemCard_v2({
           </button>
           {hintOpen && (
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 marginTop: 6,
                 padding: "8px 10px",
                 background: "rgba(165,135,94,.06)",
                 borderLeft: "2px solid var(--warm)",
                 borderRadius: 4,
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.55,
+                lineHeight: "max(var(--b-lh), 1.55)",
               }}
             >
               "{hintText}"
@@ -4981,7 +5006,7 @@ function SimpleItemCard_v2({
         onChange={(e) => onTextChange(e.target.value)}
         placeholder={promptText}
         rows={2}
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           width: "100%",
           background: "rgba(0,0,0,.2)",
           border: "1px solid var(--border2)",
@@ -4989,10 +5014,10 @@ function SimpleItemCard_v2({
           padding: "8px 10px",
           color: "var(--text)",
           fontFamily: "var(--f-body)",
-          fontSize: 14,
+          fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
           outline: "none",
           resize: "vertical",
-          lineHeight: 1.5,
+          lineHeight: "max(var(--b-lh), 1.5)",
         }}
       />
       <div
@@ -5039,7 +5064,7 @@ function SimpleItemCard_v2({
           >
             <span
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 1.2,
                 textTransform: "uppercase",
                 color,
@@ -5148,7 +5173,7 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
     >
       <span
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           color: "var(--text3)",
           letterSpacing: 1.2,
           textTransform: "uppercase",
@@ -5161,10 +5186,10 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
       <div style={{ minWidth: 0 }}>
         {text && text.trim() ? (
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 15,
-              lineHeight: 1.6,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.6)",
               fontStyle: "italic",
               padding: "7px 12px",
               borderRadius: 4,
@@ -5206,7 +5231,7 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
     >
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           letterSpacing: 2,
           textTransform: "uppercase",
           color: "var(--text3)",
@@ -5303,7 +5328,7 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
                 <div style={{ marginTop: 6, textAlign: "center" }}>
                   <div
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
                       color:
@@ -5318,9 +5343,9 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
                     {p.label}
                   </div>
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 13,
+                      fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                       color:
                         isOpen || isActive
                           ? "var(--warm)"
@@ -5360,7 +5385,7 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
             <span
               style={{
                 fontFamily: "var(--f-label)",
-                fontSize: 12,
+                fontSize: "max(var(--e-min), 12px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -5370,8 +5395,8 @@ function DirectionTimeline_v2({ activeHorizon, map }) {
               {openPoint.label}
             </span>
             <span
-              style={{
-                fontSize: 12,
+              style={{ fontWeight: "var(--b-w)",
+                fontSize: "max(var(--b-min), calc(12px + var(--b-bump)))",
                 color: "var(--text4)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
@@ -5534,7 +5559,7 @@ function GrowthSuggestions_v2({
       >
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             letterSpacing: 2,
             textTransform: "uppercase",
             color: "var(--warm)",
@@ -5568,7 +5593,7 @@ function GrowthSuggestions_v2({
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 1.5,
               textTransform: "uppercase",
               color: "var(--text3)",
@@ -5584,13 +5609,13 @@ function GrowthSuggestions_v2({
               onChange={(e) => setNewCustom(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addCustomItem()}
               placeholder="Something else that matters..."
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 flex: 1,
                 background: "transparent",
                 border: "none",
                 outline: "none",
                 color: "var(--text)",
-                fontSize: 16,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                 fontFamily: "var(--f-body)",
               }}
             />
@@ -5630,7 +5655,7 @@ function GrowthSuggestions_v2({
     >
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           letterSpacing: 2,
           textTransform: "uppercase",
           color: "var(--warm)",
@@ -5707,14 +5732,14 @@ function GrowthSuggestions_v2({
                       if (e.key === "Enter") saveEdit(s.id);
                       if (e.key === "Escape") cancelEdit();
                     }}
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       width: "100%",
                       background: "rgba(0,0,0,.3)",
                       border: "1px solid var(--warm)",
                       borderRadius: 4,
                       padding: "4px 8px",
                       color: "var(--text)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontFamily: "var(--f-body)",
                       outline: "none",
                     }}
@@ -5845,7 +5870,7 @@ function GrowthSuggestions_v2({
       >
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             letterSpacing: 1.5,
             textTransform: "uppercase",
             color: "var(--text3)",
@@ -5861,13 +5886,13 @@ function GrowthSuggestions_v2({
             onChange={(e) => setNewCustom(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addCustomItem()}
             placeholder="Something else that matters..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               flex: 1,
               background: "transparent",
               border: "none",
               outline: "none",
               color: "var(--text)",
-              fontSize: 16,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
               fontFamily: "var(--f-body)",
             }}
           />
@@ -6239,7 +6264,7 @@ function CollapsibleTier_v2({ tier, items, horizonKey, map, set }) {
         >
           <span
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 1.5,
               textTransform: "uppercase",
               color: tier.color,
@@ -6374,9 +6399,9 @@ function HorizonAlignmentColumn_v2({
       }}
     >
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 16,
+          fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
           fontStyle: "italic",
           color: "var(--warm)",
           marginBottom: 14,
@@ -6443,7 +6468,7 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
             <button
               key={area.id}
               onClick={() => (!atMax || isSelected) && onToggle(area)}
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
@@ -6455,7 +6480,7 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
                 borderRadius: 20,
                 cursor: atMax && !isSelected ? "not-allowed" : "pointer",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: isSelected
                   ? "var(--warm)"
                   : atMax
@@ -6497,7 +6522,7 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
               <button
                 key={area.id}
                 onClick={() => onToggle(area)}
-                style={{
+                style={{ fontWeight: 400,
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
@@ -6507,7 +6532,7 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
                   borderRadius: 20,
                   cursor: "pointer",
                   fontFamily: "var(--f-label)",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   color: "var(--warm)",
                   transition: "all .18s",
                 }}
@@ -6542,7 +6567,7 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
         {!showCustom && !atMax && (
           <button
             onClick={() => setShowCustom(true)}
-            style={{
+            style={{ fontWeight: 400,
               display: "flex",
               alignItems: "center",
               gap: 6,
@@ -6552,7 +6577,7 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
               borderRadius: 20,
               cursor: "pointer",
               fontFamily: "var(--f-label)",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               color: "var(--text4)",
             }}
           >
@@ -6567,13 +6592,13 @@ function LifeAreaSelector({ selected, onToggle, onAddCustom }) {
               onKeyDown={(e) => e.key === "Enter" && addCustom()}
               placeholder="e.g. Creative work"
               autoFocus
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 background: "var(--bg4)",
                 border: "1px solid var(--warm)",
                 borderRadius: 20,
                 color: "var(--warm)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 padding: "7px 13px",
                 outline: "none",
                 width: 150,
@@ -6712,12 +6737,12 @@ function LifeAreaCard({
           </div>
           {area.goal ? (
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "rgba(165,135,94,.7)",
-                lineHeight: 1.4,
+                lineHeight: "max(var(--b-lh), 1.4)",
                 marginTop: 2,
               }}
             >
@@ -6810,12 +6835,12 @@ function LifeAreaCard({
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text3)",
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
               }}
             >
               {area.hint}
@@ -6869,12 +6894,12 @@ function LifeAreaCard({
                 onChange={(e) => onChange(f.key, e.target.value)}
                 placeholder={f.placeholder}
                 className="to-field"
-                style={{
-                  fontSize: 18,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                   fontFamily: "var(--f-body)",
                   fontStyle: "normal",
                   color: "var(--warm)",
-                  lineHeight: 1.7,
+                  lineHeight: "max(var(--b-lh), 1.7)",
                 }}
               />
             </div>
@@ -6892,7 +6917,7 @@ function LifeAreaCard({
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
@@ -6903,12 +6928,12 @@ function LifeAreaCard({
                 Your {area.label} goal
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 18,
+                  fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                   fontStyle: "italic",
                   color: "var(--text)",
-                  lineHeight: 1.75,
+                  lineHeight: "max(var(--b-lh), 1.75)",
                   marginBottom: 8,
                 }}
               >
@@ -6919,8 +6944,8 @@ function LifeAreaCard({
                 value={area.goal}
                 onChange={(e) => onChange("goal", e.target.value)}
                 className="to-field"
-                style={{
-                  fontSize: 16,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                   fontFamily: "var(--f-body)",
                   fontStyle: "italic",
                   color: "var(--warm)",
@@ -6943,7 +6968,7 @@ function LifeAreaCard({
               color: "var(--warm)",
               cursor: !hasContent || summarising ? "not-allowed" : "pointer",
               fontFamily: "var(--f-body)",
-              fontSize: 14,
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               fontWeight: 500,
               padding: "7px 16px",
               opacity: !hasContent ? 0.5 : 1,
@@ -7118,12 +7143,12 @@ function DirectionSection({ map, set, voiceId, name, intake }: any) {
         </div>
         {!isOpen && summary && (
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
               fontStyle: "italic",
               color: summaryColor || "var(--text3)",
-              lineHeight: 1.7,
+              lineHeight: "max(var(--b-lh), 1.7)",
               marginTop: 4,
             }}
           >
@@ -7694,9 +7719,9 @@ function ThreeYearPage({ map, set, voiceId, name, intake }: any) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
               color: "var(--text)",
               marginBottom: 8,
             }}
@@ -7895,7 +7920,7 @@ function ThreeYearPage({ map, set, voiceId, name, intake }: any) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
                   color: "#B0CCDA",
@@ -7910,7 +7935,7 @@ function ThreeYearPage({ map, set, voiceId, name, intake }: any) {
                 onChange={(e) => set("threeyr_growth_text", e.target.value)}
                 placeholder="Who have you become? What have you built? What's different about you?"
                 rows={4}
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   width: "100%",
                   background: "rgba(0,0,0,.2)",
                   border: "1px solid var(--border2)",
@@ -7918,10 +7943,10 @@ function ThreeYearPage({ map, set, voiceId, name, intake }: any) {
                   padding: "8px 10px",
                   color: "var(--text)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 15,
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                   outline: "none",
                   resize: "vertical",
-                  lineHeight: 1.55,
+                  lineHeight: "max(var(--b-lh), 1.55)",
                 }}
               />
             </div>
@@ -8142,9 +8167,9 @@ function OneYearPage({ map, set, voiceId, name, intake }: any) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
               color: "var(--text)",
               marginBottom: 8,
             }}
@@ -8381,7 +8406,7 @@ function OneYearPage({ map, set, voiceId, name, intake }: any) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
                   color: "#B0CCDA",
@@ -8396,7 +8421,7 @@ function OneYearPage({ map, set, voiceId, name, intake }: any) {
                 onChange={(e) => set("oneyr_growth_text", e.target.value)}
                 placeholder="What are you becoming this year? What are you doing differently?"
                 rows={4}
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   width: "100%",
                   background: "rgba(0,0,0,.2)",
                   border: "1px solid var(--border2)",
@@ -8404,10 +8429,10 @@ function OneYearPage({ map, set, voiceId, name, intake }: any) {
                   padding: "8px 10px",
                   color: "var(--text)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 15,
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                   outline: "none",
                   resize: "vertical",
-                  lineHeight: 1.55,
+                  lineHeight: "max(var(--b-lh), 1.55)",
                 }}
               />
             </div>
@@ -8498,9 +8523,9 @@ function DirectionAlignmentPage({ map, set }) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
               color: "var(--text)",
               marginBottom: 8,
             }}
@@ -8613,9 +8638,9 @@ function OwnItCheck({
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <span style={{ fontSize: 15 }}>{emoji}</span>
             <span
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 15,
+                fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                 color: "var(--text)",
               }}
             >
@@ -8625,7 +8650,7 @@ function OwnItCheck({
           <div
             style={{
               fontFamily: "var(--f-body)",
-              fontSize: 18,
+              fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
               fontWeight: 300,
               color: col,
             }}
@@ -8669,7 +8694,7 @@ function OwnItCheck({
     return (
       <button
         onClick={() => setOpen(true)}
-        style={{
+        style={{ fontWeight: 400,
           display: "flex",
           alignItems: "center",
           gap: 8,
@@ -8679,7 +8704,7 @@ function OwnItCheck({
           padding: "6px 14px",
           cursor: "pointer",
           fontFamily: "var(--f-label)",
-          fontSize: 12,
+          fontSize: "max(var(--l-min), 12px)",
           color: "var(--warm)",
           marginTop: 12,
         }}
@@ -8721,7 +8746,7 @@ function OwnItCheck({
           <div
             style={{
               fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -8760,12 +8785,12 @@ function OwnItCheck({
       <div style={{ padding: "16px 18px" }}>
         {/* Instruction */}
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 14,
+            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
             fontStyle: "italic",
             color: "var(--text3)",
-            lineHeight: 1.7,
+            lineHeight: "max(var(--b-lh), 1.7)",
             marginBottom: 18,
           }}
         >
@@ -8784,7 +8809,7 @@ function OwnItCheck({
           <div
             style={{
               fontFamily: "var(--f-body)",
-              fontSize: 15,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               fontWeight: 500,
               color: "var(--text)",
               marginBottom: 3,
@@ -8818,7 +8843,7 @@ function OwnItCheck({
             <div
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 15,
+                fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                 fontWeight: 500,
                 color: "var(--text)",
                 marginBottom: 10,
@@ -8898,7 +8923,7 @@ function OwnItCheck({
               <div
                 style={{
                   fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   color: "#6BA2A9",
@@ -8914,14 +8939,14 @@ function OwnItCheck({
                 if (onComplete)
                   onComplete({ scores, missing, confirmed: false });
               }}
-              style={{
+              style={{ fontWeight: 400,
                 background: "none",
                 border: "1px solid var(--border2)",
                 borderRadius: 20,
                 color: "var(--text4)",
                 cursor: "pointer",
                 fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--l-min), 11px)",
                 padding: "3px 11px",
                 flexShrink: 0,
               }}
@@ -8942,11 +8967,11 @@ function OwnItCheck({
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: "var(--text2)",
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
                 marginBottom: 8,
               }}
             >
@@ -8955,14 +8980,14 @@ function OwnItCheck({
             </div>
             <button
               onClick={() => setConfirmed(null)}
-              style={{
+              style={{ fontWeight: 400,
                 background: "none",
                 border: "1px solid var(--border2)",
                 borderRadius: 20,
                 color: "var(--text4)",
                 cursor: "pointer",
                 fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--l-min), 11px)",
                 padding: "4px 12px",
               }}
             >
@@ -9070,7 +9095,7 @@ function VoiceDropdown({ voiceId, onSelect }) {
         <span
           style={{
             fontFamily: "var(--f-label)",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             color: v.color,
             fontWeight: 400,
           }}
@@ -9122,7 +9147,7 @@ function VoiceDropdown({ voiceId, onSelect }) {
                 <div
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: 15,
+                    fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                     color: vv.id === voiceId ? vv.color : "var(--text)",
                     fontWeight: vv.id === voiceId ? 500 : 400,
                   }}
@@ -9130,9 +9155,9 @@ function VoiceDropdown({ voiceId, onSelect }) {
                   {vv.label}
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 13,
+                    fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                     color: "var(--text4)",
                     marginTop: 1,
                   }}
@@ -9156,7 +9181,7 @@ function VoiceGrid({ selected, onSelect }) {
         <button
           key={vv.id}
           onClick={() => onSelect(vv.id)}
-          style={{
+          style={{ fontWeight: 400,
             padding: "13px 14px",
             background: vv.id === selected ? vv.muted : "var(--bg3)",
             border: `1px solid ${vv.id === selected ? vv.border : "var(--border)"}`,
@@ -9195,7 +9220,7 @@ function VoiceGrid({ selected, onSelect }) {
             <div
               style={{ fontFamily: "var(--f-label)",
                 marginTop: 7,
-                fontSize: 11,
+                fontSize: "max(var(--l-min), 11px)",
                 color: vv.color,
                 fontWeight: 400,
                 letterSpacing: 1,
@@ -9305,7 +9330,7 @@ function AIChat({
           <span
             style={{
               fontFamily: "var(--f-label)",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               color: v.color,
               fontWeight: 400,
             }}
@@ -9328,9 +9353,9 @@ function AIChat({
           }}
         >
           <span
-            style={{
+            style={{ fontWeight: 400,
               fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--l-min), 11px)",
               color: "var(--text4)",
               letterSpacing: 1,
               textTransform: "uppercase",
@@ -9342,9 +9367,9 @@ function AIChat({
           {contextItems.map((item) => (
             <span
               key={item}
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: "var(--warm)",
                 background: "rgba(165,135,94,.1)",
                 border: "1px solid rgba(165,135,94,.2)",
@@ -9412,8 +9437,8 @@ function AIChat({
                     <div
                       style={{
                         fontFamily: "var(--f-body)",
-                        fontSize: 17,
-                        lineHeight: 1.85,
+                        fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+                        lineHeight: "max(var(--b-lh), 1.85)",
                         color: "var(--text)",
                         fontWeight: 300,
                         borderLeft: `2px solid ${mv.border}`,
@@ -9540,10 +9565,10 @@ function VideoBlock({ title, duration, points }) {
           <div
             style={{
               fontFamily: "var(--f-body)",
-              fontSize: 16,
-              fontWeight: 400,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+              fontWeight: "var(--b-w)",
               color: "#e8e4dc",
-              lineHeight: 1.3,
+              lineHeight: "max(var(--b-lh), 1.3)",
             }}
           >
             {title}
@@ -9561,7 +9586,7 @@ function VideoBlock({ title, duration, points }) {
         </div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             color: "#7a9bb0",
             textTransform: "uppercase",
             letterSpacing: 1.4,
@@ -9754,7 +9779,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <span
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: isActive ? "var(--warm)" : "var(--text4)",
                 fontWeight: isActive ? 700 : 500,
               }}
@@ -9797,9 +9822,9 @@ function A2({ intake, onDone, phase, setPhase }) {
           True Ownership™
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 14,
+            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
             color: "var(--text4)",
           }}
         >
@@ -9828,7 +9853,7 @@ function A2({ intake, onDone, phase, setPhase }) {
     >
       <div
         style={{
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -9895,7 +9920,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -9935,7 +9960,7 @@ function A2({ intake, onDone, phase, setPhase }) {
     <div>
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -9958,11 +9983,11 @@ function A2({ intake, onDone, phase, setPhase }) {
         {title}
       </h2>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 18,
+          fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.8,
+          lineHeight: "max(var(--b-lh), 1.8)",
           marginBottom: 26,
           maxWidth: 620,
         }}
@@ -9980,7 +10005,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       >
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             color: "var(--warm)",
             fontWeight: 400,
             letterSpacing: 1.5,
@@ -10039,7 +10064,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -10063,11 +10088,11 @@ function A2({ intake, onDone, phase, setPhase }) {
         </h2>
 
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 17,
+            fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.85,
+            lineHeight: "max(var(--b-lh), 1.85)",
             marginBottom: 14,
             maxWidth: 620,
           }}
@@ -10114,7 +10139,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -10126,12 +10151,12 @@ function A2({ intake, onDone, phase, setPhase }) {
             Before we start — one principle
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
               fontStyle: "italic",
               color: "var(--text)",
-              lineHeight: 1.85,
+              lineHeight: "max(var(--b-lh), 1.85)",
               marginBottom: 10,
             }}
           >
@@ -10171,7 +10196,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               >
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -10300,7 +10325,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -10312,12 +10337,12 @@ function A2({ intake, onDone, phase, setPhase }) {
             What you walk away with
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
               fontStyle: "italic",
               color: "var(--text)",
-              lineHeight: 1.85,
+              lineHeight: "max(var(--b-lh), 1.85)",
               marginBottom: 10,
             }}
           >
@@ -10361,12 +10386,12 @@ function A2({ intake, onDone, phase, setPhase }) {
 
         {/* Katherine's ask — tone-setter */}
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 16,
+            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
             fontStyle: "italic",
             color: "var(--text2)",
-            lineHeight: 1.85,
+            lineHeight: "max(var(--b-lh), 1.85)",
             padding: "14px 18px",
             borderLeft: "2px solid var(--warm)",
             marginBottom: 28,
@@ -10382,7 +10407,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             style={{
               fontFamily: "var(--f-label)",
               fontStyle: "normal",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               color: "var(--text4)",
               marginTop: 8,
               letterSpacing: 1.5,
@@ -10475,7 +10500,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -10532,7 +10557,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                 </span>
                 <span
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--l-min), 11px)",
                     padding: "2px 7px",
                     borderRadius: 10,
                     color: tierColor(it.tier),
@@ -10570,7 +10595,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         <DirectionTimeline_v2 map={map} />
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -10633,9 +10658,9 @@ function A2({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 17,
+                fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                 color: "var(--text)",
                 marginBottom: 8,
               }}
@@ -10651,7 +10676,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <div style={{ marginBottom: 26 }}>
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   letterSpacing: 2,
                   textTransform: "uppercase",
                   color: "var(--text3)",
@@ -10679,7 +10704,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <div style={{ marginBottom: 22 }}>
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   letterSpacing: 2,
                   textTransform: "uppercase",
                   color: "var(--warm)",
@@ -10778,7 +10803,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -10828,9 +10853,9 @@ function A2({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 17,
+                fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                 color: "var(--text)",
                 marginBottom: 8,
               }}
@@ -10941,9 +10966,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                     }}
                   >
                     <div
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         fontFamily: "var(--f-body)",
-                        fontSize: 16,
+                        fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                         fontStyle: "italic",
                         color: "var(--warm)",
                       }}
@@ -10985,7 +11010,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     >
                       <div
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1.5,
                           textTransform: "uppercase",
@@ -11181,9 +11206,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                     }}
                   >
                     <div
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         fontFamily: "var(--f-body)",
-                        fontSize: 16,
+                        fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                         fontStyle: "italic",
                         color: "#6BA2A9",
                       }}
@@ -11225,7 +11250,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     >
                       <div
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1.5,
                           textTransform: "uppercase",
@@ -11500,7 +11525,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontSize: 18,
+                  fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                   fontWeight: 300,
                   color: col,
                   flexShrink: 0,
@@ -11607,7 +11632,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -11722,9 +11747,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                       }}
                     >
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--warm)",
                         }}
@@ -11775,9 +11800,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                       }}
                     >
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--warm)",
                         }}
@@ -11827,9 +11852,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                       }}
                     >
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--warm)",
                         }}
@@ -11956,9 +11981,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                           }}
                         >
                           <div
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               fontFamily: "var(--f-body)",
-                              fontSize: 15,
+                              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                               fontStyle: "italic",
                               color: "var(--warm)",
                             }}
@@ -12006,7 +12031,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                               >
                                 <div
                                   style={{ fontFamily: "var(--f-label)",
-                                    fontSize: 11,
+                                    fontSize: "max(var(--l-min), 11px)",
                                     fontWeight: 400,
                                     letterSpacing: 1,
                                     textTransform: "uppercase",
@@ -12119,9 +12144,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                           }}
                         >
                           <div
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               fontFamily: "var(--f-body)",
-                              fontSize: 15,
+                              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                               fontStyle: "italic",
                               color: "var(--warm)",
                             }}
@@ -12271,7 +12296,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -12318,7 +12343,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div style={{ fontSize: 28, marginBottom: 14 }}>⏳</div>
             <div
-              style={{
+              style={{ fontWeight: 400,
                 fontFamily: "var(--f-display)",
                 fontSize: 22,
                 color: "var(--text)",
@@ -12407,7 +12432,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                       right: 16,
                       background: "var(--warm)",
                       color: "var(--bg)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
                       fontWeight: 400,
@@ -12428,7 +12453,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                 >
                   <div
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       letterSpacing: 2,
                       textTransform: "uppercase",
                       color: pinned ? "var(--warm)" : "#B68C8C",
@@ -12474,8 +12499,8 @@ function A2({ intake, onDone, phase, setPhase }) {
                   </div>
                 </div>
                 <div
-                  style={{
-                    fontSize: 13,
+                  style={{ fontWeight: "var(--b-w)",
+                    fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                     color: "var(--text2)",
                     marginBottom: 16,
                     fontFamily: "var(--f-body)",
@@ -12547,13 +12572,13 @@ function A2({ intake, onDone, phase, setPhase }) {
                     }}
                   >
                     <div
-                      style={{
-                        fontSize: 14,
+                      style={{ fontWeight: "var(--b-w)",
+                        fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                         color: "var(--text)",
                         fontFamily: "var(--f-body)",
                         fontStyle: "italic",
                         marginBottom: 12,
-                        lineHeight: 1.6,
+                        lineHeight: "max(var(--b-lh), 1.6)",
                       }}
                     >
                       Pinned. Now let's look at how it plays out day-to-day.
@@ -12620,7 +12645,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -12771,7 +12796,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           <>
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 color: "var(--text3)",
@@ -12826,7 +12851,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   >
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
                         color: borderCol,
@@ -13068,7 +13093,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -13121,7 +13146,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <div>
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   letterSpacing: 2,
                   textTransform: "uppercase",
                   fontWeight: 400,
@@ -13162,7 +13187,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -13220,22 +13245,22 @@ function A2({ intake, onDone, phase, setPhase }) {
                     addAct();
                   }
                 }}
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   flex: 1,
                   background: "transparent",
                   border: "none",
                   outline: "none",
                   color: "var(--text)",
-                  fontSize: 16,
+                  fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                   fontFamily: "var(--f-body)",
                 }}
               />
               <select
                 id="a2_ta_newHrs"
                 defaultValue={5}
-                style={{
+                style={{ fontWeight: 400,
                   fontFamily: "var(--f-label)",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   background: "var(--bg3)",
                   color: "var(--text2)",
                   border: "1px solid var(--border2)",
@@ -13260,7 +13285,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   border: "none",
                   borderRadius: 6,
                   fontFamily: "var(--f-label)",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   cursor: "pointer",
                 }}
@@ -13306,9 +13331,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                     <select
                       value={a.hours}
                       onChange={(e) => editHours(a.id, e.target.value)}
-                      style={{
+                      style={{ fontWeight: 400,
                         fontFamily: "var(--f-label)",
-                        fontSize: 12,
+                        fontSize: "max(var(--l-min), 12px)",
                         background: "var(--bg3)",
                         color: "var(--text2)",
                         border: "1px solid var(--border2)",
@@ -13410,7 +13435,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -13441,7 +13466,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <div>
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   letterSpacing: 2,
                   textTransform: "uppercase",
                   fontWeight: 400,
@@ -13482,7 +13507,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -13592,7 +13617,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     <div>
                       <div
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           letterSpacing: 1.2,
                           textTransform: "uppercase",
                           color: "var(--text3)",
@@ -13605,10 +13630,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                       <select
                         value={a.pri || ""}
                         onChange={(e) => setPri(a.id, e.target.value)}
-                        style={{
+                        style={{ fontWeight: 400,
                           width: "100%",
                           fontFamily: "var(--f-label)",
-                          fontSize: 12,
+                          fontSize: "max(var(--l-min), 12px)",
                           background: "var(--bg3)",
                           color: priColor,
                           border: `1px solid ${priBorder}`,
@@ -13644,7 +13669,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     <div>
                       <div
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           letterSpacing: 1.2,
                           textTransform: "uppercase",
                           color: "var(--text3)",
@@ -13675,7 +13700,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                                 color: sel ? f.color : "var(--text2)",
                                 cursor: "pointer",
                                 fontFamily: "var(--f-label)",
-                                fontSize: 11,
+                                fontSize: "max(var(--l-min), 11px)",
                                 fontWeight: sel ? 700 : 500,
                                 display: "inline-flex",
                                 alignItems: "center",
@@ -13760,7 +13785,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -13918,7 +13943,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   <div>
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
                         fontWeight: 400,
@@ -13964,7 +13989,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               >
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     letterSpacing: 2,
                     textTransform: "uppercase",
                     fontWeight: 400,
@@ -14023,22 +14048,22 @@ function A2({ intake, onDone, phase, setPhase }) {
                         addWish();
                       }
                     }}
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       flex: 1,
                       background: "transparent",
                       border: "none",
                       outline: "none",
                       color: "var(--text)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontFamily: "var(--f-body)",
                     }}
                   />
                   <select
                     id="a2_ta_newWishHrs"
                     defaultValue={3}
-                    style={{
+                    style={{ fontWeight: 400,
                       fontFamily: "var(--f-label)",
-                      fontSize: 12,
+                      fontSize: "max(var(--l-min), 12px)",
                       background: "var(--bg3)",
                       color: "var(--text2)",
                       border: "1px solid var(--border2)",
@@ -14062,7 +14087,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                       border: "none",
                       borderRadius: 6,
                       fontFamily: "var(--f-label)",
-                      fontSize: 12,
+                      fontSize: "max(var(--l-min), 12px)",
                       fontWeight: 400,
                       cursor: "pointer",
                     }}
@@ -14151,9 +14176,9 @@ function A2({ intake, onDone, phase, setPhase }) {
                                 onChange={(e) =>
                                   editWishHours(w.id, e.target.value)
                                 }
-                                style={{
+                                style={{ fontWeight: 400,
                                   fontFamily: "var(--f-label)",
-                                  fontSize: 11,
+                                  fontSize: "max(var(--l-min), 11px)",
                                   background: "var(--bg3)",
                                   color: "var(--text2)",
                                   border: "1px solid var(--border2)",
@@ -14195,7 +14220,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                             <div>
                               <div
                                 style={{ fontFamily: "var(--f-label)",
-                                  fontSize: 11,
+                                  fontSize: "max(var(--e-min), 11px)",
                                   letterSpacing: 1.2,
                                   textTransform: "uppercase",
                                   color: "var(--text3)",
@@ -14210,10 +14235,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                                 onChange={(e) =>
                                   setWishPri(w.id, e.target.value)
                                 }
-                                style={{
+                                style={{ fontWeight: 400,
                                   width: "100%",
                                   fontFamily: "var(--f-label)",
-                                  fontSize: 12,
+                                  fontSize: "max(var(--l-min), 12px)",
                                   background: "var(--bg3)",
                                   color: priColor,
                                   border: `1px solid ${priBorder}`,
@@ -14250,7 +14275,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                             <div>
                               <div
                                 style={{ fontFamily: "var(--f-label)",
-                                  fontSize: 11,
+                                  fontSize: "max(var(--e-min), 11px)",
                                   letterSpacing: 1.2,
                                   textTransform: "uppercase",
                                   color: "var(--text3)",
@@ -14285,7 +14310,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                                         color: sel ? f.color : "var(--text2)",
                                         cursor: "pointer",
                                         fontFamily: "var(--f-label)",
-                                        fontSize: 11,
+                                        fontSize: "max(var(--l-min), 11px)",
                                         fontWeight: sel ? 700 : 500,
                                         display: "inline-flex",
                                         alignItems: "center",
@@ -14328,7 +14353,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   >
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
                         fontWeight: 400,
@@ -14339,10 +14364,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                       Imagine the trade
                     </div>
                     <p
-                      style={{
-                        fontSize: 16,
+                      style={{ fontWeight: "var(--b-w)",
+                        fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                         color: "var(--text)",
-                        lineHeight: 1.75,
+                        lineHeight: "max(var(--b-lh), 1.75)",
                         margin: "0 0 12px",
                         fontFamily: "var(--f-body)",
                         fontStyle: "italic",
@@ -14488,7 +14513,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                             >
                               <span
                                 style={{ fontFamily: "var(--f-label)",
-                                  fontSize: 11,
+                                  fontSize: "max(var(--e-min), 11px)",
                                   color: "var(--text3)",
                                   letterSpacing: 1.2,
                                   textTransform: "uppercase",
@@ -14505,10 +14530,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                                     hours: null,
                                   })
                                 }
-                                style={{
+                                style={{ fontWeight: 400,
                                   width: "100%",
                                   fontFamily: "var(--f-label)",
-                                  fontSize: 12,
+                                  fontSize: "max(var(--l-min), 12px)",
                                   background: "var(--bg3)",
                                   color: haveTime
                                     ? "#B0CCDA"
@@ -14559,7 +14584,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                             >
                               <span
                                 style={{ fontFamily: "var(--f-label)",
-                                  fontSize: 11,
+                                  fontSize: "max(var(--e-min), 11px)",
                                   color: "var(--text3)",
                                   letterSpacing: 1.2,
                                   textTransform: "uppercase",
@@ -14578,10 +14603,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                                   })
                                 }
                                 disabled={hoursDisabled}
-                                style={{
+                                style={{ fontWeight: "var(--b-w)",
                                   width: 84,
                                   fontFamily: "var(--f-body)",
-                                  fontSize: 14,
+                                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                                   background: "var(--bg3)",
                                   color:
                                     sw.hours && !haveTime
@@ -14620,7 +14645,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                             >
                               <span
                                 style={{ fontFamily: "var(--f-label)",
-                                  fontSize: 11,
+                                  fontSize: "max(var(--e-min), 11px)",
                                   color: "var(--text3)",
                                   letterSpacing: 1.2,
                                   textTransform: "uppercase",
@@ -14652,7 +14677,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                                         : "var(--text2)",
                                       cursor: "pointer",
                                       fontFamily: "var(--f-label)",
-                                      fontSize: 11,
+                                      fontSize: "max(var(--l-min), 11px)",
                                       fontWeight: sel ? 700 : 500,
                                     }}
                                   >
@@ -14732,7 +14757,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                                             : "var(--text2)",
                                           cursor: "pointer",
                                           fontFamily: "var(--f-label)",
-                                          fontSize: 11,
+                                          fontSize: "max(var(--l-min), 11px)",
                                           fontWeight: sel ? 700 : 500,
                                         }}
                                       >
@@ -14747,7 +14772,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                                   <div style={{ marginTop: 8 }}>
                                     <div
                                       style={{ fontFamily: "var(--f-label)",
-                                        fontSize: 11,
+                                        fontSize: "max(var(--e-min), 11px)",
                                         color: "var(--text3)",
                                         letterSpacing: 1.2,
                                         textTransform: "uppercase",
@@ -14764,10 +14789,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                                           blockDetail: e.target.value || null,
                                         })
                                       }
-                                      style={{
+                                      style={{ fontWeight: 400,
                                         width: "100%",
                                         fontFamily: "var(--f-label)",
-                                        fontSize: 12,
+                                        fontSize: "max(var(--l-min), 12px)",
                                         background: "var(--bg3)",
                                         color: sw.blockDetail
                                           ? "var(--text)"
@@ -14793,7 +14818,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                                       <div style={{ marginTop: 10 }}>
                                         <div
                                           style={{ fontFamily: "var(--f-label)",
-                                            fontSize: 11,
+                                            fontSize: "max(var(--e-min), 11px)",
                                             color: "var(--text3)",
                                             letterSpacing: 1.2,
                                             textTransform: "uppercase",
@@ -14830,10 +14855,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                                                           ? "Who do you wish was doing this too?"
                                                           : "What's actually in the way?"
                                           }
-                                          style={{
+                                          style={{ fontWeight: "var(--b-w)",
                                             width: "100%",
                                             fontFamily: "var(--f-body)",
-                                            fontSize: 15,
+                                            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                                             background: "var(--bg3)",
                                             color: "var(--text)",
                                             border: sw.blockFreehand
@@ -14867,10 +14892,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                                 }}
                               >
                                 <div
-                                  style={{
+                                  style={{ fontWeight: "var(--b-w)",
                                     color: "var(--text3)",
                                     fontStyle: "italic",
-                                    fontSize: 11,
+                                    fontSize: "max(var(--b-min), calc(11px + var(--b-bump)))",
                                     marginBottom: 4,
                                     fontFamily: "var(--f-body)",
                                   }}
@@ -14911,10 +14936,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                                 }}
                               >
                                 <div
-                                  style={{
+                                  style={{ fontWeight: "var(--b-w)",
                                     color: "var(--text3)",
                                     fontStyle: "italic",
-                                    fontSize: 11,
+                                    fontSize: "max(var(--b-min), calc(11px + var(--b-bump)))",
                                     marginBottom: 4,
                                     fontFamily: "var(--f-body)",
                                   }}
@@ -14980,7 +15005,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                       >
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             letterSpacing: 2,
                             textTransform: "uppercase",
                             fontWeight: 400,
@@ -15077,7 +15102,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -15164,7 +15189,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   >
                     <span
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
                         fontWeight: 400,
@@ -15236,13 +15261,13 @@ function A2({ intake, onDone, phase, setPhase }) {
                     })}
                   </div>
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       marginTop: 8,
                       marginLeft: 12,
-                      fontSize: 14,
+                      fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                       color: "var(--text2)",
                       fontStyle: "italic",
-                      lineHeight: 1.6,
+                      lineHeight: "max(var(--b-lh), 1.6)",
                       fontFamily: "var(--f-body)",
                     }}
                   >
@@ -15268,7 +15293,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   >
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         color: "var(--warm)",
                         fontWeight: 400,
                         letterSpacing: 2,
@@ -15289,7 +15314,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                       <span style={{ fontSize: 28 }}>{primary.icon}</span>
                       <div>
                         <div
-                          style={{
+                          style={{ fontWeight: 400,
                             fontFamily: "var(--f-display)",
                             fontSize: 24,
                             color: "var(--text)",
@@ -15358,7 +15383,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                           >
                             <div
                               style={{ fontFamily: "var(--f-label)",
-                                fontSize: 11,
+                                fontSize: "max(var(--e-min), 11px)",
                                 fontWeight: 400,
                                 letterSpacing: 1.5,
                                 textTransform: "uppercase",
@@ -15369,17 +15394,17 @@ function A2({ intake, onDone, phase, setPhase }) {
                               Quality time here
                             </div>
                             <div
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 fontFamily: "var(--f-body)",
-                                fontSize: 20,
+                                fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
                                 color: "var(--text)",
                                 marginBottom: 8,
                               }}
                             >
                               {fQualityHrs}{" "}
                               <span
-                                style={{
-                                  fontSize: 13,
+                                style={{ fontWeight: "var(--b-w)",
+                                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                   color: "var(--text3)",
                                   fontFamily: "var(--f-body)",
                                 }}
@@ -15443,7 +15468,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                           >
                             <div
                               style={{ fontFamily: "var(--f-label)",
-                                fontSize: 11,
+                                fontSize: "max(var(--e-min), 11px)",
                                 fontWeight: 400,
                                 letterSpacing: 1.5,
                                 textTransform: "uppercase",
@@ -15454,17 +15479,17 @@ function A2({ intake, onDone, phase, setPhase }) {
                               Could be reshaped
                             </div>
                             <div
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 fontFamily: "var(--f-body)",
-                                fontSize: 20,
+                                fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
                                 color: "var(--text)",
                                 marginBottom: 8,
                               }}
                             >
                               {fReshapeHrs}{" "}
                               <span
-                                style={{
-                                  fontSize: 13,
+                                style={{ fontWeight: "var(--b-w)",
+                                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                   color: "var(--text3)",
                                   fontFamily: "var(--f-body)",
                                 }}
@@ -15520,16 +15545,16 @@ function A2({ intake, onDone, phase, setPhase }) {
                           </div>
                         </div>
                         <div
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             padding: "12px 16px",
                             background: "rgba(0,0,0,.25)",
                             borderLeft: "3px solid var(--warm)",
                             borderRadius: 4,
                             fontFamily: "var(--f-body)",
                             fontStyle: "italic",
-                            fontSize: 16,
+                            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                             color: "var(--text)",
-                            lineHeight: 1.75,
+                            lineHeight: "max(var(--b-lh), 1.75)",
                           }}
                         >
                           {fReshape.length > 0 ? (
@@ -15587,7 +15612,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                         <div style={{ minWidth: 0 }}>
                           <div
                             style={{ fontFamily: "var(--f-label)",
-                              fontSize: 11,
+                              fontSize: "max(var(--e-min), 11px)",
                               letterSpacing: 2,
                               textTransform: "uppercase",
                               fontWeight: 400,
@@ -15698,12 +15723,12 @@ function A2({ intake, onDone, phase, setPhase }) {
                   }}
                 >
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 15,
+                      fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "var(--text)",
-                      lineHeight: 1.7,
+                      lineHeight: "max(var(--b-lh), 1.7)",
                     }}
                   >
                     You're not broken. Your time is telling you the truth. The
@@ -15846,7 +15871,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -15930,7 +15955,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 color: "var(--warm)",
@@ -15945,7 +15970,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div style={{ marginBottom: 16 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     color: "var(--text3)",
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -15956,10 +15981,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                   Purpose — your north star
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 16,
-                    lineHeight: 1.6,
+                    fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+                    lineHeight: "max(var(--b-lh), 1.6)",
                     color: "var(--text)",
                     fontStyle: "italic",
                   }}
@@ -15973,7 +15998,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div style={{ marginBottom: 16 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     color: "var(--text3)",
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -15984,10 +16009,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                   BAG — your 10–15 year vision
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 16,
-                    lineHeight: 1.6,
+                    fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+                    lineHeight: "max(var(--b-lh), 1.6)",
                     color: "var(--text)",
                     fontStyle: "italic",
                   }}
@@ -16001,7 +16026,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div style={{ marginBottom: 16 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     color: "var(--text3)",
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -16012,10 +16037,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                   3-Year growth
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 16,
-                    lineHeight: 1.6,
+                    fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+                    lineHeight: "max(var(--b-lh), 1.6)",
                     color: "var(--text)",
                     fontStyle: "italic",
                   }}
@@ -16029,7 +16054,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div style={{ marginBottom: 16 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     color: "var(--text3)",
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -16040,10 +16065,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                   1-Year growth
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 16,
-                    lineHeight: 1.6,
+                    fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+                    lineHeight: "max(var(--b-lh), 1.6)",
                     color: "var(--text)",
                     fontStyle: "italic",
                   }}
@@ -16057,7 +16082,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div style={{ marginBottom: 16 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     color: "var(--text3)",
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -16091,7 +16116,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div style={{ marginBottom: 16 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     color: "var(--text3)",
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -16125,7 +16150,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               <div style={{ marginBottom: 0 }}>
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     color: "var(--text3)",
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -16169,7 +16194,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 2,
               textTransform: "uppercase",
               color: "var(--warm)",
@@ -16180,10 +16205,10 @@ function A2({ intake, onDone, phase, setPhase }) {
             From your future self
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
-              lineHeight: 1.8,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.8)",
               color: "var(--text)",
               fontStyle: "italic",
             }}
@@ -16212,7 +16237,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             On the time that matters
           </h3>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               padding: "14px 16px 14px 18px",
               background: "rgba(165,135,94,.05)",
               borderLeft: "2px solid var(--warm)",
@@ -16220,8 +16245,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               marginBottom: 12,
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
-              fontSize: 15,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               color: "var(--text2)",
             }}
           >
@@ -16277,7 +16302,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             value={s1}
             onChange={(e) => setText("a2_fsl_s1", e.target.value)}
             placeholder="Write what I would say to you about these hours..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               width: "100%",
               minHeight: 140,
               padding: "16px 18px",
@@ -16286,8 +16311,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               borderRadius: 8,
               color: "var(--text)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               resize: "vertical",
               outline: "none",
             }}
@@ -16319,7 +16344,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             On the time to let go
           </h3>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               padding: "14px 16px 14px 18px",
               background: "rgba(165,135,94,.05)",
               borderLeft: "2px solid var(--warm)",
@@ -16327,8 +16352,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               marginBottom: 12,
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
-              fontSize: 15,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               color: "var(--text2)",
             }}
           >
@@ -16376,7 +16401,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             value={s2}
             onChange={(e) => setText("a2_fsl_s2", e.target.value)}
             placeholder="Write what I would say to you about what has to stop..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               width: "100%",
               minHeight: 140,
               padding: "16px 18px",
@@ -16385,8 +16410,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               borderRadius: 8,
               color: "var(--text)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               resize: "vertical",
               outline: "none",
             }}
@@ -16417,7 +16442,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 2.5,
               textTransform: "uppercase",
               color: "var(--warm)",
@@ -16430,11 +16455,11 @@ function A2({ intake, onDone, phase, setPhase }) {
           <div
             style={{
               fontFamily: "var(--f-body)",
-              fontSize: 22,
-              lineHeight: 1.5,
+              fontSize: "max(var(--b-min), calc(22px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.5)",
               color: "var(--text)",
               fontStyle: "italic",
-              fontWeight: 400,
+              fontWeight: "var(--b-w)",
             }}
           >
             The clock is running. Mine has more behind it than yours does ahead.
@@ -16457,7 +16482,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             On what you haven't started
           </h3>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               padding: "14px 16px 14px 18px",
               background: "rgba(165,135,94,.05)",
               borderLeft: "2px solid var(--warm)",
@@ -16465,8 +16490,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               marginBottom: 12,
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
-              fontSize: 15,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               color: "var(--text2)",
             }}
           >
@@ -16506,7 +16531,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             value={s3}
             onChange={(e) => setText("a2_fsl_s3", e.target.value)}
             placeholder="Write what I would say to you about what you haven't started..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               width: "100%",
               minHeight: 140,
               padding: "16px 18px",
@@ -16515,8 +16540,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               borderRadius: 8,
               color: "var(--text)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               resize: "vertical",
               outline: "none",
             }}
@@ -16548,7 +16573,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             On why this is urgent
           </h3>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               padding: "14px 16px 14px 18px",
               background: "rgba(165,135,94,.05)",
               borderLeft: "2px solid var(--warm)",
@@ -16556,8 +16581,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               marginBottom: 12,
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
-              fontSize: 15,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               color: "var(--text2)",
             }}
           >
@@ -16585,7 +16610,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             value={s4text}
             onChange={(e) => setText("a2_fsl_s4", e.target.value)}
             placeholder="Write what I would say to you about why this can't wait..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               width: "100%",
               minHeight: 140,
               padding: "16px 18px",
@@ -16594,8 +16619,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               borderRadius: 8,
               color: "var(--text)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               resize: "vertical",
               outline: "none",
             }}
@@ -16623,10 +16648,10 @@ function A2({ intake, onDone, phase, setPhase }) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
-              lineHeight: 1.8,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.8)",
               color: "var(--text)",
               fontStyle: "italic",
             }}
@@ -16637,10 +16662,10 @@ function A2({ intake, onDone, phase, setPhase }) {
             hand wrote them. Your body will remember.
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               marginTop: 14,
               fontFamily: "var(--f-body)",
-              fontSize: 14,
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               color: "var(--warm)",
               fontStyle: "italic",
             }}
@@ -16662,7 +16687,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: 2,
               textTransform: "uppercase",
               color: "#B0CCDA",
@@ -16673,10 +16698,10 @@ function A2({ intake, onDone, phase, setPhase }) {
             Before you close this
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 19,
-              lineHeight: 1.5,
+              fontSize: "max(var(--b-min), calc(19px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.5)",
               color: "var(--text)",
               marginBottom: 14,
             }}
@@ -16687,7 +16712,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             value={s4}
             onChange={(e) => setText("a2_fsl_reflection", e.target.value)}
             placeholder="Write the one line..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               width: "100%",
               minHeight: 72,
               padding: "12px 14px",
@@ -16696,8 +16721,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               borderRadius: 6,
               color: "var(--text)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
-              lineHeight: 1.6,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.6)",
               resize: "vertical",
               outline: "none",
             }}
@@ -16870,7 +16895,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         >
           <span
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               color: "var(--text3)",
               letterSpacing: 1.2,
               textTransform: "uppercase",
@@ -16883,10 +16908,10 @@ function A2({ intake, onDone, phase, setPhase }) {
           <div style={{ minWidth: 0 }}>
             {text && text.trim() ? (
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
                   fontSize: primary ? 15 : 14,
-                  lineHeight: 1.65,
+                  lineHeight: "max(var(--b-lh), 1.65)",
                   fontStyle: "italic",
                   padding: "8px 12px",
                   borderRadius: 5,
@@ -16933,7 +16958,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             <span
               style={{
                 fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: 2,
                 textTransform: "uppercase",
                 fontWeight: 400,
@@ -16943,8 +16968,8 @@ function A2({ intake, onDone, phase, setPhase }) {
               {name}
             </span>
             <span
-              style={{
-                fontSize: 11,
+              style={{ fontWeight: "var(--b-w)",
+                fontSize: "max(var(--b-min), calc(11px + var(--b-bump)))",
                 color: "var(--text4)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
@@ -16964,7 +16989,7 @@ function A2({ intake, onDone, phase, setPhase }) {
       <div>
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -17006,7 +17031,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         <div
           style={{
             fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             letterSpacing: 2.5,
             textTransform: "uppercase",
             color: "var(--text3)",
@@ -17032,7 +17057,7 @@ function A2({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 color: "var(--text3)",
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
@@ -17043,10 +17068,10 @@ function A2({ intake, onDone, phase, setPhase }) {
               Purpose — your north star
             </div>
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 18,
-                lineHeight: 1.5,
+                fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                lineHeight: "max(var(--b-lh), 1.5)",
                 color: "var(--text)",
                 fontStyle: "italic",
               }}
@@ -17095,7 +17120,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     <span style={{ fontSize: 20, flexShrink: 0 }}>🧭</span>
                     <span
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 12,
+                        fontSize: "max(var(--e-min), 12px)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
                         color: "var(--warm)",
@@ -17126,7 +17151,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                   >
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         color: "var(--text3)",
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
@@ -17183,7 +17208,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     </span>
                     <span
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 12,
+                        fontSize: "max(var(--e-min), 12px)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
                         color: "#B68C8C",
@@ -17213,7 +17238,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     }}
                   >
                     <div
-                      style={{
+                      style={{ fontWeight: 400,
                         fontFamily: "var(--f-display)",
                         fontSize: 22,
                         lineHeight: 1.4,
@@ -17280,7 +17305,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     <span style={{ fontSize: 20, flexShrink: 0 }}>⏳</span>
                     <span
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 12,
+                        fontSize: "max(var(--e-min), 12px)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
                         color: "var(--warm)",
@@ -17327,7 +17352,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                         }}
                       >
                         <div
-                          style={{
+                          style={{ fontWeight: 400,
                             fontFamily: "var(--f-display)",
                             fontSize: 24,
                             color: "#6BA2A9",
@@ -17336,8 +17361,8 @@ function A2({ intake, onDone, phase, setPhase }) {
                         >
                           {supportsHrsMir}
                           <span
-                            style={{
-                              fontSize: 13,
+                            style={{ fontWeight: "var(--b-w)",
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               color: "var(--text3)",
                               fontFamily: "var(--f-body)",
                               marginLeft: 3,
@@ -17348,7 +17373,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                         </div>
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             color: "#6BA2A9",
                             letterSpacing: 1.2,
                             textTransform: "uppercase",
@@ -17369,7 +17394,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                         }}
                       >
                         <div
-                          style={{
+                          style={{ fontWeight: 400,
                             fontFamily: "var(--f-display)",
                             fontSize: 24,
                             color: "#BC9E75",
@@ -17378,8 +17403,8 @@ function A2({ intake, onDone, phase, setPhase }) {
                         >
                           {reshapeHrsMir}
                           <span
-                            style={{
-                              fontSize: 13,
+                            style={{ fontWeight: "var(--b-w)",
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               color: "var(--text3)",
                               fontFamily: "var(--f-body)",
                               marginLeft: 3,
@@ -17390,7 +17415,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                         </div>
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             color: "#BC9E75",
                             letterSpacing: 1.2,
                             textTransform: "uppercase",
@@ -17411,7 +17436,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                         }}
                       >
                         <div
-                          style={{
+                          style={{ fontWeight: 400,
                             fontFamily: "var(--f-display)",
                             fontSize: 24,
                             color: "#B68C8C",
@@ -17420,8 +17445,8 @@ function A2({ intake, onDone, phase, setPhase }) {
                         >
                           {leaksHrsMir}
                           <span
-                            style={{
-                              fontSize: 13,
+                            style={{ fontWeight: "var(--b-w)",
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               color: "var(--text3)",
                               fontFamily: "var(--f-body)",
                               marginLeft: 3,
@@ -17432,7 +17457,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                         </div>
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             color: "#B68C8C",
                             letterSpacing: 1.2,
                             textTransform: "uppercase",
@@ -17445,10 +17470,10 @@ function A2({ intake, onDone, phase, setPhase }) {
                       </div>
                     </div>
                     <div
-                      style={{
-                        fontSize: 13,
+                      style={{ fontWeight: "var(--b-w)",
+                        fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                         color: "var(--text2)",
-                        lineHeight: 1.7,
+                        lineHeight: "max(var(--b-lh), 1.7)",
                         fontFamily: "var(--f-body)",
                         fontStyle: "italic",
                       }}
@@ -17503,7 +17528,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                     <span style={{ fontSize: 20, flexShrink: 0 }}>⇄</span>
                     <span
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 12,
+                        fontSize: "max(var(--e-min), 12px)",
                         letterSpacing: 2,
                         textTransform: "uppercase",
                         color: "var(--warm)",
@@ -17636,11 +17661,11 @@ function A2({ intake, onDone, phase, setPhase }) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 20,
+              fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
               color: "var(--text)",
-              lineHeight: 1.4,
+              lineHeight: "max(var(--b-lh), 1.4)",
               marginBottom: 14,
               fontStyle: "italic",
             }}
@@ -17705,7 +17730,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   color: "#BC9E75",
                   fontWeight: 400,
                   letterSpacing: 1.5,
@@ -17719,7 +17744,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                 value={dirShift}
                 onChange={(e) => set("a2_mir_dir_shift", e.target.value)}
                 placeholder="A sentence or two. You'll work this in A4."
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   width: "100%",
                   minHeight: 72,
                   padding: "10px 12px",
@@ -17728,8 +17753,8 @@ function A2({ intake, onDone, phase, setPhase }) {
                   borderRadius: 6,
                   color: "var(--text)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 15,
-                  lineHeight: 1.6,
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+                  lineHeight: "max(var(--b-lh), 1.6)",
                   resize: "vertical",
                   outline: "none",
                 }}
@@ -17776,7 +17801,7 @@ function A2({ intake, onDone, phase, setPhase }) {
                       <span style={{ fontSize: 20, flexShrink: 0 }}>✍</span>
                       <span
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 12,
+                          fontSize: "max(var(--e-min), 12px)",
                           letterSpacing: 2,
                           textTransform: "uppercase",
                           color: "#B0CCDA",
@@ -17806,11 +17831,11 @@ function A2({ intake, onDone, phase, setPhase }) {
                       }}
                     >
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
                           fontStyle: "italic",
-                          fontSize: 15,
-                          lineHeight: 1.7,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+                          lineHeight: "max(var(--b-lh), 1.7)",
                           color: "var(--text)",
                           padding: "10px 14px",
                           background: "rgba(176,204,218,.05)",
@@ -17848,7 +17873,7 @@ function A2({ intake, onDone, phase, setPhase }) {
               >
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     letterSpacing: 2,
                     textTransform: "uppercase",
                     color: "var(--text3)",
@@ -17890,7 +17915,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         <div
           style={{
             fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             letterSpacing: 2.5,
             textTransform: "uppercase",
             color: "var(--warm)",
@@ -17914,10 +17939,10 @@ function A2({ intake, onDone, phase, setPhase }) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
-              lineHeight: 1.75,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.75)",
               color: "var(--text)",
               fontStyle: "italic",
               margin: "0 0 20px",
@@ -17950,7 +17975,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
                   color: "var(--text3)",
@@ -17961,12 +17986,12 @@ function A2({ intake, onDone, phase, setPhase }) {
                 In A1 you said:
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 15,
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                   fontStyle: "italic",
                   color: "var(--text2)",
-                  lineHeight: 1.6,
+                  lineHeight: "max(var(--b-lh), 1.6)",
                 }}
               >
                 "{a1OneThingMir}"
@@ -17990,7 +18015,7 @@ function A2({ intake, onDone, phase, setPhase }) {
             value={oneThingValM}
             onChange={(e) => set("a2_one_thing", e.target.value)}
             placeholder="I am the one who..."
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               width: "100%",
               minHeight: 100,
               padding: "18px 20px",
@@ -17999,9 +18024,9 @@ function A2({ intake, onDone, phase, setPhase }) {
               borderRadius: 8,
               color: "var(--text)",
               fontFamily: "var(--f-body)",
-              fontSize: 20,
+              fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
               fontStyle: "italic",
-              lineHeight: 1.6,
+              lineHeight: "max(var(--b-lh), 1.6)",
               resize: "vertical",
               outline: "none",
             }}
@@ -18036,7 +18061,7 @@ function A2({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               color: "#B0CCDA",
               letterSpacing: 2.5,
               textTransform: "uppercase",
@@ -18047,10 +18072,10 @@ function A2({ intake, onDone, phase, setPhase }) {
             Next · A3 Advocate
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
-              lineHeight: 1.7,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.7)",
               color: "var(--text)",
               fontStyle: "italic",
               margin: 0,
@@ -18140,7 +18165,7 @@ function A3StubShell({ title, tagline, next, setA3Step, children }: any) {
     <div>
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -18173,7 +18198,7 @@ function A3StubShell({ title, tagline, next, setA3Step, children }: any) {
       >
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             color: "var(--warm)",
             fontWeight: 400,
             letterSpacing: 1.5,
@@ -18221,7 +18246,7 @@ function A3IntroStub({ setA3Step }: any) {
     <div>
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -18245,11 +18270,11 @@ function A3IntroStub({ setA3Step }: any) {
       </h2>
 
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 17,
+          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           marginBottom: 14,
           maxWidth: 620,
         }}
@@ -18306,7 +18331,7 @@ function A3IntroStub({ setA3Step }: any) {
         >
           <div
             style={{
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -18381,12 +18406,12 @@ function A3IntroStub({ setA3Step }: any) {
 
       {/* Closing line */}
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 16,
+          fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
           fontStyle: "italic",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           padding: "14px 18px",
           borderLeft: "2px solid var(--warm)",
           marginBottom: 28,
@@ -18554,7 +18579,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
       {/* BREADCRUMB + H1 + LEAD */}
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -18577,11 +18602,11 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
         Who's in your inner circle?
       </h2>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 17,
+          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           marginBottom: 24,
           maxWidth: 620,
         }}
@@ -18610,7 +18635,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             fontWeight: 400,
             fontFamily: "var(--f-label)",
             ...(isDone
@@ -18638,7 +18663,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                 <div style={circleStyle}>{isDone ? "✓" : step}</div>
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: "max(var(--l-min), 12px)",
                     fontFamily: "var(--f-label)",
                     fontWeight: 400,
                     color: textColor,
@@ -18676,7 +18701,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 fontWeight: 400,
                 letterSpacing: 2,
                 textTransform: "uppercase",
@@ -18716,11 +18741,11 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
               placeholder={
                 "Type one name per line…\ne.g.\nMom\nSarah (best friend)\nMike\nJess on my team"
               }
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 width: "100%",
                 minHeight: 200,
                 padding: "14px 16px",
-                fontSize: 16,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                 fontFamily: "var(--f-body)",
                 background: "var(--bg)",
                 border: "1px solid var(--border)",
@@ -18728,13 +18753,13 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                 color: "var(--text)",
                 outline: "none",
                 resize: "vertical",
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
               }}
             />
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 marginTop: 10,
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: "var(--text4)",
                 fontFamily: "var(--f-body)",
               }}
@@ -18756,7 +18781,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 fontWeight: 400,
                 letterSpacing: 2,
                 textTransform: "uppercase",
@@ -18777,9 +18802,9 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
               ].map((q, i) => (
                 <span
                   key={i}
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 14,
+                    fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                     fontStyle: "italic",
                     color: "var(--text2)",
                     padding: "6px 12px",
@@ -18810,7 +18835,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
               onClick={() => setA3Step("intro")}
               style={{
                 padding: "8px 16px",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -18825,8 +18850,8 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span
-                style={{
-                  fontSize: 14,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -18840,7 +18865,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                 disabled={lineCount === 0}
                 style={{
                   padding: "9px 18px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -18874,7 +18899,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
               }}
             >
               <div
-                style={{
+                style={{ fontWeight: 400,
                   fontFamily: "var(--f-display)",
                   fontSize: 22,
                   color: "var(--text2)",
@@ -18901,7 +18926,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                 onClick={() => setA3PeoplePhase(1)}
                 style={{
                   padding: "8px 16px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -18920,11 +18945,11 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
           {people.length > 0 && (
             <>
               <p
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 17,
+                  fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                   color: "var(--text2)",
-                  lineHeight: 1.85,
+                  lineHeight: "max(var(--b-lh), 1.85)",
                   marginBottom: 24,
                   maxWidth: 680,
                 }}
@@ -18966,7 +18991,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                         onClick={() => updatePerson(p.id, { rating: val })}
                         style={{
                           padding: "5px 11px",
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 0.6,
                           fontFamily: "var(--f-label)",
@@ -19005,9 +19030,9 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                         <div
                           style={{
                             fontFamily: "var(--f-body)",
-                            fontSize: 17,
+                            fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                             color: "var(--text)",
-                            fontWeight: 400,
+                            fontWeight: "var(--b-w)",
                             minWidth: 0,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -19021,9 +19046,9 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                           onChange={(e) =>
                             updatePerson(p.id, { role: e.target.value })
                           }
-                          style={{
+                          style={{ fontWeight: 400,
                             padding: "6px 8px",
-                            fontSize: 12,
+                            fontSize: "max(var(--l-min), 12px)",
                             fontFamily: "var(--f-label)",
                             background: "var(--bg)",
                             border: "1px solid var(--border)",
@@ -19105,7 +19130,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                         >
                           <span
                             style={{
-                              fontSize: 11,
+                              fontSize: "max(var(--e-min), 11px)",
                               fontWeight: 400,
                               letterSpacing: 2,
                               textTransform: "uppercase",
@@ -19126,7 +19151,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                                   }
                                   style={{
                                     padding: "4px 12px",
-                                    fontSize: 11,
+                                    fontSize: "max(var(--l-min), 11px)",
                                     fontWeight: 400,
                                     letterSpacing: 0.5,
                                     fontFamily: "var(--f-label)",
@@ -19146,9 +19171,9 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                             })}
                           </div>
                           <span
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               fontFamily: "var(--f-body)",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               fontStyle: "italic",
                               color: "var(--text3)",
                             }}
@@ -19180,7 +19205,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                           >
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: "max(var(--e-min), 11px)",
                                 fontWeight: 400,
                                 letterSpacing: 2,
                                 textTransform: "uppercase",
@@ -19195,9 +19220,9 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                               onChange={(e) =>
                                 updatePerson(p.id, { action: e.target.value })
                               }
-                              style={{
+                              style={{ fontWeight: 400,
                                 padding: "6px 8px",
-                                fontSize: 12,
+                                fontSize: "max(var(--l-min), 12px)",
                                 fontFamily: "var(--f-label)",
                                 background: "var(--bg)",
                                 border: "1px solid var(--border)",
@@ -19225,9 +19250,9 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                             </select>
                             {p.action && (
                               <span
-                                style={{
+                                style={{ fontWeight: "var(--b-w)",
                                   fontFamily: "var(--f-body)",
-                                  fontSize: 13,
+                                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                   fontStyle: "italic",
                                   color: "var(--text3)",
                                 }}
@@ -19239,8 +19264,8 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                           {p.action && (
                             <div style={{ marginTop: 12 }}>
                               <div
-                                style={{
-                                  fontSize: 13,
+                                style={{ fontWeight: "var(--b-w)",
+                                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                   color: "var(--text4)",
                                   fontFamily: "var(--f-body)",
                                   marginBottom: 5,
@@ -19258,10 +19283,10 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                                 }
                                 placeholder={A3_HOW_PLACEHOLDERS[p.action]}
                                 rows={2}
-                                style={{
+                                style={{ fontWeight: "var(--b-w)",
                                   width: "100%",
                                   padding: "8px 10px",
-                                  fontSize: 15,
+                                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                                   fontFamily: "var(--f-body)",
                                   background: "var(--bg)",
                                   border: "1px solid var(--border)",
@@ -19269,7 +19294,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                                   color: "var(--text)",
                                   outline: "none",
                                   resize: "vertical",
-                                  lineHeight: 1.5,
+                                  lineHeight: "max(var(--b-lh), 1.5)",
                                 }}
                               />
                             </div>
@@ -19304,10 +19329,10 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                     }
                   }}
                   placeholder="Thought of someone else? Add them here…"
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     flex: 1,
                     padding: "7px 10px",
-                    fontSize: 15,
+                    fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                     fontFamily: "var(--f-body)",
                     background: "transparent",
                     border: "none",
@@ -19322,7 +19347,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                   }}
                   style={{
                     padding: "6px 14px",
-                    fontSize: 11,
+                    fontSize: "max(var(--l-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 0.6,
                     fontFamily: "var(--f-label)",
@@ -19341,7 +19366,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
               <div style={{ marginBottom: 24 }}>
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -19408,7 +19433,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                       </div>
                       <div
                         style={{
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           color: "var(--text3)",
                           letterSpacing: 1,
                           textTransform: "uppercase",
@@ -19473,7 +19498,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                   >
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 2,
                         textTransform: "uppercase",
@@ -19485,12 +19510,12 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                       {cfg.label}
                     </div>
                     <div
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         fontFamily: "var(--f-body)",
-                        fontSize: 18,
+                        fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                         fontStyle: "italic",
                         color: "var(--text2)",
-                        lineHeight: 1.75,
+                        lineHeight: "max(var(--b-lh), 1.75)",
                       }}
                     >
                       {cfg.text}
@@ -19513,11 +19538,11 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                   You saw it.
                 </div>
                 <p
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.8,
+                    lineHeight: "max(var(--b-lh), 1.8)",
                     marginBottom: 10,
                     maxWidth: 640,
                   }}
@@ -19527,11 +19552,11 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                   call or who to cut.
                 </p>
                 <p
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.8,
+                    lineHeight: "max(var(--b-lh), 1.8)",
                     maxWidth: 640,
                   }}
                 >
@@ -19563,7 +19588,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
               onClick={() => setA3PeoplePhase(1)}
               style={{
                 padding: "8px 16px",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -19578,8 +19603,8 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span
-                style={{
-                  fontSize: 14,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -19590,7 +19615,7 @@ function A3PeopleStub({ setA3Step, map, set }: any) {
                 onClick={() => setA3Step("environment")}
                 style={{
                   padding: "9px 18px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -19689,7 +19714,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
       {/* BREADCRUMB + H1 + LEAD */}
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -19712,11 +19737,11 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
         Your habits and your places.
       </h2>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 17,
+          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           marginBottom: 20,
           maxWidth: 640,
         }}
@@ -19738,7 +19763,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -19750,11 +19775,11 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
           What belongs here
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 18,
+            fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
           }}
         >
           <strong style={{ color: A3_TEAL, fontWeight: 700 }}>Habits</strong>{" "}
@@ -19792,7 +19817,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             fontWeight: 400,
             fontFamily: "var(--f-label)",
             ...(isDone
@@ -19820,7 +19845,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                 <div style={circleStyle}>{isDone ? "✓" : step}</div>
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: "max(var(--l-min), 12px)",
                     fontFamily: "var(--f-label)",
                     fontWeight: 400,
                     color: textColor,
@@ -19858,7 +19883,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 fontWeight: 400,
                 letterSpacing: 2,
                 textTransform: "uppercase",
@@ -19899,11 +19924,11 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
               placeholder={
                 "Type one habit or place per line…\ne.g.\nMorning coffee at the kitchen counter\nDoom-scrolling before bed\nMy office\nSunday hike\nThe car"
               }
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 width: "100%",
                 minHeight: 200,
                 padding: "14px 16px",
-                fontSize: 16,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                 fontFamily: "var(--f-body)",
                 background: "var(--bg)",
                 border: "1px solid var(--border)",
@@ -19911,13 +19936,13 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                 color: "var(--text)",
                 outline: "none",
                 resize: "vertical",
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
               }}
             />
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 marginTop: 10,
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: "var(--text4)",
                 fontFamily: "var(--f-body)",
               }}
@@ -19952,7 +19977,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
             >
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 2,
                   textTransform: "uppercase",
@@ -20000,7 +20025,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                   <div key={group.label} style={{ marginBottom: 14 }}>
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 2,
                         textTransform: "uppercase",
@@ -20015,9 +20040,9 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                       {group.chips.map((q, i) => (
                         <span
                           key={i}
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             fontFamily: "var(--f-body)",
-                            fontSize: 14,
+                            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                             fontStyle: "italic",
                             color: "var(--text2)",
                             padding: "6px 12px",
@@ -20052,7 +20077,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
               onClick={() => setA3Step("people")}
               style={{
                 padding: "8px 16px",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -20067,8 +20092,8 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span
-                style={{
-                  fontSize: 14,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -20082,7 +20107,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                 disabled={lineCount === 0}
                 style={{
                   padding: "9px 18px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -20116,7 +20141,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
               }}
             >
               <div
-                style={{
+                style={{ fontWeight: 400,
                   fontFamily: "var(--f-display)",
                   fontSize: 22,
                   color: "var(--text2)",
@@ -20142,7 +20167,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                 onClick={() => setA3EnvPhase(1)}
                 style={{
                   padding: "8px 16px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -20161,11 +20186,11 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
           {items.length > 0 && (
             <>
               <p
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 17,
+                  fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                   color: "var(--text2)",
-                  lineHeight: 1.85,
+                  lineHeight: "max(var(--b-lh), 1.85)",
                   marginBottom: 24,
                   maxWidth: 680,
                 }}
@@ -20206,7 +20231,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                         onClick={() => updateItem(it.id, { kind: val })}
                         style={{
                           padding: "5px 11px",
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 0.6,
                           fontFamily: "var(--f-label)",
@@ -20234,7 +20259,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                         onClick={() => updateItem(it.id, { rating: val })}
                         style={{
                           padding: "5px 11px",
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 0.6,
                           fontFamily: "var(--f-label)",
@@ -20272,9 +20297,9 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                         <div
                           style={{
                             fontFamily: "var(--f-body)",
-                            fontSize: 17,
+                            fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                             color: "var(--text)",
-                            fontWeight: 400,
+                            fontWeight: "var(--b-w)",
                             minWidth: 0,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -20371,10 +20396,10 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                     }
                   }}
                   placeholder="Thought of something else? Add it here…"
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     flex: 1,
                     padding: "7px 10px",
-                    fontSize: 15,
+                    fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                     fontFamily: "var(--f-body)",
                     background: "transparent",
                     border: "none",
@@ -20389,7 +20414,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                   }}
                   style={{
                     padding: "6px 14px",
-                    fontSize: 11,
+                    fontSize: "max(var(--l-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 0.6,
                     fontFamily: "var(--f-label)",
@@ -20408,7 +20433,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
               <div style={{ marginBottom: 24 }}>
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -20475,7 +20500,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                       </div>
                       <div
                         style={{
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           color: "var(--text3)",
                           letterSpacing: 1,
                           textTransform: "uppercase",
@@ -20490,9 +20515,9 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                 </div>
                 {anyKind && (
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       marginTop: 10,
-                      fontSize: 14,
+                      fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                       color: "var(--text4)",
                       fontFamily: "var(--f-body)",
                     }}
@@ -20515,7 +20540,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
               >
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -20529,11 +20554,11 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                 <div
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
-                    fontWeight: 400,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                    fontWeight: "var(--b-w)",
                     color: "var(--text)",
                     marginBottom: 12,
-                    lineHeight: 1.5,
+                    lineHeight: "max(var(--b-lh), 1.5)",
                   }}
                 >
                   Of everything you named — what's the one habit or place you
@@ -20544,10 +20569,10 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                   onChange={(e) => set("a3_env_takeaway", e.target.value)}
                   placeholder="e.g. Change: the late-night scroll. Protect: my Sunday hike."
                   rows={3}
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     width: "100%",
                     padding: "10px 12px",
-                    fontSize: 16,
+                    fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                     fontFamily: "var(--f-body)",
                     background: "var(--bg)",
                     border: "1px solid var(--border)",
@@ -20555,7 +20580,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                     color: "var(--text)",
                     outline: "none",
                     resize: "vertical",
-                    lineHeight: 1.6,
+                    lineHeight: "max(var(--b-lh), 1.6)",
                   }}
                 />
               </div>
@@ -20592,7 +20617,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                   >
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 2,
                         textTransform: "uppercase",
@@ -20604,12 +20629,12 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                       {cfg.label}
                     </div>
                     <div
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         fontFamily: "var(--f-body)",
-                        fontSize: 18,
+                        fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                         fontStyle: "italic",
                         color: "var(--text2)",
-                        lineHeight: 1.75,
+                        lineHeight: "max(var(--b-lh), 1.75)",
                       }}
                     >
                       {cfg.text}
@@ -20632,11 +20657,11 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                   You don't have to do it all.
                 </div>
                 <p
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.8,
+                    lineHeight: "max(var(--b-lh), 1.8)",
                     marginBottom: 10,
                     maxWidth: 640,
                   }}
@@ -20650,11 +20675,11 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                   follow when it's ready.
                 </p>
                 <p
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.8,
+                    lineHeight: "max(var(--b-lh), 1.8)",
                     maxWidth: 640,
                   }}
                 >
@@ -20685,7 +20710,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
               onClick={() => setA3EnvPhase(1)}
               style={{
                 padding: "8px 16px",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -20700,8 +20725,8 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span
-                style={{
-                  fontSize: 14,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -20712,7 +20737,7 @@ function A3EnvironmentStub({ setA3Step, map, set }: any) {
                 onClick={() => setA3Step("thoughts")}
                 style={{
                   padding: "9px 18px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -20940,7 +20965,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
           onClick={() => rate(th.id, val)}
           style={{
             padding: "3px 9px",
-            fontSize: 11,
+            fontSize: "max(var(--l-min), 11px)",
             fontWeight: 400,
             letterSpacing: 0.5,
             fontFamily: "var(--f-label)",
@@ -20973,9 +20998,9 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
       >
         {th.originalText && (
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 13,
+              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
               color: "var(--text4)",
               textDecoration: "line-through",
               marginBottom: 5,
@@ -20991,7 +21016,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
             fontSize: emph ? 18 : 16,
             fontWeight: emph ? 500 : 400,
             color: "var(--text)",
-            lineHeight: 1.5,
+            lineHeight: "max(var(--b-lh), 1.5)",
           }}
         >
           {th.text}
@@ -21017,7 +21042,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               onClick={() => toggleEmphasized(th.id)}
               style={{
                 padding: "3px 10px",
-                fontSize: 11,
+                fontSize: "max(var(--l-min), 11px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -21038,7 +21063,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               onClick={() => openReframe(th.id)}
               style={{
                 padding: "3px 10px",
-                fontSize: 11,
+                fontSize: "max(var(--l-min), 11px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -21062,7 +21087,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
       {/* BREADCRUMB + H1 + LEAD */}
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -21085,11 +21110,11 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
         Your Inner Landscape.
       </h2>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 17,
+          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           marginBottom: 20,
           maxWidth: 640,
         }}
@@ -21111,7 +21136,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -21123,11 +21148,11 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
           Why this page is different
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 18,
+            fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
           }}
         >
           You can't brain-dump thoughts the way you can name people and places.
@@ -21162,7 +21187,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             fontWeight: 400,
             fontFamily: "var(--f-label)",
             ...(isDone
@@ -21190,7 +21215,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                 <div style={circleStyle}>{isDone ? "✓" : step}</div>
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: "max(var(--l-min), 12px)",
                     fontFamily: "var(--f-label)",
                     fontWeight: 400,
                     color: textColor,
@@ -21253,7 +21278,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                       >
                         <span
                           style={{
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             fontWeight: 400,
                             letterSpacing: 2,
                             textTransform: "uppercase",
@@ -21295,10 +21320,10 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                           updateTrigger(idx, { customQ: e.target.value })
                         }
                         placeholder="Write your own trigger question…"
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           width: "100%",
                           padding: "8px 10px",
-                          fontSize: 16,
+                          fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                           fontFamily: "var(--f-body)",
                           background: "var(--bg)",
                           border: "1px solid var(--border)",
@@ -21314,11 +21339,11 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                     <div
                       style={{
                         fontFamily: "var(--f-body)",
-                        fontSize: 19,
-                        fontWeight: 400,
+                        fontSize: "max(var(--b-min), calc(19px + var(--b-bump)))",
+                        fontWeight: "var(--b-w)",
                         color: "var(--text)",
                         marginBottom: 12,
-                        lineHeight: 1.4,
+                        lineHeight: "max(var(--b-lh), 1.4)",
                       }}
                     >
                       {t.q}
@@ -21331,10 +21356,10 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                     }
                     placeholder={t.placeholder}
                     rows={2}
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       width: "100%",
                       padding: "10px 12px",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontFamily: "var(--f-body)",
                       background: "var(--bg)",
                       border: "1px solid var(--border)",
@@ -21342,13 +21367,13 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                       color: "var(--text)",
                       outline: "none",
                       resize: "vertical",
-                      lineHeight: 1.6,
+                      lineHeight: "max(var(--b-lh), 1.6)",
                     }}
                   />
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       marginTop: 6,
-                      fontSize: 13,
+                      fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                       color: "var(--text4)",
                       fontFamily: "var(--f-body)",
                       fontStyle: "italic",
@@ -21367,7 +21392,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               onClick={addCustomTrigger}
               style={{
                 padding: "8px 16px",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -21398,7 +21423,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               onClick={() => setA3Step("environment")}
               style={{
                 padding: "8px 16px",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -21413,8 +21438,8 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span
-                style={{
-                  fontSize: 14,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -21428,7 +21453,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                 disabled={!anyThoughtWritten}
                 style={{
                   padding: "9px 18px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -21462,7 +21487,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               }}
             >
               <div
-                style={{
+                style={{ fontWeight: 400,
                   fontFamily: "var(--f-display)",
                   fontSize: 22,
                   color: "var(--text2)",
@@ -21488,7 +21513,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                 onClick={() => setA3ThoughtsPhase(1)}
                 style={{
                   padding: "8px 16px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -21518,7 +21543,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               >
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -21541,11 +21566,11 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   Shape your inner landscape.
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.75,
+                    lineHeight: "max(var(--b-lh), 1.75)",
                   }}
                 >
                   Each thought you wrote is a card. Rate it and it moves to
@@ -21577,7 +21602,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   style={{
                     display: "flex",
                     gap: 16,
-                    fontSize: 11,
+                    fontSize: "max(var(--l-min), 11px)",
                     fontFamily: "var(--f-label)",
                     fontWeight: 400,
                     letterSpacing: 0.4,
@@ -21588,8 +21613,8 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   <span style={{ color: A3_RED }}>● Anchor sinks</span>
                 </div>
                 <span
-                  style={{
-                    fontSize: 13,
+                  style={{ fontWeight: "var(--b-w)",
+                    fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                     color: "var(--text4)",
                     fontFamily: "var(--f-body)",
                     fontStyle: "italic",
@@ -21624,7 +21649,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   >
                     <span
                       style={{
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 2,
                         textTransform: "uppercase",
@@ -21646,8 +21671,8 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   >
                     {advThoughts.length === 0 ? (
                       <div
-                        style={{
-                          fontSize: 14,
+                        style={{ fontWeight: "var(--b-w)",
+                          fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                           color: "var(--text4)",
                           fontStyle: "italic",
                           fontFamily: "var(--f-body)",
@@ -21673,7 +21698,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   >
                     <span
                       style={{
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 2,
                         textTransform: "uppercase",
@@ -21695,8 +21720,8 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   >
                     {neuThoughts.length === 0 ? (
                       <div
-                        style={{
-                          fontSize: 14,
+                        style={{ fontWeight: "var(--b-w)",
+                          fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                           color: "var(--text4)",
                           fontStyle: "italic",
                           fontFamily: "var(--f-body)",
@@ -21727,7 +21752,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   >
                     <span
                       style={{
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 2,
                         textTransform: "uppercase",
@@ -21749,8 +21774,8 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   >
                     {ancThoughts.length === 0 ? (
                       <div
-                        style={{
-                          fontSize: 14,
+                        style={{ fontWeight: "var(--b-w)",
+                          fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                           color: "var(--text4)",
                           fontStyle: "italic",
                           fontFamily: "var(--f-body)",
@@ -21777,7 +21802,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               >
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -21791,22 +21816,22 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                 <div
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: 20,
-                    fontWeight: 400,
+                    fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
+                    fontWeight: "var(--b-w)",
                     color: "var(--text)",
                     marginBottom: 10,
-                    lineHeight: 1.45,
+                    lineHeight: "max(var(--b-lh), 1.45)",
                   }}
                 >
                   Are you speaking to yourself like a best friend — or like your
                   worst enemy?
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 15,
+                    fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                     color: "var(--text3)",
-                    lineHeight: 1.7,
+                    lineHeight: "max(var(--b-lh), 1.7)",
                     marginBottom: 12,
                   }}
                 >
@@ -21819,10 +21844,10 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   onChange={(e) => set("a3_best_friend", e.target.value)}
                   placeholder="Honestly… when I look at this I see…"
                   rows={4}
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     width: "100%",
                     padding: "10px 12px",
-                    fontSize: 16,
+                    fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                     fontFamily: "var(--f-body)",
                     background: "var(--bg)",
                     border: "1px solid var(--border)",
@@ -21830,7 +21855,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                     color: "var(--text)",
                     outline: "none",
                     resize: "vertical",
-                    lineHeight: 1.6,
+                    lineHeight: "max(var(--b-lh), 1.6)",
                   }}
                 />
               </div>
@@ -21849,11 +21874,11 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   This is the page you come back to.
                 </div>
                 <p
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.8,
+                    lineHeight: "max(var(--b-lh), 1.8)",
                     marginBottom: 10,
                     maxWidth: 640,
                   }}
@@ -21871,11 +21896,11 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   reframing when the old voice takes over.
                 </p>
                 <p
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.8,
+                    lineHeight: "max(var(--b-lh), 1.8)",
                     maxWidth: 640,
                   }}
                 >
@@ -21906,7 +21931,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               onClick={() => setA3ThoughtsPhase(1)}
               style={{
                 padding: "8px 16px",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontWeight: 400,
                 letterSpacing: 0.5,
                 fontFamily: "var(--f-label)",
@@ -21921,8 +21946,8 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
               <span
-                style={{
-                  fontSize: 14,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -21933,7 +21958,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                 onClick={() => setA3Step("energymap")}
                 style={{
                   padding: "9px 18px",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 0.5,
                   fontFamily: "var(--f-label)",
@@ -21984,7 +22009,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
               >
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 2,
                     textTransform: "uppercase",
@@ -21997,7 +22022,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                 </div>
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -22009,9 +22034,9 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   The original
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 14,
+                    fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                     color: "var(--text3)",
                     marginBottom: 18,
                     fontStyle: "italic",
@@ -22024,13 +22049,13 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   {th.text}
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 17,
+                    fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                     fontStyle: "italic",
                     color: "var(--text2)",
                     marginBottom: 12,
-                    lineHeight: 1.5,
+                    lineHeight: "max(var(--b-lh), 1.5)",
                   }}
                 >
                   If a best friend were listening — what would you want to say
@@ -22042,10 +22067,10 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                   placeholder="Write the new version in your own words…"
                   autoFocus
                   rows={4}
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     width: "100%",
                     padding: "12px 14px",
-                    fontSize: 17,
+                    fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                     fontFamily: "var(--f-body)",
                     background: "var(--bg2)",
                     border: "1px solid var(--border)",
@@ -22053,7 +22078,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                     color: "var(--text)",
                     outline: "none",
                     resize: "vertical",
-                    lineHeight: 1.6,
+                    lineHeight: "max(var(--b-lh), 1.6)",
                     marginBottom: 18,
                   }}
                 />
@@ -22068,7 +22093,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                     onClick={closeReframe}
                     style={{
                       padding: "8px 18px",
-                      fontSize: 12,
+                      fontSize: "max(var(--l-min), 12px)",
                       fontWeight: 400,
                       letterSpacing: 0.5,
                       fontFamily: "var(--f-label)",
@@ -22085,7 +22110,7 @@ function A3ThoughtsStub({ setA3Step, map, set }: any) {
                     onClick={saveReframe}
                     style={{
                       padding: "9px 20px",
-                      fontSize: 12,
+                      fontSize: "max(var(--l-min), 12px)",
                       fontWeight: 400,
                       letterSpacing: 0.5,
                       fontFamily: "var(--f-label)",
@@ -22318,7 +22343,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
       {/* BREADCRUMB + H1 + LEAD */}
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -22341,11 +22366,11 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
         What and who are you carrying?
       </h2>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 17,
+          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           marginBottom: 18,
           maxWidth: 660,
         }}
@@ -22379,11 +22404,11 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
           ◆
         </span>
         <span
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.7,
+            lineHeight: "max(var(--b-lh), 1.7)",
           }}
         >
           It starts with you. Nothing here is acting{" "}
@@ -22427,7 +22452,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
               </div>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   color: "var(--text)",
                   fontFamily: "var(--f-label)",
@@ -22437,8 +22462,8 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                 Close to you
               </div>
               <div
-                style={{
-                  fontSize: 13,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -22468,7 +22493,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
               </div>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   color: "var(--text)",
                   fontFamily: "var(--f-label)",
@@ -22478,8 +22503,8 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                 Drifting
               </div>
               <div
-                style={{
-                  fontSize: 13,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -22509,7 +22534,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
               </div>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   color: "var(--text)",
                   fontFamily: "var(--f-label)",
@@ -22519,8 +22544,8 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                 Still carrying
               </div>
               <div
-                style={{
-                  fontSize: 13,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -22532,12 +22557,12 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
 
           {/* LEGEND */}
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               display: "flex",
               gap: 18,
               flexWrap: "wrap",
               marginBottom: 14,
-              fontSize: 13,
+              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
               fontFamily: "var(--f-body)",
               color: "var(--text3)",
             }}
@@ -22573,8 +22598,8 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
             <div
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 18,
-                fontWeight: 400,
+                fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                fontWeight: "var(--b-w)",
                 color: "var(--text)",
                 marginBottom: 4,
               }}
@@ -22582,12 +22607,12 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
               The View
             </div>
             <div
-              style={{
-                fontSize: 14,
+              style={{ fontWeight: "var(--b-w)",
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: "var(--text4)",
                 fontFamily: "var(--f-body)",
                 marginBottom: 14,
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
               }}
             >
               You at the center. What supports you, what you're carrying, and
@@ -22765,8 +22790,8 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                       <div
                         style={{
                           fontFamily: "var(--f-body)",
-                          fontSize: 18,
-                          fontWeight: 400,
+                          fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                          fontWeight: "var(--b-w)",
                           color: "var(--text)",
                         }}
                       >
@@ -22801,7 +22826,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                     >
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1,
                           textTransform: "uppercase",
@@ -22817,7 +22842,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                       {selected.kind === "person" && selected.role && (
                         <span
                           style={{
-                            fontSize: 11,
+                            fontSize: "max(var(--l-min), 11px)",
                             fontWeight: 400,
                             letterSpacing: 0.6,
                             padding: "3px 8px",
@@ -22833,7 +22858,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                       )}
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1,
                           textTransform: "uppercase",
@@ -22849,11 +22874,11 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                     </div>
                     {selected.note ? (
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           color: "var(--text2)",
-                          lineHeight: 1.7,
+                          lineHeight: "max(var(--b-lh), 1.7)",
                         }}
                       >
                         {selected.note}
@@ -22861,9 +22886,9 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
                     ) : (
                       selected.kind === "person" && (
                         <div
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             fontFamily: "var(--f-body)",
-                            fontSize: 14,
+                            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                             color: "var(--text4)",
                             fontStyle: "italic",
                           }}
@@ -22892,21 +22917,21 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 20,
+              fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
               color: "var(--text2)",
               marginBottom: 10,
-              lineHeight: 1.5,
+              lineHeight: "max(var(--b-lh), 1.5)",
             }}
           >
             Nothing to plot yet.
           </div>
           <div
-            style={{
-              fontSize: 15,
+            style={{ fontWeight: "var(--b-w)",
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               color: "var(--text3)",
-              lineHeight: 1.7,
+              lineHeight: "max(var(--b-lh), 1.7)",
               maxWidth: 420,
               marginLeft: "auto",
               marginRight: "auto",
@@ -22931,7 +22956,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -22943,11 +22968,11 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
           One thing to notice
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 18,
+            fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
           }}
         >
           {reflectionText}
@@ -22970,7 +22995,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
           onClick={() => setA3Step("thoughts")}
           style={{
             padding: "8px 16px",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             fontWeight: 400,
             letterSpacing: 0.5,
             fontFamily: "var(--f-label)",
@@ -22985,8 +23010,8 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span
-            style={{
-              fontSize: 14,
+            style={{ fontWeight: "var(--b-w)",
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               color: "var(--text4)",
               fontFamily: "var(--f-body)",
             }}
@@ -22997,7 +23022,7 @@ function A3EnergyMapBullseye({ setA3Step, map }: any) {
             onClick={() => setA3Step("board")}
             style={{
               padding: "9px 18px",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               fontWeight: 400,
               letterSpacing: 0.5,
               fontFamily: "var(--f-label)",
@@ -23246,7 +23271,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
       {/* BREADCRUMB + H1 + LEAD */}
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -23269,11 +23294,11 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
         Your external ecosystem, end to end.
       </h2>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 17,
+          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           marginBottom: 24,
           maxWidth: 660,
         }}
@@ -23315,7 +23340,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
               </div>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   color: "var(--text)",
                   fontFamily: "var(--f-label)",
@@ -23325,8 +23350,8 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                 Close to you
               </div>
               <div
-                style={{
-                  fontSize: 13,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -23356,7 +23381,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
               </div>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   color: "var(--text)",
                   fontFamily: "var(--f-label)",
@@ -23366,8 +23391,8 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                 Drifting
               </div>
               <div
-                style={{
-                  fontSize: 13,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -23397,7 +23422,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
               </div>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   fontWeight: 400,
                   color: "var(--text)",
                   fontFamily: "var(--f-label)",
@@ -23407,8 +23432,8 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                 Still carrying
               </div>
               <div
-                style={{
-                  fontSize: 13,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -23420,12 +23445,12 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
 
           {/* LEGEND */}
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               display: "flex",
               gap: 18,
               flexWrap: "wrap",
               marginBottom: 14,
-              fontSize: 13,
+              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
               fontFamily: "var(--f-body)",
               color: "var(--text3)",
             }}
@@ -23462,8 +23487,8 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
             <div
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 18,
-                fontWeight: 400,
+                fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                fontWeight: "var(--b-w)",
                 color: "var(--text)",
                 marginBottom: 4,
               }}
@@ -23471,12 +23496,12 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
               The Horizon
             </div>
             <div
-              style={{
-                fontSize: 14,
+              style={{ fontWeight: "var(--b-w)",
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: "var(--text4)",
                 fontFamily: "var(--f-body)",
                 marginBottom: 14,
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
               }}
             >
               Anchors behind. Neutrals drifting. Advocates ahead. Your direction
@@ -23705,7 +23730,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                   <span
                     style={{
                       fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       letterSpacing: 2,
                       textTransform: "uppercase",
                       fontWeight: 400,
@@ -23730,12 +23755,12 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
 
                 {bagAllEmpty ? (
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 13,
+                      fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "var(--text3)",
-                      lineHeight: 1.6,
+                      lineHeight: "max(var(--b-lh), 1.6)",
                       padding: "4px 0",
                     }}
                   >
@@ -23760,7 +23785,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                       >
                         <span
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             color: "var(--text3)",
                             letterSpacing: 1.2,
                             textTransform: "uppercase",
@@ -23773,10 +23798,10 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                         <div style={{ minWidth: 0 }}>
                           {row.text && row.text.trim() ? (
                             <div
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 fontFamily: "var(--f-body)",
-                                fontSize: 13,
-                                lineHeight: 1.6,
+                                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
+                                lineHeight: "max(var(--b-lh), 1.6)",
                                 fontStyle: "italic",
                                 padding: "6px 11px",
                                 borderRadius: 4,
@@ -23857,8 +23882,8 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                       <div
                         style={{
                           fontFamily: "var(--f-body)",
-                          fontSize: 18,
-                          fontWeight: 400,
+                          fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                          fontWeight: "var(--b-w)",
                           color: "var(--text)",
                         }}
                       >
@@ -23893,7 +23918,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                     >
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1,
                           textTransform: "uppercase",
@@ -23909,7 +23934,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                       {selected.kind === "person" && selected.role && (
                         <span
                           style={{
-                            fontSize: 11,
+                            fontSize: "max(var(--l-min), 11px)",
                             fontWeight: 400,
                             letterSpacing: 0.6,
                             padding: "3px 8px",
@@ -23925,7 +23950,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                       )}
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: "max(var(--l-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1,
                           textTransform: "uppercase",
@@ -23941,11 +23966,11 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                     </div>
                     {selected.note ? (
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           color: "var(--text2)",
-                          lineHeight: 1.7,
+                          lineHeight: "max(var(--b-lh), 1.7)",
                         }}
                       >
                         {selected.note}
@@ -23953,9 +23978,9 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
                     ) : (
                       selected.kind === "person" && (
                         <div
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             fontFamily: "var(--f-body)",
-                            fontSize: 14,
+                            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                             color: "var(--text4)",
                             fontStyle: "italic",
                           }}
@@ -23984,21 +24009,21 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 20,
+              fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
               color: "var(--text2)",
               marginBottom: 10,
-              lineHeight: 1.5,
+              lineHeight: "max(var(--b-lh), 1.5)",
             }}
           >
             Nothing to plot yet.
           </div>
           <div
-            style={{
-              fontSize: 15,
+            style={{ fontWeight: "var(--b-w)",
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               color: "var(--text3)",
-              lineHeight: 1.7,
+              lineHeight: "max(var(--b-lh), 1.7)",
               maxWidth: 420,
               marginLeft: "auto",
               marginRight: "auto",
@@ -24023,7 +24048,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -24035,11 +24060,11 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
           One thing to notice
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 18,
+            fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
           }}
         >
           {reflectionText}
@@ -24062,7 +24087,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
           onClick={() => setA3Step("thoughts")}
           style={{
             padding: "8px 16px",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             fontWeight: 400,
             letterSpacing: 0.5,
             fontFamily: "var(--f-label)",
@@ -24077,8 +24102,8 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <span
-            style={{
-              fontSize: 14,
+            style={{ fontWeight: "var(--b-w)",
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               color: "var(--text4)",
               fontFamily: "var(--f-body)",
             }}
@@ -24089,7 +24114,7 @@ function A3EnergyMapHorizontal({ setA3Step, map }: any) {
             onClick={() => setA3Step("board")}
             style={{
               padding: "9px 18px",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               fontWeight: 400,
               letterSpacing: 0.5,
               fontFamily: "var(--f-label)",
@@ -24309,9 +24334,9 @@ function A3BoardStub({ setA3Step, map, set }: any) {
         {label}
       </span>
       <span
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 13,
+          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
           color: "var(--text4)",
           letterSpacing: 0.5,
         }}
@@ -24336,7 +24361,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
     <div>
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -24359,11 +24384,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
         Build your table.
       </h2>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 17,
+          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
           color: "var(--text2)",
-          lineHeight: 1.85,
+          lineHeight: "max(var(--b-lh), 1.85)",
           marginBottom: 24,
           maxWidth: 620,
         }}
@@ -24385,7 +24410,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -24413,11 +24438,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           as you move forward.
         </div>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
             marginBottom: 10,
           }}
         >
@@ -24429,11 +24454,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           when it matters.
         </p>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
             marginBottom: 10,
           }}
         >
@@ -24445,11 +24470,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           </span>
         </p>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
           }}
         >
           Up to 12 seats. You don't have to fill them all —{" "}
@@ -24480,8 +24505,8 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           <div
             style={{
               fontFamily: "var(--f-body)",
-              fontSize: 18,
-              fontWeight: 400,
+              fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+              fontWeight: "var(--b-w)",
               color: "var(--text)",
             }}
           >
@@ -24501,7 +24526,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
             <span
               style={{
                 fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 fontWeight: 400,
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
@@ -24712,11 +24737,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
       {advSectionOpen && (
         <div style={{ marginBottom: 28 }}>
           <p
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 15,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               color: "var(--text3)",
-              lineHeight: 1.7,
+              lineHeight: "max(var(--b-lh), 1.7)",
               marginBottom: 14,
               marginTop: 4,
             }}
@@ -24734,9 +24759,9 @@ function A3BoardStub({ setA3Step, map, set }: any) {
               }}
             >
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 18,
+                  fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                   color: "var(--text2)",
                   marginBottom: 8,
                 }}
@@ -24744,11 +24769,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                 No one on your Board yet.
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 15,
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                   color: "var(--text3)",
-                  lineHeight: 1.7,
+                  lineHeight: "max(var(--b-lh), 1.7)",
                 }}
               >
                 Head back to the People page and mark at least one Advocate
@@ -24794,9 +24819,9 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 17,
+                          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                           color: "var(--text)",
                         }}
                       >
@@ -24805,7 +24830,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                       {p?.role && (
                         <div
                           style={{
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             fontWeight: 400,
                             letterSpacing: 1.2,
                             textTransform: "uppercase",
@@ -24821,9 +24846,9 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                     <div style={{ textAlign: "right" }}>
                       {seated ? (
                         <div
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             fontFamily: "var(--f-body)",
-                            fontSize: 14,
+                            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                             fontStyle: "italic",
                             color: A3_TEAL,
                           }}
@@ -24832,8 +24857,8 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                         </div>
                       ) : (
                         <div
-                          style={{
-                            fontSize: 14,
+                          style={{ fontWeight: "var(--b-w)",
+                            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                             fontStyle: "italic",
                             color: "var(--text4)",
                             fontFamily: "var(--f-body)",
@@ -24865,7 +24890,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                     >
                       <div
                         style={{
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1.5,
                           textTransform: "uppercase",
@@ -24909,7 +24934,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                                 border,
                                 borderRadius: 999,
                                 padding: "5px 11px",
-                                fontSize: 11,
+                                fontSize: "max(var(--l-min), 11px)",
                                 fontWeight: isPrimary ? 700 : 500,
                                 cursor: "pointer",
                                 fontFamily: "var(--f-label)",
@@ -24938,13 +24963,13 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                               }
                             }}
                             placeholder="Type a strength…"
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               background: "var(--bg)",
                               color: "var(--text)",
                               border: `1px solid ${A3_TEAL}`,
                               borderRadius: 999,
                               padding: "5px 11px",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               fontFamily: "var(--f-body)",
                               outline: "none",
                               minWidth: 140,
@@ -24990,7 +25015,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                                   border,
                                   borderRadius: 999,
                                   padding: "5px 11px",
-                                  fontSize: 11,
+                                  fontSize: "max(var(--l-min), 11px)",
                                   fontWeight: isPrimary ? 700 : 500,
                                   cursor: "pointer",
                                   fontFamily: "var(--f-label)",
@@ -25006,8 +25031,8 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                       </div>
 
                       <div
-                        style={{
-                          fontSize: 13,
+                        style={{ fontWeight: "var(--b-w)",
+                          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                           color: "var(--text4)",
                           fontStyle: "italic",
                           marginBottom: cand.primary ? 16 : 0,
@@ -25027,7 +25052,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                           <div style={{ marginTop: 6 }}>
                             <div
                               style={{
-                                fontSize: 11,
+                                fontSize: "max(var(--e-min), 11px)",
                                 fontWeight: 400,
                                 letterSpacing: 1.5,
                                 textTransform: "uppercase",
@@ -25046,7 +25071,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                                   seatName: e.target.value,
                                 })
                               }
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 width: "100%",
                                 background: "var(--bg)",
                                 color: "var(--text)",
@@ -25054,7 +25079,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                                 borderRadius: 8,
                                 padding: "9px 12px",
                                 fontFamily: "var(--f-body)",
-                                fontSize: 14,
+                                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                                 fontStyle: "italic",
                                 outline: "none",
                               }}
@@ -25063,7 +25088,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                           <div style={{ marginTop: 14 }}>
                             <div
                               style={{
-                                fontSize: 11,
+                                fontSize: "max(var(--e-min), 11px)",
                                 fontWeight: 400,
                                 letterSpacing: 1.5,
                                 textTransform: "uppercase",
@@ -25094,7 +25119,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                                 })
                               }
                               rows={2}
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 width: "100%",
                                 background: "var(--bg)",
                                 color: "var(--text)",
@@ -25102,8 +25127,8 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                                 borderRadius: 8,
                                 padding: "9px 12px",
                                 fontFamily: "var(--f-body)",
-                                fontSize: 15,
-                                lineHeight: 1.6,
+                                fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+                                lineHeight: "max(var(--b-lh), 1.6)",
                                 outline: "none",
                                 resize: "vertical",
                               }}
@@ -25130,11 +25155,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
       {missSectionOpen && (
         <div style={{ marginBottom: 28 }}>
           <p
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 15,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               color: "var(--text3)",
-              lineHeight: 1.7,
+              lineHeight: "max(var(--b-lh), 1.7)",
               marginBottom: 14,
               marginTop: 4,
             }}
@@ -25166,7 +25191,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                 value={m.title || ""}
                 placeholder="e.g. The Workout Partner"
                 onChange={(e) => updateMissing(m.id, { title: e.target.value })}
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   background: "var(--bg)",
                   color: "var(--text)",
                   border: "1px solid var(--border)",
@@ -25174,7 +25199,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                   padding: "8px 11px",
                   fontFamily: "var(--f-body)",
                   fontStyle: "italic",
-                  fontSize: 13,
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   outline: "none",
                   minWidth: 0,
                 }}
@@ -25183,14 +25208,14 @@ function A3BoardStub({ setA3Step, map, set }: any) {
                 value={m.note || ""}
                 placeholder="What would they do? (optional)"
                 onChange={(e) => updateMissing(m.id, { note: e.target.value })}
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   background: "var(--bg)",
                   color: "var(--text)",
                   border: "1px solid var(--border)",
                   borderRadius: 8,
                   padding: "8px 11px",
                   fontFamily: "var(--f-body)",
-                  fontSize: 15,
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                   outline: "none",
                   minWidth: 0,
                 }}
@@ -25224,7 +25249,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
               color: A3_TEAL,
               borderRadius: 999,
               padding: "7px 16px",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               fontWeight: 400,
               cursor: "pointer",
               fontFamily: "var(--f-label)",
@@ -25249,7 +25274,7 @@ function A3BoardStub({ setA3Step, map, set }: any) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -25261,11 +25286,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           One thing to notice
         </div>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.7,
+            lineHeight: "max(var(--b-lh), 1.7)",
             fontStyle: "italic",
             margin: 0,
           }}
@@ -25297,11 +25322,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           This is a living table.
         </div>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
             marginBottom: 10,
           }}
         >
@@ -25310,11 +25335,11 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           that's how it should be.
         </p>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--text2)",
-            lineHeight: 1.75,
+            lineHeight: "max(var(--b-lh), 1.75)",
             margin: 0,
           }}
         >
@@ -25337,13 +25362,13 @@ function A3BoardStub({ setA3Step, map, set }: any) {
       >
         <button
           onClick={() => setA3Step("energymap")}
-          style={{
+          style={{ fontWeight: 400,
             background: "transparent",
             border: "1px solid var(--border)",
             color: "var(--text3)",
             borderRadius: 8,
             padding: "8px 14px",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             cursor: "pointer",
             fontFamily: "var(--f-label)",
           }}
@@ -25352,8 +25377,8 @@ function A3BoardStub({ setA3Step, map, set }: any) {
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span
-            style={{
-              fontSize: 13,
+            style={{ fontWeight: "var(--b-w)",
+              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
               color: "var(--text4)",
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
@@ -25363,13 +25388,13 @@ function A3BoardStub({ setA3Step, map, set }: any) {
           </span>
           <button
             disabled
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               background: "transparent",
               border: "1px solid var(--border)",
               color: "var(--text4)",
               borderRadius: 8,
               padding: "8px 14px",
-              fontSize: 14,
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               cursor: "not-allowed",
               fontFamily: "var(--f-body)",
               opacity: 0.5,
@@ -25471,7 +25496,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
             <span
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: isActive ? "var(--warm)" : "var(--text4)",
                 fontWeight: isActive ? 700 : 500,
               }}
@@ -25514,9 +25539,9 @@ function A3({ intake, onDone, phase, setPhase }: any) {
           True Ownership™
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 14,
+            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
             color: "var(--text4)",
           }}
         >
@@ -25545,7 +25570,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
     >
       <div
         style={{
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -25603,7 +25628,7 @@ function A3({ intake, onDone, phase, setPhase }: any) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -25681,12 +25706,12 @@ function Intake({ onDone }) {
       }}
     >
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 15,
+          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
           fontStyle: "italic",
           color: "var(--text2)",
-          lineHeight: 1.7,
+          lineHeight: "max(var(--b-lh), 1.7)",
         }}
       >
         {children}
@@ -25697,7 +25722,7 @@ function Intake({ onDone }) {
     <div key="n" className="fade-up" style={{ maxWidth: 540 }}>
       <div
         style={{
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 4,
           textTransform: "uppercase",
@@ -25765,7 +25790,7 @@ function Intake({ onDone }) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -25836,7 +25861,7 @@ function Intake({ onDone }) {
               <span
                 style={{
                   fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   fontWeight: 400,
                   color: i === 0 ? "var(--warm)" : "var(--text4)",
                 }}
@@ -25880,12 +25905,12 @@ function Intake({ onDone }) {
         }}
       >
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 16,
+            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
             fontStyle: "italic",
             color: "var(--text)",
-            lineHeight: 1.8,
+            lineHeight: "max(var(--b-lh), 1.8)",
           }}
         >
           "This system is one of your board of advisors -- a mirror that
@@ -25894,10 +25919,10 @@ function Intake({ onDone }) {
         </div>
       </div>
       <label
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           display: "block",
           fontFamily: "var(--f-body)",
-          fontSize: 15,
+          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
           color: "var(--text3)",
           marginBottom: 7,
         }}
@@ -26095,29 +26120,29 @@ function Intake({ onDone }) {
                   <div
                     style={{
                       fontFamily: "var(--f-body)",
-                      fontSize: 21,
+                      fontSize: "max(var(--b-min), calc(21px + var(--b-bump)))",
                       color: av.color,
-                      fontWeight: 400,
+                      fontWeight: "var(--b-w)",
                     }}
                   >
                     {av.label}
                   </div>
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 15,
+                    fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                     color: "var(--text2)",
-                    lineHeight: 1.7,
+                    lineHeight: "max(var(--b-lh), 1.7)",
                     marginBottom: 7,
                   }}
                 >
                   {VOICE_DESC[assigned]}
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 16,
+                    fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                     color: "var(--text3)",
                     fontStyle: "italic",
                   }}
@@ -26137,7 +26162,7 @@ function Intake({ onDone }) {
                 <span
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: 14,
+                    fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                     color: "var(--text2)",
                     fontWeight: 500,
                   }}
@@ -26145,9 +26170,9 @@ function Intake({ onDone }) {
                   Not right for today?{" "}
                 </span>
                 <span
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 14,
+                    fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                     color: "var(--text3)",
                   }}
                 >
@@ -26207,9 +26232,9 @@ function Intake({ onDone }) {
           }}
         />
         <span
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 13,
+            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
             color: "var(--text4)",
           }}
         >
@@ -26509,9 +26534,9 @@ function SoWhatLayer({
           />
           {index >= 3 && (
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: "var(--text4)",
                 fontStyle: "italic",
                 flexShrink: 0,
@@ -26547,11 +26572,11 @@ function SoWhatLayer({
                 When are you most alive?
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 14,
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text3)",
-                  lineHeight: 1.5,
+                  lineHeight: "max(var(--b-lh), 1.5)",
                 }}
               >
                 Describe what you're DOING -- not just the feeling. What are you
@@ -26563,7 +26588,7 @@ function SoWhatLayer({
               <div
                 style={{
                   fontFamily: "var(--f-label)",
-                  fontSize: 12,
+                  fontSize: "max(var(--e-min), 12px)",
                   fontWeight: 400,
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
@@ -26574,11 +26599,11 @@ function SoWhatLayer({
                 So what's that give you?
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 14,
+                  fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                   color: "var(--text3)",
-                  lineHeight: 1.5,
+                  lineHeight: "max(var(--b-lh), 1.5)",
                 }}
               >
                 {index === 1
@@ -26601,15 +26626,15 @@ function SoWhatLayer({
           onBlur={handleBlur}
           disabled={done && !isLatest}
           className="purpose-peel-ta"
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             width: "100%",
             background: "var(--bg4)",
             border: "1px solid var(--border2)",
             borderRadius: 10,
             color: "var(--warm)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
-            lineHeight: 1.7,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+            lineHeight: "max(var(--b-lh), 1.7)",
             padding: "12px 14px",
             outline: "none",
             resize: "none",
@@ -26642,7 +26667,7 @@ function SoWhatLayer({
               color: "var(--text2)",
               cursor: "pointer",
               fontFamily: "var(--f-label)",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               fontWeight: 400,
               padding: "8px 20px",
               transition: "all .2s",
@@ -26677,7 +26702,7 @@ function SoWhatLayer({
               color: "var(--warm)",
               cursor: "pointer",
               fontFamily: "var(--f-label)",
-              fontSize: 12,
+              fontSize: "max(var(--l-min), 12px)",
               fontWeight: 400,
               padding: "8px 20px",
               transition: "all .2s",
@@ -26907,7 +26932,7 @@ function PurposePeelingInline({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -26948,7 +26973,7 @@ function PurposePeelingInline({
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -26982,12 +27007,12 @@ function PurposePeelingInline({
                 {s.date || `Session ${i + 1}`}
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 13,
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   fontStyle: "italic",
                   color: "var(--text3)",
-                  lineHeight: 1.5,
+                  lineHeight: "max(var(--b-lh), 1.5)",
                   flex: 1,
                 }}
               >
@@ -27012,12 +27037,12 @@ function PurposePeelingInline({
         }}
       >
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 14,
+            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
             fontStyle: "italic",
             color: "var(--text2)",
-            lineHeight: 1.7,
+            lineHeight: "max(var(--b-lh), 1.7)",
           }}
         >
           {sessions.length > 0
@@ -27039,7 +27064,7 @@ function PurposePeelingInline({
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -27050,12 +27075,12 @@ function PurposePeelingInline({
             Your purpose statement
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 16,
+              fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
               fontStyle: "italic",
               color: "var(--warm)",
-              lineHeight: 1.6,
+              lineHeight: "max(var(--b-lh), 1.6)",
               marginBottom: 10,
             }}
           >
@@ -27063,14 +27088,14 @@ function PurposePeelingInline({
           </div>
           <button
             onClick={() => setPeelingExpanded(true)}
-            style={{
+            style={{ fontWeight: 400,
               background: "none",
               border: "1px solid var(--border2)",
               borderRadius: 20,
               color: "var(--text3)",
               cursor: "pointer",
               fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--l-min), 11px)",
               padding: "5px 14px",
             }}
           >
@@ -27109,7 +27134,7 @@ function PurposePeelingInline({
                 <span />
                 <span />
               </span>
-              <span style={{ fontFamily: "var(--f-body)", fontSize: 15 }}>
+              <span style={{ fontWeight: "var(--b-w)", fontFamily: "var(--f-body)", fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))" }}>
                 Katherine is reading your layers...
               </span>
             </div>
@@ -27130,7 +27155,7 @@ function PurposePeelingInline({
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   fontWeight: 400,
                   color: "#B68C8C",
                   letterSpacing: 1,
@@ -27141,8 +27166,8 @@ function PurposePeelingInline({
                 API fallback fired
               </div>
               <div
-                style={{
-                  fontSize: 13,
+                style={{ fontWeight: "var(--b-w)",
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                   fontFamily: "var(--f-body)",
                 }}
@@ -27164,9 +27189,9 @@ function PurposePeelingInline({
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: "var(--text3)",
               }}
             >
@@ -27198,7 +27223,7 @@ function PurposePeelingInline({
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
@@ -27209,12 +27234,12 @@ function PurposePeelingInline({
                 Since last time
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 13,
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   fontStyle: "italic",
                   color: "var(--text2)",
-                  lineHeight: 1.6,
+                  lineHeight: "max(var(--b-lh), 1.6)",
                 }}
               >
                 {purposeResult.deeper_note}
@@ -27257,7 +27282,7 @@ function PurposePeelingInline({
               >
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -27271,13 +27296,13 @@ function PurposePeelingInline({
                   {purposeResult.verbs.map((v, i) => (
                     <div
                       key={i}
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         padding: "4px 13px",
                         background: "rgba(165,135,94,.1)",
                         border: "1px solid rgba(165,135,94,.25)",
                         borderRadius: 20,
                         fontFamily: "var(--f-body)",
-                        fontSize: 14,
+                        fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                         fontStyle: "italic",
                         color: "var(--warm)",
                       }}
@@ -27299,7 +27324,7 @@ function PurposePeelingInline({
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
@@ -27312,11 +27337,11 @@ function PurposePeelingInline({
               <div
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontSize: 18,
+                  fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                   fontStyle: "italic",
-                  fontWeight: 400,
+                  fontWeight: "var(--b-w)",
                   color: "var(--text)",
-                  lineHeight: 1.6,
+                  lineHeight: "max(var(--b-lh), 1.6)",
                   marginBottom: 3,
                 }}
               >
@@ -27337,7 +27362,7 @@ function PurposePeelingInline({
               >
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -27348,12 +27373,12 @@ function PurposePeelingInline({
                   A question to sit with
                 </div>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 14,
+                    fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                     fontStyle: "italic",
                     color: "var(--text2)",
-                    lineHeight: 1.6,
+                    lineHeight: "max(var(--b-lh), 1.6)",
                   }}
                 >
                   {purposeResult.refining_question}
@@ -27380,12 +27405,12 @@ function PurposePeelingInline({
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: "var(--text3)",
                 marginBottom: 8,
-                lineHeight: 1.5,
+                lineHeight: "max(var(--b-lh), 1.5)",
               }}
             >
               Short enough to say in the car. True enough to feel it.
@@ -27408,10 +27433,10 @@ function PurposePeelingInline({
                 borderRadius: 10,
                 color: "var(--warm)",
                 fontFamily: "var(--f-body)",
-                fontSize: 17,
+                fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                 fontStyle: "italic",
-                fontWeight: 400,
-                lineHeight: 1.7,
+                fontWeight: "var(--b-w)",
+                lineHeight: "max(var(--b-lh), 1.7)",
                 padding: "12px 14px",
                 outline: "none",
                 resize: "none",
@@ -27447,12 +27472,12 @@ function PurposePeelingInline({
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 color: "var(--text3)",
                 marginBottom: 4,
-                lineHeight: 1.5,
+                lineHeight: "max(var(--b-lh), 1.5)",
               }}
             >
               Score how it feels in your body, whether it lights you up, and
@@ -27507,7 +27532,7 @@ function PurposePeelingInline({
                 <div
                   style={{
                     fontFamily: "var(--f-label)",
-                    fontSize: 12,
+                    fontSize: "max(var(--e-min), 12px)",
                     fontWeight: 400,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -27518,12 +27543,12 @@ function PurposePeelingInline({
                 </div>
               </div>
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 15,
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                   fontStyle: "italic",
                   color: "var(--text2)",
-                  lineHeight: 1.6,
+                  lineHeight: "max(var(--b-lh), 1.6)",
                   marginBottom: 12,
                 }}
               >
@@ -27565,7 +27590,7 @@ function PurposePeelingInline({
           <div style={{ marginTop: 18 }}>
             <button
               onClick={() => setLivingOpen((o) => !o)}
-              style={{
+              style={{ fontWeight: 400,
                 width: "100%",
                 display: "flex",
                 alignItems: "center",
@@ -27577,7 +27602,7 @@ function PurposePeelingInline({
                 borderRadius: 8,
                 cursor: "pointer",
                 fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--l-min), 11px)",
                 color: "var(--text4)",
                 textAlign: "left",
               }}
@@ -27602,11 +27627,11 @@ function PurposePeelingInline({
                 }}
               >
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 14,
+                    fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                     color: "var(--text3)",
-                    lineHeight: 1.7,
+                    lineHeight: "max(var(--b-lh), 1.7)",
                     marginBottom: 10,
                   }}
                 >
@@ -27625,7 +27650,7 @@ function PurposePeelingInline({
                     color: "var(--text2)",
                     cursor: "pointer",
                     fontFamily: "var(--f-label)",
-                    fontSize: 12,
+                    fontSize: "max(var(--l-min), 12px)",
                     fontWeight: 400,
                     padding: "7px 16px",
                   }}
@@ -27661,7 +27686,7 @@ function ResultCard({ color, label, children, serif }) {
     >
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 1.5,
           textTransform: "uppercase",
@@ -27676,11 +27701,11 @@ function ResultCard({ color, label, children, serif }) {
           serif
             ? {
                 fontFamily: "var(--f-body)",
-                fontSize: 16,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                 fontStyle: "italic",
                 fontWeight: 300,
                 color: "var(--text)",
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
               }
             : { fontSize: 13, color: "var(--text)", lineHeight: 1.55 }
         }
@@ -27720,22 +27745,22 @@ function MirrorCard({ card, isOpen, onToggle, onGoto }) {
           <div
             style={{
               fontFamily: "var(--f-body)",
-              fontSize: 15,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               fontWeight: 500,
               color: isOpen ? card.color : "var(--text2)",
               transition: "color .2s",
-              lineHeight: 1.2,
+              lineHeight: "max(var(--b-lh), 1.2)",
             }}
           >
             {card.label}
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 13,
+              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
               color: "var(--text4)",
               marginTop: 2,
-              lineHeight: 1.3,
+              lineHeight: "max(var(--b-lh), 1.3)",
             }}
           >
             {card.tagline}
@@ -27763,11 +27788,11 @@ function MirrorCard({ card, isOpen, onToggle, onGoto }) {
             }}
           />
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 15,
+              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
               color: "var(--text2)",
-              lineHeight: 1.75,
+              lineHeight: "max(var(--b-lh), 1.75)",
               marginBottom: 12,
             }}
           >
@@ -27783,12 +27808,12 @@ function MirrorCard({ card, isOpen, onToggle, onGoto }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text3)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               {card.katherine}
@@ -27806,7 +27831,7 @@ function MirrorCard({ card, isOpen, onToggle, onGoto }) {
               color: card.color,
               cursor: "pointer",
               fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--l-min), 11px)",
               fontWeight: 400,
               padding: "5px 14px",
             }}
@@ -27846,7 +27871,7 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -27857,8 +27882,8 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
           The Mirror Structure
         </div>
         <div
-          style={{
-            fontSize: 13,
+          style={{ fontWeight: "var(--b-w)",
+            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
             color: "var(--text4)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
@@ -27878,7 +27903,7 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
         <div>
           <div
             style={{
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -27931,7 +27956,7 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
         <div>
           <div
             style={{
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -27991,27 +28016,27 @@ const MirrorIntroCards = React.memo(function MirrorIntroCards({ goto }) {
               }}
             />
             <span
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: "var(--text4)",
               }}
             >
               {p.left}
             </span>
             <span
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: "var(--text4)",
               }}
             >
               🪞
             </span>
             <span
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 color: "var(--text4)",
               }}
             >
@@ -28285,9 +28310,9 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
         }}
       >
         <span
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 16,
+            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
             fontStyle: "italic",
             color: "var(--warm)",
             flex: 1,
@@ -28397,7 +28422,7 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                   <div style={{ flex: 1 }}>
                     <span
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
@@ -28408,8 +28433,8 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                     </span>
                     {cap.name && (
                       <span
-                        style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                        style={{ fontWeight: 400, fontFamily: "var(--f-label)",
+                          fontSize: "max(var(--e-min), 11px)",
                           color: "var(--text3)",
                           letterSpacing: 1.5,
                           textTransform: "uppercase",
@@ -28545,11 +28570,11 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                                         : [...supChips, word],
                                     )
                                   }
-                                  style={{
+                                  style={{ fontWeight: 400,
                                     display: "inline-flex",
                                     alignItems: "center",
                                     gap: 4,
-                                    fontSize: 11,
+                                    fontSize: "max(var(--l-min), 11px)",
                                     padding: "3px 10px",
                                     borderRadius: 20,
                                     border: `1px solid ${on ? "rgba(165,135,94,.7)" : "var(--border2)"}`,
@@ -28593,11 +28618,11 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                               .map((word: string) => (
                                 <button
                                   key={word}
-                                  style={{
+                                  style={{ fontWeight: 400,
                                     display: "inline-flex",
                                     alignItems: "center",
                                     gap: 4,
-                                    fontSize: 11,
+                                    fontSize: "max(var(--l-min), 11px)",
                                     padding: "3px 10px",
                                     borderRadius: 20,
                                     border: "1px solid rgba(165,135,94,.7)",
@@ -28654,9 +28679,9 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                                 }
                               }}
                               placeholder="Add a keyword…"
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 flex: 1,
-                                fontSize: 13,
+                                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                 padding: "4px 9px",
                                 borderRadius: 6,
                                 border: "1px solid var(--border2)",
@@ -28676,8 +28701,8 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                                   setChipInputs((p) => ({ ...p, [ci]: "" }));
                                 }
                               }}
-                              style={{
-                                fontSize: 11,
+                              style={{ fontWeight: 400,
+                                fontSize: "max(var(--l-min), 11px)",
                                 padding: "4px 10px",
                                 borderRadius: 6,
                                 border: "1px solid rgba(165,135,94,.3)",
@@ -28743,7 +28768,7 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
           {caps.length < 5 && (
             <button
               onClick={addCap}
-              style={{
+              style={{ fontWeight: 400,
                 width: "100%",
                 padding: "9px",
                 background: "transparent",
@@ -28752,7 +28777,7 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
                 color: "var(--text4)",
                 cursor: "pointer",
                 fontFamily: "var(--f-label)",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
               }}
             >
               + Add capability
@@ -29019,11 +29044,11 @@ function NewA1Grid({
                 literal word "User". */}
             <p
               className="na1-hero-greeting"
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
-                fontSize: 16,
-                lineHeight: 1.5,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+                lineHeight: "max(var(--b-lh), 1.5)",
                 color: "var(--na1-text-sec, var(--text2))",
                 margin: "0 0 10px",
               }}
@@ -29059,7 +29084,7 @@ function NewA1Grid({
               className="na1-mirror-card-empty"
               style={
                 purposeComplete
-                  ? {
+                  ? { fontWeight: "var(--b-w)",
                       fontStyle: "italic",
                       color: "var(--na1-text-sec)",
                       fontFamily: "var(--f-body)",
@@ -29104,7 +29129,7 @@ function NewA1Grid({
                 className="na1-mirror-card-empty"
                 style={
                   visionComplete
-                    ? {
+                    ? { fontWeight: "var(--b-w)",
                         fontStyle: "italic",
                         color: "var(--na1-text-sec)",
                         fontFamily: "var(--f-body)",
@@ -29190,7 +29215,7 @@ function NewA1Grid({
                 className="na1-mirror-card-empty"
                 style={
                   identityComplete
-                    ? {
+                    ? { fontWeight: "var(--b-w)",
                         fontStyle: "italic",
                         color: "var(--na1-text-sec)",
                         fontFamily: "var(--f-body)",
@@ -29275,7 +29300,7 @@ function NewA1Grid({
                 className="na1-mirror-card-empty"
                 style={
                   valuesComplete
-                    ? {
+                    ? { fontWeight: "var(--b-w)",
                         fontStyle: "italic",
                         color: "var(--na1-text-sec)",
                         fontFamily: "var(--f-body)",
@@ -29688,15 +29713,15 @@ function NewA1RoomPlaceholderBody({
       <h2 className="na1-room-title">{exercise.name}</h2>
       <p className="na1-room-context">{exercise.subtitle}</p>
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           padding: "16px 18px",
           background: "var(--gold-warm)",
           border: "1px dashed var(--gold-line)",
           borderRadius: "var(--na1-radius)",
           fontFamily: "var(--f-body)",
-          fontSize: 15.5,
-          lineHeight: 1.55,
-          color: "var(--na1-text-sec)",
+          fontSize: "max(var(--b-min), calc(15.5px + var(--b-bump)))",
+          lineHeight: "max(var(--b-lh), 1.55)",
+          color: "var(--na1-text)",
           marginBottom: 24,
         }}
       >
@@ -31004,7 +31029,7 @@ function NewA1DeclareBody({
           {declareDisplayName ? (
             <p
               className="na1-decl-cer-para"
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 color: "var(--warm)",
                 fontStyle: "italic",
                 fontFamily: "var(--f-body)",
@@ -31015,7 +31040,7 @@ function NewA1DeclareBody({
           ) : (
             <p
               className="na1-decl-cer-para"
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 color: "var(--warm)",
                 fontStyle: "italic",
                 fontFamily: "var(--f-body)",
@@ -31566,7 +31591,7 @@ function NewA2TwoFuturesBody({
       currentFuture === "A"
         ? "For each domain, pick the chip that's most true right now. No wrong answer — the only wrong move is dressing it up."
         : "Same domains. This time, pick what you want to be true in 10 years.";
-    const subtitleStyle: React.CSSProperties = {
+    const subtitleStyle: React.CSSProperties = { fontWeight: "var(--b-w)",
       fontFamily: "var(--f-body)",
       fontStyle: "italic",
       color: tone === "burgundy" ? "var(--burgundy)" : "var(--gold-text)",
@@ -33684,15 +33709,15 @@ function NewA2RoomPlaceholderBody({
       <h2 className="na1-room-title">{exercise.name}</h2>
       <p className="na1-room-context">{exercise.subtitle}</p>
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           padding: "16px 18px",
           background: "var(--gold-warm)",
           border: "1px dashed var(--gold-line)",
           borderRadius: "var(--na1-radius)",
           fontFamily: "var(--f-body)",
-          fontSize: 15.5,
-          lineHeight: 1.55,
-          color: "var(--na1-text-sec)",
+          fontSize: "max(var(--b-min), calc(15.5px + var(--b-bump)))",
+          lineHeight: "max(var(--b-lh), 1.55)",
+          color: "var(--na1-text)",
           marginBottom: 24,
         }}
       >
@@ -34880,7 +34905,7 @@ function NewA1Framework({
             ) : (
               <div className="na1-phase-brand">
                 <img
-                  src={`${import.meta.env.BASE_URL}ag45_logo_transparent.png`}
+                  src={`${import.meta.env.BASE_URL}ag45-logo-navy.png`}
                   alt="AccelerateGrowth45"
                 />
               </div>
@@ -35216,7 +35241,7 @@ function NewA2M1HubView({
         <h1 className="na1-ex-title">Alignment Check</h1>
         <p
           className="na1-ex-sub"
-          style={{ fontStyle: "italic", fontFamily: "var(--f-body)" }}
+          style={{ fontWeight: "var(--b-w)", fontStyle: "italic", fontFamily: "var(--f-body)" }}
         >
           Three readings. One named gap.
         </p>
@@ -35458,7 +35483,7 @@ function NewA2MirrorHubView({
         <h1 className="na1-ex-title">{title}</h1>
         <p
           className="na1-ex-sub"
-          style={{ fontStyle: "italic", fontFamily: "var(--f-body)" }}
+          style={{ fontWeight: "var(--b-w)", fontStyle: "italic", fontFamily: "var(--f-body)" }}
         >
           {sub}
         </p>
@@ -39724,10 +39749,10 @@ function NewA3HubView({
               Surround the life you&rsquo;re building.
             </h1>
             <p
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
-                fontSize: 17,
+                fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                 color: "var(--na1-text-sec)",
                 margin: "0 0 10px",
               }}
@@ -39764,7 +39789,7 @@ function NewA3HubView({
               className="na1-mirror-card-empty"
               style={
                 m1Claimed
-                  ? {
+                  ? { fontWeight: "var(--b-w)",
                       fontStyle: "italic",
                       color: "var(--na1-text-sec)",
                       fontFamily: "var(--f-body)",
@@ -39840,7 +39865,7 @@ function NewA3HubView({
               className="na1-mirror-card-empty"
               style={
                 m2Claimed
-                  ? {
+                  ? { fontWeight: "var(--b-w)",
                       fontStyle: "italic",
                       color: "var(--na1-text-sec)",
                       fontFamily: "var(--f-body)",
@@ -39893,7 +39918,7 @@ function NewA3HubView({
               className="na1-mirror-card-empty"
               style={
                 m3Claimed
-                  ? {
+                  ? { fontWeight: "var(--b-w)",
                       fontStyle: "italic",
                       color: "var(--na1-text-sec)",
                       fontFamily: "var(--f-body)",
@@ -39950,7 +39975,7 @@ function NewA3HubView({
               className="na1-mirror-card-empty"
               style={
                 m4Claimed
-                  ? {
+                  ? { fontWeight: "var(--b-w)",
                       fontStyle: "italic",
                       color: "var(--na1-text-sec)",
                       fontFamily: "var(--f-body)",
@@ -40003,7 +40028,7 @@ function NewA3HubView({
               className="na1-mirror-card-empty"
               style={
                 m5Claimed
-                  ? {
+                  ? { fontWeight: "var(--b-w)",
                       fontStyle: "italic",
                       color: "var(--na1-text-sec)",
                       fontFamily: "var(--f-body)",
@@ -40060,7 +40085,7 @@ function NewA3HubView({
               className="na1-mirror-card-empty"
               style={
                 m6Claimed
-                  ? {
+                  ? { fontWeight: "var(--b-w)",
                       fontStyle: "italic",
                       color: "var(--na1-text-sec)",
                       fontFamily: "var(--f-body)",
@@ -40135,10 +40160,10 @@ function NewA3M1Step1Body({
         aria-label="Names, one per line"
       />
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 15,
-          color: "var(--na1-text-mute)",
+          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+          color: "var(--na1-text-sec)",
           margin: "8px 0 18px",
         }}
         aria-live="polite"
@@ -40149,11 +40174,11 @@ function NewA3M1Step1Body({
       <p
         style={{
           fontFamily: "var(--f-label)",
-          fontSize: 12,
+          fontSize: "max(var(--e-min), 12px)",
           fontWeight: 400,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
-          color: "var(--na1-text-mute)",
+          color: "var(--na1-text-sec)",
           margin: "0 0 8px",
         }}
       >
@@ -40741,10 +40766,10 @@ function NewA3M2Step1Body({
         aria-label="Habits and places, one per line"
       />
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 15,
-          color: "var(--na1-text-mute)",
+          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+          color: "var(--na1-text-sec)",
           margin: "8px 0 18px",
         }}
         aria-live="polite"
@@ -40874,11 +40899,11 @@ function NewA3M2Step2Body({
                 <span
                   style={{
                     fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
-                    color: "var(--na1-text-mute)",
+                    color: "var(--na1-text-sec)",
                     marginLeft: 8,
                   }}
                 >
@@ -41416,14 +41441,14 @@ const TH_VOICE_WANT_CHIPS = [
   "Wise Friend",
   "The Steady One",
 ];
-const TH_INPUT_STYLE: React.CSSProperties = {
+const TH_INPUT_STYLE: React.CSSProperties = { fontWeight: "var(--b-w)",
   width: "100%",
   background: "var(--na1-bg-soft)",
   border: "1px solid var(--na1-border)",
   borderRadius: "var(--na1-radius)",
   color: "var(--na1-text)",
   fontFamily: "var(--f-body)",
-  fontSize: 17,
+  fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
   padding: "10px 12px",
   outline: "none",
 };
@@ -41471,11 +41496,11 @@ function NewA3M3Step1Body({
         style={{
           textAlign: "center",
           fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: "0.16em",
           textTransform: "uppercase",
-          color: "var(--na1-text-mute)",
+          color: "var(--na1-text-sec)",
           margin: "0 0 14px",
         }}
       >
@@ -41495,7 +41520,7 @@ function NewA3M3Step1Body({
             onChange={(e) => onEditTrigger(e.target.value)}
             placeholder="Your own trigger — when…"
             aria-label="Your own trigger"
-            style={{
+            style={{ fontWeight: 400,
               width: "100%",
               background: "transparent",
               border: "none",
@@ -41510,7 +41535,7 @@ function NewA3M3Step1Body({
         ) : (
           <>
             <div
-              style={{
+              style={{ fontWeight: 400,
                 fontFamily: "var(--f-display)",
                 fontSize: 21,
                 lineHeight: 1.25,
@@ -41522,11 +41547,11 @@ function NewA3M3Step1Body({
             </div>
             {moment.eg && (
               <div
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
                   fontStyle: "italic",
-                  fontSize: 15,
-                  color: "var(--na1-text-mute)",
+                  fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+                  color: "var(--na1-text-sec)",
                 }}
               >
                 {moment.eg}
@@ -41625,10 +41650,10 @@ function NewA3M3Step2Body({
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
-                fontSize: 17,
+                fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                 color: "var(--na1-text)",
                 marginBottom: 10,
               }}
@@ -41666,9 +41691,9 @@ function NewA3M3Step2Body({
             {t.verdict === "critic" && (
               <div style={{ marginTop: 11 }}>
                 <div
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 14,
+                    fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                     color: "var(--burgundy)",
                     marginBottom: 6,
                   }}
@@ -41704,11 +41729,11 @@ function NewA3M3Step2Body({
           Step back from the lines above. Taken together, what's this voice like?
         </label>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
-            color: "var(--na1-text-mute)",
-            lineHeight: 1.55,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+            color: "var(--na1-text-sec)",
+            lineHeight: "max(var(--b-lh), 1.55)",
             margin: "2px 0 8px",
           }}
         >
@@ -41755,11 +41780,11 @@ function NewA3M3Step2Body({
           Now name the voice that's on your side.
         </label>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
-            color: "var(--na1-text-mute)",
-            lineHeight: 1.5,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+            color: "var(--na1-text-sec)",
+            lineHeight: "max(var(--b-lh), 1.5)",
             margin: "2px 0 4px",
           }}
         >
@@ -41768,11 +41793,11 @@ function NewA3M3Step2Body({
           you. <em>Name the voice that would.</em>
         </p>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
-            fontSize: 14,
-            color: "var(--na1-text-mute)",
+            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
+            color: "var(--na1-text-sec)",
             marginBottom: 10,
           }}
         >
@@ -41886,10 +41911,10 @@ function NewA3M3ClaimBody({
     <div style={{ margin: "0 0 18px" }}>
       {voiceNow.trim() !== "" && (
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
-            fontSize: 17,
+            fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
             color: "var(--burgundy)",
             margin: "0 0 4px",
           }}
@@ -41899,10 +41924,10 @@ function NewA3M3ClaimBody({
       )}
       {voiceWant.trim() !== "" && (
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
-            fontSize: 17,
+            fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
             color: "var(--gold-text)",
             margin: 0,
           }}
@@ -42565,7 +42590,7 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
             textAnchor="middle"
             fontSize={s + 2}
             fontWeight={700}
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fill: stroke,
               pointerEvents: "none",
               fontFamily: "var(--f-body)",
@@ -42640,7 +42665,7 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
           never hidden below the fold on mobile. */}
       <div
         ref={panelRef}
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           display: "flex",
           alignItems: "center",
           justifyContent: selItem ? "space-between" : "center",
@@ -42656,14 +42681,14 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
           background: "var(--na1-bg-soft)",
           fontFamily: "var(--f-body)",
           fontStyle: selItem ? "normal" : "italic",
-          fontSize: 16,
+          fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
           color: selItem ? "var(--na1-text)" : "var(--na1-text-mute)",
         }}
         aria-live="polite"
       >
         {selItem ? (
           <>
-            <span style={{ fontFamily: "var(--f-body)", fontSize: 17 }}>
+            <span style={{ fontWeight: "var(--b-w)", fontFamily: "var(--f-body)", fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))" }}>
               {selItem.kind === "thought"
                 ? `“${selItem.label}”`
                 : selItem.label}
@@ -42672,7 +42697,7 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
               <span
                 style={{
                   fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
@@ -42687,7 +42712,7 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
               <span
                 style={{
                   fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
@@ -42708,14 +42733,14 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
       {/* Single horizontal stats line — count + word + %, colour-coded. Each
           count is followed by a word, so nothing reads as a decimal. */}
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           display: "flex",
           flexWrap: "wrap",
           gap: "2px 12px",
           alignItems: "baseline",
           margin: "0 0 14px",
           fontFamily: "var(--f-body)",
-          fontSize: 15,
+          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
         }}
       >
         <span style={{ color: "var(--gold-text)" }}>
@@ -42729,13 +42754,13 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
         </span>
       </div>
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           display: "flex",
           gap: 16,
           flexWrap: "wrap",
           fontFamily: "var(--f-body)",
-          fontSize: 14,
-          color: "var(--na1-text-mute)",
+          fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
+          color: "var(--na1-text-sec)",
           margin: "0 0 10px",
         }}
       >
@@ -42756,7 +42781,7 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
           className="na1-em-svg"
           onClick={onSvgTap}
           viewBox="0 0 400 400"
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             display: "block",
             width: "100%",
             maxWidth: 400,
@@ -42835,7 +42860,7 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
             y={CY + 5}
             textAnchor="middle"
             fontSize={14}
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fill: "var(--na1-text-sec)",
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
@@ -42883,16 +42908,16 @@ function NewA3M4ViewBody({ items }: { items: EMItem[] }) {
         ))}
       </div>
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           background: "var(--gold-soft)",
           borderLeft: "3px solid var(--gold)",
           borderRadius: "var(--na1-radius)",
           padding: "16px 18px",
           fontFamily: "var(--f-body)",
           fontStyle: "italic",
-          fontSize: 19,
+          fontSize: "max(var(--b-min), calc(19px + var(--b-bump)))",
           color: "var(--na1-text-sec)",
-          lineHeight: 1.6,
+          lineHeight: "max(var(--b-lh), 1.6)",
         }}
       >
         {items.length < 4
@@ -42979,7 +43004,7 @@ function NewA3M4ClaimBody({
       {openBucket === bucket && list.length > 0 && (
         <div
           role="tooltip"
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             position: "absolute",
             top: "calc(100% + 6px)",
             left: 0,
@@ -42994,9 +43019,9 @@ function NewA3M4ClaimBody({
             borderRadius: "var(--na1-radius)",
             boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
             fontFamily: "var(--f-body)",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--na1-text)",
-            lineHeight: 1.5,
+            lineHeight: "max(var(--b-lh), 1.5)",
             textAlign: "left",
           }}
         >
@@ -43406,7 +43431,7 @@ function NewA3M5FillBody({
         borderRadius: 40,
         cursor: "pointer",
         fontFamily: "var(--f-label)",
-        fontSize: 11,
+        fontSize: "max(var(--l-min), 11px)",
         fontWeight: 400,
         border: on ? "1px solid var(--gold)" : "1px solid var(--na1-border)",
         background: on ? "var(--gold-soft)" : "transparent",
@@ -43426,11 +43451,11 @@ function NewA3M5FillBody({
         that space — the one who actually fills that role for you right now.
       </p>
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
-          fontSize: 15,
-          lineHeight: 1.5,
-          color: "var(--na1-text-sec)",
+          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
+          lineHeight: "max(var(--b-lh), 1.5)",
+          color: "var(--na1-text)",
           margin: "0 0 18px",
         }}
       >
@@ -43442,7 +43467,7 @@ function NewA3M5FillBody({
 
       {/* Progress */}
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           background: "var(--na1-bg-soft)",
           border: "1px solid var(--na1-border)",
           borderRadius: 12,
@@ -43534,15 +43559,15 @@ function NewA3M5FillBody({
                 onChange={(e) => onDesc(i, e.target.value)}
                 placeholder="what this role is for…"
                 aria-label="Role description"
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   width: "100%",
                   background: "transparent",
                   border: "none",
-                  color: "var(--na1-text-mute)",
+                  color: "var(--na1-text-sec)",
                   fontFamily: "var(--f-body)",
                   fontStyle: "italic",
-                  fontSize: 13.5,
-                  lineHeight: 1.4,
+                  fontSize: "max(var(--b-min), calc(13.5px + var(--b-bump)))",
+                  lineHeight: "max(var(--b-lh), 1.4)",
                   marginTop: 6,
                   outline: "none",
                 }}
@@ -43582,9 +43607,9 @@ function NewA3M5FillBody({
                   {advPool.length ? (
                     <>
                       <div
-                        style={{
-                          fontSize: 13,
-                          color: "var(--na1-text-mute)",
+                        style={{ fontWeight: "var(--b-w)",
+                          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
+                          color: "var(--na1-text-sec)",
                           marginBottom: 6,
                           fontFamily: "var(--f-body)",
                         }}
@@ -43612,7 +43637,7 @@ function NewA3M5FillBody({
                               }}
                               style={{
                                 fontFamily: "var(--f-label)",
-                                fontSize: 11,
+                                fontSize: "max(var(--l-min), 11px)",
                                 fontWeight: 400,
                                 padding: "6px 11px",
                                 borderRadius: 40,
@@ -43634,9 +43659,9 @@ function NewA3M5FillBody({
                     </>
                   ) : (
                     <div
-                      style={{
-                        fontSize: 13,
-                        color: "var(--na1-text-mute)",
+                      style={{ fontWeight: "var(--b-w)",
+                        fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
+                        color: "var(--na1-text-sec)",
                         marginBottom: 8,
                         fontStyle: "italic",
                         fontFamily: "var(--f-body)",
@@ -43657,7 +43682,7 @@ function NewA3M5FillBody({
                         }
                       }
                     }}
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       width: "100%",
                       background: "var(--na1-bg-card)",
                       border: "1px solid var(--na1-border)",
@@ -43665,7 +43690,7 @@ function NewA3M5FillBody({
                       padding: "7px 9px",
                       color: "var(--na1-text)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 14,
+                      fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                       outline: "none",
                     }}
                   />
@@ -43673,13 +43698,13 @@ function NewA3M5FillBody({
                     <button
                       type="button"
                       onClick={() => onClear(i)}
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         marginTop: 7,
                         background: "transparent",
                         border: "none",
-                        color: "var(--na1-text-mute)",
+                        color: "var(--na1-text-sec)",
                         fontFamily: "var(--f-body)",
-                        fontSize: 13,
+                        fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                         cursor: "pointer",
                       }}
                     >
@@ -43957,7 +43982,7 @@ function NewA3M5ClaimBody({
   };
   const sRow = (label: string, value: string, color: string, last?: boolean) => (
     <div
-      style={{
+      style={{ fontWeight: "var(--b-w)",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
@@ -43965,7 +43990,7 @@ function NewA3M5ClaimBody({
         padding: "10px 0",
         borderBottom: last ? "none" : "1px solid var(--na1-border)",
         fontFamily: "var(--f-body)",
-        fontSize: 16,
+        fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
         color,
       }}
     >
@@ -44481,11 +44506,11 @@ function NewA3M6PickBody({
       <div
         style={{
           fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: "0.16em",
           textTransform: "uppercase",
-          color: "var(--na1-text-mute)",
+          color: "var(--na1-text-sec)",
           marginBottom: 10,
         }}
       >
@@ -44502,7 +44527,7 @@ function NewA3M6PickBody({
                 type="button"
                 key={it.id}
                 onClick={() => onSelect(it.label)}
-                style={{
+                style={{ fontWeight: 400,
                   width: "100%",
                   textAlign: "left",
                   display: "flex",
@@ -44552,10 +44577,10 @@ function NewA3M6PickBody({
         </div>
       ) : (
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
-            fontSize: 16,
+            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
             color: "var(--na1-text-sec)",
             margin: "10px 0 0",
           }}
@@ -44573,7 +44598,7 @@ function NewA3M6PickBody({
             style={{
               cursor: "pointer",
               fontFamily: "var(--f-label)",
-              fontSize: 12.5,
+              fontSize: "max(var(--l-min), 12.5px)",
               fontWeight: 400,
               color: "var(--na1-text-sec)",
               listStyle: "none",
@@ -44604,9 +44629,9 @@ function NewA3M6PickBody({
                 }}
               >
                 <span
-                  style={{
+                  style={{ fontWeight: "var(--b-w)",
                     fontFamily: "var(--f-body)",
-                    fontSize: 15,
+                    fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                     color: "var(--na1-text)",
                     overflowWrap: "anywhere",
                   }}
@@ -44617,11 +44642,11 @@ function NewA3M6PickBody({
                   style={{
                     flexShrink: 0,
                     fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--l-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
-                    color: "var(--na1-text-mute)",
+                    color: "var(--na1-text-sec)",
                   }}
                 >
                   {r.tag}
@@ -44638,7 +44663,7 @@ function NewA3M6PickBody({
                 padding: 0,
                 color: "var(--gold-text)",
                 fontFamily: "var(--f-label)",
-                fontSize: 12.5,
+                fontSize: "max(var(--l-min), 12.5px)",
                 fontWeight: 400,
                 cursor: "pointer",
               }}
@@ -44667,11 +44692,11 @@ function NewA3M6BottleneckBody({
       <div
         style={{
           fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: "0.16em",
           textTransform: "uppercase",
-          color: "var(--na1-text-mute)",
+          color: "var(--na1-text-sec)",
           marginBottom: 10,
         }}
       >
@@ -44693,7 +44718,7 @@ function NewA3M6BottleneckBody({
                 type="button"
                 key={c.lane}
                 onClick={() => onStar(c.lane)}
-                style={{
+                style={{ fontWeight: 400,
                   width: "100%",
                   textAlign: "left",
                   display: "flex",
@@ -44720,11 +44745,11 @@ function NewA3M6BottleneckBody({
                   <span
                     style={{ fontFamily: "var(--f-label)",
                       display: "block",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: "0.1em",
                       textTransform: "uppercase",
-                      color: "var(--na1-text-mute)",
+                      color: "var(--na1-text-sec)",
                       marginBottom: 2,
                     }}
                   >
@@ -44741,10 +44766,10 @@ function NewA3M6BottleneckBody({
         </div>
       ) : (
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
-            fontSize: 16,
+            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
             color: "var(--na1-text-sec)",
             margin: "10px 0 0",
           }}
@@ -44812,14 +44837,14 @@ function NewA3M6ClaimBody({
     >
       {focus ? (
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             gap: 12,
             padding: "10px 0",
             fontFamily: "var(--f-body)",
-            fontSize: 16,
+            fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
             color: "var(--gold-text)",
           }}
         >
@@ -44832,11 +44857,11 @@ function NewA3M6ClaimBody({
         </div>
       ) : (
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             padding: "10px 0",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
-            fontSize: 15,
+            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
             color: "var(--na1-text-sec)",
           }}
         >
@@ -44848,11 +44873,11 @@ function NewA3M6ClaimBody({
           <div
             style={{
               fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: "var(--na1-text-mute)",
+              color: "var(--na1-text-sec)",
               margin: "16px 0 8px",
             }}
           >
@@ -44861,7 +44886,7 @@ function NewA3M6ClaimBody({
           {waiting.map((w) => (
             <div
               key={w.lane}
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -44869,8 +44894,8 @@ function NewA3M6ClaimBody({
                 padding: "10px 0",
                 borderTop: "1px solid var(--na1-border)",
                 fontFamily: "var(--f-body)",
-                fontSize: 16,
-                color: "var(--na1-text-sec)",
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
+                color: "var(--na1-text)",
               }}
             >
               <span>{moveLaneName(w.lane)}</span>
@@ -46374,7 +46399,7 @@ function NewA1M3HubView({
         <h1 className="na1-ex-title">Identity · Your Gifts &amp; Shadows</h1>
         <p
           className="na1-ex-sub"
-          style={{ fontStyle: "italic", fontFamily: "var(--f-body)" }}
+          style={{ fontWeight: "var(--b-w)", fontStyle: "italic", fontFamily: "var(--f-body)" }}
         >
           Five themes. Three creatures. One claimed self.
         </p>
@@ -47509,7 +47534,7 @@ function NewA1M4RoomPlaceholderBody({ room }: { room: M4Room }) {
         }}
       >
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
             fontSize: "22px",
@@ -47519,10 +47544,10 @@ function NewA1M4RoomPlaceholderBody({ room }: { room: M4Room }) {
           Coming in Section {n}
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontSize: "13px",
-            color: "var(--na1-text-mute)",
+            color: "var(--na1-text-sec)",
           }}
         >
           This room's body lands in the next Mirror 4 ship.
@@ -47621,7 +47646,7 @@ function NewA1M4HubView({
         <h1 className="na1-ex-title">Values · The Order You Live By</h1>
         <p
           className="na1-ex-sub"
-          style={{ fontStyle: "italic", fontFamily: "var(--f-body)" }}
+          style={{ fontWeight: "var(--b-w)", fontStyle: "italic", fontFamily: "var(--f-body)" }}
         >
           A step-by-step climb. Three to five values. One decision filter.
         </p>
@@ -49628,7 +49653,7 @@ function NewA1M4ClaimBody({
   })();
 
   const goldSpan: React.CSSProperties = { color: "var(--gold-text)" };
-  const goldSerif: React.CSSProperties = {
+  const goldSerif: React.CSSProperties = { fontWeight: "var(--b-w)",
     color: "var(--gold-text)",
     fontFamily: "var(--f-body)",
   };
@@ -49636,11 +49661,11 @@ function NewA1M4ClaimBody({
     color: "var(--gold-text)",
     fontStyle: "italic",
   };
-  const beatP: React.CSSProperties = {
+  const beatP: React.CSSProperties = { fontWeight: "var(--b-w)",
     fontFamily: "var(--f-body)",
     fontStyle: "italic",
     fontSize: "20px",
-    lineHeight: 1.7,
+    lineHeight: "max(var(--b-lh), 1.7)",
     maxWidth: "540px",
     margin: "0 auto 20px",
     textAlign: "center",
@@ -49844,11 +49869,11 @@ function NewA1M4ClaimBody({
 
       {/* Foot line. */}
       <p
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           fontFamily: "var(--f-body)",
           fontStyle: "italic",
           fontSize: "13px",
-          color: "var(--na1-text-mute)",
+          color: "var(--na1-text-sec)",
           textAlign: "center",
           margin: "20px auto 14px",
           maxWidth: "420px",
@@ -49867,7 +49892,7 @@ function NewA1M4ClaimBody({
           <button
             type="button"
             onClick={onEditValues}
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               background: "transparent",
               border: "0",
               padding: 0,
@@ -49888,7 +49913,7 @@ function NewA1M4ClaimBody({
         <button
           type="button"
           onClick={onCloseRoom}
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             background: "transparent",
             border: "0",
             padding: 0,
@@ -52033,11 +52058,11 @@ function NewA1M3ShapeView({
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div
-                            style={{ fontFamily: "var(--f-label)",
-                              fontSize: 11,
+                            style={{ fontWeight: 400, fontFamily: "var(--f-label)",
+                              fontSize: "max(var(--l-min), 11px)",
                               letterSpacing: ".08em",
                               textTransform: "uppercase",
-                              color: "var(--na1-text-mute)",
+                              color: "var(--na1-text-sec)",
                               padding: "4px 8px 2px",
                             }}
                           >
@@ -52048,12 +52073,12 @@ function NewA1M3ShapeView({
                               key={dest.id}
                               type="button"
                               onClick={() => moveChip(g.id, c.id, dest.id)}
-                              style={{
+                              style={{ fontWeight: 400,
                                 background: "transparent",
                                 border: "none",
                                 color: "var(--na1-text)",
                                 fontFamily: "var(--f-label)",
-                                fontSize: 12.5,
+                                fontSize: "max(var(--l-min), 12.5px)",
                                 padding: "6px 8px",
                                 cursor: "pointer",
                                 textAlign: "left",
@@ -52066,12 +52091,12 @@ function NewA1M3ShapeView({
                           <button
                             type="button"
                             onClick={() => setMovingGift(null)}
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               background: "transparent",
                               border: "none",
-                              color: "var(--na1-text-mute)",
+                              color: "var(--na1-text-sec)",
                               fontFamily: "var(--f-body)",
-                              fontSize: 13.5,
+                              fontSize: "max(var(--b-min), calc(13.5px + var(--b-bump)))",
                               padding: "4px 8px",
                               cursor: "pointer",
                               textAlign: "left",
@@ -52215,8 +52240,8 @@ function NewA1M3ShapeView({
                     </span>
                     {isCurrent && (
                       <span
-                        style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                        style={{ fontWeight: 400, fontFamily: "var(--f-label)",
+                          fontSize: "max(var(--l-min), 11px)",
                           color: "var(--gold-text)",
                           letterSpacing: ".08em",
                           textTransform: "uppercase",
@@ -52522,10 +52547,10 @@ function NewA1M3UnderPressureView({
     return (
       <div className={`m3-under ${embedded ? "is-embedded" : ""}`}>
         <p
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
             fontStyle: "italic",
-            color: "var(--na1-text-mute)",
+            color: "var(--na1-text-sec)",
             textAlign: "center",
             padding: 40,
           }}
@@ -53438,9 +53463,9 @@ function A1({ intake, onDone, phase, setPhase }) {
           True Ownership™
         </div>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 14,
+            fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
             color: "var(--text4)",
           }}
         >
@@ -53466,9 +53491,9 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           />
           <span
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 13,
+              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
               color: "#6BA2A9",
             }}
           >
@@ -53513,7 +53538,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                 <span
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: 13,
+                    fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                     color: isActive ? "var(--warm)" : "var(--text4)",
                     fontWeight: isActive ? 700 : 500,
                   }}
@@ -53544,7 +53569,7 @@ function A1({ intake, onDone, phase, setPhase }) {
     >
       <div
         style={{
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 2,
           textTransform: "uppercase",
@@ -53621,7 +53646,7 @@ function A1({ intake, onDone, phase, setPhase }) {
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -53681,9 +53706,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                 }}
               />
               <span
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 13,
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "#6BA2A9",
                 }}
               >
@@ -53706,9 +53731,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                 }}
               />
               <span
-                style={{
+                style={{ fontWeight: "var(--b-w)",
                   fontFamily: "var(--f-body)",
-                  fontSize: 13,
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   color: "var(--text4)",
                 }}
               >
@@ -53718,9 +53743,9 @@ function A1({ intake, onDone, phase, setPhase }) {
           )}
         </div>
         <span
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 13,
+            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
             color: "var(--text4)",
           }}
         >
@@ -53932,7 +53957,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           />
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: "0.24em",
               textTransform: "uppercase",
               color: "#CDB48E",
@@ -53949,7 +53974,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               fontWeight: 600,
               color: "#fff",
               marginBottom: 8,
-              lineHeight: 1.1,
+              lineHeight: "max(var(--b-lh), 1.1)",
             }}
           >
             True Ownership™
@@ -54007,7 +54032,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             <span
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 13,
+                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                 fontWeight: 600,
                 color: "#CDB48E",
                 borderBottom: "1px solid rgba(186,117,23,0.5)",
@@ -54088,13 +54113,13 @@ function A1({ intake, onDone, phase, setPhase }) {
             >
               <button
                 onClick={toggleAllRows}
-                style={{
+                style={{ fontWeight: 400,
                   background: "transparent",
                   border: "1px solid var(--border2)",
                   borderRadius: 6,
                   padding: "5px 11px",
                   fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   color: "var(--text3)",
                   cursor: "pointer",
                   letterSpacing: "0.04em",
@@ -54167,7 +54192,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           <div
             style={{ fontFamily: "var(--f-label)",
               textAlign: "center",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               letterSpacing: "0.18em",
               textTransform: "uppercase",
               color: "var(--text3)",
@@ -54418,7 +54443,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                       <div
                         style={{
                           fontFamily: "var(--f-body)",
-                          fontSize: 16,
+                          fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                           fontWeight: 600,
                           color: "#CDB48E",
                           minWidth: 22,
@@ -54430,7 +54455,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             letterSpacing: "0.14em",
                             textTransform: "uppercase",
                             color: "var(--text3)",
@@ -54441,12 +54466,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                           {row.o.lens}
                         </div>
                         <div
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             fontFamily: "var(--f-body)",
-                            fontSize: 13,
+                            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                             fontStyle: "italic",
                             color: "var(--text)",
-                            lineHeight: 1.35,
+                            lineHeight: "max(var(--b-lh), 1.35)",
                           }}
                         >
                           {row.o.hook}
@@ -54537,7 +54562,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                         fontFamily: "var(--f-body)",
                         fontSize: "1.5rem",
                         fontWeight: 600,
-                        lineHeight: 1,
+                        lineHeight: "max(var(--b-lh), 1)",
                         color: row.numCol,
                       }}
                     >
@@ -54545,7 +54570,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                     </div>
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: "0.12em",
                         textTransform: "uppercase",
@@ -54631,7 +54656,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                       <div
                         style={{
                           fontFamily: "var(--f-body)",
-                          fontSize: 16,
+                          fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                           fontWeight: 600,
                           color: "#6BA2A9",
                           minWidth: 22,
@@ -54643,7 +54668,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             letterSpacing: "0.14em",
                             textTransform: "uppercase",
                             color: "var(--text3)",
@@ -54654,12 +54679,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                           {row.b.lens}
                         </div>
                         <div
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             fontFamily: "var(--f-body)",
-                            fontSize: 13,
+                            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                             fontStyle: "italic",
                             color: "var(--text)",
-                            lineHeight: 1.35,
+                            lineHeight: "max(var(--b-lh), 1.35)",
                           }}
                         >
                           {row.b.hook}
@@ -54727,7 +54752,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             marginTop: 28,
             marginBottom: 10,
             textAlign: "center",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             letterSpacing: "0.22em",
             textTransform: "uppercase",
             color: "var(--text3)",
@@ -54758,7 +54783,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
                 color: "#B0CCDA",
@@ -54771,7 +54796,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             <div
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 20,
+                fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
                 fontWeight: 600,
                 marginBottom: 8,
                 letterSpacing: "0.03em",
@@ -54805,7 +54830,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
@@ -54818,9 +54843,9 @@ function A1({ intake, onDone, phase, setPhase }) {
               <div
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontSize: 13,
+                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                   fontWeight: 600,
-                  lineHeight: 1.2,
+                  lineHeight: "max(var(--b-lh), 1.2)",
                 }}
               >
                 True Ownership
@@ -54841,7 +54866,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
                 color: "#9FE5C4",
@@ -54854,7 +54879,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             <div
               style={{
                 fontFamily: "var(--f-body)",
-                fontSize: 20,
+                fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
                 fontWeight: 600,
                 marginBottom: 8,
                 letterSpacing: "0.03em",
@@ -54958,7 +54983,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -54970,12 +54995,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             Before we start -- one principle
           </div>
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 17,
+              fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
               fontStyle: "italic",
               color: "var(--text)",
-              lineHeight: 1.85,
+              lineHeight: "max(var(--b-lh), 1.85)",
               marginBottom: 10,
             }}
           >
@@ -55012,7 +55037,7 @@ function A1({ intake, onDone, phase, setPhase }) {
         >
           <div
             style={{
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -55166,7 +55191,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   </div>
                   <span
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: isActive ? 700 : 400,
                       color: isActive
                         ? "var(--warm)"
@@ -55250,12 +55275,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               "When I ask people what their purpose is, they usually say their
@@ -55452,7 +55477,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   <div
                     style={{
                       fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 2,
                       textTransform: "uppercase",
@@ -55469,11 +55494,11 @@ function A1({ intake, onDone, phase, setPhase }) {
               <div
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontSize: 20,
+                  fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
                   fontStyle: "italic",
                   fontWeight: 300,
                   color: "var(--text)",
-                  lineHeight: 1.7,
+                  lineHeight: "max(var(--b-lh), 1.7)",
                   marginBottom: 14,
                 }}
               >
@@ -55493,7 +55518,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               )}
               <button
                 onClick={() => set("mirror1_sub", "purpose")}
-                style={{
+                style={{ fontWeight: 400,
                   marginTop: 12,
                   background: "none",
                   border: "1px solid rgba(165,135,94,.3)",
@@ -55501,7 +55526,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   color: "var(--warm)",
                   cursor: "pointer",
                   fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   padding: "5px 13px",
                 }}
               >
@@ -55572,7 +55597,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   <div
                     style={{
                       fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 2,
                       textTransform: "uppercase",
@@ -55594,7 +55619,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                 <div style={{ marginBottom: 12 }}>
                   <div
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
@@ -55605,12 +55630,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                     Time
                   </div>
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "var(--warm)",
-                      lineHeight: 1.6,
+                      lineHeight: "max(var(--b-lh), 1.6)",
                     }}
                   >
                     "{map.time_summary}"
@@ -55622,7 +55647,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                 <div style={{ marginBottom: 12 }}>
                   <div
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
@@ -55678,7 +55703,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                         <div
                           style={{
                             fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--l-min), 11px)",
                             fontWeight: 400,
                             color: "var(--warm)",
                             letterSpacing: 0.5,
@@ -55690,12 +55715,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                         </div>
                         {area.goal ? (
                           <div
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               fontFamily: "var(--f-body)",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               fontStyle: "italic",
                               color: "var(--text2)",
-                              lineHeight: 1.5,
+                              lineHeight: "max(var(--b-lh), 1.5)",
                             }}
                           >
                             {area.goal}
@@ -55721,7 +55746,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                 <div style={{ marginBottom: 12 }}>
                   <div
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
@@ -55732,12 +55757,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                     Wealth
                   </div>
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "#6BA2A9",
-                      lineHeight: 1.6,
+                      lineHeight: "max(var(--b-lh), 1.6)",
                     }}
                   >
                     "{map.wealth_summary}"
@@ -55749,7 +55774,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                 <div style={{ marginBottom: 12 }}>
                   <div
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
@@ -55760,12 +55785,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                     Growth
                   </div>
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "#B0CCDA",
-                      lineHeight: 1.6,
+                      lineHeight: "max(var(--b-lh), 1.6)",
                     }}
                   >
                     "{map.growth_summary || map.bag_growth.slice(0, 120)}
@@ -55778,7 +55803,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               )}
               <button
                 onClick={() => set("mirror1_sub", "direction")}
-                style={{
+                style={{ fontWeight: 400,
                   marginTop: 4,
                   background: "none",
                   border: "1px solid rgba(176,204,218,.3)",
@@ -55786,7 +55811,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   color: "var(--accent)",
                   cursor: "pointer",
                   fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--l-min), 11px)",
                   padding: "5px 13px",
                 }}
               >
@@ -55857,7 +55882,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 2,
                   textTransform: "uppercase",
@@ -56184,9 +56209,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                   }}
                 >
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "var(--warm)",
                     }}
@@ -56220,12 +56245,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                   >
                     {sec.sentence ? (
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 13,
+                          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--text3)",
-                          lineHeight: 1.6,
+                          lineHeight: "max(var(--b-lh), 1.6)",
                           marginBottom: 14,
                         }}
                       >
@@ -56611,7 +56636,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 2,
                   textTransform: "uppercase",
@@ -56624,10 +56649,10 @@ function A1({ intake, onDone, phase, setPhase }) {
               <div
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontSize: 17,
-                  fontWeight: 400,
+                  fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+                  fontWeight: "var(--b-w)",
                   color: "var(--text)",
-                  lineHeight: 1.7,
+                  lineHeight: "max(var(--b-lh), 1.7)",
                   marginBottom: 9,
                 }}
               >
@@ -56654,7 +56679,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               >
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -56800,7 +56825,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   </div>
                   <span
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: isActive ? 700 : 400,
                       color: isActive
                         ? "var(--warm)"
@@ -57010,12 +57035,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               "You are the authority on your own identity. Write your qualities
@@ -57068,14 +57093,14 @@ function A1({ intake, onDone, phase, setPhase }) {
               />
               <button
                 onClick={() => addQualityChip(chipInput)}
-                style={{
+                style={{ fontWeight: 400,
                   background: "var(--bg3)",
                   border: "1px solid var(--border2)",
                   borderRadius: 8,
                   color: "var(--warm)",
                   cursor: "pointer",
                   fontFamily: "var(--f-label)",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   padding: "0 16px",
                   flexShrink: 0,
                 }}
@@ -57245,7 +57270,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                 >
                   <div
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--e-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1.5,
                       textTransform: "uppercase",
@@ -57304,10 +57329,10 @@ function A1({ intake, onDone, phase, setPhase }) {
                     </div>
                     {adj1 && adj2 && a.name && (
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           marginTop: 7,
                           fontFamily: "var(--f-body)",
-                          fontSize: 14,
+                          fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--warm)",
                         }}
@@ -57386,7 +57411,7 @@ function A1({ intake, onDone, phase, setPhase }) {
           >
             <div
               style={{ fontFamily: "var(--f-label)",
-                fontSize: 11,
+                fontSize: "max(var(--e-min), 11px)",
                 fontWeight: 400,
                 letterSpacing: 1.5,
                 textTransform: "uppercase",
@@ -57420,14 +57445,14 @@ function A1({ intake, onDone, phase, setPhase }) {
                     `You are a mirror -- not an authority. ${name} has written these qualities: "${qualityList}". Their 3 animals are: ${animalNames}. Suggest how to sort the qualities to each animal -- 3 to 5 per animal. Explain briefly why each grouping makes sense. Respond ONLY with valid JSON, no other text: {"animal1":{"name":"...","qualities":["..."],"reason":"..."},"animal2":{"name":"...","qualities":["..."],"reason":"..."},"animal3":{"name":"...","qualities":["..."],"reason":"..."}}`,
                   );
                 }}
-                style={{
+                style={{ fontWeight: 400,
                   background: "none",
                   border: "1px solid rgba(165,135,94,.3)",
                   borderRadius: 20,
                   color: "var(--warm)",
                   cursor: "pointer",
                   fontFamily: "var(--f-label)",
-                  fontSize: 12,
+                  fontSize: "max(var(--l-min), 12px)",
                   padding: "7px 16px",
                 }}
               >
@@ -57469,7 +57494,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                       <div
                         style={{
                           fontFamily: "var(--f-label)",
-                          fontSize: 12,
+                          fontSize: "max(var(--l-min), 12px)",
                           fontWeight: 400,
                           color: "var(--warm)",
                           marginBottom: 5,
@@ -57515,7 +57540,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                 )}
                 <button
                   onClick={applyAISuggestions}
-                  style={{
+                  style={{ fontWeight: 400,
                     marginTop: 6,
                     background: "none",
                     border: "1px solid rgba(107,162,169,.4)",
@@ -57523,7 +57548,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                     color: "#6BA2A9",
                     cursor: "pointer",
                     fontFamily: "var(--f-label)",
-                    fontSize: 12,
+                    fontSize: "max(var(--l-min), 12px)",
                     padding: "7px 16px",
                   }}
                 >
@@ -57596,12 +57621,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               "The examples are the most important part. They are your evidence
@@ -57748,12 +57773,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.5,
+                lineHeight: "max(var(--b-lh), 1.5)",
               }}
             >
               "This is the most important question in this section. Not who you
@@ -57797,9 +57822,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                   }}
                 >
                   <span
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "var(--warm)",
                     }}
@@ -57917,7 +57942,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                           {supChips.length > 0 && (
                             <div
                               style={{ fontFamily: "var(--f-label)",
-                                fontSize: 11,
+                                fontSize: "max(var(--e-min), 11px)",
                                 fontWeight: 400,
                                 letterSpacing: 1.5,
                                 textTransform: "uppercase",
@@ -57940,8 +57965,8 @@ function A1({ intake, onDone, phase, setPhase }) {
                               {supChips.map((w: string) => (
                                 <span
                                   key={w}
-                                  style={{
-                                    fontSize: 13,
+                                  style={{ fontWeight: "var(--b-w)",
+                                    fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                     padding: "3px 10px",
                                     borderRadius: 20,
                                     background: "rgba(165,135,94,.15)",
@@ -58008,11 +58033,11 @@ function A1({ intake, onDone, phase, setPhase }) {
                                         : [...detChips, word],
                                     )
                                   }
-                                  style={{
+                                  style={{ fontWeight: 400,
                                     display: "inline-flex",
                                     alignItems: "center",
                                     gap: 4,
-                                    fontSize: 11,
+                                    fontSize: "max(var(--l-min), 11px)",
                                     padding: "3px 10px",
                                     borderRadius: 20,
                                     border: `1px solid ${on ? "rgba(182,140,140,.6)" : "var(--border2)"}`,
@@ -58055,11 +58080,11 @@ function A1({ intake, onDone, phase, setPhase }) {
                               .map((word: string) => (
                                 <button
                                   key={word}
-                                  style={{
+                                  style={{ fontWeight: 400,
                                     display: "inline-flex",
                                     alignItems: "center",
                                     gap: 4,
-                                    fontSize: 11,
+                                    fontSize: "max(var(--l-min), 11px)",
                                     padding: "3px 10px",
                                     borderRadius: 20,
                                     border: "1px solid rgba(182,140,140,.6)",
@@ -58111,9 +58136,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                                 }
                               }}
                               placeholder="Add a word…"
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 flex: 1,
-                                fontSize: 13,
+                                fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                 padding: "4px 9px",
                                 borderRadius: 6,
                                 border: "1px solid var(--border2)",
@@ -58132,8 +58157,8 @@ function A1({ intake, onDone, phase, setPhase }) {
                                   set(detInputKey, "");
                                 }
                               }}
-                              style={{
-                                fontSize: 11,
+                              style={{ fontWeight: 400,
+                                fontSize: "max(var(--l-min), 11px)",
                                 padding: "4px 10px",
                                 borderRadius: 6,
                                 border: "1px solid rgba(165,135,94,.3)",
@@ -58272,9 +58297,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                   }}
                 >
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "var(--warm)",
                     }}
@@ -58318,7 +58343,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   >
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
@@ -58482,12 +58507,12 @@ function A1({ intake, onDone, phase, setPhase }) {
           }}
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 14,
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               fontStyle: "italic",
               color: "var(--text2)",
-              lineHeight: 1.7,
+              lineHeight: "max(var(--b-lh), 1.7)",
             }}
           >
             "We are so reliant on others telling us who we are without exploring
@@ -58675,7 +58700,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   </div>
                   <span
                     style={{ fontFamily: "var(--f-label)",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: isActive ? 700 : 400,
                       color: isActive
                         ? "var(--warm)"
@@ -58763,12 +58788,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               "Your values are discovered, not invented. We find them through
@@ -58785,12 +58810,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               "What irritates you most in others is often what you refuse to
@@ -58849,7 +58874,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                     >
                       <span
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 1.5,
                           textTransform: "uppercase",
@@ -59060,7 +59085,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                               color: "var(--warm)",
                               cursor: "pointer",
                               fontFamily: "var(--f-label)",
-                              fontSize: 12,
+                              fontSize: "max(var(--l-min), 12px)",
                               fontWeight: 400,
                               padding: "7px 12px",
                               marginBottom: 14,
@@ -59076,13 +59101,13 @@ function A1({ intake, onDone, phase, setPhase }) {
                               set(`val_${i}_stomp_done`, false);
                               set(`val_${i}_gives_done`, false);
                             }}
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               background: "none",
                               border: "none",
                               color: "var(--text4)",
                               cursor: "pointer",
                               fontFamily: "var(--f-body)",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               padding: 0,
                               marginBottom: 14,
                               textDecoration: "underline",
@@ -59137,7 +59162,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                               color: "var(--warm)",
                               cursor: "pointer",
                               fontFamily: "var(--f-label)",
-                              fontSize: 12,
+                              fontSize: "max(var(--l-min), 12px)",
                               fontWeight: 400,
                               padding: "7px 12px",
                               marginBottom: 14,
@@ -59149,13 +59174,13 @@ function A1({ intake, onDone, phase, setPhase }) {
                         {givesDone && (
                           <button
                             onClick={() => set(`val_${i}_gives_done`, false)}
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               background: "none",
                               border: "none",
                               color: "var(--text4)",
                               cursor: "pointer",
                               fontFamily: "var(--f-body)",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               padding: 0,
                               marginBottom: 14,
                               textDecoration: "underline",
@@ -59230,7 +59255,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                                   setBusy((b) => ({ ...b, [sumKey]: false }));
                                 }}
                                 disabled={!!busy[`valSum_${i}`]}
-                                style={{
+                                style={{ fontWeight: "var(--b-w)",
                                   background: "none",
                                   border: "1px solid var(--border2)",
                                   borderRadius: 5,
@@ -59239,7 +59264,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                                     ? "wait"
                                     : "pointer",
                                   fontFamily: "var(--f-body)",
-                                  fontSize: 13,
+                                  fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                   padding: "4px 9px",
                                   flexShrink: 0,
                                   whiteSpace: "nowrap",
@@ -59285,7 +59310,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                                 >
                                   <div
                                     style={{ fontFamily: "var(--f-label)",
-                                      fontSize: 11,
+                                      fontSize: "max(var(--e-min), 11px)",
                                       fontWeight: 400,
                                       letterSpacing: 1.5,
                                       textTransform: "uppercase",
@@ -59310,12 +59335,12 @@ function A1({ intake, onDone, phase, setPhase }) {
                                   </button>
                                 </div>
                                 <div
-                                  style={{
+                                  style={{ fontWeight: "var(--b-w)",
                                     fontFamily: "var(--f-body)",
                                     fontStyle: "italic",
-                                    fontSize: 13,
+                                    fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                                     color: "var(--text2)",
-                                    lineHeight: 1.7,
+                                    lineHeight: "max(var(--b-lh), 1.7)",
                                   }}
                                 >
                                   {map[`val_${i}_feedback`]}
@@ -59551,7 +59576,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                         >
                           <span
                             style={{ fontFamily: "var(--f-label)",
-                              fontSize: 11,
+                              fontSize: "max(var(--e-min), 11px)",
                               fontWeight: 400,
                               letterSpacing: 1.5,
                               textTransform: "uppercase",
@@ -59723,9 +59748,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                                 }
                               }}
                               placeholder="Type a bullet and press Enter..."
-                              style={{
+                              style={{ fontWeight: "var(--b-w)",
                                 width: "100%",
-                                fontSize: 15,
+                                fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                                 padding: "7px 10px",
                                 borderRadius: 6,
                                 border: "1px solid var(--border2)",
@@ -59770,14 +59795,14 @@ function A1({ intake, onDone, phase, setPhase }) {
                               setBusy((b) => ({ ...b, [busyKey]: false }));
                             }}
                             disabled={!!busy[busyKey]}
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               background: "none",
                               border: "1px solid var(--border2)",
                               borderRadius: 5,
                               color: "var(--warm)",
                               cursor: busy[busyKey] ? "wait" : "pointer",
                               fontFamily: "var(--f-body)",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               padding: "5px 11px",
                             }}
                           >
@@ -59802,7 +59827,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                     color: "var(--warm)",
                     cursor: "pointer",
                     fontFamily: "var(--f-label)",
-                    fontSize: 12,
+                    fontSize: "max(var(--l-min), 12px)",
                     fontWeight: 400,
                   }}
                 >
@@ -59905,12 +59930,12 @@ function A1({ intake, onDone, phase, setPhase }) {
             }}
           >
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 14,
+                fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
                 fontStyle: "italic",
                 color: "var(--text2)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               "Your values are never all equal. This is where you find out which
@@ -59925,7 +59950,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   <>
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
@@ -59961,7 +59986,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   <>
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
@@ -59994,13 +60019,13 @@ function A1({ intake, onDone, phase, setPhase }) {
                     </div>
                     <button
                       onClick={() => set("hier_phase", "rank")}
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         background: "none",
                         border: "none",
                         color: "var(--text4)",
                         cursor: "pointer",
                         fontFamily: "var(--f-body)",
-                        fontSize: 13,
+                        fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                         padding: 0,
                         marginBottom: 14,
                         textDecoration: "underline",
@@ -60089,8 +60114,8 @@ function A1({ intake, onDone, phase, setPhase }) {
                 <span
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: 18,
-                    fontWeight: 400,
+                    fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                    fontWeight: "var(--b-w)",
                     color: "var(--text3)",
                     flexShrink: 0,
                     width: 26,
@@ -60248,8 +60273,8 @@ function A1({ intake, onDone, phase, setPhase }) {
                     }}
                   >
                     <div
-                      style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                      style={{ fontWeight: 400, fontFamily: "var(--f-label)",
+                        fontSize: "max(var(--e-min), 11px)",
                         color: "var(--text4)",
                         letterSpacing: 1.2,
                         textTransform: "uppercase",
@@ -60388,14 +60413,14 @@ function A1({ intake, onDone, phase, setPhase }) {
                         </div>
                         <button
                           onClick={() => set("hier_test_stage", "primary")}
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             marginTop: 12,
                             background: "none",
                             border: "none",
                             color: "var(--text4)",
                             cursor: "pointer",
                             fontFamily: "var(--f-body)",
-                            fontSize: 13,
+                            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                             padding: 0,
                             textDecoration: "underline",
                           }}
@@ -60410,14 +60435,14 @@ function A1({ intake, onDone, phase, setPhase }) {
                           set("hier_test_idx", testIdx - 1);
                           set("hier_test_stage", "primary");
                         }}
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           marginTop: 12,
                           background: "none",
                           border: "none",
                           color: "var(--text4)",
                           cursor: "pointer",
                           fontFamily: "var(--f-body)",
-                          fontSize: 13,
+                          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                           padding: 0,
                           textDecoration: "underline",
                         }}
@@ -60481,8 +60506,8 @@ function A1({ intake, onDone, phase, setPhase }) {
                           <span
                             style={{
                               fontFamily: "var(--f-body)",
-                              fontSize: 20,
-                              fontWeight: 400,
+                              fontSize: "max(var(--b-min), calc(20px + var(--b-bump)))",
+                              fontWeight: "var(--b-w)",
                               color: "var(--warm)",
                               flexShrink: 0,
                               width: 26,
@@ -60525,13 +60550,13 @@ function A1({ intake, onDone, phase, setPhase }) {
                       set("hier_test_idx", 0);
                       set("hier_test_stage", "primary");
                     }}
-                    style={{
+                    style={{ fontWeight: 400,
                       background: "none",
                       border: "1px solid var(--border2)",
                       color: "var(--text3)",
                       cursor: "pointer",
                       fontFamily: "var(--f-label)",
-                      fontSize: 12,
+                      fontSize: "max(var(--l-min), 12px)",
                       padding: "8px 14px",
                       borderRadius: 6,
                     }}
@@ -60675,9 +60700,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                   }}
                 >
                   <div
-                    style={{
+                    style={{ fontWeight: "var(--b-w)",
                       fontFamily: "var(--f-body)",
-                      fontSize: 16,
+                      fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                       fontStyle: "italic",
                       color: "var(--warm)",
                     }}
@@ -60715,7 +60740,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                   >
                     <div
                       style={{ fontFamily: "var(--f-label)",
-                        fontSize: 11,
+                        fontSize: "max(var(--e-min), 11px)",
                         fontWeight: 400,
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
@@ -60908,7 +60933,7 @@ function A1({ intake, onDone, phase, setPhase }) {
             >
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 2,
                   textTransform: "uppercase",
@@ -60921,10 +60946,10 @@ function A1({ intake, onDone, phase, setPhase }) {
               <div
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontSize: 17,
-                  fontWeight: 400,
+                  fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+                  fontWeight: "var(--b-w)",
                   color: "var(--text)",
-                  lineHeight: 1.7,
+                  lineHeight: "max(var(--b-lh), 1.7)",
                   marginBottom: 9,
                 }}
               >
@@ -60951,7 +60976,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               >
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -61225,7 +61250,7 @@ function A1({ intake, onDone, phase, setPhase }) {
               <div
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontSize: 18,
+                  fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
                   fontWeight: 300,
                   color: col,
                   flexShrink: 0,
@@ -61444,9 +61469,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                       }}
                     >
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--warm)",
                         }}
@@ -61498,9 +61523,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                       }}
                     >
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--warm)",
                         }}
@@ -61552,9 +61577,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                       }}
                     >
                       <div
-                        style={{
+                        style={{ fontWeight: "var(--b-w)",
                           fontFamily: "var(--f-body)",
-                          fontSize: 15,
+                          fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                           fontStyle: "italic",
                           color: "var(--warm)",
                         }}
@@ -61672,9 +61697,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                           }}
                         >
                           <div
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               fontFamily: "var(--f-body)",
-                              fontSize: 15,
+                              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                               fontStyle: "italic",
                               color: "var(--warm)",
                             }}
@@ -61725,7 +61750,7 @@ function A1({ intake, onDone, phase, setPhase }) {
                               >
                                 <div
                                   style={{ fontFamily: "var(--f-label)",
-                                    fontSize: 11,
+                                    fontSize: "max(var(--l-min), 11px)",
                                     fontWeight: 400,
                                     letterSpacing: 1,
                                     textTransform: "uppercase",
@@ -61837,9 +61862,9 @@ function A1({ intake, onDone, phase, setPhase }) {
                           }}
                         >
                           <div
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               fontFamily: "var(--f-body)",
-                              fontSize: 15,
+                              fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                               fontStyle: "italic",
                               color: "var(--warm)",
                             }}
@@ -62005,7 +62030,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                     >
                       <div
                         style={{ fontFamily: "var(--f-label)",
-                          fontSize: 11,
+                          fontSize: "max(var(--e-min), 11px)",
                           fontWeight: 400,
                           letterSpacing: 2,
                           textTransform: "uppercase",
@@ -62018,10 +62043,10 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                       <div
                         style={{
                           fontFamily: "var(--f-body)",
-                          fontSize: 17,
-                          fontWeight: 400,
+                          fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+                          fontWeight: "var(--b-w)",
                           color: "var(--text)",
-                          lineHeight: 1.7,
+                          lineHeight: "max(var(--b-lh), 1.7)",
                           marginBottom: 9,
                         }}
                       >
@@ -62048,7 +62073,7 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                       >
                         <div
                           style={{ fontFamily: "var(--f-label)",
-                            fontSize: 11,
+                            fontSize: "max(var(--e-min), 11px)",
                             fontWeight: 400,
                             letterSpacing: 1.5,
                             textTransform: "uppercase",
@@ -62066,16 +62091,16 @@ Return ONLY valid JSON: {"key_misalignment":"Area: <exact name>","why_it_matters
                               set("map_focus_confirmed_flag", false);
                           }}
                           rows={3}
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             width: "100%",
                             background: "var(--bg2)",
                             border: "1px solid var(--border2)",
                             borderRadius: 6,
                             color: "var(--text)",
                             fontFamily: "var(--f-body)",
-                            fontSize: 15,
+                            fontSize: "max(var(--b-min), calc(15px + var(--b-bump)))",
                             padding: "8px 10px",
-                            lineHeight: 1.6,
+                            lineHeight: "max(var(--b-lh), 1.6)",
                             resize: "vertical",
                             marginBottom: 8,
                           }}
@@ -62242,7 +62267,7 @@ function loadLogoBase64(): Promise<string> {
   if (_logoPromise) return _logoPromise;
   _logoPromise = (async () => {
     const res = await fetch(
-      `${import.meta.env.BASE_URL}ag45_logo_transparent.png`,
+      `${import.meta.env.BASE_URL}ag45-logo-cream-pdf.png`,
     );
     if (!res.ok) throw new Error("logo fetch failed");
     const blob = await res.blob();
@@ -62284,7 +62309,10 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
       const TEXT: [number, number, number] = [50, 50, 50];
       const MUTED: [number, number, number] = [100, 100, 100];
       const HEADER_H = 70;
-      const LOGO_PT = 56.7;
+      // Logo swap · cream AG45 mark (600×357 PDF copy) on the navy header bar; height
+      // fixed, width derived so the aspect ratio is kept.
+      const LOGO_H = 48;
+      const LOGO_W = (LOGO_H * 600) / 357;
       const drawHeader = () => {
         doc.setFillColor(...NAVY);
         doc.rect(0, 0, pw, HEADER_H, "F");
@@ -62295,19 +62323,17 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
               logoData,
               "PNG",
               marginX / 2,
-              (HEADER_H - LOGO_PT) / 2,
-              LOGO_PT,
-              LOGO_PT,
+              (HEADER_H - LOGO_H) / 2,
+              LOGO_W,
+              LOGO_H,
             );
-            textX = marginX / 2 + LOGO_PT + 12;
+            textX = marginX / 2 + LOGO_W + 16;
           } catch (e) {
             /* ignore */
           }
         }
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-        doc.setTextColor(255, 255, 255);
-        doc.text("AccelerateGrowth45", textX, HEADER_H / 2 - 4);
+        // The cream mark already carries the AccelerateGrowth45 wordmark, so
+        // the old bold text line is dropped and the subline sits centred.
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
         doc.setTextColor(...GOLD);
@@ -62317,7 +62343,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
         doc.text(
           `True Ownership™  ·  ${titleText}`,
           textX,
-          HEADER_H / 2 + 12,
+          HEADER_H / 2 + 3,
         );
       };
       const drawFooter = (pageNum: number, total: number) => {
@@ -62659,7 +62685,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
     >
       <div
         style={{ fontFamily: "var(--f-label)",
-          fontSize: 11,
+          fontSize: "max(var(--e-min), 11px)",
           fontWeight: 400,
           letterSpacing: 1.5,
           textTransform: "uppercase",
@@ -62862,14 +62888,14 @@ function MapOfMePage({ onBack }: any) {
 
   const SidebarPhaseItem = ({ label, done }: any) => (
     <div
-      style={{
+      style={{ fontWeight: "var(--b-w)",
         display: "flex",
         alignItems: "center",
         gap: 9,
         padding: "7px 10px",
         borderRadius: 8,
         fontFamily: "var(--f-body)",
-        fontSize: 14,
+        fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
         color: "var(--text2)",
         cursor: "default",
         marginBottom: 2,
@@ -62923,8 +62949,8 @@ function MapOfMePage({ onBack }: any) {
         </div>
       </div>
       <div
-        style={{
-          fontSize: 13,
+        style={{ fontWeight: "var(--b-w)",
+          fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
           color: "var(--text3)",
           fontFamily: "var(--f-body)",
         }}
@@ -62969,9 +62995,9 @@ function MapOfMePage({ onBack }: any) {
       </div>
       <div style={{ flex: 1 }}>
         <div
-          style={{
+          style={{ fontWeight: "var(--b-w)",
             fontFamily: "var(--f-body)",
-            fontSize: 18,
+            fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
             color: "var(--text)",
             fontStyle: "italic",
           }}
@@ -63032,7 +63058,7 @@ function MapOfMePage({ onBack }: any) {
       >
         <div
           style={{ fontFamily: "var(--f-label)",
-            fontSize: 11,
+            fontSize: "max(var(--e-min), 11px)",
             fontWeight: 400,
             letterSpacing: 2,
             textTransform: "uppercase",
@@ -63127,7 +63153,7 @@ function MapOfMePage({ onBack }: any) {
     }
 
     const colHeader: React.CSSProperties = { fontFamily: "var(--f-label)",
-      fontSize: 11,
+      fontSize: "max(var(--e-min), 11px)",
       fontWeight: 400,
       letterSpacing: 1.5,
       textTransform: "uppercase",
@@ -63136,7 +63162,7 @@ function MapOfMePage({ onBack }: any) {
       textAlign: "center",
     };
     const subHeader: React.CSSProperties = { fontFamily: "var(--f-label)",
-      fontSize: 11,
+      fontSize: "max(var(--e-min), 11px)",
       fontWeight: 400,
       letterSpacing: 1.2,
       textTransform: "uppercase",
@@ -63237,11 +63263,11 @@ function MapOfMePage({ onBack }: any) {
           phaseCode="A1"
         >
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
-              fontSize: 22,
-              lineHeight: 1.55,
+              fontSize: "max(var(--b-min), calc(22px + var(--b-bump)))",
+              lineHeight: "max(var(--b-lh), 1.55)",
               color: purposeText ? "var(--text)" : "var(--text4)",
             }}
           >
@@ -63309,9 +63335,9 @@ function MapOfMePage({ onBack }: any) {
                     }}
                   >
                     <div
-                      style={{
+                      style={{ fontWeight: "var(--b-w)",
                         fontFamily: "var(--f-body)",
-                        fontSize: 17,
+                        fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
                         fontStyle: "italic",
                         color: "var(--warm)",
                         marginBottom: 8,
@@ -63436,7 +63462,7 @@ function MapOfMePage({ onBack }: any) {
               >
                 <div
                   style={{ fontFamily: "var(--f-label)",
-                    fontSize: 11,
+                    fontSize: "max(var(--e-min), 11px)",
                     fontWeight: 400,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -63550,13 +63576,13 @@ function MapOfMePage({ onBack }: any) {
             </div>
           ) : (
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 paddingLeft: 14,
                 borderLeft: "2px solid var(--warm)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
-                fontSize: 17,
-                lineHeight: 1.7,
+                fontSize: "max(var(--b-min), calc(17px + var(--b-bump)))",
+                lineHeight: "max(var(--b-lh), 1.7)",
                 color: "var(--text)",
               }}
             >
@@ -63567,12 +63593,12 @@ function MapOfMePage({ onBack }: any) {
 
         <SubCard title="Your One Thing" phaseCode="A2">
           <div
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
               fontStyle: "italic",
-              fontSize: 22,
+              fontSize: "max(var(--b-min), calc(22px + var(--b-bump)))",
               color: "var(--text)",
-              lineHeight: 1.55,
+              lineHeight: "max(var(--b-lh), 1.55)",
               marginBottom: 8,
             }}
           >
@@ -63637,7 +63663,7 @@ function MapOfMePage({ onBack }: any) {
       padding: "16px 18px",
     };
     const cardTitle: React.CSSProperties = { fontFamily: "var(--f-label)",
-      fontSize: 11,
+      fontSize: "max(var(--e-min), 11px)",
       fontWeight: 400,
       letterSpacing: 2,
       textTransform: "uppercase",
@@ -63813,12 +63839,12 @@ function MapOfMePage({ onBack }: any) {
           </div>
           {map.a3_env_takeaway ? (
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
-                fontSize: 16,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                 color: "var(--text)",
-                lineHeight: 1.6,
+                lineHeight: "max(var(--b-lh), 1.6)",
                 marginBottom: 12,
               }}
             >
@@ -63905,7 +63931,7 @@ function MapOfMePage({ onBack }: any) {
             <div key={i} style={{ marginBottom: 8 }}>
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 1.2,
                   textTransform: "uppercase",
@@ -63966,14 +63992,14 @@ function MapOfMePage({ onBack }: any) {
           </div>
           {map.a3_best_friend ? (
             <div
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 paddingLeft: 14,
                 borderLeft: "2px solid var(--warm)",
                 fontFamily: "var(--f-body)",
                 fontStyle: "italic",
-                fontSize: 16,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                 color: "var(--text)",
-                lineHeight: 1.7,
+                lineHeight: "max(var(--b-lh), 1.7)",
               }}
             >
               "{map.a3_best_friend}"
@@ -64009,7 +64035,7 @@ function MapOfMePage({ onBack }: any) {
             <div>
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 1.2,
                   textTransform: "uppercase",
@@ -64026,7 +64052,7 @@ function MapOfMePage({ onBack }: any) {
             <div>
               <div
                 style={{ fontFamily: "var(--f-label)",
-                  fontSize: 11,
+                  fontSize: "max(var(--e-min), 11px)",
                   fontWeight: 400,
                   letterSpacing: 1.2,
                   textTransform: "uppercase",
@@ -64087,9 +64113,9 @@ function MapOfMePage({ onBack }: any) {
           </span>
           <span style={{ color: "var(--text4)" }}>·</span>
           <span
-            style={{
+            style={{ fontWeight: "var(--b-w)",
               fontFamily: "var(--f-body)",
-              fontSize: 14,
+              fontSize: "max(var(--b-min), calc(14px + var(--b-bump)))",
               fontStyle: "italic",
               color: "var(--text3)",
             }}
@@ -64117,7 +64143,7 @@ function MapOfMePage({ onBack }: any) {
         >
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -64142,7 +64168,7 @@ function MapOfMePage({ onBack }: any) {
           />
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -64169,7 +64195,7 @@ function MapOfMePage({ onBack }: any) {
           />
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -64186,7 +64212,7 @@ function MapOfMePage({ onBack }: any) {
         <div style={{ flex: 1, padding: "32px 40px", maxWidth: 980 }}>
           <button
             onClick={() => onBack && onBack(origin)}
-            style={{
+            style={{ fontWeight: 400,
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
@@ -64197,7 +64223,7 @@ function MapOfMePage({ onBack }: any) {
               padding: "5px 12px",
               borderRadius: 14,
               fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--l-min), 11px)",
               letterSpacing: 0.5,
               cursor: "pointer",
             }}
@@ -64210,7 +64236,7 @@ function MapOfMePage({ onBack }: any) {
               "My Map of Me™" label (they are navigation, not the title). */}
           <div
             style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+              fontSize: "max(var(--e-min), 11px)",
               fontWeight: 400,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -64244,8 +64270,8 @@ function MapOfMePage({ onBack }: any) {
             Not finished. Not meant to be. This grows as you do.
           </div>
           <div
-            style={{ fontFamily: "var(--f-label)",
-              fontSize: 11,
+            style={{ fontWeight: 400, fontFamily: "var(--f-label)",
+              fontSize: "max(var(--e-min), 11px)",
               color: "var(--text4)",
               textTransform: "uppercase",
               letterSpacing: 1.5,
@@ -64418,9 +64444,9 @@ function AuthedApp() {
       >
         <style>{CSS}</style>
         <div
-          style={{
+          style={{ fontWeight: 400,
             fontFamily: "var(--f-label)",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             color: "#3d3d38",
             letterSpacing: 2,
             animation: "pulse 1.5s infinite",
@@ -64502,11 +64528,11 @@ function AuthedApp() {
               <em>Now we align it with your life.</em>
             </h2>
             <p
-              style={{
+              style={{ fontWeight: "var(--b-w)",
                 fontFamily: "var(--f-body)",
-                fontSize: 16,
+                fontSize: "max(var(--b-min), calc(16px + var(--b-bump)))",
                 color: "#7a766e",
-                lineHeight: 1.8,
+                lineHeight: "max(var(--b-lh), 1.8)",
                 marginBottom: 26,
               }}
             >
@@ -64554,7 +64580,7 @@ const KB_AUTH_CSS = `
 .kb-auth-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:24px;line-height:1.35;color:#F5F5F7;margin:0;}
 @media (max-width:480px){.kb-auth-title{font-size:22px;}}
 .kb-auth-fields{display:flex;flex-direction:column;gap:14px;margin-top:34px;}
-.kb-auth-label{display:block;font-family:'Questrial',system-ui,sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#CDB48E;margin-bottom:7px;}
+.kb-auth-label{display:block;font-family:'Questrial',system-ui,sans-serif;font-size:max(var(--e-min), 11px);letter-spacing:.2em;text-transform:uppercase;color:#CDB48E;margin-bottom:7px;}
 .kb-auth-field{width:100%;box-sizing:border-box;background:rgba(1,35,37,.55);border:1px solid rgba(165,135,94,.5);border-radius:10px;color:#F5F5F7;font-family:'Questrial',system-ui,sans-serif;font-size:15px;padding:13px 15px;outline:none;transition:border-color .2s,box-shadow .2s;}
 .kb-auth-field::placeholder{color:rgba(245,245,247,.45);}
 .kb-auth-field:focus{border-color:#CDB48E;box-shadow:0 0 0 3px rgba(165,135,94,.25);}
@@ -64569,12 +64595,12 @@ const KB_AUTH_CSS = `
 .kb-auth-btn-ghost:focus-visible{outline:2px solid #F5F5F7;outline-offset:3px;}
 .kb-auth-error{font-family:'Questrial',system-ui,sans-serif;font-size:13px;line-height:1.5;color:#B68C8C;background:rgba(1,35,37,.82);border:1px solid rgba(182,140,140,.5);border-radius:8px;padding:10px 13px;}
 .kb-auth-ok{font-family:'Questrial',system-ui,sans-serif;font-size:13px;line-height:1.5;color:#6BA2A9;background:rgba(3,99,96,.28);border:1px solid rgba(107,162,169,.45);border-radius:8px;padding:12px 14px;}
-.kb-auth-note{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;line-height:1.5;color:rgba(245,245,247,.72);text-align:center;margin:26px 0 0;}
+.kb-auth-note{font-family:'Cormorant Garamond',Georgia,serif;font-size:max(var(--b-min), calc(17px + var(--b-bump)));font-weight:var(--b-w);line-height:1.5;color:rgba(245,245,247,.86);text-align:center;margin:26px 0 0;}
 .kb-auth-loading{font-family:'Questrial',system-ui,sans-serif;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,245,247,.6);animation:pulse 1.5s infinite;}
 .kb-auth-modal-back{position:fixed;inset:0;top:var(--kb-top,0px);bottom:var(--kb-inset,0px);background:rgba(1,35,37,.82);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;}
 .kb-auth-modal{width:100%;max-width:440px;max-height:min(calc(100vh - 48px),100%);overflow:auto;background:#012325;border:1px solid rgba(165,135,94,.5);border-radius:12px;padding:32px;color:#F5F5F7;}
 .kb-auth-modal-title{font-family:'Tenor Sans',Georgia,serif;font-weight:400;font-size:26px;line-height:1.25;color:#F5F5F7;margin:0 0 8px;}
-.kb-auth-modal-copy{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;line-height:1.5;color:rgba(245,245,247,.72);margin:0 0 22px;}
+.kb-auth-modal-copy{font-family:'Cormorant Garamond',Georgia,serif;font-size:max(var(--b-min), calc(17px + var(--b-bump)));font-weight:var(--b-w);line-height:1.5;color:rgba(245,245,247,.86);margin:0 0 22px;}
 @media (prefers-reduced-motion:reduce){.kb-auth-btn,.kb-auth-field{transition:none;}.kb-auth-loading{animation:none;}}
 `;
 
@@ -64910,7 +64936,7 @@ function MigrationModal({ onClose }: { onClose: () => void }) {
     >
       <div
         className="fade-up"
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           background: "#123234",
           border: "1px solid rgba(165,135,94,0.3)",
           borderRadius: 8,
@@ -64987,8 +65013,8 @@ function AdminBar({
   const { user } = useAuth();
   if (user?.role !== "owner") return null;
   if (phase === "_admin" || phase === "loading") return null;
-  const baseStyle: React.CSSProperties = {
-    fontSize: 11,
+  const baseStyle: React.CSSProperties = { fontWeight: 400,
+    fontSize: "max(var(--e-min), 11px)",
     color: "var(--warm)",
     background: "transparent",
     border: "1px solid rgba(165,135,94,0.45)",
@@ -65113,7 +65139,7 @@ function NewUserModal({
       }}
     >
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           background: "#123234",
           borderRadius: 12,
           padding: 28,
@@ -65402,7 +65428,7 @@ function AdminResetPwModal({
       }}
     >
       <div
-        style={{
+        style={{ fontWeight: "var(--b-w)",
           background: "#123234",
           borderRadius: 12,
           padding: 28,
@@ -65543,9 +65569,9 @@ function AdminScreenGuarded({ onExit }: { onExit: () => void }) {
       >
         <style>{CSS}</style>
         <div
-          style={{
+          style={{ fontWeight: 400,
             fontFamily: "var(--f-label)",
-            fontSize: 12,
+            fontSize: "max(var(--l-min), 12px)",
             color: "#3d3d38",
             letterSpacing: 2,
           }}
@@ -65674,7 +65700,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
 
   return (
     <div
-      style={{
+      style={{ fontWeight: "var(--b-w)",
         minHeight: "100vh",
         background: "var(--bg)",
         color: "var(--text)",
@@ -65835,7 +65861,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                   <th
                     style={{ fontFamily: "var(--f-label)",
                       padding: "12px 14px",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1,
                       textTransform: "uppercase",
@@ -65846,7 +65872,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                   <th
                     style={{ fontFamily: "var(--f-label)",
                       padding: "12px 14px",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1,
                       textTransform: "uppercase",
@@ -65857,7 +65883,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                   <th
                     style={{ fontFamily: "var(--f-label)",
                       padding: "12px 14px",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1,
                       textTransform: "uppercase",
@@ -65868,7 +65894,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                   <th
                     style={{ fontFamily: "var(--f-label)",
                       padding: "12px 14px",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1,
                       textTransform: "uppercase",
@@ -65879,7 +65905,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                   <th
                     style={{ fontFamily: "var(--f-label)",
                       padding: "12px 14px",
-                      fontSize: 11,
+                      fontSize: "max(var(--l-min), 11px)",
                       fontWeight: 400,
                       letterSpacing: 1,
                       textTransform: "uppercase",
@@ -65931,7 +65957,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                       </td>
                       <td style={{ padding: "13px 14px" }}>
                         <span
-                          style={{ fontFamily: "var(--f-label)",
+                          style={{ fontWeight: 400, fontFamily: "var(--f-label)",
                             background:
                               u.role === "owner"
                                 ? "rgba(165,135,94,0.18)"
@@ -65942,7 +65968,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                                 : "var(--text3)",
                             borderRadius: 3,
                             padding: "2px 8px",
-                            fontSize: 11,
+                            fontSize: "max(var(--l-min), 11px)",
                             letterSpacing: 1,
                             textTransform: "uppercase",
                           }}
@@ -65969,13 +65995,13 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                         <button
                           onClick={() => setResetTarget(u)}
                           disabled={busy}
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             background: "transparent",
                             border: "1px solid var(--border2)",
                             color: "var(--text2)",
                             borderRadius: 4,
                             padding: "5px 10px",
-                            fontSize: 13,
+                            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                             cursor: busy ? "not-allowed" : "pointer",
                             marginLeft: 6,
                             fontFamily: "var(--f-body)",
@@ -65988,13 +66014,13 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                           <button
                             onClick={() => changeRole(u, "owner")}
                             disabled={busy}
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               background: "transparent",
                               border: "1px solid rgba(165,135,94,0.45)",
                               color: "var(--warm)",
                               borderRadius: 4,
                               padding: "5px 10px",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               cursor: busy ? "not-allowed" : "pointer",
                               marginLeft: 6,
                               fontFamily: "var(--f-body)",
@@ -66006,7 +66032,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                           <button
                             onClick={() => changeRole(u, "client")}
                             disabled={busy || isMe || isLastOwner}
-                            style={{
+                            style={{ fontWeight: "var(--b-w)",
                               background: "transparent",
                               border: "1px solid var(--border2)",
                               color:
@@ -66015,7 +66041,7 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                                   : "var(--text2)",
                               borderRadius: 4,
                               padding: "5px 10px",
-                              fontSize: 13,
+                              fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                               cursor:
                                 busy || isMe || isLastOwner
                                   ? "not-allowed"
@@ -66037,14 +66063,14 @@ function AdminScreen({ onExit }: { onExit: () => void }) {
                         <button
                           onClick={() => deleteUser(u)}
                           disabled={busy || isMe || isLastOwner}
-                          style={{
+                          style={{ fontWeight: "var(--b-w)",
                             background: "transparent",
                             border: "1px solid rgba(182,140,140,0.4)",
                             color:
                               isMe || isLastOwner ? "var(--text4)" : "#B68C8C",
                             borderRadius: 4,
                             padding: "5px 10px",
-                            fontSize: 13,
+                            fontSize: "max(var(--b-min), calc(13px + var(--b-bump)))",
                             cursor:
                               busy || isMe || isLastOwner
                                 ? "not-allowed"
@@ -66130,8 +66156,8 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
 
   const wrapperStyle: React.CSSProperties =
     mode === "inline"
-      ? { position: "relative", fontFamily: "var(--f-body)" }
-      : {
+      ? { fontWeight: "var(--b-w)", position: "relative", fontFamily: "var(--f-body)" }
+      : { fontWeight: "var(--b-w)",
           position: "fixed",
           top: 14,
           right: 14,
@@ -66194,7 +66220,7 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
                 setShowPwd(true);
                 setOpen(false);
               }}
-              style={{
+              style={{ fontWeight: 400,
                 display: "block",
                 width: "100%",
                 textAlign: "left",
@@ -66202,7 +66228,7 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
                 background: "transparent",
                 border: "none",
                 color: "var(--text2)",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontFamily: "var(--f-label)",
                 cursor: "pointer",
                 borderRadius: 4,
@@ -66221,7 +66247,7 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
                 setOpen(false);
                 logout();
               }}
-              style={{
+              style={{ fontWeight: 400,
                 display: "block",
                 width: "100%",
                 textAlign: "left",
@@ -66229,7 +66255,7 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
                 background: "transparent",
                 border: "none",
                 color: "var(--text2)",
-                fontSize: 12,
+                fontSize: "max(var(--l-min), 12px)",
                 fontFamily: "var(--f-label)",
                 cursor: "pointer",
                 borderRadius: 4,
@@ -66330,7 +66356,7 @@ function SyncStatusPanel() {
   useEffect(() => {
     syncStatus().then(setRows);
   }, []);
-  const box: React.CSSProperties = {
+  const box: React.CSSProperties = { fontWeight: 400,
     position: "fixed",
     right: 12,
     bottom: 48,
@@ -66344,17 +66370,17 @@ function SyncStatusPanel() {
     borderRadius: 10,
     padding: "14px 16px",
     fontFamily: "var(--f-label)",
-    fontSize: 12,
+    fontSize: "max(var(--l-min), 12px)",
     lineHeight: 1.5,
   };
-  const btn: React.CSSProperties = {
+  const btn: React.CSSProperties = { fontWeight: 400,
     background: "#036360",
     color: "#F5F5F7",
     border: "1px solid rgba(176,204,218,.38)",
     borderRadius: 100,
     padding: "8px 14px",
     fontFamily: "var(--f-label)",
-    fontSize: 12,
+    fontSize: "max(var(--l-min), 12px)",
     cursor: "pointer",
     marginRight: 8,
   };
