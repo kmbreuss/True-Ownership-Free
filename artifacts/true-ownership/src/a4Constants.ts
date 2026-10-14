@@ -40,6 +40,7 @@ export type A4GapKind =
   | "activity"
   | "person"
   | "place"
+  | "vision"
   | "own";
 
 // Kinds offered on the "choose your own" form, in the order the brief lists
@@ -74,6 +75,8 @@ export function a4KindLabel(kind: A4GapKind): string {
       return "Person";
     case "place":
       return "Place";
+    case "vision":
+      return "Vision";
     default:
       return "Your own";
   }
@@ -164,6 +167,7 @@ const A4_KINDS: readonly A4GapKind[] = [
   "activity",
   "person",
   "place",
+  "vision",
   "own",
 ];
 const A4_MONEY: readonly A4MoneyAnswer[] = ["Always", "Sometimes", "Rarely"];
@@ -320,7 +324,101 @@ export type A4Sources = {
   envWeights: { name: string; kind: "habit" | "place" }[]; // A3 Environment rated Weight
   purposeRating: number | null; // A2 1–10
   vision: Record<Lens, A4VisionLine[]>;
+  time: A4TimeData; // A2 Time Audit
+  movePerson: string | null; // A3 · The Move — the person chosen
 };
+
+// ─── Time Audit (A2) as the A4 Time screens read it ───
+export type A4Feeling = "love" | "like" | "dislike" | "despise";
+export type A4Activity = {
+  id: string;
+  name: string;
+  hrs: number;
+  feeling: A4Feeling;
+  priority: string; // a priority name, or "" for none
+};
+export type A4TimeData = {
+  awake: number; // awake hours a week
+  priorities: string[]; // rank order, #1 first
+  activities: A4Activity[];
+  missing: { name: string; priority: string }[]; // things they said matter but aren't in the week
+};
+export const EMPTY_A4_TIME: A4TimeData = {
+  awake: 112,
+  priorities: [],
+  activities: [],
+  missing: [],
+};
+
+export type A4TimeRow = {
+  name: string;
+  rank: number; // 1-based; 0 for the "No priority" row
+  hrs: number;
+  pct: number; // share of awake hours, whole number
+  mismatch: boolean; // hours don't match rank (bar turns burgundy)
+  activities: A4Activity[];
+};
+
+// Priorities in rank order with the hours logged under each, plus the
+// "No priority" row for hours that serve none of them. A priority's bar is a
+// mismatch when it gets no hours at all, or when a LOWER-ranked priority gets
+// more hours than it does.
+export function a4TimeRows(t: A4TimeData): { rows: A4TimeRow[]; none: A4TimeRow } {
+  const awake = t.awake > 0 ? t.awake : 112;
+  const names = t.priorities.filter((p) => p.trim() !== "");
+  const byName = new Map<string, A4Activity[]>();
+  for (const n of names) byName.set(n, []);
+  const loose: A4Activity[] = [];
+  for (const a of t.activities) {
+    const list = byName.get(a.priority);
+    if (list) list.push(a);
+    else loose.push(a);
+  }
+  const sum = (l: A4Activity[]) => l.reduce((x, a) => x + (a.hrs || 0), 0);
+  const pct = (h: number) => Math.round((h / awake) * 100);
+  const hrsOf = names.map((n) => sum(byName.get(n) || []));
+  const rows: A4TimeRow[] = names.map((n, i) => {
+    const h = hrsOf[i];
+    const mismatch = h === 0 || hrsOf.slice(i + 1).some((x) => x > h);
+    return {
+      name: n,
+      rank: i + 1,
+      hrs: h,
+      pct: pct(h),
+      mismatch,
+      activities: byName.get(n) || [],
+    };
+  });
+  const nh = sum(loose);
+  return {
+    rows,
+    none: { name: "No priority", rank: 0, hrs: nh, pct: pct(nh), mismatch: nh > 0, activities: loose },
+  };
+}
+
+// ─── Wealth money check (asked fresh on the Wealth screen) ───
+export const A4_MONEY_QUESTIONS: readonly string[] = [
+  "I know what I spend each month.",
+  "I pay myself first — I save before I spend.",
+  "My spending matches what I value.",
+  "I can talk about money without shame.",
+  "I have a plan for building, not just earning.",
+];
+// Which question speaks to which part of the wealth vision.
+const A4_MONEY_FOR_PART: Record<string, number> = {
+  cashflow: 0,
+  stability: 1,
+  building: 4,
+};
+const A4_MONEY_VALUES_Q = 2;
+export const A4_WEALTH_PARTS: { domain: string; label: string }[] = [
+  { domain: "building", label: "Building" },
+  { domain: "cashflow", label: "Cash flow" },
+  { domain: "stability", label: "Stability" },
+];
+export function a4MoneyDone(mc: Record<string, A4MoneyAnswer> | undefined): boolean {
+  return !!mc && A4_MONEY_QUESTIONS.every((_, i) => !!mc[String(i)]);
+}
 
 export const A2_GIFT_RATING_WORDS = [
   "Shadow",
@@ -500,11 +598,12 @@ export function buildSelfGaps(src: A4Sources): A4Gap[] {
 // the promise needs, filled in, plus a "Yes, I'm sure".
 export function a4PromiseReady(
   m: A4MirrorState,
-  opts: { needSayNo?: boolean } = {},
+  opts: { needSayNo?: boolean; needMoneyCheck?: boolean } = {},
 ): boolean {
   const filled = (s: string) => s.trim() !== "";
   const hasGap = m.picked != null && (m.gap != null || m.own != null);
   return (
+    (!opts.needMoneyCheck || a4MoneyDone((m as A4WealthState).moneyCheck)) &&
     hasGap &&
     filled(m.every) &&
     filled(m.prove) &&
@@ -523,12 +622,12 @@ export function a4PromiseReady(
 export function a4ScreenReady(
   m: A4MirrorState,
   screen: number,
-  opts: { needSayNo?: boolean } = {},
+  opts: { needSayNo?: boolean; needMoneyCheck?: boolean } = {},
 ): boolean {
   const filled = (s: string) => s.trim() !== "";
   switch (screen) {
     case 0:
-      return true;
+      return !opts.needMoneyCheck || a4MoneyDone((m as A4WealthState).moneyCheck);
     case 1:
       return m.picked != null && (m.gap != null || m.own != null);
     case 2:
@@ -542,4 +641,222 @@ export function a4ScreenReady(
     default:
       return a4PromiseReady(m, opts);
   }
+}
+
+
+// ─── Time + Wealth gaps (pure) ──────────────────────────────────────────────
+
+// Round-robin across pools so the cards are different kinds of gap.
+function roundRobin(pools: A4Gap[][]): A4Gap[] {
+  const out: A4Gap[] = [];
+  for (let round = 0; out.length < A4_MAX_GAPS; round++) {
+    let added = false;
+    for (const p of pools) {
+      if (round < p.length && out.length < A4_MAX_GAPS) {
+        out.push(p[round]);
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
+  return out;
+}
+
+const tokens = (s: string): string[] =>
+  s
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length >= 4);
+// Loose name match: any 4+ letter word of one appears inside a word of the other.
+function looselyMatches(a: string, b: string): boolean {
+  const ta = tokens(a);
+  const tb = tokens(b);
+  return ta.some((x) => tb.some((y) => x.includes(y) || y.includes(x)));
+}
+
+// Does `text` mention this person? Whole-word match on any 3+ letter part of
+// the name ("Tom" counts), so a first name alone is enough.
+function mentionsPerson(person: string, text: string): boolean {
+  const words = text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  return person
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length >= 3)
+    .some((t) => words.includes(t));
+}
+
+// Time (Mirror 2): the member's week against what they said matters.
+export function buildTimeGaps(src: A4Sources): A4Gap[] {
+  const { rows } = a4TimeRows(src.time);
+  const hrsLabel = (h: number) => `${h} hr${h === 1 ? "" : "s"}`;
+  // 1 · a ranked priority whose hours don't match its rank.
+  const rank: A4Gap[] = [];
+  rows.forEach((r, i) => {
+    if (r.hrs === 0) return; // zero-hour priorities are pool 2
+    const j = rows.findIndex((o, k) => k > i && o.hrs > r.hrs);
+    if (j < 0) return;
+    rank.push({
+      id: `rank:${r.name}`,
+      kind: "priority",
+      tag: `#${r.rank}`,
+      said: `${r.name} comes first on your list`,
+      evidence: `It gets ${hrsLabel(r.hrs)} a week — ${rows[j].name} (#${rows[j].rank}) gets ${hrsLabel(rows[j].hrs)}.`,
+      source: "Your week · A2 Time Audit",
+    });
+  });
+  // 2 · something they said matters with zero hours.
+  const zero: A4Gap[] = [];
+  for (const r of rows) {
+    if (r.hrs === 0) {
+      zero.push({
+        id: `zero:${r.name}`,
+        kind: "priority",
+        tag: `#${r.rank}`,
+        said: `${r.name} matters to me`,
+        evidence: "It has no hours in your week.",
+        source: "Your week · A2 Time Audit",
+      });
+    }
+  }
+  for (const m of src.time.missing) {
+    if (m.name.trim() === "") continue;
+    zero.push({
+      id: `missing:${m.name}`,
+      kind: "priority",
+      tag: m.priority,
+      said: `${m.name.trim()} matters to me`,
+      evidence: "It isn't in your week yet.",
+      source: "Missing from your week · A2",
+    });
+  }
+  // 3 · an A3 Environment habit marked Weight that still takes hours.
+  const weight: A4Gap[] = [];
+  for (const w of src.envWeights) {
+    if (w.kind !== "habit") continue;
+    const hit = src.time.activities.find(
+      (a) => a.hrs > 0 && looselyMatches(w.name, a.name),
+    );
+    if (!hit) continue;
+    weight.push({
+      id: `weight:${w.name}`,
+      kind: "activity",
+      tag: "",
+      said: w.name.trim(),
+      evidence: `You rated it Weight — and it still takes ${hrsLabel(hit.hrs)} a week (${hit.name}).`,
+      source: "Environment · A3 + Time Audit",
+    });
+  }
+  // 4 · The Move person (A3) with no time set aside.
+  const move: A4Gap[] = [];
+  const person = (src.movePerson || "").trim();
+  if (person !== "") {
+    const hasTime = src.time.activities.some(
+      (a) => a.hrs > 0 && (mentionsPerson(person, a.name) || mentionsPerson(person, a.priority)),
+    );
+    if (!hasTime) {
+      move.push({
+        id: `move:${person}`,
+        kind: "person",
+        tag: "",
+        said: `${person} is the move you chose`,
+        evidence: "No time in your week is set aside for it.",
+        source: "The Move · A3",
+      });
+    }
+  }
+  return roundRobin([rank, zero, weight, move]);
+}
+
+// Wealth (Mirror 3): the future they see against money today.
+export function buildWealthGaps(
+  src: A4Sources,
+  money: Record<string, A4MoneyAnswer> | undefined,
+): A4Gap[] {
+  const mc = money || {};
+  const low = (i: number): A4MoneyAnswer | null => {
+    const a = mc[String(i)];
+    return a === "Rarely" || a === "Sometimes" ? a : null;
+  };
+  const rarelyFirst = (a: A4Gap & { _r: number }, b: A4Gap & { _r: number }) => a._r - b._r;
+  // 1 · each vision part against a Rarely / Sometimes answer.
+  const vision: (A4Gap & { _r: number })[] = [];
+  for (const part of A4_WEALTH_PARTS) {
+    const line = src.vision.wealth.find((l) => l.domain === part.domain);
+    const qi = A4_MONEY_FOR_PART[part.domain];
+    const ans = low(qi);
+    if (!line || !ans) continue;
+    const text = (line.b1 || line.b2 || line.chip).trim();
+    if (text === "") continue;
+    vision.push({
+      id: `vision:${part.domain}`,
+      kind: "vision",
+      tag: part.label,
+      said: `${part.label} — ${text}`,
+      evidence: `“${A4_MONEY_QUESTIONS[qi]}” — ${ans}.`,
+      source: "Your vision · A1 + Money check",
+      _r: ans === "Rarely" ? 0 : 1,
+    });
+  }
+  vision.sort(rarelyFirst);
+  const visionGaps: A4Gap[] = vision.map(({ _r, ...g }) => g);
+  // 2 · the Finances priority: rank vs. hours (A2).
+  const fin: A4Gap[] = [];
+  const { rows } = a4TimeRows(src.time);
+  const fi = rows.findIndex((r) => /financ|money|wealth|saving/i.test(r.name));
+  if (fi >= 0) {
+    const r = rows[fi];
+    const j = rows.findIndex((o, k) => k > fi && o.hrs > r.hrs);
+    if (r.hrs === 0 || j >= 0) {
+      fin.push({
+        id: `fin:${r.name}`,
+        kind: "priority",
+        tag: `#${r.rank}`,
+        said: `${r.name} is #${r.rank} on your list`,
+        evidence:
+          r.hrs === 0
+            ? "It has no hours in your week."
+            : `It gets ${r.hrs} hr${r.hrs === 1 ? "" : "s"} a week — ${rows[j].name} (#${rows[j].rank}) gets ${rows[j].hrs}.`,
+        source: "Your week · A2 Time Audit",
+      });
+    }
+  }
+  // 3 · a value against "My spending matches what I value."
+  const val: A4Gap[] = [];
+  const vAns = low(A4_MONEY_VALUES_Q);
+  const top = src.values[0];
+  if (vAns && top && top.name.trim() !== "") {
+    val.push({
+      id: `value:${top.id}`,
+      kind: "behavior",
+      tag: top.name.trim(),
+      said: `I value ${top.name.trim()}`,
+      evidence: `“${A4_MONEY_QUESTIONS[A4_MONEY_VALUES_Q]}” — ${vAns}.`,
+      source: "Your values · A1 + Money check",
+    });
+  }
+  return roundRobin([visionGaps, fin, val]);
+}
+
+// "To make room, I'll say no to…" — chips come from the member's own draining
+// activities and the hours that serve no priority. Wealth adds the Environment
+// habits they rated Weight.
+export function a4SayNoOptions(src: A4Sources, key: A4MirrorKey): string[] {
+  const out: string[] = [];
+  const add = (n: string) => {
+    const t = n.trim();
+    if (t !== "" && !out.some((o) => o.toLowerCase() === t.toLowerCase())) out.push(t);
+  };
+  const acts = [...src.time.activities].sort((a, b) => b.hrs - a.hrs);
+  if (key === "wealth") {
+    for (const w of src.envWeights) if (w.kind === "habit") add(w.name);
+  }
+  for (const a of acts) {
+    if (a.feeling === "dislike" || a.feeling === "despise" || a.priority.trim() === "") add(a.name);
+  }
+  return out.slice(0, 6);
+}
+
+// All three promises claimed → the My Promises step opens.
+export function a4MirrorsClaimed(s: A4State): boolean {
+  return s.self.claimed && s.time.claimed && s.wealth.claimed;
 }

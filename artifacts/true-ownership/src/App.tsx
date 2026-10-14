@@ -179,6 +179,20 @@ import {
   hasA4State,
   EMPTY_A4,
   buildSelfGaps,
+  buildTimeGaps,
+  buildWealthGaps,
+  a4TimeRows,
+  a4SayNoOptions,
+  a4MoneyDone,
+  a4MirrorsClaimed,
+  A4_MONEY_QUESTIONS,
+  A4_WEALTH_PARTS,
+  EMPTY_A4_TIME,
+  type A4MoneyAnswer,
+  type A4WealthState,
+  type A4TimeData,
+  type A4TimeRow,
+  type A4Activity,
   a4VisionLines,
   a4VisionSentence,
   a4TenYearLine,
@@ -3094,7 +3108,7 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
 @media (max-width:700px){ .na1-a4-see{ grid-template-columns:1fr; } }
 .na1-a4-col{ border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); padding:16px 18px; min-width:0; }
 .na1-a4-room .na1-room-crumb a{ min-width:44px; justify-content:flex-start; }
-.na1-a4-col .na1-a2m1-value-rank{ font-family:var(--f-label); font-weight:400; font-size:max(var(--l-min), 13px); }
+.na1-a4-col .na1-a2m1-value-rank, .na1-a4-trow .na1-a2m1-value-rank{ font-family:var(--f-label); font-weight:400; font-size:max(var(--l-min), 13px); }
 .na1-a4-col .na1-chip{ cursor:default; min-height:0; }
 .na1-a4-col-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; font-weight:400; color:var(--na1-text-sec); margin:0 0 12px; }
 .na1-a4-values{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:16px; }
@@ -3152,6 +3166,104 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
   .na1-a4-map-head{ padding:14px 16px 4px; }
   .na1-a4-map-purpose-wrap{ padding:6px 16px 18px; }
   .na1-a4-map-body{ padding:0 16px 18px; }
+}
+/* ══════════════ A4-2 · Time · Wealth · My Promises · phone fit ══════════════ */
+.na1-a4-tabs{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:0 0 6px; }
+.na1-a4-tabbar{ display:none; }
+.na1-a4-pane{ min-width:0; }
+.na1-a4-more{ display:none; }
+.na1-a4-trows{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.na1-a4-trow{ border-bottom:1px solid var(--na1-border); }
+.na1-a4-trow:last-child{ border-bottom:0; }
+.na1-a4-trow-btn{ display:flex; flex-direction:column; gap:6px; width:100%; min-height:44px; padding:8px 2px; background:none; border:0; text-align:left; cursor:pointer; font:inherit; color:inherit; }
+.na1-a4-trow-btn:focus-visible{ outline:2px solid var(--spruce-text); outline-offset:2px; border-radius:6px; }
+.na1-a4-trow-top{ display:flex; align-items:center; gap:10px; min-width:0; }
+.na1-a4-trow-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.25); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-trow-hrs{ flex:0 0 auto; font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.03em; color:var(--na1-text-sec); font-weight:400; }
+.na1-a4-trow-hrs.is-gap{ color:var(--burgundy-text); }
+.na1-a4-bar{ display:block; height:8px; border-radius:4px; background:var(--na1-border); overflow:hidden; }
+.na1-a4-bar-fill{ display:block; height:100%; border-radius:4px; background:var(--gold); }
+.na1-a4-bar-fill.is-gap{ background:var(--burgundy); }
+.na1-a4-tacts{ list-style:none; margin:0 0 10px 36px; padding:0; display:flex; flex-direction:column; gap:6px; }
+.na1-a4-tacts li{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.na1-a4-tact-name{ flex:1 1 auto; min-width:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-tact-hrs{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); color:var(--na1-text-sec); font-weight:400; }
+.na1-a4-tact-tag{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); font-weight:400; letter-spacing:.03em; }
+.na1-a4-tact-tag.is-lift{ color:var(--gold-text); }
+.na1-a4-tact-tag.is-drain{ color:var(--burgundy-text); }
+.na1-a4-tact-more{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); color:var(--na1-text-sec); font-weight:400; }
+.na1-a4-tacts-empty{ margin:0 0 10px 36px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-a4-trows-foot{ margin:10px 0 0; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-a4-foot-gap{ color:var(--burgundy-text); }
+.na1-a4-vparts{ display:flex; flex-direction:column; gap:14px; }
+.na1-a4-vpart-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--gold-text); font-weight:400; margin:0 0 4px; }
+.na1-a4-vpart-text{ margin:0; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a4-vpart-text.is-empty{ color:var(--na1-text-sec); }
+.na1-a4-money{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+.na1-a4-mq-text{ margin:0 0 8px; font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); color:var(--na1-text); font-weight:var(--b-w); }
+.na1-a4-mq-btns{ display:flex; gap:8px; }
+.na1-a4-mq-btn{ flex:1 1 0; min-height:44px; padding:6px 8px; border:1.5px solid var(--na1-border); border-radius:999px; background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 14px); letter-spacing:.02em; font-weight:400; cursor:pointer; transition:background .18s, border-color .18s, color .18s; }
+.na1-a4-mq-btn:hover{ border-color:var(--na1-text-mute); color:var(--na1-text); }
+.na1-a4-mq-btn.is-rarely{ color:var(--burgundy-text); }
+.na1-a4-mq-btn.is-selected{ background:var(--spruce-soft); border-color:var(--spruce-line); color:var(--spruce-text); }
+.na1-a4-mq-btn.is-rarely.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy-text); }
+.na1-a4-mq-btn:focus-visible{ outline:2px solid var(--spruce-text); outline-offset:2px; }
+.na1-a4-sayno{ margin-top:6px; }
+.na1-a4-pcards{ display:flex; flex-direction:column; gap:14px; margin:0 0 6px; }
+.na1-a4-pcard{ border:1px solid var(--na1-border); border-left:3px solid var(--gold); border-radius:12px; padding:16px 20px; background:var(--na1-bg-card); }
+.na1-a4-pcard-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 8px; }
+.na1-a4-pcard-label{ font-family:var(--f-display); font-size:19px; font-weight:400; color:var(--na1-text); }
+.na1-a4-final{ margin-top:18px; }
+.na1-a4-moneyhelp{ margin-top:8px; }
+/* Phones: Screen 1 of every mirror fits one screen (no scrolling inside the card). */
+@media (max-width:767px){
+  .na1-a4-overlay .na1-a4-room{ padding-top:50px; }
+  .na1-a4-progress{ margin:0 0 10px; }
+  .na1-a4-progress .na1-a2m2-stepper{ margin-bottom:8px; }
+  .na1-a4-stepper .na1-a2m2-step{ flex-direction:row; align-items:center; gap:8px; }
+  .na1-a4-stepper .na1-a2m2-line{ margin-top:0; min-width:10px; }
+  .na1-a4-room .na1-room-eyebrow{ margin-bottom:4px; }
+  .na1-a4-room .na1-room-title{ margin-bottom:10px; }
+  .na1-a4-room .na1-a2m2-body{ min-height:0; }
+  .na1-a4-room .na1-a2m2-nav{ margin-top:10px; padding-top:10px; padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .na1-a4-donenote{ padding:6px 12px; margin:0 0 10px; }
+  .na1-a4-tabs{ display:block; margin:0; }
+  .na1-a4-tabbar{ display:flex; gap:4px; margin:0 0 6px; padding:2px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:999px; }
+  .na1-a4-tab{ flex:1 1 0; min-height:44px; border:1.5px solid transparent; border-radius:999px; background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 14px); letter-spacing:.03em; font-weight:400; cursor:pointer; }
+  .na1-a4-tab.is-active{ background:var(--na1-bg-card); border-color:var(--spruce-line); color:var(--spruce-text); }
+  .na1-a4-tab:focus-visible{ outline:2px solid var(--spruce-text); outline-offset:1px; }
+  .na1-a4-pane{ display:none; }
+  .na1-a4-pane.is-active{ display:block; }
+  .na1-a4-col{ padding:4px 10px; border-radius:12px; }
+  .na1-a4-col-label{ display:none; }
+  .na1-a4-values{ gap:8px; }
+  .na1-a4-behaviors{ margin:0 0 0 38px; }
+  .na1-a4-behaviors li.is-extra, .na1-a4-col .na1-chip.is-extra{ display:none; }
+  .na1-a4-more{ display:inline-flex; }
+  .na1-a4-creatures{ gap:8px; }
+  .na1-a4-col .na1-a2m1-creature{ padding:6px 12px; }
+  .na1-a4-col .na1-a2m1-creature-head{ margin-bottom:6px; }
+  .na1-a4-col .na1-chip{ padding:3px 10px; font-size:13px; }
+  .na1-a4-pressure{ margin:4px 0 0; font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:1.3; }
+  .na1-a4-col .na1-a2m1-chips{ gap:6px; }
+  .na1-a4-trow-btn{ padding:5px 2px; gap:4px; }
+  .na1-a4-bar{ height:6px; }
+  .na1-a4-tacts{ margin:0 0 6px 22px; gap:3px; }
+  .na1-a4-trows-foot{ margin-top:6px; }
+  .na1-a4-vparts{ gap:10px; }
+  .na1-a4-vpart-text{ display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+  .na1-a4-money{ gap:5px; }
+  .na1-a4-mq-text{ margin-bottom:2px; line-height:1.2; }
+}
+@media (min-width:768px){
+  .na1-a4-room .na1-a2m2-body{ min-height:200px; }
+  /* Money check: question on the left, the three answers on the right. */
+  .na1-a4-money{ gap:10px; }
+  .na1-a4-mq{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
+  .na1-a4-mq-text{ flex:1 1 auto; min-width:0; margin:0; }
+  .na1-a4-mq-btns{ flex:0 0 auto; width:min(236px, 52%); }
+  .na1-a4-mq-btn{ min-height:38px; padding:4px 6px; }
+  .na1-a4-tabs.is-wealth{ grid-template-columns:minmax(0,.85fr) minmax(0,1.55fr); }
 }
 .na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
 `;
@@ -33934,7 +34046,9 @@ type AppRouteView =
   | "a4"
   | "a4m1"
   | "a4m2"
-  | "a4m3";
+  | "a4m3"
+  // A4 · My Promises + the A4 claim (room id "promises").
+  | "a4p";
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
   // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
@@ -33945,7 +34059,7 @@ type AppRouteOverlay = {
   // A3 Ship 5 · "a3m5" addresses the Board room (roomId "board").
   // A3 Ship 6 · "a3m6" addresses the Move room (roomId "move").
   // A4-1 · "a4m1" addresses the Self room (roomId "self"); a4m2 → "time", a4m3 → "wealth".
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3";
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3" | "a4p";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -33974,6 +34088,7 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a4m1",
   "a4m2",
   "a4m3",
+  "a4p",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -34044,7 +34159,8 @@ function loadAppRoute(): AppRoute | null {
           hubId === "a3m6" ||
           hubId === "a4m1" ||
           hubId === "a4m2" ||
-          hubId === "a4m3") &&
+          hubId === "a4m3" ||
+          hubId === "a4p") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -34231,7 +34347,7 @@ function NewA1Spine({
   // same vertebra as the A2 hub itself. A3 Ship 1 · the People room (a3m1)
   // likewise lights the same Advocate vertebra as the A3 hub.
   const current: "allin" | "align" | "advocate" | "act" =
-    view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3"
+    view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p"
       ? "act"
       : view === "a2" || view === "a2m1"
       ? "align"
@@ -34379,7 +34495,7 @@ function getPhoneSpine() {
 // Which discipline a view belongs to. (The rail's own mapping only knows a2/a2m1
 // and lumps a2m2/a2m3 under All In; the phone bar is correct for every view.)
 function na1DisciplineForView(view: AppRouteView): 1 | 2 | 3 | 4 {
-  if (view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3")
+  if (view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p")
     return 4;
   if (view === "a2" || view === "a2m1" || view === "a2m2" || view === "a2m3")
     return 2;
@@ -45496,12 +45612,8 @@ function NewA3M6Container({
 // claim), the room copies the A3 container (veil on ENTRY only · no veil on
 // resume · initialRoomKey/onRoomChange route persistence · burst → seal ·
 // ↺ Re-claim · forward CTA), and the claim reuses na1-gold-burst + the A3 seal
-// classes. Self is the only room built this ship; Time and Wealth cards read
-// Locked (flip A4_TIME_BUILT / A4_WEALTH_BUILT when Ship A4-2 lands).
-
-// Time and Wealth rooms arrive with Ship A4-2. Until then their cards stay Locked.
-const A4_TIME_BUILT = false;
-const A4_WEALTH_BUILT = false;
+// classes. Self · Time · Wealth share one room container (A4RoomCfg); My
+// Promises + the A4 claim close the discipline.
 
 const A4_SCREEN_COUNT = 6;
 const A4_PHASES: { num: number; name: string }[] = [
@@ -45638,8 +45750,10 @@ function readA4Sources(): A4Sources {
   }
   const critics: string[] = [];
   const envWeights: { name: string; kind: "habit" | "place" }[] = [];
+  let movePerson: string | null = null;
   try {
     const a3 = loadA3State();
+    movePerson = a3.m6.person && a3.m6.person.trim() !== "" ? a3.m6.person : null;
     for (const t of a3.m3.thoughts) {
       if (t.verdict === "critic" && t.text.trim() !== "") critics.push(t.text);
     }
@@ -45650,6 +45764,32 @@ function readA4Sources(): A4Sources {
     // leave A3 sources empty
   }
   const pr = a2?.m1?.purposeRating;
+  // A2 Time Audit — priorities in rank order, the hours logged, and what they
+  // said matters but isn't in the week.
+  let time: A4TimeData = EMPTY_A4_TIME;
+  try {
+    const t = a2?.m2;
+    if (t) {
+      time = {
+        awake: typeof t.awakeHoursPerWeek === "number" && t.awakeHoursPerWeek > 0 ? t.awakeHoursPerWeek : 112,
+        priorities: Array.isArray(t.priorities) ? t.priorities.filter((x) => typeof x === "string" && x.trim() !== "") : [],
+        activities: (Array.isArray(t.activities) ? t.activities : [])
+          .filter((a) => a && typeof a.name === "string" && a.name.trim() !== "")
+          .map((a) => ({
+            id: String(a.id),
+            name: a.name.trim(),
+            hrs: typeof a.hrsPerWeek === "number" ? a.hrsPerWeek : 0,
+            feeling: a.feeling,
+            priority: typeof a.priorityServed === "string" ? a.priorityServed : "",
+          })),
+        missing: (Array.isArray(t.missingItems) ? t.missingItems : [])
+          .filter((m) => m && typeof m.name === "string" && m.name.trim() !== "")
+          .map((m) => ({ name: m.name.trim(), priority: typeof m.priorityTag === "string" ? m.priorityTag : "" })),
+      };
+    }
+  } catch {
+    time = EMPTY_A4_TIME;
+  }
   return {
     purpose,
     creatures,
@@ -45658,6 +45798,8 @@ function readA4Sources(): A4Sources {
     envWeights,
     purposeRating: typeof pr === "number" ? pr : null,
     vision,
+    time,
+    movePerson,
   };
 }
 
@@ -45858,6 +46000,7 @@ function NewA4HubView({
   onBeginSelf,
   onBeginTime,
   onBeginWealth,
+  onBeginPromises,
   onGoToA3,
 }: {
   name?: string;
@@ -45866,6 +46009,7 @@ function NewA4HubView({
   onBeginSelf: () => void;
   onBeginTime: () => void;
   onBeginWealth: () => void;
+  onBeginPromises: () => void;
   onGoToA3: () => void;
 }) {
   useEffect(() => {
@@ -45879,8 +46023,10 @@ function NewA4HubView({
   const timeClaimed = a4.time.claimed;
   const wealthClaimed = a4.wealth.claimed;
   const selfUnlocked = a3Complete;
-  const timeUnlocked = selfClaimed && A4_TIME_BUILT;
-  const wealthUnlocked = timeClaimed && A4_WEALTH_BUILT;
+  const timeUnlocked = selfClaimed;
+  const wealthUnlocked = timeClaimed;
+  const promisesUnlocked = selfClaimed && timeClaimed && wealthClaimed;
+  const a4Claimed = a4.a4.claimed;
   const selfStarted = a4.self.step > 0 || a4.self.picked != null;
   const timeStarted = a4.time.step > 0 || a4.time.picked != null;
   const wealthStarted = a4.wealth.step > 0 || a4.wealth.picked != null;
@@ -46004,7 +46150,7 @@ function NewA4HubView({
             <MirrorPips done={done(a4.time)} total={A4_SCREEN_COUNT} />
             {claimedNote(
               timeClaimed,
-              timeUnlocked ? "" : selfClaimed ? "Coming soon" : "Unlocks after Self",
+              timeUnlocked ? "" : "Unlocks after Self",
             )}
             <div className="na1-mirror-card-action">
               {timeUnlocked || timeClaimed ? (
@@ -46045,11 +46191,7 @@ function NewA4HubView({
             <MirrorPips done={done(a4.wealth)} total={A4_SCREEN_COUNT} />
             {claimedNote(
               wealthClaimed,
-              wealthUnlocked
-                ? ""
-                : timeClaimed
-                  ? "Coming soon"
-                  : "Unlocks after Time",
+              wealthUnlocked ? "" : "Unlocks after Time",
             )}
             <div className="na1-mirror-card-action">
               {wealthUnlocked || wealthClaimed ? (
@@ -46069,6 +46211,56 @@ function NewA4HubView({
             </div>
           </article>
         </div>
+        {/* My Promises + the A4 claim — opens once all three promises are
+            claimed. Not a fourth mirror (the count above stays N of 3). */}
+        {promisesUnlocked || a4Claimed ? (
+          <div className="na1-mirror-grid na1-a4-final">
+            <article
+              className={`na1-mirror-card ${a4Claimed ? "is-complete" : "is-current"}`}
+            >
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">★</span>
+                <span className="na1-mirror-card-status">
+                  {a4Claimed ? "Complete" : "Up next"}
+                </span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">Final step</div>
+              <h2 className="na1-mirror-card-name">My Promises</h2>
+              <p className="na1-mirror-card-sub">
+                Your three promises, side by side — then claim them.
+              </p>
+              {claimedNote(a4Claimed, "")}
+              <div className="na1-mirror-card-action">
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBeginPromises}
+                >
+                  {a4Claimed ? "Review my promises →" : "Claim my promises →"}
+                </button>
+                <span className="na1-mirror-card-meta">3 promises</span>
+              </div>
+            </article>
+            {a4Claimed ? (
+              <article className="na1-mirror-card is-current">
+                <div className="na1-mirror-card-head">
+                  <span className="na1-mirror-card-num">A5</span>
+                  <span className="na1-mirror-card-status">Up next</span>
+                </div>
+                <div className="na1-mirror-card-eyebrow">Next discipline</div>
+                <h2 className="na1-mirror-card-name">Accountable To It</h2>
+                <p className="na1-mirror-card-sub">
+                  Your next 90 days and this week — and your promises, sent back
+                  to you as reminders.
+                </p>
+                <div className="na1-mirror-card-empty">Coming soon</div>
+                <div className="na1-mirror-card-action">
+                  <span className="na1-mirror-card-meta">Opens soon</span>
+                </div>
+              </article>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -46178,82 +46370,363 @@ function A4DoneNote({ show }: { show: boolean }) {
   );
 }
 
+// Screen 1 · two "sides" of the same picture shown as tabs on a phone (so the
+// screen fits without scrolling) and side by side from 768px up. Display-only.
+function A4Tabs({
+  labels,
+  panes,
+  className = "",
+}: {
+  labels: string[];
+  panes: React.ReactNode[];
+  className?: string;
+}) {
+  const [active, setActive] = useState(0);
+  return (
+    <div className={`na1-a4-tabs ${className}`}>
+      <div className="na1-a4-tabbar" role="tablist">
+        {labels.map((l, i) => (
+          <button
+            type="button"
+            key={i}
+            role="tab"
+            aria-selected={active === i}
+            className={`na1-a4-tab ${active === i ? "is-active" : ""}`}
+            onClick={() => setActive(i)}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+      {panes.map((p, i) => (
+        <div
+          key={i}
+          role="tabpanel"
+          aria-label={labels[i]}
+          className={`na1-a4-pane ${active === i ? "is-active" : ""}`}
+        >
+          {p}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Screen 1 · Self · "What you say vs. what you do."
 function A4SelfSeeBody({ src, done }: { src: A4Sources; done: boolean }) {
+  const valuesPane = (
+    <section className="na1-a4-col" aria-label="What I value">
+      <h3 className="na1-a4-col-label">What I value</h3>
+      {src.values.length > 0 ? (
+        <ol className="na1-a4-values">
+          {src.values.map((v, i) => (
+            <li key={v.id}>
+              <div className="na1-a4-value-head">
+                <span className="na1-a2m1-value-rank">{i + 1}</span>
+                <span className="na1-a4-value-name">{v.name}</span>
+              </div>
+              {v.behaviors.length > 0 ? (
+                <ul className="na1-a4-behaviors">
+                  {v.behaviors.map((b) => (
+                    <li key={b.id} className={b.keystone ? "" : "is-extra"}>
+                      {b.keystone ? (
+                        <span className="na1-a4-star" aria-label="keystone">
+                          ★{" "}
+                        </span>
+                      ) : null}
+                      {b.name}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="na1-a2m1-empty">No values ranked yet.</p>
+      )}
+    </section>
+  );
+  const giftsPane = (
+    <section className="na1-a4-col" aria-label="Who I am · my gifts">
+      <h3 className="na1-a4-col-label">Who I am · my gifts</h3>
+      {src.creatures.length > 0 ? (
+        <div className="na1-a4-creatures">
+          {src.creatures.map((c) => {
+            // Slipping gifts first, so the ones that matter survive the phone cut.
+            const gifts = [...c.gifts].sort(
+              (a, b) =>
+                Number(b.rating != null && b.rating <= A4_SLIPPING_MAX) -
+                Number(a.rating != null && a.rating <= A4_SLIPPING_MAX),
+            );
+            const hidden = Math.max(0, gifts.length - 3);
+            return (
+              <div className="na1-a2m1-creature" key={c.id}>
+                <div className="na1-a2m1-creature-head">
+                  {c.emoji ? (
+                    <span className="na1-a2m1-creature-emoji" aria-hidden>
+                      {c.emoji}
+                    </span>
+                  ) : null}
+                  <span className="na1-a2m1-creature-name">{c.label}</span>
+                </div>
+                {gifts.length > 0 ? (
+                  <div className="na1-a2m1-chips">
+                    {gifts.map((g, gi) => (
+                      <span
+                        className={`na1-chip ${gi >= 3 ? "is-extra" : ""}`}
+                        key={g.id}
+                      >
+                        {g.label}
+                        {g.rating != null && g.rating <= A4_SLIPPING_MAX ? (
+                          <span className="na1-a4-slip">{" · Slipping"}</span>
+                        ) : null}
+                      </span>
+                    ))}
+                    {hidden > 0 ? (
+                      <span className="na1-chip na1-a4-more">+{hidden} more</span>
+                    ) : null}
+                  </div>
+                ) : null}
+                {c.underPressure ? (
+                  <p className="na1-a4-pressure">{c.underPressure}</p>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="na1-a2m1-empty">No gifts captured yet.</p>
+      )}
+    </section>
+  );
   return (
     <div>
       <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[0]}</div>
       <h2 className="na1-room-title">What you say vs. what you do.</h2>
       <A4DoneNote show={done} />
-      <div className="na1-a4-see">
-        <section className="na1-a4-col" aria-label="What I value">
-          <h3 className="na1-a4-col-label">What I value</h3>
-          {src.values.length > 0 ? (
-            <ol className="na1-a4-values">
-              {src.values.map((v, i) => (
-                <li key={v.id}>
-                  <div className="na1-a4-value-head">
-                    <span className="na1-a2m1-value-rank">{i + 1}</span>
-                    <span className="na1-a4-value-name">{v.name}</span>
-                  </div>
-                  {v.behaviors.length > 0 ? (
-                    <ul className="na1-a4-behaviors">
-                      {v.behaviors.map((b) => (
-                        <li key={b.id}>
-                          {b.keystone ? (
-                            <span className="na1-a4-star" aria-label="keystone">
-                              ★{" "}
-                            </span>
-                          ) : null}
-                          {b.name}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              ))}
-            </ol>
+      <A4Tabs
+        labels={["What I value", "Who I am"]}
+        panes={[valuesPane, giftsPane]}
+      />
+    </div>
+  );
+}
+
+// Screen 1 · Time · "Your priorities vs. your week."
+function A4TimeSeeBody({ src, done }: { src: A4Sources; done: boolean }) {
+  const model = useMemo(() => a4TimeRows(src.time), [src]);
+  const [open, setOpen] = useState<string | null>(null);
+  const awake = src.time.awake;
+  const rowsAll = model.none.hrs > 0 ? [...model.rows, model.none] : model.rows;
+  const Row = ({ r }: { r: A4TimeRow }) => {
+    const isOpen = open === r.name;
+    const shown = r.activities.slice(0, 4);
+    return (
+      <li className={`na1-a4-trow ${isOpen ? "is-open" : ""}`}>
+        <button
+          type="button"
+          className="na1-a4-trow-btn"
+          aria-expanded={isOpen}
+          onClick={() => setOpen(isOpen ? null : r.name)}
+        >
+          <span className="na1-a4-trow-top">
+            {r.rank > 0 ? <span className="na1-a2m1-value-rank">{r.rank}</span> : null}
+            <span className="na1-a4-trow-name">{r.name}</span>
+            <span className={`na1-a4-trow-hrs ${r.mismatch ? "is-gap" : ""}`}>
+              {r.hrs} hr{r.hrs === 1 ? "" : "s"} · {r.pct}%
+            </span>
+          </span>
+          <span className="na1-a4-bar" aria-hidden>
+            <span
+              className={`na1-a4-bar-fill ${r.mismatch ? "is-gap" : ""}`}
+              style={{ width: `${Math.min(100, r.pct)}%`, minWidth: r.hrs > 0 ? 4 : 0 }}
+            />
+          </span>
+        </button>
+        {isOpen ? (
+          shown.length > 0 ? (
+            <ul className="na1-a4-tacts">
+              {shown.map((a) => {
+                const lifts = a.feeling === "love" || a.feeling === "like";
+                return (
+                  <li key={a.id}>
+                    <span className="na1-a4-tact-name">{a.name}</span>
+                    <span className="na1-a4-tact-hrs">{a.hrs}h</span>
+                    <span className={`na1-a4-tact-tag ${lifts ? "is-lift" : "is-drain"}`}>
+                      {lifts ? "Lifts me" : "Drains me"}
+                    </span>
+                  </li>
+                );
+              })}
+              {r.activities.length > shown.length ? (
+                <li className="na1-a4-tact-more">+{r.activities.length - shown.length} more</li>
+              ) : null}
+            </ul>
           ) : (
-            <p className="na1-a2m1-empty">No values ranked yet.</p>
-          )}
-        </section>
-        <section className="na1-a4-col" aria-label="Who I am · my gifts">
-          <h3 className="na1-a4-col-label">Who I am · my gifts</h3>
-          {src.creatures.length > 0 ? (
-            <div className="na1-a4-creatures">
-              {src.creatures.map((c) => (
-                <div className="na1-a2m1-creature" key={c.id}>
-                  <div className="na1-a2m1-creature-head">
-                    {c.emoji ? (
-                      <span className="na1-a2m1-creature-emoji" aria-hidden>
-                        {c.emoji}
-                      </span>
-                    ) : null}
-                    <span className="na1-a2m1-creature-name">{c.label}</span>
-                  </div>
-                  {c.gifts.length > 0 ? (
-                    <div className="na1-a2m1-chips">
-                      {c.gifts.map((g) => (
-                        <span className="na1-chip" key={g.id}>
-                          {g.label}
-                          {g.rating != null && g.rating <= A4_SLIPPING_MAX ? (
-                            <span className="na1-a4-slip">{"\u00A0· Slipping"}</span>
-                          ) : null}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                  {c.underPressure ? (
-                    <p className="na1-a4-pressure">{c.underPressure}</p>
-                  ) : null}
-                </div>
-              ))}
+            <p className="na1-a4-tacts-empty">Nothing logged here.</p>
+          )
+        ) : null}
+      </li>
+    );
+  };
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[0]}</div>
+      <h2 className="na1-room-title">Your priorities vs. your week.</h2>
+      <A4DoneNote show={done} />
+      {rowsAll.length > 0 ? (
+        <>
+          <ol className="na1-a4-trows">
+            {rowsAll.map((r) => (
+              <Row key={r.name} r={r} />
+            ))}
+          </ol>
+          <p className="na1-a4-trows-foot">
+            Bars show hours out of your {awake} awake hours a week.{" "}
+            <span className="na1-a4-foot-gap">Burgundy</span> = hours that don&rsquo;t match the rank.
+          </p>
+        </>
+      ) : (
+        <p className="na1-a2m1-empty">No Time Audit yet — finish Align With It first.</p>
+      )}
+    </div>
+  );
+}
+
+// Screen 1 · Wealth · "The future you see vs. money today."
+function A4WealthSeeBody({
+  src,
+  m,
+  onMoney,
+  done,
+}: {
+  src: A4Sources;
+  m: A4WealthState;
+  onMoney: (i: number, a: A4MoneyAnswer) => void;
+  done: boolean;
+}) {
+  const futurePane = (
+    <section className="na1-a4-col" aria-label="My future">
+      <h3 className="na1-a4-col-label">The future I see · 10 years</h3>
+      <div className="na1-a4-vparts">
+        {A4_WEALTH_PARTS.map((p) => {
+          const line = src.vision.wealth.find((l) => l.domain === p.domain);
+          const text = line ? a4VisionSentence("wealth", line) : "";
+          return (
+            <div className="na1-a4-vpart" key={p.domain}>
+              <div className="na1-a4-vpart-label">{p.label}</div>
+              {text ? (
+                <p className="na1-a4-vpart-text">{text}</p>
+              ) : (
+                <p className="na1-a4-vpart-text is-empty">Not written yet.</p>
+              )}
             </div>
-          ) : (
-            <p className="na1-a2m1-empty">No gifts captured yet.</p>
-          )}
-        </section>
+          );
+        })}
       </div>
+    </section>
+  );
+  const moneyPane = (
+    <section className="na1-a4-col" aria-label="Money today">
+      <h3 className="na1-a4-col-label">Money today</h3>
+      <ol className="na1-a4-money">
+        {A4_MONEY_QUESTIONS.map((q, i) => {
+          const cur = m.moneyCheck[String(i)];
+          return (
+            <li key={q} className="na1-a4-mq">
+              <p className="na1-a4-mq-text">{q}</p>
+              <div className="na1-a4-mq-btns" role="radiogroup" aria-label={q}>
+                {(["Always", "Sometimes", "Rarely"] as A4MoneyAnswer[]).map((a) => (
+                  <button
+                    type="button"
+                    key={a}
+                    role="radio"
+                    aria-checked={cur === a}
+                    className={`na1-a4-mq-btn ${a === "Rarely" ? "is-rarely" : ""} ${cur === a ? "is-selected" : ""}`}
+                    onClick={() => onMoney(i, a)}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A4_SCREEN_EYEBROW[0]}</div>
+      <h2 className="na1-room-title">The future you see vs. money today.</h2>
+      <A4DoneNote show={done} />
+      <A4Tabs
+        labels={[
+          "My future",
+          `Money today · ${Object.keys(m.moneyCheck).length}/${A4_MONEY_QUESTIONS.length}`,
+        ]}
+        panes={[futurePane, moneyPane]}
+        className="is-wealth"
+      />
+    </div>
+  );
+}
+
+// "To make room, I'll say no to…" — Time & Wealth. Chips come from the member's
+// own draining / no-priority activities; "+ Write my own" opens a text box.
+function A4SayNo({
+  options,
+  value,
+  onChange,
+}: {
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const custom = value.trim() !== "" && !options.includes(value);
+  const [writing, setWriting] = useState<boolean>(custom);
+  return (
+    <div className="na1-a4-sayno">
+      <p className="na2-prose-blank-stem">To make room, I&rsquo;ll say no to…</p>
+      <div className="na1-chip-grid" role="radiogroup" aria-label="Say no to">
+        {options.map((o) => (
+          <button
+            type="button"
+            key={o}
+            role="radio"
+            aria-checked={value === o}
+            className={`na1-chip na1-a4-kind ${value === o ? "is-selected" : ""}`}
+            onClick={() => {
+              setWriting(false);
+              onChange(value === o ? "" : o);
+            }}
+          >
+            {o}
+          </button>
+        ))}
+        <button
+          type="button"
+          className={`na1-chip na1-a4-kind is-other ${writing || custom ? "is-selected" : ""}`}
+          aria-pressed={writing || custom}
+          onClick={() => {
+            if (writing && !custom) setWriting(false);
+            else setWriting(true);
+          }}
+        >
+          + Write my own
+        </button>
+      </div>
+      {writing || custom ? (
+        <textarea
+          className="na2-blank-input na1-a4-blank"
+          rows={2}
+          value={custom ? value : options.includes(value) ? "" : value}
+          placeholder="the thing you'll let go of"
+          onChange={(e) => onChange(e.target.value)}
+          aria-label="Write your own thing to say no to"
+        />
+      ) : null}
     </div>
   );
 }
@@ -46466,12 +46939,15 @@ function A4WillBody({
   purpose,
   tenYear,
   onField,
+  sayNo,
   done,
 }: {
   m: A4MirrorState;
   purpose: string;
   tenYear: string;
   onField: (k: "will" | "when", v: string) => void;
+  // Time & Wealth only: "To make room, I'll say no to…" chips.
+  sayNo?: { options: string[]; value: string; onChange: (v: string) => void };
   done: boolean;
 }) {
   return (
@@ -46498,6 +46974,13 @@ function A4WillBody({
         onChange={(v) => onField("when", v)}
         placeholder="the moment it happens — e.g. right after I notice it"
       />
+      {sayNo ? (
+        <A4SayNo
+          options={sayNo.options}
+          value={sayNo.value}
+          onChange={sayNo.onChange}
+        />
+      ) : null}
     </div>
   );
 }
@@ -46630,7 +47113,7 @@ function A4SealBody({
   m: A4MirrorState;
   onReclaim: () => void;
   onFinish: () => void;
-  next: { label: string; go: () => void } | null;
+  next: { label: string; go: () => void; cta?: string } | null;
 }) {
   const { user: authUser } = useAuth();
   const displayName = resolveDisplayName(null, authUser);
@@ -46649,6 +47132,12 @@ function A4SealBody({
           I will {m.will.trim()}
           {m.when.trim() !== "" ? ` when ${m.when.trim()}` : ""}.
         </p>
+        {m.sayNo && m.sayNo.trim() !== "" ? (
+          <p className="na1-a4-promise-year">
+            <span className="na1-a4-promise-year-label">To make room:</span>{" "}
+            I&rsquo;ll say no to {m.sayNo.trim()}.
+          </p>
+        ) : null}
         {m.year.trim() !== "" ? (
           <p className="na1-a4-promise-year">
             <span className="na1-a4-promise-year-label">A year from now:</span>{" "}
@@ -46670,7 +47159,7 @@ function A4SealBody({
           className="na1-btn-gold"
           onClick={next ? next.go : onFinish}
         >
-          {next ? `Continue to ${next.label} →` : "Back to A4 →"}
+          {next ? (next.cta ?? `Continue to ${next.label} →`) : "Back to A4 →"}
         </button>
       </div>
     </div>
@@ -46687,8 +47176,14 @@ type A4RoomCfg = {
   lens: Lens; // which 10-year vision feeds the "your why" strip
   needSayNo: boolean;
   gapTitle: string; // screen 2 H1
-  gaps: (src: A4Sources) => A4Gap[];
-  seeBody: (src: A4Sources, done: boolean) => React.ReactNode;
+  needMoneyCheck: boolean;
+  gaps: (src: A4Sources, m: A4MirrorState) => A4Gap[];
+  seeBody: (ctx: {
+    src: A4Sources;
+    m: A4MirrorState;
+    done: boolean;
+    onMoney: (i: number, a: A4MoneyAnswer) => void;
+  }) => React.ReactNode;
   seal: (name: string | null | undefined) => string;
 };
 
@@ -46700,11 +47195,46 @@ const A4_SELF_CFG: A4RoomCfg = {
   veil: "Looking at who you say you are…",
   lens: "self",
   needSayNo: false,
+  needMoneyCheck: false,
   gapTitle: "Where your inside doesn't match your outside.",
-  gaps: buildSelfGaps,
-  seeBody: (src, done) => <A4SelfSeeBody src={src} done={done} />,
+  gaps: (src) => buildSelfGaps(src),
+  seeBody: ({ src, done }) => <A4SelfSeeBody src={src} done={done} />,
   seal: (name) =>
     `${name ? `${name}, you` : "You"} looked at the gap between who you say you are and how you treat yourself — and you made one promise to close it. That's how self-trust starts: one kept word at a time.`,
+};
+
+const A4_TIME_CFG: A4RoomCfg = {
+  key: "time",
+  roomId: "time",
+  num: 2,
+  title: "Time",
+  veil: "Looking at where your hours really go…",
+  lens: "time",
+  needSayNo: true,
+  needMoneyCheck: false,
+  gapTitle: "Which gap costs you the most?",
+  gaps: (src) => buildTimeGaps(src),
+  seeBody: ({ src, done }) => <A4TimeSeeBody src={src} done={done} />,
+  seal: (name) =>
+    `${name ? `${name}, you` : "You"} looked at where your hours really go and chose one thing to give back to what matters most — and one thing to let go of. That's how your calendar starts telling the truth.`,
+};
+
+const A4_WEALTH_CFG: A4RoomCfg = {
+  key: "wealth",
+  roomId: "wealth",
+  num: 3,
+  title: "Wealth",
+  veil: "Looking at what your money is saying…",
+  lens: "wealth",
+  needSayNo: true,
+  needMoneyCheck: true,
+  gapTitle: "Where your money doesn't match your future.",
+  gaps: (src, m) => buildWealthGaps(src, (m as A4WealthState).moneyCheck),
+  seeBody: ({ src, m, done, onMoney }) => (
+    <A4WealthSeeBody src={src} m={m as A4WealthState} onMoney={onMoney} done={done} />
+  ),
+  seal: (name) =>
+    `${name ? `${name}, you` : "You"} put your future next to your money today and chose one promise to bring them closer. Your future doesn't start later — it starts with this.`,
 };
 
 function NewA4MirrorContainer({
@@ -46718,7 +47248,7 @@ function NewA4MirrorContainer({
   onBackToA4: () => void;
   // Forward CTA on the seal ("Continue to Time →"); null while the next room
   // isn't built yet → the seal offers "Back to A4 →".
-  onNext: { label: string; go: () => void } | null;
+  onNext: { label: string; go: () => void; cta?: string } | null;
   // One-shot: the room id when restoring a saved room (resume — no veil).
   initialRoomKey: string | null;
   onRoomChange: (roomId: string | null) => void;
@@ -46737,7 +47267,14 @@ function NewA4MirrorContainer({
     [cfg.key],
   );
   const src = useMemo(() => readA4Sources(), []);
-  const gaps = useMemo(() => cfg.gaps(src), [cfg, src]);
+  const moneyKey = JSON.stringify((m as A4WealthState).moneyCheck ?? {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const gaps = useMemo(() => cfg.gaps(src, m), [cfg, src, moneyKey]);
+  const sayNoOptions = useMemo(
+    () => (cfg.needSayNo ? a4SayNoOptions(src, cfg.key) : []),
+    [cfg, src],
+  );
+  const readyOpts = { needSayNo: cfg.needSayNo, needMoneyCheck: cfg.needMoneyCheck };
   const tenYear = useMemo(
     () => a4TenYearLine(src.vision, cfg.lens),
     [src, cfg.lens],
@@ -46759,7 +47296,7 @@ function NewA4MirrorContainer({
     Array.from({ length: A4_SCREEN_COUNT }, (_, i) =>
       i === 0
         ? m.step > 0 || m.claimed
-        : a4ScreenReady(m, i, { needSayNo: cfg.needSayNo }),
+        : a4ScreenReady(m, i, readyOpts),
     ),
   ).current;
 
@@ -46832,7 +47369,15 @@ function NewA4MirrorContainer({
       },
     }));
 
-  const ready = a4ScreenReady(m, screen, { needSayNo: cfg.needSayNo });
+  const ready = a4ScreenReady(m, screen, readyOpts);
+  const setMoney = (i: number, a: A4MoneyAnswer) =>
+    setA4State((prev) => {
+      const w = prev.wealth;
+      if (w.moneyCheck[String(i)] === a) return prev;
+      const next = { ...prev, wealth: { ...w, moneyCheck: { ...w.moneyCheck, [String(i)]: a } } };
+      saveA4State(next);
+      return next;
+    });
 
   // Claim: burst (no replay on re-entry) → seal.
   const handleClaim = () => {
@@ -46895,7 +47440,7 @@ function NewA4MirrorContainer({
       next={onNext}
     />
   ) : screen === 0 ? (
-    cfg.seeBody(src, doneAtEntry[0])
+    cfg.seeBody({ src, m, done: doneAtEntry[0], onMoney: setMoney })
   ) : screen === 1 ? (
     <A4GapBody
       title={cfg.gapTitle}
@@ -46917,6 +47462,15 @@ function NewA4MirrorContainer({
       purpose={src.purpose}
       tenYear={tenYear}
       onField={(k, v) => setField(k, v)}
+      sayNo={
+        cfg.needSayNo
+          ? {
+              options: sayNoOptions,
+              value: m.sayNo ?? "",
+              onChange: (v) => setField("sayNo", v),
+            }
+          : undefined
+      }
       done={doneAtEntry[3]}
     />
   ) : screen === 4 ? (
@@ -46993,6 +47547,232 @@ function NewA4MirrorContainer({
           document.body,
         )}
       {veilPhase !== "idle" && <NewA1Veil phase={veilPhase} text={cfg.veil} />}
+    </div>
+  );
+}
+
+// ─── A4 · My Promises + the A4 claim ───
+// After Wealth: the three promises side by side, then one claim that completes
+// A4. Same room shell, veil-on-entry, burst-once and seal as every mirror.
+const A4P_VEIL = "Gathering your three promises…";
+const A4P_SEAL = (name: string | null | undefined) =>
+  `${name ? `${name}, three` : "Three"} promises — one for who you are, one for your time, one for your money. Each one small enough to keep. Keep them, and you'll start to trust yourself again.`;
+
+function A4PromiseCard({
+  label,
+  m,
+  onEdit,
+}: {
+  label: string;
+  m: A4MirrorState;
+  onEdit: () => void;
+}) {
+  return (
+    <article className="na1-a4-pcard">
+      <div className="na1-a4-pcard-head">
+        <span className="na1-a4-pcard-label">{label}</span>
+        <button type="button" className="na1-a4-ownlink" onClick={onEdit}>
+          Edit in {label} →
+        </button>
+      </div>
+      <p className="na1-a4-promise-main">
+        I will {m.will.trim()}
+        {m.when.trim() !== "" ? ` when ${m.when.trim()}` : ""}.
+      </p>
+      {m.sayNo && m.sayNo.trim() !== "" ? (
+        <p className="na1-a4-promise-year">
+          <span className="na1-a4-promise-year-label">To make room:</span> I&rsquo;ll say no to{" "}
+          {m.sayNo.trim()}.
+        </p>
+      ) : null}
+      {m.year.trim() !== "" ? (
+        <p className="na1-a4-promise-year">
+          <span className="na1-a4-promise-year-label">A year from now:</span> {m.year.trim()}
+        </p>
+      ) : null}
+      {m.gives.trim() !== "" ? (
+        <p className="na1-a4-promise-year">
+          <span className="na1-a4-promise-year-label">Keeping this gives me:</span> {m.gives.trim()}
+        </p>
+      ) : null}
+    </article>
+  );
+}
+
+function NewA4PromisesContainer({
+  onBackToA4,
+  onContinueToA5,
+  onEdit,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA4: () => void;
+  onContinueToA5: () => void;
+  onEdit: (key: A4MirrorKey) => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a4State, setA4State] = useState<A4State>(() => loadA4State());
+  const claimed = a4State.a4.claimed;
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  const resuming = initialRoomKey === "promises";
+  const launchVeil = !resuming;
+  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(launchVeil ? "rising" : "idle");
+  const [showBurst, setShowBurst] = useState(false);
+  const burstTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+    },
+    [],
+  );
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(window.setTimeout(() => setVeilPhase("falling"), NA1_VEIL_TIMING.fallingAt));
+    timers.push(window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    onRoomChange(roomOpen ? "promises" : null);
+  }, [roomOpen, onRoomChange]);
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA4();
+  };
+  const handleClaim = () => {
+    if (showBurst || claimed) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      setA4State((prev) => {
+        const next = {
+          ...prev,
+          a4: { claimed: true, claimedAt: prev.a4.claimedAt ?? new Date().toISOString() },
+        };
+        saveA4State(next);
+        return next;
+      });
+    }, 2000);
+  };
+  const reclaim = () =>
+    setA4State((prev) => {
+      const next = { ...prev, a4: { claimed: false, claimedAt: null } };
+      saveA4State(next);
+      return next;
+    });
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+  return (
+    <div className="na1-root">
+      {roomOpen && (
+        <div
+          className="na1-room-overlay na1-a4-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="My Promises"
+        >
+          <div className="na1-room-card na1-a2m2-room-card na1-a4-room">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>A4</a>
+              <span className="sep">›</span>
+              <span className="current">{claimed ? "Claim" : "My Promises"}</span>
+            </div>
+            <button type="button" className="na1-room-close" onClick={closeRoom} aria-label="Close">
+              ×
+            </button>
+            <div className="na1-a2m2-body">
+              {claimed ? (
+                <div>
+                  <div className="na1-room-eyebrow tone-gold">A4 · My Promises · Claim ★</div>
+                  <h2 className="na1-room-title">Claimed.</h2>
+                  <div className="na1-a2m1-seal" role="status">
+                    <p className="na1-a2m1-seal-body">{A4P_SEAL(displayName)}</p>
+                    <p className="na1-a2m1-seal-by">— Katherine</p>
+                  </div>
+                  <div className="na1-a2m1-reclaim">
+                    <p className="na1-a2m1-reclaim-note">
+                      Want to change a promise? Re-claim, then edit it.
+                    </p>
+                    <button type="button" className="na1-btn-ghost" onClick={reclaim}>
+                      ↺ Re-claim
+                    </button>
+                  </div>
+                  <div className="na1-a2m1-claim-actions">
+                    <button type="button" className="na1-btn-gold" onClick={onContinueToA5}>
+                      Continue to A5 →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="na1-room-eyebrow tone-gold">A4 · MY PROMISES</div>
+                  <h2 className="na1-room-title">Your three promises.</h2>
+                  <p className="na1-room-context">
+                    One for who you are, one for your time, one for your money. Read them
+                    back — then claim them.
+                  </p>
+                  <div className="na1-a4-pcards">
+                    <A4PromiseCard label="Self" m={a4State.self} onEdit={() => onEdit("self")} />
+                    <A4PromiseCard label="Time" m={a4State.time} onEdit={() => onEdit("time")} />
+                    <A4PromiseCard label="Wealth" m={a4State.wealth} onEdit={() => onEdit("wealth")} />
+                  </div>
+                </div>
+              )}
+            </div>
+            {!claimed && (
+              <div className="na1-a2m2-nav">
+                <button type="button" className="na1-btn-ghost" onClick={closeRoom}>
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={handleClaim}
+                  disabled={showBurst || !a4MirrorsClaimed(a4State)}
+                >
+                  Claim my promises →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      {veilPhase !== "idle" && <NewA1Veil phase={veilPhase} text={A4P_VEIL} />}
     </div>
   );
 }
@@ -47094,9 +47874,6 @@ function NewA1View({
         if (saved.view === "a3m4" && !NEW_A3_FLAG) return "grid";
         if (saved.view === "a3m5" && !NEW_A3_FLAG) return "grid";
         if (saved.view === "a3m6" && !NEW_A3_FLAG) return "grid";
-        // A4-1 · Time (a4m2) and Wealth (a4m3) rooms arrive with Ship A4-2; a
-        // saved route to either lands on the A4 hub for now.
-        if (saved.view === "a4m2" || saved.view === "a4m3") return "a4";
         return saved.view;
       }
       // Auto-resume into M3 ONLY if the user has real M3 progress
@@ -47168,6 +47945,15 @@ function NewA1View({
     if (saved.overlay.hubId === "a4m1") {
       if (saved.view === "a4m1") return saved.overlay;
     }
+    if (saved.overlay.hubId === "a4m2") {
+      if (saved.view === "a4m2") return saved.overlay;
+    }
+    if (saved.overlay.hubId === "a4m3") {
+      if (saved.view === "a4m3") return saved.overlay;
+    }
+    if (saved.overlay.hubId === "a4p") {
+      if (saved.view === "a4p") return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -47209,6 +47995,15 @@ function NewA1View({
   const initialA4M1RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a4m1" ? overlayRoute.roomId : null,
   );
+  const initialA4M2RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a4m2" ? overlayRoute.roomId : null,
+  );
+  const initialA4M3RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a4m3" ? overlayRoute.roomId : null,
+  );
+  const initialA4PRoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a4p" ? overlayRoute.roomId : null,
+  );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
   const firstRoutePersistRef = useRef(true);
@@ -47235,6 +48030,9 @@ function NewA1View({
       view !== "a3m5" &&
       view !== "a3m6" &&
       view !== "a4m1" &&
+      view !== "a4m2" &&
+      view !== "a4m3" &&
+      view !== "a4p" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -47364,6 +48162,39 @@ function NewA1View({
       return next;
     });
   }, []);
+  // A4-1 · Time room (single room "time") reports open/close.
+  const onA4M2RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a4m2", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A4-1 · Wealth room (single room "wealth") reports open/close.
+  const onA4M3RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a4m3", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A4-1 · My Promises (single room "promises") reports open/close.
+  const onA4PRoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a4p", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
   // A2 Ship 2 · Named Truth room (single room "namedtruth") reports open/close.
   const onA2M3RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
@@ -47471,7 +48302,8 @@ function NewA1View({
   }, [view, roomOpen]);
   // Spine · A4 completion signal: all three A4 promises claimed (the a4.claimed
   // flag set by the A4 claim in Ship A4-2). Same [view, roomOpen] cadence.
-  const a4Complete = useMemo(() => loadA4State().a4.claimed, [view, roomOpen]);
+  const a4Snap = useMemo(() => loadA4State(), [view, roomOpen]);
+  const a4Complete = a4Snap.a4.claimed;
   // Phone spine (<768px): publish where the user is + each discipline's
   // completion so the root-mounted <NewA1PhoneSpine> can render without every
   // view having to include it. Cleared when this router unmounts (e.g. back to
@@ -47526,11 +48358,21 @@ function NewA1View({
   // A4 · the Self room (a4m1) is only reached through the A4 hub's 01 card,
   // gated on A3 being fully claimed. A persisted view:"a4m1" can survive a later
   // A3 reset — bounce back to the hub, whose 01 card shows the locked gate.
+  // The same chain holds for the rest: Time needs Self claimed, Wealth needs
+  // Time, My Promises needs all three.
   useEffect(() => {
-    if (view === "a4m1" && !a3Complete) {
-      setView("a4");
-    }
-  }, [view, a3Complete]);
+    const gate =
+      view === "a4m1"
+        ? a3Complete
+        : view === "a4m2"
+          ? a3Complete && a4Snap.self.claimed
+          : view === "a4m3"
+            ? a3Complete && a4Snap.self.claimed && a4Snap.time.claimed
+            : view === "a4p"
+              ? a3Complete && a4MirrorsClaimed(a4Snap)
+              : true;
+    if (!gate) setView("a4");
+  }, [view, a3Complete, a4Snap]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -48035,18 +48877,27 @@ function NewA1View({
           onBeginSelf={() => setView("a4m1")}
           onBeginTime={() => setView("a4m2")}
           onBeginWealth={() => setView("a4m3")}
+          onBeginPromises={() => setView("a4p")}
           onGoToA3={() => setView("a3")}
         />
       </div>
     );
   }
-  // A4-1 · Self (A4 Mirror 1). The hub stays mounted behind the room card
-  // (dimmed + blurred) — the overlay owns the interaction. Claiming returns to
-  // the hub; Time is the next mirror but isn't built until A4-2, so the seal's
-  // forward CTA is "Back to A4 →" for now.
-  if (view === "a4m1") {
-    const initialKey = initialA4M1RoomKeyRef.current;
-    initialA4M1RoomKeyRef.current = null;
+  // A4 rooms: Self (a4m1) · Time (a4m2) · Wealth (a4m3) · My Promises (a4p). The
+  // hub stays mounted behind the room card (dimmed + blurred) — the overlay owns
+  // the interaction. A mirror's seal returns to the hub, where the next card
+  // reads Up next; Wealth's seal goes straight to My Promises.
+  if (view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p") {
+    const ref =
+      view === "a4m1"
+        ? initialA4M1RoomKeyRef
+        : view === "a4m2"
+          ? initialA4M2RoomKeyRef
+          : view === "a4m3"
+            ? initialA4M3RoomKeyRef
+            : initialA4PRoomKeyRef;
+    const initialKey = ref.current;
+    ref.current = null;
     return (
       <div className="na1-spine-pad">
         <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
@@ -48058,19 +48909,46 @@ function NewA1View({
           onBeginSelf={() => {}}
           onBeginTime={() => {}}
           onBeginWealth={() => {}}
+          onBeginPromises={() => {}}
           onGoToA3={() => setView("a3")}
         />
-        <NewA4MirrorContainer
-          cfg={A4_SELF_CFG}
-          onBackToA4={() => setView("a4")}
-          onNext={
-            A4_TIME_BUILT
-              ? { label: "Time", go: () => setView("a4") }
-              : null
-          }
-          initialRoomKey={initialKey}
-          onRoomChange={onA4M1RoomChange}
-        />
+        {view === "a4m1" ? (
+          <NewA4MirrorContainer
+            key="a4m1"
+            cfg={A4_SELF_CFG}
+            onBackToA4={() => setView("a4")}
+            onNext={{ label: "Time", go: () => setView("a4") }}
+            initialRoomKey={initialKey}
+            onRoomChange={onA4M1RoomChange}
+          />
+        ) : view === "a4m2" ? (
+          <NewA4MirrorContainer
+            key="a4m2"
+            cfg={A4_TIME_CFG}
+            onBackToA4={() => setView("a4")}
+            onNext={{ label: "Wealth", go: () => setView("a4") }}
+            initialRoomKey={initialKey}
+            onRoomChange={onA4M2RoomChange}
+          />
+        ) : view === "a4m3" ? (
+          <NewA4MirrorContainer
+            key="a4m3"
+            cfg={A4_WEALTH_CFG}
+            onBackToA4={() => setView("a4")}
+            onNext={{ label: "My promises", cta: "See my promises →", go: () => setView("a4p") }}
+            initialRoomKey={initialKey}
+            onRoomChange={onA4M3RoomChange}
+          />
+        ) : (
+          <NewA4PromisesContainer
+            key="a4p"
+            onBackToA4={() => setView("a4")}
+            onContinueToA5={() => setView("a4")}
+            onEdit={(k) => setView(k === "self" ? "a4m1" : k === "time" ? "a4m2" : "a4m3")}
+            initialRoomKey={initialKey}
+            onRoomChange={onA4PRoomChange}
+          />
+        )}
       </div>
     );
   }
