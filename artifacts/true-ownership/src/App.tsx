@@ -212,6 +212,37 @@ import {
   type A4VisionLine,
   type A4MirrorKey,
 } from "./a4Constants";
+import {
+  loadA5State,
+  saveA5State,
+  hasA5State,
+  EMPTY_A5,
+  A5_KEYS,
+  A5_LABEL,
+  A5_DAYS,
+  A5_SYSTEM_DEFAULT,
+  a5DayLong,
+  a5NinetyBy,
+  a5FormatBy,
+  a5FormatTime,
+  a5DaysFromText,
+  a5TimeFromText,
+  a5PersonOptions,
+  a5PlaceOptions,
+  a5SystemOptions,
+  a5PlanDone,
+  a5SupportsDone,
+  a5ScreenReady,
+  a5ShareNote,
+  a5ReminderDue,
+  type A5State,
+  type A5Key,
+  type A5Plan,
+  type A5Supports,
+  type A5Support,
+  type A5Rhythm,
+  type A5Option,
+} from "./a5Constants";
 import { notifyLocalChange } from "./syncHook";
 import {
   hydrateNewFlow,
@@ -3264,6 +3295,107 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
   .na1-a4-mq-btns{ flex:0 0 auto; width:min(236px, 52%); }
   .na1-a4-mq-btn{ min-height:38px; padding:4px 6px; }
   .na1-a4-tabs.is-wealth{ grid-template-columns:minmax(0,.85fr) minmax(0,1.55fr); }
+}
+/* ══════════════ A5 · Accountable To It (Ship A5-1) ══════════════ */
+.na1-a5-strip{ margin:0 0 26px; }
+.na1-a5-strip-title{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--na1-text-sec); font-weight:400; margin:0 0 10px; }
+.na1-a5-strip-cards{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; }
+.na1-a5-strip-card, .na1-a5-pcard{ border:1px solid var(--na1-border); border-left:3px solid var(--gold); border-radius:12px; padding:14px 18px; background:var(--na1-bg-card); min-width:0; }
+.na1-a5-strip-label, .na1-a5-pcard-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--gold-text); font-weight:400; margin:0 0 6px; }
+.na1-a5-strip-will{ margin:0 0 6px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a5-strip-year{ margin:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text-sec); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a5-strip-year span{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.04em; color:var(--gold-text); font-weight:400; }
+.na1-a4-tabs.is-three{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+.na1-a5-pcard .na1-a4-promise-main{ font-size:max(var(--b-min), calc(18px + var(--b-bump))); }
+.na1-a5-tabbar{ display:flex; gap:4px; margin:0 0 14px; padding:3px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); border-radius:999px; }
+.na1-a5-tab{ flex:1 1 0; min-height:44px; border:1.5px solid transparent; border-radius:999px; background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 14px); letter-spacing:.03em; font-weight:400; cursor:pointer; }
+.na1-a5-tab.is-active{ background:var(--na1-bg-card); border-color:var(--spruce-line); color:var(--spruce-text); }
+.na1-a5-tab:focus-visible, .na1-a5-day:focus-visible, .na1-a5-change:focus-visible{ outline:2px solid var(--spruce-text); outline-offset:1px; }
+.na1-a5-tick{ color:var(--spruce-text); font-family:var(--f-label); font-weight:400; }
+.na1-a5-sub{ margin-bottom:12px; }
+.na1-a5-rung{ margin:0 0 14px; }
+.na1-a5-rung-label{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--na1-text-sec); font-weight:400; margin:0 0 6px; }
+.na1-a5-rung.is-year{ padding:10px 14px; border:1px solid var(--gold-line); border-left:3px solid var(--gold); border-radius:10px; background:var(--gold-warm); }
+.na1-a5-rung.is-year .na1-a5-rung-label{ color:var(--gold-text); }
+.na1-a5-rung-year{ margin:0; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a5-editlink{ margin-top:2px; }
+.na1-a5-stem{ margin:0 0 4px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); color:var(--na1-text); font-weight:var(--b-w); }
+.na1-a5-dayrow{ display:flex; gap:12px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+.na1-a5-days{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:6px; flex:1 1 320px; min-width:0; }
+.na1-a5-day{ min-height:44px; padding:0; border:1.5px solid var(--na1-border); border-radius:10px; background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 13px); font-weight:400; cursor:pointer; transition:background .18s, border-color .18s, color .18s; }
+.na1-a5-day:hover{ border-color:var(--na1-text-mute); }
+.na1-a5-day.is-on{ background:var(--spruce-soft); border-color:var(--spruce-line); color:var(--spruce-text); }
+.na1-a5-time{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+.na1-a5-time-label{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); color:var(--na1-text-sec); font-weight:400; }
+.na1-a5-time input, .na1-a5-time select{ min-height:44px; box-sizing:border-box; border:1.5px solid var(--na1-border); border-radius:10px; background:var(--na1-bg-soft); color:var(--na1-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); font-weight:var(--b-w); padding:0 10px; }
+.na1-a5-time input:focus, .na1-a5-time select:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-glow); }
+.na1-a5-choice{ margin:0 0 12px; }
+.na1-a5-choice .na1-chip-grid{ margin-bottom:6px; }
+.na1-a5-own{ width:100%; min-height:44px; box-sizing:border-box; }
+.na1-a5-row{ border:1px solid var(--na1-border); border-radius:12px; padding:8px 14px; margin:0 0 10px; background:var(--na1-bg-card); }
+.na1-a5-row-head{ display:flex; align-items:center; gap:12px; }
+.na1-a5-row-text{ flex:1 1 auto; min-width:0; }
+.na1-a5-row-title{ font-family:var(--f-body); font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); color:var(--na1-text); font-weight:var(--b-w); }
+.na1-a5-row-sum{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-a5-change{ flex:0 0 auto; min-height:44px; padding:0 18px; border:1.5px solid var(--na1-border); border-radius:999px; background:transparent; color:var(--spruce-text); font-family:var(--f-label); font-size:max(var(--l-min), 14px); font-weight:400; cursor:pointer; }
+.na1-a5-change:hover{ border-color:var(--spruce-line); }
+.na1-a5-row-body{ padding:6px 0 6px; }
+.na1-a5-editor{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.na1-a5-days.is-editor{ flex:1 1 300px; }
+.na1-a5-send{ display:flex; flex-wrap:wrap; gap:8px; margin:-2px 0 12px; }
+.na1-a5-send-btn{ white-space:nowrap; }
+.na1-a5-remind{ margin:0 0 18px; padding:16px 20px; border-radius:16px; background:linear-gradient(160deg,#036360 0%,#024845 48%,#012325 100%); border:1px solid rgba(205,180,142,.38); color:#EFE6D6; box-shadow:0 14px 40px -24px rgba(1,35,37,.7); }
+.na1-a5-remind-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:#E3D0AA; font-weight:400; margin:0 0 8px; }
+.na1-a5-remind-gives{ margin:0 0 6px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(20px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:#EFE6D6; font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a5-remind-week{ margin:0; font-family:var(--f-body); font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:#EFE6D6; font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a5-remind-for{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.04em; color:#E3D0AA; font-weight:400; }
+.na1-a5-remind-foot{ margin:8px 0 0; font-family:var(--f-label); font-size:max(var(--l-min), 12px); letter-spacing:.04em; color:#E3D0AA; font-weight:400; }
+.na1-a5-remind-dismiss{ margin-top:12px; min-height:44px; padding:0 22px; border:1px solid rgba(239,230,214,.5); border-radius:999px; background:transparent; color:#EFE6D6; font-family:var(--f-label); font-size:max(var(--l-min), 14px); font-weight:400; cursor:pointer; }
+.na1-a5-remind-dismiss:hover{ border-color:#EFE6D6; }
+.na1-a5-remind.is-preview{ margin:0 0 6px; }
+.na1-a5-toast{ margin:8px 0 0; padding:10px 14px; border:1px solid var(--spruce-line); border-radius:10px; background:var(--spruce-soft); color:var(--spruce-text); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); font-weight:var(--b-w); }
+.na1-a5-next{ margin:0 0 12px; padding:12px 16px; border:1px solid var(--na1-border); border-radius:12px; background:var(--na1-bg-card); }
+.na1-a5-next-title{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--na1-text-sec); font-weight:400; margin:0 0 8px; }
+.na1-a5-next ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+.na1-a5-next li{ display:flex; flex-direction:column; gap:1px; }
+.na1-a5-next-when{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.06em; color:var(--gold-text); font-weight:400; }
+.na1-a5-next-what{ font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.35); color:var(--na1-text); font-weight:var(--b-w); }
+.na1-a5-soon{ font-style:italic; color:var(--na1-text-sec); }
+.na1-a5-sealactions{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.na1-a5-sealactions .na1-btn-gold{ flex:1 1 auto; }
+.na1-a5-remind.is-preview.is-hidden{ display:none; }
+.na1-a5-row .na1-a5-send{ margin:2px 0 6px; }
+@media (max-width:767px){
+  .na1-a5-strip-cards{ grid-template-columns:1fr; }
+  .na1-a4-tabs.is-three{ display:block; }
+  .na1-a5-tabbar{ margin-bottom:8px; }
+  .na1-a5-sub{ display:none; }
+  .na1-a5-rung{ margin-bottom:8px; }
+  .na1-a5-rung.is-year{ padding:6px 12px; }
+  .na1-a5-rung-label{ margin-bottom:3px; }
+  .na1-a5-room textarea.na2-blank-input{ min-height:0; height:56px; padding:6px 10px; }
+  .na1-a5-room .na2-blank-input.na1-a5-own{ height:44px; }
+  .na1-a5-dayrow{ gap:6px; margin-top:6px; }
+  .na1-a5-days{ flex-basis:100%; gap:4px; }
+  .na1-a5-choice{ margin-bottom:8px; }
+  .na1-a5-choice .na1-chip.is-extra{ display:none; }
+  .na1-a5-row{ margin-bottom:8px; padding:4px 12px; }
+  .na1-a5-remind{ padding:12px 14px; margin-bottom:8px; }
+  .na1-a5-remind-eyebrow{ margin-bottom:4px; }
+  .na1-a5-remind-foot{ margin-top:4px; }
+  .na1-a5-next{ padding:8px 12px; margin-bottom:6px; }
+  .na1-a5-next ul{ gap:5px; }
+  .na1-a5-room .na1-a2m1-seal{ padding:12px 16px; margin:4px 0 10px; }
+  .na1-a5-room .na1-a2m1-seal-by{ margin-top:6px; }
+  .na1-a5-sealactions{ gap:8px; }
+  .na1-a5-remind.is-preview .na1-a5-remind-foot{ display:none; }
+  .na1-a5-days.is-editor{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+  .na1-a5-row-title{ line-height:1.2; }
+  .na1-a5-row-sum{ line-height:1.2; }
+  .na1-a5-send-btn{ padding:0 14px; }
+}
+@media (min-width:768px){
+  .na1-a5-room{ max-width:860px; }
 }
 .na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
 `;
@@ -34048,7 +34180,10 @@ type AppRouteView =
   | "a4m2"
   | "a4m3"
   // A4 · My Promises + the A4 claim (room id "promises").
-  | "a4p";
+  | "a4p"
+  // A5 · Accountable To It hub (a5) + its room Keeping My Word (a5m1, room id "keeping").
+  | "a5"
+  | "a5m1";
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
   // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
@@ -34059,7 +34194,7 @@ type AppRouteOverlay = {
   // A3 Ship 5 · "a3m5" addresses the Board room (roomId "board").
   // A3 Ship 6 · "a3m6" addresses the Move room (roomId "move").
   // A4-1 · "a4m1" addresses the Self room (roomId "self"); a4m2 → "time", a4m3 → "wealth".
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3" | "a4p";
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3" | "a4p" | "a5m1";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -34089,6 +34224,8 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a4m2",
   "a4m3",
   "a4p",
+  "a5",
+  "a5m1",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -34160,7 +34297,8 @@ function loadAppRoute(): AppRoute | null {
           hubId === "a4m1" ||
           hubId === "a4m2" ||
           hubId === "a4m3" ||
-          hubId === "a4p") &&
+          hubId === "a4p" ||
+          hubId === "a5m1") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -34343,11 +34481,14 @@ function NewA1Spine({
   // A4 · the Act vertebra fills once all three A4 promises are claimed. Read
   // here (not threaded through every call site) on the view cadence.
   const a4Complete = useMemo(() => loadA4State().a4.claimed, [view]);
+  const a5Complete = useMemo(() => loadA5State().claimed, [view]);
   // A2.1 · the Alignment Check hub (a2m1) lives under Align, so it lights the
   // same vertebra as the A2 hub itself. A3 Ship 1 · the People room (a3m1)
   // likewise lights the same Advocate vertebra as the A3 hub.
-  const current: "allin" | "align" | "advocate" | "act" =
-    view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p"
+  const current: "allin" | "align" | "advocate" | "act" | "accountable" =
+    view === "a5" || view === "a5m1"
+      ? "accountable"
+      : view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p"
       ? "act"
       : view === "a2" || view === "a2m1"
       ? "align"
@@ -34398,9 +34539,9 @@ function NewA1Spine({
     {
       num: "05",
       label: "Accountable",
-      claimed: false,
-      isCurrent: false,
-      dest: null,
+      claimed: a5Complete,
+      isCurrent: current === "accountable",
+      dest: "a5",
     },
   ];
   return (
@@ -34474,6 +34615,7 @@ type PhoneSpineSnapshot = {
   a2Complete: boolean;
   a3Complete: boolean;
   a4Complete: boolean;
+  a5Complete: boolean;
   navigate: (v: AppRouteView) => void;
 } | null;
 let phoneSpineSnap: PhoneSpineSnapshot = null;
@@ -34494,7 +34636,8 @@ function getPhoneSpine() {
 
 // Which discipline a view belongs to. (The rail's own mapping only knows a2/a2m1
 // and lumps a2m2/a2m3 under All In; the phone bar is correct for every view.)
-function na1DisciplineForView(view: AppRouteView): 1 | 2 | 3 | 4 {
+function na1DisciplineForView(view: AppRouteView): 1 | 2 | 3 | 4 | 5 {
+  if (view === "a5" || view === "a5m1") return 5;
   if (view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p")
     return 4;
   if (view === "a2" || view === "a2m1" || view === "a2m2" || view === "a2m3")
@@ -34540,7 +34683,7 @@ function NewA1PhoneSpine() {
       dest: NEW_A3_FLAG ? "a3" : null,
     },
     { n: 4, label: "Act", claimed: snap.a4Complete, dest: "a4" },
-    { n: 5, label: "Accountable", claimed: false, dest: null },
+    { n: 5, label: "Accountable", claimed: snap.a5Complete, dest: "a5" },
   ];
   return (
     <nav className="na1-pspine" aria-label="Your progress through the 5 A's">
@@ -35072,6 +35215,7 @@ function NewA1EntryHall({
         <div className="na1-breadcrumb">
           <span className="current">Entry Hall</span>
         </div>
+        <A5ReminderCard />
         <p className="na1-eh-eyebrow">True Ownership · Welcome</p>
         <p className="na1-eh-quote">
           Our life is a mirror of how we think and feel about ourselves.
@@ -46001,6 +46145,7 @@ function NewA4HubView({
   onBeginTime,
   onBeginWealth,
   onBeginPromises,
+  onBeginA5,
   onGoToA3,
 }: {
   name?: string;
@@ -46010,6 +46155,7 @@ function NewA4HubView({
   onBeginTime: () => void;
   onBeginWealth: () => void;
   onBeginPromises: () => void;
+  onBeginA5: () => void;
   onGoToA3: () => void;
 }) {
   useEffect(() => {
@@ -46027,6 +46173,7 @@ function NewA4HubView({
   const wealthUnlocked = timeClaimed;
   const promisesUnlocked = selfClaimed && timeClaimed && wealthClaimed;
   const a4Claimed = a4.a4.claimed;
+  const a5Claimed = useMemo(() => loadA5State().claimed, []);
   const selfStarted = a4.self.step > 0 || a4.self.picked != null;
   const timeStarted = a4.time.step > 0 || a4.time.picked != null;
   const wealthStarted = a4.wealth.step > 0 || a4.wealth.picked != null;
@@ -46242,20 +46389,31 @@ function NewA4HubView({
               </div>
             </article>
             {a4Claimed ? (
-              <article className="na1-mirror-card is-current">
+              <article
+                className={`na1-mirror-card ${a5Claimed ? "is-complete" : "is-current"}`}
+              >
                 <div className="na1-mirror-card-head">
                   <span className="na1-mirror-card-num">A5</span>
-                  <span className="na1-mirror-card-status">Up next</span>
+                  <span className="na1-mirror-card-status">
+                    {a5Claimed ? "Complete" : "Up next"}
+                  </span>
                 </div>
                 <div className="na1-mirror-card-eyebrow">Next discipline</div>
                 <h2 className="na1-mirror-card-name">Accountable To It</h2>
                 <p className="na1-mirror-card-sub">
-                  Your next 90 days and this week — and your promises, sent back
-                  to you as reminders.
+                  Your plan, the people and places that hold you, and a weekly
+                  rhythm — so you keep your word.
                 </p>
-                <div className="na1-mirror-card-empty">Coming soon</div>
+                {claimedNote(a5Claimed, "")}
                 <div className="na1-mirror-card-action">
-                  <span className="na1-mirror-card-meta">Opens soon</span>
+                  <button
+                    type="button"
+                    className="na1-btn-gold na1-btn-block"
+                    onClick={onBeginA5}
+                  >
+                    {a5Claimed ? "Review A5 →" : "Begin A5 →"}
+                  </button>
+                  <span className="na1-mirror-card-meta">5 exercises</span>
                 </div>
               </article>
             ) : null}
@@ -47777,6 +47935,1135 @@ function NewA4PromisesContainer({
   );
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// A5 · Accountable To It · Ship A5-1 (hub + Keeping My Word + claim)
+// ════════════════════════════════════════════════════════════════════════════
+// A4 was the inside work; A5 is the outside work: the plan, the people and
+// places that hold you, and the rhythm that makes it stick. Same patterns as
+// A3/A4: hub + shared mirror card, room card over the dimmed hub, launch veil on
+// ENTRY only, stepper + pips, gold burst → seal → ↺ Re-claim, route restore with
+// no veil, newFlowSync store ("a5state").
+
+const A5_VEIL = "Building what holds your word…";
+const A5_SCREEN_COUNT = 5;
+const A5_PHASES: { num: number; name: string }[] = [
+  { num: 1, name: "Plan" },
+  { num: 2, name: "Supports" },
+  { num: 3, name: "Rhythm" },
+];
+// Phase lit on each screen (-1 = none yet; 3 = all done / sealed).
+const A5_SCREEN_PHASE = [-1, 0, 1, 2, 3];
+const A5_EYEBROW = [
+  "YOUR PROMISES FROM A4",
+  "YOUR PLAN",
+  "YOUR SUPPORTS",
+  "YOUR RHYTHM",
+  "CLAIM",
+];
+const A5_CONTINUE = [
+  "Continue to your plan →",
+  "Continue to your supports →",
+  "Continue to your rhythm →",
+  "Claim Keeping My Word →",
+];
+const A5_SEAL = (name: string | null | undefined) =>
+  `${name ? `${name}, you` : "You"} didn't just make promises — you built what holds them: a plan, people and places in your corner, and a rhythm you chose. Every week you keep your word, you'll trust yourself a little more. That's how you build you.`;
+
+// What A5 reads from A4 (promise, year, gives…) — read fresh each time.
+function readA5Promises(): Record<A5Key, A4MirrorState> {
+  const a4 = loadA4State();
+  return { self: a4.self, time: a4.time, wealth: a4.wealth };
+}
+// What A5 offers from A3: the Board + people who are close, and places that lift.
+function readA5Options(): { people: A5Option[]; places: A5Option[] } {
+  try {
+    const a3 = loadA3State();
+    return { people: a5PersonOptions(a3), places: a5PlaceOptions(a3) };
+  } catch {
+    return { people: [], places: [] };
+  }
+}
+// What to call a support on a button / in a note: a first name for a person from
+// the Board or "Close to you"; the member's own words ("my sister") as written.
+const a5First = (n: string): string => n.trim().split(/\s+/)[0] || n.trim();
+const a5Called = (s: A5Support): string => (s.from === "own" ? s.name.trim() : a5First(s.name));
+const a5PromiseLine = (m: A4MirrorState): string =>
+  `I will ${m.will.trim()}${m.when.trim() !== "" ? ` when ${m.when.trim()}` : ""}.`;
+
+// Copy text for the desktop "Send to" — clipboard, with an old-school fallback.
+async function a5CopyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// ─── A5 · reminder card (Entry Hall + A5 hub) ───
+// "In the app" reminder: once the member's reminder day/time has passed it sits
+// at the top of the Entry Hall and the A5 hub — in their own words — until they
+// dismiss it. It comes back on the next reminder day and rotates through the
+// three promises. Renders nothing before the A5 claim.
+function A5ReminderCard({ onDismissed }: { onDismissed?: () => void }) {
+  const [a5, setA5] = useState<A5State>(() => loadA5State());
+  const due = useMemo(() => a5ReminderDue(a5, new Date()), [a5]);
+  if (!due) return null;
+  const a4 = loadA4State();
+  const m = a4[due.key];
+  const plan = a5.plans[due.key];
+  const day = a5.rhythm.reminderDay;
+  return (
+    <section className="na1-a5-remind" aria-label="Your reminder">
+      <div className="na1-a5-remind-eyebrow">
+        True Ownership · {day} {a5FormatTime(a5.rhythm.reminderTime)}
+      </div>
+      {m.gives.trim() !== "" ? (
+        <p className="na1-a5-remind-gives">&ldquo;{m.gives.trim()}&rdquo;</p>
+      ) : null}
+      <p className="na1-a5-remind-week">
+        <span className="na1-a5-remind-for">{A5_LABEL[due.key]} · this week</span>{" "}
+        {plan.week.trim() !== "" ? `I will ${plan.week.trim().replace(/^i will\s+/i, "")}` : a5PromiseLine(m)}
+      </p>
+      <button
+        type="button"
+        className="na1-a5-remind-dismiss"
+        onClick={() => {
+          const next: A5State = {
+            ...a5,
+            rhythm: { ...a5.rhythm, reminderDismissedAt: new Date().toISOString() },
+          };
+          saveA5State(next);
+          setA5(next);
+          onDismissed?.();
+        }}
+      >
+        Got it
+      </button>
+    </section>
+  );
+}
+
+// ─── A5 · hub view ───
+function NewA5HubView({
+  name,
+  a4Complete,
+  onEntryHall,
+  onBegin,
+  onGoToA4,
+}: {
+  name?: string;
+  a4Complete: boolean;
+  onEntryHall: () => void;
+  onBegin: () => void;
+  onGoToA4: () => void;
+}) {
+  useEffect(() => {
+    if (!hasA5State()) saveA5State(EMPTY_A5);
+  }, []);
+  const a5 = useMemo(() => loadA5State(), []);
+  const promises = useMemo(() => readA5Promises(), []);
+  const claimed = a5.claimed;
+  const unlocked = a4Complete;
+  const started = a5.step > 0;
+  return (
+    <div className="na1-root">
+      <div className="na1-shell">
+        <DevResetBar />
+        <div className="na1-breadcrumb">
+          <a onClick={onEntryHall}>Entry Hall</a>
+          <span className="sep">›</span>
+          <span className="current">A5 · Accountable To It</span>
+        </div>
+        <div className="na1-hero">
+          <div>
+            <div className="na1-hero-eyebrow">
+              A5 · Accountable To It{name ? ` · ${name}` : ""}
+            </div>
+            <h1 className="na1-hero-title">Keep your word to you.</h1>
+            <p
+              style={{
+                fontWeight: "var(--b-w)",
+                fontFamily: "var(--f-body)",
+                fontStyle: "italic",
+                fontSize: "max(var(--b-min), calc(18px + var(--b-bump)))",
+                lineHeight: "max(var(--b-lh), 1.5)",
+                color: "var(--na1-text-sec)",
+                margin: "0 0 10px",
+              }}
+            >
+              A4 was the inside work. A5 is the outside work: the plan, the
+              people and places that hold you, and the rhythm that makes it
+              stick.
+            </p>
+          </div>
+          <div className="na1-hero-meta">
+            <strong>{claimed ? 1 : 0} of 1</strong> complete
+          </div>
+        </div>
+        <A5ReminderCard />
+        {unlocked || claimed ? (
+          <section className="na1-a5-strip" aria-label="Your promises">
+            <h2 className="na1-a5-strip-title">Your promises</h2>
+            <div className="na1-a5-strip-cards">
+              {A5_KEYS.map((k) => {
+                const m = promises[k];
+                return (
+                  <article className="na1-a5-strip-card" key={k}>
+                    <div className="na1-a5-strip-label">{A5_LABEL[k]}</div>
+                    <p className="na1-a5-strip-will">{a5PromiseLine(m)}</p>
+                    {m.year.trim() !== "" ? (
+                      <p className="na1-a5-strip-year">
+                        <span>A year from now:</span> {m.year.trim()}
+                      </p>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+        <div className="na1-mirror-grid">
+          <article
+            className={`na1-mirror-card ${
+              claimed ? "is-complete" : unlocked ? "is-current" : "is-locked"
+            }`}
+          >
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">01</span>
+              <span className="na1-mirror-card-status">
+                {claimed ? "Complete" : unlocked ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 1</div>
+            <h2 className="na1-mirror-card-name">Keeping My Word</h2>
+            <p className="na1-mirror-card-sub">
+              Your plan, your supports, your rhythm.
+            </p>
+            <MirrorPips
+              done={claimed ? A5_SCREEN_COUNT : Math.min(A5_SCREEN_COUNT - 1, a5.step)}
+              total={A5_SCREEN_COUNT}
+            />
+            <div
+              className="na1-mirror-card-empty"
+              style={
+                claimed
+                  ? {
+                      fontWeight: "var(--b-w)",
+                      fontStyle: "italic",
+                      color: "var(--na1-text-sec)",
+                      fontFamily: "var(--f-body)",
+                    }
+                  : undefined
+              }
+            >
+              {claimed ? "Claimed." : ""}
+            </div>
+            {!unlocked && !claimed ? (
+              <p className="na1-mirror-card-sub">Finish Act On It first.</p>
+            ) : null}
+            <div className="na1-mirror-card-action">
+              {!unlocked && !claimed ? (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onGoToA4}
+                >
+                  Go to Act On It →
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="na1-btn-gold na1-btn-block"
+                  onClick={onBegin}
+                >
+                  {claimed
+                    ? "Review Keeping My Word →"
+                    : started
+                      ? "Continue Keeping My Word →"
+                      : "Begin Keeping My Word →"}
+                </button>
+              )}
+              <span className="na1-mirror-card-meta">5 exercises</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── A5 · room pieces ───
+function A5Stepper({ screen }: { screen: number }) {
+  const phase = A5_SCREEN_PHASE[Math.min(screen, A5_SCREEN_COUNT - 1)];
+  const sealed = screen >= A5_SCREEN_COUNT - 1 && phase >= 3;
+  return (
+    <div className="na1-a4-progress" aria-label="Where you are in this room">
+      <div className="na1-a2m2-stepper na1-a4-stepper" role="list">
+        {A5_PHASES.map((p, i) => {
+          const complete = i < phase;
+          const current = i === phase;
+          const cls = [
+            "na1-a2m2-dot",
+            complete ? "is-complete" : "",
+            current ? "is-current" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          return (
+            <React.Fragment key={p.num}>
+              <div
+                className="na1-a2m2-step"
+                role="listitem"
+                aria-current={current ? "step" : undefined}
+              >
+                <div className={cls}>{p.num}</div>
+                <div className={`na1-a2m2-step-name ${current ? "is-current" : ""}`}>
+                  {p.name}
+                </div>
+              </div>
+              {i < A5_PHASES.length - 1 ? (
+                <div className={`na1-a2m2-line ${complete ? "is-reached" : ""}`} />
+              ) : null}
+            </React.Fragment>
+          );
+        })}
+      </div>
+      <div
+        className="na1-a2m1-pips na1-a4-pips"
+        role="img"
+        aria-label={`Screen ${Math.min(screen + 1, A5_SCREEN_COUNT)} of ${A5_SCREEN_COUNT}`}
+      >
+        {Array.from({ length: A5_SCREEN_COUNT }).map((_, i) => (
+          <span
+            key={i}
+            className={[
+              "na1-a2m1-pip",
+              !sealed && i === screen ? "is-current" : "",
+              sealed || i < screen ? "is-past" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Self | Time | Wealth tabs (always tabs, desktop and phone). A tab shows ✓ once
+// its promise is done on this screen.
+function A5Tabs({
+  active,
+  onChange,
+  done,
+}: {
+  active: A5Key;
+  onChange: (k: A5Key) => void;
+  done: Record<A5Key, boolean>;
+}) {
+  return (
+    <div className="na1-a5-tabbar" role="tablist">
+      {A5_KEYS.map((k) => (
+        <button
+          type="button"
+          key={k}
+          role="tab"
+          aria-selected={active === k}
+          className={`na1-a5-tab ${active === k ? "is-active" : ""} ${done[k] ? "is-done" : ""}`}
+          onClick={() => onChange(k)}
+        >
+          {A5_LABEL[k]}
+          {done[k] ? (
+            <span className="na1-a5-tick" aria-label="done">
+              {" ✓"}
+            </span>
+          ) : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Screen 1 · "You made three promises. Now let's keep them."
+function A5PromisesBody({ promises }: { promises: Record<A5Key, A4MirrorState> }) {
+  const cards = A5_KEYS.map((k) => {
+    const m = promises[k];
+    return (
+      <article className="na1-a5-pcard" key={k} aria-label={A5_LABEL[k]}>
+        <div className="na1-a5-pcard-label">{A5_LABEL[k]}</div>
+        <p className="na1-a4-promise-main">{a5PromiseLine(m)}</p>
+        {m.year.trim() !== "" ? (
+          <p className="na1-a4-promise-year">
+            <span className="na1-a4-promise-year-label">A year from now:</span> {m.year.trim()}
+          </p>
+        ) : null}
+        {m.gives.trim() !== "" ? (
+          <p className="na1-a4-promise-year">
+            <span className="na1-a4-promise-year-label">Keeping this gives me:</span>{" "}
+            {m.gives.trim()}
+          </p>
+        ) : null}
+      </article>
+    );
+  });
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[0]}</div>
+      <h2 className="na1-room-title">You made three promises. Now let&rsquo;s keep them.</h2>
+      <A4Tabs
+        labels={["Self", "Time", "Wealth"]}
+        panes={cards}
+        className="is-three"
+      />
+    </div>
+  );
+}
+
+// Screen 2 · one promise's plan: 1 year → 90 days → this week.
+function A5PlanPane({
+  k,
+  promise,
+  plan,
+  onPlan,
+  onEditA4,
+}: {
+  k: A5Key;
+  promise: A4MirrorState;
+  plan: A5Plan;
+  onPlan: (p: Partial<A5Plan>) => void;
+  onEditA4: () => void;
+}) {
+  const by = plan.ninetyBy !== "" ? plan.ninetyBy : a5NinetyBy(new Date());
+  const toggle = (d: string) =>
+    onPlan({
+      days: A5_DAYS.filter((x) => (x === d ? !plan.days.includes(d) : plan.days.includes(x))).map(String),
+    });
+  return (
+    <div className="na1-a5-plan" role="tabpanel" aria-label={`${A5_LABEL[k]} plan`}>
+      <div className="na1-a5-rung is-year">
+        <div className="na1-a5-rung-label">1 year · A4</div>
+        <p className="na1-a5-rung-year">
+          {promise.year.trim() !== "" ? promise.year.trim() : "You haven't written your one-year picture yet."}
+        </p>
+        <button type="button" className="na1-a4-ownlink na1-a5-editlink" onClick={onEditA4}>
+          Edit in A4 →
+        </button>
+      </div>
+      <div className="na1-a5-rung">
+        <div className="na1-a5-rung-label">90 days · by {a5FormatBy(by)}</div>
+        <p className="na1-a5-stem">In 90 days I&rsquo;ll have…</p>
+        <textarea
+          className="na2-blank-input na1-a4-blank"
+          rows={2}
+          value={plan.ninety}
+          placeholder="what's different, or done, or started"
+          onChange={(e) => onPlan({ ninety: e.target.value })}
+          aria-label={`${A5_LABEL[k]} — In 90 days I'll have…`}
+        />
+      </div>
+      <div className="na1-a5-rung">
+        <div className="na1-a5-rung-label">This week</div>
+        <p className="na1-a5-stem">This week I will…</p>
+        <textarea
+          className="na2-blank-input na1-a4-blank"
+          rows={2}
+          value={plan.week}
+          placeholder="the one small thing you'll do"
+          onChange={(e) => onPlan({ week: e.target.value })}
+          aria-label={`${A5_LABEL[k]} — This week I will…`}
+        />
+        <div className="na1-a5-dayrow">
+          <div className="na1-a5-days" role="group" aria-label="Days">
+            {A5_DAYS.map((d) => (
+              <button
+                type="button"
+                key={d}
+                aria-pressed={plan.days.includes(d)}
+                className={`na1-a5-day ${plan.days.includes(d) ? "is-on" : ""}`}
+                onClick={() => toggle(d)}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+          <label className="na1-a5-time">
+            <span className="na1-a5-time-label">Time (optional)</span>
+            <input
+              type="time"
+              value={plan.time}
+              onChange={(e) => onPlan({ time: e.target.value })}
+              aria-label="Time (optional)"
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// A single "choose one" row for the Supports screen: suggestions from A3 + a
+// "+ …" chip that opens a short text field with an example.
+function A5Choice({
+  label,
+  options,
+  value,
+  onPick,
+  addLabel,
+  example,
+  cap,
+}: {
+  label: string;
+  options: { name: string; from: string }[];
+  value: string;
+  onPick: (name: string, from: string) => void;
+  addLabel: string;
+  example: string;
+  cap: number;
+}) {
+  const custom = value.trim() !== "" && !options.some((o) => o.name === value);
+  const [writing, setWriting] = useState<boolean>(custom);
+  return (
+    <div className="na1-a5-choice">
+      <div className="na1-a5-rung-label">{label}</div>
+      <div className="na1-chip-grid" role="radiogroup" aria-label={label}>
+        {options.map((o, i) => (
+          <button
+            type="button"
+            key={o.name}
+            role="radio"
+            aria-checked={value === o.name}
+            className={`na1-chip na1-a4-kind ${i >= cap ? "is-extra" : ""} ${value === o.name ? "is-selected" : ""}`}
+            onClick={() => {
+              setWriting(false);
+              onPick(value === o.name ? "" : o.name, o.from);
+            }}
+          >
+            {o.name}
+          </button>
+        ))}
+        <button
+          type="button"
+          className={`na1-chip na1-a4-kind is-other ${writing || custom ? "is-selected" : ""}`}
+          aria-pressed={writing || custom}
+          onClick={() => {
+            if (writing && !custom) setWriting(false);
+            else setWriting(true);
+          }}
+        >
+          {addLabel}
+        </button>
+      </div>
+      {writing || custom ? (
+        <input
+          type="text"
+          className="na2-blank-input na1-a4-blank na1-a5-own"
+          value={custom ? value : options.some((o) => o.name === value) ? "" : value}
+          placeholder={`e.g. ${example}`}
+          onChange={(e) => onPick(e.target.value, "own")}
+          aria-label={addLabel}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+// Screen 3 · one promise's supports: a person, a place, a system.
+function A5SupportsPane({
+  k,
+  sup,
+  people,
+  places,
+  onSup,
+}: {
+  k: A5Key;
+  sup: A5Supports;
+  people: A5Option[];
+  places: A5Option[];
+  onSup: (s: A5Supports) => void;
+}) {
+  const sys = a5SystemOptions(k);
+  return (
+    <div className="na1-a5-sup" role="tabpanel" aria-label={`${A5_LABEL[k]} supports`}>
+      <A5Choice
+        label="A person"
+        options={people}
+        value={sup.person.name}
+        cap={3}
+        addLabel="+ Someone else"
+        example="my sister"
+        onPick={(name, from) =>
+          onSup({ ...sup, person: { name, from: name === "" ? "own" : (from as A5Support["from"]) } })
+        }
+      />
+      <A5Choice
+        label="A place"
+        options={places}
+        value={sup.place.name}
+        cap={2}
+        addLabel="+ Somewhere else"
+        example="the lake path"
+        onPick={(name, from) =>
+          onSup({ ...sup, place: { name, from: name === "" ? "own" : (from as A5Support["from"]) } })
+        }
+      />
+      <A5Choice
+        label="A system"
+        options={sys.map((s) => ({ name: s, from: "own" }))}
+        value={sup.system.name}
+        cap={4}
+        addLabel="+ My own system"
+        example="shoes by the door"
+        onPick={(name) =>
+          onSup({ ...sup, system: { name, own: name !== "" && !sys.includes(name) } })
+        }
+      />
+    </div>
+  );
+}
+
+// Screen 4 · "When you'll check in with yourself."
+const A5_TIME_CHOICES = (() => {
+  const out: string[] = [];
+  for (let h = 5; h <= 23; h++) for (const m of ["00", "30"]) out.push(`${String(h).padStart(2, "0")}:${m}`);
+  return out;
+})();
+function A5DayTime({
+  day,
+  time,
+  onDay,
+  onTime,
+  noTime,
+}: {
+  day: string;
+  time?: string;
+  onDay: (d: string) => void;
+  onTime?: (t: string) => void;
+  noTime?: boolean;
+}) {
+  return (
+    <div className="na1-a5-editor">
+      <div className="na1-a5-days is-editor" role="radiogroup" aria-label="Day">
+        {A5_DAYS.map((d) => (
+          <button
+            type="button"
+            key={d}
+            role="radio"
+            aria-checked={day === d}
+            className={`na1-a5-day ${day === d ? "is-on" : ""}`}
+            onClick={() => onDay(d)}
+          >
+            {d}
+          </button>
+        ))}
+      </div>
+      {!noTime && onTime ? (
+        <label className="na1-a5-time is-editor">
+          <span className="na1-a5-time-label">Time</span>
+          <select value={time} onChange={(e) => onTime(e.target.value)} aria-label="Time">
+            {A5_TIME_CHOICES.map((t) => (
+              <option key={t} value={t}>
+                {a5FormatTime(t)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+    </div>
+  );
+}
+function A5RhythmBody({
+  state,
+  promises,
+  onRhythm,
+  onSend,
+  toast,
+}: {
+  state: A5State;
+  promises: Record<A5Key, A4MirrorState>;
+  onRhythm: (r: Partial<A5Rhythm>) => void;
+  onSend: (key: A5Key) => void;
+  toast: string;
+}) {
+  const [open, setOpen] = useState<null | "checkin" | "people" | "reminder">(null);
+  const r = state.rhythm;
+  const toggle = (k: "checkin" | "people" | "reminder") => setOpen((o) => (o === k ? null : k));
+  // The reminder preview shows the first promise; in the app it rotates weekly.
+  const previewKey: A5Key = "self";
+  const pm = promises[previewKey];
+  const week = state.plans[previewKey].week.trim();
+  const people = A5_KEYS.map((k) => ({ k, name: a5Called(state.supports[k].person) })).filter((x) => x.name !== "");
+  const dupes = (n: string) => people.filter((p) => p.name === n).length > 1;
+  const Row = ({
+    id,
+    title,
+    summary,
+    children,
+    extra,
+  }: {
+    id: "checkin" | "people" | "reminder";
+    title: string;
+    summary: string;
+    children: React.ReactNode;
+    extra?: React.ReactNode;
+  }) => (
+    <div className={`na1-a5-row ${open === id ? "is-open" : ""}`}>
+      <div className="na1-a5-row-head">
+        <div className="na1-a5-row-text">
+          <div className="na1-a5-row-title">{title}</div>
+          <div className="na1-a5-row-sum">{summary}</div>
+        </div>
+        <button
+          type="button"
+          className="na1-a5-change"
+          aria-expanded={open === id}
+          onClick={() => toggle(id)}
+        >
+          {open === id ? "Done" : "Change"}
+        </button>
+      </div>
+      {open === id ? <div className="na1-a5-row-body">{children}</div> : null}
+      {extra}
+    </div>
+  );
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[3]}</div>
+      <h2 className="na1-room-title">When you&rsquo;ll check in with yourself.</h2>
+      <Row
+        id="checkin"
+        title="Weekly check-in · 2 min"
+        summary={`${a5DayLong(r.checkinDay)}s · ${a5FormatTime(r.checkinTime)}`}
+      >
+        <A5DayTime
+          day={r.checkinDay}
+          time={r.checkinTime}
+          onDay={(d) => onRhythm({ checkinDay: d })}
+          onTime={(t) => onRhythm({ checkinTime: t })}
+        />
+      </Row>
+      <Row
+        id="people"
+        title="Your people hear from you"
+        summary={`${a5DayLong(r.personDay)}s`}
+        extra={
+          people.length > 0 && open !== "checkin" && open !== "reminder" ? (
+            <div className="na1-a5-send">
+              {people.map((p) => (
+                <button
+                  type="button"
+                  key={p.k}
+                  className="na1-btn-ghost na1-a5-send-btn"
+                  onClick={() => onSend(p.k)}
+                >
+                  Send to {p.name}
+                  {dupes(p.name) ? ` (${A5_LABEL[p.k]})` : ""} →
+                </button>
+              ))}
+            </div>
+          ) : null
+        }
+      >
+        <A5DayTime day={r.personDay} onDay={(d) => onRhythm({ personDay: d })} noTime />
+      </Row>
+      <Row
+        id="reminder"
+        title="Your reminder — in your own words"
+        summary={`${r.reminderDay} ${a5FormatTime(r.reminderTime)} · In the app`}
+      >
+        <A5DayTime
+          day={r.reminderDay}
+          time={r.reminderTime}
+          onDay={(d) => onRhythm({ reminderDay: d })}
+          onTime={(t) => onRhythm({ reminderTime: t })}
+        />
+      </Row>
+      <div
+        className={`na1-a5-remind is-preview ${open === "checkin" || open === "people" ? "is-hidden" : ""}`}
+        aria-label="Reminder preview"
+      >
+        <div className="na1-a5-remind-eyebrow">
+          True Ownership · {r.reminderDay} {a5FormatTime(r.reminderTime)}
+        </div>
+        {pm.gives.trim() !== "" ? (
+          <p className="na1-a5-remind-gives">&ldquo;{pm.gives.trim()}&rdquo;</p>
+        ) : null}
+        <p className="na1-a5-remind-week">
+          {week !== "" ? `I will ${week.replace(/^i will\s+/i, "")}` : a5PromiseLine(pm)}
+        </p>
+        <p className="na1-a5-remind-foot">In the app · rotates through your three promises</p>
+      </div>
+      {toast ? (
+        <div className="na1-a5-toast" role="status">
+          {toast}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// Screen 5 · the seal + what happens next.
+function A5SealBody({
+  onReclaim,
+  onFinish,
+}: {
+  onReclaim: () => void;
+  onFinish: () => void;
+}) {
+  const { user: authUser } = useAuth();
+  const displayName = resolveDisplayName(null, authUser);
+  return (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[4]} ★</div>
+      <h2 className="na1-room-title">Keeping My Word.</h2>
+      <div className="na1-a2m1-seal" role="status">
+        <p className="na1-a2m1-seal-body">{A5_SEAL(displayName)}</p>
+        <p className="na1-a2m1-seal-by">— Katherine</p>
+      </div>
+      <div className="na1-a5-next" aria-label="What happens next">
+        <div className="na1-a5-next-title">What happens next</div>
+        <ul>
+          <li>
+            <span className="na1-a5-next-when">Every week</span>
+            <span className="na1-a5-next-what">
+              A 2-minute check-in: kept it? what got in the way? did your support help?
+            </span>
+          </li>
+          <li>
+            <span className="na1-a5-next-when">Every 90 days</span>
+            <span className="na1-a5-next-what">Look back, then grow the promise.</span>
+          </li>
+          <li>
+            <span className="na1-a5-next-when">Any time</span>
+            <span className="na1-a5-next-what">
+              Your Own Counsel — think it through with yourself.{" "}
+              <em className="na1-a5-soon">Coming soon</em>
+            </span>
+          </li>
+        </ul>
+      </div>
+      <div className="na1-a5-sealactions">
+        <button type="button" className="na1-btn-ghost" onClick={onReclaim}>
+          ↺ Re-claim
+        </button>
+        <button type="button" className="na1-btn-gold" onClick={onFinish}>
+          Continue to Entry Hall →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NewA5Container({
+  onBackToA5,
+  onEntryHall,
+  onEditA4,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA5: () => void;
+  onEntryHall: () => void;
+  onEditA4: (k: A5Key) => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a5, setA5] = useState<A5State>(() => loadA5State());
+  const mutate = useCallback((fn: (s: A5State) => A5State) => {
+    setA5((prev) => {
+      const next = fn(prev);
+      saveA5State(next);
+      return next;
+    });
+  }, []);
+  const promises = useMemo(() => readA5Promises(), []);
+  const opts = useMemo(() => readA5Options(), []);
+  const resuming = initialRoomKey === "keeping";
+  const launchVeil = !resuming;
+  const claimedAtEntry = useRef(a5.claimed).current;
+  const [screen, setScreen] = useState<number>(() =>
+    claimedAtEntry ? A5_SCREEN_COUNT - 1 : a5.step,
+  );
+  const [tab, setTab] = useState<A5Key>("self");
+  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(launchVeil ? "rising" : "idle");
+  const [showBurst, setShowBurst] = useState(false);
+  const [toast, setToast] = useState("");
+  const burstTimerRef = useRef<number | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (burstTimerRef.current) window.clearTimeout(burstTimerRef.current);
+      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    },
+    [],
+  );
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(window.setTimeout(() => setVeilPhase("falling"), NA1_VEIL_TIMING.fallingAt));
+    timers.push(window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    onRoomChange(roomOpen ? "keeping" : null);
+  }, [roomOpen, onRoomChange]);
+  const closeRoom = () => {
+    setRoomOpen(false);
+    onBackToA5();
+  };
+
+  // Prefill what A4 already told us — only into empty fields, only when the
+  // member moves forward (so an untouched store stays untouched).
+  const prefillPlan = (s: A5State): A5State => {
+    const plans = { ...s.plans };
+    for (const k of A5_KEYS) {
+      const p = { ...plans[k], days: [...plans[k].days] };
+      const m = promises[k];
+      if (p.week.trim() === "" && m.will.trim() !== "") p.week = m.will.trim();
+      if (p.days.length === 0) p.days = a5DaysFromText(m.when);
+      if (p.time === "") p.time = a5TimeFromText(m.when);
+      if (p.ninetyBy === "") p.ninetyBy = a5NinetyBy(new Date());
+      plans[k] = p;
+    }
+    return { ...s, plans };
+  };
+  const prefillSupports = (s: A5State): A5State => {
+    const supports = { ...s.supports };
+    for (const k of A5_KEYS) {
+      if (supports[k].system.name.trim() === "") {
+        supports[k] = { ...supports[k], system: { name: A5_SYSTEM_DEFAULT[k], own: false } };
+      }
+    }
+    return { ...s, supports };
+  };
+  const goTo = (n: number) => {
+    const clamped = Math.max(0, Math.min(A5_SCREEN_COUNT - 2, n));
+    setScreen(clamped);
+    mutate((s) => {
+      let next = s.step === clamped ? s : { ...s, step: clamped };
+      if (!s.claimed && clamped === 1) next = prefillPlan(next);
+      if (!s.claimed && clamped === 2) next = prefillSupports(next);
+      return next;
+    });
+  };
+  // A resume straight onto the plan/supports screens after a refresh still has
+  // its prefill — it was persisted when the member first moved forward.
+
+  const setPlan = (k: A5Key, p: Partial<A5Plan>) =>
+    mutate((s) => ({ ...s, plans: { ...s.plans, [k]: { ...s.plans[k], ...p } } }));
+  const setSup = (k: A5Key, v: A5Supports) =>
+    mutate((s) => ({ ...s, supports: { ...s.supports, [k]: v } }));
+  const setRhythm = (r: Partial<A5Rhythm>) =>
+    mutate((s) => ({ ...s, rhythm: { ...s.rhythm, ...r } }));
+
+  // Screen index → readiness: 0 free · 1 plans · 2 supports · 3 both (claim).
+  const canContinue = a5ScreenReady(a5, screen);
+
+  const handleClaim = () => {
+    if (showBurst || a5.claimed || !canContinue) return;
+    setShowBurst(true);
+    burstTimerRef.current = window.setTimeout(() => {
+      burstTimerRef.current = null;
+      setShowBurst(false);
+      mutate((s) => {
+        const by = a5NinetyBy(new Date());
+        const plans = { ...s.plans };
+        for (const k of A5_KEYS) plans[k] = { ...plans[k], ninetyBy: by };
+        return {
+          ...s,
+          plans,
+          step: A5_SCREEN_COUNT - 1,
+          claimed: true,
+          claimedAt: s.claimedAt ?? new Date().toISOString(),
+          rhythm: { ...s.rhythm, reminderDismissedAt: new Date().toISOString() },
+        };
+      });
+      setScreen(A5_SCREEN_COUNT - 1);
+    }, 2000);
+  };
+  const reclaim = () => {
+    mutate((s) => ({ ...s, claimed: false, claimedAt: null, step: 0 }));
+    setScreen(0);
+  };
+
+  // "Send to {person} →": the phone's share sheet; on desktop, copy + a toast.
+  // The app never sends anything itself.
+  const sendTo = async (k: A5Key) => {
+    const person = a5Called(a5.supports[k].person);
+    const week = a5.plans[k].week || promises[k].will;
+    const note = a5ShareNote(person, week, a5.rhythm.personDay);
+    const phone =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches;
+    const nav = navigator as Navigator & { share?: (d: { text: string }) => Promise<void> };
+    let msg = "";
+    if (phone && typeof nav.share === "function") {
+      try {
+        await nav.share({ text: note });
+        return;
+      } catch (e) {
+        if ((e as { name?: string })?.name === "AbortError") return;
+      }
+    }
+    msg = (await a5CopyText(note))
+      ? `Copied — paste it into a message to ${person}.`
+      : "Couldn't copy — select the note and copy it by hand.";
+    setToast(msg);
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(""), 3500);
+  };
+
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  const sealed = screen >= A5_SCREEN_COUNT - 1;
+  const planDone: Record<A5Key, boolean> = {
+    self: a5PlanDone(a5.plans.self),
+    time: a5PlanDone(a5.plans.time),
+    wealth: a5PlanDone(a5.plans.wealth),
+  };
+  const supDone: Record<A5Key, boolean> = {
+    self: a5SupportsDone(a5.supports.self),
+    time: a5SupportsDone(a5.supports.time),
+    wealth: a5SupportsDone(a5.supports.wealth),
+  };
+  const body = sealed ? (
+    <A5SealBody onReclaim={reclaim} onFinish={onEntryHall} />
+  ) : screen === 0 ? (
+    <A5PromisesBody promises={promises} />
+  ) : screen === 1 ? (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[1]}</div>
+      <h2 className="na1-room-title">From a year to this week.</h2>
+      <A5Tabs active={tab} onChange={setTab} done={planDone} />
+      <A5PlanPane
+        key={tab}
+        k={tab}
+        promise={promises[tab]}
+        plan={a5.plans[tab]}
+        onPlan={(p) => setPlan(tab, p)}
+        onEditA4={() => onEditA4(tab)}
+      />
+    </div>
+  ) : screen === 2 ? (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[2]}</div>
+      <h2 className="na1-room-title">What outside you helps you keep it?</h2>
+      <p className="na1-room-context na1-a5-sub">
+        In A3 you named who and what surrounds you. Now ask them to help.
+      </p>
+      <A5Tabs active={tab} onChange={setTab} done={supDone} />
+      <A5SupportsPane
+        key={tab}
+        k={tab}
+        sup={a5.supports[tab]}
+        people={opts.people}
+        places={opts.places}
+        onSup={(v) => setSup(tab, v)}
+      />
+    </div>
+  ) : (
+    <A5RhythmBody
+      state={a5}
+      promises={promises}
+      onRhythm={setRhythm}
+      onSend={sendTo}
+      toast={toast}
+    />
+  );
+  const crumbStage = sealed ? "Claim" : screen === 0 ? "Your promises" : A5_PHASES[A5_SCREEN_PHASE[screen]].name;
+  return (
+    <div className="na1-root">
+      {roomOpen && (
+        <div
+          className="na1-room-overlay na1-a4-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Keeping My Word"
+        >
+          <div className="na1-room-card na1-a2m2-room-card na1-a4-room na1-a5-room">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>Keeping My Word</a>
+              <span className="sep">›</span>
+              <span className="current">{crumbStage}</span>
+            </div>
+            <button type="button" className="na1-room-close" onClick={closeRoom} aria-label="Close">
+              ×
+            </button>
+            <A5Stepper screen={screen} />
+            <div className="na1-a2m2-body">{body}</div>
+            {!sealed && (
+              <div className="na1-a2m2-nav">
+                <button
+                  type="button"
+                  className="na1-btn-ghost"
+                  onClick={() => (screen > 0 ? goTo(screen - 1) : closeRoom())}
+                >
+                  {screen > 0 ? "← Back" : "Close"}
+                </button>
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={screen === 3 ? handleClaim : () => goTo(screen + 1)}
+                  disabled={!canContinue || showBurst}
+                >
+                  {A5_CONTINUE[screen]}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {showBurst &&
+        createPortal(
+          <div className="na1-gold-burst" aria-hidden>
+            <div className="na1-gold-burst-inner" />
+          </div>,
+          document.body,
+        )}
+      {veilPhase !== "idle" && <NewA1Veil phase={veilPhase} text={A5_VEIL} />}
+    </div>
+  );
+}
+
 function NewA1View({
   name,
   initialView,
@@ -47954,6 +49241,9 @@ function NewA1View({
     if (saved.overlay.hubId === "a4p") {
       if (saved.view === "a4p") return saved.overlay;
     }
+    if (saved.overlay.hubId === "a5m1") {
+      if (saved.view === "a5m1") return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -48004,6 +49294,9 @@ function NewA1View({
   const initialA4PRoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a4p" ? overlayRoute.roomId : null,
   );
+  const initialA5M1RoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a5m1" ? overlayRoute.roomId : null,
+  );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
   const firstRoutePersistRef = useRef(true);
@@ -48033,6 +49326,7 @@ function NewA1View({
       view !== "a4m2" &&
       view !== "a4m3" &&
       view !== "a4p" &&
+      view !== "a5m1" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -48195,6 +49489,17 @@ function NewA1View({
       return next;
     });
   }, []);
+  // A5-1 · Keeping My Word room (single room "keeping") reports open/close.
+  const onA5M1RoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a5m1", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
   // A2 Ship 2 · Named Truth room (single room "namedtruth") reports open/close.
   const onA2M3RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
@@ -48304,6 +49609,7 @@ function NewA1View({
   // flag set by the A4 claim in Ship A4-2). Same [view, roomOpen] cadence.
   const a4Snap = useMemo(() => loadA4State(), [view, roomOpen]);
   const a4Complete = a4Snap.a4.claimed;
+  const a5Complete = useMemo(() => loadA5State().claimed, [view, roomOpen]);
   // Phone spine (<768px): publish where the user is + each discipline's
   // completion so the root-mounted <NewA1PhoneSpine> can render without every
   // view having to include it. Cleared when this router unmounts (e.g. back to
@@ -48315,9 +49621,10 @@ function NewA1View({
       a2Complete,
       a3Complete,
       a4Complete,
+      a5Complete,
       navigate: setView,
     });
-  }, [view, a1Complete, a2Complete, a3Complete, a4Complete]);
+  }, [view, a1Complete, a2Complete, a3Complete, a4Complete, a5Complete]);
   useEffect(() => () => setPhoneSpine(null), []);
   // Fix 5 · A2 M1 locked-state copy. When A1 is incomplete the A2 hub's 01
   // (Alignment Check) card must name the first unclaimed A1 mirror — walked in
@@ -48373,6 +49680,11 @@ function NewA1View({
               : true;
     if (!gate) setView("a4");
   }, [view, a3Complete, a4Snap]);
+  // A5 · the Keeping My Word room (a5m1) needs the A4 claim; otherwise the A5 hub
+  // (whose card shows the locked gate) is the only place to land.
+  useEffect(() => {
+    if (view === "a5m1" && !a4Complete) setView("a5");
+  }, [view, a4Complete]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -48878,6 +50190,7 @@ function NewA1View({
           onBeginTime={() => setView("a4m2")}
           onBeginWealth={() => setView("a4m3")}
           onBeginPromises={() => setView("a4p")}
+          onBeginA5={() => setView("a5")}
           onGoToA3={() => setView("a3")}
         />
       </div>
@@ -48910,6 +50223,7 @@ function NewA1View({
           onBeginTime={() => {}}
           onBeginWealth={() => {}}
           onBeginPromises={() => {}}
+          onBeginA5={() => {}}
           onGoToA3={() => setView("a3")}
         />
         {view === "a4m1" ? (
@@ -48943,12 +50257,56 @@ function NewA1View({
           <NewA4PromisesContainer
             key="a4p"
             onBackToA4={() => setView("a4")}
-            onContinueToA5={() => setView("a4")}
+            onContinueToA5={() => setView("a5")}
             onEdit={(k) => setView(k === "self" ? "a4m1" : k === "time" ? "a4m2" : "a4m3")}
             initialRoomKey={initialKey}
             onRoomChange={onA4PRoomChange}
           />
         )}
+      </div>
+    );
+  }
+  // A5 · Accountable To It hub. Entries: the spine's Accountable vertebra, the A4
+  // seal's "Continue to A5 →", and a persisted route.
+  if (view === "a5") {
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA5HubView
+          key="a5-hub"
+          name={resolvedName}
+          a4Complete={a4Complete}
+          onEntryHall={() => setView("entry-hall")}
+          onBegin={() => setView("a5m1")}
+          onGoToA4={() => setView("a4")}
+        />
+      </div>
+    );
+  }
+  // A5-1 · Keeping My Word. The hub stays mounted behind the room card (dimmed +
+  // blurred). The seal's CTA is "Continue to Entry Hall →".
+  if (view === "a5m1") {
+    const initialKey = initialA5M1RoomKeyRef.current;
+    initialA5M1RoomKeyRef.current = null;
+    return (
+      <div className="na1-spine-pad">
+        <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+        <NewA5HubView
+          key="a5-hub-room"
+          name={resolvedName}
+          a4Complete={a4Complete}
+          onEntryHall={() => setView("entry-hall")}
+          onBegin={() => {}}
+          onGoToA4={() => setView("a4")}
+        />
+        <NewA5Container
+          key="a5m1"
+          onBackToA5={() => setView("a5")}
+          onEntryHall={() => setView("entry-hall")}
+          onEditA4={(k) => setView(k === "self" ? "a4m1" : k === "time" ? "a4m2" : "a4m3")}
+          initialRoomKey={initialKey}
+          onRoomChange={onA5M1RoomChange}
+        />
       </div>
     );
   }
