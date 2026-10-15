@@ -235,6 +235,20 @@ import {
   a5ScreenReady,
   a5ShareNote,
   a5ReminderDue,
+  a5IsoDate,
+  a5WeekStart,
+  a5NextOccurrence,
+  a5CheckinStatus,
+  a5Streak,
+  a5MostInWay,
+  a5LookbackDue,
+  a5KatherineNote,
+  a5SupportAsked,
+  a5SaveCheckin,
+  type A5Kept,
+  type A5CheckinEntry,
+  type A5Mark,
+  type A5Streak,
   type A5State,
   type A5Key,
   type A5Plan,
@@ -3396,6 +3410,57 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
 }
 @media (min-width:768px){
   .na1-a5-room{ max-width:860px; }
+}
+/* ══════════════ A5-2 · weekly check-in · look-back · This week ══════════════ */
+.na1-a5-marks{ display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.na1-a5-mark{ display:inline-block; width:11px; height:11px; border-radius:50%; box-sizing:border-box; border:1.5px solid var(--gold); background:transparent; }
+.na1-a5-mark.is-yes{ background:var(--gold); }
+.na1-a5-mark.is-partly{ background:linear-gradient(90deg, var(--gold) 50%, transparent 50%); }
+.na1-a5-mark.is-no{ border-color:var(--na1-text-mute); }
+.na1-a5-mark.is-none{ border:1.5px dashed var(--na1-border); }
+.na1-a5-week{ margin:0 0 26px; padding:16px 20px; border:1px solid var(--gold-line); border-radius:16px; background:var(--na1-bg-card); }
+.na1-a5-week.is-hall{ max-width:880px; margin-bottom:34px; }
+.na1-a5-week-head{ display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap; margin:0 0 12px; }
+.na1-a5-week-title{ font-family:var(--f-display); font-size:24px; line-height:1.2; font-weight:400; color:var(--na1-text); margin:0; }
+.na1-a5-week.is-hall .na1-a5-week-title{ font-size:30px; }
+.na1-a5-week-status{ font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.35); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-a5-week-cards{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
+.na1-a5-week-card{ border:1px solid var(--na1-border); border-left:3px solid var(--gold); border-radius:12px; padding:12px 16px; background:var(--na1-bg-soft); min-width:0; }
+.na1-a5-week-streak{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px; }
+.na1-a5-week-count{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.03em; color:var(--na1-text-sec); font-weight:400; }
+.na1-a5-week-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px 18px; flex-wrap:wrap; margin-top:12px; }
+.na1-a5-week-next{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.03em; color:var(--na1-text-sec); font-weight:400; }
+.na1-a5-week-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+.na1-a5-remind-go{ margin-top:12px; margin-right:10px; min-height:44px; padding:0 22px; border:0; border-radius:999px; background:#EFE6D6; color:#012325; font-family:var(--f-label); font-size:max(var(--l-min), 14px); letter-spacing:.02em; font-weight:400; cursor:pointer; }
+.na1-a5-remind-go:hover{ background:#F8F1E2; }
+.na1-a5-remind-go:focus-visible{ outline:2px solid #E3D0AA; outline-offset:2px; }
+.na1-a5-ci-promise{ margin:0 0 12px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text-sec); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a5-ci-q{ margin-top:6px; }
+.na1-a5-ci-note{ margin:10px 0 0; padding:10px 14px; border:1px solid var(--gold-line); border-left:3px solid var(--gold); border-radius:10px; background:var(--gold-warm); font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(18px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text); font-weight:var(--b-w); overflow-wrap:anywhere; }
+.na1-a5-ci-by{ font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--gold-text); white-space:nowrap; }
+.na1-a5-saved{ display:flex; flex-direction:column; gap:10px; margin:0 0 14px; }
+.na1-a5-saved-row{ border:1px solid var(--na1-border); border-left:3px solid var(--gold); border-radius:12px; padding:10px 14px; background:var(--na1-bg-card); }
+.na1-a5-saved-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.na1-a5-saved-kept{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.04em; color:var(--gold-text); font-weight:400; }
+.na1-a5-saved-row .na1-a5-strip-will{ margin:4px 0 0; }
+.na1-a5-look{ margin-top:2px; }
+.na1-a5-look-stat{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:6px 0 10px; }
+.na1-a5-look-big{ font-family:var(--f-display); font-size:20px; font-weight:400; color:var(--na1-text); }
+.na1-a5-grow{ margin-top:8px; }
+@media (max-width:767px){
+  .na1-a5-week{ padding:12px 14px; margin-bottom:18px; }
+  .na1-a5-week-cards{ grid-template-columns:1fr; gap:8px; }
+  .na1-a5-week-title{ font-size:22px; }
+  .na1-a5-week.is-hall .na1-a5-week-title{ font-size:24px; }
+  .na1-a5-week-actions .na1-btn-gold, .na1-a5-week-actions .na1-btn-ghost{ flex:1 1 auto; }
+  .na1-a5-ci-promise{ margin-bottom:8px; }
+  .na1-a5-ci-q{ margin-top:2px; }
+  .na1-a5-ci-note{ margin-top:6px; padding:8px 12px; }
+  .na1-a5-saved{ gap:6px; margin-bottom:8px; }
+  .na1-a5-saved-row{ padding:8px 12px; }
+  .na1-a5-look-stat{ margin:4px 0 6px; }
+  .na1-a5-grow .na2-prose-blank-wrap{ margin-bottom:8px; }
+  .na1-a5-remind-go{ margin-right:6px; }
 }
 .na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
 `;
@@ -34183,7 +34248,10 @@ type AppRouteView =
   | "a4p"
   // A5 · Accountable To It hub (a5) + its room Keeping My Word (a5m1, room id "keeping").
   | "a5"
-  | "a5m1";
+  | "a5m1"
+  // A5-2 · the weekly check-in (room id "checkin") and the 90-day look-back ("lookback").
+  | "a5c"
+  | "a5r";
 type AppRouteOverlay = {
   // A2.2 · "a2m1" addresses the Alignment Check room (roomId "alignment").
   // A2 Ship 1 · "a2m2" addresses the Time Audit room (roomId "timeaudit").
@@ -34194,7 +34262,7 @@ type AppRouteOverlay = {
   // A3 Ship 5 · "a3m5" addresses the Board room (roomId "board").
   // A3 Ship 6 · "a3m6" addresses the Move room (roomId "move").
   // A4-1 · "a4m1" addresses the Self room (roomId "self"); a4m2 → "time", a4m3 → "wealth".
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3" | "a4p" | "a5m1";
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3" | "a4p" | "a5m1" | "a5c" | "a5r";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -34226,6 +34294,8 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a4p",
   "a5",
   "a5m1",
+  "a5c",
+  "a5r",
 ];
 
 // ─── Entry Hall · first-visit landing state ─────────────────────────────
@@ -34298,7 +34368,9 @@ function loadAppRoute(): AppRoute | null {
           hubId === "a4m2" ||
           hubId === "a4m3" ||
           hubId === "a4p" ||
-          hubId === "a5m1") &&
+          hubId === "a5m1" ||
+          hubId === "a5c" ||
+          hubId === "a5r") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -34486,7 +34558,7 @@ function NewA1Spine({
   // same vertebra as the A2 hub itself. A3 Ship 1 · the People room (a3m1)
   // likewise lights the same Advocate vertebra as the A3 hub.
   const current: "allin" | "align" | "advocate" | "act" | "accountable" =
-    view === "a5" || view === "a5m1"
+    view === "a5" || view === "a5m1" || view === "a5c" || view === "a5r"
       ? "accountable"
       : view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p"
       ? "act"
@@ -34637,7 +34709,7 @@ function getPhoneSpine() {
 // Which discipline a view belongs to. (The rail's own mapping only knows a2/a2m1
 // and lumps a2m2/a2m3 under All In; the phone bar is correct for every view.)
 function na1DisciplineForView(view: AppRouteView): 1 | 2 | 3 | 4 | 5 {
-  if (view === "a5" || view === "a5m1") return 5;
+  if (view === "a5" || view === "a5m1" || view === "a5c" || view === "a5r") return 5;
   if (view === "a4" || view === "a4m1" || view === "a4m2" || view === "a4m3" || view === "a4p")
     return 4;
   if (view === "a2" || view === "a2m1" || view === "a2m2" || view === "a2m3")
@@ -35200,10 +35272,17 @@ function DevResetBar() {
 
 function NewA1EntryHall({
   name,
+  allClaimed,
+  onCheckin,
+  onOpenA5,
   onSeeFramework,
   onEnterApp,
 }: {
   name?: string;
+  // All five As claimed → "This week" leads the page (A5-2).
+  allClaimed?: boolean;
+  onCheckin?: () => void;
+  onOpenA5?: () => void;
   onSeeFramework: () => void;
   onEnterApp: () => void;
 }) {
@@ -35215,7 +35294,10 @@ function NewA1EntryHall({
         <div className="na1-breadcrumb">
           <span className="current">Entry Hall</span>
         </div>
-        <A5ReminderCard />
+        <A5ReminderCard onCheckin={onCheckin} />
+        {allClaimed && onCheckin ? (
+          <A5ThisWeek variant="hall" onCheckin={onCheckin} onOpenA5={onOpenA5} />
+        ) : null}
         <p className="na1-eh-eyebrow">True Ownership · Welcome</p>
         <p className="na1-eh-quote">
           Our life is a mirror of how we think and feel about ourselves.
@@ -48018,9 +48100,16 @@ async function a5CopyText(text: string): Promise<boolean> {
 // at the top of the Entry Hall and the A5 hub — in their own words — until they
 // dismiss it. It comes back on the next reminder day and rotates through the
 // three promises. Renders nothing before the A5 claim.
-function A5ReminderCard({ onDismissed }: { onDismissed?: () => void }) {
+function A5ReminderCard({
+  onDismissed,
+  onCheckin,
+}: {
+  onDismissed?: () => void;
+  onCheckin?: () => void;
+}) {
   const [a5, setA5] = useState<A5State>(() => loadA5State());
   const due = useMemo(() => a5ReminderDue(a5, new Date()), [a5]);
+  const ci = useMemo(() => a5CheckinStatus(a5, new Date()), [a5]);
   if (!due) return null;
   const a4 = loadA4State();
   const m = a4[due.key];
@@ -48038,6 +48127,11 @@ function A5ReminderCard({ onDismissed }: { onDismissed?: () => void }) {
         <span className="na1-a5-remind-for">{A5_LABEL[due.key]} · this week</span>{" "}
         {plan.week.trim() !== "" ? `I will ${plan.week.trim().replace(/^i will\s+/i, "")}` : a5PromiseLine(m)}
       </p>
+      {ci.open && onCheckin ? (
+        <button type="button" className="na1-a5-remind-go" onClick={onCheckin}>
+          Start your 2-minute check-in →
+        </button>
+      ) : null}
       <button
         type="button"
         className="na1-a5-remind-dismiss"
@@ -48057,6 +48151,701 @@ function A5ReminderCard({ onDismissed }: { onDismissed?: () => void }) {
   );
 }
 
+// ─── A5-2 · weekly check-in + 90-day look-back ───────────────────────────────
+// A5-1 built what holds your word; A5-2 is the weekly proof. The 2-minute
+// check-in (one screen per promise) writes one record per week to `checkins[]`;
+// the 90-day look-back unlocks at `ninetyBy`, shows weeks kept and what got in
+// the way most, then lets the member grow each promise or keep it as is.
+
+const A5C_VEIL = "Looking back at your week…";
+const A5L_VEIL = "Looking back at your 90 days…";
+const A5_DRAFT_KEY = "to_a5_draft_v1"; // sessionStorage only — a refresh mid-room restores the screen
+
+function readDraft<T>(room: string): T | null {
+  try {
+    const raw = window.sessionStorage.getItem(`${A5_DRAFT_KEY}:${room}`);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+function writeDraft(room: string, v: unknown): void {
+  try {
+    if (v == null) window.sessionStorage.removeItem(`${A5_DRAFT_KEY}:${room}`);
+    else window.sessionStorage.setItem(`${A5_DRAFT_KEY}:${room}`, JSON.stringify(v));
+  } catch {
+    // sessionStorage may be unavailable — the room still works, it just won't resume mid-way
+  }
+}
+
+// Bronze marks, oldest → newest: kept = filled, partly = half, missed = open ring.
+function A5Marks({ marks, label }: { marks: A5Mark[]; label: string }) {
+  if (marks.length === 0) return null;
+  const shown = marks.slice(-12);
+  return (
+    <span className="na1-a5-marks" role="img" aria-label={label}>
+      {shown.map((m, i) => (
+        <span key={i} className={`na1-a5-mark is-${m}`} />
+      ))}
+    </span>
+  );
+}
+const a5WeeksText = (st: A5Streak): string =>
+  st.total === 0
+    ? "First check-in coming up"
+    : `${st.kept} of ${st.total} week${st.total === 1 ? "" : "s"} kept${st.partly > 0 ? ` · ${st.partly} partly` : ""}`;
+
+// "This week" — the three promises, this week's action, check-in status, the
+// next reminder. On the A5 hub, and leading the Entry Hall once all five As are
+// claimed.
+function A5ThisWeek({
+  variant,
+  onCheckin,
+  onOpenA5,
+}: {
+  variant: "hub" | "hall";
+  onCheckin: () => void;
+  onOpenA5?: () => void;
+}) {
+  const a5 = useMemo(() => loadA5State(), []);
+  const promises = useMemo(() => readA5Promises(), []);
+  const now = new Date();
+  const ci = a5CheckinStatus(a5, now);
+  const nextRem = a5NextOccurrence(a5.rhythm.reminderDay, a5.rhythm.reminderTime, now);
+  if (!a5.claimed) return null;
+  const checkinWhen = `${a5DayLong(a5.rhythm.checkinDay)} ${a5FormatTime(a5.rhythm.checkinTime)}`;
+  const status = ci.open
+    ? "Your 2-minute check-in is ready."
+    : ci.done
+      ? "You've checked in for this week."
+      : `Next check-in: ${checkinWhen}.`;
+  return (
+    <section className={`na1-a5-week is-${variant}`} aria-label="This week">
+      <div className="na1-a5-week-head">
+        <h2 className="na1-a5-week-title">This week</h2>
+        <span className="na1-a5-week-status">{status}</span>
+      </div>
+      <div className="na1-a5-week-cards">
+        {A5_KEYS.map((k) => {
+          const p = a5.plans[k];
+          const st = a5Streak(a5, k, now);
+          const act = p.week.trim() !== "" ? p.week.trim().replace(/^i will\s+/i, "") : promises[k].will.trim();
+          return (
+            <article className="na1-a5-week-card" key={k}>
+              <div className="na1-a5-strip-label">{A5_LABEL[k]}</div>
+              <p className="na1-a5-strip-will">
+                I will {act}
+                {p.days.length > 0 ? ` · ${p.days.join(", ")}` : ""}
+                {p.time ? ` · ${a5FormatTime(p.time)}` : ""}.
+              </p>
+              <div className="na1-a5-week-streak">
+                <A5Marks marks={st.marks} label={a5WeeksText(st)} />
+                <span className="na1-a5-week-count">{a5WeeksText(st)}</span>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+      <div className="na1-a5-week-foot">
+        <span className="na1-a5-week-next">
+          {nextRem ? `Next reminder: ${a5DayLong(a5.rhythm.reminderDay)} ${a5FormatTime(a5.rhythm.reminderTime)} · In the app` : ""}
+        </span>
+        <div className="na1-a5-week-actions">
+          {ci.open || ci.done ? (
+            <button type="button" className={ci.open ? "na1-btn-gold" : "na1-btn-ghost"} onClick={onCheckin}>
+              {ci.open ? "Start check-in →" : "Change this week's check-in"}
+            </button>
+          ) : null}
+          {variant === "hall" && onOpenA5 ? (
+            <button type="button" className="na1-btn-ghost" onClick={onOpenA5}>
+              Open A5 →
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── A5 · weekly check-in room ───
+type A5CheckinDraft = { week: string; screen: number; entries: Partial<Record<A5Key, A5CheckinEntry>> };
+const A5C_PHASES = A5_KEYS.map((k, i) => ({ num: i + 1, name: A5_LABEL[k] }));
+const A5C_SCREEN_PHASE = [0, 1, 2, 3];
+const A5_KEPT_LABEL: Record<A5Kept, string> = { yes: "Yes", partly: "Partly", no: "Not this week" };
+
+function A5CheckinPromiseBody({
+  k,
+  promise,
+  plan,
+  sup,
+  entry,
+  onEntry,
+}: {
+  k: A5Key;
+  promise: A4MirrorState;
+  plan: A5Plan;
+  sup: A5Supports;
+  entry: Partial<A5CheckinEntry>;
+  onEntry: (e: Partial<A5CheckinEntry>) => void;
+}) {
+  const stop = promise.stop.trim();
+  const asked = a5SupportAsked(sup);
+  const askedLabel = sup.person.name.trim() ? a5Called(sup.person) : asked;
+  const kept = entry.kept;
+  const way = entry.gotInWay ?? "";
+  const customWay = way !== "" && way !== stop;
+  const [writing, setWriting] = useState<boolean>(customWay);
+  const week = plan.week.trim() !== "" ? plan.week.trim().replace(/^i will\s+/i, "") : promise.will.trim();
+  const helpedDone = asked === "" || entry.supportHelped != null;
+  const showNote = kept != null && helpedDone;
+  const pick = <T extends string>(
+    name: string,
+    opts: { v: T; label: string }[],
+    cur: T | null | undefined,
+    set: (v: T) => void,
+  ) => (
+    <div className="na1-chip-grid" role="radiogroup" aria-label={name}>
+      {opts.map((o) => (
+        <button
+          type="button"
+          key={o.v}
+          role="radio"
+          aria-checked={cur === o.v}
+          className={`na1-chip na1-a4-kind ${cur === o.v ? "is-selected" : ""}`}
+          onClick={() => set(o.v)}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+  return (
+    <div className="na1-a5-ci">
+      <div className="na1-room-eyebrow tone-gold">CHECK-IN · {A5_LABEL[k].toUpperCase()}</div>
+      <h2 className="na1-room-title">Did you keep it this week?</h2>
+      <p className="na1-a5-ci-promise">
+        This week: I will {week}
+        {plan.days.length > 0 ? ` · ${plan.days.join(", ")}` : ""}.
+      </p>
+      {pick(
+        "Did you keep it",
+        (["yes", "partly", "no"] as A5Kept[]).map((v) => ({ v, label: A5_KEPT_LABEL[v] })),
+        kept,
+        (v) => onEntry({ kept: v, gotInWay: v === "yes" ? "" : entry.gotInWay ?? "" }),
+      )}
+      {kept && kept !== "yes" ? (
+        <div className="na1-a5-ci-q">
+          <p className="na2-prose-blank-stem">What got in the way?</p>
+          <div className="na1-chip-grid" role="radiogroup" aria-label="What got in the way">
+            {stop !== "" ? (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={way === stop}
+                className={`na1-chip na1-a4-kind ${way === stop ? "is-selected" : ""}`}
+                onClick={() => {
+                  setWriting(false);
+                  onEntry({ gotInWay: way === stop ? "" : stop });
+                }}
+              >
+                {stop}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={`na1-chip na1-a4-kind is-other ${writing || customWay ? "is-selected" : ""}`}
+              aria-pressed={writing || customWay}
+              onClick={() => {
+                if (writing && !customWay) setWriting(false);
+                else setWriting(true);
+              }}
+            >
+              + Write my own
+            </button>
+          </div>
+          {writing || customWay ? (
+            <input
+              type="text"
+              className="na2-blank-input na1-a4-blank na1-a5-own"
+              value={customWay ? way : ""}
+              placeholder="e.g. a late client call"
+              onChange={(e) => onEntry({ gotInWay: e.target.value })}
+              aria-label="What got in the way"
+            />
+          ) : null}
+        </div>
+      ) : null}
+      {kept && asked !== "" ? (
+        <div className="na1-a5-ci-q">
+          <p className="na2-prose-blank-stem">Did {askedLabel} help?</p>
+          {pick(
+            `Did ${askedLabel} help`,
+            [
+              { v: "yes" as const, label: "Yes" },
+              { v: "no" as const, label: "No" },
+            ],
+            entry.supportHelped,
+            (v) => onEntry({ supportHelped: v }),
+          )}
+        </div>
+      ) : null}
+      {showNote && kept ? (
+        <p className="na1-a5-ci-note" role="status">
+          {a5KatherineNote(kept, promise.plan, plan.week)} <span className="na1-a5-ci-by">— Katherine</span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function NewA5CheckinContainer({
+  onBackToA5,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA5: () => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a5, setA5] = useState<A5State>(() => loadA5State());
+  const promises = useMemo(() => readA5Promises(), []);
+  const now = useMemo(() => new Date(), []);
+  const status = useMemo(() => a5CheckinStatus(a5, now), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const week = status.week !== "" ? status.week : a5WeekStart(now);
+  const resuming = initialRoomKey === "checkin";
+  const launchVeil = !resuming;
+  const initial = useMemo<A5CheckinDraft>(() => {
+    const d = resuming ? readDraft<A5CheckinDraft>("checkin") : null;
+    if (d && d.week === week) return d;
+    const existing = a5.checkins.find((c) => c.week === week);
+    return { week, screen: 0, entries: existing ? { ...existing.entries } : {} };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [screen, setScreen] = useState<number>(initial.screen);
+  const [entries, setEntries] = useState<Partial<Record<A5Key, A5CheckinEntry>>>(initial.entries);
+  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(launchVeil ? "rising" : "idle");
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(window.setTimeout(() => setVeilPhase("falling"), NA1_VEIL_TIMING.fallingAt));
+    timers.push(window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    onRoomChange(roomOpen ? "checkin" : null);
+  }, [roomOpen, onRoomChange]);
+  useEffect(() => {
+    writeDraft("checkin", screen >= 3 ? null : { week, screen, entries });
+  }, [screen, entries, week]);
+  const closeRoom = () => {
+    setRoomOpen(false);
+    writeDraft("checkin", null);
+    onBackToA5();
+  };
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  const key = A5_KEYS[Math.min(screen, 2)];
+  const cur: Partial<A5CheckinEntry> = entries[key] ?? {};
+  const asked = a5SupportAsked(a5.supports[key]);
+  const answered = cur.kept != null && (asked === "" || cur.supportHelped != null);
+  const setEntry = (e: Partial<A5CheckinEntry>) =>
+    setEntries((p) => ({ ...p, [key]: { ...(p[key] ?? {}), ...e } as A5CheckinEntry }));
+  const save = () => {
+    const full = {} as Record<A5Key, A5CheckinEntry>;
+    for (const k of A5_KEYS) {
+      const e = entries[k];
+      const has = a5SupportAsked(a5.supports[k]) !== "";
+      full[k] = {
+        kept: (e?.kept ?? "no") as A5Kept,
+        gotInWay: e?.kept === "yes" ? "" : (e?.gotInWay ?? "").trim(),
+        supportHelped: has ? (e?.supportHelped ?? null) : null,
+      };
+    }
+    const t = new Date();
+    const next = a5SaveCheckin(a5, { week, date: a5IsoDate(t), at: t.toISOString(), entries: full });
+    saveA5State(next);
+    setA5(next);
+    setScreen(3);
+  };
+  const sealed = screen >= 3;
+  const nowStreak = (k: A5Key) => a5Streak(a5, k, new Date());
+  const body = sealed ? (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">CHECK-IN · SAVED ★</div>
+      <h2 className="na1-room-title">That&rsquo;s your week.</h2>
+      <p className="na1-room-context na1-a5-sub">
+        Every week you keep your word, you&rsquo;ll trust yourself a little more.
+      </p>
+      <div className="na1-a5-saved">
+        {A5_KEYS.map((k) => {
+          const st = nowStreak(k);
+          const e = a5.checkins.find((c) => c.week === week)?.entries[k];
+          return (
+            <div className="na1-a5-saved-row" key={k}>
+              <div className="na1-a5-saved-top">
+                <span className="na1-a5-strip-label">{A5_LABEL[k]}</span>
+                <span className="na1-a5-saved-kept">{e ? A5_KEPT_LABEL[e.kept] : ""}</span>
+              </div>
+              <div className="na1-a5-week-streak">
+                <A5Marks marks={st.marks} label={a5WeeksText(st)} />
+                <span className="na1-a5-week-count">{a5WeeksText(st)}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button type="button" className="na1-btn-gold" onClick={closeRoom}>
+          Back to A5 →
+        </button>
+      </div>
+    </div>
+  ) : (
+    <A5CheckinPromiseBody
+      key={key}
+      k={key}
+      promise={promises[key]}
+      plan={a5.plans[key]}
+      sup={a5.supports[key]}
+      entry={cur}
+      onEntry={setEntry}
+    />
+  );
+  return (
+    <div className="na1-root">
+      {roomOpen && (
+        <div
+          className="na1-room-overlay na1-a4-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Weekly check-in"
+        >
+          <div className="na1-room-card na1-a2m2-room-card na1-a4-room na1-a5-room">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>Check-in</a>
+              <span className="sep">›</span>
+              <span className="current">{sealed ? "Saved" : A5_LABEL[key]}</span>
+            </div>
+            <button type="button" className="na1-room-close" onClick={closeRoom} aria-label="Close">
+              ×
+            </button>
+            <A5Stepper screen={screen} phases={A5C_PHASES} screenPhase={A5C_SCREEN_PHASE} count={4} />
+            <div className="na1-a2m2-body">{body}</div>
+            {!sealed && (
+              <div className="na1-a2m2-nav">
+                <button
+                  type="button"
+                  className="na1-btn-ghost"
+                  onClick={() => (screen > 0 ? setScreen(screen - 1) : closeRoom())}
+                >
+                  {screen > 0 ? "← Back" : "Close"}
+                </button>
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={screen === 2 ? save : () => setScreen(screen + 1)}
+                  disabled={!answered}
+                >
+                  {screen === 2 ? "Save check-in →" : `Next: ${A5_LABEL[A5_KEYS[screen + 1]]} →`}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && <NewA1Veil phase={veilPhase} text={A5C_VEIL} />}
+    </div>
+  );
+}
+
+// ─── A5 · 90-day look-back room ───
+type A5LookDraft = {
+  screen: number;
+  choice: Partial<Record<A5Key, "keep" | "grow">>;
+  edit: Partial<Record<A5Key, { will: string; when: string; week: string; ninety: string }>>;
+};
+const A5L_PHASES = [
+  { num: 1, name: "Look back" },
+  { num: 2, name: "Grow it" },
+];
+const A5L_SCREEN_PHASE = [0, 1, 2];
+
+function NewA5LookbackContainer({
+  onBackToA5,
+  initialRoomKey,
+  onRoomChange,
+}: {
+  onBackToA5: () => void;
+  initialRoomKey: string | null;
+  onRoomChange: (roomId: string | null) => void;
+}) {
+  const [a5, setA5] = useState<A5State>(() => loadA5State());
+  const promises = useMemo(() => readA5Promises(), []);
+  const now = useMemo(() => new Date(), []);
+  const resuming = initialRoomKey === "lookback";
+  const launchVeil = !resuming;
+  const initial = useMemo<A5LookDraft>(() => {
+    const d = resuming ? readDraft<A5LookDraft>("lookback") : null;
+    return d ?? { screen: 0, choice: {}, edit: {} };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [screen, setScreen] = useState<number>(initial.screen);
+  const [choice, setChoice] = useState(initial.choice);
+  const [edit, setEdit] = useState(initial.edit);
+  const [tab, setTab] = useState<A5Key>("self");
+  const [roomOpen, setRoomOpen] = useState<boolean>(!launchVeil);
+  const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>(launchVeil ? "rising" : "idle");
+  const launchedRef = useRef(false);
+  useEffect(() => {
+    if (!launchVeil || launchedRef.current) return;
+    launchedRef.current = true;
+    const timers: number[] = [];
+    timers.push(
+      window.setTimeout(() => {
+        setVeilPhase("hold");
+        setRoomOpen(true);
+      }, NA1_VEIL_TIMING.holdAt),
+    );
+    timers.push(window.setTimeout(() => setVeilPhase("falling"), NA1_VEIL_TIMING.fallingAt));
+    timers.push(window.setTimeout(() => setVeilPhase("idle"), NA1_VEIL_TIMING.idleAt));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    onRoomChange(roomOpen ? "lookback" : null);
+  }, [roomOpen, onRoomChange]);
+  useEffect(() => {
+    writeDraft("lookback", screen >= 2 ? null : { screen, choice, edit });
+  }, [screen, choice, edit]);
+  const closeRoom = () => {
+    setRoomOpen(false);
+    writeDraft("lookback", null);
+    onBackToA5();
+  };
+  useEffect(() => {
+    if (!roomOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRoom();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomOpen]);
+
+  const editFor = (k: A5Key) =>
+    edit[k] ?? {
+      will: promises[k].will,
+      when: promises[k].when,
+      week: a5.plans[k].week.replace(/^i will\s+/i, ""),
+      ninety: "",
+    };
+  const setEditFor = (k: A5Key, p: Partial<{ will: string; when: string; week: string; ninety: string }>) =>
+    setEdit((e) => ({ ...e, [k]: { ...editFor(k), ...p } }));
+  const decided = (k: A5Key) => {
+    const c = choice[k];
+    if (c === "keep") return true;
+    if (c === "grow") {
+      const e = editFor(k);
+      return e.will.trim() !== "" && e.week.trim() !== "";
+    }
+    return false;
+  };
+  const allDecided = A5_KEYS.every(decided);
+  const nextBy = a5NinetyBy(now);
+  const finish = () => {
+    // Grown promises are written back to A4 (will / when) and to the A5 plan
+    // (this week + the next 90-day aim); every promise starts a fresh 90 days.
+    const a4 = loadA4State();
+    let a4next: A4State = a4;
+    const plans = { ...a5.plans };
+    const choices = { self: "keep", time: "keep", wealth: "keep" } as Record<A5Key, "keep" | "grow">;
+    for (const k of A5_KEYS) {
+      choices[k] = choice[k] === "grow" ? "grow" : "keep";
+      const p = { ...plans[k], ninetyBy: nextBy };
+      if (choice[k] === "grow") {
+        const e = editFor(k);
+        a4next = { ...a4next, [k]: { ...a4next[k], will: e.will.trim(), when: e.when.trim() } } as A4State;
+        p.week = e.week.trim();
+        if (e.ninety.trim() !== "") p.ninety = e.ninety.trim();
+      }
+      plans[k] = p;
+    }
+    saveA4State(a4next);
+    const next: A5State = { ...a5, plans, reset90: { at: new Date().toISOString(), choices, next: nextBy } };
+    saveA5State(next);
+    setA5(next);
+    setScreen(2);
+  };
+  const sealed = screen >= 2;
+  const doneMap: Record<A5Key, boolean> = { self: false, time: false, wealth: false };
+  const decidedMap: Record<A5Key, boolean> = { self: decided("self"), time: decided("time"), wealth: decided("wealth") };
+  const st = a5Streak(a5, tab, now);
+  const way = a5MostInWay(a5, tab, now);
+  const body = sealed ? (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">LOOK-BACK · DONE ★</div>
+      <h2 className="na1-room-title">Your next 90 days.</h2>
+      <p className="na1-room-context na1-a5-sub">
+        Another 90 days, another chance to keep your word — through {a5FormatBy(nextBy)}.
+      </p>
+      <div className="na1-a5-saved">
+        {A5_KEYS.map((k) => (
+          <div className="na1-a5-saved-row" key={k}>
+            <div className="na1-a5-saved-top">
+              <span className="na1-a5-strip-label">{A5_LABEL[k]}</span>
+              <span className="na1-a5-saved-kept">{a5.reset90?.choices[k] === "grow" ? "Grown" : "Kept as is"}</span>
+            </div>
+            <p className="na1-a5-strip-will">
+              I will {a5.plans[k].week.trim().replace(/^i will\s+/i, "")}.
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="na1-a2m1-claim-actions">
+        <button type="button" className="na1-btn-gold" onClick={closeRoom}>
+          Back to A5 →
+        </button>
+      </div>
+    </div>
+  ) : screen === 0 ? (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">YOUR 90 DAYS</div>
+      <h2 className="na1-room-title">Look back at what you kept.</h2>
+      <A5Tabs active={tab} onChange={setTab} done={doneMap} />
+      <div className="na1-a5-look" role="tabpanel" aria-label={`${A5_LABEL[tab]} look-back`}>
+        <p className="na1-a4-promise-main">{a5PromiseLine(promises[tab])}</p>
+        <div className="na1-a5-look-stat">
+          <A5Marks marks={st.marks} label={a5WeeksText(st)} />
+          <span className="na1-a5-look-big">{a5WeeksText(st)}</span>
+        </div>
+        <p className="na1-a4-promise-year">
+          <span className="na1-a4-promise-year-label">What got in the way most:</span>{" "}
+          {way ? `${way.text}${way.count > 1 ? ` — ${way.count} weeks` : ""}` : "Nothing came up more than once."}
+        </p>
+        {a5.plans[tab].ninety.trim() !== "" ? (
+          <p className="na1-a4-promise-year">
+            <span className="na1-a4-promise-year-label">You set out to:</span> {a5.plans[tab].ninety.trim()}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  ) : (
+    <div>
+      <div className="na1-room-eyebrow tone-gold">GROW IT</div>
+      <h2 className="na1-room-title">Grow the promise, or keep it?</h2>
+      <A5Tabs active={tab} onChange={setTab} done={decidedMap} />
+      <div className="na1-a5-look" role="tabpanel" aria-label={`${A5_LABEL[tab]} grow`}>
+        <div className="na1-chip-grid" role="radiogroup" aria-label="Grow or keep">
+          {(
+            [
+              { v: "keep", label: "Keep it as is" },
+              { v: "grow", label: "Grow the promise" },
+            ] as { v: "keep" | "grow"; label: string }[]
+          ).map((o) => (
+            <button
+              type="button"
+              key={o.v}
+              role="radio"
+              aria-checked={choice[tab] === o.v}
+              className={`na1-chip na1-a4-kind ${choice[tab] === o.v ? "is-selected" : ""}`}
+              onClick={() => setChoice((c) => ({ ...c, [tab]: o.v }))}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        {choice[tab] === "keep" ? (
+          <p className="na1-a4-promise-main">{a5PromiseLine(promises[tab])}</p>
+        ) : null}
+        {choice[tab] === "grow" ? (
+          <div className="na1-a5-grow">
+            <A4Blank stem="I will…" value={editFor(tab).will} onChange={(v) => setEditFor(tab, { will: v })} placeholder="a little more than before" />
+            <A4Blank stem="…when…" value={editFor(tab).when} onChange={(v) => setEditFor(tab, { when: v })} placeholder="the moment it happens" />
+            <A4Blank stem="This week I will…" value={editFor(tab).week} onChange={(v) => setEditFor(tab, { week: v })} placeholder="the one small thing" />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+  return (
+    <div className="na1-root">
+      {roomOpen && (
+        <div
+          className="na1-room-overlay na1-a4-overlay is-open"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeRoom();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="90-day look-back"
+        >
+          <div className="na1-room-card na1-a2m2-room-card na1-a4-room na1-a5-room">
+            <div className="na1-room-crumb">
+              <a onClick={closeRoom}>90-Day Look-Back</a>
+              <span className="sep">›</span>
+              <span className="current">{sealed ? "Done" : screen === 0 ? "Look back" : "Grow it"}</span>
+            </div>
+            <button type="button" className="na1-room-close" onClick={closeRoom} aria-label="Close">
+              ×
+            </button>
+            <A5Stepper screen={screen} phases={A5L_PHASES} screenPhase={A5L_SCREEN_PHASE} count={3} />
+            <div className="na1-a2m2-body">{body}</div>
+            {!sealed && (
+              <div className="na1-a2m2-nav">
+                <button
+                  type="button"
+                  className="na1-btn-ghost"
+                  onClick={() => (screen > 0 ? setScreen(0) : closeRoom())}
+                >
+                  {screen > 0 ? "← Back" : "Close"}
+                </button>
+                <button
+                  type="button"
+                  className="na1-btn-gold"
+                  onClick={screen === 0 ? () => setScreen(1) : finish}
+                  disabled={screen === 1 && !allDecided}
+                >
+                  {screen === 0 ? "Grow it, or keep it →" : "Start my next 90 days →"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {veilPhase !== "idle" && <NewA1Veil phase={veilPhase} text={A5L_VEIL} />}
+    </div>
+  );
+}
+
 // ─── A5 · hub view ───
 function NewA5HubView({
   name,
@@ -48064,12 +48853,16 @@ function NewA5HubView({
   onEntryHall,
   onBegin,
   onGoToA4,
+  onCheckin,
+  onLookback,
 }: {
   name?: string;
   a4Complete: boolean;
   onEntryHall: () => void;
   onBegin: () => void;
   onGoToA4: () => void;
+  onCheckin: () => void;
+  onLookback: () => void;
 }) {
   useEffect(() => {
     if (!hasA5State()) saveA5State(EMPTY_A5);
@@ -48079,6 +48872,8 @@ function NewA5HubView({
   const claimed = a5.claimed;
   const unlocked = a4Complete;
   const started = a5.step > 0;
+  const lookDue = a5LookbackDue(a5, new Date());
+  const lookBy = A5_KEYS.map((k) => a5.plans[k].ninetyBy).filter((d) => d !== "").sort()[0] ?? "";
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -48114,7 +48909,8 @@ function NewA5HubView({
             <strong>{claimed ? 1 : 0} of 1</strong> complete
           </div>
         </div>
-        <A5ReminderCard />
+        <A5ReminderCard onCheckin={onCheckin} />
+        {claimed ? <A5ThisWeek variant="hub" onCheckin={onCheckin} /> : null}
         {unlocked || claimed ? (
           <section className="na1-a5-strip" aria-label="Your promises">
             <h2 className="na1-a5-strip-title">Your promises</h2>
@@ -48200,6 +48996,34 @@ function NewA5HubView({
               <span className="na1-mirror-card-meta">5 exercises</span>
             </div>
           </article>
+          {/* Every 90 days — not a second mirror (the count above stays 1 of 1). It
+              unlocks at `ninetyBy`, and re-locks for the next 90 days once done. */}
+          {claimed ? (
+            <article className={`na1-mirror-card ${lookDue ? "is-current" : "is-locked"}`}>
+              <div className="na1-mirror-card-head">
+                <span className="na1-mirror-card-num">90</span>
+                <span className="na1-mirror-card-status">{lookDue ? "Up next" : "Locked"}</span>
+              </div>
+              <div className="na1-mirror-card-eyebrow">Every 90 days</div>
+              <h2 className="na1-mirror-card-name">90-Day Look-Back</h2>
+              <p className="na1-mirror-card-sub">
+                Look back at what you kept, then grow the promise.
+              </p>
+              <div className="na1-mirror-card-empty">
+                {lookDue
+                  ? ""
+                  : `Opens ${a5FormatBy(lookBy)}${a5.reset90 ? " · last look-back done" : ""}`}
+              </div>
+              <div className="na1-mirror-card-action">
+                {lookDue ? (
+                  <button type="button" className="na1-btn-gold na1-btn-block" onClick={onLookback}>
+                    Begin the look-back →
+                  </button>
+                ) : null}
+                <span className="na1-mirror-card-meta">Every 90 days</span>
+              </div>
+            </article>
+          ) : null}
         </div>
       </div>
     </div>
@@ -48207,13 +49031,23 @@ function NewA5HubView({
 }
 
 // ─── A5 · room pieces ───
-function A5Stepper({ screen }: { screen: number }) {
-  const phase = A5_SCREEN_PHASE[Math.min(screen, A5_SCREEN_COUNT - 1)];
-  const sealed = screen >= A5_SCREEN_COUNT - 1 && phase >= 3;
+function A5Stepper({
+  screen,
+  phases = A5_PHASES,
+  screenPhase = A5_SCREEN_PHASE,
+  count = A5_SCREEN_COUNT,
+}: {
+  screen: number;
+  phases?: { num: number; name: string }[];
+  screenPhase?: number[];
+  count?: number;
+}) {
+  const phase = screenPhase[Math.min(screen, count - 1)];
+  const sealed = screen >= count - 1 && phase >= phases.length;
   return (
     <div className="na1-a4-progress" aria-label="Where you are in this room">
       <div className="na1-a2m2-stepper na1-a4-stepper" role="list">
-        {A5_PHASES.map((p, i) => {
+        {phases.map((p, i) => {
           const complete = i < phase;
           const current = i === phase;
           const cls = [
@@ -48235,7 +49069,7 @@ function A5Stepper({ screen }: { screen: number }) {
                   {p.name}
                 </div>
               </div>
-              {i < A5_PHASES.length - 1 ? (
+              {i < phases.length - 1 ? (
                 <div className={`na1-a2m2-line ${complete ? "is-reached" : ""}`} />
               ) : null}
             </React.Fragment>
@@ -48245,9 +49079,9 @@ function A5Stepper({ screen }: { screen: number }) {
       <div
         className="na1-a2m1-pips na1-a4-pips"
         role="img"
-        aria-label={`Screen ${Math.min(screen + 1, A5_SCREEN_COUNT)} of ${A5_SCREEN_COUNT}`}
+        aria-label={`Screen ${Math.min(screen + 1, count)} of ${count}`}
       >
-        {Array.from({ length: A5_SCREEN_COUNT }).map((_, i) => (
+        {Array.from({ length: count }).map((_, i) => (
           <span
             key={i}
             className={[
@@ -49244,6 +50078,12 @@ function NewA1View({
     if (saved.overlay.hubId === "a5m1") {
       if (saved.view === "a5m1") return saved.overlay;
     }
+    if (saved.overlay.hubId === "a5c") {
+      if (saved.view === "a5c") return saved.overlay;
+    }
+    if (saved.overlay.hubId === "a5r") {
+      if (saved.view === "a5r") return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -49297,6 +50137,12 @@ function NewA1View({
   const initialA5M1RoomKeyRef = useRef<string | null>(
     overlayRoute && overlayRoute.hubId === "a5m1" ? overlayRoute.roomId : null,
   );
+  const initialA5CRoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a5c" ? overlayRoute.roomId : null,
+  );
+  const initialA5RRoomKeyRef = useRef<string | null>(
+    overlayRoute && overlayRoute.hubId === "a5r" ? overlayRoute.roomId : null,
+  );
   // Persist route changes. useEffect (not in setter) avoids Strict
   // Mode double-writes per the pattern established in Ship 5.6b.
   const firstRoutePersistRef = useRef(true);
@@ -49327,6 +50173,8 @@ function NewA1View({
       view !== "a4m3" &&
       view !== "a4p" &&
       view !== "a5m1" &&
+      view !== "a5c" &&
+      view !== "a5r" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -49493,6 +50341,28 @@ function NewA1View({
   const onA5M1RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
       const next: AppRouteOverlay = roomId ? { hubId: "a5m1", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A5-2 · weekly check-in room (single room "checkin") reports open/close.
+  const onA5CRoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a5c", roomId } : null;
+      if (prev === next) return prev;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
+        return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, []);
+  // A5-2 · 90-day look-back room (single room "lookback") reports open/close.
+  const onA5RRoomChange = useCallback((roomId: string | null) => {
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = roomId ? { hubId: "a5r", roomId } : null;
       if (prev === next) return prev;
       if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId)
         return prev;
@@ -49685,6 +50555,12 @@ function NewA1View({
   useEffect(() => {
     if (view === "a5m1" && !a4Complete) setView("a5");
   }, [view, a4Complete]);
+  // A5-2 · the check-in and look-back rooms exist only after the A5 claim; the
+  // look-back also waits for its date. Anything else lands on the A5 hub.
+  useEffect(() => {
+    if (view === "a5c" && !a5Complete) setView("a5");
+    if (view === "a5r" && !(a5Complete && a5LookbackDue(loadA5State(), new Date()))) setView("a5");
+  }, [view, a5Complete]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
     timeoutsRef.current = [];
@@ -50279,15 +51155,23 @@ function NewA1View({
           onEntryHall={() => setView("entry-hall")}
           onBegin={() => setView("a5m1")}
           onGoToA4={() => setView("a4")}
+          onCheckin={() => setView("a5c")}
+          onLookback={() => setView("a5r")}
         />
       </div>
     );
   }
-  // A5-1 · Keeping My Word. The hub stays mounted behind the room card (dimmed +
-  // blurred). The seal's CTA is "Continue to Entry Hall →".
-  if (view === "a5m1") {
-    const initialKey = initialA5M1RoomKeyRef.current;
-    initialA5M1RoomKeyRef.current = null;
+  // A5 rooms: Keeping My Word (a5m1) · weekly check-in (a5c) · 90-day look-back
+  // (a5r). The hub stays mounted behind the room card (dimmed + blurred).
+  if (view === "a5m1" || view === "a5c" || view === "a5r") {
+    const ref =
+      view === "a5m1"
+        ? initialA5M1RoomKeyRef
+        : view === "a5c"
+          ? initialA5CRoomKeyRef
+          : initialA5RRoomKeyRef;
+    const initialKey = ref.current;
+    ref.current = null;
     return (
       <div className="na1-spine-pad">
         <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
@@ -50298,15 +51182,33 @@ function NewA1View({
           onEntryHall={() => setView("entry-hall")}
           onBegin={() => {}}
           onGoToA4={() => setView("a4")}
+          onCheckin={() => {}}
+          onLookback={() => {}}
         />
-        <NewA5Container
-          key="a5m1"
-          onBackToA5={() => setView("a5")}
-          onEntryHall={() => setView("entry-hall")}
-          onEditA4={(k) => setView(k === "self" ? "a4m1" : k === "time" ? "a4m2" : "a4m3")}
-          initialRoomKey={initialKey}
-          onRoomChange={onA5M1RoomChange}
-        />
+        {view === "a5m1" ? (
+          <NewA5Container
+            key="a5m1"
+            onBackToA5={() => setView("a5")}
+            onEntryHall={() => setView("entry-hall")}
+            onEditA4={(k) => setView(k === "self" ? "a4m1" : k === "time" ? "a4m2" : "a4m3")}
+            initialRoomKey={initialKey}
+            onRoomChange={onA5M1RoomChange}
+          />
+        ) : view === "a5c" ? (
+          <NewA5CheckinContainer
+            key="a5c"
+            onBackToA5={() => setView("a5")}
+            initialRoomKey={initialKey}
+            onRoomChange={onA5CRoomChange}
+          />
+        ) : (
+          <NewA5LookbackContainer
+            key="a5r"
+            onBackToA5={() => setView("a5")}
+            initialRoomKey={initialKey}
+            onRoomChange={onA5RRoomChange}
+          />
+        )}
       </div>
     );
   }
@@ -50316,6 +51218,9 @@ function NewA1View({
         <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA1EntryHall
           name={resolvedName}
+          allClaimed={a1Complete && a2Complete && a3Complete && a4Complete && a5Complete}
+          onCheckin={() => setView("a5c")}
+          onOpenA5={() => setView("a5")}
           onSeeFramework={() => setView("framework")}
           onEnterApp={() => {
             markHomeVisited();

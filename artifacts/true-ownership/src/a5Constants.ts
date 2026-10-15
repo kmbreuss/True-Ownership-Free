@@ -68,8 +68,27 @@ export type A5State = {
   rhythm: A5Rhythm;
   claimed: boolean;
   claimedAt: string | null;
-  checkins: unknown[]; // A5-2
-  reset90: unknown | null; // A5-2
+  checkins: A5Checkin[]; // A5-2 · one record per week, oldest first
+  reset90: A5Reset90 | null; // A5-2 · the latest 90-day look-back
+};
+
+// ─── A5-2 · weekly check-in + 90-day look-back ───
+export type A5Kept = "yes" | "partly" | "no";
+export type A5CheckinEntry = {
+  kept: A5Kept;
+  gotInWay: string; // what got in the way ("" = nothing said / kept it)
+  supportHelped: "yes" | "no" | null; // did the person/place/system help (null = none to ask about)
+};
+export type A5Checkin = {
+  week: string; // the Monday (ISO date) of the week being looked back on
+  date: string; // ISO date the check-in was done
+  at: string; // ISO timestamp
+  entries: Record<A5Key, A5CheckinEntry>;
+};
+export type A5Reset90 = {
+  at: string; // ISO timestamp of the look-back
+  choices: Record<A5Key, "keep" | "grow">;
+  next: string; // ISO date the next look-back unlocks (today + 90)
 };
 
 export const EMPTY_A5_PLAN: A5Plan = {
@@ -181,8 +200,54 @@ export function normalizeA5(raw: unknown): A5State {
     },
     claimed: r.claimed === true,
     claimedAt: isoOrNull(r.claimedAt),
-    checkins: Array.isArray(r.checkins) ? r.checkins : [],
-    reset90: r.reset90 && typeof r.reset90 === "object" ? r.reset90 : null,
+    checkins: normalizeCheckins(r.checkins),
+    reset90: normalizeReset90(r.reset90),
+  };
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+function normalizeEntry(raw: unknown): A5CheckinEntry | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (r.kept !== "yes" && r.kept !== "partly" && r.kept !== "no") return null;
+  return {
+    kept: r.kept,
+    gotInWay: str(r.gotInWay).trim(),
+    supportHelped: r.supportHelped === "yes" || r.supportHelped === "no" ? r.supportHelped : null,
+  };
+}
+// Keep only well-formed weekly records; one per week (the later one wins).
+function normalizeCheckins(raw: unknown): A5Checkin[] {
+  if (!Array.isArray(raw)) return [];
+  const byWeek = new Map<string, A5Checkin>();
+  for (const it of raw) {
+    if (!it || typeof it !== "object") continue;
+    const r = it as Record<string, unknown>;
+    if (!ISO_DATE.test(str(r.week)) || !ISO_DATE.test(str(r.date))) continue;
+    const e = (r.entries && typeof r.entries === "object" ? r.entries : {}) as Record<string, unknown>;
+    const self = normalizeEntry(e.self);
+    const time = normalizeEntry(e.time);
+    const wealth = normalizeEntry(e.wealth);
+    if (!self || !time || !wealth) continue;
+    byWeek.set(str(r.week), {
+      week: str(r.week),
+      date: str(r.date),
+      at: str(r.at) || `${str(r.date)}T12:00:00.000Z`,
+      entries: { self, time, wealth },
+    });
+  }
+  return [...byWeek.values()].sort((a, b) => (a.week < b.week ? -1 : a.week > b.week ? 1 : 0));
+}
+function normalizeReset90(raw: unknown): A5Reset90 | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (!isoOrNull(r.at)) return null;
+  const c = (r.choices && typeof r.choices === "object" ? r.choices : {}) as Record<string, unknown>;
+  const pick = (v: unknown): "keep" | "grow" => (v === "grow" ? "grow" : "keep");
+  return {
+    at: str(r.at),
+    choices: { self: pick(c.self), time: pick(c.time), wealth: pick(c.wealth) },
+    next: ISO_DATE.test(str(r.next)) ? str(r.next) : "",
   };
 }
 
@@ -367,4 +432,116 @@ export function a5ReminderDue(
   if (dismissed && !Number.isNaN(dismissed.getTime()) && dismissed.getTime() >= occ.getTime()) return null;
   const week = Math.floor(occ.getTime() / (7 * 24 * 3600 * 1000));
   return { occurrence: occ, key: A5_KEYS[week % 3] };
+}
+
+
+// ─── A5-2 · check-in timing (all pure; `now` is always passed in) ───
+
+// Monday (ISO date) of the week containing `d`.
+export function a5WeekStart(d: Date): string {
+  const back = (d.getDay() + 6) % 7; // Mon=0 … Sun=6
+  return a5IsoDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() - back));
+}
+// The week a check-in on `occ` looks back on: the week containing the day before
+// it — so a Sunday check-in reviews that week and a Monday one the week just ended.
+export function a5ReviewWeek(occ: Date): string {
+  return a5WeekStart(new Date(occ.getFullYear(), occ.getMonth(), occ.getDate() - 1));
+}
+// When this 90-day stretch began: the last look-back, else the claim.
+export function a5CycleStart(s: A5State): Date | null {
+  const iso = s.reset90?.at || s.claimedAt;
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+// The first check-in moment on/after the cycle start, then every 7 days up to now.
+function checkinOccurrences(s: A5State, now: Date): Date[] {
+  const start = a5CycleStart(s);
+  const last = a5LastOccurrence(s.rhythm.checkinDay, s.rhythm.checkinTime, now);
+  if (!start || !last || last.getTime() < start.getTime()) return [];
+  const out: Date[] = [];
+  for (let t = new Date(last); t.getTime() >= start.getTime() && out.length < 60; ) {
+    out.unshift(new Date(t));
+    t = new Date(t.getFullYear(), t.getMonth(), t.getDate() - 7, t.getHours(), t.getMinutes());
+  }
+  return out;
+}
+export const a5NextOccurrence = (day: string, time: string, now: Date): Date | null => {
+  const last = a5LastOccurrence(day, time, now);
+  if (!last) return null;
+  return new Date(last.getFullYear(), last.getMonth(), last.getDate() + 7, last.getHours(), last.getMinutes());
+};
+
+export type A5CheckinStatus = {
+  open: boolean; // a check-in is ready (the day has come and this week isn't done)
+  done: boolean; // this check-in week already has a record
+  week: string; // the week being reviewed (ISO Monday), "" when none yet
+  next: Date | null; // the next check-in moment
+};
+export function a5CheckinStatus(s: A5State, now: Date): A5CheckinStatus {
+  const occs = checkinOccurrences(s, now);
+  const next = a5NextOccurrence(s.rhythm.checkinDay, s.rhythm.checkinTime, now);
+  if (!s.claimed || occs.length === 0) return { open: false, done: false, week: "", next };
+  const week = a5ReviewWeek(occs[occs.length - 1]);
+  const done = s.checkins.some((c) => c.week === week);
+  return { open: !done, done, week, next };
+}
+
+export type A5Mark = "yes" | "partly" | "no" | "none";
+export type A5Streak = { kept: number; partly: number; total: number; marks: A5Mark[] };
+// Weeks kept for one promise this 90-day stretch. Every check-in week that has
+// come round counts toward the total; a week with no record is a gap ("none").
+export function a5Streak(s: A5State, key: A5Key, now: Date): A5Streak {
+  const occs = checkinOccurrences(s, now);
+  const marks: A5Mark[] = occs.map((o) => {
+    const rec = s.checkins.find((c) => c.week === a5ReviewWeek(o));
+    return rec ? rec.entries[key].kept : "none";
+  });
+  return {
+    kept: marks.filter((m) => m === "yes").length,
+    partly: marks.filter((m) => m === "partly").length,
+    total: marks.length,
+    marks,
+  };
+}
+// What got in the way most this stretch (case-insensitive), or null.
+export function a5MostInWay(s: A5State, key: A5Key, now: Date): { text: string; count: number } | null {
+  const weeks = new Set(checkinOccurrences(s, now).map(a5ReviewWeek));
+  const counts = new Map<string, { text: string; count: number; last: string }>();
+  for (const c of s.checkins) {
+    if (!weeks.has(c.week)) continue;
+    const e = c.entries[key];
+    const t = e.gotInWay.trim();
+    if (e.kept === "yes" || t === "") continue;
+    const k = t.toLowerCase();
+    const cur = counts.get(k);
+    counts.set(k, { text: cur?.text ?? t, count: (cur?.count ?? 0) + 1, last: c.week });
+  }
+  const all = [...counts.values()].sort((a, b) => b.count - a.count || (a.last < b.last ? 1 : -1));
+  return all[0] ? { text: all[0].text, count: all[0].count } : null;
+}
+// The 90-day look-back unlocks on the `ninetyBy` date (the earliest of the three).
+export function a5LookbackDue(s: A5State, now: Date): boolean {
+  if (!s.claimed) return false;
+  const dates = A5_KEYS.map((k) => s.plans[k].ninetyBy).filter((d) => ISO_DATE.test(d)).sort();
+  return dates.length > 0 && dates[0] <= a5IsoDate(now);
+}
+// Katherine's one-line note after a promise's check-in, in the member's words.
+export function a5KatherineNote(kept: A5Kept, plan: string, week: string): string {
+  if (kept === "yes") return "That's one more week of proof.";
+  const p = plan.trim() !== "" ? plan.trim() : week.trim();
+  return p !== "" ? `Your plan for this was: ${p.replace(/[.\s]+$/, "")}. Try it this week.` : "Try it again this week.";
+}
+// Who/what to ask "Did {support} help?" about: the person, else the place, else the system.
+export function a5SupportAsked(sup: A5Supports): string {
+  return sup.person.name.trim() || sup.place.name.trim() || sup.system.name.trim();
+}
+// Save (or replace) a week's check-in; one record per week, oldest first.
+export function a5SaveCheckin(s: A5State, c: A5Checkin): A5State {
+  const rest = s.checkins.filter((x) => x.week !== c.week);
+  return {
+    ...s,
+    checkins: [...rest, c].sort((a, b) => (a.week < b.week ? -1 : 1)),
+    rhythm: { ...s.rhythm, reminderDismissedAt: c.at },
+  };
 }
