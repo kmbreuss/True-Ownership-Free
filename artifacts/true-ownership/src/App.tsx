@@ -3462,6 +3462,12 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
   .na1-a5-grow .na2-prose-blank-wrap{ margin-bottom:8px; }
   .na1-a5-remind-go{ margin-right:6px; }
 }
+/* Locked cards fade their text, never their button: a "Go to … →" on a locked card must look clickable. */
+.na1-mirror-card.is-locked{ opacity:1; }
+.na1-mirror-card.is-locked > *:not(.na1-mirror-card-action){ opacity:0.65; }
+.na1-mirror-card.is-locked .na1-mirror-card-action{ opacity:1; }
+.na1-mirror-card.is-locked .na1-mirror-card-action .na1-btn-gold{ opacity:1; box-shadow:inset 0 0 0 1px var(--btn-edge), 0 6px 16px -8px var(--spruce-glow); }
+.na1-mirror-card.is-locked .na1-mirror-card-action .na1-btn-gold:hover{ filter:brightness(1.12); }
 .na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
@@ -48872,8 +48878,19 @@ function NewA5HubView({
   const claimed = a5.claimed;
   const unlocked = a4Complete;
   const started = a5.step > 0;
-  const lookDue = a5LookbackDue(a5, new Date());
+  const hubNow = new Date();
+  const lookDue = a5LookbackDue(a5, hubNow);
   const lookBy = A5_KEYS.map((k) => a5.plans[k].ninetyBy).filter((d) => d !== "").sort()[0] ?? "";
+  // The three A5 cards: 01 Keeping My Word · 02 Weekly Check-In · 03 90-Day
+  // Look-Back. 02 and 03 are Locked until the claim; both are Complete after
+  // their first time (and can show their button again when the next one is due).
+  const ci = a5CheckinStatus(a5, hubNow);
+  const ciComplete = a5.checkins.length > 0;
+  const lookComplete = a5.reset90 != null;
+  const completeCount = (claimed ? 1 : 0) + (claimed && ciComplete ? 1 : 0) + (claimed && lookComplete ? 1 : 0);
+  const ciCls = !claimed ? "is-locked" : ciComplete ? "is-complete" : "is-current";
+  const lookCls = !claimed ? "is-locked" : lookComplete ? "is-complete" : lookDue ? "is-current" : "is-locked";
+  const ciWhen = `${a5DayLong(a5.rhythm.checkinDay)} ${a5FormatTime(a5.rhythm.checkinTime)}`;
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -48906,7 +48923,7 @@ function NewA5HubView({
             </p>
           </div>
           <div className="na1-hero-meta">
-            <strong>{claimed ? 1 : 0} of 1</strong> complete
+            <strong>{completeCount} of 3</strong> complete
           </div>
         </div>
         <A5ReminderCard onCheckin={onCheckin} />
@@ -48996,34 +49013,68 @@ function NewA5HubView({
               <span className="na1-mirror-card-meta">5 exercises</span>
             </div>
           </article>
-          {/* Every 90 days — not a second mirror (the count above stays 1 of 1). It
-              unlocks at `ninetyBy`, and re-locks for the next 90 days once done. */}
-          {claimed ? (
-            <article className={`na1-mirror-card ${lookDue ? "is-current" : "is-locked"}`}>
-              <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">90</span>
-                <span className="na1-mirror-card-status">{lookDue ? "Up next" : "Locked"}</span>
-              </div>
-              <div className="na1-mirror-card-eyebrow">Every 90 days</div>
-              <h2 className="na1-mirror-card-name">90-Day Look-Back</h2>
-              <p className="na1-mirror-card-sub">
-                Look back at what you kept, then grow the promise.
-              </p>
-              <div className="na1-mirror-card-empty">
-                {lookDue
-                  ? ""
-                  : `Opens ${a5FormatBy(lookBy)}${a5.reset90 ? " · last look-back done" : ""}`}
-              </div>
-              <div className="na1-mirror-card-action">
-                {lookDue ? (
-                  <button type="button" className="na1-btn-gold na1-btn-block" onClick={onLookback}>
-                    Begin the look-back →
-                  </button>
-                ) : null}
-                <span className="na1-mirror-card-meta">Every 90 days</span>
-              </div>
-            </article>
-          ) : null}
+          {/* 02 · Weekly Check-In */}
+          <article className={`na1-mirror-card ${ciCls}`}>
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">02</span>
+              <span className="na1-mirror-card-status">
+                {!claimed ? "Locked" : ciComplete ? "Complete" : "Up next"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 2</div>
+            <h2 className="na1-mirror-card-name">Weekly Check-In</h2>
+            <p className="na1-mirror-card-sub">
+              A 2-minute look at your week: kept it? what got in the way? did your support help?
+            </p>
+            <div className="na1-mirror-card-empty">
+              {!claimed
+                ? "Unlocks after Keeping My Word"
+                : ci.open
+                  ? "Ready now."
+                  : ci.done
+                    ? `Done this week · next ${a5DayLong(a5.rhythm.checkinDay)}`
+                    : `Opens ${ciWhen}`}
+            </div>
+            <div className="na1-mirror-card-action">
+              {claimed && ci.open ? (
+                <button type="button" className="na1-btn-gold na1-btn-block" onClick={onCheckin}>
+                  Start your check-in →
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">Every week · 2 minutes</span>
+            </div>
+          </article>
+          {/* 03 · 90-Day Look-Back */}
+          <article className={`na1-mirror-card ${lookCls}`}>
+            <div className="na1-mirror-card-head">
+              <span className="na1-mirror-card-num">03</span>
+              <span className="na1-mirror-card-status">
+                {!claimed ? "Locked" : lookComplete ? "Complete" : lookDue ? "Up next" : "Locked"}
+              </span>
+            </div>
+            <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+            <h2 className="na1-mirror-card-name">90-Day Look-Back</h2>
+            <p className="na1-mirror-card-sub">
+              Look back at what you kept, then grow the promise.
+            </p>
+            <div className="na1-mirror-card-empty">
+              {!claimed
+                ? "Unlocks after your first 90 days"
+                : lookDue
+                  ? "Ready now."
+                  : lookComplete
+                    ? `Done · next look-back ${a5FormatBy(lookBy)}`
+                    : `Opens ${a5FormatBy(lookBy)}`}
+            </div>
+            <div className="na1-mirror-card-action">
+              {claimed && lookDue ? (
+                <button type="button" className="na1-btn-gold na1-btn-block" onClick={onLookback}>
+                  Begin look-back →
+                </button>
+              ) : null}
+              <span className="na1-mirror-card-meta">Every 90 days</span>
+            </div>
+          </article>
         </div>
       </div>
     </div>
