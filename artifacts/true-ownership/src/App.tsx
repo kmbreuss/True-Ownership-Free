@@ -3468,6 +3468,53 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
 .na1-mirror-card.is-locked .na1-mirror-card-action{ opacity:1; }
 .na1-mirror-card.is-locked .na1-mirror-card-action .na1-btn-gold{ opacity:1; box-shadow:inset 0 0 0 1px var(--btn-edge), 0 6px 16px -8px var(--spruce-glow); }
 .na1-mirror-card.is-locked .na1-mirror-card-action .na1-btn-gold:hover{ filter:brightness(1.12); }
+/* Vision 10-year rooms · desktop section pips (one section per screen) */
+.na2-sec-pips{ display:flex; align-items:center; gap:14px; margin:-4px 0 18px; }
+.na2-sec-pips-dots{ display:flex; align-items:center; gap:9px; }
+.na2-sec-pip{ width:11px; height:11px; border-radius:50%; box-sizing:border-box; border:1.5px solid var(--na1-text-mute); background:transparent; transition:background .18s, border-color .18s, box-shadow .18s; }
+.na2-sec-pip.is-done{ background:var(--m2-lens-color, var(--gold)); border-color:var(--m2-lens-color, var(--gold)); }
+.na2-sec-pip.is-current{ border-color:var(--m2-lens-color, var(--gold)); background:var(--m2-lens-color, var(--gold)); box-shadow:0 0 0 4px var(--na1-bg-soft), 0 0 0 5.5px var(--m2-lens-color, var(--gold)); }
+.na2-sec-pips-label{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.06em; color:var(--na1-text-sec); font-weight:400; }
+.na2-prose.is-stepped .na2-prose-section{ border-top:none; padding-top:0; margin-top:0; }
+.na2-prose.is-stepped .na2-sec-pips{ margin:0 0 10px; }
+.na2-prose.is-stepped .na2-prose-foot{ margin-top:12px; }
+.na1-room-card:has(.na2-prose.is-stepped){ padding-top:64px; padding-bottom:26px; }
+.na2-prose.is-stepped .na1-room-title{ margin-bottom:6px; }
+.na2-prose.is-stepped .na2-prose-subtitle{ margin-bottom:10px; }
+.na2-prose.is-stepped .na2-pip-bar{ margin-bottom:12px; }
+/* ── Vision Declaration · "In ten years…" (letter + declare it). Words carry no lens colour; the only
+   tint is the 8px dot beside each label, and silver survives only in the claim burst. ── */
+.na2-decl2{ max-width:660px; margin:0 auto; }
+@media (min-width:768px){ .na1-room-card:has(.na2-decl2){ padding-top:64px; padding-bottom:22px; } }
+.na2-decl2-eyebrow{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--na1-text-sec); font-weight:400; margin:6px 0 14px; }
+.na2-decl2-eyebrow.is-gap{ margin-top:34px; }
+.na2-decl2-card{ background:#FBF8F2; border:1px solid rgba(165,135,94,.45); border-radius:16px; padding:22px 34px 6px; color:#353334; }
+.na2-decl2-card-title{ font-family:var(--f-display); font-size:30px; line-height:1.2; font-weight:400; color:#353334; margin:0 0 14px; }
+.na2-decl2-para{ margin:0 0 13px; }
+.na2-decl2-label{ display:flex; align-items:center; gap:9px; font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:#4F4D4E; font-weight:400; margin:0 0 6px; }
+.na2-decl2-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+.na2-decl2-text{ margin:0 0 4px; max-width:60ch; font-family:var(--f-body); font-weight:500; font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.65); color:#353334; overflow-wrap:anywhere; }
+.na2-decl2-text.is-empty{ font-style:italic; color:#4F4D4E; }
+.na2-decl2-edit{ min-height:32px; padding:0; background:none; border:0; cursor:pointer; font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.04em; color:#036360; font-weight:400; text-decoration:underline; text-underline-offset:3px; }
+.na2-decl2-edit:hover{ color:#024845; }
+.na2-decl2-edit:focus-visible{ outline:2px solid #036360; outline-offset:2px; border-radius:4px; }
+.na2-decl2-declare{ padding:4px 2px 0; }
+.na2-decl2-why{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--gold-text); font-weight:400; margin:0 0 6px; }
+.na2-decl2-purpose{ margin:0; max-width:60ch; font-family:var(--f-body); font-style:italic; font-weight:500; font-size:max(var(--b-min), calc(21px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--gold-text); overflow-wrap:anywhere; }
+.na2-decl2-rule{ width:46px; height:2px; background:var(--gold); margin:18px 0; }
+.na2-decl2-h1{ font-family:var(--f-display); font-size:32px; line-height:1.25; font-weight:400; color:var(--na1-text); margin:0 0 14px; text-wrap:balance; }
+.na2-decl2-summary{ margin:0 0 10px; max-width:60ch; font-family:var(--f-body); font-style:italic; font-weight:var(--b-w); font-size:max(var(--b-min), calc(19px + var(--b-bump))); line-height:max(var(--b-lh), 1.55); color:var(--na1-text); overflow-wrap:anywhere; }
+.na2-decl2-note{ margin:0 0 16px; font-family:var(--f-body); font-weight:var(--b-w); font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text-sec); }
+.na2-decl2-cta{ min-height:48px; padding:0 32px; }
+.na2-decl2-nav{ justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid var(--na1-border); }
+.na2-decl-cer-star{ color:var(--gold); }
+.na2-decl-cer-divider{ background:var(--gold); }
+@media (max-width:767px){
+  .na2-decl2-card{ padding:20px 18px 8px; }
+  .na2-decl2-card-title{ font-size:26px; }
+  .na2-decl2-h1{ font-size:26px; }
+  .na2-decl2-cta{ width:100%; }
+}
 .na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
@@ -32450,12 +32497,96 @@ const M2_TIME_ICONS: Record<string, React.ReactElement> = {
     </svg>
   ),
 };
+// ── Vision 10-year rooms (Time · Wealth · Self): one section per screen on desktop ──
+// From 768px up each section is its own screen (← Back / Continue →, with the room
+// stepper and section pips above), like Two Futures. Phones keep the stacked page.
+// The launch veil belongs to room entry only — moving between sections never replays it.
+function useVisionWide(): boolean {
+  const q = "(min-width: 768px)";
+  const get = () =>
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia(q).matches
+      : false;
+  const [wide, setWide] = useState<boolean>(get);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mq = window.matchMedia(q);
+    const on = () => setWide(mq.matches);
+    on();
+    if (mq.addEventListener) mq.addEventListener("change", on);
+    else mq.addListener(on);
+    return () => {
+      if (mq.removeEventListener) mq.removeEventListener("change", on);
+      else mq.removeListener(on);
+    };
+  }, []);
+  return wide;
+}
+const VISION_STEP_KEY = "to_vision_step_v1"; // which section a refresh should restore (per room; not synced)
+function readVisionStep(room: string): number | null {
+  try {
+    const o = JSON.parse(window.localStorage.getItem(VISION_STEP_KEY) || "{}");
+    return typeof o?.[room] === "number" ? o[room] : null;
+  } catch {
+    return null;
+  }
+}
+function writeVisionStep(room: string, n: number | null): void {
+  try {
+    const o = JSON.parse(window.localStorage.getItem(VISION_STEP_KEY) || "{}") || {};
+    if (n == null) delete o[room];
+    else o[room] = n;
+    window.localStorage.setItem(VISION_STEP_KEY, JSON.stringify(o));
+  } catch {
+    // storage unavailable — the room still works, a refresh just opens at the first open section
+  }
+}
+// Which A1 Vision room a saved route may reopen, and only when it is unlocked.
+function visionRoomUnlocked(key: string, vision: any): boolean {
+  const v = vision || {};
+  if (key === "time") return !!v.twoFutures?.complete;
+  if (key === "wealth") return !!v.time_complete;
+  if (key === "self") return !!v.wealth_complete;
+  return false;
+}
+function VisionSectionPips({
+  labels,
+  idx,
+  filled,
+}: {
+  labels: string[];
+  idx: number;
+  filled: boolean[];
+}) {
+  return (
+    <div
+      className="na2-sec-pips"
+      role="img"
+      aria-label={`Section ${idx + 1} of ${labels.length}: ${labels[idx]}`}
+    >
+      <div className="na2-sec-pips-dots">
+        {labels.map((l, i) => (
+          <span
+            key={l}
+            className={`na2-sec-pip ${i === idx ? "is-current" : ""} ${filled[i] && i !== idx ? "is-done" : ""}`}
+          />
+        ))}
+      </div>
+      <span className="na2-sec-pips-label">
+        {labels[idx]} · {idx + 1} of {labels.length}
+      </span>
+    </div>
+  );
+}
 function NewA2TimeBody({
   onSaved,
   onClose,
+  resume,
 }: {
   onSaved: () => void;
   onClose: () => void;
+  // True when the room was reopened by a refresh: restore the section, no veil.
+  resume?: boolean;
 }) {
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
@@ -32506,6 +32637,32 @@ function NewA2TimeBody({
   ).length;
   const total = domains.length * 2;
   const allFilled = filledCount === total;
+  // Desktop: one section per screen. Phones: the stacked page, unchanged.
+  const stepped = useVisionWide();
+  const firstOpen = domains.findIndex(
+    (d) => !(initialValues[`${d}.blank1`].trim() && initialValues[`${d}.blank2`].trim()),
+  );
+  const [secIdx, setSecIdx] = useState<number>(() => {
+    const saved = resume ? readVisionStep("time") : null;
+    const n = saved ?? (firstOpen >= 0 ? firstOpen : 0);
+    return Math.max(0, Math.min(domains.length - 1, n));
+  });
+  useEffect(() => {
+    writeVisionStep("time", secIdx);
+  }, [secIdx]);
+  const isLastSec = secIdx === domains.length - 1;
+  const secFilled = (d: string) =>
+    !!(values[`${d}.blank1`].trim() && values[`${d}.blank2`].trim());
+  const sectionStep = stepped && !isLastSec; // an internal screen (plain "Continue →")
+  const canGo = sectionStep ? secFilled(domains[secIdx]) : allFilled;
+  const goSection = (n: number) => {
+    setSecIdx(n);
+    setTipOn(false);
+    window.setTimeout(() => {
+      const card = document.querySelector(".na1-room-card");
+      if (card && (card as HTMLElement).scrollTo) (card as HTMLElement).scrollTo({ top: 0 });
+    }, 0);
+  };
   // Debounced 600ms autosave on values change.
   const valuesJson = JSON.stringify(values);
   const initialJson = useRef<string>(JSON.stringify(initialValues));
@@ -32587,6 +32744,16 @@ function NewA2TimeBody({
   };
   const tryContinue = () => {
     if (advancing) return;
+    if (sectionStep) {
+      if (!secFilled(domains[secIdx])) {
+        setPulseDomains(new Set([domains[secIdx]]));
+        setTipOn(true);
+        window.setTimeout(() => setTipOn(false), 3000);
+        return;
+      }
+      goSection(secIdx + 1);
+      return;
+    }
     if (!allFilled) {
       const missing = new Set<string>();
       domains.forEach((d) => {
@@ -32594,6 +32761,10 @@ function NewA2TimeBody({
           missing.add(d);
       });
       setPulseDomains(missing);
+      if (stepped) {
+        const at = domains.findIndex((d) => missing.has(d));
+        if (at >= 0 && at !== secIdx) goSection(at);
+      }
       setTipOn(true);
       window.setTimeout(() => setTipOn(false), 3000);
       window.setTimeout(() => {
@@ -32625,6 +32796,7 @@ function NewA2TimeBody({
         ...cur,
         vision: { ...curVision, time: nextTime, time_complete: true },
       });
+      writeVisionStep("time", null);
       onSaved();
     } finally {
       setAdvancing(false);
@@ -32641,7 +32813,7 @@ function NewA2TimeBody({
     return `Saved · ${Math.floor(m / 60)}h ago`;
   };
   return (
-    <div className="na2-prose tone-yellow">
+    <div className={`na2-prose tone-yellow ${stepped ? "is-stepped" : ""}`}>
       <div
         className="na1-room-eyebrow tone-yellow"
         style={{ letterSpacing: "0.08em" }}
@@ -32654,10 +32826,12 @@ function NewA2TimeBody({
       <p className="na2-prose-subtitle">
         In 10 years — what does each part of your time look like, lived?
       </p>
+      {!stepped ? (
       <p className="na1-room-context" style={{ marginTop: 0 }}>
         You claimed these five chips for Future B. Now make each one concrete:
         name the behavior, and name how you'd know it's true.
       </p>
+      ) : null}
       <div className="na2-pip-bar" aria-label="Step 2 of 5">
         <div className="na2-pip is-burgundy" />
         <div className="na2-pip is-yellow" />
@@ -32666,7 +32840,14 @@ function NewA2TimeBody({
         <div className="na2-pip" />
         <span className="na2-pip-meta">Time · 10-year</span>
       </div>
-      {domains.map((d) => {
+      {stepped ? (
+        <VisionSectionPips
+          labels={domains.map((d) => DOMAIN_LABELS.time[d])}
+          idx={secIdx}
+          filled={domains.map((d) => secFilled(d))}
+        />
+      ) : null}
+      {(stepped ? [domains[secIdx]] : domains).map((d) => {
         const tier = (futureB as any)[d] as 1 | 2 | 3 | 4 | null;
         const chipText = tier ? VISION_CHIPS.time[d][tier] : null;
         const tmpl = SENTENCE_TEMPLATES.time[d];
@@ -32778,13 +32959,17 @@ function NewA2TimeBody({
           </span>
         </div>
         <div className="na2-prose-actions">
-          <button type="button" className="na1-btn-ghost" onClick={onClose}>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={() => (stepped && secIdx > 0 ? goSection(secIdx - 1) : onClose())}
+          >
             ← Back
           </button>
           <div
             className="na2-continue-wrap"
             onMouseEnter={() => {
-              if (!allFilled)
+              if (!canGo)
                 window.setTimeout(() => {
                   setTipOn(true);
                   window.setTimeout(() => setTipOn(false), 3000);
@@ -32794,16 +32979,16 @@ function NewA2TimeBody({
           >
             <button
               type="button"
-              className={`na2-btn-continue ${allFilled ? "is-yellow" : ""}`}
-              disabled={!allFilled || advancing}
+              className={`na2-btn-continue ${canGo ? "is-yellow" : ""}`}
+              disabled={!canGo || advancing}
               onClick={tryContinue}
             >
-              Continue to Wealth · 10-Year
+              {sectionStep ? "Continue →" : "Continue to Wealth · 10-Year →"}
             </button>
             <div
-              className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
+              className={`na2-continue-tip ${tipOn && !canGo ? "is-on" : ""}`}
             >
-              Fill every blank to continue.
+              {sectionStep ? "Fill both blanks to continue." : "Fill every blank to continue."}
             </div>
           </div>
         </div>
@@ -32866,9 +33051,12 @@ const M2_WEALTH_ICONS: Record<string, React.ReactElement> = {
 function NewA2WealthBody({
   onSaved,
   onClose,
+  resume,
 }: {
   onSaved: () => void;
   onClose: () => void;
+  // True when the room was reopened by a refresh: restore the section, no veil.
+  resume?: boolean;
 }) {
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
@@ -32916,6 +33104,32 @@ function NewA2WealthBody({
   ).length;
   const total = domains.length * 2;
   const allFilled = filledCount === total;
+  // Desktop: one section per screen. Phones: the stacked page, unchanged.
+  const stepped = useVisionWide();
+  const firstOpen = domains.findIndex(
+    (d) => !(initialValues[`${d}.blank1`].trim() && initialValues[`${d}.blank2`].trim()),
+  );
+  const [secIdx, setSecIdx] = useState<number>(() => {
+    const saved = resume ? readVisionStep("wealth") : null;
+    const n = saved ?? (firstOpen >= 0 ? firstOpen : 0);
+    return Math.max(0, Math.min(domains.length - 1, n));
+  });
+  useEffect(() => {
+    writeVisionStep("wealth", secIdx);
+  }, [secIdx]);
+  const isLastSec = secIdx === domains.length - 1;
+  const secFilled = (d: string) =>
+    !!(values[`${d}.blank1`].trim() && values[`${d}.blank2`].trim());
+  const sectionStep = stepped && !isLastSec; // an internal screen (plain "Continue →")
+  const canGo = sectionStep ? secFilled(domains[secIdx]) : allFilled;
+  const goSection = (n: number) => {
+    setSecIdx(n);
+    setTipOn(false);
+    window.setTimeout(() => {
+      const card = document.querySelector(".na1-room-card");
+      if (card && (card as HTMLElement).scrollTo) (card as HTMLElement).scrollTo({ top: 0 });
+    }, 0);
+  };
   const valuesJson = JSON.stringify(values);
   const initialJson = useRef<string>(JSON.stringify(initialValues));
   useEffect(() => {
@@ -32993,6 +33207,16 @@ function NewA2WealthBody({
   };
   const tryContinue = () => {
     if (advancing) return;
+    if (sectionStep) {
+      if (!secFilled(domains[secIdx])) {
+        setPulseDomains(new Set([domains[secIdx]]));
+        setTipOn(true);
+        window.setTimeout(() => setTipOn(false), 3000);
+        return;
+      }
+      goSection(secIdx + 1);
+      return;
+    }
     if (!allFilled) {
       const missing = new Set<string>();
       domains.forEach((d) => {
@@ -33000,6 +33224,10 @@ function NewA2WealthBody({
           missing.add(d);
       });
       setPulseDomains(missing);
+      if (stepped) {
+        const at = domains.findIndex((d) => missing.has(d));
+        if (at >= 0 && at !== secIdx) goSection(at);
+      }
       setTipOn(true);
       window.setTimeout(() => setTipOn(false), 3000);
       window.setTimeout(() => {
@@ -33031,6 +33259,7 @@ function NewA2WealthBody({
         ...cur,
         vision: { ...curVision, wealth: nextWealth, wealth_complete: true },
       });
+      writeVisionStep("wealth", null);
       onSaved();
     } finally {
       setAdvancing(false);
@@ -33047,7 +33276,7 @@ function NewA2WealthBody({
     return `Saved · ${Math.floor(m / 60)}h ago`;
   };
   return (
-    <div className="na2-prose tone-green">
+    <div className={`na2-prose tone-green ${stepped ? "is-stepped" : ""}`}>
       <div
         className="na1-room-eyebrow tone-green"
         style={{ letterSpacing: "0.08em" }}
@@ -33060,10 +33289,12 @@ function NewA2WealthBody({
       <p className="na2-prose-subtitle">
         In 10 years — what have you built, and what holds you up?
       </p>
+      {!stepped ? (
       <p className="na1-room-context" style={{ marginTop: 0 }}>
         You claimed these three chips for Future B. Now make each one concrete:
         name the mechanism, and name how you'd know it's real.
       </p>
+      ) : null}
       <div className="na2-pip-bar" aria-label="Step 3 of 5">
         <div className="na2-pip is-burgundy" />
         <div className="na2-pip is-yellow" />
@@ -33072,7 +33303,14 @@ function NewA2WealthBody({
         <div className="na2-pip" />
         <span className="na2-pip-meta">Wealth · 10-year</span>
       </div>
-      {domains.map((d) => {
+      {stepped ? (
+        <VisionSectionPips
+          labels={domains.map((d) => DOMAIN_LABELS.wealth[d])}
+          idx={secIdx}
+          filled={domains.map((d) => secFilled(d))}
+        />
+      ) : null}
+      {(stepped ? [domains[secIdx]] : domains).map((d) => {
         const tier = (futureB as any)[d] as 1 | 2 | 3 | 4 | null;
         const chipText = tier ? VISION_CHIPS.wealth[d][tier] : null;
         const tmpl = SENTENCE_TEMPLATES.wealth[d];
@@ -33184,13 +33422,17 @@ function NewA2WealthBody({
           </span>
         </div>
         <div className="na2-prose-actions">
-          <button type="button" className="na1-btn-ghost" onClick={onClose}>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={() => (stepped && secIdx > 0 ? goSection(secIdx - 1) : onClose())}
+          >
             ← Back
           </button>
           <div
             className="na2-continue-wrap"
             onMouseEnter={() => {
-              if (!allFilled)
+              if (!canGo)
                 window.setTimeout(() => {
                   setTipOn(true);
                   window.setTimeout(() => setTipOn(false), 3000);
@@ -33200,16 +33442,16 @@ function NewA2WealthBody({
           >
             <button
               type="button"
-              className={`na2-btn-continue ${allFilled ? "is-green" : ""}`}
-              disabled={!allFilled || advancing}
+              className={`na2-btn-continue ${canGo ? "is-green" : ""}`}
+              disabled={!canGo || advancing}
               onClick={tryContinue}
             >
-              Continue to Self · 10-Year
+              {sectionStep ? "Continue →" : "Continue to Self · 10-Year →"}
             </button>
             <div
-              className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
+              className={`na2-continue-tip ${tipOn && !canGo ? "is-on" : ""}`}
             >
-              Fill every blank to continue.
+              {sectionStep ? "Fill both blanks to continue." : "Fill every blank to continue."}
             </div>
           </div>
         </div>
@@ -33271,9 +33513,12 @@ const M2_SELF_ICONS: Record<string, React.ReactElement> = {
 function NewA2SelfBody({
   onSaved,
   onClose,
+  resume,
 }: {
   onSaved: () => void;
   onClose: () => void;
+  // True when the room was reopened by a refresh: restore the section, no veil.
+  resume?: boolean;
 }) {
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
@@ -33321,6 +33566,32 @@ function NewA2SelfBody({
   ).length;
   const total = domains.length * 2;
   const allFilled = filledCount === total;
+  // Desktop: one section per screen. Phones: the stacked page, unchanged.
+  const stepped = useVisionWide();
+  const firstOpen = domains.findIndex(
+    (d) => !(initialValues[`${d}.blank1`].trim() && initialValues[`${d}.blank2`].trim()),
+  );
+  const [secIdx, setSecIdx] = useState<number>(() => {
+    const saved = resume ? readVisionStep("self") : null;
+    const n = saved ?? (firstOpen >= 0 ? firstOpen : 0);
+    return Math.max(0, Math.min(domains.length - 1, n));
+  });
+  useEffect(() => {
+    writeVisionStep("self", secIdx);
+  }, [secIdx]);
+  const isLastSec = secIdx === domains.length - 1;
+  const secFilled = (d: string) =>
+    !!(values[`${d}.blank1`].trim() && values[`${d}.blank2`].trim());
+  const sectionStep = stepped && !isLastSec; // an internal screen (plain "Continue →")
+  const canGo = sectionStep ? secFilled(domains[secIdx]) : allFilled;
+  const goSection = (n: number) => {
+    setSecIdx(n);
+    setTipOn(false);
+    window.setTimeout(() => {
+      const card = document.querySelector(".na1-room-card");
+      if (card && (card as HTMLElement).scrollTo) (card as HTMLElement).scrollTo({ top: 0 });
+    }, 0);
+  };
   const valuesJson = JSON.stringify(values);
   const initialJson = useRef<string>(JSON.stringify(initialValues));
   useEffect(() => {
@@ -33398,6 +33669,16 @@ function NewA2SelfBody({
   };
   const tryContinue = () => {
     if (advancing) return;
+    if (sectionStep) {
+      if (!secFilled(domains[secIdx])) {
+        setPulseDomains(new Set([domains[secIdx]]));
+        setTipOn(true);
+        window.setTimeout(() => setTipOn(false), 3000);
+        return;
+      }
+      goSection(secIdx + 1);
+      return;
+    }
     if (!allFilled) {
       const missing = new Set<string>();
       domains.forEach((d) => {
@@ -33405,6 +33686,10 @@ function NewA2SelfBody({
           missing.add(d);
       });
       setPulseDomains(missing);
+      if (stepped) {
+        const at = domains.findIndex((d) => missing.has(d));
+        if (at >= 0 && at !== secIdx) goSection(at);
+      }
       setTipOn(true);
       window.setTimeout(() => setTipOn(false), 3000);
       window.setTimeout(() => {
@@ -33436,6 +33721,7 @@ function NewA2SelfBody({
         ...cur,
         vision: { ...curVision, self: nextSelf, self_complete: true },
       });
+      writeVisionStep("self", null);
       onSaved();
     } finally {
       setAdvancing(false);
@@ -33452,7 +33738,7 @@ function NewA2SelfBody({
     return `Saved · ${Math.floor(m / 60)}h ago`;
   };
   return (
-    <div className="na2-prose tone-purple">
+    <div className={`na2-prose tone-purple ${stepped ? "is-stepped" : ""}`}>
       <div
         className="na1-room-eyebrow tone-purple"
         style={{ letterSpacing: "0.08em" }}
@@ -33463,10 +33749,12 @@ function NewA2SelfBody({
       <p className="na2-prose-subtitle">
         In 10 years — who are you, in your body, in your mind, on your way?
       </p>
+      {!stepped ? (
       <p className="na1-room-context" style={{ marginTop: 0 }}>
         You claimed these three chips for Future B. Now make each one concrete:
         name the practice, and name how you'd know it's true.
       </p>
+      ) : null}
       <div className="na2-pip-bar" aria-label="Step 4 of 5">
         <div className="na2-pip is-burgundy" />
         <div className="na2-pip is-yellow" />
@@ -33475,7 +33763,14 @@ function NewA2SelfBody({
         <div className="na2-pip" />
         <span className="na2-pip-meta">Self · 10-year</span>
       </div>
-      {domains.map((d) => {
+      {stepped ? (
+        <VisionSectionPips
+          labels={domains.map((d) => DOMAIN_LABELS.self[d])}
+          idx={secIdx}
+          filled={domains.map((d) => secFilled(d))}
+        />
+      ) : null}
+      {(stepped ? [domains[secIdx]] : domains).map((d) => {
         const tier = (futureB as any)[d] as 1 | 2 | 3 | 4 | null;
         const chipText = tier ? VISION_CHIPS.self[d][tier] : null;
         const tmpl = SENTENCE_TEMPLATES.self[d];
@@ -33589,13 +33884,17 @@ function NewA2SelfBody({
           </span>
         </div>
         <div className="na2-prose-actions">
-          <button type="button" className="na1-btn-ghost" onClick={onClose}>
+          <button
+            type="button"
+            className="na1-btn-ghost"
+            onClick={() => (stepped && secIdx > 0 ? goSection(secIdx - 1) : onClose())}
+          >
             ← Back
           </button>
           <div
             className="na2-continue-wrap"
             onMouseEnter={() => {
-              if (!allFilled)
+              if (!canGo)
                 window.setTimeout(() => {
                   setTipOn(true);
                   window.setTimeout(() => setTipOn(false), 3000);
@@ -33605,16 +33904,16 @@ function NewA2SelfBody({
           >
             <button
               type="button"
-              className={`na2-btn-continue ${allFilled ? "is-purple" : ""}`}
-              disabled={!allFilled || advancing}
+              className={`na2-btn-continue ${canGo ? "is-purple" : ""}`}
+              disabled={!canGo || advancing}
               onClick={tryContinue}
             >
-              Continue to Vision Declaration
+              {sectionStep ? "Continue →" : "Continue to Vision Declaration →"}
             </button>
             <div
-              className={`na2-continue-tip ${tipOn && !allFilled ? "is-on" : ""}`}
+              className={`na2-continue-tip ${tipOn && !canGo ? "is-on" : ""}`}
             >
-              Fill every blank to continue.
+              {sectionStep ? "Fill both blanks to continue." : "Fill every blank to continue."}
             </div>
           </div>
         </div>
@@ -33674,21 +33973,83 @@ function renderSealParagraph(
     </p>
   );
 }
+// ─── Vision Declaration · "In ten years…" ───
+// Desktop (≥768px), one step at a time:
+//   1 · Read it back — one cream card, three short paragraphs (MY TIME · MY
+//       WEALTH · WHO I AM) woven from the member's own 10-year answers, each with
+//       an "Edit …" link back to that room.
+//   2 · Declare it   — their Purpose, "This is the life I'm building — and I'm
+//       choosing it.", one summary line, "Claim my vision →".
+// Phones stack both down one page. Claiming keeps the silver burst → seal →
+// "Continue to Identity →". Colour stays out of the words: a small 8px dot beside
+// each label is the only lens colour on the page (silver survives only in the burst).
+const DECL_LENSES: {
+  lens: "time" | "wealth" | "self";
+  label: string;
+  dot: string;
+  edit: string;
+}[] = [
+  { lens: "time", label: "My time", dot: "#A5875E", edit: "Edit time" },
+  { lens: "wealth", label: "My wealth", dot: "#036360", edit: "Edit wealth" },
+  { lens: "self", label: "Who I am", dot: "#B0CCDA", edit: "Edit self" },
+];
+const declCap = (s: string): string => (s === "" ? s : s.charAt(0).toUpperCase() + s.slice(1));
+const declEnd = (s: string): string => (/[.!?…]$/.test(s) ? s : s + ".");
+// One lens → the sentences of its paragraph (their chip + their own words).
+function declSentences(vision: any, lens: "time" | "wealth" | "self"): string[] {
+  const futureB = vision?.twoFutures?.futureB?.[lens] || {};
+  const out: string[] = [];
+  for (const d of LENS_DOMAINS[lens]) {
+    const tier = futureB[d];
+    const chip = tier === 1 || tier === 2 || tier === 3 || tier === 4 ? VISION_CHIPS[lens][d][tier as 1 | 2 | 3 | 4] : "";
+    const tmpl = SENTENCE_TEMPLATES[lens][d];
+    const sec = vision?.[lens]?.[d] || {};
+    const b1 = String(sec.blank1 || "").trim();
+    const b2 = String(sec.blank2 || "").trim();
+    if (chip === "" && b1 === "" && b2 === "") continue;
+    const parts: string[] = [];
+    if (chip) parts.push(declEnd(declCap(chip)));
+    if (b1) parts.push(declEnd(`${tmpl.stem1} ${b1}${b2 ? `, ${tmpl.stem2} ${b2}` : ""}`));
+    else if (b2) parts.push(declEnd(`${tmpl.stem2} ${b2}`));
+    out.push(parts.join(" "));
+    // Short on purpose: their strongest domain, plus a second only when the first is brief.
+    if (out.join(" ").length >= 130) break;
+  }
+  return out.slice(0, 2);
+}
+// One short line for the declaration screen: the headline chip of each lens.
+function declSummary(vision: any): string {
+  const pick = (lens: "time" | "wealth" | "self"): string => {
+    const futureB = vision?.twoFutures?.futureB?.[lens] || {};
+    for (const d of LENS_DOMAINS[lens]) {
+      const t = futureB[d];
+      if (t === 1 || t === 2 || t === 3 || t === 4) return VISION_CHIPS[lens][d][t as 1 | 2 | 3 | 4];
+    }
+    return "";
+  };
+  const low = (s: string) => s.replace(/^(I|I'm|I've|I'll)\b/, "$1").replace(/^(?!I\b|I')([A-Z])/, (m) => m.toLowerCase());
+  const parts = (["time", "wealth", "self"] as const).map(pick).filter((x) => x !== "").map(low);
+  if (parts.length === 0) return "";
+  return `A life where ${parts.join(" · ")}.`;
+}
 function NewA2DeclarationBody({
   onSaved,
   onClose,
   onRevise,
+  onEdit,
   onContinueToIdentity,
 }: {
   onSaved: () => void;
   onClose: () => void;
-  onRevise: () => void;
+  onRevise?: () => void;
+  // "Edit time / wealth / self" → back to that room.
+  onEdit?: (room: "time" | "wealth" | "self") => void;
   // Optional: when provided, the "Continue to Identity →" button calls this
   // after persisting `declaration.sealSeen = true` + `complete = true`
   // instead of falling back to `onSaved` (which just closes the room).
-  // Parent NewA1View uses this to route to Mirror 3 when the M3 flag is on.
   onContinueToIdentity?: () => void;
 }) {
+  void onRevise;
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
     (initialMap.vision as VisionState) || EMPTY_VISION;
@@ -33696,118 +34057,60 @@ function NewA2DeclarationBody({
     initialMap.purpose_final || initialMap.purpose_draft || "",
   ).trim();
   const alreadyComplete = !!initialVision.complete;
-  // Mode: "readback" (claim or edit) → "claiming" (silver burst) → "ceremony" (seal).
-  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">(
-    "readback",
-  );
+  const wide = useVisionWide();
+  // Desktop steps: 0 = read it back · 1 = declare it. Phones show both.
+  const [step, setStep] = useState<0 | 1>(0);
+  // Mode: "readback" (claim) → "claiming" (silver burst) → "ceremony" (seal).
+  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">("readback");
   const [showBurst, setShowBurst] = useState(false);
   const [working, setWorking] = useState(false);
-  const editMode = alreadyComplete; // edit-anytime: re-entering a sealed Vision
-  const futureB = initialVision.twoFutures.futureB;
-  // Build the 11 woven statements grouped by lens, in canonical order.
-  type Lensx = "time" | "wealth" | "self";
-  const lensConfig: {
-    lens: Lensx;
-    tone: "yellow" | "green" | "purple";
-    title: string;
-  }[] = [
-    { lens: "time", tone: "yellow", title: "Time" },
-    { lens: "wealth", tone: "green", title: "Wealth" },
-    { lens: "self", tone: "purple", title: "Self" },
-  ];
-  // ── A3 · Inline-editable blanks in edit-anytime mode ──
-  // Snapshot the initial saved blanks so we can detect "dirty" and offer
-  // Cancel = restore. Key shape: `${lens}.${domain}.${'blank1'|'blank2'}`.
-  type BlankMap = Record<string, string>;
-  const initialBlanks = useMemo<BlankMap>(() => {
-    const out: BlankMap = {};
-    for (const { lens } of lensConfig) {
-      for (const d of LENS_DOMAINS[lens]) {
-        const sec = ((initialVision as any)[lens] as any)?.[d] || {
-          blank1: "",
-          blank2: "",
-        };
-        out[`${lens}.${d}.blank1`] = String(sec.blank1 || "");
-        out[`${lens}.${d}.blank2`] = String(sec.blank2 || "");
-      }
-    }
-    return out;
+  const paras = useMemo(
+    () => DECL_LENSES.map((l) => ({ ...l, sentences: declSentences(initialVision, l.lens) })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const [blankValues, setBlankValues] = useState<BlankMap>(initialBlanks);
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const dirty = useMemo(
-    () =>
-      Object.keys(initialBlanks).some(
-        (k) =>
-          (blankValues[k] || "").trim() !== (initialBlanks[k] || "").trim(),
-      ),
-    [blankValues, initialBlanks],
+    [],
   );
-  // Re-scroll the room card to top *at* the mode flip — the readback only
-  // collapses (display:none) when mode === "ceremony", so this is the moment
-  // the ceremony actually becomes the top of the scroll container. `auto`
-  // (instant) so the seal is already in place when the 380ms fade begins.
+  const summary = useMemo(() => declSummary(initialVision), []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (mode !== "ceremony") return;
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
     if (card) card.scrollTo({ top: 0, behavior: "auto" });
   }, [mode]);
-  // Persist any blank edits back into vision[lens][domain] before claim/save.
-  const writeBlanksInto = (curVision: VisionState): VisionState => {
-    const next: any = { ...curVision };
-    for (const { lens } of lensConfig) {
-      next[lens] = { ...(next[lens] || {}) };
-      for (const d of LENS_DOMAINS[lens]) {
-        const prevSec = (next[lens] as any)[d] || { blank1: "", blank2: "" };
-        (next[lens] as any)[d] = {
-          ...prevSec,
-          blank1: (blankValues[`${lens}.${d}.blank1`] || "").trim(),
-          blank2: (blankValues[`${lens}.${d}.blank2`] || "").trim(),
-        };
-      }
-    }
-    return next as VisionState;
+  const toStep = (n: 0 | 1) => {
+    setStep(n);
+    window.setTimeout(() => {
+      const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+      if (card && card.scrollTo) card.scrollTo({ top: 0 });
+    }, 0);
   };
   const handleClaim = async () => {
     if (working) return;
     setWorking(true);
     setShowBurst(true);
-    // First scroll (smooth) — gives the burst a clean stage while the
-    // readback is still in flow. The useEffect re-scrolls instantly when
-    // mode flips to "ceremony" (after readback collapses).
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
     if (card) card.scrollTo({ top: 0, behavior: "smooth" });
-    // Persist immediately so a crash/reload still keeps the claim. Also
-    // persist any inline blank edits + append a revisedAt entry when this
-    // is a re-claim (editMode + dirty).
+    // Persist immediately so a crash/reload still keeps the claim.
     const now = new Date().toISOString();
     const cur = ((await loadData(KEYS.map)) as any) || initialMap;
     const curVision: VisionState = cur.vision || EMPTY_VISION;
-    const withBlanks = writeBlanksInto(curVision);
     const prevDecl = curVision.declaration || {
       claimedAt: now,
       sealSeen: false,
       revisedAt: [],
     };
-    const nextDecl = {
-      claimedAt: prevDecl.claimedAt || now,
-      sealSeen: false, // becomes true on Continue to Identity
-      revisedAt:
-        editMode && dirty
-          ? [...(prevDecl.revisedAt || []), now]
-          : prevDecl.revisedAt || [],
-    };
     await saveData(KEYS.map, {
       ...cur,
-      vision: { ...withBlanks, declaration: nextDecl },
+      vision: {
+        ...curVision,
+        declaration: {
+          claimedAt: prevDecl.claimedAt || now,
+          sealSeen: false, // becomes true on Continue to Identity
+          revisedAt: prevDecl.revisedAt || [],
+        },
+      },
     });
-    // Timing: 2000ms burst (matches new keyframe). Mode flips to "claiming"
-    // at 50ms (kicks readback fade), then "ceremony" at 2000ms (unmounts
-    // burst, collapses readback, fades in seal).
-    window.setTimeout(() => {
-      setMode("claiming");
-    }, 50);
+    // Timing: 2000ms burst (the shared keyframe). Mode flips to "claiming" at
+    // 50ms (fades the read-back), then "ceremony" at 2000ms (burst unmounts, seal fades in).
+    window.setTimeout(() => setMode("claiming"), 50);
     window.setTimeout(() => {
       setMode("ceremony");
       setShowBurst(false);
@@ -33838,7 +34141,6 @@ function NewA2DeclarationBody({
         },
       });
     } catch (err) {
-      // Swallow — route anyway.
       console.warn("[M2→M3] sealSeen save failed; routing anyway", err);
     } finally {
       setWorking(false);
@@ -33846,38 +34148,60 @@ function NewA2DeclarationBody({
     if (onContinueToIdentity) onContinueToIdentity();
     else onSaved();
   };
-  const handleSaveChanges = async () => {
-    if (working) return;
-    setWorking(true);
-    const cur = ((await loadData(KEYS.map)) as any) || initialMap;
-    const curVision: VisionState = cur.vision || EMPTY_VISION;
-    const withBlanks = writeBlanksInto(curVision);
-    const revisedAt = dirty
-      ? [...(curVision.declaration?.revisedAt || []), new Date().toISOString()]
-      : curVision.declaration?.revisedAt || [];
-    await saveData(KEYS.map, {
-      ...cur,
-      vision: {
-        ...withBlanks,
-        declaration: { ...curVision.declaration, revisedAt },
-      },
-    });
-    onSaved();
-  };
-  const handleCancelEdits = () => {
-    // Discard any in-memory blank edits; saved Vision on disk is untouched.
-    setBlankValues(initialBlanks);
-    setEditingKey(null);
-    onClose();
-  };
   const isFading = mode !== "readback";
+  const showLetter = !wide || step === 0;
+  const showDeclare = !wide || step === 1;
+  const letter = (
+    <section className="na2-decl2-card" aria-label="Your vision, read back">
+      <h2 className="na2-decl2-card-title">In ten years…</h2>
+      {paras.map((p) => (
+        <div className="na2-decl2-para" key={p.lens}>
+          <div className="na2-decl2-label">
+            <span className="na2-decl2-dot" style={{ background: p.dot }} aria-hidden />
+            {p.label}
+          </div>
+          {p.sentences.length > 0 ? (
+            <p className="na2-decl2-text">{p.sentences.join(" ")}</p>
+          ) : (
+            <p className="na2-decl2-text is-empty">Not written yet.</p>
+          )}
+          {onEdit ? (
+            <button type="button" className="na2-decl2-edit" onClick={() => onEdit(p.lens)} disabled={working}>
+              {p.edit} →
+            </button>
+          ) : null}
+        </div>
+      ))}
+    </section>
+  );
+  const declare = (
+    <section className="na2-decl2-declare" aria-label="Declare it">
+      {purposeFinal ? (
+        <>
+          <div className="na2-decl2-why">Your why</div>
+          <p className="na2-decl2-purpose">&ldquo;{purposeFinal}&rdquo;</p>
+        </>
+      ) : null}
+      <div className="na2-decl2-rule" aria-hidden />
+      <h2 className="na2-decl2-h1">This is the life I&rsquo;m building — and I&rsquo;m choosing it.</h2>
+      {summary ? <p className="na2-decl2-summary">{summary}</p> : null}
+      <p className="na2-decl2-note">You can come back and edit this any time.</p>
+      {alreadyComplete ? (
+        <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleContinueToIdentity} disabled={working}>
+          Continue to Identity →
+        </button>
+      ) : (
+        <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleClaim} disabled={working}>
+          Claim my vision →
+        </button>
+      )}
+    </section>
+  );
   return (
     <div className="na2-decl">
       {/* Silver radial burst — mounted during claiming. Portaled to
           document.body so position:fixed resolves against the viewport
-          rather than .na1-room-card (which has a transform and would
-          otherwise become the containing block, clipping the burst to
-          the modal's ~720px box). */}
+          rather than .na1-room-card (which has a transform). */}
       {showBurst &&
         createPortal(
           <div className="na2-silver-burst" aria-hidden>
@@ -33885,258 +34209,75 @@ function NewA2DeclarationBody({
           </div>,
           document.body,
         )}
-      {/* ── Read-back state ── */}
       <div
         className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
-        {editMode && (
-          <div className="na2-decl-edit-banner">
-            ★ You've already claimed this Vision. You can refine it any time —
-            the seal stays.
-          </div>
-        )}
         <div className="na2-pip-bar" aria-label="Step 5 of 5">
           <div className="na2-pip is-burgundy" />
           <div className="na2-pip is-yellow" />
           <div className="na2-pip is-green" />
           <div className="na2-pip is-purple" />
-          <div className="na2-pip is-silver" />
+          <div className="na2-pip is-gold" />
           <span className="na2-pip-meta">Vision Declaration</span>
         </div>
-        <div className="na2-decl-eyebrow">★ The Claim</div>
-        <h2 className="na2-decl-title">Your Vision · 10-Year Horizon</h2>
-        <div className="na2-decl-scope">
-          11 statements · across 3 lenses · in service of your Purpose
-        </div>
-        <p className="na2-decl-subtitle">
-          Read it back. Hold it up to your why. Then claim it, or refine it.
-        </p>
-        <div className="na2-decl-purpose">
-          <div className="your-why">Your Why</div>
-          <p className="purpose-text">
-            {purposeFinal ? (
-              `"${purposeFinal}"`
-            ) : (
-              <em style={{ color: "var(--na1-text-mute)" }}>
-                (no Purpose claimed yet)
-              </em>
-            )}
-          </p>
-          <button type="button" className="purpose-link" onClick={onClose}>
-            Or — return to Purpose to redo your why →
-          </button>
-        </div>
-        {lensConfig.map(({ lens, tone, title }) => (
-          <React.Fragment key={lens}>
-            <div className="na2-decl-divider">
-              <div className="rule" />
-              <span>★</span>
-              <div className="rule" />
+        {wide ? (
+          <div
+            className="na2-sec-pips"
+            role="img"
+            aria-label={`Step ${step + 1} of 2: ${step === 0 ? "Read it back" : "Declare it"}`}
+          >
+            <div className="na2-sec-pips-dots">
+              {[0, 1].map((i) => (
+                <span key={i} className={`na2-sec-pip ${i === step ? "is-current" : ""} ${i < step ? "is-done" : ""}`} />
+              ))}
             </div>
-            <div className={`na2-decl-lens tone-${tone}`}>
-              <h3 className="na2-decl-lens-title">{title}</h3>
-              {LENS_DOMAINS[lens].map((d) => {
-                const tier = (futureB as any)[lens][d] as 1 | 2 | 3 | 4 | null;
-                const chipText = tier ? VISION_CHIPS[lens][d][tier] : null;
-                const tmpl = SENTENCE_TEMPLATES[lens][d];
-                const sec = ((initialVision as any)[lens] as any)?.[d] || {
-                  blank1: "",
-                  blank2: "",
-                };
-                const b1 = String(sec.blank1 || "").trim();
-                const b2 = String(sec.blank2 || "").trim();
-                const tag =
-                  lens === "self"
-                    ? `${DOMAIN_LABELS[lens][d]} · ${SELF_TAGS[d]}`
-                    : DOMAIN_LABELS[lens][d];
-                const k1 = `${lens}.${d}.blank1`;
-                const k2 = `${lens}.${d}.blank2`;
-                const v1 = blankValues[k1] || "";
-                const v2 = blankValues[k2] || "";
-                const renderBlank = (
-                  key: string,
-                  val: string,
-                  fallback: string,
-                ) => {
-                  if (editMode && editingKey === key) {
-                    return (
-                      <textarea
-                        className="na2-decl-blank-edit"
-                        autoFocus
-                        rows={1}
-                        value={val}
-                        onChange={(e) => {
-                          setBlankValues((prev) => ({
-                            ...prev,
-                            [key]: e.target.value,
-                          }));
-                          // auto-grow
-                          const t = e.currentTarget;
-                          t.style.height = "auto";
-                          t.style.height = `${t.scrollHeight}px`;
-                        }}
-                        onFocus={(e) => {
-                          const t = e.currentTarget;
-                          t.style.height = "auto";
-                          t.style.height = `${t.scrollHeight}px`;
-                          // caret at end
-                          const len = t.value.length;
-                          t.setSelectionRange(len, len);
-                        }}
-                        onBlur={() => setEditingKey(null)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            setEditingKey(null);
-                          }
-                          if (e.key === "Escape") {
-                            e.preventDefault();
-                            setEditingKey(null);
-                          }
-                        }}
-                      />
-                    );
-                  }
-                  const shown = (val || "").trim();
-                  const cls = `user ${shown ? "" : "is-empty"} ${editMode ? "is-editable" : ""}`;
-                  if (editMode) {
-                    return (
-                      <em
-                        className={cls}
-                        role="button"
-                        tabIndex={0}
-                        title="Click to edit"
-                        onClick={() => setEditingKey(key)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setEditingKey(key);
-                          }
-                        }}
-                      >
-                        {shown || fallback}
-                      </em>
-                    );
-                  }
-                  return <em className={cls}>{shown || fallback}</em>;
-                };
-                return (
-                  <div className="na2-decl-stmt" key={d}>
-                    <span className="na2-decl-stmt-tag">{tag}</span>
-                    <p className="na2-decl-stmt-body">
-                      In 10 years,{" "}
-                      {chipText || (
-                        <em style={{ color: "var(--na1-text-mute)" }}>
-                          (no chip)
-                        </em>
-                      )}
-                      . {tmpl.stem1} {renderBlank(k1, v1, "—")}, {tmpl.stem2}{" "}
-                      {renderBlank(k2, v2, "—")}.
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </React.Fragment>
-        ))}
-        <div className="na2-decl-divider">
-          <div className="rule" />
-          <span>★</span>
-          <div className="rule" />
-        </div>
-        <div className="na2-decl-question">
-          <p className="q">
-            Does this serve{" "}
-            {purposeFinal ? (
-              <span className="quote">"{purposeFinal}"</span>
-            ) : (
-              <span style={{ color: "var(--na1-text-mute)" }}>
-                your Purpose
-              </span>
-            )}
-            ?
-          </p>
-          <p className="sub">
-            Read it again. Sit with it. There's no wrong answer.
-          </p>
-        </div>
-        <div className="na2-decl-actions">
-          {editMode ? (
+            <span className="na2-sec-pips-label">{step === 0 ? "Read it back" : "Declare it"} · {step + 1} of 2</span>
+          </div>
+        ) : null}
+        <div className="na2-decl2">
+          {showLetter ? (
             <>
+              {!wide ? <div className="na2-decl2-eyebrow">Your vision · read it back</div> : null}
+              {letter}
+            </>
+          ) : null}
+          {showDeclare ? (
+            <>
+              {!wide ? <div className="na2-decl2-eyebrow is-gap">Declare it</div> : null}
+              {declare}
+            </>
+          ) : null}
+          {wide ? (
+            <div className="na2-prose-actions na2-decl2-nav">
               <button
                 type="button"
-                className="na2-decl-btn-revise"
-                onClick={handleCancelEdits}
+                className="na1-btn-ghost"
+                onClick={() => (step === 1 ? toStep(0) : onClose())}
                 disabled={working}
               >
-                Cancel
+                ← Back
               </button>
-              {dirty ? (
-                <button
-                  type="button"
-                  className="na2-decl-btn-claim"
-                  onClick={handleClaim}
-                  disabled={working}
-                >
-                  ★ Claim this revised Vision
+              {step === 0 ? (
+                <button type="button" className="na1-btn-gold" onClick={() => toStep(1)}>
+                  Continue →
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  className="na2-decl-btn-claim"
-                  onClick={handleSaveChanges}
-                  disabled={working}
-                >
-                  Save changes
-                </button>
-              )}
-            </>
+              ) : null}
+            </div>
           ) : (
-            <>
-              <button
-                type="button"
-                className="na2-decl-btn-revise"
-                onClick={onRevise}
-                disabled={working}
-              >
-                Not yet — revise
+            <div className="na2-prose-actions na2-decl2-nav">
+              <button type="button" className="na1-btn-ghost" onClick={onClose} disabled={working}>
+                ← Back
               </button>
-              <button
-                type="button"
-                className="na2-decl-btn-claim"
-                onClick={handleClaim}
-                disabled={working}
-              >
-                ★ Claim this Vision
-              </button>
-            </>
+            </div>
           )}
         </div>
-        {!editMode && (
-          <p className="na2-decl-footnote">
-            Claiming saves to Map of Me + completes Mirror 2
-          </p>
-        )}
-        {editMode && dirty && (
-          <p className="na2-decl-footnote">
-            You've edited your Vision — re-claim to seal the revision.
-          </p>
-        )}
-        {editMode && !dirty && (
-          <p className="na2-decl-footnote">
-            Click any italic phrase to refine it. You can come back and edit it
-            anytime.
-          </p>
-        )}
       </div>
-      {/* ── Ceremony state ──
-          Visible after first-claim (mode === "ceremony") AND on revisit
-          for an already-sealed Vision with no pending edits (editMode &&
-          !dirty). This is the single source for the "Continue to Identity →"
-          button — do NOT duplicate it into the edit-mode footer. */}
+      {/* ── Ceremony state ── seal + "Continue to Identity →". Shown after the
+          claim, and on revisit of an already-sealed Vision the seal sits behind
+          the declare step's own "Continue to Identity →". */}
       <div
-        className={`na2-decl-ceremony ${mode === "ceremony" || (editMode && !dirty) ? "is-on" : ""}`}
-        aria-hidden={!(mode === "ceremony" || (editMode && !dirty))}
+        className={`na2-decl-ceremony ${mode === "ceremony" ? "is-on" : ""}`}
+        aria-hidden={mode !== "ceremony"}
       >
         <div className="na2-decl-cer-star" aria-hidden>
           ★
@@ -34268,7 +34409,7 @@ type AppRouteOverlay = {
   // A3 Ship 5 · "a3m5" addresses the Board room (roomId "board").
   // A3 Ship 6 · "a3m6" addresses the Move room (roomId "move").
   // A4-1 · "a4m1" addresses the Self room (roomId "self"); a4m2 → "time", a4m3 → "wealth".
-  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3" | "a4p" | "a5m1" | "a5c" | "a5r";
+  hubId: "m1" | "m2" | "m3" | "m4" | "a2m1" | "a2m2" | "a2m3" | "a3m1" | "a3m2" | "a3m3" | "a3m4" | "a3m5" | "a3m6" | "a4m1" | "a4m2" | "a4m3" | "a4p" | "a5m1" | "a5c" | "a5r" | "explore2";
   roomId: string;
 } | null;
 type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
@@ -34376,7 +34517,8 @@ function loadAppRoute(): AppRoute | null {
           hubId === "a4p" ||
           hubId === "a5m1" ||
           hubId === "a5c" ||
-          hubId === "a5r") &&
+          hubId === "a5r" ||
+          hubId === "explore2") &&
         typeof roomId === "string" &&
         roomId.length > 0
       ) {
@@ -50135,6 +50277,16 @@ function NewA1View({
     if (saved.overlay.hubId === "a5r") {
       if (saved.view === "a5r") return saved.overlay;
     }
+    // A1 Vision · a 10-year room (Time · Wealth · Self) left open on refresh comes
+    // back on the same section with no veil — if its prerequisite is still done.
+    if (saved.overlay.hubId === "explore2") {
+      if (
+        saved.view === "explore2" &&
+        !initialView &&
+        visionRoomUnlocked(saved.overlay.roomId, ((loadDataSync(KEYS.map) as any) || {}).vision)
+      )
+        return saved.overlay;
+    }
     return null;
   });
   // One-shot consumption of the saved overlay roomId — handed to the
@@ -50226,6 +50378,7 @@ function NewA1View({
       view !== "a5m1" &&
       view !== "a5c" &&
       view !== "a5r" &&
+      view !== "explore2" &&
       overlayRoute != null
     ) {
       setOverlayRoute(null);
@@ -50433,8 +50586,15 @@ function NewA1View({
     });
   }, []);
   const [openEx, setOpenEx] = useState<NA1Exercise | null>(null);
-  const [openM2Ex, setOpenM2Ex] = useState<M2Exercise | null>(null);
-  const [roomOpen, setRoomOpen] = useState(false);
+  // A refresh with a Vision 10-year room open reopens it straight away (no veil).
+  const restoredM2 = useRef<M2Exercise | null>(
+    overlayRoute && overlayRoute.hubId === "explore2"
+      ? (M2_EXERCISES.find((e) => e.key === overlayRoute.roomId) ?? null)
+      : null,
+  ).current;
+  const resumeM2Ref = useRef<boolean>(restoredM2 != null);
+  const [openM2Ex, setOpenM2Ex] = useState<M2Exercise | null>(restoredM2);
+  const [roomOpen, setRoomOpen] = useState(restoredM2 != null);
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
   // One-shot flag for the Peel → Declare auto-nav. Set by onReadyToDeclare
@@ -50639,8 +50799,23 @@ function NewA1View({
       }, NA1_VEIL_TIMING.idleAt),
     );
   };
+  // Report an open Vision 10-year room to the route so a refresh can restore it.
+  useEffect(() => {
+    if (view !== "explore2") return;
+    const key =
+      roomOpen && openM2Ex && (openM2Ex.key === "time" || openM2Ex.key === "wealth" || openM2Ex.key === "self")
+        ? openM2Ex.key
+        : null;
+    setOverlayRoute((prev) => {
+      const next: AppRouteOverlay = key ? { hubId: "explore2", roomId: key } : null;
+      if (prev && next && prev.hubId === next.hubId && prev.roomId === next.roomId) return prev;
+      if (prev == null && next == null) return prev;
+      return next;
+    });
+  }, [view, roomOpen, openM2Ex]);
   const launchRoomM2 = (ex: M2Exercise) => {
     clearTimers();
+    resumeM2Ref.current = false; // a hub entry is never a resume — it plays the veil
     setOpenM2Ex(ex);
     setVeilPhase("rising");
     // Uses shared NA1_VEIL_TIMING.
@@ -50764,11 +50939,11 @@ function NewA1View({
             {openM2Ex.key === "twoFutures" ? (
               <NewA2TwoFuturesBody onSaved={closeRoom} onClose={closeRoom} />
             ) : openM2Ex.key === "time" ? (
-              <NewA2TimeBody onSaved={closeRoom} onClose={closeRoom} />
+              <NewA2TimeBody onSaved={closeRoom} onClose={closeRoom} resume={resumeM2Ref.current} />
             ) : openM2Ex.key === "wealth" ? (
-              <NewA2WealthBody onSaved={closeRoom} onClose={closeRoom} />
+              <NewA2WealthBody onSaved={closeRoom} onClose={closeRoom} resume={resumeM2Ref.current} />
             ) : openM2Ex.key === "self" ? (
-              <NewA2SelfBody onSaved={closeRoom} onClose={closeRoom} />
+              <NewA2SelfBody onSaved={closeRoom} onClose={closeRoom} resume={resumeM2Ref.current} />
             ) : openM2Ex.key === "declaration" ? (
               <NewA2DeclarationBody
                 onSaved={closeRoom}
@@ -50782,6 +50957,13 @@ function NewA1View({
                   }
                   setRoomOpen(false);
                   window.setTimeout(() => launchRoomM2(timeEx), 240);
+                }}
+                onEdit={(key) => {
+                  // "Edit time / wealth / self" → back to that room (opens on its first section).
+                  const ex = M2_EXERCISES.find((e) => e.key === key);
+                  if (!ex) return;
+                  setRoomOpen(false);
+                  window.setTimeout(() => launchRoomM2(ex), 240);
                 }}
                 onContinueToIdentity={() => {
                   // Unified nav (Level 2): claiming Vision returns to the A1
