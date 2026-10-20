@@ -1,1 +1,0 @@
-- [Desktop flow constraints](staged-desktop-flow.md) — preserve stacked phones and original Own It content; distinguish fixture fit from full-container verification.
