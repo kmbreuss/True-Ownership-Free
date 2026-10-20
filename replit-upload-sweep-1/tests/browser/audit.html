@@ -1,0 +1,10 @@
+<!doctype html><html><body><h1>Isolated room overflow audit · 1280 × 800</h1><p>Measures fixture initial screens only, not authenticated end-to-end flows.</p><pre id="results"></pre><script>
+const rooms=["time","gap","rethink","shape","seats","standards","rank","gifts","futures","own"];
+window.addEventListener("message",event=>{if(event.origin===location.origin&&event.data.audit)document.querySelector("#results").textContent+=JSON.stringify(event.data.audit)+"\n"});
+for(const mode of ["before","after"]){
+ const frame=document.createElement("iframe");
+ frame.style="position:absolute;left:-20000px;width:1280px;height:800px;border:0";
+ frame.src=`./index.html?mode=${mode}&room=audit`;
+ document.body.append(frame);
+}
+</script></body></html>
