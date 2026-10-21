@@ -2970,7 +2970,13 @@ html[data-theme="light"] .na1-m4-modal-back{ background:rgba(245,245,247,.78); }
   .na1-room-overlay [class$="-nav"] > .na1-btn-ghost{ white-space:nowrap; flex-shrink:0; }
   /* Time Audit hours box: its 80px flex-basis made it 80px TALL in the stacked
      field column on a phone. Keep it 80 wide, 44 tall. */
-  .na1-a2m2-field .na1-a2m2-input.na1-a2m2-hrs{ flex:0 0 auto; height:44px; min-height:44px; }
+  .na1-a2m2-field .na1-a2m2-input.na1-a2m2-hrs{ flex:0 0 auto; width:76px; height:44px; min-height:44px; padding:0 8px; text-align:center; font-size:max(var(--b-min), calc(16px + var(--b-bump))); }
+  /* Hours sit beside "How it feels" in a narrow column instead of a box of their own;
+     the priority picker takes the full row below. */
+  .na1-a2m2-activity-fields{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; }
+  .na1-a2m2-activity-fields .na1-a2m2-field-label{ white-space:nowrap; }
+  .na1-a2m2-activity-fields > .na1-a2m2-field{ flex:none; }
+  .na1-a2m2-activity-fields > .na1-a2m2-field:nth-child(3){ grid-column:1 / -1; }
   /* Every button on touch is at least 44px tall (links/spans are handled per
      class below). Chips, pills and text-buttons grow with it — by design. */
   .na1-root button, .na1-root [role="button"], .na1-root summary,
@@ -3516,6 +3522,185 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
   .na2-decl2-cta{ width:100%; }
 }
 .na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
+/* Rethink your time (desktop): one compact row per activity */
+.df-acts{ display:flex; flex-direction:column; gap:6px; padding:0 16px 6px; }
+.df-act{ border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); }
+.df-act.is-open{ border-color:var(--gold-line); }
+.df-act-row{ display:flex; align-items:center; gap:12px; padding:3px 10px; }
+.df-act-main{ flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; text-align:left; padding:4px 0; color:inherit; }
+.df-act-main .na1-a2m3-act-name{ flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.df-act-chev{ flex:0 0 auto; width:12px; color:var(--na1-text-mute); font-size:12px; }
+.df-act-chips{ display:flex; gap:6px; flex:0 0 auto; }
+.df-act-chip{ min-height:32px; padding:0 12px; border-radius:100px; border:1px solid var(--na1-border); background:var(--na1-bg-input); color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; white-space:nowrap; }
+.df-act-chip:hover{ border-color:var(--gold-line); color:var(--na1-text); }
+.df-act-chip.is-selected{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold-text); }
+.df-act-chip.is-cut.is-selected{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy-text); }
+.df-act-more{ padding:0 12px 8px; }
+.df-act-more .na1-a2m3-detail{ margin:0; }
+.df-act-more .na1-a2m3-act-suggest{ margin:6px 0 0; padding-top:6px; border-top:1px solid var(--na1-border); }
+/* ── Desktop one-section-per-screen flow (Batch 1 sweep) ── */
+.df-sec[hidden]{ display:none !important; }
+.df .na2-sec-pips{ margin:0 0 10px; }
+.df-nav{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:14px; padding-top:12px; border-top:1px solid var(--na1-border); }
+.df-nav .na1-btn-gold:disabled{ opacity:.4; cursor:not-allowed; }
+.df-pager{ display:flex; align-items:center; justify-content:center; gap:12px; margin:8px 0 0; }
+.df-pager-btn{ width:36px; height:36px; border-radius:50%; border:1px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-size:18px; line-height:1; cursor:pointer; }
+.df-pager-btn:disabled{ opacity:.35; cursor:not-allowed; }
+.df-pager-label{ font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.06em; color:var(--na1-text-sec); font-weight:400; }
+@media (min-width:768px){
+  .na1-room-card:has(.df){ padding-top:64px; padding-bottom:22px; }
+  .df .na1-a2m2-step-title, .df .na1-a2m3-step-title{ font-size:24px; margin:0 0 6px; }
+  .df .na1-a2m2-step-lede, .df .na1-a2m3-step-lede{ margin:0 0 12px; }
+  .df .na1-a2m2-totals{ margin:12px 0 0; padding:14px 18px; }
+  .df .na1-a2m2-benchmark{ margin:0; }
+  .df .na1-a2m2-total-row{ grid-template-columns:24px minmax(90px,1fr) minmax(120px,2fr) auto; gap:0 12px; margin:0 0 8px; }
+  .df .na1-a2m2-total-bar{ grid-column:auto; }
+  .df .na1-a2m2-activities{ gap:8px; }
+  .df .na1-a2m2-field .na1-a2m2-input.na1-a2m2-hrs{ flex:0 0 auto; }
+  .df .na1-a2m2-activity-top{ margin-bottom:8px; }
+  .df .na1-a2m2-activity-top .na1-a2m2-input{ min-height:40px; padding:6px 12px; }
+  .df .na1-a2m2-activity-card{ padding:8px 12px; }
+  .df .na1-a2m2-add-activity{ margin-top:0; padding:8px 14px; }
+  .df .na1-a2m2-count{ margin:0; }
+  .na1-room-card:has(.df) .na1-room-title{ font-size:24px; margin:0 0 6px; }
+  .na1-room-card:has(.df) .na1-room-context{ margin:0 0 10px; line-height:max(var(--b-lh), 1.45); }
+  .na1-room-card:has(.df) .na1-room-eyebrow{ margin:0 0 4px; }
+  .na1-room-card:has(.df) .na2-pip-bar{ margin:0 0 8px; }
+  /* A1 Values · Rank + Pressure-test / Name the Standards */
+  .df .na1-m4-eyebrow{ margin:0 0 6px; }
+  .df .na1-m4-title{ font-size:26px; margin:0 0 6px; }
+  .df .na1-m4-subtitle{ margin:0 auto 6px; line-height:max(var(--b-lh), 1.4); }
+  .df .na1-m4-rank-phase-eyebrow{ margin:8px 0 8px; }
+  .df .na1-m4-rank-stack{ gap:8px; margin:0 0 8px; }
+  .df .na1-m4-rank-row{ padding:8px 12px 8px 10px; gap:12px; }
+  .df .na1-m4-rank-num{ font-size:32px; min-width:34px; padding-top:0; }
+  .df .na1-m4-rank-name{ font-size:20px; }
+  .df .na1-m4-rank-def{ margin:2px 0 0; line-height:max(var(--b-lh), 1.35); }
+  .df .na1-m4-rank-key{ margin:3px 0 0; }
+  /* A1 Two Futures */
+  .df .na2-domain-row{ padding:10px 0 12px; }
+  .df .na2-domain-row:first-of-type{ padding-top:4px; }
+  .df .na2-domain-name{ margin:0 0 8px; }
+  .df .na2-climb-headers{ padding:4px 0 8px; margin-bottom:6px; }
+  .df .na2-climb-lens{ margin:6px 0; }
+  .df .na2-climb-row{ padding:6px 0; }
+  .df .na2-wakeup{ padding:26px 30px; margin:0; }
+  .df .na2-wakeup-block, .df .na2-wakeup-low-tier, .df .na2-wakeup-prompt, .df .na2-wakeup-purpose{ margin-bottom:20px; }
+  .df .na2-wakeup-compound{ margin-bottom:14px; }
+  .df .na2-wakeup-divider{ margin:20px 0; }
+  /* A2 Mirror 3 · The gap / Rethink your time */
+  .df .na1-a2m3-room-eyebrow, .df .na1-room-eyebrow{ margin:0 0 4px; }
+  .df .na1-a2m3-context{ margin:0 0 12px; gap:10px; }
+  .df .na1-a2m3-ctx-card{ padding:10px 14px; }
+  .df .na1-a2m3-ctx-head{ margin:0 0 8px; }
+  .df .na1-a2m3-ctx-row{ margin:0 0 6px; }
+  .df .na1-a2m3-insight{ margin:0 0 8px; padding:12px 16px; }
+  .df .na1-a2m3-insight-text{ line-height:max(var(--b-lh), 1.5); }
+  .df .na1-a2m3-gap-card{ margin:0 0 10px; padding:10px 14px; }
+  .df .na1-a2m3-gap-top{ margin:0 0 6px; }
+  .df .na1-a2m3-bar-label{ margin:4px 0 0; }
+  .df .na1-a2m3-intent-btns{ margin:8px 0 0; }
+  .df .na1-a2m3-intent-btn{ min-height:36px; }
+  .df .na1-a2m3-note{ margin:0 0 10px; padding:8px 12px; }
+  .df .na1-a2m3-freed-hero{ margin:0 0 12px; padding:12px 16px; }
+  .df .na1-a2m3-freed-num{ font-size:40px; }
+  .df .df-group-jump{ border:1px solid var(--na1-border); border-radius:12px; background:var(--na1-bg-card); margin:0 0 8px; padding:10px 16px; }
+  .df .df-group-jump:hover{ border-color:var(--gold-line); }
+  .df .df-acc-static{ cursor:default; padding:10px 16px; }
+  .df .na1-a2m3-accordion{ margin:0; }
+  .df .na1-a2m3-acc-body{ padding:0 16px 10px; gap:10px; }
+  .df .na1-a2m3-act{ padding:10px 12px; }
+  .df .na1-a2m3-act-top{ margin:0 0 8px; }
+  .df .na1-a2m3-dec-btn{ padding:8px 12px; gap:0; }
+  .df .na1-a2m3-detail{ margin:10px 0 0; padding:10px 14px; gap:10px; }
+  .df .na1-a2m3-act-top{ margin:0 0 8px; }
+  .df .na1-a2m3-act-suggest{ margin:8px 0 0; padding-top:8px; line-height:max(var(--b-lh), 1.4); }
+  .df .na1-a2m3-trade{ margin:0; padding:14px 18px; }
+  .df .na1-a2m3-trade-sub{ margin:0 0 10px; }
+  .df .na1-a2m3-trade-sec{ margin:0 0 10px; }
+  .df .na1-a2m3-move-text{ min-height:0; }
+  .df-footrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:8px; }
+  .df-footrow .df-pager{ margin:0; order:2; }
+  .df-footrow .na1-a2m2-add-activity{ order:1; }
+  .df-footrow .na1-a2m2-count{ order:3; white-space:nowrap; }
+}
+
+/* ── A1 Identity · Own It claim: one card per animal, then the declaration ── */
+.m3-own-cards{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; margin:18px 0 22px; }
+.m3-own-cards[data-n="1"]{ grid-template-columns:minmax(0,320px); justify-content:center; }
+.m3-own-cards[data-n="2"]{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+.m3-own-card{ background:var(--na1-bg-card); border:1px solid var(--gold-line); border-radius:var(--na1-radius-lg); padding:20px 18px 18px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.m3-own-desc{ font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.16em; text-transform:uppercase; color:var(--gold-text); font-weight:400; line-height:1.4; }
+.m3-own-animal{ font-family:var(--f-display); font-size:34px; line-height:1.1; color:var(--na1-text); font-weight:400; overflow-wrap:anywhere; }
+.m3-own-chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:6px; }
+.m3-own-chip{ display:inline-block; padding:5px 12px; border-radius:100px; border:1px solid var(--na1-border); background:var(--na1-bg); color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; }
+.m3-own-chip.is-emerging{ border-style:dashed; border-color:var(--gold-line); color:var(--gold-text); }
+.m3-own-decl{ max-width:640px; margin:0 auto; text-align:center; font-family:var(--f-body); font-weight:500; font-size:max(var(--b-min), calc(22px + var(--b-bump))); line-height:max(var(--b-lh), 1.5); color:var(--na1-text); text-wrap:balance; }
+.m3-own-actions{ display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin-top:22px; }
+@media (min-width:768px){
+  .na1-room-card:has(.m3-seal){ max-width:960px; padding-top:64px; padding-bottom:24px; }
+  /* Desktop claim: three short screens — animals + declaration · powers & shadows · Big Claim. */
+  .m3-seal.is-stepped .na2-decl-title{ font-size:30px; margin:0 0 6px; }
+  .m3-seal.is-stepped .m3-seal-star{ margin:2px 0 2px; font-size:20px; }
+  .m3-seal.is-stepped .m3-seal-subhead{ margin:0 auto 6px; font-size:max(var(--b-min), calc(17px + var(--b-bump))); line-height:max(var(--b-lh), 1.45); }
+  .m3-seal.is-stepped .na2-sec-pips{ margin:2px 0 10px; justify-content:center; }
+  .m3-seal.is-stepped .m3-own-cards{ margin:10px 0 14px; }
+  .m3-seal.is-stepped .m3-seal-cluster{ padding:14px 22px; margin:0 0 6px; }
+  .m3-seal.is-stepped .m3-seal-cluster-header{ margin-bottom:10px; }
+  .m3-seal.is-stepped .m3-seal-triptych{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"power pairing" "shadow pairing"; gap:12px 22px; align-items:start; max-height:none; opacity:1; }
+  .m3-seal.is-stepped .m3-seal-sentence-card.is-power{ grid-area:power; margin:0; }
+  .m3-seal.is-stepped .m3-seal-sentence-card.is-shadow{ grid-area:shadow; margin:0; }
+  .m3-seal.is-stepped .m3-seal-pairing{ grid-area:pairing; }
+  .m3-seal.is-stepped .m3-seal-bigclaim-divider{ margin:14px 0 14px; }
+  .m3-seal.is-stepped .m3-seal-bigclaim{ padding:22px 28px; }
+  .m3-seal.is-stepped .m3-own-actions{ justify-content:space-between; margin-top:12px; padding-top:12px; border-top:1px solid var(--na1-border); }
+  .m3-own-tabs{ display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+  /* The seal now carries one more paragraph (the animals); keep it on one 800px screen. */
+  .m3-seal .na2-decl-ceremony{ padding-top:8px; padding-bottom:12px; }
+  .m3-seal .na2-decl-cer-star{ margin:4px 0 6px; }
+  .m3-seal .na2-decl-cer-para{ margin-bottom:10px; }
+  .m3-seal .na2-decl-cer-divider{ margin:12px auto; }
+}
+@media (max-width:767px){
+  .m3-own-cards, .m3-own-cards[data-n="2"], .m3-own-cards[data-n="1"]{ grid-template-columns:minmax(0,1fr); }
+  .m3-own-animal{ font-size:30px; }
+  .m3-own-decl{ font-size:max(var(--b-min), calc(20px + var(--b-bump))); }
+}
+
+/* ── A1 Identity · Superpowers: one animal per screen (desktop and phone) ── */
+.m3-shape.is-stepped{ gap:12px; }
+.m3-shape.is-stepped .na2-pip-bar{ margin:0 0 2px; }
+.m3-shape.is-stepped .m3-shape-title{ font-size:26px; text-align:left; margin:0; }
+.m3-shape.is-stepped .na2-sec-pips{ margin:0 0 2px; }
+.m3-shape.is-stepped .m3-shape-list{ gap:0; }
+.m3-shape.is-stepped .m3-cluster-card{ gap:10px; padding:14px 16px 14px; }
+.m3-shape-nav{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0 0; margin-top:2px; border-top:1px solid var(--na1-border); }
+.m3-shape-nav .m3-shape-super-btn:disabled{ opacity:.4; }
+.m3-shape-nav .m3-shape-addmore{ margin:0; }
+.m3-addgift-btn{ min-height:32px; }
+.m3-addgift{ margin-top:6px; }
+.m3-addgift-tabs{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:0 0 8px; }
+.m3-addgift-tabs .m3-inv-lib-close{ margin-left:auto; }
+.m3-addgift-tab{ min-height:32px; padding:0 12px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12px); font-weight:400; cursor:pointer; }
+.m3-addgift-tab.is-on{ border-color:var(--gold); color:var(--gold-text); background:var(--gold-soft); }
+@media (min-width:768px){
+  .na1-room-card:has(.m3-shape.is-stepped){ padding-top:64px; padding-bottom:22px; }
+}
+@media (max-width:767px){
+  /* Sticky offsets are measured inside the card's padding, so the bar pulls down by it. */
+  .m3-shape-nav{ position:sticky; bottom:-40px; z-index:5; flex-wrap:wrap; margin:12px -24px -40px; padding:12px 24px calc(12px + env(safe-area-inset-bottom, 0px)); background:var(--na1-bg-card); }
+  .m3-shape-nav .m3-shape-addmore{ order:-1; flex:1 1 100%; justify-content:center; }
+  .m3-shape-nav .m3-shape-super-btn{ flex:1 1 0; min-width:0; padding:12px 8px; letter-spacing:0; font-size:13px; white-space:nowrap; }
+  .m3-shape-nav .na1-btn-ghost{ padding:0 12px; }
+  .m3-shape.is-stepped .m3-animal-row{ flex-direction:row; align-items:center; gap:8px; }
+  .m3-shape.is-stepped .m3-animal-input{ width:auto; flex:1 1 38%; min-width:0; }
+  .m3-shape.is-stepped .m3-animal-name{ flex:1 1 55%; min-width:0; }
+  .m3-shape.is-stepped .m3-browse-link{ flex:0 0 auto; }
+}
+@media (max-width:600px){
+  .m3-shape-nav{ bottom:-24px; margin:12px -16px -24px; padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
+}
+
 `;
 // ─── DIRECTION: Life Areas ────────────────────────────────────────────────────
 const LIFE_AREA_PRESETS = [
@@ -31881,7 +32066,16 @@ function NewA2TwoFuturesBody({
     if (!isLensComplete(initialTF.futureA.wealth as any, "wealth")) return 2;
     return 3;
   };
-  const [screen, setScreen] = useState<number>(() => computeStartScreen());
+  // Desktop: a refresh restores the same screen (and section); phones resume as before.
+  const wide = useVisionWide();
+  const [screen, setScreen] = useState<number>(() => {
+    const saved = wide ? readFlowStep("tf:screen") : null;
+    return saved != null && saved >= 1 && saved <= 8 ? saved : computeStartScreen();
+  });
+  useEffect(() => {
+    if (wide) writeFlowStep("tf:screen", screen);
+  }, [wide, screen]);
+  useEffect(() => () => writeFlowStep("tf:screen", null), []);
   const [pulseDomains, setPulseDomains] = useState<Set<string>>(new Set());
   const [tipOn, setTipOn] = useState(false);
   const [advancing, setAdvancing] = useState(false);
@@ -31993,6 +32187,10 @@ function NewA2TwoFuturesBody({
   const futureForScreen = (s: number): "A" | "B" => (s <= 3 ? "A" : "B");
   const currentLens = lensForScreen(screen);
   const currentFuture = futureForScreen(screen);
+  // Desktop sections per screen: Time has 5 domains (two pages), the wake-up two parts,
+  // the climb one lens per page.
+  const tfSections = screen === 4 ? 2 : screen === 8 ? 3 : currentLens === "time" ? 2 : 1;
+  const flow = useDeskFlow(`tf-${screen}`, tfSections);
   const currentPicks = (currentFuture === "A" ? futureA : futureB)[
     currentLens
   ] as Record<string, number | null>;
@@ -32108,22 +32306,7 @@ function NewA2TwoFuturesBody({
       color: tone === "burgundy" ? "var(--burgundy)" : "var(--gold-text)",
       margin: "0 0 10px",
     };
-    return (
-      <>
-        <div
-          className={`na1-room-eyebrow tone-${tone === "burgundy" ? "burgundy" : "gold"}`}
-          style={{ letterSpacing: "0.08em" }}
-        >
-          {eyebrow}
-        </div>
-        <h2 className="na1-room-title">{title}</h2>
-        <p style={subtitleStyle}>{subtitle}</p>
-        <p className="na1-room-context" style={{ marginTop: 0 }}>
-          {helper}
-        </p>
-        {renderPipBar()}
-        <div>
-          {LENS_DOMAINS[currentLens].map((domain) => {
+    const domainRow = (domain: string) => {
             const tiers: (1 | 2 | 3 | 4)[] = [1, 2, 3, 4];
             const seed = `${domain}-${currentLens}-${currentFuture}-${userId}`;
             const orderedTiers = shuffleSeeded(tiers, seed);
@@ -32164,20 +32347,8 @@ function NewA2TwoFuturesBody({
                 </div>
               </div>
             );
-          })}
-        </div>
-        <div
-          className="na1-room-actions"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 20,
-          }}
-        >
-          <button type="button" className="na1-btn-ghost" onClick={goBack}>
-            ← Back
-          </button>
+    };
+    const continueNode = (
           <div
             className="na2-continue-wrap"
             onMouseEnter={() => {
@@ -32203,7 +32374,52 @@ function NewA2TwoFuturesBody({
               Pick a chip for each domain to continue.
             </div>
           </div>
+    );
+    const doms = LENS_DOMAINS[currentLens];
+    const domainPages = currentLens === "time" ? [doms.slice(0, 3), doms.slice(3)] : [doms];
+    return (
+      <>
+        <div
+          className={`na1-room-eyebrow tone-${tone === "burgundy" ? "burgundy" : "gold"}`}
+          style={{ letterSpacing: "0.08em" }}
+        >
+          {eyebrow}
         </div>
+        <h2 className="na1-room-title">{title}</h2>
+        <p style={subtitleStyle}>{subtitle}</p>
+        <p className="na1-room-context" style={{ marginTop: 0 }}>
+          {helper}
+        </p>
+        {renderPipBar()}
+        {wide ? (
+          <DeskFlow
+            flow={flow}
+            onBack={goBack}
+            forward={continueNode}
+            sections={domainPages.map((p) => ({
+              label: p.map((d) => DOMAIN_LABELS[currentLens][d]).join(" · "),
+              node: <div>{p.map(domainRow)}</div>,
+            }))}
+          />
+        ) : (
+          <>
+            <div>{LENS_DOMAINS[currentLens].map(domainRow)}</div>
+            <div
+              className="na1-room-actions"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginTop: 20,
+              }}
+            >
+              <button type="button" className="na1-btn-ghost" onClick={goBack}>
+                ← Back
+              </button>
+              {continueNode}
+            </div>
+          </>
+        )}
       </>
     );
   };
@@ -32245,8 +32461,8 @@ function NewA2TwoFuturesBody({
       );
       return `${from} becomes ${to.toLowerCase()}.`;
     });
-    return (
-      <div className="na2-wakeup">
+    const wakeTop = (
+      <>
         {variant === "A" && (
           <>
             <p className="na2-wakeup-callback-label">
@@ -32276,6 +32492,10 @@ function NewA2TwoFuturesBody({
                   : "These don't stay where they are. They become more themselves."}
               </p>
             )}
+      </>
+    );
+    const wakeBottom = (
+      <>
         {variant === "A" && (
           <p className="na2-wakeup-dagger">
             The way you keep "{oneThing}" —{" "}
@@ -32295,7 +32515,10 @@ function NewA2TwoFuturesBody({
         <p className="na2-wakeup-prompt">
           Show me what's true in 10 years when you do.
         </p>
-        <button
+      </>
+    );
+    const wakeCta = (
+      <button
           type="button"
           className="na2-wakeup-cta"
           onClick={goNext}
@@ -32303,6 +32526,25 @@ function NewA2TwoFuturesBody({
         >
           Step into Future B
         </button>
+    );
+    if (wide) {
+      return (
+        <DeskFlow
+          flow={flow}
+          onBack={goBack}
+          forward={wakeCta}
+          sections={[
+            { label: "What compounds", node: <div className="na2-wakeup">{wakeTop}</div> },
+            { label: "Now own it", node: <div className="na2-wakeup">{wakeBottom}</div> },
+          ]}
+        />
+      );
+    }
+    return (
+      <div className="na2-wakeup">
+        {wakeTop}
+        {wakeBottom}
+        {wakeCta}
       </div>
     );
   };
@@ -32310,28 +32552,7 @@ function NewA2TwoFuturesBody({
   const renderClimb = () => {
     const lensTitle = (l: Lens) =>
       l === "time" ? "Time" : l === "wealth" ? "Wealth" : "Self";
-    return (
-      <>
-        <div
-          className="na1-room-eyebrow tone-gold"
-          style={{ letterSpacing: "0.08em" }}
-        >
-          Two Futures · The Climb
-        </div>
-        <h2 className="na1-room-title">
-          This is the work of the next 10 years.
-        </h2>
-        <p
-          className="na1-room-context"
-          style={{ fontStyle: "italic", color: "var(--gold-text)" }}
-        >
-          Where you are. Where you're going.
-        </p>
-        <div className="na2-climb-headers" aria-hidden>
-          <span className="h-col-a">Where I am now</span>
-          <span className="h-col-b">Where I'm going</span>
-        </div>
-        {(["time", "wealth", "self"] as Lens[]).map((l) => (
+    const lensBlock = (l: Lens) => (
           <div className="na2-climb-lens" key={l}>
             <h3 className="na2-climb-lens-title">{lensTitle(l)}</h3>
             <div className="na2-climb-lens-rule" />
@@ -32374,7 +32595,86 @@ function NewA2TwoFuturesBody({
               );
             })}
           </div>
-        ))}
+    );
+    if (wide) {
+      const lenses: Lens[] = ["time", "wealth", "self"];
+      return (
+        <DeskFlow
+          flow={flow}
+          onBack={goBack}
+          forward={
+          <button
+            type="button"
+            className="na2-btn-continue is-gold"
+            disabled={advancing}
+            onClick={goNext}
+          >
+            {continueLabel}
+          </button>
+          }
+          header={
+            <>
+        <div
+          className="na1-room-eyebrow tone-gold"
+          style={{ letterSpacing: "0.08em" }}
+        >
+          Two Futures · The Climb
+        </div>
+        <h2 className="na1-room-title">
+          This is the work of the next 10 years.
+        </h2>
+        <p
+          className="na1-room-context"
+          style={{ fontStyle: "italic", color: "var(--gold-text)" }}
+        >
+          Where you are. Where you're going.
+        </p>
+            </>
+          }
+          sections={lenses.map((l, li) => ({
+            label: lensTitle(l),
+            node: (
+              <>
+        <div className="na2-climb-headers" aria-hidden>
+          <span className="h-col-a">Where I am now</span>
+          <span className="h-col-b">Where I'm going</span>
+        </div>
+                {lensBlock(l)}
+                {li === lenses.length - 1 && (
+                  <div className="na2-climb-closing">
+          Sit with this for a minute.
+          <br />
+          Then let's go write what owning each of these looks like.
+        </div>
+                )}
+              </>
+            ),
+          }))}
+        />
+      );
+    }
+    return (
+      <>
+        <div
+          className="na1-room-eyebrow tone-gold"
+          style={{ letterSpacing: "0.08em" }}
+        >
+          Two Futures · The Climb
+        </div>
+        <h2 className="na1-room-title">
+          This is the work of the next 10 years.
+        </h2>
+        <p
+          className="na1-room-context"
+          style={{ fontStyle: "italic", color: "var(--gold-text)" }}
+        >
+          Where you are. Where you're going.
+        </p>
+        <div className="na2-climb-headers" aria-hidden>
+          <span className="h-col-a">Where I am now</span>
+          <span className="h-col-b">Where I'm going</span>
+        </div>
+        {(["time", "wealth", "self"] as Lens[]).map((l) => lensBlock(l))}
         <div className="na2-climb-closing">
           Sit with this for a minute.
           <br />
@@ -32544,6 +32844,7 @@ function writeVisionStep(room: string, n: number | null): void {
 // Which A1 Vision room a saved route may reopen, and only when it is unlocked.
 function visionRoomUnlocked(key: string, vision: any): boolean {
   const v = vision || {};
+  if (key === "twoFutures") return true; // the first Vision room is never locked
   if (key === "time") return !!v.twoFutures?.complete;
   if (key === "wealth") return !!v.time_complete;
   if (key === "self") return !!v.wealth_complete;
@@ -32553,10 +32854,13 @@ function VisionSectionPips({
   labels,
   idx,
   filled,
+  text,
 }: {
   labels: string[];
   idx: number;
   filled: boolean[];
+  // Optional full label (e.g. "Animal 1 of 3 · Eagle") in place of "{label} · {n} of {N}".
+  text?: string;
 }) {
   return (
     <div
@@ -32573,8 +32877,160 @@ function VisionSectionPips({
         ))}
       </div>
       <span className="na2-sec-pips-label">
-        {labels[idx]} · {idx + 1} of {labels.length}
+        {text ?? `${labels[idx]} · ${idx + 1} of ${labels.length}`}
       </span>
+    </div>
+  );
+}
+// ── Desktop one-section-per-screen flow (Batch 1 sweep) ──
+// On desktop (≥768px) a room's sections each get their own screen with
+// "← Back / Continue →" and section pips; phones keep the stacked page. The
+// current section is saved so a refresh restores it (no veil); closing the room
+// unmounts it and clears the saved section.
+const FLOW_STEP_KEY = "to_flow_step_v1"; // { [room]: sectionIndex } — not synced
+function readFlowStep(room: string): number | null {
+  try {
+    const n = JSON.parse(window.localStorage.getItem(FLOW_STEP_KEY) || "{}")?.[room];
+    return typeof n === "number" && n >= 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+function writeFlowStep(room: string, n: number | null): void {
+  try {
+    const o = JSON.parse(window.localStorage.getItem(FLOW_STEP_KEY) || "{}") || {};
+    if (n == null) delete o[room];
+    else o[room] = n;
+    window.localStorage.setItem(FLOW_STEP_KEY, JSON.stringify(o));
+  } catch {
+    // storage unavailable — a refresh just reopens on the first screen
+  }
+}
+type FlowSection = { label: string; node: React.ReactNode };
+function useDeskFlow(room: string, count: number) {
+  const wide = useVisionWide();
+  const [raw, setRaw] = useState<number>(() => (wide ? readFlowStep(room) ?? 0 : 0));
+  const idx = Math.min(Math.max(raw, 0), Math.max(count - 1, 0));
+  // A flow whose room key changes (one flow reused across screens) starts over.
+  const lastRoom = useRef(room);
+  useEffect(() => {
+    if (lastRoom.current !== room) {
+      lastRoom.current = room;
+      setRaw(0);
+    }
+  }, [room]);
+  useEffect(() => {
+    if (wide) writeFlowStep(room, idx === 0 ? null : idx);
+  }, [wide, room, idx]);
+  useEffect(() => () => writeFlowStep(room, null), [room]);
+  const go = useCallback(
+    (n: number) => {
+      setRaw(Math.min(Math.max(n, 0), Math.max(count - 1, 0)));
+      window.setTimeout(() => {
+        const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+        if (card && card.scrollTo) card.scrollTo({ top: 0 });
+      }, 0);
+    },
+    [count],
+  );
+  return { wide, idx, go };
+}
+// Desktop: header + section pips + the current section + Back/Continue. `forward`
+// replaces "Continue →" on the last screen (the room's own Continue/claim buttons);
+// `onBack` is the room's own Back for the first screen. Every section stays mounted
+// (hidden when not current) so nothing a section holds in state is lost.
+// Phones: the sections stack and the container keeps its own navigation.
+function DeskFlow({
+  flow,
+  sections,
+  header,
+  onBack,
+  forward,
+  center,
+}: {
+  flow: { wide: boolean; idx: number; go: (n: number) => void };
+  sections: FlowSection[];
+  header?: React.ReactNode;
+  onBack: () => void;
+  forward?: React.ReactNode;
+  // Optional middle of the nav bar (e.g. a running count).
+  center?: React.ReactNode;
+}) {
+  const { wide, idx, go } = flow;
+  if (!wide) {
+    return (
+      <>
+        {header}
+        {sections.map((s, i) => (
+          <div key={i} className="df-sec">
+            {s.node}
+          </div>
+        ))}
+      </>
+    );
+  }
+  const last = idx >= sections.length - 1;
+  return (
+    <div className="df">
+      {header}
+      {sections.length > 1 && (
+        <VisionSectionPips
+          labels={sections.map((s) => s.label)}
+          idx={idx}
+          filled={sections.map((_, i) => i < idx)}
+        />
+      )}
+      {sections.map((s, i) => (
+        <div key={i} className="df-sec" hidden={i !== idx}>
+          {s.node}
+        </div>
+      ))}
+      <div className="df-nav">
+        <button type="button" className="na1-btn-ghost" onClick={() => (idx > 0 ? go(idx - 1) : onBack())}>
+          ← Back
+        </button>
+        {center}
+        {last ? (
+          forward
+        ) : (
+          <button type="button" className="na1-btn-gold" onClick={() => go(idx + 1)}>
+            Continue →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+// Pages of a long list on a desktop screen (e.g. activities 3 at a time); phones show all.
+function usePager<T>(items: T[], size: number, wide: boolean) {
+  const [page, setPage] = useState(0);
+  const prevLen = useRef(items.length);
+  useEffect(() => {
+    if (items.length > prevLen.current) setPage(Math.max(0, Math.ceil(items.length / size) - 1));
+    prevLen.current = items.length;
+  }, [items.length, size]);
+  const pages = wide ? Math.max(1, Math.ceil(items.length / size)) : 1;
+  const p = Math.min(page, pages - 1);
+  return {
+    page: p,
+    pages,
+    setPage,
+    slice: wide ? items.slice(p * size, p * size + size) : items,
+  };
+}
+function PagerBar({ page, pages, onPage, noun }: { page: number; pages: number; onPage: (n: number) => void; noun: string }) {
+  if (pages <= 1) return null;
+  return (
+    <div className="df-pager" role="group" aria-label={`${noun} pages`}>
+      <button type="button" className="df-pager-btn" disabled={page <= 0} onClick={() => onPage(page - 1)} aria-label={`Previous ${noun}`}>
+        ‹
+      </button>
+      <span className="df-pager-label">
+        {noun} {page + 1} of {pages}
+      </span>
+      <button type="button" className="df-pager-btn" disabled={page >= pages - 1} onClick={() => onPage(page + 1)} aria-label={`Next ${noun}`}>
+        ›
+      </button>
     </div>
   );
 }
@@ -38169,6 +38625,8 @@ function NewA2M2Step2Body({
   onUpdate,
   onRemove,
   onAwakeChange,
+  onBack,
+  forward,
 }: {
   activities: A2M2Activity[];
   priorities: string[];
@@ -38177,7 +38635,12 @@ function NewA2M2Step2Body({
   onUpdate: (id: string, patch: Partial<A2M2Activity>) => void;
   onRemove: (id: string) => void;
   onAwakeChange: (n: number) => void;
+  // Desktop flow: the room's own Back (first screen) and Continue (last screen).
+  onBack: () => void;
+  forward: React.ReactNode;
 }) {
+  const flow = useDeskFlow("a2m2-where", 2);
+  const pager = usePager(activities, 3, flow.wide);
   const atCap = activities.length >= A2M2_ACTIVITY_MAX;
   const totalHrs = activities.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
   const perPriority = priorities.map((name) => ({
@@ -38197,16 +38660,29 @@ function NewA2M2Step2Body({
 
   return (
     <div className="na1-a2m2-step2">
+      <DeskFlow
+        flow={flow}
+        onBack={onBack}
+        forward={forward}
+        header={
+          <>
       <h2 className="na1-a2m2-step-title">
         Where your time <em>goes.</em>
       </h2>
+          </>
+        }
+        sections={[
+          {
+            label: "Your activities",
+            node: (
+              <>
       <p className="na1-a2m2-step-lede">
         Log what fills your week — honestly. Hours per week, how it feels, and
         which priority it serves.
       </p>
 
       <div className="na1-a2m2-activities">
-        {activities.map((a) => (
+        {pager.slice.map((a) => (
           <div className="na1-a2m2-activity-card" key={a.id}>
             <div className="na1-a2m2-activity-top">
               <input
@@ -38282,6 +38758,8 @@ function NewA2M2Step2Body({
         ))}
       </div>
 
+                <div className="df-footrow">
+                  <PagerBar page={pager.page} pages={pager.pages} onPage={pager.setPage} noun="Activities" />
       <button
         type="button"
         className="na1-a2m2-add-activity"
@@ -38293,7 +38771,15 @@ function NewA2M2Step2Body({
       <p className="na1-a2m2-count">
         {activities.length} of {A2M2_ACTIVITY_MAX} activities logged
       </p>
+                </div>
 
+              </>
+            ),
+          },
+          {
+            label: "Your week",
+            node: (
+              <>
       <div className="na1-a2m2-benchmark">
         <label className="na1-a2m2-benchmark-label" htmlFor="na1-a2m2-awake">
           How many hours are you awake per week?
@@ -38353,6 +38839,11 @@ function NewA2M2Step2Body({
           </span>
         </div>
       </div>
+              </>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -38675,8 +39166,17 @@ function NewA2M2Container({
   const claimedRevisit = claimedAtEntry && !resuming;
 
   // Local, non-persisted step navigation. A claimed re-entry lands on Claim.
-  const [currentStep, setCurrentStep] = useState<number>(m2.claimed ? 4 : 1);
-  const [maxReached, setMaxReached] = useState<number>(m2.claimed ? 4 : 1);
+  const wide = useVisionWide();
+  // A refresh restores the same step (and, for desktop-flow steps, the same section).
+  const restoredStep = resuming && wide ? readFlowStep("a2m2:step") : null;
+  const startStep = Math.min(4, Math.max(1, restoredStep ?? (m2.claimed ? 4 : 1)));
+  const [currentStep, setCurrentStep] = useState<number>(startStep);
+  const [maxReached, setMaxReached] = useState<number>(startStep);
+  useEffect(() => {
+    writeFlowStep("a2m2:step", currentStep);
+  }, [currentStep]);
+  useEffect(() => () => writeFlowStep("a2m2:step", null), []);
+  const flowStep = wide && currentStep === 2; // Step 2 runs as one section per screen
 
   const [roomOpen, setRoomOpen] = useState<boolean>(
     !launchVeil && !claimedRevisit,
@@ -38920,6 +39420,12 @@ function NewA2M2Container({
                   onUpdate={updateActivity}
                   onRemove={removeActivity}
                   onAwakeChange={setAwakeHours}
+                  onBack={onBack}
+                  forward={
+                    <button type="button" className="na1-btn-gold" onClick={onDone} disabled={!canContinue}>
+                      {`Continue to ${A2M2_STEPS[currentStep]?.name ?? "Time Audit"}`}
+                    </button>
+                  }
                 />
               ) : currentStep === 3 ? (
                 <NewA2M2Step3Body
@@ -38942,7 +39448,7 @@ function NewA2M2Container({
                 />
               )}
             </div>
-            <div className="na1-a2m2-nav">
+            {!flowStep && (<div className="na1-a2m2-nav">
               <button type="button" className="na1-btn-ghost" onClick={onBack}>
                 {currentStep > 1 ? "← Back" : "Close"}
               </button>
@@ -38956,7 +39462,7 @@ function NewA2M2Container({
                   {`Continue to ${A2M2_STEPS[currentStep]?.name ?? "Time Audit"}`}
                 </button>
               )}
-            </div>
+            </div>)}
           </div>
         </div>
       )}
@@ -38985,6 +39491,8 @@ function NewA2M3Step1Body({
   awakeHours,
   intentMap,
   onSetIntent,
+  onBack,
+  forward,
 }: {
   priorities: string[];
   activities: A2M2Activity[];
@@ -38992,6 +39500,9 @@ function NewA2M3Step1Body({
   awakeHours: number;
   intentMap: Record<string, A2M3Intent>;
   onSetIntent: (name: string, intent: A2M3Intent) => void;
+  // Desktop flow: the room's own Back (first screen) and Continue (last screen).
+  onBack: () => void;
+  forward: React.ReactNode;
 }) {
   const benchmark = awakeHours > 0 ? awakeHours : 112;
   const hrsFor = (name: string) =>
@@ -39003,13 +39514,30 @@ function NewA2M3Step1Body({
   const unaccounted = Math.max(0, total - tagged);
   const insight = a2m3Insight(priorities, activities, benchmark);
   const namedMissing = missingItems.filter((m) => m.name.trim() !== "");
+  const flow = useDeskFlow("a2m3-gap", 2);
+  const UNACC = "\u0000unaccounted";
+  const gapItems = [...priorities, ...(unaccounted > 0 ? [UNACC] : [])];
+  const pager = usePager(gapItems, 3, flow.wide);
 
   return (
     <div className="na1-a2m3-step1">
+      <DeskFlow
+        flow={flow}
+        onBack={onBack}
+        forward={forward}
+        header={
+          <>
       <div className="na1-room-eyebrow tone-gold">A2 · MIRROR 3 · STEP 1</div>
       <h2 className="na1-a2m3-step-title">
         The <em>gap.</em>
       </h2>
+          </>
+        }
+        sections={[
+          {
+            label: "Priorities & what's missing",
+            node: (
+              <>
       <p className="na1-a2m3-step-lede">
         Your priorities vs. where your hours actually went. For each one — is
         this intentional, or invisible?
@@ -39064,7 +39592,37 @@ function NewA2M3Step1Body({
         </div>
       )}
 
-      {priorities.map((name, i) => {
+              </>
+            ),
+          },
+          {
+            label: "Intentional or invisible?",
+            node: (
+              <>
+        {pager.slice.map((name) => {
+        if (name === UNACC) return (
+
+        <div className="na1-a2m3-gap-card is-unaccounted">
+          <div className="na1-a2m3-gap-top">
+            <span className="na1-a2m3-gap-name">Unaccounted</span>
+            <span className="na1-a2m3-gap-hrs">{unaccounted}h</span>
+          </div>
+          <div className="na1-a2m3-bar">
+            <div
+              className="na1-a2m3-bar-fill is-burgundy"
+              style={{
+                width: `${Math.max(0, Math.min(100, Math.round((unaccounted / benchmark) * 100)))}%`,
+              }}
+              aria-hidden
+            />
+          </div>
+          <p className="na1-a2m3-bar-label">
+            {Math.round((unaccounted / benchmark) * 100)}% of your week · Serves
+            no priority
+          </p>
+        </div>
+        );
+        const i = priorities.indexOf(name);
         const hrs = hrsFor(name);
         const pct = Math.round((hrs / benchmark) * 100);
         const barW = Math.max(0, Math.min(100, pct));
@@ -39107,27 +39665,12 @@ function NewA2M3Step1Body({
         );
       })}
 
-      {unaccounted > 0 && (
-        <div className="na1-a2m3-gap-card is-unaccounted">
-          <div className="na1-a2m3-gap-top">
-            <span className="na1-a2m3-gap-name">Unaccounted</span>
-            <span className="na1-a2m3-gap-hrs">{unaccounted}h</span>
-          </div>
-          <div className="na1-a2m3-bar">
-            <div
-              className="na1-a2m3-bar-fill is-burgundy"
-              style={{
-                width: `${Math.max(0, Math.min(100, Math.round((unaccounted / benchmark) * 100)))}%`,
-              }}
-              aria-hidden
-            />
-          </div>
-          <p className="na1-a2m3-bar-label">
-            {Math.round((unaccounted / benchmark) * 100)}% of your week · Serves
-            no priority
-          </p>
-        </div>
-      )}
+                <PagerBar page={pager.page} pages={pager.pages} onPage={pager.setPage} noun="Priorities" />
+              </>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -39152,6 +39695,8 @@ function NewA2M3Step2Body({
   onRemoveCommitment,
   onMoveText,
   onSelfFeedback,
+  onBack,
+  forward,
 }: {
   m2: A2M2State;
   m3: A2M3State;
@@ -39165,6 +39710,9 @@ function NewA2M3Step2Body({
   onRemoveCommitment: (index: number) => void;
   onMoveText: (text: string) => void;
   onSelfFeedback: (text: string) => void;
+  // Desktop flow: the room's own Back (first screen) and Continue (last screen).
+  onBack: () => void;
+  forward: React.ReactNode;
 }) {
   const decisions = m3.activityDecisions;
   const activities = m2.activities.filter((a) => a.name.trim() !== "");
@@ -39177,6 +39725,16 @@ function NewA2M3Step2Body({
   const firstNonEmpty =
     A2M3_GROUP_META.find((g) => groupActs(g.key).length > 0)?.key ?? null;
   const [openGroup, setOpenGroup] = useState<A2M3Group | null>(firstNonEmpty);
+  // Desktop: one screen each for the overview, every group of activities, the
+  // missing items, the priorities, and the move.
+  const flowGroups = A2M3_GROUP_META.filter((g) => groupActs(g.key).length > 0);
+  const flow = useDeskFlow("a2m3-rethink", 1 + flowGroups.length + 3);
+  const curGroup = flow.wide && flow.idx >= 1 && flow.idx <= flowGroups.length ? flowGroups[flow.idx - 1] : null;
+  const groupPager = usePager(curGroup ? groupActs(curGroup.key) : [], 4, flow.wide);
+  const groupPagerSet = groupPager.setPage;
+  useEffect(() => groupPagerSet(0), [flow.idx, groupPagerSet]);
+  const groupPage = groupPager.page;
+  useEffect(() => setOpenAct(null), [flow.idx, groupPage]);
 
   // Assigned freed hrs (missing items + priority commitments) vs. freed total.
   const assignedMissing = Object.values(m3.missingAssignments).reduce(
@@ -39245,111 +39803,7 @@ function NewA2M3Step2Body({
     }
   };
 
-  return (
-    <div className="na1-a2m3-step2">
-      <div className="na1-room-eyebrow tone-gold">A2 · MIRROR 3 · STEP 2</div>
-      <h2 className="na1-a2m3-step-title">
-        Rethink your <em>time.</em>
-      </h2>
-      <p className="na1-a2m3-step-lede">
-        Your week, laid out. Change what needs changing — leave the rest.
-      </p>
-
-      <div className="na1-a2m3-note">
-        You don&rsquo;t have to go through all of this. If an activity is fine as
-        is, leave it — the system keeps your original hours. Only act where
-        something needs to change.
-      </div>
-
-      <div className="na1-a2m3-freed-hero">
-        <div className="na1-a2m3-freed-num">{freed}</div>
-        <div className="na1-a2m3-freed-label">
-          {freed === 0 ? "hrs freed so far" : "hrs freed this week"}
-        </div>
-      </div>
-
-      {activities.length === 0 ? (
-        <p className="na1-a2m3-ctx-empty">No activities logged in Mirror 2.</p>
-      ) : (
-        A2M3_GROUP_META.map((g) => {
-          const acts = groupActs(g.key);
-          if (acts.length === 0) return null;
-          const groupHrs = acts.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
-          const groupFreed = a2m3FreedHrs(acts, decisions);
-          const isOpen = openGroup === g.key;
-          return (
-            <div
-              className={`na1-a2m3-accordion is-${g.key} ${isOpen ? "is-open" : ""}`}
-              key={g.key}
-            >
-              <button
-                type="button"
-                className="na1-a2m3-acc-head"
-                onClick={() => setOpenGroup(isOpen ? null : g.key)}
-                aria-expanded={isOpen}
-              >
-                <span className="na1-a2m3-acc-label">{g.label}</span>
-                <span className="na1-a2m3-acc-note">{g.note}</span>
-                <span className="na1-a2m3-acc-meta">
-                  {acts.length} · {groupHrs}h
-                  {groupFreed > 0 ? ` · ${groupFreed}h freed` : ""}
-                </span>
-                <span className="na1-a2m3-acc-chevron" aria-hidden>
-                  {isOpen ? "▾" : "▸"}
-                </span>
-              </button>
-              {isOpen && (
-                <div className="na1-a2m3-acc-body">
-                  {acts.map((a) => {
-                    const dec = decisions[a.id];
-                    const decision = dec?.decision ?? "do";
-                    const showDetail =
-                      decision === "move" || decision === "reduce";
-                    const eff = a2m3EffectiveHrs(a, dec);
-                    const actFreed = Math.max(0, a.hrsPerWeek - eff);
-                    const suggestion = a2m3Suggestion(a);
-                    return (
-                      <div className="na1-a2m3-act" key={a.id}>
-                        <div className="na1-a2m3-act-top">
-                          <span className="na1-a2m3-act-name">{a.name}</span>
-                          <span
-                            className="na1-a2m3-act-feel"
-                            data-feeling={a.feeling}
-                          >
-                            {A2M3_FEELING_LABEL[a.feeling]}
-                          </span>
-                          <span
-                            className={`na1-a2m3-act-pri ${
-                              a.priorityServed.trim() ? "is-tagged" : "is-none"
-                            }`}
-                          >
-                            {a.priorityServed.trim() || "No priority"}
-                          </span>
-                          <span className="na1-a2m3-act-hrs">
-                            {a.hrsPerWeek}h
-                          </span>
-                        </div>
-                        <div className="na1-a2m3-dec-btns">
-                          {A2M3_DECISION_OPTIONS.map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              className={`na1-a2m3-dec-btn is-${opt.value} ${
-                                decision === opt.value ? "is-selected" : ""
-                              }`}
-                              onClick={() =>
-                                onSetDecision(a.id, { decision: opt.value })
-                              }
-                              aria-pressed={decision === opt.value}
-                            >
-                              <span className="na1-a2m3-dec-main">
-                                {opt.label}
-                              </span>
-                              <span className="na1-a2m3-dec-sub">{opt.sub}</span>
-                            </button>
-                          ))}
-                        </div>
-                        {showDetail && (
+  const renderDetail = (a: A2M2Activity, dec: A2M3ActivityDecision | undefined, actFreed: number) => (
                           <div className="na1-a2m3-detail">
                             <div className="na1-a2m3-detail-row">
                               <label className="na1-a2m3-detail-label">
@@ -39399,198 +39853,576 @@ function NewA2M3Step2Body({
                               />
                             </div>
                           </div>
-                        )}
+  );
+  // Desktop group screens: one compact row per activity (name · hrs · Move / Reduce /
+  // Cut / Do chips). Tapping a row opens its detail inline — one open at a time.
+  const [openAct, setOpenAct] = useState<string | null>(null);
+  const renderActRow = (a: A2M2Activity) => {
+    const dec = decisions[a.id];
+    const decision = dec?.decision ?? "do";
+    const showDetail = decision === "move" || decision === "reduce";
+    const open = openAct === a.id;
+    const eff = a2m3EffectiveHrs(a, dec);
+    const actFreed = Math.max(0, a.hrsPerWeek - eff);
+    const suggestion = a2m3Suggestion(a);
+    return (
+      <div className={`df-act ${open ? "is-open" : ""}`} key={a.id}>
+        <div className="df-act-row">
+          <button
+            type="button"
+            className="df-act-main"
+            onClick={() => setOpenAct(open ? null : a.id)}
+            aria-expanded={open}
+          >
+            <span className="df-act-chev" aria-hidden>{open ? "▾" : "▸"}</span>
+            <span className="na1-a2m3-act-name">{a.name}</span>
+            <span className="na1-a2m3-act-hrs">{a.hrsPerWeek}h</span>
+          </button>
+          <div className="df-act-chips" role="group" aria-label={`What to do with ${a.name}`}>
+            {A2M3_DECISION_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`df-act-chip is-${opt.value} ${decision === opt.value ? "is-selected" : ""}`}
+                title={opt.sub}
+                aria-pressed={decision === opt.value}
+                onClick={() => {
+                  onSetDecision(a.id, { decision: opt.value });
+                  if (opt.value === "move" || opt.value === "reduce") setOpenAct(a.id);
+                }}
+              >
+                {opt.label.replace(/ it$/, "")}
+              </button>
+            ))}
+          </div>
+        </div>
+        {open && (
+          <div className="df-act-more">
+            {showDetail && renderDetail(a, dec, actFreed)}
+            {suggestion && <p className="na1-a2m3-act-suggest">{suggestion}</p>}
+          </div>
+        )}
+      </div>
+    );
+  };
+  const renderAct = (a: A2M2Activity) => {
+                    const dec = decisions[a.id];
+                    const decision = dec?.decision ?? "do";
+                    const showDetail =
+                      decision === "move" || decision === "reduce";
+                    const eff = a2m3EffectiveHrs(a, dec);
+                    const actFreed = Math.max(0, a.hrsPerWeek - eff);
+                    const suggestion = a2m3Suggestion(a);
+                    return (
+                      <div className="na1-a2m3-act" key={a.id}>
+                        <div className="na1-a2m3-act-top">
+                          <span className="na1-a2m3-act-name">{a.name}</span>
+                          <span
+                            className="na1-a2m3-act-feel"
+                            data-feeling={a.feeling}
+                          >
+                            {A2M3_FEELING_LABEL[a.feeling]}
+                          </span>
+                          <span
+                            className={`na1-a2m3-act-pri ${
+                              a.priorityServed.trim() ? "is-tagged" : "is-none"
+                            }`}
+                          >
+                            {a.priorityServed.trim() || "No priority"}
+                          </span>
+                          <span className="na1-a2m3-act-hrs">
+                            {a.hrsPerWeek}h
+                          </span>
+                        </div>
+                        <div className="na1-a2m3-dec-btns">
+                          {A2M3_DECISION_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={`na1-a2m3-dec-btn is-${opt.value} ${
+                                decision === opt.value ? "is-selected" : ""
+                              }`}
+                              onClick={() =>
+                                onSetDecision(a.id, { decision: opt.value })
+                              }
+                              aria-pressed={decision === opt.value}
+                            >
+                              <span className="na1-a2m3-dec-main">
+                                {opt.label}
+                              </span>
+                              <span className="na1-a2m3-dec-sub">{opt.sub}</span>
+                            </button>
+                          ))}
+                        </div>
+                        {showDetail && renderDetail(a, dec, actFreed)}
                         {suggestion && (
                           <p className="na1-a2m3-act-suggest">{suggestion}</p>
                         )}
                       </div>
                     );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })
-      )}
+  };
+  return (
+    <div className="na1-a2m3-step2">
+      <DeskFlow
+        flow={flow}
+        onBack={onBack}
+        forward={forward}
+        header={
+          <>
+      <div className="na1-room-eyebrow tone-gold">A2 · MIRROR 3 · STEP 2</div>
+      <h2 className="na1-a2m3-step-title">
+        Rethink your <em>time.</em>
+      </h2>
+          </>
+        }
+        sections={[
+          {
+            label: "Your week",
+            node: (
+              <>
+      <p className="na1-a2m3-step-lede">
+        Your week, laid out. Change what needs changing — leave the rest.
+      </p>
 
-      <div className={`na1-a2m3-trade ${freed > 0 ? "" : "is-muted"}`}>
-        <div className="na1-a2m3-trade-head">Where do those hours go?</div>
-        <p className="na1-a2m3-trade-sub">
-          {freed > 0
-            ? `You've freed ${freed} hours. Assign them where they matter most.`
-            : "Make changes above to free up hours first."}
-        </p>
+      <div className="na1-a2m3-note">
+        You don&rsquo;t have to go through all of this. If an activity is fine as
+        is, leave it — the system keeps your original hours. Only act where
+        something needs to change.
+      </div>
 
-        {m2.missingItems.filter((m) => m.name.trim() !== "").length > 0 && (
-          <div className="na1-a2m3-trade-sec">
-            <div className="na1-a2m3-trade-sec-head">What&rsquo;s missing</div>
-            {m2.missingItems
-              .filter((m) => m.name.trim() !== "")
-              .map((m) => {
-                const v = m3.missingAssignments[m.id] || 0;
+      <div className="na1-a2m3-freed-hero">
+        <div className="na1-a2m3-freed-num">{freed}</div>
+        <div className="na1-a2m3-freed-label">
+          {freed === 0 ? "hrs freed so far" : "hrs freed this week"}
+        </div>
+      </div>
+
+                {flow.wide && flowGroups.length > 0 && (
+                  <div className="df-groups">
+                    {flowGroups.map((g, gi) => (
+                      <button
+                        key={g.key}
+                        type="button"
+                        className={`na1-a2m3-acc-head df-group-jump is-${g.key}`}
+                        onClick={() => flow.go(gi + 1)}
+                      >
+                        <span className="na1-a2m3-acc-label">{g.label}</span>
+                        <span className="na1-a2m3-acc-note">{g.note}</span>
+                        <span className="na1-a2m3-acc-meta">
+                          {groupActs(g.key).length} · {groupActs(g.key).reduce((x, a) => x + (a.hrsPerWeek || 0), 0)}h
+                          {a2m3FreedHrs(groupActs(g.key), decisions) > 0 ? ` · ${a2m3FreedHrs(groupActs(g.key), decisions)}h freed` : ""}
+                        </span>
+                        <span className="na1-a2m3-acc-chevron" aria-hidden>▸</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {!flow.wide && (
+                  <>
+            {activities.length === 0 ? (
+              <p className="na1-a2m3-ctx-empty">No activities logged in Mirror 2.</p>
+            ) : (
+              A2M3_GROUP_META.map((g) => {
+                const acts = groupActs(g.key);
+                if (acts.length === 0) return null;
+                const groupHrs = acts.reduce((s, a) => s + (a.hrsPerWeek || 0), 0);
+                const groupFreed = a2m3FreedHrs(acts, decisions);
+                const isOpen = openGroup === g.key;
                 return (
                   <div
-                    className={`na1-a2m3-trade-row ${v > 0 ? "is-active" : ""}`}
-                    key={m.id}
+                    className={`na1-a2m3-accordion is-${g.key} ${isOpen ? "is-open" : ""}`}
+                    key={g.key}
                   >
-                    <span className="na1-a2m3-miss-dot" aria-hidden />
-                    <span className="na1-a2m3-trade-name">{m.name}</span>
-                    {m.priorityTag.trim() && (
-                      <span className="na1-a2m3-trade-tag">
-                        {m.priorityTag}
+                    <button
+                      type="button"
+                      className="na1-a2m3-acc-head"
+                      onClick={() => setOpenGroup(isOpen ? null : g.key)}
+                      aria-expanded={isOpen}
+                    >
+                      <span className="na1-a2m3-acc-label">{g.label}</span>
+                      <span className="na1-a2m3-acc-note">{g.note}</span>
+                      <span className="na1-a2m3-acc-meta">
+                        {acts.length} · {groupHrs}h
+                        {groupFreed > 0 ? ` · ${groupFreed}h freed` : ""}
                       </span>
+                      <span className="na1-a2m3-acc-chevron" aria-hidden>
+                        {isOpen ? "▾" : "▸"}
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="na1-a2m3-acc-body">
+                        {acts.map((a) => renderAct(a))}
+                      </div>
                     )}
-                    <input
-                      type="number"
-                      min={0}
-                      className="na1-a2m3-trade-input"
-                      value={v || ""}
-                      placeholder="0"
-                      onChange={(e) =>
-                        onSetMissing(
-                          m.id,
-                          Math.max(0, Math.round(Number(e.target.value) || 0)),
-                        )
-                      }
-                    />
-                    <span className="na1-a2m3-trade-unit">hrs / wk</span>
                   </div>
                 );
-              })}
-          </div>
-        )}
+              })
+            )}
 
-        <div className="na1-a2m3-trade-sec">
-          <div className="na1-a2m3-trade-sec-head">Add more to a priority</div>
-          <div className="na1-a2m3-trade-add">
-            <select
-              className="na1-a2m3-trade-select"
-              value={pickPriority}
-              onChange={(e) => setPickPriority(e.target.value)}
-            >
-              <option value="">Choose a priority to add time to…</option>
-              {availablePriorities.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="na1-btn-ghost na1-a2m3-trade-addbtn"
-              disabled={pickPriority === ""}
-              onClick={() => {
-                if (pickPriority === "") return;
-                onAddCommitment(pickPriority);
-                setPickPriority("");
-              }}
-            >
-              + Add
-            </button>
-          </div>
-          {m3.priorityCommitments.map((c, idx) => (
-            <div className="na1-a2m3-commit" key={`${c.priority}-${idx}`}>
-              <div className="na1-a2m3-commit-top">
-                <span className="na1-a2m3-commit-dot" aria-hidden />
-                <span className="na1-a2m3-commit-name">{c.priority}</span>
-                <input
-                  type="number"
-                  min={0}
-                  className="na1-a2m3-trade-input"
-                  value={c.addedHrs || ""}
-                  placeholder="0"
-                  onChange={(e) =>
-                    onUpdateCommitment(idx, {
-                      addedHrs: Math.max(
-                        0,
-                        Math.round(Number(e.target.value) || 0),
-                      ),
-                    })
-                  }
-                />
-                <span className="na1-a2m3-trade-unit">more hrs / wk</span>
-                <button
-                  type="button"
-                  className="na1-a2m3-commit-x"
-                  onClick={() => onRemoveCommitment(idx)}
-                  aria-label={`Remove ${c.priority}`}
-                >
-                  ×
-                </button>
+                  </>
+                )}
+              </>
+            ),
+          },
+          ...flowGroups.map((g) => ({
+            label: g.label,
+            node:
+              curGroup && g.key === curGroup.key ? (
+                <div className={`na1-a2m3-accordion is-${g.key} is-open`}>
+                  <div className="na1-a2m3-acc-head df-acc-static">
+                    <span className="na1-a2m3-acc-label">{g.label}</span>
+                    <span className="na1-a2m3-acc-note">{g.note}</span>
+                    <span className="na1-a2m3-acc-meta">
+                      {groupActs(g.key).length} · {groupActs(g.key).reduce((x, a) => x + (a.hrsPerWeek || 0), 0)}h
+                      {a2m3FreedHrs(groupActs(g.key), decisions) > 0 ? ` · ${a2m3FreedHrs(groupActs(g.key), decisions)}h freed` : ""}
+                    </span>
+                  </div>
+                  <div className="df-acts">{groupPager.slice.map((a) => renderActRow(a))}</div>
+                  <PagerBar page={groupPager.page} pages={groupPager.pages} onPage={groupPager.setPage} noun="Activities" />
+                </div>
+              ) : null,
+          })),
+          {
+            label: "What's missing",
+            node: flow.wide ? (
+              <>
+              <div className={`na1-a2m3-trade ${freed > 0 ? "" : "is-muted"}`}>
+                <div className="na1-a2m3-trade-head">Where do those hours go?</div>
+                <p className="na1-a2m3-trade-sub">
+                  {freed > 0
+                    ? `You've freed ${freed} hours. Assign them where they matter most.`
+                    : "Make changes above to free up hours first."}
+                </p>
+
+                {m2.missingItems.filter((m) => m.name.trim() !== "").length > 0 && (
+                  <div className="na1-a2m3-trade-sec">
+                    <div className="na1-a2m3-trade-sec-head">What&rsquo;s missing</div>
+                    {m2.missingItems
+                      .filter((m) => m.name.trim() !== "")
+                      .map((m) => {
+                        const v = m3.missingAssignments[m.id] || 0;
+                        return (
+                          <div
+                            className={`na1-a2m3-trade-row ${v > 0 ? "is-active" : ""}`}
+                            key={m.id}
+                          >
+                            <span className="na1-a2m3-miss-dot" aria-hidden />
+                            <span className="na1-a2m3-trade-name">{m.name}</span>
+                            {m.priorityTag.trim() && (
+                              <span className="na1-a2m3-trade-tag">
+                                {m.priorityTag}
+                              </span>
+                            )}
+                            <input
+                              type="number"
+                              min={0}
+                              className="na1-a2m3-trade-input"
+                              value={v || ""}
+                              placeholder="0"
+                              onChange={(e) =>
+                                onSetMissing(
+                                  m.id,
+                                  Math.max(0, Math.round(Number(e.target.value) || 0)),
+                                )
+                              }
+                            />
+                            <span className="na1-a2m3-trade-unit">hrs / wk</span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+
               </div>
-              <input
-                type="text"
-                className="na1-a2m3-commit-activity"
-                value={c.activity}
-                placeholder="What will you do with this time? e.g. Sunday afternoons at the park with the kids…"
-                onChange={(e) =>
-                  onUpdateCommitment(idx, { activity: e.target.value })
-                }
+              </>
+            ) : (
+              <>
+              <div className={`na1-a2m3-trade ${freed > 0 ? "" : "is-muted"}`}>
+                <div className="na1-a2m3-trade-head">Where do those hours go?</div>
+                <p className="na1-a2m3-trade-sub">
+                  {freed > 0
+                    ? `You've freed ${freed} hours. Assign them where they matter most.`
+                    : "Make changes above to free up hours first."}
+                </p>
+
+                {m2.missingItems.filter((m) => m.name.trim() !== "").length > 0 && (
+                  <div className="na1-a2m3-trade-sec">
+                    <div className="na1-a2m3-trade-sec-head">What&rsquo;s missing</div>
+                    {m2.missingItems
+                      .filter((m) => m.name.trim() !== "")
+                      .map((m) => {
+                        const v = m3.missingAssignments[m.id] || 0;
+                        return (
+                          <div
+                            className={`na1-a2m3-trade-row ${v > 0 ? "is-active" : ""}`}
+                            key={m.id}
+                          >
+                            <span className="na1-a2m3-miss-dot" aria-hidden />
+                            <span className="na1-a2m3-trade-name">{m.name}</span>
+                            {m.priorityTag.trim() && (
+                              <span className="na1-a2m3-trade-tag">
+                                {m.priorityTag}
+                              </span>
+                            )}
+                            <input
+                              type="number"
+                              min={0}
+                              className="na1-a2m3-trade-input"
+                              value={v || ""}
+                              placeholder="0"
+                              onChange={(e) =>
+                                onSetMissing(
+                                  m.id,
+                                  Math.max(0, Math.round(Number(e.target.value) || 0)),
+                                )
+                              }
+                            />
+                            <span className="na1-a2m3-trade-unit">hrs / wk</span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+
+                <div className="na1-a2m3-trade-sec">
+                  <div className="na1-a2m3-trade-sec-head">Add more to a priority</div>
+                  <div className="na1-a2m3-trade-add">
+                    <select
+                      className="na1-a2m3-trade-select"
+                      value={pickPriority}
+                      onChange={(e) => setPickPriority(e.target.value)}
+                    >
+                      <option value="">Choose a priority to add time to…</option>
+                      {availablePriorities.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="na1-btn-ghost na1-a2m3-trade-addbtn"
+                      disabled={pickPriority === ""}
+                      onClick={() => {
+                        if (pickPriority === "") return;
+                        onAddCommitment(pickPriority);
+                        setPickPriority("");
+                      }}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  {m3.priorityCommitments.map((c, idx) => (
+                    <div className="na1-a2m3-commit" key={`${c.priority}-${idx}`}>
+                      <div className="na1-a2m3-commit-top">
+                        <span className="na1-a2m3-commit-dot" aria-hidden />
+                        <span className="na1-a2m3-commit-name">{c.priority}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          className="na1-a2m3-trade-input"
+                          value={c.addedHrs || ""}
+                          placeholder="0"
+                          onChange={(e) =>
+                            onUpdateCommitment(idx, {
+                              addedHrs: Math.max(
+                                0,
+                                Math.round(Number(e.target.value) || 0),
+                              ),
+                            })
+                          }
+                        />
+                        <span className="na1-a2m3-trade-unit">more hrs / wk</span>
+                        <button
+                          type="button"
+                          className="na1-a2m3-commit-x"
+                          onClick={() => onRemoveCommitment(idx)}
+                          aria-label={`Remove ${c.priority}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        className="na1-a2m3-commit-activity"
+                        value={c.activity}
+                        placeholder="What will you do with this time? e.g. Sunday afternoons at the park with the kids…"
+                        onChange={(e) =>
+                          onUpdateCommitment(idx, { activity: e.target.value })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="na1-a2m3-remain">
+                  <div className="na1-a2m3-remain-label">
+                    {remaining > 0
+                      ? "HRS STILL TO ASSIGN"
+                      : remaining === 0
+                        ? "ALL HOURS ASSIGNED"
+                        : "HRS OVER-ASSIGNED"}
+                  </div>
+                  <div
+                    className={`na1-a2m3-remain-num ${
+                      remaining === 0 ? "is-zero" : remaining < 0 ? "is-over" : ""
+                    }`}
+                  >
+                    {Math.abs(remaining)}
+                  </div>
+                </div>
+              </div>
+
+              </>
+            ),
+          },
+          {
+            label: "Your priorities",
+            node: flow.wide ? (
+              <>
+              <div className={`na1-a2m3-trade ${freed > 0 ? "" : "is-muted"}`}>
+                <div className="na1-a2m3-trade-sec">
+                  <div className="na1-a2m3-trade-sec-head">Add more to a priority</div>
+                  <div className="na1-a2m3-trade-add">
+                    <select
+                      className="na1-a2m3-trade-select"
+                      value={pickPriority}
+                      onChange={(e) => setPickPriority(e.target.value)}
+                    >
+                      <option value="">Choose a priority to add time to…</option>
+                      {availablePriorities.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="na1-btn-ghost na1-a2m3-trade-addbtn"
+                      disabled={pickPriority === ""}
+                      onClick={() => {
+                        if (pickPriority === "") return;
+                        onAddCommitment(pickPriority);
+                        setPickPriority("");
+                      }}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  {m3.priorityCommitments.map((c, idx) => (
+                    <div className="na1-a2m3-commit" key={`${c.priority}-${idx}`}>
+                      <div className="na1-a2m3-commit-top">
+                        <span className="na1-a2m3-commit-dot" aria-hidden />
+                        <span className="na1-a2m3-commit-name">{c.priority}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          className="na1-a2m3-trade-input"
+                          value={c.addedHrs || ""}
+                          placeholder="0"
+                          onChange={(e) =>
+                            onUpdateCommitment(idx, {
+                              addedHrs: Math.max(
+                                0,
+                                Math.round(Number(e.target.value) || 0),
+                              ),
+                            })
+                          }
+                        />
+                        <span className="na1-a2m3-trade-unit">more hrs / wk</span>
+                        <button
+                          type="button"
+                          className="na1-a2m3-commit-x"
+                          onClick={() => onRemoveCommitment(idx)}
+                          aria-label={`Remove ${c.priority}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        className="na1-a2m3-commit-activity"
+                        value={c.activity}
+                        placeholder="What will you do with this time? e.g. Sunday afternoons at the park with the kids…"
+                        onChange={(e) =>
+                          onUpdateCommitment(idx, { activity: e.target.value })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="na1-a2m3-remain">
+                  <div className="na1-a2m3-remain-label">
+                    {remaining > 0
+                      ? "HRS STILL TO ASSIGN"
+                      : remaining === 0
+                        ? "ALL HOURS ASSIGNED"
+                        : "HRS OVER-ASSIGNED"}
+                  </div>
+                  <div
+                    className={`na1-a2m3-remain-num ${
+                      remaining === 0 ? "is-zero" : remaining < 0 ? "is-over" : ""
+                    }`}
+                  >
+                    {Math.abs(remaining)}
+                  </div>
+                </div>
+              </div>
+              </>
+            ) : null,
+          },
+          {
+            label: "Your move",
+            node: (
+              <>
+            <div className="na1-a2m3-move">
+              <div className="na1-a2m3-move-label">
+                Your move — built from your decisions
+              </div>
+              <p className="na1-a2m3-move-preview">
+                {moveValue ||
+                  "Leave activities as is or make changes above — your move will build itself here."}
+              </p>
+              <textarea
+                className="na1-a2m3-move-text"
+                value={moveValue}
+                rows={3}
+                onChange={(e) => onMoveText(e.target.value)}
               />
             </div>
-          ))}
-        </div>
 
-        <div className="na1-a2m3-remain">
-          <div className="na1-a2m3-remain-label">
-            {remaining > 0
-              ? "HRS STILL TO ASSIGN"
-              : remaining === 0
-                ? "ALL HOURS ASSIGNED"
-                : "HRS OVER-ASSIGNED"}
-          </div>
-          <div
-            className={`na1-a2m3-remain-num ${
-              remaining === 0 ? "is-zero" : remaining < 0 ? "is-over" : ""
-            }`}
-          >
-            {Math.abs(remaining)}
-          </div>
-        </div>
-      </div>
-
-      <div className="na1-a2m3-move">
-        <div className="na1-a2m3-move-label">
-          Your move — built from your decisions
-        </div>
-        <p className="na1-a2m3-move-preview">
-          {moveValue ||
-            "Leave activities as is or make changes above — your move will build itself here."}
-        </p>
-        <textarea
-          className="na1-a2m3-move-text"
-          value={moveValue}
-          rows={3}
-          onChange={(e) => onMoveText(e.target.value)}
-        />
-      </div>
-
-      <div className="na1-a2m3-feedback">
-        {m3.selfFeedback.trim() !== "" ? (
-          <div className="na1-a2m3-feedback-card">
-            <div className="na1-a2m3-feedback-head">
-              What your Map of Me says
+            <div className="na1-a2m3-feedback">
+              {m3.selfFeedback.trim() !== "" ? (
+                <div className="na1-a2m3-feedback-card">
+                  <div className="na1-a2m3-feedback-head">
+                    What your Map of Me says
+                  </div>
+                  <p className="na1-a2m3-feedback-text">{m3.selfFeedback}</p>
+                  <p className="na1-a2m3-feedback-note">
+                    Built from your own words — your purpose, values, and behaviors as
+                    you named them.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="na1-btn-ghost na1-a2m3-feedback-btn"
+                    onClick={runSelfFeedback}
+                    disabled={fbLoading}
+                  >
+                    {fbLoading ? "Reading your Map of Me…" : "◎ Check this against my Map of Me"}
+                  </button>
+                  {fbError && <p className="na1-a2m3-feedback-err">{fbError}</p>}
+                </>
+              )}
             </div>
-            <p className="na1-a2m3-feedback-text">{m3.selfFeedback}</p>
-            <p className="na1-a2m3-feedback-note">
-              Built from your own words — your purpose, values, and behaviors as
-              you named them.
-            </p>
-          </div>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="na1-btn-ghost na1-a2m3-feedback-btn"
-              onClick={runSelfFeedback}
-              disabled={fbLoading}
-            >
-              {fbLoading ? "Reading your Map of Me…" : "◎ Check this against my Map of Me"}
-            </button>
-            {fbError && <p className="na1-a2m3-feedback-err">{fbError}</p>}
-          </>
-        )}
-      </div>
+              </>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -39893,8 +40725,17 @@ function NewA2M3Container({
   const claimedAtEntry = useRef(m3.claimed).current;
   const claimedRevisit = claimedAtEntry && !resuming;
 
-  const [currentStep, setCurrentStep] = useState<number>(m3.claimed ? 3 : 1);
-  const [maxReached, setMaxReached] = useState<number>(m3.claimed ? 3 : 1);
+  const wide = useVisionWide();
+  // A refresh restores the same step (and, for desktop-flow steps, the same section).
+  const restoredStep = resuming && wide ? readFlowStep("a2m3:step") : null;
+  const startStep = Math.min(3, Math.max(1, restoredStep ?? (m3.claimed ? 3 : 1)));
+  const [currentStep, setCurrentStep] = useState<number>(startStep);
+  const [maxReached, setMaxReached] = useState<number>(startStep);
+  useEffect(() => {
+    writeFlowStep("a2m3:step", currentStep);
+  }, [currentStep]);
+  useEffect(() => () => writeFlowStep("a2m3:step", null), []);
+  const flowStep = wide && currentStep <= 2; // Steps 1 and 2 run as one section per screen
 
   const [roomOpen, setRoomOpen] = useState<boolean>(
     !launchVeil && !claimedRevisit,
@@ -40158,6 +40999,12 @@ function NewA2M3Container({
                   awakeHours={m2.awakeHoursPerWeek}
                   intentMap={m3.intentMap}
                   onSetIntent={setIntent}
+                  onBack={onBack}
+                  forward={
+                    <button type="button" className="na1-btn-gold" onClick={onDone}>
+                      {`Continue to ${A2M3_STEPS[currentStep]?.name ?? "Named Truth"}`}
+                    </button>
+                  }
                 />
               ) : currentStep === 2 ? (
                 <NewA2M3Step2Body
@@ -40170,6 +41017,12 @@ function NewA2M3Container({
                   onRemoveCommitment={removeCommitment}
                   onMoveText={setMoveText}
                   onSelfFeedback={setSelfFeedback}
+                  onBack={onBack}
+                  forward={
+                    <button type="button" className="na1-btn-gold" onClick={onDone}>
+                      {`Continue to ${A2M3_STEPS[currentStep]?.name ?? "Named Truth"}`}
+                    </button>
+                  }
                 />
               ) : (
                 <NewA2M3Step3Body
@@ -40181,7 +41034,7 @@ function NewA2M3Container({
                 />
               )}
             </div>
-            <div className="na1-a2m3-nav">
+            {!flowStep && (<div className="na1-a2m3-nav">
               <button type="button" className="na1-btn-ghost" onClick={onBack}>
                 {currentStep > 1 ? "← Back" : "Close"}
               </button>
@@ -40194,7 +41047,7 @@ function NewA2M3Container({
                   {`Continue to ${A2M3_STEPS[currentStep]?.name ?? "Named Truth"}`}
                 </button>
               )}
-            </div>
+            </div>)}
           </div>
         </div>
       )}
@@ -42292,6 +43145,8 @@ function NewA3M3Step2Body({
   onReframe,
   onVoiceNow,
   onVoiceWant,
+  onBack,
+  forward,
 }: {
   thoughts: A3Thought[];
   voiceNow: string;
@@ -42300,20 +43155,38 @@ function NewA3M3Step2Body({
   onReframe: (text: string, reframe: string) => void;
   onVoiceNow: (v: string) => void;
   onVoiceWant: (v: string) => void;
+  // Desktop flow: the room's own Back (first screen) and Continue (last screen).
+  onBack: () => void;
+  forward: React.ReactNode;
 }) {
+  const flow = useDeskFlow("a3m3-shape", 3);
+  const pager = usePager(thoughts, 2, flow.wide);
   return (
     <div>
+      <DeskFlow
+        flow={flow}
+        onBack={onBack}
+        forward={forward}
+        header={
+          <>
       <div className="na1-room-eyebrow tone-gold">
         A3 · MIRROR 3 · STAGE 2 · SHAPE
       </div>
       <h2 className="na1-room-title">Coach, or critic?</h2>
+          </>
+        }
+        sections={[
+          {
+            label: "The lines",
+            node: (
+              <>
       <p className="na1-room-context">
         For each line, is this voice on your side? Mark it — and where it's a{" "}
         <strong style={{ color: "var(--burgundy)" }}>critic</strong>, say it back
         the way someone in your corner would.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {thoughts.map((t) => (
+        {pager.slice.map((t) => (
           <div
             key={t.text}
             style={{
@@ -42389,6 +43262,14 @@ function NewA3M3Step2Body({
           </div>
         ))}
       </div>
+                <PagerBar page={pager.page} pages={pager.pages} onPage={pager.setPage} noun="Lines" />
+              </>
+            ),
+          },
+          {
+            label: "The voice as it is",
+            node: (
+              <>
       <div style={{ marginTop: 22 }}>
         <label
           style={{
@@ -42441,6 +43322,15 @@ function NewA3M3Step2Body({
             </button>
           ))}
         </div>
+      </div>
+              </>
+            ),
+          },
+          {
+            label: "The voice on your side",
+            node: (
+              <>
+      <div>
         <label
           style={{
             display: "block",
@@ -42505,6 +43395,11 @@ function NewA3M3Step2Body({
           ))}
         </div>
       </div>
+              </>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -42730,10 +43625,17 @@ function NewA3M3Container({
   const claimedAtEntry = useRef(m3.claimed).current;
   const claimedRevisit = claimedAtEntry && !resuming;
 
-  const [currentStep, setCurrentStep] = useState<number>(
-    resuming && m3.claimed ? 3 : 1,
-  );
-  const [maxReached, setMaxReached] = useState<number>(m3.claimed ? 3 : 1);
+  const wide = useVisionWide();
+  // A refresh restores the same step (and, for desktop-flow steps, the same section).
+  const restoredStep = resuming && wide ? readFlowStep("a3m3:step") : null;
+  const startStep = Math.min(3, Math.max(1, restoredStep ?? (resuming && m3.claimed ? 3 : 1)));
+  const [currentStep, setCurrentStep] = useState<number>(startStep);
+  const [maxReached, setMaxReached] = useState<number>(Math.max(startStep, m3.claimed ? 3 : 1));
+  useEffect(() => {
+    writeFlowStep("a3m3:step", currentStep);
+  }, [currentStep]);
+  useEffect(() => () => writeFlowStep("a3m3:step", null), []);
+  const flowStep = wide && currentStep === 2; // Step 2 (Shape) runs as one section per screen
 
   const [roomOpen, setRoomOpen] = useState<boolean>(
     !launchVeil && !claimedRevisit,
@@ -43000,6 +43902,12 @@ function NewA3M3Container({
                   onReframe={onReframe}
                   onVoiceNow={onVoiceNow}
                   onVoiceWant={onVoiceWant}
+                  onBack={onBack}
+                  forward={
+                    <button type="button" className="na1-btn-gold" onClick={onDone} disabled={!canContinue}>
+                      {`Continue to ${A3M3_STEPS[currentStep]?.name ?? "Thoughts"}`}
+                    </button>
+                  }
                 />
               ) : (
                 <NewA3M3ClaimBody
@@ -43014,7 +43922,7 @@ function NewA3M3Container({
                 />
               )}
             </div>
-            <div className="na1-a2m2-nav">
+            {!flowStep && (<div className="na1-a2m2-nav">
               <button type="button" className="na1-btn-ghost" onClick={onBack}>
                 {currentStep > 1 ? "← Back" : "Close"}
               </button>
@@ -43031,7 +43939,7 @@ function NewA3M3Container({
                   {`Continue to ${A3M3_STEPS[currentStep]?.name ?? "Thoughts"}`}
                 </button>
               )}
-            </div>
+            </div>)}
           </div>
         </div>
       )}
@@ -44070,6 +44978,8 @@ function NewA3M5FillBody({
   onInLife,
   onAddSeat,
   onDelSeat,
+  onBack,
+  forward,
 }: {
   seats: A3BoardSeat[];
   advPool: string[];
@@ -44080,7 +44990,13 @@ function NewA3M5FillBody({
   onInLife: (i: number, v: A3BoardInLife) => void;
   onAddSeat: () => void;
   onDelSeat: (i: number) => void;
+  // Desktop flow: the room's own Back (first screen) and Continue (last screen).
+  onBack: () => void;
+  forward: React.ReactNode;
 }) {
+  const flow = useDeskFlow("a3m5-fill", 2);
+  const seatItems = seats.map((b, i) => ({ b, i }));
+  const pager = usePager(seatItems, 4, flow.wide);
   // Which seat's picker is open — ephemeral UI state (not persisted).
   const [openPicker, setOpenPicker] = useState<number | null>(null);
   const filled = seats.filter((s) => s.name.trim() !== "").length;
@@ -44118,8 +45034,21 @@ function NewA3M5FillBody({
 
   return (
     <div>
+      <DeskFlow
+        flow={flow}
+        onBack={onBack}
+        forward={forward}
+        header={
+          <>
       <div className="na1-room-eyebrow">A3 · Mirror 5</div>
       <h2 className="na1-room-title">Your Board.</h2>
+          </>
+        }
+        sections={[
+          {
+            label: "Your board",
+            node: (
+              <>
       <p className="na1-room-context">
         Eight roles to start. For each, name the <b>first person you go to</b> in
         that space — the one who actually fills that role for you right now.
@@ -44175,8 +45104,15 @@ function NewA3M5FillBody({
         </div>
       </div>
 
+              </>
+            ),
+          },
+          {
+            label: "The seats",
+            node: (
+              <>
       <div className="na1-a3board-grid">
-        {seats.map((b, i) => {
+        {pager.slice.map(({ b, i }) => {
           const seated = b.name.trim() !== "";
           const pickerOpen = openPicker === i;
           return (
@@ -44395,7 +45331,9 @@ function NewA3M5FillBody({
           );
         })}
       </div>
-      <button
+                <div className="df-footrow">
+                  <PagerBar page={pager.page} pages={pager.pages} onPage={pager.setPage} noun="Seats" />
+                  <button
         type="button"
         onClick={onAddSeat}
         style={{
@@ -44412,6 +45350,12 @@ function NewA3M5FillBody({
       >
         + Add a seat
       </button>
+                </div>
+              </>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
@@ -44826,12 +45770,17 @@ function NewA3M5Container({
   const claimedRevisit = claimedAtEntry && !resuming;
 
   const STEP_COUNT = A3M5_STEPS.length;
-  const [currentStep, setCurrentStep] = useState<number>(
-    resuming && m5.claimed ? STEP_COUNT : 1,
-  );
-  const [maxReached, setMaxReached] = useState<number>(
-    m5.claimed ? STEP_COUNT : 1,
-  );
+  const wide = useVisionWide();
+  // A refresh restores the same step (and, for desktop-flow steps, the same section).
+  const restoredStep = resuming && wide ? readFlowStep("a3m5:step") : null;
+  const startStep = Math.min(STEP_COUNT, Math.max(1, restoredStep ?? (resuming && m5.claimed ? STEP_COUNT : 1)));
+  const [currentStep, setCurrentStep] = useState<number>(startStep);
+  const [maxReached, setMaxReached] = useState<number>(Math.max(startStep, m5.claimed ? STEP_COUNT : 1));
+  useEffect(() => {
+    writeFlowStep("a3m5:step", currentStep);
+  }, [currentStep]);
+  useEffect(() => () => writeFlowStep("a3m5:step", null), []);
+  const flowStep = wide && currentStep === 1; // Step 1 (Fill the seats) runs as one section per screen
 
   const [roomOpen, setRoomOpen] = useState<boolean>(
     !launchVeil && !claimedRevisit,
@@ -45021,6 +45970,12 @@ function NewA3M5Container({
                   onInLife={onInLife}
                   onAddSeat={onAddSeat}
                   onDelSeat={onDelSeat}
+                  onBack={onBack}
+                  forward={
+                    <button type="button" className="na1-btn-gold" onClick={onDone}>
+                      See them at the table →
+                    </button>
+                  }
                 />
               ) : currentStep === 2 ? (
                 <NewA3M5TableBody seats={m5.seats} />
@@ -45035,7 +45990,7 @@ function NewA3M5Container({
                 />
               )}
             </div>
-            <div className="na1-a2m2-nav">
+            {!flowStep && (<div className="na1-a2m2-nav">
               <button type="button" className="na1-btn-ghost" onClick={onBack}>
                 {currentStep > 1 ? "← Back" : "Close"}
               </button>
@@ -45050,7 +46005,7 @@ function NewA3M5Container({
                     : "See your corner →"}
                 </button>
               )}
-            </div>
+            </div>)}
           </div>
         </div>
       )}
@@ -50277,7 +51232,7 @@ function NewA1View({
     if (saved.overlay.hubId === "a5r") {
       if (saved.view === "a5r") return saved.overlay;
     }
-    // A1 Vision · a 10-year room (Time · Wealth · Self) left open on refresh comes
+    // A1 Vision · Two Futures or a 10-year room (Time · Wealth · Self) left open on refresh comes
     // back on the same section with no veil — if its prerequisite is still done.
     if (saved.overlay.hubId === "explore2") {
       if (
@@ -50803,7 +51758,7 @@ function NewA1View({
   useEffect(() => {
     if (view !== "explore2") return;
     const key =
-      roomOpen && openM2Ex && (openM2Ex.key === "time" || openM2Ex.key === "wealth" || openM2Ex.key === "self")
+      roomOpen && openM2Ex && (openM2Ex.key === "twoFutures" || openM2Ex.key === "time" || openM2Ex.key === "wealth" || openM2Ex.key === "self")
         ? openM2Ex.key
         : null;
     setOverlayRoute((prev) => {
@@ -51887,9 +52842,11 @@ function m3SubheadCount(n: number): { countWord: string; copy: string } {
 function NewA1M3OwnItView({
   embedded = false,
   onContinueToValues,
+  onBack,
 }: {
   embedded?: boolean;
   onContinueToValues: () => void;
+  onBack?: () => void;
 }) {
   // Ship 5.5e · Personalization · resolve the display name for the
   // ceremony opener. Intake takes precedence over auth (matches the
@@ -51912,6 +52869,19 @@ function NewA1M3OwnItView({
   );
   const [showBurst, setShowBurst] = useState(false);
   const [working, setWorking] = useState(false);
+  // Desktop: a short section-by-section flow (1 animals + declaration · 2 powers &
+  // shadows · 3 Big Claim → claim). Phones stack everything on one page.
+  const wide = useVisionWide();
+  const [ownStep, setOwnStep] = useState<number>(() => Math.min(2, readM3Step("ownIt") ?? 0));
+  const [ownTab, setOwnTab] = useState(0);
+  const goOwnStep = (n: number) => {
+    setOwnStep(n);
+    writeM3Step(n === 0 ? null : n, "ownIt");
+    window.setTimeout(() => {
+      const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+      if (card && card.scrollTo) card.scrollTo({ top: 0 });
+    }, 0);
+  };
   const editMode = initialSealCompleted.current; // edit-anytime once sealed
   // Ship 5.5c.1 · Per-creature collapse state for the readback triptychs.
   // Keyed by cluster.id so add/remove on Superpowers between visits keeps
@@ -51993,21 +52963,33 @@ function NewA1M3OwnItView({
   // — paragraph index 2 still uses the capitalized canonical form, so
   // both stay gold. When no name resolves we fall back to the verbatim
   // M3_SEAL_PARAGRAPHS so the literal word "User" never appears.
+  // The seal names the animals: "You are the Gracefully Wise Eagle, …" sits
+  // right after the opener (gold, like the other seal phrases).
+  const animalSealLine = useMemo(() => {
+    const names = state.clusters
+      .map((c) => m3CreatureWithDescriptors(c))
+      .filter((n) => n !== "")
+      .map((n) => `the ${n}`);
+    return names.length > 0 ? `You are ${m3OxfordList(names)}.` : "";
+  }, [state.clusters]);
   const sealParagraphs = useMemo<ReadonlyArray<string>>(() => {
-    if (!displayName) return M3_SEAL_PARAGRAPHS;
-    const opener = M3_SEAL_PARAGRAPHS[0] ?? "";
-    const rewritten = opener.replace(
-      /^This is who you are\./,
-      `${displayName}, this is who you are.`,
-    );
-    return [rewritten, ...M3_SEAL_PARAGRAPHS.slice(1)];
-  }, [displayName]);
+    const opener0 = M3_SEAL_PARAGRAPHS[0] ?? "";
+    const opener = displayName
+      ? opener0.replace(/^This is who you are\./, `${displayName}, this is who you are.`)
+      : opener0;
+    return [
+      opener,
+      ...(animalSealLine ? [animalSealLine] : []),
+      ...M3_SEAL_PARAGRAPHS.slice(1),
+    ];
+  }, [displayName, animalSealLine]);
   const sealPhrases = useMemo<ReadonlyArray<string>>(
-    () =>
-      displayName
-        ? ["this is who you are.", ...M3_SEAL_GOLD_PHRASES]
-        : M3_SEAL_GOLD_PHRASES,
-    [displayName],
+    () => [
+      ...(displayName ? ["this is who you are."] : []),
+      ...(animalSealLine ? [animalSealLine] : []),
+      ...M3_SEAL_GOLD_PHRASES,
+    ],
+    [displayName, animalSealLine],
   );
 
   // Re-scroll to top when ceremony fades in (matches M2 pattern).
@@ -52033,6 +53015,15 @@ function NewA1M3OwnItView({
       ? `And when I go shadow, ${m3OxfordList(shadowItems.map((w) => `I ${w}`))}.`
       : "";
 
+  // "I am the {Desc1 Desc2} {Animal1}, the … , and the … ." (1–5 animals).
+  const declaration = (() => {
+    const names = clusters
+      .map((c) => m3CreatureWithDescriptors(c))
+      .filter((n) => n !== "")
+      .map((n) => `the ${n}`);
+    return names.length > 0 ? `I am ${m3OxfordList(names)}.` : "";
+  })();
+
   const handleClaim = async () => {
     if (working) return;
     setWorking(true);
@@ -52043,6 +53034,7 @@ function NewA1M3OwnItView({
     // append a revisedAt entry on re-claim. Routed through the shared
     // M3 write queue (Ship 5.5c.1) so any in-flight collapse write
     // drains first and can't clobber the claim fields.
+    writeM3Step(null, "ownIt");
     const now = new Date().toISOString();
     const nextM3 = await enqueueM3Write((curM3) => {
       const wasSealed = !!curM3.sealCompleted;
@@ -52095,7 +53087,7 @@ function NewA1M3OwnItView({
   const isFading = mode !== "readback";
 
   return (
-    <div className={`na2-decl m3-seal ${embedded ? "is-embedded" : ""}`}>
+    <div className={`na2-decl m3-seal ${embedded ? "is-embedded" : ""} ${wide ? "is-stepped" : ""}`}>
       {showBurst &&
         createPortal(
           <div className="na2-silver-burst" aria-hidden>
@@ -52108,15 +53100,17 @@ function NewA1M3OwnItView({
         className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
         <div className="na2-decl-eyebrow">Mirror 3 of 4 · Step 5 · Own It</div>
-        <div className="m3-seal-star" aria-hidden>★</div>
+        {(!wide || ownStep === 0) && (
+          <div className="m3-seal-star" aria-hidden>★</div>
+        )}
         <h2 className="na2-decl-title">What lives in you</h2>
-        {editMode && (
+        {editMode && (!wide || ownStep === 0) && (
           <div className="m3-seal-revisit-banner">
             ★ You've claimed your Identity. You can come back and edit it
             anytime.
           </div>
         )}
-        {(() => {
+        {(!wide || ownStep === 0) && (() => {
           const { countWord, copy } = m3SubheadCount(clusters.length);
           return (
             <p className="m3-seal-subhead">
@@ -52125,6 +53119,13 @@ function NewA1M3OwnItView({
             </p>
           );
         })()}
+        {wide && (
+          <VisionSectionPips
+            labels={["Your animals", "Powers & shadows", "The Big Claim"]}
+            idx={ownStep}
+            filled={[ownStep > 0, ownStep > 1, false]}
+          />
+        )}
 
         {clusters.length === 0 && (
           <p
@@ -52135,7 +53136,64 @@ function NewA1M3OwnItView({
           </p>
         )}
 
-        {clusters.map((c) => {
+        {/* 1 · Your animals + the declaration (added at the top of the claim) */}
+        {clusters.length > 0 && (!wide || ownStep === 0) && (
+          <>
+            <div className="m3-own-cards" data-n={clusters.length}>
+              {clusters.map((c) => {
+                const allPicks = state.pickedGifts ?? [];
+                const gifts = c.giftIds
+                  .map((gid) => allPicks.find((p) => p.id === gid))
+                  .filter((g): g is PickedGift => !!g);
+                return (
+                  <div key={c.id} className="m3-own-card">
+                    <div className="m3-own-desc">
+                      {[c.descriptorWord1, c.descriptorWord2]
+                        .map((w) => w.trim())
+                        .filter((w) => w !== "")
+                        .join(" · ")}
+                    </div>
+                    <div className="m3-own-animal">{c.animal.trim() || "Your creature"}</div>
+                    {gifts.length > 0 && (
+                      <div className="m3-own-chips">
+                        {gifts.map((g) => (
+                          <span
+                            key={g.id}
+                            className={`m3-own-chip${g.state === "emerging" ? " is-emerging" : ""}`}
+                          >
+                            {g.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {declaration && <p className="m3-own-decl">{declaration}</p>}
+          </>
+        )}
+
+        {/* 2 · Powers & shadows (desktop: one animal at a time via tabs) */}
+        {(!wide || ownStep === 1) && wide && clusters.length > 1 && (
+          <div className="m3-own-tabs" role="tablist" aria-label="Animals">
+            {clusters.map((c, i) => (
+              <button
+                key={c.id}
+                type="button"
+                role="tab"
+                aria-selected={i === Math.min(ownTab, clusters.length - 1)}
+                className={`m3-addgift-tab ${i === Math.min(ownTab, clusters.length - 1) ? "is-on" : ""}`}
+                onClick={() => setOwnTab(i)}
+              >
+                {c.animal.trim() || `Animal ${i + 1}`}
+              </button>
+            ))}
+          </div>
+        )}
+        {(!wide || ownStep === 1) && (
+          <>
+        {(wide ? clusters.filter((_, i) => i === Math.min(ownTab, clusters.length - 1)) : clusters).map((c) => {
           const creature = m3CreatureWithDescriptors(c) || "(unnamed creature)";
           const sublabel = (c.name || "").trim();
           const animal = (c.animal || "").trim();
@@ -52167,7 +53225,7 @@ function NewA1M3OwnItView({
               };
             })
             .filter((r): r is NonNullable<typeof r> => r !== null);
-          const isCollapsed = collapsedMap[c.id] ?? true;
+          const isCollapsed = wide ? false : (collapsedMap[c.id] ?? true);
           return (
             <div
               key={c.id}
@@ -52177,14 +53235,14 @@ function NewA1M3OwnItView({
                   Chevron is absolute so it doesn't perturb the centered
                   title. Aria attrs make the toggle accessible. */}
               <div
-                role="button"
-                tabIndex={0}
+                role={wide ? undefined : "button"}
+                tabIndex={wide ? -1 : 0}
                 className="m3-seal-cluster-header"
                 aria-expanded={!isCollapsed}
                 aria-label={`${creature} — ${isCollapsed ? "expand" : "collapse"} details`}
-                onClick={() => toggleCollapse(c.id)}
+                onClick={() => { if (!wide) toggleCollapse(c.id); }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
+                  if (!wide && (e.key === "Enter" || e.key === " ")) {
                     e.preventDefault();
                     toggleCollapse(c.id);
                   }
@@ -52194,9 +53252,11 @@ function NewA1M3OwnItView({
                 {sublabel && (
                   <div className="m3-seal-creature-sublabel">{sublabel}</div>
                 )}
-                <span className="m3-seal-cluster-chevron" aria-hidden>
-                  {isCollapsed ? "▸" : "▾"}
-                </span>
+                {!wide && (
+                  <span className="m3-seal-cluster-chevron" aria-hidden>
+                    {isCollapsed ? "▸" : "▾"}
+                  </span>
+                )}
               </div>
 
               {/* Triptych wrapper (Ship 5.5c.1) — animates max-height +
@@ -52281,6 +53341,12 @@ function NewA1M3OwnItView({
           );
         })}
 
+          </>
+        )}
+
+        {/* 3 · The Big Claim */}
+        {(!wide || ownStep === 2) && (
+          <>
         {(bigPower || bigShadow) && (
           <>
             <div className="m3-seal-bigclaim-divider" aria-hidden>
@@ -52301,42 +53367,59 @@ function NewA1M3OwnItView({
           </>
         )}
 
+          </>
+        )}
+
         <div
-          className="na1-room-actions"
-          style={{
-            justifyContent: "center",
-            marginTop: 28,
-            gap: 12,
-            flexWrap: "wrap",
-          }}
+          className="na1-room-actions m3-own-actions"
         >
-          <button
-            type="button"
-            className="na2-decl-btn-claim"
-            onClick={handleClaim}
-            disabled={working || clusters.length === 0}
-          >
-            {editMode ? "★ Re-claim my Identity" : "★ Own it"}
-          </button>
-          {editMode && (
+          {wide && (
             <button
               type="button"
-              className="na2-decl-cer-cta"
-              onClick={handleContinueToValues}
+              className="na1-btn-ghost"
+              onClick={() => (ownStep === 0 ? onBack?.() : goOwnStep(ownStep - 1))}
               disabled={working}
             >
-              Continue to Values →
+              ← Back
             </button>
           )}
+          {wide && ownStep < 2 ? (
+            <button
+              type="button"
+              className="na1-btn-gold"
+              onClick={() => goOwnStep(ownStep + 1)}
+              disabled={clusters.length === 0}
+            >
+              Continue →
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="na2-decl-btn-claim"
+                onClick={handleClaim}
+                disabled={working || clusters.length === 0}
+              >
+                {editMode ? "Re-claim my identity →" : "Claim my identity →"}
+              </button>
+              {editMode && (
+                <button
+                  type="button"
+                  className="na2-decl-cer-cta"
+                  onClick={handleContinueToValues}
+                  disabled={working}
+                >
+                  Continue to Values →
+                </button>
+              )}
+            </>
+          )}
         </div>
-        {!editMode && (
+        {(!wide || ownStep === 2) && (
           <p className="na2-decl-footnote">
-            Claiming saves to Map of Me + completes Mirror 3
-          </p>
-        )}
-        {editMode && (
-          <p className="na2-decl-footnote">
-            Edit any earlier room to refine — re-claim here to seal the revision.
+            {editMode
+              ? "Edit any earlier room to refine — re-claim here to seal the revision."
+              : "Claiming saves to Map of Me + completes Mirror 3"}
           </p>
         )}
       </div>
@@ -52534,11 +53617,19 @@ function NewA1M3Container({
           ) : openRoom.key === "animals" ? (
             <NewA1M3ShapeView
               embedded
+              onBack={closeRoom}
               onSuperpowers={() => {
-                // Unified nav: finishing the Animals section returns to
-                // the Identity ladder (no auto-advance). closeRoom closes
-                // the overlay and refreshes ladder status.
-                closeRoom();
+                // "Continue to Under Pressure →" opens that room directly, with
+                // its own entry veil: close this overlay, then launch the next.
+                const next = M3_ROOMS.find((r) => r.key === "underPressure");
+                if (!next) return closeRoom();
+                setRoomOpen(false);
+                timeoutsRef.current.push(
+                  window.setTimeout(() => {
+                    setRefreshTick((t) => t + 1);
+                    launchRoom(next);
+                  }, 520),
+                );
               }}
             />
           ) : openRoom.key === "underPressure" ? (
@@ -52553,6 +53644,7 @@ function NewA1M3Container({
           ) : openRoom.key === "ownIt" ? (
             <NewA1M3OwnItView
               embedded
+              onBack={closeRoom}
               onContinueToValues={() => {
                 // Mirror 4 (Values) body not shipped yet — fail-safe per
                 // spec: close the Own It room and return to the A1 grid
@@ -53066,6 +54158,7 @@ function NewA1M4SectionBody({
   // completion button names the next actionable rung, returns to the
   // ladder, and that rung flashes. The locked "Flip the irks" rung is
   // skipped — Portrait points straight at "Name the standards".
+  const deskFlow = useVisionWide();
   const continueLabel =
     sectionKey === "admire"
       ? "Continue to Irks →"
@@ -53093,17 +54186,26 @@ function NewA1M4SectionBody({
           <NewA1M4FlipBody state={state} mutate={mutate} />
         )}
         {sectionKey === "name" && (
-          <NewA1M4NameStandardsBody state={state} mutate={mutate} />
+          <NewA1M4NameStandardsBody
+            state={state}
+            mutate={mutate}
+            onBack={onCloseRoom}
+            forward={
+              <button type="button" className="na1-m4-continue" onClick={handleDone}>
+                {continueLabel}
+              </button>
+            }
+          />
         )}
       </div>
-      <div className="na1-m4-disc-foot">
+      {!(sectionKey === "name" && deskFlow) && (<div className="na1-m4-disc-foot">
         <button type="button" className="na1-m4-back" onClick={onCloseRoom}>
           ← Back to ladder
         </button>
         <button type="button" className="na1-m4-continue" onClick={handleDone}>
           {continueLabel}
         </button>
-      </div>
+      </div>)}
     </div>
   );
 }
@@ -53256,10 +54358,17 @@ function NewA1M4FlipBody({
 function NewA1M4NameStandardsBody({
   state,
   mutate,
+  onBack,
+  forward,
 }: {
   state: Mirror4State;
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+  // Desktop flow: the room's own Back (first screen) and Continue (last screen).
+  onBack: () => void;
+  forward: React.ReactNode;
 }) {
+  const flow = useDeskFlow("m4-name", 2);
+  const standardsPager = usePager(state.clusters.map((c, i) => ({ c, i })), 1, flow.wide);
   const [exampleOpen, setExampleOpen] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
 
@@ -53335,8 +54444,21 @@ function NewA1M4NameStandardsBody({
 
   return (
     <>
+      <DeskFlow
+        flow={flow}
+        onBack={onBack}
+        forward={forward}
+        header={
+          <>
       <div className="na1-m4-step-eyebrow">Mirror 4 · Name the Standards</div>
       <h2 className="na1-m4-step-title">Name the standards underneath</h2>
+          </>
+        }
+        sections={[
+          {
+            label: "Your behaviors",
+            node: (
+              <>
       <p className="na1-m4-step-sub">
         Each behavior you admire points to a standard you hold. Group the ones
         that belong together and name the standard in your own words — these
@@ -53416,8 +54538,15 @@ function NewA1M4NameStandardsBody({
         )}
       </div>
 
+              </>
+            ),
+          },
+          {
+            label: "Your standards",
+            node: (
+              <>
       <div className="na1-m4-ns-standards">
-        {state.clusters.map((c, i) => {
+        {standardsPager.slice.map(({ c, i }) => {
           const complete = m4IsClusterComplete(c);
           return (
             <div
@@ -53475,14 +54604,22 @@ function NewA1M4NameStandardsBody({
             </div>
           );
         })}
-        <button
+        <div className="df-footrow">
+          <PagerBar page={standardsPager.page} pages={standardsPager.pages} onPage={standardsPager.setPage} noun="Standards" />
+          <button
           type="button"
           className="na1-m4-ns-add"
           onClick={createStandard}
         >
           + New standard
         </button>
+        </div>
       </div>
+              </>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }
@@ -55233,6 +56370,7 @@ function NewA1M4RankBody({
   // modal stuck on Done because state was already initialized at
   // mount and parent prop changes don't re-derive `initialPhase`.
   const [walkSession, setWalkSession] = useState(0);
+  const flow = useDeskFlow("m4-rank", 2);
 
   // First-time intro logic: show intro on Begin click only if no
   // pairs have been walked yet (resume case skips intro).
@@ -55268,20 +56406,51 @@ function NewA1M4RankBody({
     setModalOpen(true);
   };
 
+  const continueBlock = (
+        <div style={{ textAlign: "right" }}>
+          <button
+            type="button"
+            className="na1-m4-continue"
+            onClick={onContinueToClaim}
+            disabled={!ptComplete}
+          >
+            Continue to Claim
+          </button>
+          {!ptComplete && (
+            <p className="na1-m4-beh-gate-helper" role="status">
+              Complete the pressure-test first.
+            </p>
+          )}
+        </div>
+  );
   return (
     <>
+      <DeskFlow
+        flow={flow}
+        onBack={onCloseRoom}
+        forward={continueBlock}
+        header={
+          <>
       <div className="na1-m4-eyebrow">Mirror 4 · Rank + Pressure-test</div>
       <h2 className="na1-m4-title">The order you live by</h2>
+          </>
+        }
+        sections={[
+          {
+            label: "Rank",
+            node: (
+              <>
       <p className="na1-m4-subtitle">
         Drag your values into the order you'd defend them under pressure.
         Top = the one that wins when two collide. Then we'll pressure-test
         each pair.
       </p>
-      <p className="na1-m4-beh-helper" role="note">
+                {!flow.wide && (
+                  <p className="na1-m4-beh-helper" role="note">
         The rank is your decision filter. When two values collide in a real
         moment, the higher one wins. The pressure-test proves the order.
       </p>
-
+                )}
       <div className="na1-m4-rank-phase-eyebrow">Phase 1 · Rank</div>
       <div className="na1-m4-rank-stack">
         {effectiveRank.map((id, idx) => {
@@ -55350,6 +56519,20 @@ function NewA1M4RankBody({
         })}
       </div>
 
+              </>
+            ),
+          },
+          {
+            label: "Pressure-test",
+            node: (
+              <>
+                {flow.wide && (
+                  <p className="na1-m4-beh-helper" role="note">
+        The rank is your decision filter. When two values collide in a real
+        moment, the higher one wins. The pressure-test proves the order.
+      </p>
+                )}
+
       <div className="na1-m4-rank-phase-eyebrow">Phase 2 · Pressure-Test</div>
       <div className="na1-m4-rank-pt-card">
         <h3 className="na1-m4-rank-pt-title">
@@ -55377,6 +56560,12 @@ function NewA1M4RankBody({
         </p>
       </div>
 
+              </>
+            ),
+          },
+        ]}
+      />
+      {!flow.wide && (
       <div className="na1-m4-foot">
         <button
           type="button"
@@ -55402,7 +56591,7 @@ function NewA1M4RankBody({
           )}
         </div>
       </div>
-
+      )}
       {modalOpen && (
         <NewA1M4PressureTestModal
           key={walkSession}
@@ -56527,6 +57716,25 @@ function loadMirror3State(): Mirror3State {
   return EMPTY_MIRROR3;
 }
 
+const M3_STEP_KEY = "to_m3_step_v1"; // which animal / claim screen a refresh should restore (not synced)
+function readM3Step(room: "animals" | "ownIt" = "animals"): number | null {
+  try {
+    const n = JSON.parse(window.localStorage.getItem(M3_STEP_KEY) || "{}")?.[room];
+    return typeof n === "number" && n >= 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+function writeM3Step(n: number | null, room: "animals" | "ownIt" = "animals"): void {
+  try {
+    const o = JSON.parse(window.localStorage.getItem(M3_STEP_KEY) || "{}") || {};
+    if (n == null) delete o[room];
+    else o[room] = n;
+    window.localStorage.setItem(M3_STEP_KEY, JSON.stringify(o));
+  } catch {
+    // storage unavailable — a refresh just reopens on the first screen
+  }
+}
 // ─── M3 · Step 1b · Shape · Superpowers ───
 // Auto-assembles clusters from pickedGifts on first entry, then renders
 // editable cluster cards with archetype name + animal + 2 descriptor
@@ -56537,11 +57745,15 @@ function loadMirror3State(): Mirror3State {
 function NewA1M3ShapeView({
   embedded = false,
   onSuperpowers,
+  onBack,
 }: {
   embedded?: boolean;
   onSuperpowers: () => void;
+  onBack?: () => void;
 }) {
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
+  // One animal per screen (desktop and phone). A refresh restores the same animal.
+  const [animalIdx, setAnimalIdx] = useState<number>(() => readM3Step() ?? 0);
   const pickedById = useMemo(() => {
     const out: Record<string, PickedGift> = {};
     for (const p of state.pickedGifts) out[p.id] = p;
@@ -56900,15 +58112,43 @@ function NewA1M3ShapeView({
 
   // Validation: every cluster needs name + animal + descriptor1 + descriptor2
   // + ≥1 gift + filled Superpower sentence (Ship 5.5a · gates Continue).
-  const isValid = state.clusters.length > 0 && state.clusters.every(
-    (c) =>
-      c.name.trim() !== "" &&
-      c.animal.trim() !== "" &&
-      c.descriptorWord1.trim() !== "" &&
-      c.descriptorWord2.trim() !== "" &&
-      c.giftIds.length > 0 &&
-      isSuperpowerFilled(getSuperpower(c)),
-  );
+  const clusterValid = (c: Cluster) =>
+    c.name.trim() !== "" &&
+    c.animal.trim() !== "" &&
+    c.descriptorWord1.trim() !== "" &&
+    c.descriptorWord2.trim() !== "" &&
+    c.giftIds.length > 0 &&
+    isSuperpowerFilled(getSuperpower(c));
+  const nAnimals = state.clusters.length;
+  const curIdx = Math.min(Math.max(animalIdx, 0), Math.max(nAnimals - 1, 0));
+  const curCluster: Cluster | null = state.clusters[curIdx] ?? null;
+  const isLastAnimal = curIdx >= nAnimals - 1;
+  const curValid = curCluster ? clusterValid(curCluster) : false;
+  useEffect(() => {
+    if (nAnimals > 0) writeM3Step(curIdx);
+  }, [curIdx, nAnimals]);
+  const goAnimal = (n: number) => {
+    setAnimalIdx(n);
+    window.setTimeout(() => {
+      const card = document.querySelector(".na1-room-card") as HTMLElement | null;
+      if (card && card.scrollTo) card.scrollTo({ top: 0 });
+    }, 0);
+  };
+  const onContinue = () => {
+    if (!curValid) return;
+    if (!isLastAnimal) return goAnimal(curIdx + 1);
+    // Last animal: finish only when every animal passes the same rule; otherwise
+    // jump to the first one that doesn't.
+    const firstBad = state.clusters.findIndex((c) => !clusterValid(c));
+    if (firstBad >= 0) return goAnimal(firstBad);
+    writeM3Step(null);
+    onSuperpowers();
+  };
+  const onBackClick = () => {
+    if (curIdx > 0) return goAnimal(curIdx - 1);
+    writeM3Step(null);
+    if (onBack) onBack();
+  };
 
   const browseCluster = browseFor
     ? state.clusters.find((c) => c.id === browseFor)
@@ -56918,172 +58158,25 @@ function NewA1M3ShapeView({
     : [];
 
   return (
-    <div className={`m3-shape ${embedded ? "is-embedded" : ""}`}>
-      <span className="m3-shape-eyebrow">
-        Mirror 3 of 4 · Step 1 · Superpowers
-      </span>
+    <div className={`m3-shape is-stepped ${embedded ? "is-embedded" : ""}`}>
+      <div className="na2-pip-bar" aria-label="Identity · step 2 of 4">
+        <div className="na2-pip is-gold" />
+        <div className="na2-pip is-gold" />
+        <div className="na2-pip" />
+        <div className="na2-pip" />
+        <span className="na2-pip-meta">Superpowers</span>
+      </div>
       <h1 className="m3-shape-title">Shape your versions</h1>
-      <p className="m3-shape-subhead">
-        Your gifts don&rsquo;t all act the same. Some lead. Some hold. Some
-        create. We grouped your gifts and matched each one with a creature that
-        carries them.
-      </p>
-      <div className="m3-shape-help" role="note">
-        <span className="m3-shape-help-star" aria-hidden>✦</span>
-        <span>
-          Cluster names and animals are suggestions — change any of them. Add
-          two words in front of each creature — they name your version of it in
-          its power (e.g. Gracefully Wise Eagle).
-        </span>
-      </div>
-      {/* Ship 5.5a · sticky Gift Inventory bar (anchors inside .na1-room-card scroll).
-          Fix 6 · pulses + shows hint chip whenever ≥1 user-added cluster
-          is still empty, directing the eye up to the source. */}
-      {(() => {
-        const pulseActive = state.clusters.some(
-          (c) => c.userAdded === true && c.giftIds.length === 0,
-        );
-        return (
-      <div className={`m3-inv ${pulseActive ? "is-pulsing" : ""}`}>
-        <div className="m3-inv-header">
-          <span className="m3-inv-title">
-            Gift Inventory
-            {pulseActive && (
-              <span className="m3-inv-hint" aria-live="polite">
-                ↓ TAP TO ADD
-              </span>
-            )}
-          </span>
-          <span className="m3-inv-count">
-            {state.pickedGifts.length} picked
-          </span>
-        </div>
-        {M3_THEME_ORDER.map((t) => {
-          const items = inventoryByTheme[t];
-          return (
-            <div
-              key={t}
-              className="m3-inv-row"
-              style={{ ["--m3inv-color" as any]: THEME_COLOR[t] }}
-            >
-              <span className="m3-inv-theme">
-                <span className="m3-inv-dot" />
-                {THEME_LABEL[t]}
-              </span>
-              <div className="m3-inv-chips">
-                {items.length === 0 && (
-                  <span className="m3-inv-empty">no gifts yet</span>
-                )}
-                {items.map((p) => {
-                  const cluster = clusterOfGift(p.id);
-                  const interactive = state.clusters.length >= 2;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      className={`m3-inv-chip is-${p.state}`}
-                      onClick={(e) => onInventoryChipClick(p, e)}
-                      disabled={!interactive}
-                      title={
-                        cluster
-                          ? interactive
-                            ? `In ${cluster.name} · tap to move`
-                            : `In ${cluster.name}`
-                          : "Unplaced"
-                      }
-                    >
-                      <span className="m3-inv-chip-mark" aria-hidden>
-                        {p.state === "owned" ? "✓" : "◆"}
-                      </span>
-                      {p.label}
-                    </button>
-                  );
-                })}
-                <button
-                  type="button"
-                  className="m3-inv-add"
-                  onClick={() =>
-                    setInlineLibTheme((prev) => (prev === t ? null : t))
-                  }
-                  aria-label={`Add ${THEME_LABEL[t]} gift`}
-                >
-                  + add
-                </button>
-              </div>
-            </div>
-          );
-        })}
-        {inlineLibTheme && (() => {
-          const t = inlineLibTheme;
-          const lib = GIFTS_BY_THEME[t];
-          const pickedLabels = new Set(state.pickedGifts.map((p) => p.label));
-          return (
-            <div
-              className="m3-inv-lib"
-              style={{ ["--m3inv-color" as any]: THEME_COLOR[t] }}
-            >
-              <div className="m3-inv-lib-head">
-                <span className="m3-inv-lib-title">
-                  Add a {THEME_LABEL[t]} gift
-                </span>
-                <button
-                  type="button"
-                  className="m3-inv-lib-close"
-                  onClick={() => setInlineLibTheme(null)}
-                  aria-label="Close library"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="m3-inv-lib-grid">
-                {lib.map((label) => {
-                  const already = pickedLabels.has(label);
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      className={`m3-inv-lib-chip ${already ? "is-already" : ""}`}
-                      disabled={already}
-                      onClick={(e) => addGiftFromLibrary(label, t, e)}
-                      title={already ? "already in inventory" : ""}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-              {/* Fix 8 · "+ add custom" affordance (mirrors Step 1a). */}
-              <div className="m3-inv-lib-custom">
-                <input
-                  className="m3-inv-lib-input"
-                  value={customGiftInput}
-                  onChange={(e) => setCustomGiftInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && customGiftInput.trim()) {
-                      addCustomGiftFromLib(t, e);
-                    }
-                  }}
-                  placeholder={`+ add a custom ${THEME_LABEL[t]} gift...`}
-                  maxLength={40}
-                  aria-label={`Custom ${THEME_LABEL[t]} gift name`}
-                />
-                <button
-                  type="button"
-                  className="m3-inv-lib-add"
-                  onClick={(e) => addCustomGiftFromLib(t, e)}
-                  disabled={!customGiftInput.trim()}
-                >
-                  add
-                </button>
-              </div>
-            </div>
-          );
-        })()}
-      </div>
-        );
-      })()}
+      {nAnimals > 0 && (
+        <VisionSectionPips
+          labels={state.clusters.map((c, i) => c.animal.trim() || `Animal ${i + 1}`)}
+          idx={curIdx}
+          filled={state.clusters.map((c) => clusterValid(c))}
+          text={`Animal ${curIdx + 1} of ${nAnimals} · ${curCluster?.animal.trim() || "New creature"}`}
+        />
+      )}
       <div className="m3-shape-list">
-        {state.clusters.map((c) => {
+        {state.clusters.filter((_, i) => i === curIdx).map((c) => {
           const giftLabels = c.giftIds
             .map((id) => pickedById[id])
             .filter(Boolean) as PickedGift[];
@@ -57263,7 +58356,83 @@ function NewA1M3ShapeView({
                       )}
                     </div>
                   ))}
+                  <button
+                    type="button"
+                    className="m3-inv-add m3-addgift-btn"
+                    onClick={() => setInlineLibTheme((prev) => (prev ? null : "mind"))}
+                    aria-expanded={inlineLibTheme !== null}
+                  >
+                    + add a gift
+                  </button>
                 </div>
+                {inlineLibTheme && (() => {
+                  const t = inlineLibTheme;
+                  const pickedLabels = new Set(state.pickedGifts.map((p) => p.label));
+                  const place = (label: string, custom: boolean) => {
+                    commitAddGift({ label, theme: t, state: "owned", custom }, c.id, c.animal.trim() || c.name);
+                    setInlineLibTheme(null);
+                  };
+                  return (
+                    <div className="m3-inv-lib m3-addgift" style={{ ["--m3inv-color" as any]: THEME_COLOR[t] }}>
+                      <div className="m3-addgift-tabs" role="tablist" aria-label="Gift themes">
+                        {M3_THEME_ORDER.map((th) => (
+                          <button
+                            key={th}
+                            type="button"
+                            role="tab"
+                            aria-selected={th === t}
+                            className={`m3-addgift-tab ${th === t ? "is-on" : ""}`}
+                            onClick={() => setInlineLibTheme(th)}
+                          >
+                            {THEME_LABEL[th]}
+                          </button>
+                        ))}
+                        <button type="button" className="m3-inv-lib-close" onClick={() => setInlineLibTheme(null)} aria-label="Close library">
+                          ×
+                        </button>
+                      </div>
+                      <div className="m3-inv-lib-grid">
+                        {GIFTS_BY_THEME[t].map((label) => {
+                          const already = pickedLabels.has(label);
+                          return (
+                            <button
+                              key={label}
+                              type="button"
+                              className={`m3-inv-lib-chip ${already ? "is-already" : ""}`}
+                              disabled={already}
+                              onClick={() => place(label, false)}
+                              title={already ? "already in a creature" : ""}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="m3-inv-lib-custom">
+                        <input
+                          className="m3-inv-lib-input"
+                          value={customGiftInput}
+                          onChange={(e) => setCustomGiftInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            const label = customGiftInput.trim();
+                            if (e.key === "Enter" && label && !state.pickedGifts.some((p) => p.label.toLowerCase() === label.toLowerCase())) place(label, true);
+                          }}
+                          placeholder={`+ add a custom ${THEME_LABEL[t]} gift...`}
+                          maxLength={40}
+                          aria-label={`Custom ${THEME_LABEL[t]} gift name`}
+                        />
+                        <button
+                          type="button"
+                          className="m3-inv-lib-add"
+                          onClick={() => place(customGiftInput.trim(), true)}
+                          disabled={!customGiftInput.trim() || state.pickedGifts.some((p) => p.label.toLowerCase() === customGiftInput.trim().toLowerCase())}
+                        >
+                          add
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               {/* Ship 5.5a · per-cluster Superpower sentence (3 inline blanks).
                   Disabled until cluster has an animal name + ≥1 gift so the
@@ -57321,34 +58490,32 @@ function NewA1M3ShapeView({
           );
         })}
       </div>
-      {/* Ship 5.5a · "+ Add another creature" footer (cap 5). */}
-      <div className="m3-add-creature">
-        <button
-          type="button"
-          className="m3-add-creature-btn"
-          onClick={addAnotherCreature}
-          disabled={state.clusters.length >= 5}
-          title={
-            state.clusters.length >= 5
-              ? "5-creature limit reached"
-              : "Add a creature slot"
-          }
-        >
-          + Add another creature
+      <div className="m3-shape-actions m3-shape-nav">
+        <button type="button" className="na1-btn-ghost" onClick={onBackClick}>
+          ← Back
         </button>
-        <span className="m3-add-creature-count">
-          {state.clusters.length} of 5 creatures
-        </span>
-      </div>
-      <div className="m3-shape-actions">
+        {isLastAnimal && (
+          <button
+            type="button"
+            className="m3-add-creature-btn m3-shape-addmore"
+            onClick={() => {
+              const n = nAnimals;
+              addAnotherCreature();
+              if (n < 5) goAnimal(n);
+            }}
+            disabled={nAnimals >= 5}
+            title={nAnimals >= 5 ? "5-creature limit reached" : "Add a creature slot"}
+          >
+            + Add another creature · {nAnimals} of 5
+          </button>
+        )}
         <button
           type="button"
           className="m3-shape-super-btn"
-          disabled={!isValid}
-          onClick={onSuperpowers}
-          aria-label="Done, back to Identity"
+          disabled={!curValid}
+          onClick={onContinue}
         >
-          Continue to Under Pressure
+          {isLastAnimal ? "Continue to Under Pressure →" : "Continue →"}
         </button>
       </div>
       {browseCluster && (
@@ -58104,6 +59271,7 @@ function NewA1M3View({
 
   // Per-theme custom-add UI state (which theme has the inline input open
   // + its current draft text). Only one input open at a time.
+  const flow = useDeskFlow("m3-gifts", 1 + M3_THEME_ORDER.length);
   const [openAddTheme, setOpenAddTheme] = useState<Theme | null>(null);
   const [addDraft, setAddDraft] = useState("");
 
@@ -58406,6 +59574,23 @@ function NewA1M3View({
     );
   };
 
+  const continueBtn = (
+          <button
+            type="button"
+            className="na1-btn-gold"
+            disabled={pickedCount < 1 || anyThemeOver5}
+            onClick={() => {
+              if (pickedCount < 1 || anyThemeOver5) return;
+              // Persist and close back to the hub. Superpowers picks
+              // up the cluster assembly from state.mirror3.pickedGifts.
+              const cur = (loadDataSync(KEYS.map) as any) || {};
+              saveData(KEYS.map, { ...cur, mirror3: state });
+              onBack();
+            }}
+          >
+            Continue to Superpowers
+          </button>
+  );
   return (
     <div className={`m3-pick ${embedded ? "is-embedded" : ""}`}>
       {!embedded && (
@@ -58413,8 +59598,28 @@ function NewA1M3View({
           ← Mirror grid
         </button>
       )}
+      <DeskFlow
+        flow={flow}
+        onBack={onBack}
+        forward={continueBtn}
+        center={
+        <div className="m3-pick-counter df-counter">
+          <strong>{pickedCount}</strong> picked ·{" "}
+          <strong>{ownedCount}</strong> owned ·{" "}
+          <strong>{emergingCount}</strong> emerging
+        </div>
+        }
+        header={
+          <>
       <div className="m3-pick-eyebrow">Mirror 3 · Step 1 of 5 · Pick</div>
       <h1 className="m3-pick-title">What gifts do you carry?</h1>
+          </>
+        }
+        sections={[
+          {
+            label: "How it works",
+            node: (
+              <>
       <p className="m3-pick-sub">
         Tap once for what's already yours. Tap again for what's emerging. Tap
         a third time to clear. There's no right number — only what's true.
@@ -58442,7 +59647,13 @@ function NewA1M3View({
           5.
         </div>
       )}
-      {M3_THEME_ORDER.map((t) => renderTheme(t))}
+              </>
+            ),
+          },
+          ...M3_THEME_ORDER.map((t) => ({ label: THEME_LABEL[t], node: renderTheme(t) })),
+        ]}
+      />
+      {!flow.wide && (
       <div className="m3-pick-counter-bar">
         <div className="m3-pick-counter">
           <strong>{pickedCount}</strong> picked ·{" "}
@@ -58467,6 +59678,7 @@ function NewA1M3View({
           </button>
         </div>
       </div>
+      )}
       {toast && (
         <div className="m3-pick-toast" role="status" aria-live="polite">
           {toast}
