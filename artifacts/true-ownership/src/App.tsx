@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useLayoutEffect,
   useRef,
   useCallback,
   useMemo,
@@ -3522,6 +3523,101 @@ h1, h2, h3, .na1-fw-hero, .na1-hero-title, .na1-ex-title, .na1-room-title, .na1-
   .na2-decl2-cta{ width:100%; }
 }
 .na1-a4-map-title, .na1-a4-sure-q, .na1-a4-gap-said{ text-wrap:balance; }
+/* ── A1 Values · Name the Standards, first screen: behaviors stay visible in their standard ── */
+.na1-m4-ns-board{ display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+.na1-m4-ns-bcol{ border:1px solid var(--na1-border); border-radius:12px; padding:10px 12px 12px; background:var(--na1-bg); min-width:0; display:flex; flex-direction:column; gap:8px; }
+.na1-m4-ns-bcol.is-drop{ outline:2px dashed var(--gold); outline-offset:-2px; }
+.na1-m4-ns-bhead{ display:flex; align-items:center; gap:8px; margin:0; font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.1em; text-transform:uppercase; font-weight:400; color:var(--na1-text); }
+.na1-m4-ns-bcount{ margin-left:auto; min-width:24px; padding:1px 8px; border-radius:100px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); text-align:center; font-family:var(--f-label); font-size:max(var(--l-min), 12px); letter-spacing:0; color:var(--na1-text); }
+.na1-m4-ns-bempty{ margin:0; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-m4-ns-allplaced{ margin:0; padding:10px 12px; border-radius:10px; background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 14px); font-weight:400; }
+.na1-m4-ns-bchips, .na1-m4-ns-bplaced{ display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start; }
+.na1-m4-ns-bchips .na1-m4-ns-chip, .na1-m4-ns-bplaced .na1-m4-ns-chip{ min-height:44px; }
+.na1-m4-ns-chip.is-placed{ background:var(--na1-bg-card); }
+.na1-m4-ns-bcards{ display:flex; flex-direction:column; gap:8px; }
+.na1-m4-ns-bcard{ border:1px solid var(--na1-border); border-left:4px solid var(--gold); border-radius:10px; padding:8px 10px 10px; background:var(--na1-bg-card); }
+.na1-m4-ns-bcard.is-drop{ outline:2px dashed var(--gold); outline-offset:-2px; }
+.na1-m4-ns-bcard-head{ display:flex; align-items:center; gap:8px; margin:0 0 6px; }
+.na1-m4-ns-bcard-name{ font-family:var(--f-display); font-size:17px; color:var(--na1-text); font-weight:400; }
+.na1-m4-ns-bcard-name.is-unnamed{ color:var(--na1-text-sec); }
+.na1-m4-ns-more{ min-height:44px; padding:0 12px; background:none; border:1px dashed var(--na1-border); border-radius:100px; color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; }
+.na1-m4-ns-menu.is-inline{ position:static; margin:6px 0 2px; min-width:0; box-shadow:none; display:flex; flex-direction:column; gap:2px; }
+.na1-m4-ns-menu-title{ font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); padding:2px 6px; font-weight:400; }
+.na1-m4-ns-menu.is-inline .na1-m4-ns-menu-item{ min-height:44px; text-align:left; display:flex; align-items:center; }
+.na1-m4-ns-menu-item.is-back{ color:var(--burgundy-text); }
+.na1-m4-ns-bcol > .na1-m4-ns-add{ align-self:flex-start; min-height:44px; }
+@media (min-width:768px){
+  /* Fit 1280×800: the columns scroll inside themselves when long; chips on a mouse can be a touch shorter. */
+  .na1-m4-ns-bchips{ max-height:200px; overflow-y:auto; }
+  .na1-m4-ns-bcards{ max-height:200px; overflow-y:auto; }
+  .df .na1-m4-step-sub{ margin:0 auto 4px; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); }
+  .df .na1-m4-ns-example-toggle{ margin:0 0 8px; }
+  @media (pointer:fine){ .na1-m4-ns-bchips .na1-m4-ns-chip, .na1-m4-ns-bplaced .na1-m4-ns-chip, .na1-m4-ns-more{ min-height:36px; } }
+}
+@media (max-width:767px){
+  .na1-m4-ns-board{ grid-template-columns:1fr; }
+}
+
+/* ── A1 Values · Admire / Irks: obvious add + change ── */
+.na1-m4-ai-steps{ list-style:none; counter-reset:ai; max-width:560px; margin:0 auto 14px; padding:10px 14px; border:1px solid var(--na1-border); border-radius:10px; background:var(--na1-bg-soft); font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); color:var(--na1-text); font-weight:var(--b-w); }
+.na1-m4-ai-steps li{ counter-increment:ai; margin:2px 0; display:flex; gap:8px; }
+.na1-m4-ai-steps li::before{ content:counter(ai) "."; flex:0 0 auto; font-family:var(--f-label); color:var(--gold-text); font-weight:400; }
+.na1-m4-ai-label{ display:block; font-family:var(--f-label); font-size:max(var(--l-min), 13px); letter-spacing:.04em; color:var(--na1-text); margin:0 0 6px; font-weight:400; }
+.na1-m4-ai-add .na1-m4-input-row{ margin-bottom:8px; }
+.na1-m4-ai-examples{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0 0 10px; }
+.na1-m4-ai-examples-label{ font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); font-weight:400; }
+.na1-m4-ai-example{ min-height:32px; padding:0 12px; border-radius:100px; border:1px dashed var(--gold-line); background:transparent; color:var(--gold-text); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; }
+.na1-m4-ai-example:hover{ background:var(--gold-soft); }
+.na1-m4-ai-buttons{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 16px; }
+.na1-m4-ai-buttons .na1-m4-int-btn:disabled{ opacity:.45; cursor:not-allowed; }
+.na1-m4-ai-cols{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:8px; }
+.na1-m4-ai-col{ border:1px solid var(--na1-border); border-radius:12px; padding:10px 12px 12px; background:var(--na1-bg); min-width:0; }
+.na1-m4-ai-col.lights, .na1-m4-ai-col.turns{ border-color:var(--gold-line); }
+.na1-m4-ai-col.turns{ border-color:var(--burgundy-line); }
+.na1-m4-ai-col.bothers{ border-color:var(--burgundy-line); }
+.na1-m4-ai-col.is-drop-target{ outline:2px dashed var(--gold); outline-offset:-2px; }
+.na1-m4-ai-col-head{ display:flex; align-items:center; gap:7px; margin:0 0 8px; font-family:var(--f-label); font-size:max(var(--e-min), 12px); letter-spacing:.1em; text-transform:uppercase; font-weight:400; color:var(--na1-text); }
+.na1-m4-ai-count{ margin-left:auto; min-width:24px; padding:1px 8px; border-radius:100px; background:var(--na1-bg-soft); border:1px solid var(--na1-border); text-align:center; font-size:max(var(--l-min), 12px); letter-spacing:0; }
+.na1-m4-ai-list{ display:flex; flex-direction:column; gap:6px; }
+.na1-m4-ai-empty{ margin:0; padding:6px 2px; font-family:var(--f-body); font-style:italic; font-size:max(var(--b-min), calc(15px + var(--b-bump))); color:var(--na1-text-sec); font-weight:var(--b-w); }
+.na1-m4-ai-item{ display:flex; align-items:center; gap:8px; width:100%; min-height:40px; padding:8px 10px; text-align:left; background:var(--na1-bg-card); border:1px solid var(--na1-border); border-radius:8px; cursor:pointer; font-family:var(--f-body); font-size:max(var(--b-min), calc(16px + var(--b-bump))); color:var(--na1-text); font-weight:400; }
+.na1-m4-ai-item:hover{ border-color:var(--gold-line); }
+.na1-m4-ai-item-text{ flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+.na1-m4-ai-item-edit{ flex:0 0 auto; font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--gold-text); }
+.na1-m4-ai-editor{ padding:8px; border:1px solid var(--gold); border-radius:8px; background:var(--na1-bg-card); display:flex; flex-direction:column; gap:8px; }
+.na1-m4-ai-editor-row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.na1-m4-ai-editor-label{ flex:1 0 100%; font-family:var(--f-label); font-size:max(var(--l-min), 12px); color:var(--na1-text-sec); font-weight:400; }
+.na1-m4-ai-editor-spacer{ flex:1 1 auto; }
+.na1-m4-ai-chip{ min-height:36px; padding:0 12px; border-radius:100px; border:1px solid var(--na1-border); background:transparent; color:var(--na1-text-sec); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; }
+.na1-m4-ai-chip.is-current.lights, .na1-m4-ai-chip.is-current.warms{ background:var(--gold-soft); border-color:var(--gold); color:var(--gold-text); }
+.na1-m4-ai-chip.is-current.bothers, .na1-m4-ai-chip.is-current.turns{ background:var(--burgundy-soft); border-color:var(--burgundy); color:var(--burgundy-text); }
+.na1-m4-ai-remove{ min-height:36px; padding:0 12px; background:none; border:1px solid var(--burgundy-line); border-radius:100px; color:var(--burgundy-text); font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; }
+.na1-m4-ai-done{ min-height:36px; padding:0 16px; background:var(--btn); color:var(--btn-ink); border:0; border-radius:100px; font-family:var(--f-label); font-size:max(var(--l-min), 12.5px); font-weight:400; cursor:pointer; }
+@media (min-width:768px){
+  /* One screen on desktop: tighter spacing, steps in a row, examples beside the add
+     buttons; long columns scroll inside themselves. */
+  .na1-m4-ai .na1-m4-step-eyebrow{ margin-bottom:6px; }
+  .na1-m4-ai .na1-m4-step-title{ font-size:26px; margin-bottom:4px; }
+  .na1-m4-ai .na1-m4-step-sub{ max-width:none; margin:0 0 10px; font-size:max(var(--b-min), calc(16px + var(--b-bump))); line-height:max(var(--b-lh), 1.4); }
+  .na1-m4-ai-steps{ display:flex; gap:8px; max-width:none; padding:0; border:0; background:none; margin-bottom:8px; font-size:max(var(--b-min), calc(14.5px + var(--b-bump))); line-height:max(var(--b-lh), 1.3); }
+  .na1-m4-ai-steps li{ flex:1 1 0; margin:0; padding:6px 10px; border:1px solid var(--na1-border); border-radius:10px; background:var(--na1-bg-soft); }
+  .na1-m4-ai-add{ display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:6px; align-items:center; margin-bottom:8px; }
+  .na1-m4-ai-add .na1-m4-ai-label{ grid-column:1 / -1; margin:0; }
+  .na1-m4-ai-add .na1-m4-input-row{ grid-column:1; grid-row:2; padding:8px 14px; margin:0; }
+  .na1-m4-ai-buttons{ grid-column:2; grid-row:2; margin:0; flex-wrap:nowrap; padding-left:0; }
+  .na1-m4-ai-examples{ grid-column:1 / -1; grid-row:3; margin:0; }
+  .na1-m4-ai-steps li:nth-child(3){ flex:1.5 1 0; }
+  .na1-m4-ai-list{ max-height:104px; overflow-y:auto; }
+  /* While a behavior is open for editing, the 3 steps step aside so its editor has room. */
+  .na1-m4-ai:has(.na1-m4-ai-editor) .na1-m4-ai-steps{ display:none; }
+  .na1-m4-ai:has(.na1-m4-ai-editor) .na1-m4-ai-list{ max-height:220px; }
+  .na1-room-card:has(.na1-m4-ai){ padding-top:56px; }
+  .na1-m4-ai .na1-m4-counter{ margin-top:2px; }
+}
+@media (max-width:767px){
+  .na1-m4-ai-cols{ grid-template-columns:1fr; }
+}
+
 /* Rethink your time (desktop): one compact row per activity */
 .df-acts{ display:flex; flex-direction:column; gap:6px; padding:0 16px 6px; }
 .df-act{ border:1px solid var(--na1-border); border-radius:var(--na1-radius); background:var(--na1-bg-soft); }
@@ -54371,6 +54467,33 @@ function NewA1M4NameStandardsBody({
   const standardsPager = usePager(state.clusters.map((c, i) => ({ c, i })), 1, flow.wide);
   const [exampleOpen, setExampleOpen] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  // Board (first screen): a tapped placed behavior's menu, who's expanded, drag source.
+  const [placedMenu, setPlacedMenu] = useState<string | null>(null); // `${clusterId}|${behaviorId}`
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const dragRef = useRef<{ bid: string; from: string | null } | null>(null);
+  const [dropOn, setDropOn] = useState<string | null>(null);
+  // Placing animates the chip from where it was to where it lands (FLIP).
+  const flyRef = useRef<{ bid: string; rect: DOMRect } | null>(null);
+  const markFly = (bid: string) => {
+    const el = document.querySelector(`[data-bid="${bid}"]`);
+    if (el) flyRef.current = { bid, rect: el.getBoundingClientRect() };
+  };
+  useLayoutEffect(() => {
+    const f = flyRef.current;
+    if (!f) return;
+    flyRef.current = null;
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const el = document.querySelector(`[data-bid="${f.bid}"]`) as HTMLElement | null;
+    if (!el || !el.animate) return;
+    const r = el.getBoundingClientRect();
+    el.animate(
+      [
+        { transform: `translate(${f.rect.left - r.left}px, ${f.rect.top - r.top}px)`, opacity: 0.65 },
+        { transform: "none", opacity: 1 },
+      ],
+      { duration: 380, easing: "cubic-bezier(.22,1,.36,1)" },
+    );
+  }, [state.clusters, state.admire]);
 
   const pool = state.admire.filter((b) => b.inUseByCluster == null);
 
@@ -54391,11 +54514,29 @@ function NewA1M4NameStandardsBody({
   };
 
   const addToStandard = (behaviorId: string, clusterId: string) => {
+    markFly(behaviorId);
     mutate((s) => m4AddBehaviorToCluster(s, clusterId, behaviorId));
     setMenuFor(null);
   };
+  // Move a placed behavior to another standard (or a fresh one), keeping it visible.
+  const moveBehavior = (behaviorId: string, fromId: string, toId: string | "new") => {
+    markFly(behaviorId);
+    mutate((s) => {
+      const stripped = m4RemoveBehaviorFromCluster(s, fromId, behaviorId);
+      if (toId !== "new") return m4AddBehaviorToCluster(stripped, toId, behaviorId);
+      const r = m4CreateCluster(stripped, { proposal: "", proposedNames: [], behaviorIds: [] });
+      return m4AddBehaviorToCluster(r.state, r.cluster.id, behaviorId);
+    });
+    setPlacedMenu(null);
+  };
+  const sendBack = (behaviorId: string, fromId: string) => {
+    markFly(behaviorId);
+    mutate((s) => m4RemoveBehaviorFromCluster(s, fromId, behaviorId));
+    setPlacedMenu(null);
+  };
 
   const addToNewStandard = (behaviorId: string) => {
+    markFly(behaviorId);
     mutate((s) => {
       const r = m4CreateCluster(s, {
         proposal: "",
@@ -54485,59 +54626,227 @@ function NewA1M4NameStandardsBody({
         </div>
       )}
 
-      <div className="na1-m4-ns-pool">
-        <div className="na1-m4-ns-label">
-          Behaviors to group ({pool.length})
-        </div>
-        {pool.length === 0 ? (
-          <div className="na1-m4-ns-pool-empty">
-            {state.admire.length === 0
-              ? "No admired behaviors yet — add some on the Admire rung first."
-              : "Every behavior is grouped. Nice."}
-          </div>
-        ) : (
-          <div className="na1-m4-ns-chips">
-            {pool.map((b) => (
-              <div key={b.id} className="na1-m4-ns-chipwrap">
-                <button
-                  type="button"
-                  className="na1-m4-ns-chip"
-                  onClick={() =>
-                    setMenuFor((cur) => (cur === b.id ? null : b.id))
-                  }
-                >
-                  {b.text}
-                  <span className="na1-m4-ns-chip-caret" aria-hidden>
-                    ▾
-                  </span>
-                </button>
-                {menuFor === b.id && (
-                  <div className="na1-m4-ns-menu">
-                    {state.clusters.map((c) => (
+      <div className="na1-m4-ns-board">
+        <section
+          className={`na1-m4-ns-bcol${dropOn === "pool" ? " is-drop" : ""}`}
+          aria-label="Your behaviors"
+          onDragOver={(e) => {
+            if (dragRef.current?.from) {
+              e.preventDefault();
+              setDropOn("pool");
+            }
+          }}
+          onDragLeave={() => setDropOn((d) => (d === "pool" ? null : d))}
+          onDrop={(e) => {
+            e.preventDefault();
+            const d = dragRef.current;
+            if (d?.from) sendBack(d.bid, d.from);
+            dragRef.current = null;
+            setDropOn(null);
+          }}
+        >
+          <h3 className="na1-m4-ns-bhead">
+            Your behaviors
+            <span className="na1-m4-ns-bcount">{pool.length}</span>
+          </h3>
+          {pool.length === 0 ? (
+            state.admire.length === 0 ? (
+              <p className="na1-m4-ns-bempty">
+                No admired behaviors yet — add some on the Admire rung first.
+              </p>
+            ) : (
+              <p className="na1-m4-ns-allplaced" role="status">
+                <span aria-hidden>✓</span> All behaviors placed
+              </p>
+            )
+          ) : (
+            <div className="na1-m4-ns-bchips">
+              {pool.map((b) => (
+                <div key={b.id} className="na1-m4-ns-chipwrap">
+                  <button
+                    type="button"
+                    className="na1-m4-ns-chip"
+                    data-bid={b.id}
+                    draggable
+                    onDragStart={() => {
+                      dragRef.current = { bid: b.id, from: null };
+                    }}
+                    onDragEnd={() => {
+                      dragRef.current = null;
+                      setDropOn(null);
+                    }}
+                    onClick={() => setMenuFor((cur) => (cur === b.id ? null : b.id))}
+                    aria-expanded={menuFor === b.id}
+                  >
+                    {b.text}
+                    <span className="na1-m4-ns-chip-caret" aria-hidden>
+                      ▾
+                    </span>
+                  </button>
+                  {menuFor === b.id && (
+                    <div className="na1-m4-ns-menu is-inline">
+                      <div className="na1-m4-ns-menu-title">Place in…</div>
+                      {state.clusters.map((c, ci) => (
+                        <button
+                          type="button"
+                          key={c.id}
+                          className="na1-m4-ns-menu-item"
+                          onClick={() => addToStandard(b.id, c.id)}
+                        >
+                          {c.userName.trim() || `Standard ${ci + 1}`}
+                        </button>
+                      ))}
                       <button
                         type="button"
-                        key={c.id}
-                        className="na1-m4-ns-menu-item"
-                        onClick={() => addToStandard(b.id, c.id)}
+                        className="na1-m4-ns-menu-item is-new"
+                        onClick={() => addToNewStandard(b.id)}
                       >
-                        {c.userName.trim() || "Unnamed standard"}
+                        + New standard
                       </button>
-                    ))}
-                    <button
-                      type="button"
-                      className="na1-m4-ns-menu-item is-new"
-                      onClick={() => addToNewStandard(b.id)}
-                    >
-                      + New standard
-                    </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+        <section className="na1-m4-ns-bcol" aria-label="Your standards">
+          <h3 className="na1-m4-ns-bhead">
+            Your standards
+            <span className="na1-m4-ns-bcount">{state.clusters.length}</span>
+          </h3>
+          {state.clusters.length === 0 && (
+            <p className="na1-m4-ns-bempty">Tap a behavior to start your first standard.</p>
+          )}
+          <div className="na1-m4-ns-bcards">
+            {state.clusters.map((c, ci) => {
+              const ids = c.behaviorIds;
+              const open = !!expanded[c.id];
+              const shown = open ? ids : ids.slice(0, 4);
+              const more = ids.length - shown.length;
+              return (
+                <div
+                  key={c.id}
+                  className={`na1-m4-ns-bcard${dropOn === c.id ? " is-drop" : ""}`}
+                  style={{ borderLeftColor: `var(--c${c.colorIndex})` }}
+                  onDragOver={(e) => {
+                    if (dragRef.current && dragRef.current.from !== c.id) {
+                      e.preventDefault();
+                      setDropOn(c.id);
+                    }
+                  }}
+                  onDragLeave={() => setDropOn((d) => (d === c.id ? null : d))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const d = dragRef.current;
+                    if (d) {
+                      if (d.from) moveBehavior(d.bid, d.from, c.id);
+                      else addToStandard(d.bid, c.id);
+                    }
+                    dragRef.current = null;
+                    setDropOn(null);
+                  }}
+                >
+                  <div className="na1-m4-ns-bcard-head">
+                    <span className={`na1-m4-ns-bcard-name${c.userName.trim() ? "" : " is-unnamed"}`}>
+                      {c.userName.trim() || `Standard ${ci + 1}`}
+                    </span>
+                    <span className="na1-m4-ns-bcount" aria-label={`${ids.length} placed`}>
+                      {ids.length}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  {ids.length === 0 ? (
+                    <p className="na1-m4-ns-bempty">Nothing placed yet.</p>
+                  ) : (
+                    <div className="na1-m4-ns-bplaced">
+                      {shown.map((bid) => {
+                        const key = `${c.id}|${bid}`;
+                        return (
+                          <div key={bid} className="na1-m4-ns-chipwrap">
+                            <button
+                              type="button"
+                              className="na1-m4-ns-chip is-placed"
+                              data-bid={bid}
+                              draggable
+                              onDragStart={() => {
+                                dragRef.current = { bid, from: c.id };
+                              }}
+                              onDragEnd={() => {
+                                dragRef.current = null;
+                                setDropOn(null);
+                              }}
+                              onClick={() => setPlacedMenu((cur) => (cur === key ? null : key))}
+                              aria-expanded={placedMenu === key}
+                            >
+                              {behaviorText(bid)}
+                              <span className="na1-m4-ns-chip-caret" aria-hidden>
+                                ▾
+                              </span>
+                            </button>
+                            {placedMenu === key && (
+                              <div className="na1-m4-ns-menu is-inline">
+                                <div className="na1-m4-ns-menu-title">Move to…</div>
+                                {state.clusters
+                                  .map((o, oi) => ({ o, oi }))
+                                  .filter(({ o }) => o.id !== c.id)
+                                  .map(({ o, oi }) => (
+                                    <button
+                                      type="button"
+                                      key={o.id}
+                                      className="na1-m4-ns-menu-item"
+                                      onClick={() => moveBehavior(bid, c.id, o.id)}
+                                    >
+                                      {o.userName.trim() || `Standard ${oi + 1}`}
+                                    </button>
+                                  ))}
+                                <button
+                                  type="button"
+                                  className="na1-m4-ns-menu-item is-new"
+                                  onClick={() => moveBehavior(bid, c.id, "new")}
+                                >
+                                  + New standard
+                                </button>
+                                <button
+                                  type="button"
+                                  className="na1-m4-ns-menu-item is-back"
+                                  onClick={() => sendBack(bid, c.id)}
+                                >
+                                  ↩ Send back to unplaced
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {more > 0 && (
+                        <button
+                          type="button"
+                          className="na1-m4-ns-more"
+                          onClick={() => setExpanded((x) => ({ ...x, [c.id]: true }))}
+                        >
+                          +{more} more
+                        </button>
+                      )}
+                      {open && ids.length > 4 && (
+                        <button
+                          type="button"
+                          className="na1-m4-ns-more"
+                          onClick={() => setExpanded((x) => ({ ...x, [c.id]: false }))}
+                        >
+                          Show less
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
+          <button type="button" className="na1-m4-ns-add" onClick={createStandard}>
+            + New standard
+          </button>
+        </section>
       </div>
-
               </>
             ),
           },
@@ -54767,98 +55076,107 @@ function M4NsAddBehavior({ onAdd }: { onAdd: (t: string) => void }) {
   );
 }
 
-// A single behavior row in the Admire/Irks collection lists. The text
-// is inline-editable: tap (or keyboard-activate) the text to swap it
-// for an input; Enter or blur saves, Escape cancels, empty input
-// reverts. The × still deletes. Tier/person/tag are read-only here —
-// tier moves happen on the Portrait step.
-function M4EditableBulRow({
+// Admire / Irks · add and change behaviors. Strongest strength first everywhere
+// (buttons and columns); a tapped behavior opens a small inline editor (text,
+// two strength chips, Remove) — one open at a time. Dragging a row to the other
+// column still changes its strength.
+type M4Strength = { tier: M4BehaviorTier; icon: string; label: string; btn: string };
+const M4_AI_STRENGTHS: Record<"admire" | "irks", [M4Strength, M4Strength]> = {
+  admire: [
+    { tier: "lights", icon: "★ ", label: "Lights me up", btn: "deep" },
+    { tier: "warms", icon: "", label: "Warms me", btn: "soft" },
+  ],
+  irks: [
+    { tier: "turns", icon: "⚡ ", label: "Turns my stomach", btn: "b-deep" },
+    { tier: "bothers", icon: "", label: "Bothers me", btn: "b-soft" },
+  ],
+};
+const M4_AI_EXAMPLES: Record<"admire" | "irks", string[]> = {
+  admire: ["keeps their word", "tells the truth kindly", "shows up for people"],
+  irks: ["blames others", "talks over people", "breaks promises"],
+};
+
+function M4BehaviorEditor({
   b,
+  kind,
   mutate,
+  onClose,
 }: {
   b: M4Behavior;
+  kind: "admire" | "irks";
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
+  onClose: () => void;
 }) {
-  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(b.text);
   const inputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
-    }
-  }, [editing]);
-
-  const startEdit = () => {
-    setDraft(b.text);
-    setEditing(true);
-  };
-  const commit = () => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+  const commitText = () => {
     const t = draft.trim();
     if (t && t !== b.text) mutate((s) => m4EditBehaviorText(s, b.id, t));
-    setEditing(false);
   };
-  const cancel = () => {
-    setDraft(b.text);
-    setEditing(false);
-  };
-
   return (
-    <div className="na1-m4-bul">
-      <span className={`na1-m4-pip ${b.tier}`}></span>
-      {editing ? (
-        <input
-          ref={inputRef}
-          type="text"
-          className="na1-m4-quad-inline-input"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              commit();
-            } else if (e.key === "Escape") {
-              e.preventDefault();
-              cancel();
-            }
-          }}
-        />
-      ) : (
-        <>
-          <span
-            className="na1-m4-bul-text na1-m4-bul-text-edit"
-            role="button"
-            tabIndex={0}
-            title="Tap to edit"
-            onClick={startEdit}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                startEdit();
-              }
+    <div className="na1-m4-ai-editor">
+      <input
+        ref={inputRef}
+        type="text"
+        className="na1-m4-quad-inline-input"
+        value={draft}
+        aria-label="Edit this behavior"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commitText();
+            onClose();
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            onClose();
+          }
+        }}
+      />
+      <div className="na1-m4-ai-editor-row">
+        <span className="na1-m4-ai-editor-label">How strongly it hits</span>
+        {M4_AI_STRENGTHS[kind].map((st) => (
+          <button
+            key={st.tier}
+            type="button"
+            className={`na1-m4-ai-chip ${st.tier}${b.tier === st.tier ? " is-current" : ""}`}
+            aria-pressed={b.tier === st.tier}
+            onClick={() => {
+              commitText();
+              if (b.tier !== st.tier) mutate((s) => m4ChangeBehaviorTier(s, b.id, st.tier));
+              onClose();
             }}
           >
-            {b.text}
-          </span>
-          {b.person && (
-            <span className="na1-m4-bul-person">· {b.person}</span>
-          )}
-          <span className={`na1-m4-bul-tag ${b.tier}`}>
-            {M4_TIER_ICON[b.tier]}
-            {M4_TIER_LABEL[b.tier]}
-          </span>
-        </>
-      )}
-      <button
-        type="button"
-        className="na1-m4-bul-x"
-        onClick={() => mutate((s) => m4DeleteBehavior(s, b.id))}
-        aria-label="Delete behavior"
-      >
-        ×
-      </button>
+            {st.icon}
+            {st.label}
+          </button>
+        ))}
+        <span className="na1-m4-ai-editor-spacer" />
+        <button
+          type="button"
+          className="na1-m4-ai-remove"
+          onClick={() => {
+            mutate((s) => m4DeleteBehavior(s, b.id));
+            onClose();
+          }}
+        >
+          Remove
+        </button>
+        <button
+          type="button"
+          className="na1-m4-ai-done"
+          onClick={() => {
+            commitText();
+            onClose();
+          }}
+        >
+          Done
+        </button>
+      </div>
     </div>
   );
 }
@@ -54874,8 +55192,12 @@ function M4StepAdmireIrks({
 }) {
   const list = kind === "admire" ? state.admire : state.irks;
   const total = state.admire.length + state.irks.length;
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dropTier, setDropTier] = useState<M4BehaviorTier | null>(null);
+  const strengths = M4_AI_STRENGTHS[kind];
   return (
-    <>
+    <div className="na1-m4-ai">
       <div className="na1-m4-step-eyebrow">
         Mirror 4 · {kind === "admire" ? "Admire" : "Irks"}
       </div>
@@ -54889,42 +55211,86 @@ function M4StepAdmireIrks({
           ? "In yourself or in others. Don't overthink — the first thing that comes up is usually the truest."
           : "The blood-boil. In yourself or in others. What irritates you most often points to what you refuse to compromise on yourself."}
       </p>
-      <div className="na1-m4-legend">
-        {kind === "admire" ? (
-          <>
-            <span className="na1-m4-legend-pill">
-              <span className="na1-m4-pip lights"></span> ★ Lights me up —
-              strong
-            </span>
-            <span className="na1-m4-legend-pill">
-              <span className="na1-m4-pip warms"></span> Warms me — softer
-            </span>
-          </>
-        ) : (
-          <>
-            <span className="na1-m4-legend-pill">
-              <span className="na1-m4-pip bothers"></span> Bothers me —
-              daily friction
-            </span>
-            <span className="na1-m4-legend-pill">
-              <span className="na1-m4-pip turns"></span> ⚡ Turns my
-              stomach — gut reaction
-            </span>
-          </>
-        )}
-      </div>
+      <ol className="na1-m4-ai-steps">
+        <li>Type a behavior — in yourself or someone else.</li>
+        <li>Tap how strongly it hits you to add it.</li>
+        <li>Add as many as come to mind (aim for 5 or more). Tap any behavior to change it.</li>
+      </ol>
       <M4InputRow kind={kind} mutate={mutate} />
-      <div className="na1-m4-blist">
-        {list.map((b) => (
-          <M4EditableBulRow key={b.id} b={b} mutate={mutate} />
-        ))}
+      <div className="na1-m4-ai-cols">
+        {strengths.map((st) => {
+          const col = list.filter((b) => b.tier === st.tier);
+          return (
+            <section
+              key={st.tier}
+              className={`na1-m4-ai-col ${st.tier}${dropTier === st.tier ? " is-drop-target" : ""}`}
+              aria-label={`${st.label}, ${col.length}`}
+              onDragOver={(e) => {
+                if (!dragId) return;
+                e.preventDefault();
+                setDropTier(st.tier);
+              }}
+              onDragLeave={() => setDropTier((t) => (t === st.tier ? null : t))}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragId) mutate((s) => m4ChangeBehaviorTier(s, dragId, st.tier));
+                setDragId(null);
+                setDropTier(null);
+              }}
+            >
+              <h3 className="na1-m4-ai-col-head">
+                <span className={`na1-m4-pip ${st.tier}`}></span>
+                {st.icon}
+                {st.label}
+                <span className="na1-m4-ai-count">{col.length}</span>
+              </h3>
+              <div className="na1-m4-ai-list">
+                {col.length === 0 ? (
+                  <p className="na1-m4-ai-empty">Nothing here yet — add one above.</p>
+                ) : (
+                  col.map((b) =>
+                    openId === b.id ? (
+                      <M4BehaviorEditor
+                        key={b.id}
+                        b={b}
+                        kind={kind}
+                        mutate={mutate}
+                        onClose={() => setOpenId(null)}
+                      />
+                    ) : (
+                      <button
+                        key={b.id}
+                        type="button"
+                        className="na1-m4-ai-item"
+                        draggable
+                        onDragStart={() => setDragId(b.id)}
+                        onDragEnd={() => {
+                          setDragId(null);
+                          setDropTier(null);
+                        }}
+                        onClick={() => setOpenId(b.id)}
+                        title="Tap to change"
+                      >
+                        <span className="na1-m4-ai-item-text">{b.text}</span>
+                        {b.person && <span className="na1-m4-bul-person">· {b.person}</span>}
+                        <span className="na1-m4-ai-item-edit" aria-hidden>
+                          Edit
+                        </span>
+                      </button>
+                    ),
+                  )
+                )}
+              </div>
+            </section>
+          );
+        })}
       </div>
       <div className="na1-m4-counter">
         {kind === "admire"
           ? `${list.length} ${list.length === 1 ? "behavior" : "behaviors"} so far`
           : `${total} ${total === 1 ? "behavior" : "behaviors"} total`}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -54937,6 +55303,7 @@ function M4InputRow({
 }) {
   const [text, setText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputId = `m4-ai-${kind}-input`;
 
   const submit = (tier: M4BehaviorTier) => {
     if (!text.trim()) return;
@@ -54944,25 +55311,31 @@ function M4InputRow({
     setText("");
     inputRef.current?.focus();
   };
+  // Enter adds at the strongest strength (first button) in both steps.
   const defaultTier: M4BehaviorTier =
-    kind === "admire" ? "lights" : "bothers";
+    kind === "admire" ? "lights" : "turns";
 
   const placeholder =
     kind === "admire"
       ? "A behavior comes to mind…"
       : "A behavior that bothers you…";
+  const has = text.trim() !== "";
 
   return (
-    <>
+    <div className="na1-m4-ai-add">
+      <label className="na1-m4-ai-label" htmlFor={inputId}>
+        {kind === "admire" ? "A behavior you admire" : "A behavior that bothers you"}
+      </label>
       <div className="na1-m4-input-row">
         <input
+          id={inputId}
           ref={inputRef}
           type="text"
           className="na1-m4-input"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && text.trim()) {
+            if (e.key === "Enter" && has) {
               e.preventDefault();
               submit(defaultTier);
             }
@@ -54970,49 +55343,37 @@ function M4InputRow({
           placeholder={placeholder}
         />
       </div>
-      {text.trim() && (
-        <div className="na1-m4-intensity">
-          <span className="na1-m4-intensity-label">
-            How strongly does this hit?
-          </span>
-          {kind === "admire" ? (
-            <>
-              <button
-                type="button"
-                className="na1-m4-int-btn deep"
-                onClick={() => submit("lights")}
-              >
-                ★ Lights me up
-              </button>
-              <button
-                type="button"
-                className="na1-m4-int-btn soft"
-                onClick={() => submit("warms")}
-              >
-                Warms me
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                className="na1-m4-int-btn b-soft"
-                onClick={() => submit("bothers")}
-              >
-                Bothers me
-              </button>
-              <button
-                type="button"
-                className="na1-m4-int-btn b-deep"
-                onClick={() => submit("turns")}
-              >
-                ⚡ Turns my stomach
-              </button>
-            </>
-          )}
-        </div>
-      )}
-    </>
+      <div className="na1-m4-ai-examples" aria-label="Examples">
+        <span className="na1-m4-ai-examples-label">e.g.</span>
+        {M4_AI_EXAMPLES[kind].map((ex) => (
+          <button
+            key={ex}
+            type="button"
+            className="na1-m4-ai-example"
+            onClick={() => {
+              setText(ex);
+              inputRef.current?.focus();
+            }}
+          >
+            {ex}
+          </button>
+        ))}
+      </div>
+      <div className="na1-m4-intensity na1-m4-ai-buttons">
+        {M4_AI_STRENGTHS[kind].map((st) => (
+          <button
+            key={st.tier}
+            type="button"
+            className={`na1-m4-int-btn ${st.btn}`}
+            disabled={!has}
+            onClick={() => submit(st.tier)}
+          >
+            + {st.icon}
+            {st.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
