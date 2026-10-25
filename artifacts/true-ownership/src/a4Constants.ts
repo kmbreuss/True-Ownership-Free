@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { notifyLocalChange } from "./syncHook";
+import { previewRead, previewWrite } from "./devPreview";
 import {
   DOMAIN_LABELS,
   LENS_DOMAINS,
@@ -267,7 +268,7 @@ export function normalizeA4(raw: unknown): A4State {
 export function loadA4State(): A4State {
   try {
     if (typeof window === "undefined") return EMPTY_A4;
-    const raw = window.localStorage.getItem(A4_STORAGE_KEY);
+    const raw = previewRead(A4_STORAGE_KEY) ?? window.localStorage.getItem(A4_STORAGE_KEY);
     if (!raw) return EMPTY_A4;
     return normalizeA4(JSON.parse(raw));
   } catch {}
@@ -275,6 +276,7 @@ export function loadA4State(): A4State {
 }
 
 export function saveA4State(state: A4State): void {
+  if (previewWrite(A4_STORAGE_KEY, JSON.stringify(state))) return;
   try {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(A4_STORAGE_KEY, JSON.stringify(state));
@@ -287,7 +289,7 @@ export function saveA4State(state: A4State): void {
 export function hasA4State(): boolean {
   try {
     if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(A4_STORAGE_KEY) !== null;
+    return previewRead(A4_STORAGE_KEY) !== undefined || window.localStorage.getItem(A4_STORAGE_KEY) !== null;
   } catch {
     return false;
   }

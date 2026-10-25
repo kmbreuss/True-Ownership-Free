@@ -15,6 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { notifyLocalChange } from "./syncHook";
+import { previewRead, previewWrite } from "./devPreview";
 
 export const A5_STORAGE_KEY = "to_a5_state_v1";
 
@@ -254,13 +255,14 @@ function normalizeReset90(raw: unknown): A5Reset90 | null {
 export function loadA5State(): A5State {
   try {
     if (typeof window === "undefined") return EMPTY_A5;
-    const raw = window.localStorage.getItem(A5_STORAGE_KEY);
+    const raw = previewRead(A5_STORAGE_KEY) ?? window.localStorage.getItem(A5_STORAGE_KEY);
     if (!raw) return EMPTY_A5;
     return normalizeA5(JSON.parse(raw));
   } catch {}
   return EMPTY_A5;
 }
 export function saveA5State(state: A5State): void {
+  if (previewWrite(A5_STORAGE_KEY, JSON.stringify(state))) return;
   try {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(A5_STORAGE_KEY, JSON.stringify(state));
@@ -270,7 +272,7 @@ export function saveA5State(state: A5State): void {
 export function hasA5State(): boolean {
   try {
     if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(A5_STORAGE_KEY) !== null;
+    return previewRead(A5_STORAGE_KEY) !== undefined || window.localStorage.getItem(A5_STORAGE_KEY) !== null;
   } catch {
     return false;
   }

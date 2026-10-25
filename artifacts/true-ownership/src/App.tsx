@@ -8,6 +8,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
+import { isDevPreview, previewRead, previewWrite, setDevPreview } from "./devPreview";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -302,6 +303,7 @@ function localKeyToServerKey(k: string): string | null {
   return ALLOWED_SERVER_KEYS.has(s) ? s : null;
 }
 function saveData(k: string, v: any) {
+  if (previewWrite(k, JSON.stringify(v))) return;
   try {
     localStorage.setItem(k, JSON.stringify(v));
   } catch {}
@@ -318,6 +320,8 @@ function saveData(k: string, v: any) {
   }
 }
 function loadDataSync(k: string): any {
+  const temporary = previewRead(k);
+  if (temporary !== undefined) return JSON.parse(temporary);
   const sk = localKeyToServerKey(k);
   if (sk && serverDataCache && sk in serverDataCache)
     return serverDataCache[sk];
@@ -29592,6 +29596,7 @@ function CapAnimalCard({ animal, animalIdx, m2animals, set, map }) {
 // kept in sessionStorage so it ends with the tab and never sticks for a member);
 // `?legacy=0` turns it off again. Old saved answers are never deleted either way.
 const LEGACY_FLOW = (() => {
+  if (isDevPreview()) return false;
   try {
     const q = new URLSearchParams(window.location.search).get("legacy");
     if (q === "1") {
@@ -29606,7 +29611,7 @@ const LEGACY_FLOW = (() => {
 })();
 // Retire the old sticky opt-in markers (no longer read anywhere).
 try {
-  for (const k of ["na1_optin", "na2_optin", "na3_optin"]) window.localStorage.removeItem(k);
+  if (!isDevPreview()) for (const k of ["na1_optin", "na2_optin", "na3_optin"]) window.localStorage.removeItem(k);
 } catch {}
 const NEW_A1_FLAG = !LEGACY_FLOW;
 // A2 and A3 live inside the NewA1View tree, so they follow A1.
@@ -29619,8 +29624,10 @@ const NEW_A3_FLAG = NEW_A2_FLAG;
 // mirror (M2→M3, M3→M4). Clean up any stale sticky opt-in keys left behind by
 // old dev sessions so they don't linger as noise.
 try {
-  window.localStorage.removeItem("newM3");
-  window.localStorage.removeItem("newM4");
+  if (!isDevPreview()) {
+    window.localStorage.removeItem("newM3");
+    window.localStorage.removeItem("newM4");
+  }
 } catch {}
 // Route the M2 Vision Declaration seal's "Continue to Identity →" button into
 // the Mirror 3 surface once Vision is complete. Stays gated by the same
@@ -29899,7 +29906,7 @@ function NewA1Grid({
               </span>
             </div>
           </article>
-          {visionUnlocked ? (
+          {visionUnlocked || isDevPreview() ? (
             <article
               className={`na1-mirror-card ${visionComplete ? "is-complete" : visionInProgress ? "is-vision-in-progress" : "is-vision-up-next"}`}
             >
@@ -29975,7 +29982,7 @@ function NewA1Grid({
               IMPORTANT: gate keys on `identityUnlocked` (= visionComplete),
               which itself requires `visionUnlocked`, so the chain re-locks
               transitively when an upstream mirror is reset. */}
-          {identityUnlocked && onOpenM3 ? (
+          {(identityUnlocked || isDevPreview()) && onOpenM3 ? (
             <article
               className={`na1-mirror-card ${identityCardClass}`}
               role="button"
@@ -30060,7 +30067,7 @@ function NewA1Grid({
               mirror is reset). The card then resolves to Up next / In
               progress / Complete and stays clickable for review; the locked
               card uses a disabled "Unlocks after Identity" CTA. */}
-          {valuesUnlocked && onOpenM4 ? (
+          {(valuesUnlocked || isDevPreview()) && onOpenM4 ? (
             <article
               className={`na1-mirror-card ${valuesCardClass}`}
               role="button"
@@ -30318,9 +30325,9 @@ function NewA1Explore({
               type="button"
               key={ex.key}
               className={cls}
-              disabled={isLocked}
+              disabled={isLocked && !isDevPreview()}
               onClick={() => {
-                if (!isLocked) onLaunchRoom(ex);
+                if (!isLocked || isDevPreview()) onLaunchRoom(ex);
               }}
               aria-label={`${ex.name} — ${statusLabel}`}
             >
@@ -31645,6 +31652,7 @@ function NewA1DeclareBody({
   }, [mode]);
   const handleClaim = async () => {
     const v = value.trim();
+    if (isDevPreview()) return;
     if (!v || working) return;
     setWorking(true);
     setShowBurst(true);
@@ -32018,9 +32026,9 @@ function NewA2Explore({
                 type="button"
                 key={ex.key}
                 className={cls}
-                disabled={isLocked}
+                disabled={isLocked && !isDevPreview()}
                 onClick={() => {
-                  if (!isLocked) onLaunchRoom(ex);
+                  if (!isLocked || isDevPreview()) onLaunchRoom(ex);
                 }}
                 aria-label={`${ex.name} — ${statusLabel}`}
               >
@@ -32932,13 +32940,14 @@ function writeVisionStep(room: string, n: number | null): void {
     const o = JSON.parse(window.localStorage.getItem(VISION_STEP_KEY) || "{}") || {};
     if (n == null) delete o[room];
     else o[room] = n;
-    window.localStorage.setItem(VISION_STEP_KEY, JSON.stringify(o));
+    if (!isDevPreview()) window.localStorage.setItem(VISION_STEP_KEY, JSON.stringify(o));
   } catch {
     // storage unavailable — the room still works, a refresh just opens at the first open section
   }
 }
 // Which A1 Vision room a saved route may reopen, and only when it is unlocked.
 function visionRoomUnlocked(key: string, vision: any): boolean {
+  if (isDevPreview()) return true;
   const v = vision || {};
   if (key === "twoFutures") return true; // the first Vision room is never locked
   if (key === "time") return !!v.twoFutures?.complete;
@@ -32997,7 +33006,7 @@ function writeFlowStep(room: string, n: number | null): void {
     const o = JSON.parse(window.localStorage.getItem(FLOW_STEP_KEY) || "{}") || {};
     if (n == null) delete o[room];
     else o[room] = n;
-    window.localStorage.setItem(FLOW_STEP_KEY, JSON.stringify(o));
+    if (!isDevPreview()) window.localStorage.setItem(FLOW_STEP_KEY, JSON.stringify(o));
   } catch {
     // storage unavailable — a refresh just reopens on the first screen
   }
@@ -34636,6 +34645,7 @@ function NewA2DeclarationBody({
   };
   const handleClaim = async () => {
     if (working) return;
+    if (isDevPreview()) return;
     setWorking(true);
     setShowBurst(true);
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
@@ -35022,7 +35032,7 @@ function loadHomeState(): HomeState {
 function saveHomeState(state: HomeState): void {
   try {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(HOME_STATE_KEY, JSON.stringify(state));
+    if (!isDevPreview()) window.localStorage.setItem(HOME_STATE_KEY, JSON.stringify(state));
   } catch {
     // localStorage may be unavailable; first-visit detection just resets.
   }
@@ -35086,7 +35096,7 @@ function loadAppRoute(): AppRoute | null {
 function saveAppRoute(route: AppRoute): void {
   try {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(APP_ROUTE_KEY, JSON.stringify(route));
+    if (!isDevPreview()) window.localStorage.setItem(APP_ROUTE_KEY, JSON.stringify(route));
   } catch {
     // localStorage may be unavailable (private mode, quota); failing
     // silently is fine — restore just won't work next refresh.
@@ -35741,8 +35751,9 @@ const DEV_TOOLS_ON =
 // leaks the string into production bundles; gated inline literals are removed.
 
 function DevResetBar() {
-  if (!DEV_TOOLS_ON) return null;
+  if (!import.meta.env.DEV) return null;
   const resetAll = () => {
+    if (isDevPreview()) return;
     if (!window.confirm("DEV: clear ALL A1/A2/A3 progress and reload?")) return;
     try {
       // Remove every progress store: all `to_*` keys (map/done/step/phase/voice,
@@ -35954,6 +35965,13 @@ function DevResetBar() {
       }}
     >
       <span style={{ fontWeight: 700, letterSpacing: "0.08em" }}>DEV</span>
+      {import.meta.env.DEV && (
+        <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <input type="checkbox" checked={isDevPreview()} onChange={(e) => setDevPreview(e.target.checked)} />
+          Preview all
+        </label>
+      )}
+      {DEV_TOOLS_ON && <fieldset disabled={isDevPreview()} style={{ display: "contents" }}>
       <button type="button" onClick={resetAll} style={DEV_RESET_BTN}>
         Reset all progress
       </button>
@@ -35966,6 +35984,7 @@ function DevResetBar() {
       <button type="button" onClick={seedA3M6Claim} style={DEV_RESET_BTN}>
         A3 M6 → claim
       </button>
+      </fieldset>}
     </div>
   );
 }
@@ -36235,6 +36254,7 @@ function NewA2HubView({
   return (
     <div className="na1-root">
       <div className="na1-shell">
+        <DevResetBar />
         <div className="na1-breadcrumb">
           <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
@@ -36296,7 +36316,7 @@ function NewA2HubView({
               </p>
             ) : null}
             <div className="na1-mirror-card-action">
-              {!a1Complete && !m1Claimed ? (
+              {!a1Complete && !m1Claimed && !isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -36347,7 +36367,7 @@ function NewA2HubView({
                   : "Unlocks after Alignment Check"}
             </div>
             <div className="na1-mirror-card-action">
-              {m1Claimed ? (
+              {m1Claimed || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -36389,7 +36409,7 @@ function NewA2HubView({
                 : "Unlocks after Time Audit"}
             </div>
             <div className="na1-mirror-card-action">
-              {m3Unlocked ? (
+              {m3Unlocked || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -36540,7 +36560,7 @@ function NewA2M1HubView({
             const isCurrent = !complete && s.num === firstIncomplete;
             const isLocked = !complete && !isCurrent && !anyDone;
             const isRevisit = !complete && !isCurrent && !isLocked;
-            const clickable = !isLocked && !!onStart;
+            const clickable = (!isLocked || isDevPreview()) && !!onStart;
             const cls = [
               "na1-ex-row",
               isCurrent ? "is-current tone-gold" : "",
@@ -36764,7 +36784,7 @@ function NewA2MirrorHubView({
             const isCurrent = !complete && s.num === firstIncomplete;
             const isLocked = !complete && !isCurrent && !anyDone;
             const isRevisit = !complete && !isCurrent && !isLocked;
-            const clickable = !isLocked && !!onStart;
+            const clickable = (!isLocked || isDevPreview()) && !!onStart;
             const cls = [
               "na1-ex-row",
               isCurrent ? "is-current tone-gold" : "",
@@ -37926,7 +37946,7 @@ function NewA2M1Step4Body({
     [],
   );
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -38240,6 +38260,7 @@ function NewA2M1Container({
   // A2.5 · seal the mirror. `claimed` alone drives Mirror 1 completion; stamp
   // `claimedAt` once on the first claim and leave it untouched thereafter.
   const onClaim = useCallback(() => {
+    if (isDevPreview()) return;
     mutateM1((m) =>
       m.claimed
         ? m
@@ -38253,6 +38274,7 @@ function NewA2M1Container({
   // claimed/claimedAt; currentStep resets to 1 (maxReached already spans the
   // walked steps, so forward nav stays open).
   const onReclaim = useCallback(() => {
+    if (isDevPreview()) return;
     mutateM1((m) => ({ ...unsealA2M1(m), currentStep: 1 }));
   }, [mutateM1]);
 
@@ -39099,7 +39121,7 @@ function NewA2M2Step4Body({
     if (card) card.scrollTo({ top: 0, behavior: "auto" });
   }, [mode]);
   const handleClaim = () => {
-    if (mode !== "readback" || showBurst) return;
+    if (isDevPreview() || mode !== "readback" || showBurst) return;
     setShowBurst(true);
     // First scroll (smooth) gives the burst a clean stage while the readback is
     // still in flow; the mode-flip effect re-snaps instantly at "ceremony".
@@ -39417,6 +39439,7 @@ function NewA2M2Container({
       claimedAt: new Date().toISOString(),
     }));
   const reclaimM2 = () => {
+    if (isDevPreview()) return;
     mutateM2((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -40625,7 +40648,7 @@ function NewA2M3Step3Body({
     if (card) card.scrollTo({ top: 0, behavior: "auto" });
   }, [mode]);
   const handleClaim = () => {
-    if (mode !== "readback" || showBurst) return;
+    if (isDevPreview() || mode !== "readback" || showBurst) return;
     setShowBurst(true);
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
     if (card) card.scrollTo({ top: 0, behavior: "smooth" });
@@ -41011,6 +41034,7 @@ function NewA2M3Container({
   // un-seal and return to Step 1 so the user can change their inputs, then
   // re-walk to Claim → to re-seal.
   const reclaimM3 = () => {
+    if (isDevPreview()) return;
     mutateM3((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -41439,7 +41463,7 @@ function NewA3HubView({
               )
             ) : null}
             <div className="na1-mirror-card-action">
-              {!peopleUnlocked && !m1Claimed ? (
+              {!peopleUnlocked && !m1Claimed && !isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -41499,7 +41523,7 @@ function NewA3HubView({
               {m2Claimed ? "Claimed." : envUnlocked ? "" : "Unlocks after People"}
             </div>
             <div className="na1-mirror-card-action">
-              {envUnlocked ? (
+              {envUnlocked || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -41556,7 +41580,7 @@ function NewA3HubView({
                   : "Unlocks after Environment"}
             </div>
             <div className="na1-mirror-card-action">
-              {thoughtsUnlocked ? (
+              {thoughtsUnlocked || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -41613,7 +41637,7 @@ function NewA3HubView({
                   : "Unlocks after Thoughts"}
             </div>
             <div className="na1-mirror-card-action">
-              {energyUnlocked ? (
+              {energyUnlocked || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -41666,7 +41690,7 @@ function NewA3HubView({
                   : "Unlocks after Energy Map"}
             </div>
             <div className="na1-mirror-card-action">
-              {boardUnlocked ? (
+              {boardUnlocked || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -41723,7 +41747,7 @@ function NewA3HubView({
                   : "Unlocks after The Board"}
             </div>
             <div className="na1-mirror-card-action">
-              {moveUnlocked ? (
+              {moveUnlocked || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -41957,7 +41981,7 @@ function NewA3M1ClaimBody({
     [],
   );
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -42216,6 +42240,7 @@ function NewA3M1Container({
   // flips back to in-progress) and return to Step 1 so the user can change
   // their choices, then re-walk to Claim → to re-seal.
   const reclaimM1 = () => {
+    if (isDevPreview()) return;
     mutateM1((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -42612,7 +42637,7 @@ function NewA3M2ClaimBody({
     [],
   );
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -42886,6 +42911,7 @@ function NewA3M2Container({
       claimedAt: m.claimedAt ?? new Date().toISOString(),
     }));
   const reclaimM2 = () => {
+    if (isDevPreview()) return;
     mutateM2((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -43541,7 +43567,7 @@ function NewA3M3ClaimBody({
     [],
   );
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -43895,6 +43921,7 @@ function NewA3M3Container({
       claimedAt: m.claimedAt ?? new Date().toISOString(),
     }));
   const reclaimM3 = () => {
+    if (isDevPreview()) return;
     mutateM3((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -44645,7 +44672,7 @@ function NewA3M4ClaimBody({
     [],
   );
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -44916,6 +44943,7 @@ function NewA3M4Container({
   // Energy Map is read-only, so Re-claim un-seals and lands on Step 1 (the map
   // view) — the same unseal + goToStep(1) mechanic as every other mirror.
   const reclaimM4 = () => {
+    if (isDevPreview()) return;
     mutateM4((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -45686,7 +45714,7 @@ function NewA3M5ClaimBody({
     [],
   );
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -45983,6 +46011,7 @@ function NewA3M5Container({
       claimedAt: m.claimedAt ?? new Date().toISOString(),
     }));
   const reclaimM5 = () => {
+    if (isDevPreview()) return;
     mutateM5((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -46537,7 +46566,7 @@ function NewA3M6ClaimBody({
     [],
   );
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -46898,6 +46927,7 @@ function NewA3M6Container({
   // Re-claim returns to the picks (Step 1) so the user can re-choose their move
   // and the bottleneck, then re-walk to Claim → to re-seal.
   const reclaimM6 = () => {
+    if (isDevPreview()) return;
     mutateM6((m) => ({ ...m, claimed: false, claimedAt: null }));
     goToStep(1);
   };
@@ -47536,7 +47566,7 @@ function NewA4HubView({
               <p className="na1-mirror-card-sub">Finish Advocate For It first.</p>
             ) : null}
             <div className="na1-mirror-card-action">
-              {!selfUnlocked && !selfClaimed ? (
+              {!selfUnlocked && !selfClaimed && !isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -47581,7 +47611,7 @@ function NewA4HubView({
               timeUnlocked ? "" : "Unlocks after Self",
             )}
             <div className="na1-mirror-card-action">
-              {timeUnlocked || timeClaimed ? (
+              {timeUnlocked || timeClaimed || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -47622,7 +47652,7 @@ function NewA4HubView({
               wealthUnlocked ? "" : "Unlocks after Time",
             )}
             <div className="na1-mirror-card-action">
-              {wealthUnlocked || wealthClaimed ? (
+              {wealthUnlocked || wealthClaimed || isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -47641,7 +47671,7 @@ function NewA4HubView({
         </div>
         {/* My Promises + the A4 claim — opens once all three promises are
             claimed. Not a fourth mirror (the count above stays N of 3). */}
-        {promisesUnlocked || a4Claimed ? (
+        {promisesUnlocked || a4Claimed || isDevPreview() ? (
           <div className="na1-mirror-grid na1-a4-final">
             <article
               className={`na1-mirror-card ${a4Claimed ? "is-complete" : "is-current"}`}
@@ -48820,7 +48850,7 @@ function NewA4MirrorContainer({
 
   // Claim: burst (no replay on re-entry) → seal.
   const handleClaim = () => {
-    if (showBurst || m.claimed || !ready) return;
+    if (isDevPreview() || showBurst || m.claimed || !ready) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -48837,6 +48867,7 @@ function NewA4MirrorContainer({
   // screen so the member can change anything, then re-walk to the claim.
   const reclaim = () => {
     setA4State((prev) => {
+      if (isDevPreview()) return prev;
       const next = {
         ...prev,
         [cfg.key]: {
@@ -49091,7 +49122,7 @@ function NewA4PromisesContainer({
     onBackToA4();
   };
   const handleClaim = () => {
-    if (showBurst || claimed) return;
+    if (isDevPreview() || showBurst || claimed) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -49108,6 +49139,7 @@ function NewA4PromisesContainer({
   };
   const reclaim = () =>
     setA4State((prev) => {
+      if (isDevPreview()) return prev;
       const next = { ...prev, a4: { claimed: false, claimedAt: null } };
       saveA4State(next);
       return next;
@@ -49370,6 +49402,7 @@ function readDraft<T>(room: string): T | null {
 }
 function writeDraft(room: string, v: unknown): void {
   try {
+    if (isDevPreview()) return;
     if (v == null) window.sessionStorage.removeItem(`${A5_DRAFT_KEY}:${room}`);
     else window.sessionStorage.setItem(`${A5_DRAFT_KEY}:${room}`, JSON.stringify(v));
   } catch {
@@ -50121,7 +50154,7 @@ function NewA5HubView({
         </div>
         <A5ReminderCard onCheckin={onCheckin} />
         {claimed ? <A5ThisWeek variant="hub" onCheckin={onCheckin} /> : null}
-        {unlocked || claimed ? (
+        {unlocked || claimed || isDevPreview() ? (
           <section className="na1-a5-strip" aria-label="Your promises">
             <h2 className="na1-a5-strip-title">Your promises</h2>
             <div className="na1-a5-strip-cards">
@@ -50182,7 +50215,7 @@ function NewA5HubView({
               <p className="na1-mirror-card-sub">Finish Act On It first.</p>
             ) : null}
             <div className="na1-mirror-card-action">
-              {!unlocked && !claimed ? (
+              {!unlocked && !claimed && !isDevPreview() ? (
                 <button
                   type="button"
                   className="na1-btn-gold na1-btn-block"
@@ -50229,7 +50262,7 @@ function NewA5HubView({
                     : `Opens ${ciWhen}`}
             </div>
             <div className="na1-mirror-card-action">
-              {claimed && ci.open ? (
+              {(claimed && ci.open) || isDevPreview() ? (
                 <button type="button" className="na1-btn-gold na1-btn-block" onClick={onCheckin}>
                   Start your check-in →
                 </button>
@@ -50260,7 +50293,7 @@ function NewA5HubView({
                     : `Opens ${a5FormatBy(lookBy)}`}
             </div>
             <div className="na1-mirror-card-action">
-              {claimed && lookDue ? (
+              {(claimed && lookDue) || isDevPreview() ? (
                 <button type="button" className="na1-btn-gold na1-btn-block" onClick={onLookback}>
                   Begin look-back →
                 </button>
@@ -50960,7 +50993,7 @@ function NewA5Container({
   const canContinue = a5ScreenReady(a5, screen);
 
   const handleClaim = () => {
-    if (showBurst || a5.claimed || !canContinue) return;
+    if (isDevPreview() || showBurst || a5.claimed || !canContinue) return;
     setShowBurst(true);
     burstTimerRef.current = window.setTimeout(() => {
       burstTimerRef.current = null;
@@ -50982,6 +51015,7 @@ function NewA5Container({
     }, 2000);
   };
   const reclaim = () => {
+    if (isDevPreview()) return;
     mutate((s) => ({ ...s, claimed: false, claimedAt: null, step: 0 }));
     setScreen(0);
   };
@@ -51216,8 +51250,8 @@ function NewA1View({
         }
       })();
       if (saved) {
-        if (saved.view === "m3" && !hasM3Progress) return "grid";
-        if (saved.view === "m4" && !hasM4State) return "grid";
+        if (saved.view === "m3" && !hasM3Progress && !isDevPreview()) return "grid";
+        if (saved.view === "m4" && !hasM4State && !isDevPreview()) return "grid";
         // A2.0 · the A2 hub only exists under ?newA2=1. Dropping the flag
         // sends a persisted view:"a2" back to the A1 grid.
         if (saved.view === "a2" && !NEW_A2_FLAG) return "grid";
@@ -51779,7 +51813,7 @@ function NewA1View({
   // ?newA2 flag is off). If A1 is no longer complete, bounce the user back to
   // the A2 hub, whose 01 card shows the "Complete A1 to begin" gate.
   useEffect(() => {
-    if (view === "a2m1" && !a1Complete) {
+    if (view === "a2m1" && !a1Complete && !isDevPreview()) {
       setView("a2");
     }
   }, [view, a1Complete]);
@@ -51790,7 +51824,7 @@ function NewA1View({
   // If the prerequisites are no longer met, bounce back to the A3 hub, whose
   // 01 card shows the locked gate.
   useEffect(() => {
-    if (view === "a3m1" && !(a1Complete && a2Complete)) {
+    if (view === "a3m1" && !(a1Complete && a2Complete) && !isDevPreview()) {
       setView("a3");
     }
   }, [view, a1Complete, a2Complete]);
@@ -51810,18 +51844,18 @@ function NewA1View({
             : view === "a4p"
               ? a3Complete && a4MirrorsClaimed(a4Snap)
               : true;
-    if (!gate) setView("a4");
+    if (!gate && !isDevPreview()) setView("a4");
   }, [view, a3Complete, a4Snap]);
   // A5 · the Keeping My Word room (a5m1) needs the A4 claim; otherwise the A5 hub
   // (whose card shows the locked gate) is the only place to land.
   useEffect(() => {
-    if (view === "a5m1" && !a4Complete) setView("a5");
+    if (view === "a5m1" && !a4Complete && !isDevPreview()) setView("a5");
   }, [view, a4Complete]);
   // A5-2 · the check-in and look-back rooms exist only after the A5 claim; the
   // look-back also waits for its date. Anything else lands on the A5 hub.
   useEffect(() => {
-    if (view === "a5c" && !a5Complete) setView("a5");
-    if (view === "a5r" && !(a5Complete && a5LookbackDue(loadA5State(), new Date()))) setView("a5");
+    if (view === "a5c" && !a5Complete && !isDevPreview()) setView("a5");
+    if (view === "a5r" && !(a5Complete && a5LookbackDue(loadA5State(), new Date())) && !isDevPreview()) setView("a5");
   }, [view, a5Complete]);
   const clearTimers = () => {
     timeoutsRef.current.forEach((t) => window.clearTimeout(t));
@@ -52686,9 +52720,9 @@ function NewA1M3HubView({
                 type="button"
                 key={room.key}
                 className={cls}
-                disabled={isLocked}
+                disabled={isLocked && !isDevPreview()}
                 onClick={() => {
-                  if (!isLocked) onLaunchRoom(room);
+                  if (!isLocked || isDevPreview()) onLaunchRoom(room);
                 }}
                 aria-label={`${room.name} — ${statusLabel}`}
               >
@@ -53122,6 +53156,7 @@ function NewA1M3OwnItView({
 
   const handleClaim = async () => {
     if (working) return;
+    if (isDevPreview()) return;
     setWorking(true);
     setShowBurst(true);
     const card = document.querySelector(".na1-room-card") as HTMLElement | null;
@@ -53155,6 +53190,7 @@ function NewA1M3OwnItView({
 
   const handleContinueToValues = async () => {
     if (working) return;
+    if (isDevPreview()) return;
     setWorking(true);
     // Defensive: ensure sealCompleted persisted before routing (covers the
     // edge case where the user revisits a sealed Own It and taps Continue
@@ -54085,7 +54121,7 @@ function NewA1M4HubView({
                   // Locked rungs (including the reserved "coming soon"
                   // Flip) are inert — they do not open a room. Mirrors
                   // the Purpose ladder; no veil-bounce.
-                  if (!isUnlocked) return;
+                  if (!isUnlocked && !isDevPreview()) return;
                   onLaunchRoom(room);
                 }}
                 aria-label={`${room.name} — ${statusLabel}`}
@@ -56339,7 +56375,7 @@ function NewA1M4ClaimBody({
   };
 
   const handleClaim = () => {
-    if (state.claimed) return;
+    if (isDevPreview() || state.claimed) return;
     mutate((s) => ({
       ...s,
       claimed: true,
@@ -58091,7 +58127,7 @@ function writeM3Step(n: number | null, room: "animals" | "ownIt" = "animals"): v
     const o = JSON.parse(window.localStorage.getItem(M3_STEP_KEY) || "{}") || {};
     if (n == null) delete o[room];
     else o[room] = n;
-    window.localStorage.setItem(M3_STEP_KEY, JSON.stringify(o));
+    if (!isDevPreview()) window.localStorage.setItem(M3_STEP_KEY, JSON.stringify(o));
   } catch {
     // storage unavailable — a refresh just reopens on the first screen
   }
@@ -71616,6 +71652,7 @@ function MigrationModal({ onClose }: { onClose: () => void }) {
   );
 
   async function importAll() {
+    if (isDevPreview()) return;
     setBusy(true);
     await Promise.all(
       candidates.map(async (sk) => {
@@ -71645,6 +71682,7 @@ function MigrationModal({ onClose }: { onClose: () => void }) {
   }
 
   function skip() {
+    if (isDevPreview()) return;
     localStorage.setItem("to_migrated", "true");
     onClose();
   }
@@ -73210,7 +73248,7 @@ function Na1ThemeToggle() {
     if (theme === "dark") document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
     try {
-      localStorage.setItem("na1_theme", theme);
+      if (!isDevPreview()) localStorage.setItem("na1_theme", theme);
     } catch {}
   }, [theme]);
   return (

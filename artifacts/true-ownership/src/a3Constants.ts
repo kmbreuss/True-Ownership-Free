@@ -13,6 +13,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { notifyLocalChange } from "./syncHook";
+import { previewRead, previewWrite } from "./devPreview";
 
 export const A3_STORAGE_KEY = "to_a3_state_v1";
 
@@ -379,7 +380,7 @@ function normalizeA3Move(raw: unknown): A3MoveState {
 export function loadA3State(): A3State {
   try {
     if (typeof window === "undefined") return EMPTY_A3;
-    const raw = window.localStorage.getItem(A3_STORAGE_KEY);
+    const raw = previewRead(A3_STORAGE_KEY) ?? window.localStorage.getItem(A3_STORAGE_KEY);
     if (!raw) return EMPTY_A3;
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object") {
@@ -400,6 +401,7 @@ export function loadA3State(): A3State {
 }
 
 export function saveA3State(state: A3State): void {
+  if (previewWrite(A3_STORAGE_KEY, JSON.stringify(state))) return;
   try {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(A3_STORAGE_KEY, JSON.stringify(state));
@@ -412,7 +414,7 @@ export function saveA3State(state: A3State): void {
 export function hasA3State(): boolean {
   try {
     if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(A3_STORAGE_KEY) !== null;
+    return previewRead(A3_STORAGE_KEY) !== undefined || window.localStorage.getItem(A3_STORAGE_KEY) !== null;
   } catch {
     return false;
   }

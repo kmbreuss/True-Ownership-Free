@@ -14,6 +14,7 @@
 //   • a pristine/empty store is never pushed (an empty seed must not beat real data)
 // Nothing here ever deletes local data.
 import { setChangeHandler } from "./syncHook";
+import { isDevPreview } from "./devPreview";
 import { EMPTY_A2 } from "./a2Constants";
 import { EMPTY_A3 } from "./a3Constants";
 import { EMPTY_A4 } from "./a4Constants";
@@ -66,6 +67,7 @@ function readMeta(): Meta {
   }
 }
 function setLt(sk: string, lt: number) {
+  if (isDevPreview()) return;
   try {
     const m = readMeta();
     m[sk] = { lt };
@@ -135,6 +137,7 @@ function isMeaningful(s: Store, v: any): boolean {
   return hasRealContent(v);
 }
 function writeLocal(s: Store, v: any) {
+  if (isDevPreview()) return;
   try {
     if (s.sk === "a1progress") {
       for (const lk of s.lks) if (v && lk in v) localStorage.setItem(lk, JSON.stringify(v[lk]));
@@ -145,6 +148,7 @@ function writeLocal(s: Store, v: any) {
 }
 
 async function put(sk: string, w: Wrapped): Promise<Response | null> {
+  if (isDevPreview()) return null;
   try {
     return await fetch(`/api/userdata/${sk}`, {
       method: "PUT",
@@ -158,6 +162,7 @@ async function put(sk: string, w: Wrapped): Promise<Response | null> {
 }
 
 async function pushNow(s: Store): Promise<SyncResult> {
+  if (isDevPreview()) return "nothing to sync";
   const v = readLocal(s);
   if (!isMeaningful(s, v)) return "nothing to sync";
   let lt = readMeta()[s.sk]?.lt;
@@ -183,12 +188,14 @@ async function pushNow(s: Store): Promise<SyncResult> {
 
 function schedulePush(s: Store) {
   clearTimeout(timers[s.sk]);
+  if (isDevPreview()) return;
   timers[s.sk] = setTimeout(async () => {
     lastResult[s.sk] = await pushNow(s);
   }, 1500);
 }
 
 export function markLocalChange(lk: string) {
+  if (isDevPreview()) return;
   const s = storeForLocalKey(lk);
   if (!s) return;
   // A pristine seed (EMPTY_*) is not a member change — don't stamp or push it.
@@ -201,6 +208,7 @@ setChangeHandler(markLocalChange);
 // Run once, after the member's server data has loaded and BEFORE the app renders,
 // so the stores are reconciled before any screen reads them.
 export async function hydrateNewFlow(cache: Record<string, any>): Promise<void> {
+  if (isDevPreview()) return;
   enabled = true;
   for (const s of STORES) {
     try {
@@ -241,6 +249,7 @@ const LEGACY_AUTOPUSH: Array<[string, string]> = [
   ["done", "to_done"],
 ];
 export async function autoPushLegacy(cache: Record<string, any>): Promise<string[]> {
+  if (isDevPreview()) return [];
   const pushed: string[] = [];
   for (const [sk, lk] of LEGACY_AUTOPUSH) {
     try {
@@ -252,6 +261,7 @@ export async function autoPushLegacy(cache: Record<string, any>): Promise<string
         v = JSON.parse(raw);
       } catch {}
       if (!hasRealContent(v)) continue;
+      if (isDevPreview()) return pushed;
       const res = await fetch(`/api/userdata/${sk}`, {
         method: "PUT",
         credentials: "include",
@@ -312,6 +322,7 @@ export function parseAnswersExport(json: string): AnswersExport | null {
   }
 }
 export function importLocalAnswers(json: string): { ok: boolean; message: string; count: number; parsed?: AnswersExport } {
+  if (isDevPreview()) return { ok: false, message: "Read-only mode.", count: 0 };
   const o = parseAnswersExport(json);
   if (!o) return { ok: false, message: "That file isn't a True Ownership answers export.", count: 0 };
   try {
@@ -374,6 +385,7 @@ export async function legacyComparison(o: AnswersExport): Promise<LegacyRow[]> {
 export async function replaceAccountCopy(
   row: Pick<LegacyRow, "sk" | "lk" | "fileValue">,
 ): Promise<{ ok: boolean; backup: string; message: string }> {
+  if (isDevPreview()) return { ok: false, backup: "", message: "Read-only mode." };
   let previous: any = null;
   try {
     const r = await fetch("/api/userdata", { credentials: "include" });
@@ -381,6 +393,7 @@ export async function replaceAccountCopy(
   } catch {}
   const backup = JSON.stringify({ kind: "true-ownership-account-backup", key: row.sk, savedAt: new Date().toISOString(), value: previous }, null, 2);
   try {
+    if (isDevPreview()) return { ok: false, backup, message: "Read-only mode." };
     const res = await fetch(`/api/userdata/${row.sk}`, {
       method: "PUT",
       credentials: "include",
@@ -388,7 +401,7 @@ export async function replaceAccountCopy(
       body: JSON.stringify({ value: row.fileValue }),
     });
     if (!res.ok) return { ok: false, backup, message: `The account didn't accept it (HTTP ${res.status}).` };
-    localStorage.setItem(row.lk, JSON.stringify(row.fileValue));
+    if (!isDevPreview()) localStorage.setItem(row.lk, JSON.stringify(row.fileValue));
     return { ok: true, backup, message: "Done — the account copy is now the imported one. Reload this page." };
   } catch {
     return { ok: false, backup, message: "Couldn't reach the account. Nothing was changed." };

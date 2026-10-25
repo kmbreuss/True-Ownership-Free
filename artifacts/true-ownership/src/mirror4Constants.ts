@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { notifyLocalChange } from "./syncHook";
+import { previewRead, previewWrite } from "./devPreview";
 
 export const M4_STORAGE_KEY = "to_mirror4_state_v1";
 
@@ -410,7 +411,7 @@ export function m4RoomDone(state: Mirror4State, key: M4RoomKey): boolean {
 export function loadMirror4State(): Mirror4State {
   try {
     if (typeof window === "undefined") return EMPTY_MIRROR4;
-    const raw = window.localStorage.getItem(M4_STORAGE_KEY);
+    const raw = previewRead(M4_STORAGE_KEY) ?? window.localStorage.getItem(M4_STORAGE_KEY);
     if (!raw) return EMPTY_MIRROR4;
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object") {
@@ -588,6 +589,7 @@ export function loadMirror4State(): Mirror4State {
 }
 
 export function saveMirror4State(state: Mirror4State): void {
+  if (previewWrite(M4_STORAGE_KEY, JSON.stringify(state))) return;
   try {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(M4_STORAGE_KEY, JSON.stringify(state));
@@ -600,7 +602,7 @@ export function saveMirror4State(state: Mirror4State): void {
 export function hasMirror4State(): boolean {
   try {
     if (typeof window === "undefined") return false;
-    return window.localStorage.getItem(M4_STORAGE_KEY) !== null;
+    return previewRead(M4_STORAGE_KEY) !== undefined || window.localStorage.getItem(M4_STORAGE_KEY) !== null;
   } catch {
     return false;
   }
