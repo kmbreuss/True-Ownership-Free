@@ -20,11 +20,11 @@ A voluntary 90-day redo must keep prior completed words and the Map reflection a
 
 **How to apply:** Keep completed-round snapshots separate from the new draft. Completion side effects must be idempotent per round and preserve unrelated set-aside items.
 
-RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 phone, in light and dark. Use the shared app room frame, not a wider RC-specific frame. Body scrolling is now permitted; Back/Continue must remain visible.
+RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 phone, in light and dark. The true-size visual brief supersedes the earlier body-scroll allowance: no body scrolling; report scenes that cannot fit, with overflow amounts.
 
-**Why:** The owner explicitly replaced the earlier no-internal-scroll requirement with frame consistency and readable content.
+**Why:** The owner explicitly corrected the shared-frame plan: follow the true-size brief and images, use their new copy, hide designated fields without deleting their data, and retain the existing start page.
 
-**How to apply:** Preserve the shared frame's spacing, responsive sizing, breadcrumb and close-button rules; do not force one close-button size across desktop and touch. Measure and report scrolling rather than shrinking text. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
+**How to apply:** Retain shared frame width, radius and close-button rules, but allow the brief's RC-only inner padding and header arrangement. Do not shrink type, clip answers or silently allow scrolling to force a pass. Keep five chapters when splitting Opening from Person A/B. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
 
 The RC start page uses the same centred shell as the A1 hub, with copy and Begin before the full-width video card, then the journey and quote. It may scroll; Begin should be above the fold.
 
