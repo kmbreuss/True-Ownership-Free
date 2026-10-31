@@ -9,7 +9,7 @@ const { installIsolation, proveIsolation } = require("./browser-isolation.cjs");
 const out = path.resolve(process.env.RC_SHORT_FIT_ONLY ? "generated-artifacts/rc-short-fit" : "generated-artifacts/rc-review");
 const base = process.env.J1_BASE_URL || "http://localhost:80";
 const key = "to_rc_state_v1", routeKey = "to_app_route_v1";
-const url = `${base}/?newRC=1&phase=a1&preview=1`;
+const url = `${base}/?preview=1`;
 
 (async () => {
   fs.mkdirSync(out, { recursive: true });
@@ -67,7 +67,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
         localStorage.setItem("na1_theme", theme);
         if (previewMode) sessionStorage.setItem("to_dev_preview", "1"); else sessionStorage.removeItem("to_dev_preview");
       }, { state, theme, view, key, routeKey, previewMode });
-      await page.goto(previewMode ? url : url.replace("&preview=1", ""), { waitUntil: "domcontentloaded" });
+      await page.goto(previewMode ? url : `${base}/`, { waitUntil: "domcontentloaded" });
       await page.locator(view === "rc" ? ".rc-hub" : ".rc-room").waitFor();
       await page.evaluate(() => document.fonts.ready);
       await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))));

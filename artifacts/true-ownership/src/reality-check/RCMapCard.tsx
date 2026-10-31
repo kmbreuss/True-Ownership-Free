@@ -1,9 +1,8 @@
 import React from "react";
-import { loadRCState, rcEnabled, RC_LABEL, RC_DEFAULT_LABEL } from "../rcConstants";
+import { loadRCState, RC_LABEL, RC_DEFAULT_LABEL } from "../rcConstants";
 import { annualAmounts, lastCompletedRC } from "./rcJourney";
 
 export function RCMapCard() {
-  if (!rcEnabled()) return null;
   const round = lastCompletedRC(loadRCState());
   if (!round || !round.focus) return null;
   const cost = annualAmounts(round);

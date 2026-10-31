@@ -23,7 +23,7 @@ export function hasPriorProgress(read: (key: string) => unknown): boolean {
   if (substantive(map.vision, EMPTY_VISION) || substantive(map.mirror3, EMPTY_MIRROR3)) return true;
   if (["purpose_final", "purpose_draft", "purpose_layers", "a2_one_thing", "a3_board_candidates"]
     .some(key => substantive(map[key]))) return true;
-  if (["a1_ex1_done", "a1_ex2_done", "a1_ex3_done", "a1_ex4_done", "a1_to_answers", "a1_sym_picks", "a1_sym_note", "a1_peel_draft"]
+  if (["a1_ex1_done", "a1_ex2_done", "a1_ex3_done", "a1_ex4_done", "a1_to_answers", "a1_sym_holdback", "a1_sym_picks", "a1_sym_note", "a1_peel_draft"]
     .some(key => substantive(read(key)))) return true;
   return ([
     ["to_a2_state_v1", EMPTY_A2], ["to_a3_state_v1", EMPTY_A3],

@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
 import { isDevPreview } from "../devPreview";
-import { rcEnabled } from "../rcConstants";
 
 // No account permission changes. This simulation resets on reload/Preview exit.
 let simulatedFree = false;
@@ -20,5 +19,5 @@ export function useRCAccess() {
   );
 }
 export function rcFreeLocked() {
-  return rcEnabled() && simulatedAccess() === "free" && !isDevPreview();
+  return simulatedAccess() === "free" && !isDevPreview();
 }

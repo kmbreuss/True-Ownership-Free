@@ -118,5 +118,5 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
       <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{totals.money || totals.hours ? <>Over a year, that's about {totals.money && <strong>{totals.money}</strong>}{totals.money && totals.hours && " and "}{totals.hours && <strong>{totals.hours}</strong>}. And you're paying too.</> : summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>
     </div>;
   }
-  return <div className="rc-scene rc-terminal"><Chapter>TWO FUTURES</Chapter><h2>Two futures · coming next</h2><p>Your Reality Check is saved. The next part of the journey is coming next.</p></div>;
+  throw new Error(`Unsupported introductory Reality Check scene: ${s.step}`);
 }

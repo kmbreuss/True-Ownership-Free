@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { isDevPreview, previewRead, previewWrite, setDevPreview } from "./devPreview";
-import { loadRCState, rcEnabled } from "./rcConstants";
+import { loadRCState } from "./rcConstants";
 import { RealityCheck } from "./reality-check/RealityCheck";
 import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
@@ -35338,10 +35338,8 @@ function NewA1Spine({
       dest: "a5",
     },
   ];
-  if (rcEnabled()) {
-    if (view === "rc" || view === "rcroom") vertebrae.forEach(v => { v.isCurrent = false; });
-    vertebrae.unshift({ num: "Start", label: "Reality Check", claimed: loadRCState().complete, isCurrent: view === "rc" || view === "rcroom", dest: "rc" });
-  }
+  if (view === "rc" || view === "rcroom") vertebrae.forEach(v => { v.isCurrent = false; });
+  vertebrae.unshift({ num: "Start", label: "Reality Check", claimed: loadRCState().complete, isCurrent: view === "rc" || view === "rcroom", dest: "rc" });
   return (
     <aside className="na1-spine">
       <div className="na1-spine-brand">True Ownership™</div>
@@ -35486,7 +35484,7 @@ function NewA1PhoneSpine() {
     { n: 4, label: "Act", claimed: snap.a4Complete, dest: "a4" },
     { n: 5, label: "Accountable", claimed: snap.a5Complete, dest: "a5" },
   ];
-  if (rcEnabled()) items.unshift({ n: 0, label: "Reality Check", claimed: loadRCState().complete, dest: "rc" });
+  items.unshift({ n: 0, label: "Reality Check", claimed: loadRCState().complete, dest: "rc" });
   return (
     <nav className="na1-pspine" aria-label="Your progress through the 5 A's">
       {items.map((it) => {
@@ -35992,7 +35990,7 @@ function DevResetBar() {
           Preview all
         </label>
       )}
-      {import.meta.env.DEV && rcEnabled() && <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      {import.meta.env.DEV && <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <input type="checkbox" checked={rcAccess === "free"} onChange={e => setSimulatedFree(e.target.checked)} />
         Simulate free access (not saved)
       </label>}
@@ -36037,7 +36035,7 @@ function NewA1EntryHall({
     <div className="na1-root">
       <main className="na1-eh-content">
         <DevResetBar />
-        {rcEnabled() && onRealityCheck && <section className="rc-entry-card">
+        {onRealityCheck && <section className="rc-entry-card">
           <p className="na1-eh-eyebrow">{hasPriorProgress(loadDataSync) && !loadRCState().complete ? "Start here · New" : "Start here"}</p>
           <h2>Before you start, a reality check.</h2>
           <p>Where you are now, and where it leads.</p>
@@ -51236,7 +51234,7 @@ function NewA1View({
   const [rawView, setRawView] = useState<AppRouteView>(
     () => {
       const saved = savedRouteRef.current;
-      if (saved && (saved.view === "rc" || saved.view === "rcroom")) return rcEnabled() ? saved.view : "entry-hall";
+      if (saved && (saved.view === "rc" || saved.view === "rcroom")) return saved.view;
       // Task 48 · one-shot initial-view override from the phase-"a3"
       // wrapper. Wins over the saved-route restore, EXCEPT when the saved
       // route is already inside A3 — then the normal restore runs so an
@@ -51324,13 +51322,12 @@ function NewA1View({
     },
   );
   const priorRCProgress = useRef(hasPriorProgress(loadDataSync)).current;
-  const rcProgress = rcEnabled() ? loadRCState() : null;
-  const rcRequired = !!rcProgress && !priorRCProgress && !rcProgress.complete && !rcProgress.rounds.some(round => round.complete);
+  const rcProgress = loadRCState();
+  const rcRequired = !priorRCProgress && !rcProgress.complete && !rcProgress.rounds.some(round => round.complete);
   const rcGuard = (next: AppRouteView): AppRouteView => {
-    if (!rcEnabled()) return next === "rc" || next === "rcroom" ? "entry-hall" : next;
     if (isDevPreview()) return next;
     if (rcAccess === "free" && !["rc", "rcroom", "entry-hall"].includes(next)) return "rc";
-    if (next === "explore" && rcRequired) return "rc";
+    if (["explore", "explore2", "m3", "m4"].includes(next) && rcRequired) return "rc";
     return next;
   };
   const view = rcGuard(rawView);

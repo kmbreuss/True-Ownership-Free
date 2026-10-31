@@ -6,7 +6,13 @@ Reality Check's initial ship must not introduce account/schema/signup changes. T
 
 **Why:** The owner explicitly removed the account/database portion from the initial build authorization to keep it isolated.
 
-**How to apply:** Do not infer permission to add users.access, registration, migrations or paid-discipline write restrictions from the original attached brief or draft plan. Obtain authorization for that later work. RC remains behind the newRC query flag until sign-off.
+**How to apply:** Do not infer permission to add users.access, registration, migrations or paid-discipline write restrictions from the original attached brief or draft plan. Obtain authorization for that later work. The current Reality Check is approved as the default journey without an opt-in URL; do not reinstate a query gate. Publishing still requires separate authorization.
+
+Existing A1–A5 answers exempt an account from mandatory Reality Check; pristine seeds and navigation/bookkeeping alone do not. New accounts complete the journey before entering A1 rooms. Earlier completed RC rounds retain access during a redo.
+
+**Why:** The owner explicitly requires the default rollout never to re-lock returning users, including accounts whose progress is loaded from the cloud rather than already present in this browser.
+
+**How to apply:** Preserve the hydration-before-screen-mount barrier when evaluating the returning-user exemption. Check partial answers, local and delayed cloud data, plain URLs, restored room routes and completed-round redo. Keep the old saved-payload compatibility separate from presentation: only the current journey may render.
 
 The Reality Check journey brief supersedes RC-1's per-area named defaults with a flat four-default object in internal payload version 2, retaining the existing storage key. The one-time authorization to reset older RC payloads does not authorize resetting version-2 journey answers; all other progress must survive.
 

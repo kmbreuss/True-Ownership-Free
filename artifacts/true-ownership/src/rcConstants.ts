@@ -1,7 +1,7 @@
 import { notifyLocalChange } from "./syncHook";
 import { previewRead, previewWrite } from "./devPreview";
 
-// The key is a sync identity, not the payload version. Only RC-1 is reset.
+// The key is a stable sync identity; payload version 2 is the only journey.
 export const RC_STORAGE_KEY = "to_rc_state_v1";
 export const RC_INTRO_VIDEO_URL = "";
 export const RC_EYES_AUDIO_URL = "";
@@ -146,9 +146,6 @@ export function saveRCState(state: RCState): void {
   if (previewWrite(RC_STORAGE_KEY, raw)) return;
   localStorage.setItem(RC_STORAGE_KEY, raw);
   notifyLocalChange(RC_STORAGE_KEY);
-}
-export function rcEnabled(): boolean {
-  return typeof location !== "undefined" && new URLSearchParams(location.search).get("newRC") === "1";
 }
 export function rcReady(s: RCState, phone = false): boolean {
   if (s.step === 1) return s.mirror.length >= 3 && (!phone || s.phoneMirror?.viewedBoth === true);

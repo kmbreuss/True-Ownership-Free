@@ -9,7 +9,7 @@ function env(preview = false, dev = true) {
   const data = new Map(), session = new Map(), requests = [];
   const storage = map => ({ getItem: k => map.get(k) ?? null, setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k) });
   const localStorage = storage(data), sessionStorage = storage(session);
-  const location = { search: `?newRC=1${preview ? "&preview=1" : ""}`, href: "https://example.test/?newRC=1", origin: "https://example.test", replace: url => requests.push(url) };
+  const location = { search: preview ? "?preview=1" : "", href: "https://example.test/", origin: "https://example.test", replace: url => requests.push(url) };
   const ctx = vm.createContext({ console, URL, URLSearchParams, Date, structuredClone, setTimeout, clearTimeout, localStorage, sessionStorage, location,
     window: { localStorage, sessionStorage, location },
     fetch: async (...args) => { requests.push(args); return { ok: true, json: async () => ({}) }; },
@@ -185,6 +185,21 @@ test("existing-user exemption ignores pristine stores but recognizes real progre
   assert.equal(p.hasPriorProgress(k => stores[k]), false);
   assert.equal(p.substantive({ step: 4, version: 1 }), false);
   stores.a1_peel_draft = "My reason"; assert.equal(p.hasPriorProgress(k => stores[k]), true);
+});
+test("every discipline and the first Purpose answer preserve the existing-user exemption", () => {
+  const e=env(), p=e.load("reality-check/progress");
+  for(const key of ["a1_sym_holdback","a1_peel_draft","a1_ex1_done"]) {
+    assert.equal(p.hasPriorProgress(k=>k===key?"An existing answer":null),true,key);
+  }
+  for(const [key,module,empty] of [
+    ["to_a2_state_v1","a2Constants","EMPTY_A2"],["to_a3_state_v1","a3Constants","EMPTY_A3"],
+    ["to_a4_state_v1","a4Constants","EMPTY_A4"],["to_a5_state_v1","a5Constants","EMPTY_A5"],
+  ]) {
+    const pristine=plain(e.load(module)[empty]);
+    assert.equal(p.hasPriorProgress(k=>k===key?pristine:null),false,key+" pristine");
+    const populated={...pristine,complete:true};
+    assert.equal(p.hasPriorProgress(k=>k===key?populated:null),true,key+" progress");
+  }
 });
 test("existing server allow-list and newer-wins rule are unchanged", () => {
   const e = env(), guard = e.load(path.resolve(__dirname, "../../api-server/src/lib/syncGuard.ts"));

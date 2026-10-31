@@ -2,7 +2,7 @@ const http = require("node:http");
 const assert = require("node:assert/strict");
 const isData = pathname => /\/api\/userdata(?:\/|$)/.test(pathname);
 const mutates = method => !["GET", "HEAD", "OPTIONS"].includes(method);
-async function installIsolation(context, writes, unexpected) {
+async function installIsolation(context, writes, unexpected, userdata = () => ({ intake: { name: "Synthetic preview" }, phase: "a1" })) {
   await context.route("**/*", async route => {
     const request = route.request(), pathname = new URL(request.url()).pathname;
     if (isData(pathname)) {
@@ -11,7 +11,7 @@ async function installIsolation(context, writes, unexpected) {
           preview: new URL(request.frame().url()).searchParams.has("preview") });
         return route.fulfill({ json: { ok: true } });
       }
-      return route.fulfill({ json: { intake: { name: "Synthetic preview" }, phase: "a1" } });
+      return route.fulfill({ json: await userdata() });
     }
     if (pathname === "/api/auth/me") return route.fulfill({ json: { user: {
       id: "00000000-0000-4000-8000-000000000001", email: "fixture@example.invalid",
