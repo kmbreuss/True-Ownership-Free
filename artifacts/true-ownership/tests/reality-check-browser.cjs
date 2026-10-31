@@ -1,0 +1,160 @@
+// Authenticated UI acceptance with isolated progress fixtures, never account writes.
+// Set NODE_PATH to an external Playwright installation and CHROMIUM_PATH if needed.
+// Credentials are read from the environment only, never logged or saved.
+const { chromium } = require("playwright");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const out = path.resolve("generated-artifacts/rc-j1");
+const base = process.env.J1_BASE_URL || (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:80");
+const key = "to_rc_state_v1", routeKey = "to_app_route_v1";
+const url = `${base}/?newRC=1&phase=a1&preview=1`;
+
+(async () => {
+  assert(process.env.J1_LOGIN_EMAIL && process.env.PREVIEW_ACCOUNT_NEW_PASSWORD, "Set the test email and secure password environment variables.");
+  fs.mkdirSync(out, { recursive: true });
+  const browser = await chromium.launch({
+    executablePath: process.env.CHROMIUM_PATH || undefined, headless: true, args: ["--no-sandbox"],
+  });
+  const context = await browser.newContext({ viewport: { width: 1366, height: 680 } });
+  context.setDefaultTimeout(10000);
+  const page = await context.newPage(), errors = [], writes = [], results = [], failures = [];
+  page.on("pageerror", e => errors.push(e.message));
+  // Keep normal authentication intact, but isolate user answers for these tests.
+  await context.route("**/api/userdata**", async r => {
+    if (r.request().method() === "GET") return r.fulfill({ json: {} });
+    writes.push({ method: r.request().method(), preview: new URL(page.url()).searchParams.has("preview") });
+    return r.fulfill({ json: { ok: true } });
+  });
+  try {
+    const login = await context.request.post(`${base}/api/auth/login`, {
+      data: { email: process.env.J1_LOGIN_EMAIL, password: process.env.PREVIEW_ACCOUNT_NEW_PASSWORD },
+    });
+    assert.equal(login.status(), 200, "Normal authentication must succeed.");
+    const me = await context.request.get(`${base}/api/auth/me`);
+    assert((await me.json()).user, "The secure session must be valid on the test origin.");
+    await context.addInitScript(() => {
+      if (!sessionStorage.getItem("j1-test-initialized")) {
+        sessionStorage.setItem("j1-test-initialized", "1");
+        localStorage.setItem("to_app_route_v1", JSON.stringify({ view: "rcroom", overlay: null }));
+      }
+    });
+    await page.goto(url);
+    await page.locator(".rc-room").waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    const initial = await page.evaluate(async () => {
+      const m = await import("/src/rcConstants.ts");
+      return { empty: m.normalizeRC(null), all: m.RC_MIRROR.map(s => s.id) };
+    });
+    const seed = { ...initial.empty, mirror: initial.all, focus: "wealth", focusChosenBy: "tie-picked",
+      tuesday: "By Tuesday I am already carrying everyone's worries, and leaving no time for myself.",
+      defaultsNamed: { avoiding: "The conversation I keep putting off", blaming: "Someone else's expectations",
+        carrying: "Everyone's worries and unfinished work", hoping: "A raise, a big client, a lucky break" },
+      cost: { monthly: 1234.5, moneyWhere: "Paying for everyone but me", hoursPerWeek: 12,
+        hoursWhere: "Worrying about money and fixing problems", you: "My patience. My confidence. My sleep.", whoElse: "The people closest to me" } };
+    async function render(state, theme = "light", size = { width: 1366, height: 680 }, view = "rcroom") {
+      await page.setViewportSize(size);
+      await page.evaluate(({ state, theme, view, key, routeKey }) => {
+        localStorage.setItem(key, JSON.stringify(state));
+        localStorage.setItem(routeKey, JSON.stringify({ view, overlay: null }));
+        localStorage.setItem("na1_theme", theme);
+      }, { state, theme, view, key, routeKey });
+      await page.goto(url);
+      await page.locator(view === "rc" ? ".rc-hub" : ".rc-room").waitFor();
+      await page.evaluate(() => document.fonts.ready);
+    }
+    async function metric(label) {
+      const result = await page.evaluate(() => {
+        const room = document.querySelector(".rc-room");
+        if (!room) {
+          const button = document.querySelector(".rc-begin").getBoundingClientRect();
+          return { cardOverflow: 0, sceneOverflow: 0, horizontal: Math.max(0, document.documentElement.scrollWidth - innerWidth),
+            footerOverlap: 0, beginVisible: button.bottom <= innerHeight && button.top >= 0 };
+        }
+        const screen = document.querySelector(".rc-screen").getBoundingClientRect();
+        const scene = document.querySelector(".rc-scene").getBoundingClientRect();
+        const footer = document.querySelector(".rc-footer").getBoundingClientRect();
+        return { cardOverflow: Math.max(0, room.scrollHeight - room.clientHeight),
+          sceneOverflow: Math.max(0, Math.round(scene.bottom - screen.bottom)),
+          horizontal: Math.max(0, room.scrollWidth - room.clientWidth),
+          footerOverlap: Math.max(0, Math.round(scene.bottom - footer.top)),
+          footerVisible: footer.bottom <= innerHeight + 1 && footer.top >= 0 };
+      });
+      results.push({ label, ...result });
+      if (result.cardOverflow > 1 || result.sceneOverflow > 1 || result.horizontal > 1 ||
+        result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false) failures.push({ label, ...result });
+      await page.screenshot({ path: path.join(out, `${label}.png`) });
+    }
+    // Actual user interaction through every implemented scene in Preview All.
+    await render(initial.empty);
+    const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
+    await page.getByRole("button", { name: "I'm ready →", exact: true }).click();
+    for (const id of ["time-avoiding", "wealth-avoiding", "self-carrying"]) await page.locator(`[data-mirror-id="${id}"]`).click();
+    await page.getByRole("button", { name: "Show me what I see →", exact: true }).click();
+    await page.getByRole("button", { name: "Wealth · 1", exact: true }).click();
+    await page.getByRole("button", { name: "Start with Wealth →", exact: true }).click();
+    await page.getByRole("textbox", { name: "Your ordinary Tuesday", exact: true }).fill("PREVIEW WALKTHROUGH ONLY");
+    await page.getByRole("button", { name: "Show me the price →", exact: true }).click();
+    await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("100");
+    await page.getByRole("spinbutton", { name: "About hours a week", exact: true }).fill("2");
+    assert.match(await page.locator(".rc-summary").innerText(), /\$1,200 and 104 hours/);
+    await page.getByRole("button", { name: "Close your eyes →", exact: true }).click();
+    assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "5");
+    assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort())), before);
+    assert.equal(writes.length, 0, "Preview All must not attempt account writes.");
+
+    for (const size of [{ width: 1366, height: 680 }, { width: 1280, height: 800 }, { width: 375, height: 812 }]) {
+      for (const theme of ["light", "dark"]) {
+        for (const step of ["hub", 0, 1, 2, 3, 4, 5]) {
+          await render({ ...seed, step: step === "hub" ? 0 : step }, theme, size, step === "hub" ? "rc" : "rcroom");
+          await metric(`${size.width}x${size.height}-${theme}-${step}`);
+        }
+      }
+    }
+    await render({ ...initial.empty, step: 4, focus: "self" });
+    assert.equal(await page.locator(".rc-summary.has-summary").count(), 0);
+    await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("0");
+    assert.match(await page.locator(".rc-summary").innerText(), /\$0/);
+
+    // Turn Preview off via its real control and prove scratch words disappear.
+    await render({ ...seed, step: 3, tuesday: "REAL STORED ANSWER" });
+    await page.getByRole("textbox", { name: "Your ordinary Tuesday", exact: true }).fill("PREVIEW MUST DISAPPEAR");
+    await page.getByRole("button", { name: "Exit preview", exact: true }).click();
+    await page.waitForURL(u => !u.searchParams.has("preview"));
+    await page.locator(".rc-room").waitFor();
+    assert.equal(await page.getByRole("textbox", { name: "Your ordinary Tuesday", exact: true }).inputValue(), "REAL STORED ANSWER");
+    assert.equal(await page.getByText("PREVIEW · dev only · nothing you do here is saved", { exact: true }).count(), 0);
+    // Normal local save, scene restoration and no entry veil on refresh.
+    await page.getByRole("textbox", { name: "Your ordinary Tuesday", exact: true }).fill("A REAL LOCAL SAVE");
+    await page.getByRole("button", { name: "Show me the price →", exact: true }).click();
+    await page.reload();
+    await page.locator(".rc-room").waitFor();
+    assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "4");
+    assert.equal(await page.getByText("Looking at where you are…", { exact: true }).count(), 0);
+    await page.getByRole("button", { name: "← Back", exact: true }).click();
+    assert.equal(await page.getByRole("textbox", { name: "Your ordinary Tuesday", exact: true }).inputValue(), "A REAL LOCAL SAVE");
+    // Gating is deliberately tested outside Preview All, which bypasses gates.
+    await page.evaluate(async () => {
+      const m = await import("/src/rcConstants.ts");
+      localStorage.setItem(m.RC_STORAGE_KEY, JSON.stringify({ ...m.EMPTY_RC, step: 1 }));
+    });
+    await page.reload(); await page.locator(".rc-room").waitFor();
+    assert.equal(await page.getByRole("button", { name: "Show me what I see →", exact: true }).isDisabled(), true);
+    await page.locator('[data-mirror-id="time-avoiding"]').click();
+    await page.locator('[data-mirror-id="wealth-avoiding"]').click();
+    assert.equal(await page.getByRole("button", { name: "Show me what I see →", exact: true }).isDisabled(), true);
+    await page.locator('[data-mirror-id="self-carrying"]').click();
+    await page.getByRole("button", { name: "Show me what I see →", exact: true }).click();
+    assert.equal(await page.getByRole("button", { name: "Choose an area →", exact: true }).isDisabled(), true);
+    assert.equal(JSON.parse(await page.evaluate(key => localStorage.getItem(key), key)).complete, false);
+    assert.deepEqual(errors, [], "No page runtime errors.");
+    assert.deepEqual(failures, [], "Every viewport must fit without scrolling/clipping.");
+    console.log(`PASS: ${results.length} layout cases; authenticated walkthrough, gate, optional cost, refresh and preview-exit checks.`);
+  } finally {
+    await page.screenshot({ path: path.join(out, "last-state.png") }).catch(() => {});
+    fs.writeFileSync(path.join(out, "results.json"), JSON.stringify({ results, failures, errors, writesIntercepted: writes.length }, null, 2));
+    console.log(JSON.stringify({ layoutCases: results.length, failures, runtimeErrors: errors }));
+    await context.request.post(`${base}/api/auth/logout`).catch(() => {});
+    await browser.close();
+  }
+})().catch(e => { console.error(e.message); process.exitCode = 1; });

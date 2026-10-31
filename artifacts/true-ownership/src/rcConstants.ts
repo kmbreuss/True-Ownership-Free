@@ -1,81 +1,130 @@
 import { notifyLocalChange } from "./syncHook";
 import { previewRead, previewWrite } from "./devPreview";
 
+// The key is a sync identity, not the payload version. Only RC-1 is reset.
 export const RC_STORAGE_KEY = "to_rc_state_v1";
 export const RC_INTRO_VIDEO_URL = "";
 export type RCArea = "self" | "time" | "wealth";
 export type RCDefault = "avoiding" | "blaming" | "carrying" | "hoping";
 export const RC_AREAS: RCArea[] = ["self", "time", "wealth"];
+export const RC_DEFAULTS: RCDefault[] = ["avoiding", "blaming", "carrying", "hoping"];
 export const RC_LABEL: Record<RCArea, string> = { self: "Self", time: "Time", wealth: "Wealth" };
-export const RC_DEFINITION: Record<RCArea, string> = {
-  self: "The relationship you have with you.",
-  time: "Who and what gets your life.",
-  wealth: "Whether money works for you, or you work for it.",
+export const RC_DEFAULT_LABEL: Record<RCDefault, string> = {
+  avoiding: "avoiding", blaming: "blaming", carrying: "carrying", hoping: "blindly hoping",
 };
-export interface RCState {
-  version: number; step: number; startedAt: string | null; completedAt: string | null;
-  scores: Record<RCArea, number | null>;
-  focusChosenBy: "suggested" | "picked" | null; focus: RCArea | null; looked: RCArea[];
-  reality: Record<RCArea, { text: string; howLong: "weeks" | "months" | "year" | "years" | null; symptoms: number[] }>;
-  defaults: Record<RCArea, RCDefault[]>;
-  defaultsNamed: Record<RCArea, Record<RCDefault, string>>;
-  defaultsNone: Record<RCArea, boolean>;
-  cost: {
-    wealth: { chips: string[]; own: string; monthly: number | null };
-    time: { chips: string[]; own: string; hoursPerWeek: number | null };
-    self: { chips: string[]; own: string; whoElse: string };
-  };
-  futureA: Record<RCArea, string>; futureB: Record<RCArea, string>;
-  firstDifferent: string; chosen: "yes" | "not-yet" | null; complete: boolean; rounds: unknown[];
-}
-const perArea = <T,>(make: () => T): Record<RCArea, T> => ({ self: make(), time: make(), wealth: make() });
-export const EMPTY_RC: RCState = {
-  version: 1, step: 1, startedAt: null, completedAt: null,
-  scores: perArea(() => null), focusChosenBy: null, focus: null, looked: [],
-  reality: perArea(() => ({ text: "", howLong: null, symptoms: [] })),
-  defaults: perArea(() => []),
-  defaultsNamed: perArea(() => ({ avoiding: "", blaming: "", carrying: "", hoping: "" })),
-  defaultsNone: perArea(() => false),
-  cost: {
-    wealth: { chips: [], own: "", monthly: null },
-    time: { chips: [], own: "", hoursPerWeek: null },
-    self: { chips: [], own: "", whoElse: "" },
-  },
-  futureA: perArea(() => ""), futureB: perArea(() => ""),
-  firstDifferent: "", chosen: null, complete: false, rounds: [],
+export const RC_DEFAULT_DEFINITION: Record<RCDefault, string> = {
+  avoiding: "deciding it isn't important. Pushing through. Putting it off.",
+  blaming: "the cause is out there. The boss, the market, the economy, someone else.",
+  carrying: "taking on what isn't yours to carry. The fixer.",
+  hoping: "waiting for it to change on its own, without anything changing on your side.",
 };
+export const RC_DEFAULT_PROMPT: Record<RCDefault, string> = {
+  avoiding: "What are you avoiding?",
+  blaming: "Who or what have you been blaming?",
+  carrying: "What are you carrying that isn't yours?",
+  hoping: "What are you hoping will change on its own?",
+};
+export const RC_MIRROR: { id: string; text: string; area: RCArea; default: RCDefault }[] = [
+  { id: "time-avoiding", text: "I'll get to the important stuff when things calm down.", area: "time", default: "avoiding" },
+  { id: "wealth-avoiding", text: "I don't really look at the numbers.", area: "wealth", default: "avoiding" },
+  { id: "self-carrying", text: "I hold everyone together, and no one holds me.", area: "self", default: "carrying" },
+  { id: "time-blaming", text: "If people respected my time, I'd have more of it.", area: "time", default: "blaming" },
+  { id: "wealth-hoping", text: "One big break will fix it.", area: "wealth", default: "hoping" },
+  { id: "self-avoiding", text: "I keep putting off the thing I need to do for me.", area: "self", default: "avoiding" },
+  { id: "time-carrying", text: "It's faster if I just do it myself.", area: "time", default: "carrying" },
+  { id: "wealth-blaming", text: "The economy is why it's tight.", area: "wealth", default: "blaming" },
+  { id: "self-hoping", text: "I'll feel better once things settle down.", area: "self", default: "hoping" },
+  { id: "time-hoping", text: "Next month will be quieter.", area: "time", default: "hoping" },
+  { id: "wealth-carrying", text: "I pay for everyone else before myself.", area: "wealth", default: "carrying" },
+  { id: "self-blaming", text: "I'd be different if the people around me were different.", area: "self", default: "blaming" },
+];
 
-// Additive hydration: older/imported RC answers retain their values and reserved fields.
-export function normalizeRC(value: Partial<RCState> | null): RCState {
-  const seed = JSON.parse(JSON.stringify(EMPTY_RC)) as RCState;
-  if (!value || typeof value !== "object") return seed;
-  const state = { ...seed, ...value };
-  state.step = Number.isInteger(value.step) ? Math.max(1, Math.min(6, value.step!)) : 1;
-  state.focus = RC_AREAS.includes(value.focus as RCArea) ? value.focus! : null;
-  state.scores = { ...seed.scores, ...value.scores };
-  state.reality = { ...seed.reality };
-  state.defaults = { ...seed.defaults };
-  state.defaultsNamed = { ...seed.defaultsNamed };
-  state.defaultsNone = { ...seed.defaultsNone, ...value.defaultsNone };
-  for (const area of RC_AREAS) {
-    const n = state.scores[area];
-    state.scores[area] = Number.isInteger(n) && n! >= 1 && n! <= 10 ? n : null;
-    state.reality[area] = { ...seed.reality[area], ...value.reality?.[area] };
-    state.defaults[area] = Array.isArray(value.defaults?.[area]) ? value.defaults![area] : [];
-    state.defaultsNamed[area] = { ...seed.defaultsNamed[area], ...value.defaultsNamed?.[area] };
+export interface RCState {
+  version: 2; step: number; startedAt: string | null; completedAt: string | null;
+  mirror: string[]; areaCounts: Record<RCArea, number>; defaultCounts: Record<RCDefault, number>;
+  focus: RCArea | null; focusChosenBy: "revealed" | "tie-picked" | "changed" | null;
+  topDefaults: RCDefault[]; tuesday: string; defaultsNamed: Record<RCDefault, string>;
+  cost: { monthly: number | null; moneyWhere: string; hoursPerWeek: number | null; hoursWhere: string; you: string; whoElse: string };
+  futureA: { extra: string }; compound: { feels: string[]; results: string; whoElse: string };
+  futureB5: { feels: string[]; tuesday: string; whoNotices: string };
+  futureB1: { doing: string; oneThing: string };
+  choice: "A" | "B" | null; willing: "yes" | "not-yet" | null; notYetWhy: string;
+  complete: boolean; rounds: unknown[];
+}
+export const EMPTY_RC: RCState = {
+  version: 2, step: 0, startedAt: null, completedAt: null, mirror: [],
+  areaCounts: { self: 0, time: 0, wealth: 0 }, defaultCounts: { avoiding: 0, blaming: 0, carrying: 0, hoping: 0 },
+  focus: null, focusChosenBy: null, topDefaults: [], tuesday: "",
+  defaultsNamed: { avoiding: "", blaming: "", carrying: "", hoping: "" },
+  cost: { monthly: null, moneyWhere: "", hoursPerWeek: null, hoursWhere: "", you: "", whoElse: "" },
+  futureA: { extra: "" }, compound: { feels: [], results: "", whoElse: "" },
+  futureB5: { feels: [], tuesday: "", whoNotices: "" }, futureB1: { doing: "", oneThing: "" },
+  choice: null, willing: null, notYetWhy: "", complete: false, rounds: [],
+};
+export function mirrorCounts(ids: string[]) {
+  const areaCounts = { self: 0, time: 0, wealth: 0 };
+  const defaultCounts = { avoiding: 0, blaming: 0, carrying: 0, hoping: 0 };
+  for (const sentence of RC_MIRROR) if (ids.includes(sentence.id)) {
+    areaCounts[sentence.area]++; defaultCounts[sentence.default]++;
   }
-  state.cost = {
-    wealth: { ...seed.cost.wealth, ...value.cost?.wealth },
-    time: { ...seed.cost.time, ...value.cost?.time },
-    self: { ...seed.cost.self, ...value.cost?.self },
+  const most = Math.max(...Object.values(defaultCounts));
+  return { areaCounts, defaultCounts, topDefaults: RC_DEFAULTS.filter(d => most > 0 && defaultCounts[d] === most) };
+}
+export function topAreas(s: Pick<RCState, "areaCounts">): RCArea[] {
+  const most = Math.max(...Object.values(s.areaCounts));
+  return RC_AREAS.filter(a => most > 0 && s.areaCounts[a] === most);
+}
+export function toggleMirror(s: RCState, id: string): RCState {
+  if (!RC_MIRROR.some(m => m.id === id)) return s;
+  const mirror = s.mirror.includes(id) ? s.mirror.filter(v => v !== id) : [...s.mirror, id];
+  const counts = mirrorCounts(mirror), areas = topAreas(counts);
+  return { ...s, mirror, ...counts, focus: areas.length === 1 ? areas[0] : null,
+    focusChosenBy: areas.length === 1 ? "revealed" : null };
+}
+export function chooseFocus(s: RCState, focus: RCArea): RCState {
+  const areas = topAreas(s);
+  return { ...s, focus, focusChosenBy: areas.length !== 1 ? "tie-picked" : focus === areas[0] ? "revealed" : "changed" };
+}
+const obj = (v: unknown): Record<string, any> => v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, any> : {};
+const text = (v: unknown) => typeof v === "string" ? v : "";
+const texts = (v: unknown): string[] => Array.isArray(v) ? v.filter(x => typeof x === "string") : [];
+const amount = (v: unknown): number | null => typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
+export function normalizeRC(value: unknown): RCState {
+  const seed = JSON.parse(JSON.stringify(EMPTY_RC)) as RCState, v = obj(value);
+  if (v.version !== 2) return seed;
+  const mirror = [...new Set(texts(v.mirror))].filter(id => RC_MIRROR.some(m => m.id === id));
+  const counts = mirrorCounts(mirror), areas = topAreas(counts);
+  const focus = RC_AREAS.includes(v.focus) ? v.focus as RCArea : areas.length === 1 ? areas[0] : null;
+  const named = obj(v.defaultsNamed), cost = obj(v.cost), a = obj(v.futureA), compound = obj(v.compound),
+    b5 = obj(v.futureB5), b1 = obj(v.futureB1);
+  return { ...seed, ...counts, mirror, step: Number.isInteger(v.step) ? Math.max(0, Math.min(5, v.step)) : 0,
+    startedAt: typeof v.startedAt === "string" ? v.startedAt : null,
+    completedAt: typeof v.completedAt === "string" ? v.completedAt : null,
+    focus, focusChosenBy: !focus ? null : ["revealed", "tie-picked", "changed"].includes(v.focusChosenBy)
+      ? v.focusChosenBy : areas.length === 1 && areas[0] === focus ? "revealed" : areas.length > 1 ? "tie-picked" : "changed",
+    tuesday: text(v.tuesday),
+    defaultsNamed: { avoiding: text(named.avoiding), blaming: text(named.blaming), carrying: text(named.carrying), hoping: text(named.hoping) },
+    cost: { monthly: amount(cost.monthly), moneyWhere: text(cost.moneyWhere), hoursPerWeek: amount(cost.hoursPerWeek),
+      hoursWhere: text(cost.hoursWhere), you: text(cost.you), whoElse: text(cost.whoElse) },
+    futureA: { extra: text(a.extra) },
+    compound: { feels: texts(compound.feels), results: text(compound.results), whoElse: text(compound.whoElse) },
+    futureB5: { feels: texts(b5.feels), tuesday: text(b5.tuesday), whoNotices: text(b5.whoNotices) },
+    futureB1: { doing: text(b1.doing), oneThing: text(b1.oneThing) },
+    choice: v.choice === "A" || v.choice === "B" ? v.choice : null,
+    willing: v.willing === "yes" || v.willing === "not-yet" ? v.willing : null,
+    notYetWhy: text(v.notYetWhy), complete: v.complete === true, rounds: Array.isArray(v.rounds) ? v.rounds : [],
   };
-  state.futureA = { ...seed.futureA, ...value.futureA };
-  state.futureB = { ...seed.futureB, ...value.futureB };
-  return state;
 }
 export function loadRCState(): RCState {
-  try { return normalizeRC(JSON.parse(previewRead(RC_STORAGE_KEY) ?? localStorage.getItem(RC_STORAGE_KEY) ?? "null")); }
-  catch { return normalizeRC(null); }
+  try {
+    const raw = previewRead(RC_STORAGE_KEY) ?? localStorage.getItem(RC_STORAGE_KEY);
+    const value: unknown = JSON.parse(raw ?? "null"), state = normalizeRC(value);
+    if (raw !== null && obj(value).version !== 2) {
+      const reset = JSON.stringify(state);
+      if (!previewWrite(RC_STORAGE_KEY, reset)) localStorage.setItem(RC_STORAGE_KEY, reset);
+    }
+    return state;
+  } catch { return normalizeRC(null); }
 }
 export function saveRCState(state: RCState): void {
   const raw = JSON.stringify(state);
@@ -86,67 +135,19 @@ export function saveRCState(state: RCState): void {
 export function rcEnabled(): boolean {
   return typeof location !== "undefined" && new URLSearchParams(location.search).get("newRC") === "1";
 }
-export function scoreWords(n: number): string {
-  return n <= 2 ? "It owns me" : n <= 4 ? "Mostly, it owns me" : n <= 6
-    ? "Some days I own it, some days it owns me" : n <= 8 ? "Mostly, I own it" : "I own it";
-}
-export function focusOptions(scores: RCState["scores"]): { kind: "incomplete" | "suggested" | "tie" | "high"; areas: RCArea[] } {
-  if (RC_AREAS.some(a => scores[a] == null)) return { kind: "incomplete", areas: [] };
-  const lowest = Math.min(...RC_AREAS.map(a => scores[a]!));
-  if (lowest >= 8) return { kind: "high", areas: [...RC_AREAS] };
-  const areas = RC_AREAS.filter(a => scores[a] === lowest);
-  return { kind: areas.length === 1 ? "suggested" : "tie", areas };
-}
-export function withScore(s: RCState, area: RCArea, score: number): RCState {
-  const scores = { ...s.scores, [area]: score };
-  const choice = focusOptions(scores);
-  // Re-evaluate after a score edit; ties and all-high never silently pick a focus.
-  return { ...s, scores, focus: choice.kind === "suggested" ? choice.areas[0] : null,
-    focusChosenBy: choice.kind === "suggested" ? "suggested" : null };
-}
 export function rcReady(s: RCState): boolean {
-  if (s.step === 2) return focusOptions(s.scores).kind !== "incomplete" && s.focus !== null;
-  if (s.step === 3) return !!s.focus && !!s.reality[s.focus].text.trim();
-  if (s.step === 4) return !!s.focus && (s.defaults[s.focus].length > 0 || s.defaultsNone[s.focus]);
+  if (s.step === 1) return s.mirror.length >= 3;
+  if (s.step === 2) return s.mirror.length >= 3 && s.focus !== null;
+  if (s.step === 3) return s.focus !== null && !!s.tuesday.trim();
   return true;
 }
-export const RC_SYMPTOMS = [
-  "You say 'yes' to things when every part of you wants to say 'no.'",
-  'You can\'t take action because you\'re waiting for the "perfect" moment.',
-  "You blame external factors for why things aren't going the way you want.",
-  "You feel busy all the time but not productive.",
-  "You're avoiding a hard conversation you know you need to have.",
-  "You feel guilty when you prioritize yourself.",
-  "Your calendar is controlled by everyone except you.",
-  "You take on other people's problems as if they're your own.",
-  "You know what you need to do but you keep putting it off.",
-  "You feel resentful but won't say anything about it.",
-  "You check your phone before you check in with yourself.",
-  "You're exhausted but can't explain what you actually accomplished.",
-];
-export const RC_AREA_SYMPTOMS: Record<RCArea, number[]> = {
-  time: [6, 3, 0, 11, 10, 5], self: [5, 9, 8, 0, 11, 10], wealth: [1, 2, 8, 4, 7, 0],
-};
-export function toggleSymptom(s: RCState, area: RCArea, index: number): RCState {
-  const r = s.reality[area], sentence = RC_SYMPTOMS[index], selected = r.symptoms.includes(index);
-  // Only remove the exact standalone line we inserted, never substrings in their prose.
-  const lines = r.text.split("\n");
-  const at = lines.lastIndexOf(sentence);
-  if (selected && at >= 0) lines.splice(at, 1);
-  return { ...s, reality: { ...s.reality, [area]: { ...r,
-    text: selected ? lines.join("\n") : [r.text, sentence].filter(Boolean).join("\n"),
-    symptoms: selected ? r.symptoms.filter(i => i !== index) : [...r.symptoms, index],
-  } } };
-}
+export const rcNumber = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 export function costSummary(cost: RCState["cost"]): string {
-  const totals: string[] = [];
-  if (cost.wealth.monthly && cost.wealth.monthly > 0) totals.push(`$${(cost.wealth.monthly * 12).toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
-  if (cost.time.hoursPerWeek && cost.time.hoursPerWeek > 0) totals.push(`${(cost.time.hoursPerWeek * 52).toLocaleString("en-US", { maximumFractionDigits: 2 })} hours`);
-  const personal = [...cost.self.chips, ...(cost.self.own.trim() ? [cost.self.own.trim()] : [])].slice(0, 2).map(v => v.replace(/^My /, "").toLowerCase());
-  const people = cost.self.whoElse.trim();
-  const named = [...personal.map(v => `your ${v}`), ...(people ? [people] : [])];
-  const selected = [...cost.wealth.chips, cost.wealth.own, ...cost.time.chips, cost.time.own].filter(Boolean);
-  return [totals.length ? `Over a year, that's about ${totals.join(" and ")}.` : "",
-    named.length ? `${totals.length ? "And " : ""}${named.join(" and ")} ${named.length === 1 ? "is" : "are"} paying too.` : "",
-    !totals.length && !named.length && selected.length ? `It is costing you ${selected.join(", ").toLowerCase()}.` : ""].filter(Boolean).join(" ");
+  const totals = [
+    cost.monthly !== null ? `$${rcNumber(cost.monthly * 12)}` : "",
+    cost.hoursPerWeek !== null ? `${rcNumber(cost.hoursPerWeek * 52)} hours` : "",
+  ].filter(Boolean);
+  const hasWords = [cost.moneyWhere, cost.hoursWhere, cost.you, cost.whoElse].some(v => v.trim());
+  return totals.length ? `Over a year, that's about ${totals.join(" and ")}. And you're paying too.`
+    : hasWords ? "And you're paying too." : "";
 }

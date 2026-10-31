@@ -18,7 +18,7 @@ import { isDevPreview } from "./devPreview";
 import { EMPTY_A2 } from "./a2Constants";
 import { EMPTY_A3 } from "./a3Constants";
 import { EMPTY_A4 } from "./a4Constants";
-import { EMPTY_RC } from "./rcConstants";
+import { EMPTY_RC, normalizeRC, RC_STORAGE_KEY, rcEnabled } from "./rcConstants";
 import { EMPTY_A5 } from "./a5Constants";
 import { EMPTY_MIRROR4 } from "./mirror4Constants";
 
@@ -128,7 +128,8 @@ function readLocal(s: Store): any | undefined {
     }
     const raw = localStorage.getItem(s.lks[0]);
     if (raw === null) return undefined;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return s.sk === "rcstate" && rcEnabled() ? normalizeRC(parsed) : parsed;
   } catch {
     return undefined;
   }
@@ -145,7 +146,7 @@ function writeLocal(s: Store, v: any) {
       for (const lk of s.lks) if (v && lk in v) localStorage.setItem(lk, JSON.stringify(v[lk]));
       return;
     }
-    localStorage.setItem(s.lks[0], JSON.stringify(v));
+    localStorage.setItem(s.lks[0], JSON.stringify(s.sk === "rcstate" && rcEnabled() ? normalizeRC(v) : v));
   } catch {}
 }
 
@@ -214,7 +215,8 @@ export async function hydrateNewFlow(cache: Record<string, any>): Promise<void> 
   enabled = true;
   for (const s of STORES) {
     try {
-      const S = isWrapped(cache[s.sk]) ? (cache[s.sk] as Wrapped) : null;
+      const wrapped = isWrapped(cache[s.sk]) ? (cache[s.sk] as Wrapped) : null;
+      const S = wrapped && s.sk === "rcstate" && rcEnabled() ? { ...wrapped, v: normalizeRC(wrapped.v) } : wrapped;
       const L = readLocal(s);
       const localReal = isMeaningful(s, L);
       const lt = readMeta()[s.sk]?.lt;
@@ -302,7 +304,7 @@ export function exportLocalAnswers(): string {
   const keys: Record<string, string> = {};
   for (const k of EXPORT_KEYS) {
     const raw = localStorage.getItem(k);
-    if (raw !== null) keys[k] = raw;
+    if (raw !== null) keys[k] = k === RC_STORAGE_KEY && rcEnabled() ? JSON.stringify(normalizeRC(JSON.parse(raw))) : raw;
   }
   const out: AnswersExport = {
     kind: "true-ownership-answers",
@@ -332,8 +334,9 @@ export function importLocalAnswers(json: string): { ok: boolean; message: string
     for (const k of EXPORT_KEYS) {
       if (typeof o.keys[k] !== "string") continue;
       // Never replace a copy this browser already has with an imported one.
-      if (localStorage.getItem(k) !== null) continue;
-      localStorage.setItem(k, o.keys[k]);
+      const existing = localStorage.getItem(k);
+      if (existing !== null && !(k === RC_STORAGE_KEY && rcEnabled() && JSON.parse(existing)?.version !== 2)) continue;
+      localStorage.setItem(k, k === RC_STORAGE_KEY && rcEnabled() ? JSON.stringify(normalizeRC(JSON.parse(o.keys[k]))) : o.keys[k]);
       n++;
     }
     const fallback = Date.parse(o.exportedAt) || Date.now();

@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState, type ReactNode, type ComponentType } from "react";
 import { createPortal } from "react-dom";
 import { isDevPreview } from "../devPreview";
-import { costSummary, loadRCState, rcReady, RC_LABEL, saveRCState, type RCState } from "../rcConstants";
+import { loadRCState, rcReady, RC_LABEL, RC_DEFAULT_LABEL, rcNumber, saveRCState, type RCState } from "../rcConstants";
 import { RealityCheckScreens, RCVideo } from "./RealityCheckScreens";
 import "./reality-check.css";
 
-const STAGES = ["Look", "Name it", "The cost", "Two futures", "Choose"];
+const STAGES = ["The mirror", "A Tuesday", "The price", "Two futures", "Choose"];
 const ROWS = [
-  "How much you own Self, Time and Wealth right now, and what isn't working.",
-  "What you've been doing about it: avoiding, blaming, carrying, blindly hoping.",
-  "What staying here is costing you in money, hours and you.",
-  "A year from now if nothing changes, and if you own it.",
+  "What you've been telling yourself.",
+  "What it actually feels like.",
+  "What it's costing you in money, hours and you.",
+  "Where it goes if nothing changes, and if you own it.",
   "Which future you're ready to build.",
 ];
 type VeilPhase = "rising" | "hold" | "falling" | "idle";
@@ -47,16 +47,21 @@ export function RealityCheck({
     ];
     return () => { timers.forEach(window.clearTimeout); previous?.focus(); };
   }, [room, resume, timing]);
-  const stage = state.step <= 3 ? 0 : state.step - 3;
-  const forward = state.step === 1 ? "I've pictured both →" : state.step === 2
+  const stage = state.step <= 2 ? 0 : state.step - 2;
+  const forward = state.step === 0 ? "I'm ready →" : state.step === 1 ? "Show me what I see →" : state.step === 2
     ? state.focus ? `Start with ${RC_LABEL[state.focus]} →` : "Choose an area →"
-    : state.step === 3 ? "Continue to Name it →" : state.step === 4 ? "Continue to The cost →" : "Continue to Two futures →";
+    : state.step === 3 ? "Show me the price →" : "Close your eyes →";
   const advance = () => {
     if (!rcReady(state) && !isDevPreview()) return;
-    update({ ...state, step: Math.min(6, state.step + 1),
-      looked: state.step === 3 && state.focus ? [...new Set([...state.looked, state.focus])] : state.looked });
+    update({ ...state, step: Math.min(5, state.step + 1) });
   };
-  const summary = costSummary(state.cost);
+  const thread = [
+    state.focus ? RC_LABEL[state.focus] : "",
+    state.topDefaults.map(d => RC_DEFAULT_LABEL[d]).join(" and "),
+    state.tuesday.trim().split(/\s+/).slice(0, 6).join(" "),
+    [state.cost.monthly !== null ? `$${rcNumber(state.cost.monthly)}` : "",
+      state.cost.hoursPerWeek !== null ? `${rcNumber(state.cost.hoursPerWeek)} hrs` : ""].filter(Boolean).join(" · "),
+  ].filter(Boolean);
   return <div className="na1-root rc-root">
     <main className="rc-hub">
       {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}</details>}
@@ -89,14 +94,14 @@ export function RealityCheck({
         }}>
         <header className="rc-room-header"><div className="rc-crumb">The Reality Check › {STAGES[stage]}{state.focus ? ` › ${RC_LABEL[state.focus]}` : ""}</div><button ref={closeRef} aria-label="Close Reality Check" onClick={onClose}>×</button></header>
         <ol className="rc-stepper">{STAGES.map((label, i) => <li key={label} className={i < stage ? "is-done" : i === stage ? "is-current" : ""} aria-current={i === stage ? "step" : undefined}>{label}</li>)}</ol>
-        <div className="rc-pips" aria-label={state.step === 6 ? "Next section placeholder" : `Screen ${state.step} of 5`}>
-          {[1, 2, 3, 4, 5].map(n => <button key={n} aria-label={`Screen ${n}`} aria-current={state.step === n ? "step" : undefined} disabled={!isDevPreview()} onClick={() => update({ ...state, step: n })} className={n <= state.step ? "is-done" : ""} />)}
+        <div className="rc-pips" aria-label={state.step === 5 ? "Next section placeholder" : `Scene ${state.step + 1} of 5`}>
+          {[0, 1, 2, 3, 4, 5].map(n => <button key={n} aria-label={n === 5 ? "Two futures placeholder" : `Scene ${n}`} aria-current={state.step === n ? "step" : undefined} disabled={!isDevPreview()} onClick={() => update({ ...state, step: n })} className={n <= state.step ? "is-done" : ""} />)}
         </div>
+        {(state.step === 3 || state.step === 4) && <div className="rc-thread" aria-label="Your thread"><span className="rc-thread-label">YOUR THREAD</span>{thread.map((word, i) => <span className="rc-thread-chip" key={i} title={word}>{i === 2 ? <em>{word}</em> : word}</span>)}</div>}
         <div className="rc-screen" key={state.step}><RealityCheckScreens state={state} update={update} /></div>
-        {state.step === 5 && <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>}
         {error && <p role="alert">{error}</p>}
-        <footer className="rc-footer"><button onClick={() => state.step === 1 ? onClose() : update({ ...state, step: state.step - 1 })}>← Back</button>
-          {state.step < 6 ? <button className="na1-btn-gold" disabled={!rcReady(state) && !isDevPreview()} onClick={advance}>{forward}</button>
+        <footer className="rc-footer"><button onClick={() => state.step === 0 ? onClose() : update({ ...state, step: state.step - 1 })}>← Back</button>
+          {state.step < 5 ? <button className="na1-btn-gold" disabled={!rcReady(state) && !isDevPreview()} onClick={advance}>{forward}</button>
             : <button className="na1-btn-gold" onClick={onClose}>Back to Reality Check →</button>}</footer>
       </div>
     </div>, document.body)}
