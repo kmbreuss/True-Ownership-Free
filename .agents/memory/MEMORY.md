@@ -1,4 +1,4 @@
-- [Mirror card gating](true-ownership-mirror-gating.md) — hub mirror cards must chain unlock booleans through the prior card's unlock, not its persisted completion, or downstream leaks unlocked after reset.
+- [Mirror card gating](true-ownership-mirror-gating.md) — Values→Identity→Purpose→Vision; existing drafts/claims stay open; retain the 2×2 grid and internal IDs.
 - [Reality Check scope](reality-check-scope.md) — default journey; saved A1–A5 records exempt returning users after cloud hydration; no auth/schema/signup changes.
 - [Dev preview safety](dev-preview-safety.md) — preview must never persist; exiting reloads real progress and blocks late writes. Signed-in verification has separate tooling constraints.
 - [App.tsx giant file](true-ownership-app-tsx.md) — one huge App.tsx; `read` line counts are stale (use wc/sed/rg); filtered typecheck shows ~6000 baseline errors — verify via in-range grep, not a clean run.
