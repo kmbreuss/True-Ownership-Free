@@ -13,3 +13,9 @@ Named defaults are intended for the later Katherine wake-up and “Set aside to 
 **Why:** The owner specified these future consumers while adding optional named-answer fields to the four-defaults screen.
 
 **How to apply:** Keep the words optional and do not make them completion prerequisites. Do not build those later consumers as an incidental extension of the initial ship.
+
+RC desktop acceptance includes a short 1366×680 laptop viewport, not only 1280×800: exercise cards must fit without internal scrolling, including signs, default-card footer controls and cost totals.
+
+**Why:** The owner's review found the initial desktop layout too tall and explicitly required the shorter laptop size.
+
+**How to apply:** Collapse optional explanations and compact spacing before reducing essential text. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.

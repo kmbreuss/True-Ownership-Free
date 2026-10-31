@@ -51988,7 +51988,7 @@ function NewA1View({
         onEnter={() => { rcResumeRef.current = false; setView("rcroom"); }}
         onClose={() => { rcResumeRef.current = false; setView("rc"); }}
         onEntryHall={() => setView("entry-hall")}
-        devTools={<DevResetBar />} Veil={NewA1Veil} timing={NA1_VEIL_TIMING} />
+        devTools={import.meta.env.DEV ? <DevResetBar /> : null} Veil={NewA1Veil} timing={NA1_VEIL_TIMING} />
     </div>;
   }
   if (view === "explore") {

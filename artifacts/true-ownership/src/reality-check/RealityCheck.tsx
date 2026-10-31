@@ -59,18 +59,20 @@ export function RealityCheck({
   const summary = costSummary(state.cost);
   return <div className="na1-root rc-root">
     <main className="rc-hub">
-      {devTools}
+      {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}</details>}
       <div className="na1-breadcrumb"><button onClick={onEntryHall}>Entry Hall</button><span>›</span><span>Start here</span></div>
       <p className="rc-eyebrow">START HERE · THE REALITY CHECK</p><h1>Before you start, a reality check.</h1>
       <p className="rc-hub-lead">Where you are now, and where it leads. Two futures are in front of you. Which one you live depends on what you decide today.</p>
-      <div className="rc-hub-grid"><section>
-        {STAGES.map((stageName, i) => <div className="rc-hub-row" key={stageName}><span>{i + 1}</span><div><h3>{stageName}</h3><p>{ROWS[i]}</p></div></div>)}
+      <div className="rc-hub-action">
         <button className="na1-btn-gold rc-begin" onClick={() => {
           const next = { ...state, startedAt: state.startedAt ?? new Date().toISOString() };
           try { saveRCState(next); setState(next); setError(""); onEnter(); }
           catch { setError("Your Reality Check could not be saved. Please try again."); }
         }}>{state.complete ? "Review" : "Begin"} the Reality Check →</button>
         <p className="rc-helper">Free · about 10 minutes · saved as you go.</p>
+      </div>
+      <div className="rc-hub-grid"><section>
+        {STAGES.map((stageName, i) => <div className="rc-hub-row" key={stageName}><span>{i + 1}</span><div><h3>{stageName}</h3><p>{ROWS[i]}</p></div></div>)}
       </section><aside><RCVideo /><blockquote>Those two futures are real. One of them is where you're headed right now if nothing changes, and the other is what you could be.</blockquote></aside></div>
       {error && <p role="alert">{error}</p>}
     </main>

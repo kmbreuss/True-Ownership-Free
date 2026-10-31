@@ -56,11 +56,12 @@ export function RealityCheckScreens({ state: s, update }: Props) {
       <div className="rc-columns">{RC_AREAS.map(area => {
         const n = s.scores[area];
         return <section key={area} className={`rc-panel ${phoneArea !== area ? "rc-phone-hidden" : ""}`}>
-          <h3>{RC_LABEL[area]}</h3><p>{RC_DEFINITION[area]}</p><p>{DETAILS[area]}</p>
+          <h3>{RC_LABEL[area]}</h3><p className="rc-card-description">{RC_DEFINITION[area]}</p>
+          <details className="rc-scale-helper"><summary>What this includes</summary><p>{DETAILS[area]}</p></details>
           <div className={`rc-score rc-band-${n == null ? "unset" : n <= 4 ? "low" : n <= 6 ? "mid" : "high"}`} aria-live="polite">
             <strong>{n ?? "—"}</strong><span>{n == null ? "Choose your number" : scoreWords(n)}</span>
           </div>
-          <input type="range" min={1} max={10} step={1} value={n ?? 5} className={n == null ? "rc-unset" : ""}
+          <input type="range" min={1} max={10} step={1} value={n ?? 5} className={`rc-slider rc-slider-${n == null ? "unset" : n <= 4 ? "low" : n <= 6 ? "mid" : "high"}${n == null ? " rc-unset" : ""}`}
             aria-label={`${RC_LABEL[area]} Own It scale`} aria-valuetext={n == null ? "Not scored. Use arrow keys to choose a number." : `${n}: ${scoreWords(n)}`}
             onPointerDown={e => { if (n == null) { const rect = e.currentTarget.getBoundingClientRect(); update(withScore(s, area, Math.max(1, Math.min(10, Math.round(1 + (e.clientX - rect.left) / rect.width * 9))))); } }}
             onKeyDown={e => { if (n == null && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) { e.preventDefault(); update(withScore(s, area, e.key === "End" ? 10 : e.key === "Home" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowDown" ? 4 : 6)); } }}
@@ -71,7 +72,7 @@ export function RealityCheckScreens({ state: s, update }: Props) {
       {options.kind !== "incomplete" && <div className="rc-suggest" aria-live="polite">
         <p>{options.kind === "high" ? "You're owning a lot. Which one would you most like to own more?"
           : options.kind === "tie" ? `${options.areas.map(a => RC_LABEL[a]).join(" and ")} are ${options.areas.length === 2 ? "both" : "all"} at ${s.scores[options.areas[0]]}. Which one first?`
-          : `${RC_LABEL[options.areas[0]]} is owning you most right now, at ${s.scores[options.areas[0]]}. Start there? The others will be waiting for you.`}</p>
+          : <><strong>{RC_LABEL[options.areas[0]]}</strong> is owning you most right now, at {s.scores[options.areas[0]]}. Start there? The others will be waiting for you.</>}</p>
         <div className="rc-chips"><span>or choose</span>{RC_AREAS.map(area => <button key={area} aria-pressed={s.focus === area} onClick={() => update({ ...s, focus: area, focusChosenBy: "picked" })}>{RC_LABEL[area]} · {s.scores[area]}</button>)}</div>
       </div>}
     </>;
@@ -89,9 +90,10 @@ export function RealityCheckScreens({ state: s, update }: Props) {
           <button key={value} aria-pressed={s.reality[focus].howLong === value} onClick={() => setReality({ howLong: value })}>{label}</button>)}</div>
       </div>
       <section className="rc-panel rc-symptoms">
-        <h3>Signs your life is owning you</h3><p>Not sure what to write? Tap any that sound like you. They'll be added to your words.</p>
+        <h3>Signs your life is owning you</h3>
+        <details className="rc-signs-helper"><summary>Not sure what to write?</summary><p>Tap any that sound like you. They'll be added to your words.</p></details>
         <button className="rc-phone-only" aria-expanded={symptomsOpen} onClick={() => setSymptomsOpen(!symptomsOpen)}>{symptomsOpen ? "Hide signs" : "Show signs"}</button>
-        <div className={symptomsOpen ? "" : "rc-phone-hidden"}>{RC_AREA_SYMPTOMS[focus].map(index =>
+        <div className={`rc-signs-grid${symptomsOpen ? "" : " rc-phone-hidden"}`}>{RC_AREA_SYMPTOMS[focus].map(index =>
           <button key={index} aria-pressed={s.reality[focus].symptoms.includes(index)} onClick={() => update(toggleSymptom(s, focus, index))}>{RC_SYMPTOMS[index]}</button>)}</div>
       </section>
     </div>
@@ -136,8 +138,8 @@ function CostScreen({ state: s, update }: Props) {
       <div className="rc-chips rc-cost-chips">{COST_CHIPS[area].map(chip => <button key={chip} aria-pressed={s.cost[area].chips.includes(chip)} onClick={() => setCost(area, { chips: s.cost[area].chips.includes(chip) ? s.cost[area].chips.filter(c => c !== chip) : [...s.cost[area].chips, chip] })}>{chip}</button>)}
       <button aria-expanded={ownOpen[area]} onClick={() => setOwnOpen({ ...ownOpen, [area]: !ownOpen[area] })}>+ My own</button></div>
       {ownOpen[area] && <label>My own<input value={s.cost[area].own} onChange={e => setCost(area, { own: e.target.value })} /></label>}
-      {area === "wealth" ? <label>About $ <input type="number" min={0} step="any" inputMode="decimal" value={s.cost.wealth.monthly ?? ""} onChange={e => setCost(area, { monthly: number(e.target.value) })} /> a month (optional)</label>
-        : area === "time" ? <label>About <input type="number" min={0} step="any" inputMode="decimal" value={s.cost.time.hoursPerWeek ?? ""} onChange={e => setCost(area, { hoursPerWeek: number(e.target.value) })} /> hours a week (optional)</label>
+      {area === "wealth" ? <label className="rc-number-label"><span className="rc-number-line"><span>About $</span><input aria-label="About dollars a month" type="number" min={0} step="any" inputMode="decimal" value={s.cost.wealth.monthly ?? ""} onChange={e => setCost(area, { monthly: number(e.target.value) })} /><span>a month</span></span><span className="rc-optional">Optional</span></label>
+        : area === "time" ? <label className="rc-number-label"><span className="rc-number-line"><span>About</span><input aria-label="About hours a week" type="number" min={0} step="any" inputMode="decimal" value={s.cost.time.hoursPerWeek ?? ""} onChange={e => setCost(area, { hoursPerWeek: number(e.target.value) })} /><span>hours a week</span></span><span className="rc-optional">Optional</span></label>
         : <label>Who else is paying for it? <span className="rc-optional">Optional</span><input value={s.cost.self.whoElse} onChange={e => setCost(area, { whoElse: e.target.value })} /></label>}
     </section>)}</div>
   </>;
