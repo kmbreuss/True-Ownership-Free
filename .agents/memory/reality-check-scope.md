@@ -20,17 +20,17 @@ A voluntary 90-day redo must keep prior completed words and the Map reflection a
 
 **How to apply:** Keep completed-round snapshots separate from the new draft. Completion side effects must be idempotent per round and preserve unrelated set-aside items.
 
-RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 phone, in light and dark. Every scene must fit without internal scrolling; phones now use one scene with a sticky footer, not the old stacked questionnaire.
+RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 phone, in light and dark. Use the shared app room frame, not a wider RC-specific frame. Body scrolling is now permitted; Back/Continue must remain visible.
 
-**Why:** The owner's review found the initial desktop layout too tall; the replacement journey brief explicitly extends the one-scene constraint to phones.
+**Why:** The owner explicitly replaced the earlier no-internal-scroll requirement with frame consistency and readable content.
 
-**How to apply:** Collapse optional explanations and compact spacing before reducing essential text. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
+**How to apply:** Preserve the shared frame's spacing, responsive sizing, breadcrumb and close-button rules; do not force one close-button size across desktop and touch. Measure and report scrolling rather than shrinking text. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
 
-The redesigned phone start page is an exception to the room's one-screen rule: Begin must be above the fold, but its vertical five-stop journey and closing quote may continue below it.
+The RC start page uses the same centred shell as the A1 hub, with copy and Begin before the full-width video card, then the journey and quote. It may scroll; Begin should be above the fold.
 
-**Why:** The updated start-page brief explicitly specifies this order, and the owner approved that interpretation before implementation.
+**Why:** The owner explicitly requested the app's narrower stacked hub frame rather than an RC-specific wide composition.
 
-**How to apply:** Keep room scenes within the viewport; do not truncate the phone hub's journey or shrink its full copy just to force the entire hub onto one screen.
+**How to apply:** Preserve the full journey and quote below the fold; use a horizontal path only when it fits comfortably.
 
 RC review must preserve the owner's choice and completion when earlier answers are edited. Reached chapters remain available, and completed review begins at scene 1 rather than the last scene.
 

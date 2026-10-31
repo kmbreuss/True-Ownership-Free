@@ -55,7 +55,7 @@ export function RealityCheckScreens({ state: s, update, phone = false }: Props) 
     <Chapter>CHAPTER 1 · THE MIRROR</Chapter>
     <h2>Which of these have you heard yourself say?</h2>
     <p className="rc-instruction">Tap at least three that are true lately. No right answers. <span aria-live="polite">{!phone && s.mirror.length < 3 ? `(${s.mirror.length} of 3)` : `(${s.mirror.length} selected)`}</span></p>
-    <div className="rc-mirror-grid">{(phone ? RC_MIRROR.slice((s.phoneMirror?.set ?? 0) * 6, (s.phoneMirror?.set ?? 0) * 6 + 6) : RC_MIRROR).map(m => <button key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}>“{m.text}”</button>)}</div>
+    <div className="na1-chip-grid rc-mirror-grid">{(phone ? RC_MIRROR.slice((s.phoneMirror?.set ?? 0) * 6, (s.phoneMirror?.set ?? 0) * 6 + 6) : RC_MIRROR).map(m => <button className={`na1-chip${s.mirror.includes(m.id) ? " is-selected" : ""}`} key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}>“{m.text}”</button>)}</div>
     {phone && <div className="rc-mirror-pages">
       <button onClick={() => update({ ...s, phoneMirror: { set: s.phoneMirror?.set === 1 ? 0 : 1, viewedBoth: true } })}>{s.phoneMirror?.set === 1 ? "← First six" : "More sentences →"}</button>
       <span className="rc-mirror-dots" role="img" aria-label={`Set ${(s.phoneMirror?.set ?? 0) + 1} of 2`}>{[0, 1].map(n => <span key={n} aria-hidden="true" className={(s.phoneMirror?.set ?? 0) === n ? "is-current" : ""} />)}</span>

@@ -45,6 +45,8 @@ export function RealityCheck({
   const wasRoom = useRef(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { bodyRef.current?.scrollTo({ top: 0 }); }, [state.step, state.phoneMirror?.set, join]);
   const update = (next: RCState) => {
     next = { ...next, maxReached: Math.max(state.maxReached ?? state.step, next.step, state.complete ? 13 : 0) };
     try { saveRCState(next); setState(next); setError(""); return true; }
@@ -95,14 +97,13 @@ export function RealityCheck({
     update({ ...state, step: Math.min(13, state.step + 1) });
   };
   return <div className="na1-root rc-root">
-    <main className="rc-hub">
+    <main className="na1-shell rc-hub">
       {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}{import.meta.env.DEV && <RCDevReset />}</details>}
       <div className="na1-breadcrumb"><button onClick={onEntryHall}>Entry Hall</button><span>›</span><span>Start here</span></div>
       <div className="rc-start-top">
       <div className="rc-start-copy"><p className="rc-eyebrow">START HERE · THE REALITY CHECK</p><h1>Before you start, a reality check.</h1>
       <p className="rc-hub-lead">Where you are now, and where it leads. Two futures are in front of you.</p>
       <p className="rc-hub-lead"><em>Which one you live depends on what you decide today.</em></p></div>
-      <RCStartVideo />
       <div className="rc-hub-action">
         <button className="na1-btn-gold rc-begin" onClick={() => {
           const next = { ...state, step: state.complete ? 1 : state.step, startedAt: state.startedAt ?? new Date().toISOString() };
@@ -111,6 +112,7 @@ export function RealityCheck({
         }}>{state.complete ? "Review the Reality Check →" : state.startedAt ? "Continue →" : "Begin the Reality Check →"}</button>
         <p className="rc-helper">About 10 minutes · just you · saved as you go</p>
       </div>
+      <RCStartVideo />
       </div>
       {savedMessage && <p role="status">Your Reality Check is saved. Come back when you're ready.</p>}
       {redoDue(state) && <div className="rc-redo"><p>It's been 90 days. Ready to look again? Your previous words will stay with you.</p><button onClick={() => {
@@ -122,7 +124,7 @@ export function RealityCheck({
       <blockquote className="rc-closing-quote">Those two futures are real. One is where you're headed if nothing changes. The other is what you could be.</blockquote>
       {error && <p role="alert">{error}</p>}
     </main>
-    {room && createPortal(<div className="na1-room-overlay na1-a4-overlay is-open rc-overlay">
+    {room && createPortal(<div className="na1-room-overlay is-open rc-overlay">
       <div ref={dialogRef} className={`na1-room-card rc-room ${state.step === 5 ? "rc-deepwater" : state.step === 6 ? "rc-road-a" : state.step === 7 ? "rc-road-a rc-road-a-deeper" : [8, 9, 12, 13].includes(state.step) ? "rc-warm" : ""}`} role="dialog" aria-modal="true" aria-label="The Reality Check" data-step={state.step}
         onKeyDown={e => {
           if (e.key === "Escape") { e.preventDefault(); onClose(); }
@@ -133,7 +135,9 @@ export function RealityCheck({
             else if (!e.shiftKey && document.activeElement === items[items.length - 1]) { e.preventDefault(); items[0].focus(); }
           }
         }}>
-        <header className="rc-room-header"><div className="rc-crumb">The Reality Check › {STAGES[stage]}{state.focus ? ` › ${RC_LABEL[state.focus]}` : ""}</div><button ref={closeRef} aria-label="Close Reality Check" onClick={onClose}>×</button></header>
+        <div className="na1-room-crumb"><span>The Reality Check</span><span className="sep">›</span><span className="current">{STAGES[stage]}</span>{state.focus && <><span className="sep">›</span><span>{RC_LABEL[state.focus]}</span></>}</div>
+        <button className="na1-room-close" ref={closeRef} aria-label="Close Reality Check" onClick={onClose}>×</button>
+        <div className="rc-body" ref={bodyRef} tabIndex={0} role="region" aria-label="Reality Check content">
         <ol className="rc-stepper">{STAGES.map((label, i) => <li key={label} className={i < stage ? "is-done" : i === stage ? "is-current" : ""} aria-current={i === stage ? "step" : undefined}><button disabled={!preview && !state.complete && sceneGroups[i][0] > (state.maxReached ?? state.step)} onClick={() => { setJoin(false); update({ ...state, step: sceneGroups[i][0] }); }}>{label}</button></li>)}</ol>
         {state.step >= 6 && state.step <= 9 && <div className={`rc-future-banner ${state.step <= 7 ? "is-a" : "is-b"}`}>FUTURE {state.step <= 7 ? "A · If nothing changes" : "B · If you own it"}</div>}
         <div className="rc-pips" aria-label={`Scene ${state.step + 1} of 14`}>
@@ -146,6 +150,7 @@ export function RealityCheck({
             : <RealityCheckFutures state={state} update={update} act={act} closeSaved={() => { setSavedMessage(true); onClose(); }} />}
         </div>
         {error && <p role="alert">{error}</p>}
+        </div>
         <footer className="rc-footer"><button onClick={() => join ? setJoin(false) : state.step === 0 ? onClose() : update({ ...state, step: state.step - 1 })}>← Back</button>
           {state.step < 10 && <button className="na1-btn-gold" disabled={!canAdvance} onClick={advance}>{forward}</button>}
           {state.step === 13 && !join && <div className="rc-final-cta"><button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>{access === "free" ? "Start building Future B →" : "Begin A1 · All In →"}</button><small>{access === "free" ? "True Ownership™ · [YOUR PRICE] · everything you wrote today comes with you." : "About 20 minutes · your Future B goes with you."}</small></div>}

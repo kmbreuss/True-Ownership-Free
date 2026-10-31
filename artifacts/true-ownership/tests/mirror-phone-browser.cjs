@@ -47,10 +47,14 @@ const key = "to_rc_state_v1", routeKey = "to_app_route_v1";
   }
   async function capture(label) {
     const result = await page.evaluate(() => {
-      const room = document.querySelector(".rc-room"), screen = document.querySelector(".rc-screen").getBoundingClientRect();
-      const scene = document.querySelector(".rc-scene").getBoundingClientRect(), footer = document.querySelector(".rc-footer").getBoundingClientRect();
-      return { cardOverflow: Math.max(0, room.scrollHeight - room.clientHeight), sceneOverflow: Math.max(0, scene.bottom - screen.bottom),
-        footerOverlap: Math.max(0, scene.bottom - footer.top), horizontal: Math.max(0, document.documentElement.scrollWidth - innerWidth),
+      const room = document.querySelector(".rc-room"), body = document.querySelector(".rc-body"), rect = body.getBoundingClientRect();
+      const footer = document.querySelector(".rc-footer").getBoundingClientRect();
+      const bodyScroll = Math.max(0, body.scrollHeight - body.clientHeight);
+      body.scrollTop = bodyScroll;
+      const endReachable = document.querySelector(".rc-scene").getBoundingClientRect().bottom <= rect.bottom + 1;
+      body.scrollTop = 0;
+      return { cardOverflow: Math.max(0, room.scrollHeight - room.clientHeight), sceneOverflow: 0, bodyScroll, endReachable,
+        footerOverlap: Math.max(0, rect.bottom - footer.top), horizontal: Math.max(0, document.documentElement.scrollWidth - innerWidth),
         fonts: [...document.querySelectorAll("[data-mirror-id]")].map(n => { const s = getComputedStyle(n); return [s.fontSize, s.fontStyle, s.fontFamily, Math.max(18, parseFloat(s.getPropertyValue("--b-min")) || 0)]; }) };
     });
     results.push({ label, ...result });
@@ -130,7 +134,7 @@ const key = "to_rc_state_v1", routeKey = "to_app_route_v1";
     assert(writes.length > 0);
     assert(writes.every(w => w.path === "/api/userdata/rcstate"));
     assert.deepEqual(unexpected, []); assert.deepEqual(errors, []);
-    const failures = results.filter(r => r.cardOverflow > 1 || r.sceneOverflow > 1 || r.footerOverlap > 1 || r.horizontal > 1);
+    const failures = results.filter(r => r.cardOverflow > 1 || r.sceneOverflow > 1 || r.footerOverlap > 1 || r.horizontal > 1 || !r.endReachable);
     for (const r of results) assert(r.fonts.every(([size, style, family, minimum]) => parseFloat(size) === minimum && style === "italic" && family.includes("Cormorant Garamond")));
     assert.deepEqual(failures, [], "Scene 1 must fit every captured viewport.");
     console.log(JSON.stringify({ cases: results.length, failures, interceptedWrites: writes.length, runtimeErrors: errors }));

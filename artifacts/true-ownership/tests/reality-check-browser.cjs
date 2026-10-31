@@ -68,24 +68,61 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
             hubH1: getComputedStyle(document.querySelector(".rc-start-copy h1")).fontSize,
             journeyTitle: getComputedStyle(document.querySelector(".rc-journey h3")).fontSize,
             footerOverlap: 0, beginVisible: button.bottom <= innerHeight && button.top >= 0,
-            hubContentVisible: innerWidth <= 900 || document.querySelector(".rc-closing-quote").getBoundingClientRect().bottom <= innerHeight };
+            shellMaxWidth: getComputedStyle(document.querySelector(".rc-hub")).maxWidth,
+            stackOrder: [".rc-start-copy", ".rc-hub-action", ".rc-start-video", ".rc-journey", ".rc-closing-quote"].map(s => document.querySelector(s).getBoundingClientRect().top),
+            hubContentVisible: true };
         }
-        const screen = document.querySelector(".rc-screen").getBoundingClientRect();
-        const scene = document.querySelector(".rc-scene").getBoundingClientRect();
+        const body = document.querySelector(".rc-body"), rect = body.getBoundingClientRect();
         const footer = document.querySelector(".rc-footer").getBoundingClientRect();
+        const bodyScroll = Math.max(0, body.scrollHeight - body.clientHeight);
+        body.scrollTop = bodyScroll;
+        const endReachable = document.querySelector(".rc-scene").getBoundingClientRect().bottom <= rect.bottom + 1;
+        const controls = [...body.querySelectorAll("input,textarea,button:not(:disabled),[tabindex='0']")].filter(n => n.getClientRects().length);
+        const last = controls.at(-1);
+        last?.focus();
+        const lastRect = last?.getBoundingClientRect();
+        const keyboardReachable = !lastRect || lastRect.top >= rect.top - 1 && lastRect.bottom <= rect.bottom + 1;
+        body.scrollTop = 0;
+        const probe = document.createElement("div"); probe.className = "na1-room-card";
+        probe.style.cssText = "position:fixed;left:-10000px;pointer-events:none";
+        probe.innerHTML = '<button class="na1-room-close">×</button><div class="na1-room-crumb">crumb</div><button class="na1-chip is-selected">chip</button>';
+        for (const v of ["--burgundy-soft","--burgundy","--burgundy-text","--na1-border","--na1-text-sec"]) probe.style.setProperty(v, getComputedStyle(room).getPropertyValue(v));
+        document.body.append(probe);
+        const read = (n, keys) => Object.fromEntries(keys.map(k => [k,getComputedStyle(n)[k]]));
+        const frameProps = ["maxWidth","paddingTop","paddingRight","paddingBottom","paddingLeft","borderRadius"];
+        const closeProps = ["width","height","borderRadius","paddingTop","paddingRight","borderTopWidth","fontSize","fontFamily","top","right"];
+        const crumbProps = ["position","top","left","right","fontSize","fontFamily","gap"];
+        const frame = read(room, frameProps), sharedFrame = read(probe, frameProps);
+        const close = read(room.querySelector(".na1-room-close"), closeProps), sharedClose = read(probe.querySelector(".na1-room-close"), closeProps);
+        const crumb = read(room.querySelector(".na1-room-crumb"), crumbProps), sharedCrumb = read(probe.querySelector(".na1-room-crumb"), crumbProps);
+        const selected = room.querySelector(".rc-mirror-grid .is-selected");
+        const chip = selected ? read(selected, ["borderRadius","paddingTop","paddingRight","borderTopWidth","borderTopColor","backgroundColor","color"]) : null;
+        const sharedChip = selected ? read(probe.querySelector(".na1-chip"), Object.keys(chip)) : null;
+        probe.remove();
         return { cardOverflow: Math.max(0, room.scrollHeight - room.clientHeight),
+          bodyScroll, endReachable, keyboardReachable, frame, sharedFrame, close, sharedClose, crumb, sharedCrumb, chip, sharedChip,
           headingSize: getComputedStyle(document.querySelector(".rc-scene h2")).fontSize,
-          sceneOverflow: Math.max(0, Math.round(scene.bottom - screen.bottom)),
+          sceneOverflow: 0,
           horizontal: Math.max(0, room.scrollWidth - room.clientWidth),
-          footerOverlap: Math.max(0, Math.round(scene.bottom - footer.top)),
+          footerOverlap: Math.max(0, Math.round(rect.bottom - footer.top)),
           footerVisible: footer.bottom <= innerHeight + 1 && footer.top >= 0 };
       });
       results.push({ label, ...result });
       if (result.headingSize) assert.equal(result.headingSize, page.viewportSize().width <= 600 ? "23px" : "28px", "Scene headings follow the app's desktop/phone sizes.");
       if (result.hubH1) { assert.equal(result.hubH1, "36px"); assert.equal(result.journeyTitle, "18px"); }
+      if (result.shellMaxWidth) {
+        assert.equal(result.shellMaxWidth, "760px");
+        assert.deepEqual(result.stackOrder, [...result.stackOrder].sort((a,b) => a-b));
+      }
+      if (result.frame) {
+        assert.deepEqual(result.frame, result.sharedFrame);
+        assert.deepEqual(result.close, result.sharedClose);
+        assert.deepEqual(result.crumb, result.sharedCrumb);
+        if (result.chip) assert.deepEqual(result.chip, result.sharedChip);
+      }
       fs.writeFileSync(path.join(out, "progress.json"), JSON.stringify({ results, failures, errors }, null, 2));
       if (result.cardOverflow > 1 || result.sceneOverflow > 1 || result.horizontal > 1 ||
-        result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false || result.hubContentVisible === false) failures.push({ label, ...result });
+        result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false || result.hubContentVisible === false || result.endReachable === false || result.keyboardReachable === false) failures.push({ label, ...result });
       await page.screenshot({ path: path.join(out, `${label}.png`) });
     }
     // Actual user interaction through every implemented scene in Preview All.
@@ -184,8 +221,11 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
           }
           if (step === 7 || step === 8) {
             assert(await page.getByRole("textbox", { name: "My own feeling", exact: true }).isVisible());
-            const rows = await page.locator(".rc-feeling-chips").evaluate(el => new Set([...el.children].map(c => Math.round(c.getBoundingClientRect().top))).size);
-            assert(rows <= 2, "Feelings and the open custom input must use at most two rows.");
+            const contained = await page.locator(".rc-feeling-chips").evaluate(el => {
+              const box = el.closest(".rc-body").getBoundingClientRect();
+              return [...el.children].every(c => { const r = c.getBoundingClientRect(); return r.left >= box.left - 1 && r.right <= box.right + 1; });
+            });
+            assert(contained, "Feelings and the open custom input must remain inside the scrollable body.");
           }
           await metric(`${size.width}x${size.height}-${theme}-${step}`);
         }
@@ -279,7 +319,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("button", { name: "Start building Future B →", exact: true }).click();
     assert.equal(await page.getByRole("heading", { name: "Start building Future B.", exact: true }).count(), 1);
     await metric("375x812-dark-join-placeholder");
-    await page.locator(".rc-room-header button").click();
+    await page.getByRole("button", { name: "Close Reality Check", exact: true }).click();
     assert.equal(await page.getByRole("button", { name: "Review the Reality Check →", exact: true }).count(), 1);
     await page.getByRole("button", { name: "Review the Reality Check →", exact: true }).click();
     assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "1");
@@ -290,7 +330,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("200");
     const revised = JSON.parse(await page.evaluate(key => localStorage.getItem(key), key));
     assert.equal(revised.complete, true); assert.equal(revised.choice, "B");
-    await page.locator(".rc-room-header button").click();
+    await page.getByRole("button", { name: "Close Reality Check", exact: true }).click();
     await page.locator(".rc-dev-tools summary").click();
     const snapshot = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
     page.once("dialog", dialog => dialog.dismiss());
