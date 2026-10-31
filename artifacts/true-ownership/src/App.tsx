@@ -9,6 +9,10 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { isDevPreview, previewRead, previewWrite, setDevPreview } from "./devPreview";
+import { loadRCState, rcEnabled } from "./rcConstants";
+import { RealityCheck } from "./reality-check/RealityCheck";
+import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
+import { hasPriorProgress } from "./reality-check/progress";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -29678,6 +29682,7 @@ function NewA1Grid({
   m4Started,
   m4Complete,
   onOpenPurpose,
+  rcRequired = false,
   onOpenVision,
   onOpenM3,
   onOpenM4,
@@ -29697,6 +29702,7 @@ function NewA1Grid({
   m4Started?: boolean;
   m4Complete?: boolean;
   onOpenPurpose: () => void;
+  rcRequired?: boolean;
   onOpenVision: () => void;
   // Mirror 3 unlocks once Vision is complete; Mirror 4 once Identity is
   // complete. Parent wires the open handlers + progress flags.
@@ -29725,7 +29731,7 @@ function NewA1Grid({
   const purposeComplete = doneCount === 4;
   const purposeStarted = doneCount > 0 || !!progress.purposeFinal;
   const purposeInProgress = purposeStarted && !purposeComplete;
-  const purposeStatusLabel = purposeComplete ? "Complete" : "Up next";
+  const purposeStatusLabel = rcRequired && !isDevPreview() ? "Locked" : purposeComplete ? "Complete" : "Up next";
   const purposeCtaLabel = purposeComplete
     ? "Review Purpose →"
     : purposeInProgress
@@ -29899,7 +29905,7 @@ function NewA1Grid({
                 className="na1-btn-gold na1-btn-block"
                 onClick={onOpenPurpose}
               >
-                {purposeCtaLabel}
+                {rcRequired && !isDevPreview() ? "Begin the Reality Check →" : purposeCtaLabel}
               </button>
               <span className="na1-mirror-card-meta">
                 4 exercises · 4 videos
@@ -34921,6 +34927,8 @@ function NewA2RoomPlaceholderBody({
 // "grid", no throw).
 
 type AppRouteView =
+  | "rc"
+  | "rcroom"
   | "grid"
   | "explore"
   | "explore2"
@@ -34978,6 +34986,8 @@ type AppRoute = { view: AppRouteView; overlay: AppRouteOverlay };
 
 const APP_ROUTE_KEY = "to_app_route_v1";
 const APP_ROUTE_VIEWS: AppRouteView[] = [
+  "rc",
+  "rcroom",
   "grid",
   "explore",
   "explore2",
@@ -35260,6 +35270,7 @@ function NewA1Spine({
   // mid-A2.
   a3Enabled?: boolean;
 }) {
+  useRCAccess();
   // A4 · the Act vertebra fills once all three A4 promises are claimed. Read
   // here (not threaded through every call site) on the view cadence.
   const a4Complete = useMemo(() => loadA4State().a4.claimed, [view]);
@@ -35326,6 +35337,10 @@ function NewA1Spine({
       dest: "a5",
     },
   ];
+  if (rcEnabled()) {
+    if (view === "rc" || view === "rcroom") vertebrae.forEach(v => { v.isCurrent = false; });
+    vertebrae.unshift({ num: "Start", label: "Reality Check", claimed: loadRCState().complete, isCurrent: view === "rc" || view === "rcroom", dest: "rc" });
+  }
   return (
     <aside className="na1-spine">
       <div className="na1-spine-brand">True Ownership™</div>
@@ -35335,10 +35350,12 @@ function NewA1Spine({
         // Status label precedence: current wins. "You are here" whenever
         // current (even if also claimed); "Claimed" only when claimed AND
         // not current; otherwise no label at all.
-        const status = v.isCurrent
+        const status = v.num !== "Start" && rcFreeLocked() ? "Unlocks when you join"
+          : v.num === "Start" && !v.isCurrent && !v.claimed && hasPriorProgress(loadDataSync) ? "Start here · New"
+          : v.isCurrent
           ? "You are here"
           : v.claimed
-            ? "Claimed"
+            ? v.num === "Start" ? "Complete" : "Claimed"
             : null;
         const cls = [
           "na1-vertebra",
@@ -35438,13 +35455,14 @@ function na1DisciplineForView(view: AppRouteView): 1 | 2 | 3 | 4 | 5 {
 }
 
 function NewA1PhoneSpine() {
+  useRCAccess();
   const snap = useSyncExternalStore(
     subscribePhoneSpine,
     getPhoneSpine,
     getPhoneSpine,
   );
   if (!snap) return null;
-  const here = na1DisciplineForView(snap.view);
+  const here = snap.view === "rc" || snap.view === "rcroom" ? 0 : na1DisciplineForView(snap.view);
   const items: {
     n: number;
     label: string;
@@ -35467,12 +35485,13 @@ function NewA1PhoneSpine() {
     { n: 4, label: "Act", claimed: snap.a4Complete, dest: "a4" },
     { n: 5, label: "Accountable", claimed: snap.a5Complete, dest: "a5" },
   ];
+  if (rcEnabled()) items.unshift({ n: 0, label: "Reality Check", claimed: loadRCState().complete, dest: "rc" });
   return (
     <nav className="na1-pspine" aria-label="Your progress through the 5 A's">
       {items.map((it) => {
         const isHere = it.n === here;
         // Precedence matches the rail: "Here" wins over "Claimed".
-        const state = isHere ? "Here" : it.claimed ? "Claimed" : "Ahead";
+        const state = it.n !== 0 && rcFreeLocked() ? "Locked" : isHere ? "Here" : it.claimed ? "Complete" : "Ahead";
         const cls = [
           "na1-pspine-item",
           isHere ? "is-here" : "",
@@ -35485,7 +35504,7 @@ function NewA1PhoneSpine() {
           <>
             <span className="na1-pspine-top">
               <span className="na1-pspine-dot" aria-hidden />
-              <span className="na1-pspine-num">A{it.n}</span>
+              <span className="na1-pspine-num">{it.n === 0 ? "Start" : `A${it.n}`}</span>
             </span>
             <span className="na1-pspine-state">{state}</span>
           </>
@@ -35751,6 +35770,7 @@ const DEV_TOOLS_ON =
 // leaks the string into production bundles; gated inline literals are removed.
 
 function DevResetBar() {
+  const rcAccess = useRCAccess();
   if (!import.meta.env.DEV) return null;
   const resetAll = () => {
     if (isDevPreview()) return;
@@ -35971,6 +35991,10 @@ function DevResetBar() {
           Preview all
         </label>
       )}
+      {import.meta.env.DEV && rcEnabled() && <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <input type="checkbox" checked={rcAccess === "free"} onChange={e => setSimulatedFree(e.target.checked)} />
+        Simulate free access (not saved)
+      </label>}
       {DEV_TOOLS_ON && <fieldset disabled={isDevPreview()} style={{ display: "contents" }}>
       <button type="button" onClick={resetAll} style={DEV_RESET_BTN}>
         Reset all progress
@@ -35996,6 +36020,7 @@ function NewA1EntryHall({
   onOpenA5,
   onSeeFramework,
   onEnterApp,
+  onRealityCheck,
 }: {
   name?: string;
   // All five As claimed → "This week" leads the page (A5-2).
@@ -36004,12 +36029,19 @@ function NewA1EntryHall({
   onOpenA5?: () => void;
   onSeeFramework: () => void;
   onEnterApp: () => void;
+  onRealityCheck?: () => void;
 }) {
   const greeting = name ? `Welcome, ${name}.` : "Welcome.";
   return (
     <div className="na1-root">
       <main className="na1-eh-content">
         <DevResetBar />
+        {rcEnabled() && onRealityCheck && <section className="rc-entry-card">
+          <p className="na1-eh-eyebrow">{hasPriorProgress(loadDataSync) && !loadRCState().complete ? "Start here · New" : "Start here"}</p>
+          <h2>Before you start, a reality check.</h2>
+          <p>Where you are now, and where it leads.</p>
+          <button className="na1-eh-btn-gold" onClick={onRealityCheck}>{loadRCState().complete ? "Review" : "Begin"} the Reality Check →</button>
+        </section>}
         <div className="na1-breadcrumb">
           <span className="current">Entry Hall</span>
         </div>
@@ -36052,7 +36084,7 @@ function NewA1EntryHall({
             See the framework <span>→</span>
           </button>
           <button className="na1-eh-btn-quiet" onClick={onEnterApp}>
-            Skip to A1 · All In It →
+            {rcFreeLocked() ? "Unlocks when you join" : "Skip to A1 · All In It →"}
           </button>
         </div>
       </main>
@@ -51199,9 +51231,11 @@ function NewA1View({
   // The overlay portion is held in a ref and consumed by the M3/M4
   // containers via `initialRoomKey`.
   const savedRouteRef = useRef<AppRoute | null>(loadAppRoute());
-  const [view, setView] = useState<AppRouteView>(
+  const rcAccess = useRCAccess();
+  const [rawView, setRawView] = useState<AppRouteView>(
     () => {
       const saved = savedRouteRef.current;
+      if (saved && (saved.view === "rc" || saved.view === "rcroom")) return rcEnabled() ? saved.view : "entry-hall";
       // Task 48 · one-shot initial-view override from the phase-"a3"
       // wrapper. Wins over the saved-route restore, EXCEPT when the saved
       // route is already inside A3 — then the normal restore runs so an
@@ -51288,6 +51322,19 @@ function NewA1View({
       return "grid";
     },
   );
+  const priorRCProgress = useRef(hasPriorProgress(loadDataSync)).current;
+  const rcRequired = rcEnabled() && !priorRCProgress && !loadRCState().complete;
+  const rcGuard = (next: AppRouteView): AppRouteView => {
+    if (!rcEnabled()) return next === "rc" || next === "rcroom" ? "entry-hall" : next;
+    if (isDevPreview()) return next;
+    if (rcAccess === "free" && !["rc", "rcroom", "entry-hall"].includes(next)) return "rc";
+    if (next === "explore" && rcRequired) return "rc";
+    return next;
+  };
+  const view = rcGuard(rawView);
+  const setView = (next: AppRouteView | ((old: AppRouteView) => AppRouteView)) =>
+    setRawView(old => rcGuard(typeof next === "function" ? next(old) : next));
+  const rcResumeRef = useRef(savedRouteRef.current?.view === "rcroom");
   // Tracks the currently open M3/M4 room overlay for persistence.
   // M1/M2 (explore/explore2) overlay restoration is out of scope —
   // their per-view restoration falls out naturally from `view` alone.
@@ -51790,7 +51837,7 @@ function NewA1View({
       a5Complete,
       navigate: setView,
     });
-  }, [view, a1Complete, a2Complete, a3Complete, a4Complete, a5Complete]);
+  }, [view, a1Complete, a2Complete, a3Complete, a4Complete, a5Complete, rcAccess, rcRequired]);
   useEffect(() => () => setPhoneSpine(null), []);
   // Fix 5 · A2 M1 locked-state copy. When A1 is incomplete the A2 hub's 01
   // (Alignment Check) card must name the first unclaimed A1 mirror — walked in
@@ -51934,6 +51981,16 @@ function NewA1View({
       }, 520),
     );
   };
+  if (view === "rc" || view === "rcroom") {
+    return <div className="na1-spine-pad">
+      <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
+      <RealityCheck room={view === "rcroom"} resume={rcResumeRef.current}
+        onEnter={() => { rcResumeRef.current = false; setView("rcroom"); }}
+        onClose={() => { rcResumeRef.current = false; setView("rc"); }}
+        onEntryHall={() => setView("entry-hall")}
+        devTools={<DevResetBar />} Veil={NewA1Veil} timing={NA1_VEIL_TIMING} />
+    </div>;
+  }
   if (view === "explore") {
     return (
       <>
@@ -52536,6 +52593,7 @@ function NewA1View({
         <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA1EntryHall
           name={resolvedName}
+          onRealityCheck={() => setView("rc")}
           allClaimed={a1Complete && a2Complete && a3Complete && a4Complete && a5Complete}
           onCheckin={() => setView("a5c")}
           onOpenA5={() => setView("a5")}
@@ -52566,6 +52624,7 @@ function NewA1View({
     <div className="na1-spine-pad">
       <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
       <NewA1Grid
+        rcRequired={rcRequired}
       // Ship 5.5e · Personalization · pass the canonically-resolved name
       // (intake → auth fallback) so the Entry Hall greeting in NewA1Grid
       // is correct even when the legacy A1 wrapper only forwarded

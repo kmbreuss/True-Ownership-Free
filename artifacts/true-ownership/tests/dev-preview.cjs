@@ -46,6 +46,7 @@ test("preview state writers preserve byte-for-byte real storage and support ephe
     ["a4Constants", "saveA4State", "loadA4State", "EMPTY_A4"],
     ["a5Constants", "saveA5State", "loadA5State", "EMPTY_A5"],
     ["mirror4Constants", "saveMirror4State", "loadMirror4State", "EMPTY_MIRROR4"],
+    ["rcConstants", "saveRCState", "loadRCState", "EMPTY_RC"],
   ]) {
     const m = e.load(file);
     m[save](m[empty]);

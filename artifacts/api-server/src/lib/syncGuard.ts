@@ -4,7 +4,7 @@
 // A synced value is wrapped as { t: <client modified time, epoch ms>, v: <payload> }.
 // A write is accepted only if its `t` is >= the stored `t`.
 
-export const SYNC_KEYS = new Set(["a2state", "a3state", "a4state", "a5state", "m4state", "a1progress"]);
+export const SYNC_KEYS = new Set(["a2state", "a3state", "a4state", "a5state", "m4state", "a1progress", "rcstate"]);
 
 export type Wrapped = { t: number; v: unknown };
 

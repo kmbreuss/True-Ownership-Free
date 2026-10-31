@@ -18,6 +18,7 @@ import { isDevPreview } from "./devPreview";
 import { EMPTY_A2 } from "./a2Constants";
 import { EMPTY_A3 } from "./a3Constants";
 import { EMPTY_A4 } from "./a4Constants";
+import { EMPTY_RC } from "./rcConstants";
 import { EMPTY_A5 } from "./a5Constants";
 import { EMPTY_MIRROR4 } from "./mirror4Constants";
 
@@ -36,6 +37,7 @@ export const A1_PROGRESS_KEYS = [
 
 type Store = { sk: string; label: string; lks: string[]; empty?: unknown };
 export const STORES: Store[] = [
+  { sk: "rcstate", label: "Reality Check", lks: ["to_rc_state_v1"], empty: EMPTY_RC },
   { sk: "a1progress", label: "A1 exercise progress", lks: A1_PROGRESS_KEYS },
   { sk: "a2state", label: "A2 · Align With It", lks: ["to_a2_state_v1"], empty: EMPTY_A2 },
   { sk: "a3state", label: "A3 · Advocate For It", lks: ["to_a3_state_v1"], empty: EMPTY_A3 },
