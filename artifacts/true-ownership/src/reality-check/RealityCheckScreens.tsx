@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import {
   RC_AREAS, RC_LABEL, RC_INTRO_VIDEO_URL, RC_MIRROR, RC_DEFAULT_LABEL, RC_DEFAULT_DEFINITION,
-  RC_DEFAULT_PROMPT, topAreas, toggleMirror, chooseFocus, costSummary, type RCState, type RCArea,
+  RC_DEFAULT_PROMPT, topAreas, toggleMirror, chooseFocus, type RCState, type RCArea,
 } from "../rcConstants";
-import { annualAmounts, defaultList } from "./rcJourney";
+import { annualAmounts, defaultList, endClean } from "./rcJourney";
 import { PriceWhereField } from "./PriceWhereField";
 import { useMirrorLayout } from "./useMirrorLayout";
 import { LedgerNumber } from "./RCAnswerFields";
@@ -96,8 +96,15 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
   </div>;
   if (s.step === 4) {
     const setCost = (patch: Partial<RCState["cost"]>) => update({ ...s, cost: { ...s.cost, ...patch } });
-    const number = (raw: string) => raw === "" ? null : Number.isFinite(Number(raw)) && Number(raw) >= 0 ? Number(raw) : null;
-    const summary = costSummary(s.cost), totals = annualAmounts(s), placeholder = PLACEHOLDERS[focus];
+    const totals = annualAmounts(s);
+    const words = (value: string) => endClean(value).toLocaleLowerCase("en-US");
+    const moneyWhere = words(s.cost.moneyWhere), hoursWhere = words(s.cost.hoursWhere), you = words(s.cost.you);
+    const yearly = [
+      totals.money ? <React.Fragment key="money"><strong>{totals.money}</strong>{moneyWhere && <> going to <em>{moneyWhere}</em></>}</React.Fragment> : null,
+      totals.hours ? <React.Fragment key="hours"><strong>{totals.hours}</strong>{hoursWhere && <> going to <em>{hoursWhere}</em></>}</React.Fragment> : null,
+    ].filter(Boolean);
+    const amount = s.cost.youAmount === "most of me" ? "most" : s.cost.youAmount;
+    const hasSummary = yearly.length > 0 || !!you || !!amount || !!moneyWhere || !!hoursWhere;
     return <div className="rc-scene rc-price">
       <h2>Where are you leaking power?</h2>
       <p>What is the way your {lower} runs costing you? Your best guess is fine.</p>
@@ -111,11 +118,21 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
           <LedgerNumber value={s.cost.hoursPerWeek} onChange={hoursPerWeek => setCost({ hoursPerWeek })} />
           <label><span className="rc-sr-only">Where do they go?</span><PriceWhereField placeholder="Where do they go?" value={s.cost.hoursWhere} onChange={hoursWhere => setCost({ hoursWhere })} /></label>
         </section>
-        <section className="rc-ledger-row"><h3>IN YOU</h3><span className="rc-ledger-empty" />
+        <section className="rc-ledger-row"><h3>IN YOU</h3>
+          <div className="rc-feeling-chips rc-you-amount" role="group" aria-label="How much is it costing you? Optional">
+            {(["a little", "a lot", "most of me"] as const).map(value => <button key={value} aria-pressed={s.cost.youAmount === value}
+              onClick={() => setCost({ youAmount: s.cost.youAmount === value ? undefined : value })}>{value}</button>)}
+          </div>
           <label><span className="rc-sr-only">What is it costing you?</span><PriceWhereField placeholder="What is it costing you?" value={s.cost.you} onChange={you => setCost({ you })} /></label>
         </section>
       </div>
-      <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{totals.money || totals.hours ? <>Over a year, that's about {totals.money && <strong>{totals.money}</strong>}{totals.money && totals.hours && " and "}{totals.hours && <strong>{totals.hours}</strong>}. And you're paying too.</> : summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>
+      <div className={`rc-summary ${hasSummary ? "has-summary" : ""}`} aria-live="polite">
+        {yearly.length > 0 && <p>Over a year, that’s about {yearly.map((part, i) => <React.Fragment key={i}>{i > 0 && ", and "}{part}</React.Fragment>)}.</p>}
+        {!totals.money && moneyWhere && <p>Your money is going to <em>{moneyWhere}</em>.</p>}
+        {!totals.hours && hoursWhere && <p>Your time is going to <em>{hoursWhere}</em>.</p>}
+        {(amount || you) && <p>{amount ? <>And it’s taking <em>{amount}</em> of you{you ? <>: <em>{you}</em>.</> : "."}</> : <>And it’s costing you <em>{you}</em>.</>}</p>}
+        <em>This isn't blame. It's the diagnosis. And it can change.</em>
+      </div>
     </div>;
   }
   throw new Error(`Unsupported introductory Reality Check scene: ${s.step}`);

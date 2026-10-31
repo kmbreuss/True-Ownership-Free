@@ -174,7 +174,7 @@ const url = `${base}/?preview=1`;
             row:row && getComputedStyle(row).paddingTop,
             summary:summary && getComputedStyle(summary).paddingTop};
         });
-        assert.equal(spacing.gap,height===800?"16px":step===4?"12px":"10px");
+        assert.equal(spacing.gap,step===4?"10px":height===800?"16px":"10px");
         if(step===4) {
           assert.equal(spacing.row,height===800?"14px":"12px");
           assert.equal(spacing.summary,height===800?"14px":"10px");

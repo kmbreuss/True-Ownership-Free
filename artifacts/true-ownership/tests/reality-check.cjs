@@ -4,6 +4,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const ts = require("typescript");
+test("optional price amount survives normalization without changing other cost fields",()=>{
+  const e=env(),m=e.load("rcConstants"),cost={...plain(m.EMPTY_RC.cost),monthly:100,moneyWhere:"My Bills",hoursPerWeek:2,hoursWhere:"My Evenings",you:"My Patience",whoElse:"Keep this hidden answer"};
+  for(const youAmount of ["a little","a lot","most of me"]) {
+    assert.deepEqual(plain(m.normalizeRC({...plain(m.EMPTY_RC),cost:{...cost,youAmount}}).cost),{...cost,youAmount});
+  }
+  assert.deepEqual(plain(m.normalizeRC({...plain(m.EMPTY_RC),cost}).cost),cost);
+  assert.deepEqual(plain(m.normalizeRC({...plain(m.EMPTY_RC),cost:{...cost,youAmount:"invalid"}}).cost),cost);
+});
 
 function env(preview = false, dev = true) {
   const data = new Map(), session = new Map(), requests = [];

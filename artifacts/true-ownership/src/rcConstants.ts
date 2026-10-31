@@ -45,7 +45,7 @@ export interface RCState {
   mirror: string[]; phoneMirror?: { set: 0 | 1; viewedBoth: boolean }; areaCounts: Record<RCArea, number>; defaultCounts: Record<RCDefault, number>;
   focus: RCArea | null; focusChosenBy: "revealed" | "tie-picked" | "changed" | null;
   topDefaults: RCDefault[]; tuesday: string; defaultsNamed: Record<RCDefault, string>; defaultsTogether?: string;
-  cost: { monthly: number | null; moneyWhere: string; hoursPerWeek: number | null; hoursWhere: string; you: string; whoElse: string };
+  cost: { monthly: number | null; moneyWhere: string; hoursPerWeek: number | null; hoursWhere: string; you: string; whoElse: string; youAmount?: "a little" | "a lot" | "most of me" };
   futureA: { extra: string }; compound: { feels: string[]; results: string; whoElse: string };
   futureB5: { feels: string[]; tuesday: string; whoNotices: string };
   futureB1: { doing: string; oneThing: string };
@@ -116,7 +116,8 @@ export function normalizeRC(value: unknown): RCState {
     defaultsNamed: { avoiding: text(named.avoiding), blaming: text(named.blaming), carrying: text(named.carrying), hoping: text(named.hoping) },
     ...(typeof v.defaultsTogether === "string" ? { defaultsTogether: v.defaultsTogether } : {}),
     cost: { monthly: amount(cost.monthly), moneyWhere: text(cost.moneyWhere), hoursPerWeek: amount(cost.hoursPerWeek),
-      hoursWhere: text(cost.hoursWhere), you: text(cost.you), whoElse: text(cost.whoElse) },
+      hoursWhere: text(cost.hoursWhere), you: text(cost.you), whoElse: text(cost.whoElse),
+      ...(["a little", "a lot", "most of me"].includes(cost.youAmount) ? { youAmount: cost.youAmount as RCState["cost"]["youAmount"] } : {}) },
     futureA: { extra: text(a.extra) },
     compound: { feels: texts(compound.feels), results: text(compound.results), whoElse: text(compound.whoElse) },
     futureB5: { feels: texts(b5.feels), tuesday: text(b5.tuesday), whoNotices: text(b5.whoNotices) },

@@ -90,7 +90,7 @@ Editable-field fit must include its usable content height, not just its outer re
 
 **Why:** A capped field can pass growth and room-overflow assertions while inherited textarea padding leaves less space than the promised number of complete text lines.
 
-**How to apply:** Check computed line height, padding and borders against actual visible content, and visually inspect loaded and edited multiline answers. The price ledger wraps without a line cap or underline. All three ledger answers and both next-year letter answers have a soft 120-character guideline, with counters from 100 onward: never truncate loaded text or block Continue. Longer text may scroll inside the body while progress/footer remain fixed. Lower-case letter insertions are display-only, including during editing; never rewrite stored case merely to improve the sentence.
+**How to apply:** Check computed line height, padding and borders against actual visible content, and visually inspect loaded and edited multiline answers. The price ledger wraps without a line cap or underline. All three ledger answers and both next-year letter answers have a soft 120-character guideline, with counters from 100 onward: never truncate loaded text or block Continue. Longer text may scroll inside the body while progress/footer remain fixed. Lower-case insertions in letters and the price summary are display-only, including during editing; never rewrite stored case merely to improve the sentence.
 
 Browser verification must capture window error events and unhandled rejections as well as uncaught JavaScript exceptions.
 
