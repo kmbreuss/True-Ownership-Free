@@ -76,6 +76,9 @@ function contrastAudit() {
       window.addEventListener("unhandledrejection", e => {
         void window.rcCaptureWindowError(String(e.reason)).catch(() => {});
       });
+      // Init scripts also run in blank/sandboxed frames, which may deny storage.
+      // Initialize only the top-level app document; do not suppress its errors.
+      if (window !== window.top || !["http:", "https:"].includes(location.protocol)) return;
       if (!sessionStorage.getItem("rc-four-init")) {
         sessionStorage.setItem("rc-four-init", "1");
         localStorage.setItem("to_app_route_v1", JSON.stringify({ view: "rcroom", overlay: null }));
@@ -129,7 +132,7 @@ function contrastAudit() {
             // Exercise loaded and edited answers, two lines and overflow beyond
             // the cap, then leave exactly two visible lines for the fit check.
             const fields = page.locator(".rc-where-answer");
-            await assert.equal(await fields.count(), 2);
+            await assert.equal(await fields.count(), 3);
             for (const field of await fields.all()) {
               await field.fill("Short");
               const oneLine = await field.evaluate(e => e.getBoundingClientRect().height);
@@ -177,7 +180,8 @@ function contrastAudit() {
             const before = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key);
             await page.reload(); await page.locator(".rc-where-answer").first().waitFor();
             assert.equal(await fields.first().inputValue(), before.cost.moneyWhere);
-            assert.equal(await fields.last().inputValue(), before.cost.hoursWhere);
+            assert.equal(await fields.nth(1).inputValue(), before.cost.hoursWhere);
+            assert.equal(await page.getByRole("textbox", { name: "What is it costing you?", exact: true }).inputValue(), before.cost.you);
             const after = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key);
             assert.equal(after.complete, true); assert.equal(after.choice, "B"); assert.equal(after.cost.whoElse, seed.cost.whoElse);
           }

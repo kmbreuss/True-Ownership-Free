@@ -18,7 +18,7 @@
 .rc-room.rc-room .rc-progress .is-done button{background:#A5875E}
 .rc-room.rc-room .rc-progress .is-current button{background:#024845}
 .rc-room.rc-room .rc-progress p{margin:8px 0 0!important;font:400 12px/1.3 var(--f-label)!important;letter-spacing:.16em;text-transform:uppercase;color:#024845}
-.rc-room.rc-room .rc-body{display:flex;flex:1 1 0;flex-direction:column;justify-content:center;overflow:visible;scrollbar-gutter:auto;padding:20px 0 0;min-height:0;gap:8px;overflow-wrap:break-word}
+.rc-room.rc-room .rc-body{display:flex;flex:1 1 0;flex-direction:column;justify-content:flex-start;justify-content:safe center;overflow:auto;scrollbar-gutter:stable;scrollbar-width:thin;padding:20px 0 0;min-height:0;gap:8px;overflow-wrap:break-word}
 .rc-room.rc-room .rc-screen{flex:0 0 auto;padding:0;min-height:0;overflow:visible}
 .rc-room.rc-room .rc-scene{display:flex;flex-direction:column;gap:16px;width:100%;min-width:0;padding:0}
 .rc-room.rc-room .rc-willing{margin:0;max-width:none}
@@ -56,6 +56,8 @@
 .rc-room.rc-room .rc-instruction{font:400 14px/1.3 var(--f-label)!important}
 .rc-room.rc-room .rc-instruction span{color:#7A2E2E}
 .rc-room.rc-room .rc-mirror-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 0}
+.rc-room.rc-room .is-paged .rc-mirror-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rc-room.rc-room .rc-mirror-grid .rc-quote[hidden]{display:none}
 .rc-room.rc-room .rc-mirror-grid .rc-quote{position:relative;display:block;min-height:60px;padding:8px 24px 8px 32px;border-radius:14px;border:1px solid rgba(165,135,94,.25);background:#FBF8F2;color:#353334;font:italic 400 16px/1.25 var(--f-body)!important;text-align:left;box-shadow:none;max-width:none;white-space:normal}
 .rc-room.rc-room .rc-mirror-grid .rc-quote.is-selected{background:#F6ECEC;border:1.5px solid #7A2E2E;color:#5E2222;font-weight:400!important}
 .rc-room.rc-room .rc-quote-mark{position:absolute;left:10px;top:2px;font:400 38px/1 var(--f-body);color:#C9AE84}
@@ -183,7 +185,7 @@
  .rc-room.rc-room .rc-people{grid-template-columns:1fr}
  .rc-room.rc-room .rc-person:not(.is-selected){display:none}
  .rc-room.rc-room .rc-person{padding:18px 20px}
- .rc-room.rc-room .rc-mirror-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:4px 0 0}
+ .rc-room.rc-room .rc-mirror-grid{gap:8px;margin:4px 0 0}
  .rc-room.rc-room .rc-mirror-grid .rc-quote{padding:8px 20px 8px 26px}
  .rc-room.rc-room .rc-quote-mark{left:6px}
  .rc-room.rc-room .rc-quote-check{right:4px;top:4px;width:16px;height:16px}

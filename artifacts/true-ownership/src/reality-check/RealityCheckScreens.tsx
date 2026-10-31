@@ -5,6 +5,7 @@ import {
 } from "../rcConstants";
 import { annualAmounts, defaultList } from "./rcJourney";
 import { PriceWhereField } from "./PriceWhereField";
+import { useMirrorLayout } from "./useMirrorLayout";
 
 type Props = { state: RCState; update: (state: RCState) => void; phone?: boolean };
 export function RCVideo() {
@@ -32,8 +33,11 @@ const NAMED_EXAMPLES = {
 function Chapter({ children }: { children: React.ReactNode }) {
   return <p className="rc-eyebrow">{children}</p>;
 }
-export function RealityCheckScreens({ state: s, update, phone = false, people = false }: Props & { people?: boolean }) {
+export function RealityCheckScreens({ state: s, update, phone = false, people = false, mirrorPaged = phone, onMirrorLayout }: Props & {
+  people?: boolean; mirrorPaged?: boolean; onMirrorLayout: (paged: boolean) => void;
+}) {
   const [person, setPerson] = useState<"A" | "B">("A");
+  const mirrorRef = useMirrorLayout(s.step === 1, onMirrorLayout);
   const focus = s.focus ?? "self", area = RC_LABEL[focus], lower = area.toLowerCase();
   if (s.step === 0 && !people) return <div className="rc-scene rc-opening">
     <em className="rc-katherine">Katherine</em>
@@ -53,11 +57,11 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
     </section>)}</div>
     <p className="rc-bronze"><em>If you're mostly Person B, good. This finds the one place you're still Person A.</em></p>
   </div>;
-  if (s.step === 1) return <div className="rc-scene rc-mirror-scene">
+  if (s.step === 1) return <div ref={mirrorRef} className={`rc-scene rc-mirror-scene${mirrorPaged ? " is-paged" : ""}`} data-mirror-layout={mirrorPaged ? "six" : "twelve"}>
     <h2>Which of these have you heard yourself say?</h2>
     <p className="rc-instruction">Tap any that are true lately. At least three. <span aria-live="polite">{s.mirror.length} chosen</span></p>
-    <div className="rc-mirror-grid">{(phone ? RC_MIRROR.slice((s.phoneMirror?.set ?? 0) * 6, (s.phoneMirror?.set ?? 0) * 6 + 6) : RC_MIRROR).map(m => <button className={`rc-quote${s.mirror.includes(m.id) ? " is-selected" : ""}`} key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}><span aria-hidden="true" className="rc-quote-mark">“</span>{m.text}{s.mirror.includes(m.id) && <span aria-hidden="true" className="rc-quote-check">✓</span>}</button>)}</div>
-    {phone && <div className="rc-mirror-pages">
+    <div className="rc-mirror-grid">{RC_MIRROR.map((m, i) => <button hidden={mirrorPaged && Math.floor(i / 6) !== (s.phoneMirror?.set ?? 0)} className={`rc-quote${s.mirror.includes(m.id) ? " is-selected" : ""}`} key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}><span aria-hidden="true" className="rc-quote-mark">“</span>{m.text}{s.mirror.includes(m.id) && <span aria-hidden="true" className="rc-quote-check">✓</span>}</button>)}</div>
+    {mirrorPaged && <div className="rc-mirror-pages">
       <button onClick={() => update({ ...s, phoneMirror: { set: s.phoneMirror?.set === 1 ? 0 : 1, viewedBoth: true } })}>{s.phoneMirror?.set === 1 ? "← First six" : "More sentences →"}</button>
       <span className="rc-mirror-dots" role="img" aria-label={`Set ${(s.phoneMirror?.set ?? 0) + 1} of 2`}>{[0, 1].map(n => <span key={n} aria-hidden="true" className={(s.phoneMirror?.set ?? 0) === n ? "is-current" : ""} />)}</span>
     </div>}
@@ -106,7 +110,7 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
           <label>Where do they go?<PriceWhereField placeholder={placeholder.hours} value={s.cost.hoursWhere} onChange={value => setCost({ hoursWhere: value })} /></label>
         </section>
         <section className="rc-price-tile"><h3>IN YOU</h3>
-          <label>What is it costing you?<input placeholder={placeholder.you} value={s.cost.you} onChange={e => setCost({ you: e.target.value })} /></label>
+          <label>What is it costing you?<PriceWhereField placeholder={placeholder.you} value={s.cost.you} onChange={value => setCost({ you: value })} /></label>
         </section>
       </div>
       <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{totals.money || totals.hours ? <>Over a year, that's about {totals.money && <strong>{totals.money}</strong>}{totals.money && totals.hours && " and "}{totals.hours && <strong>{totals.hours}</strong>}. And you're paying too.</> : summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>

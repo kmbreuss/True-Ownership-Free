@@ -34,6 +34,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
   await installIsolation(context, writes, unexpected);
   try {
     await context.addInitScript(() => {
+      if (window !== window.top || !["http:", "https:"].includes(location.protocol)) return;
       if (!sessionStorage.getItem("j1-test-initialized")) {
         sessionStorage.setItem("j1-test-initialized", "1");
         localStorage.setItem("to_app_route_v1", JSON.stringify({ view: "rcroom", overlay: null }));
@@ -69,6 +70,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
       await page.goto(previewMode ? url : url.replace("&preview=1", ""), { waitUntil: "domcontentloaded" });
       await page.locator(view === "rc" ? ".rc-hub" : ".rc-room").waitFor();
       await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))));
     }
     async function metric(label) {
       const result = await page.evaluate(() => {
@@ -88,6 +90,11 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
         const bodyScroll = Math.max(0, body.scrollHeight - body.clientHeight);
         const scene = document.querySelector(".rc-screen").getBoundingClientRect();
         const endReachable = scene.bottom <= rect.bottom + 1;
+        const progress = room.querySelector(".rc-progress").getBoundingClientRect();
+        const paintedTop = Math.max(scene.top, rect.top), paintedBottom = Math.min(scene.bottom, rect.bottom);
+        body.scrollTop = body.scrollHeight;
+        const allContentReachable = document.querySelector(".rc-screen").getBoundingClientRect().bottom <= rect.bottom + 1;
+        body.scrollTop = 0;
         const controls = [...body.querySelectorAll("input,textarea,button:not(:disabled),[tabindex='0']")].filter(n => n.getClientRects().length);
         const last = controls.at(-1);
         const lastRect = last?.getBoundingClientRect();
@@ -115,10 +122,14 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
           headingSize: getComputedStyle(document.querySelector(".rc-scene h2")).fontSize,
           sceneOverflow: Math.max(0, Math.round(rect.top - scene.top), Math.round(scene.bottom - rect.bottom)),
           horizontal: Math.max(0, room.scrollWidth - room.clientWidth),
-          footerOverlap: Math.max(0, Math.round(scene.bottom - footer.top)),
+          footerOverlap: Math.max(0, Math.round(paintedBottom - footer.top)),
+          headerOverlap: Math.max(0, Math.round(progress.bottom - paintedTop)),
+          allContentReachable,
           footerVisible: footer.bottom <= innerHeight + 1 && footer.top >= 0 };
       });
       results.push({ label, ...result });
+      assert((result.headerOverlap || 0) <= 1 && result.footerOverlap <= 1, `${label}: progress/footer must never overlap painted content`);
+      assert(result.allContentReachable !== false, `${label}: the entire scene must remain reachable`);
       if (result.headingSize) {
         const sizes = {2:"34px",5:"32px",11:"30px",12:"32px",13:"30px"};
         const expected = label.includes("join-placeholder") ? "23px" : page.viewportSize().width <= 600 ? "23px" : sizes[result.step] || "28px";
@@ -149,6 +160,8 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "0b");
     await page.getByRole("button", { name: "Show me the mirror →", exact: true }).click();
     for (const id of ["time-avoiding", "wealth-avoiding", "self-carrying"]) await page.locator(`[data-mirror-id="${id}"]`).click();
+    if (await page.getByRole("button", { name: "More sentences →", exact: true }).count())
+      await page.getByRole("button", { name: "More sentences →", exact: true }).click();
     await page.getByRole("button", { name: "Show me what I see →", exact: true }).click();
     await page.getByRole("button", { name: "Wealth", exact: true }).click();
     await page.getByRole("button", { name: "Start with Wealth →", exact: true }).click();
@@ -235,7 +248,11 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     assert.equal(mirrors.length, 12);
     assert(mirrors.every(([size, style, family]) => size === "16px" && style === "italic" && family.includes("Cormorant Garamond")));
 
-    for (const size of [{ width: 1366, height: 680 }, { width: 1280, height: 800 }, { width: 375, height: 812 }]) {
+    for (const size of [
+      { width: 375, height: 812 }, { width: 600, height: 800 }, { width: 768, height: 1024 },
+      { width: 900, height: 700 }, { width: 1024, height: 600 },
+      { width: 1280, height: 800 }, { width: 1366, height: 680 },
+    ]) {
       for (const theme of ["light", "dark"]) {
         for (const step of ["hub", 0, "0b", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]) {
           await render(step === "hub" ? initial.empty : { ...seed, step: step === "0b" ? 0 : step }, theme, size, step === "hub" ? "rc" : "rcroom");
@@ -265,6 +282,20 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
           if (step === 7) assert.equal(await page.getByLabel("Who else is feeling it by then?").count(), 0);
           if (step === 8) assert.equal(await page.getByLabel("Who notices the difference?").count(), 0);
           await metric(`${size.width}x${size.height}-${theme}-${step}`);
+          if (step === 1) {
+            const visible = page.locator(".rc-mirror-grid button:visible");
+            const paged = await page.locator(".rc-mirror-scene").getAttribute("data-mirror-layout") === "six";
+            assert.equal(await visible.count(), paged ? 6 : 12);
+            const columns = await page.locator(".rc-mirror-grid").evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+            assert.equal(columns, paged ? 2 : 3);
+            if (paged) {
+              assert.deepEqual(await visible.evaluateAll(els => els.map(el => el.dataset.mirrorId)), initial.all.slice(0, 6));
+              await page.getByRole("button", { name: "More sentences →", exact: true }).click();
+              assert.deepEqual(await visible.evaluateAll(els => els.map(el => el.dataset.mirrorId)), initial.all.slice(6));
+              assert.match(await page.locator(".rc-instruction").innerText(), /12 chosen/);
+              await metric(`${size.width}x${size.height}-${theme}-1-second-six`);
+            }
+          }
         }
         for (const step of [11, 12]) {
           await render({ ...seed, step, choice: "A", willing: "not-yet" }, theme, size);
@@ -278,6 +309,24 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("0");
     assert.match(await page.locator(".rc-summary").innerText(), /\$0/);
 
+    // A short desktop window uses the same ordered six-card gate as a phone.
+    await render({ ...initial.empty, step: 1 }, "light", { width: 1024, height: 600 }, "rcroom", false);
+    assert.equal(await page.locator(".rc-mirror-grid button:visible").count(), 6);
+    const visibleQuotes = page.locator(".rc-mirror-grid button:visible");
+    for (let i = 0; i < 3; i++) await visibleQuotes.nth(i).click();
+    assert.equal(await page.getByRole("button", { name: "Show me what I see →", exact: true }).isDisabled(), true);
+    await page.getByRole("button", { name: "More sentences →", exact: true }).click();
+    assert.equal(await page.getByRole("button", { name: "Show me what I see →", exact: true }).isEnabled(), true);
+    await visibleQuotes.first().click();
+    await page.reload(); await page.locator(".rc-mirror-scene").waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    assert.deepEqual(await visibleQuotes.evaluateAll(els => els.map(el => el.dataset.mirrorId)), initial.all.slice(6));
+    assert.match(await page.locator(".rc-instruction").innerText(), /4 chosen/);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.waitForFunction(() => document.querySelector(".rc-mirror-scene")?.dataset.mirrorLayout === "twelve");
+    assert.equal(await page.locator(".rc-mirror-grid button:visible").count(), 12);
+    assert.match(await page.locator(".rc-instruction").innerText(), /4 chosen/);
     // Turn Preview off via its real control and prove scratch words disappear.
     await render({ ...seed, step: 3, tuesday: "REAL STORED ANSWER" });
     await page.getByRole("textbox", { name: "Your ordinary Tuesday", exact: true }).fill("PREVIEW MUST DISAPPEAR");
@@ -386,8 +435,8 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     assert.deepEqual(unexpected, [], "No unexpected mutation requests.");
     assert.equal((await context.cookies()).length, 0, "The fixture must have no real session cookies.");
     assert.deepEqual(errors, [], "No page runtime errors.");
-    if (failures.length) console.warn(`FIT EXCEPTIONS: ${failures.length} captured layouts require reporting; no scroll fallback enabled.`);
-    console.log(`PASS: ${results.length} layout cases; authenticated walkthrough, gate, optional cost, refresh and preview-exit checks.`);
+    if (failures.length) console.warn(`FIT EXCEPTIONS: ${failures.length} captured layouts need bounded body scrolling; these are not one-screen fit passes.`);
+    console.log(`PASS: ${results.length} protected-layout cases; authenticated walkthrough, gate, optional cost, refresh and preview-exit checks. See fit exceptions separately.`);
   } finally {
     await page.screenshot({ path: path.join(out, "last-state.png") }).catch(() => {});
     fs.writeFileSync(path.join(out, "results.json"), JSON.stringify({ results, failures, errors, writesIntercepted: writes.length }, null, 2));

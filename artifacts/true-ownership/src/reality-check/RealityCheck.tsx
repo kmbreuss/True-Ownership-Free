@@ -31,6 +31,7 @@ export function RealityCheck({
 }) {
   const [state, setState] = useState(loadRCState);
   const [phone, setPhone] = useState(() => window.matchMedia("(max-width:600px)").matches);
+  const [mirrorPaged, setMirrorPaged] = useState(phone);
   useEffect(() => {
     const media = window.matchMedia("(max-width:600px)");
     const changed = () => setPhone(media.matches);
@@ -95,7 +96,7 @@ export function RealityCheck({
   const stage = state.step <= 2 ? 0 : state.step === 3 ? 1 : state.step === 4 ? 2 : state.step <= 9 ? 3 : 4;
   const sceneGroups = [[0, 1, 2], [3], [4], [5, 6, 7, 8, 9], [10, 11, 12, 13]];
   const preview = isDevPreview();
-  const canAdvance = rcReady(state, phone) || (preview && !(phone && state.step === 1));
+  const canAdvance = rcReady(state, mirrorPaged) || (preview && !(mirrorPaged && state.step === 1));
   const forward = state.step === 0 ? people ? "Show me the mirror →" : "I'm ready →" : state.step === 1 ? "Show me what I see →" : state.step === 2
     ? state.focus ? `Start with ${RC_LABEL[state.focus]} →` : "Choose an area →"
     : state.step === 3 ? "Show me the price →" : state.step === 4 ? "Close your eyes →"
@@ -162,7 +163,7 @@ export function RealityCheck({
         <div className="rc-screen" key={`${state.step}-${people}-${join}`}>
           {state.step >= 6 && state.step <= 9 && <div className={`rc-future-label ${state.step <= 7 ? "is-a" : "is-b"}`}><strong>FUTURE {state.step <= 7 ? "A" : "B"}</strong><span>{state.step <= 7 ? "If nothing changes" : "If you own it"}</span></div>}
           {join ? <div className="rc-scene"><p className="rc-eyebrow">TRUE OWNERSHIP™</p><h2>Start building Future B.</h2><p>Joining will be available here. Everything you wrote is saved.</p><p>[YOUR PRICE] · everything you wrote today comes with you.</p></div>
-            : state.step < 5 ? <RealityCheckScreens state={state} update={update} phone={phone} people={people} />
+            : state.step < 5 ? <RealityCheckScreens state={state} update={update} phone={phone} people={people} mirrorPaged={mirrorPaged} onMirrorLayout={setMirrorPaged} />
             : <RealityCheckFutures state={state} update={update} act={act} closeSaved={() => { setSavedMessage(true); onClose(); }} />}
         </div>
         {error && <p role="alert">{error}</p>}

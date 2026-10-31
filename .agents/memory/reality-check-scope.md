@@ -20,9 +20,9 @@ A voluntary 90-day redo must keep prior completed words and the Map reflection a
 
 **How to apply:** Keep completed-round snapshots separate from the new draft. Completion side effects must be idempotent per round and preserve unrelated set-aside items.
 
-RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 phone, in light and dark. The true-size visual brief supersedes the earlier body-scroll allowance: no body scrolling; report scenes that cannot fit, with overflow amounts.
+RC one-screen acceptance includes phone, intermediate widths and short windows in both themes. A bounded body is a safety fallback for oversized scenes, not a successful one-screen fit; report every fallback with its size and overflow amount.
 
-**Why:** The owner explicitly corrected the shared-frame plan: follow the true-size brief and images, use their new copy, hide designated fields without deleting their data, and retain the existing start page.
+**Why:** The owner requires progress and footer to remain unobscured at intermediate/short sizes without clipping answers. The adaptive-layout pass keeps oversized content accessible rather than painting it over navigation; the earlier no-scroll goal still determines which scenes must be reported as fit exceptions.
 
 **How to apply:** Retain shared frame width, radius and close-button rules, but allow the brief's RC-only inner padding and header arrangement. Do not shrink type, clip answers or silently allow scrolling to force a pass. Keep five chapters when splitting Opening from Person A/B. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
 
@@ -68,11 +68,11 @@ RC review changes must use a single agent and isolated browser tests; stop and r
 
 **How to apply:** Do not start helper/reviewer loops or keep adjusting after the second failure; report the remaining issues and wait.
 
-The mirror statement order is intentional: each phone half must expose two statements per area. Do not reorder by selection or area just to simplify the phone layout.
+The mirror statement order is intentional: each six-card set must expose two statements per area. Do not reorder by selection or area just to simplify a compact layout.
 
 **Why:** The owner requires balanced exposure to all three areas before continuing, not merely three picks from the first visible subset.
 
-**How to apply:** Preserve the original bank order and balance when editing the statement bank. Phone Continue requires viewing both halves as well as three total selections, including in Preview.
+**How to apply:** Measure available body space rather than using a phone breakpoint to choose six versus twelve cards. Whenever the six-card layout is active, Continue requires viewing both sets plus three total selections, including in Preview. Preserve selections across paging and live resizing.
 
 Typography checks must follow the currently approved visual brief; older minimum-based mirror assertions are not authoritative for the rebuilt quote cards.
 
@@ -84,7 +84,7 @@ Editable-field fit must include its usable content height, not just its outer re
 
 **Why:** A capped field can pass growth and room-overflow assertions while inherited textarea padding leaves less space than the promised number of complete text lines.
 
-**How to apply:** Check computed line height, padding and borders against the visible-line cap, and visually inspect loaded and edited multiline answers. Keep these checks separate from whole-room fit. The owner explicitly wants hidden overflow on the two-line price “where” fields; retain the complete answer rather than truncating its saved text or adding a scrollbar.
+**How to apply:** Check computed line height, padding and borders against actual visible content, and visually inspect loaded and edited multiline answers. The updated Oct 31 visual brief explicitly supersedes the former two-line cap for all three price answers: the ledger answers grow without a line limit, wrap fully and have no underline. Preserve saved values and report genuine whole-room fit exceptions instead of clipping answers.
 
 Browser verification must capture window error events and unhandled rejections as well as uncaught JavaScript exceptions.
 
