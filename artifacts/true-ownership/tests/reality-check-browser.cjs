@@ -65,6 +65,8 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
         if (!room) {
           const button = document.querySelector(".rc-begin").getBoundingClientRect();
           return { cardOverflow: 0, sceneOverflow: 0, horizontal: Math.max(0, document.documentElement.scrollWidth - innerWidth),
+            hubH1: getComputedStyle(document.querySelector(".rc-start-copy h1")).fontSize,
+            journeyTitle: getComputedStyle(document.querySelector(".rc-journey h3")).fontSize,
             footerOverlap: 0, beginVisible: button.bottom <= innerHeight && button.top >= 0,
             hubContentVisible: innerWidth <= 900 || document.querySelector(".rc-closing-quote").getBoundingClientRect().bottom <= innerHeight };
         }
@@ -79,7 +81,8 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
           footerVisible: footer.bottom <= innerHeight + 1 && footer.top >= 0 };
       });
       results.push({ label, ...result });
-      if (result.headingSize) assert.equal(result.headingSize, "24px", "Every scene heading uses the shared size.");
+      if (result.headingSize) assert.equal(result.headingSize, page.viewportSize().width <= 600 ? "23px" : "28px", "Scene headings follow the app's desktop/phone sizes.");
+      if (result.hubH1) { assert.equal(result.hubH1, "36px"); assert.equal(result.journeyTitle, "18px"); }
       fs.writeFileSync(path.join(out, "progress.json"), JSON.stringify({ results, failures, errors }, null, 2));
       if (result.cardOverflow > 1 || result.sceneOverflow > 1 || result.horizontal > 1 ||
         result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false || result.hubContentVisible === false) failures.push({ label, ...result });
@@ -113,6 +116,55 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     assert.equal(await page.evaluate(async () => (await import("/src/rcConstants.ts")).loadRCState().complete), true);
     assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort())), before);
     assert.equal(writes.length, 0, "Preview All must not attempt account writes.");
+
+    for (const width of [375, 600, 601, 1366]) {
+      await render({ ...seed, step: 0 }, "light", { width, height: width === 1366 ? 680 : 812 });
+      if (width <= 600) {
+        assert.equal(await page.getByRole("tab", { name: "Person A" }).getAttribute("aria-selected"), "true");
+        assert.equal(await page.locator(".rc-person-A").isVisible(), true);
+        assert.equal(await page.locator(".rc-person-B").isVisible(), false);
+        await metric(`${width}-tabs-A`);
+        await page.getByRole("tab", { name: "Person B" }).click();
+        assert.equal(await page.locator(".rc-person-B li").count(), 4);
+        assert.equal(await page.locator(".rc-person-A").isVisible(), false);
+        await metric(`${width}-tabs-B`);
+        await page.getByRole("tab", { name: "Person B" }).press("ArrowLeft");
+        assert.equal(await page.getByRole("tab", { name: "Person A" }).getAttribute("aria-selected"), "true");
+      } else {
+        assert.equal(await page.locator(".rc-person-A").isVisible(), true);
+        assert.equal(await page.locator(".rc-person-B").isVisible(), true);
+        assert.equal(await page.getByRole("tab", { name: "Person A" }).count(), 0);
+      }
+    }
+    for (const ids of [
+      ["time-avoiding", "wealth-avoiding", "self-carrying"],
+      ["time-avoiding", "wealth-avoiding", "time-blaming", "wealth-blaming"],
+      ["time-avoiding", "time-blaming", "time-carrying"], initial.all,
+    ]) {
+      await render({ ...seed, mirror: ids, step: 2 }, "light", { width: 375, height: 812 });
+      const tied = await page.evaluate(async () => (await import("/src/rcConstants.ts")).loadRCState().topDefaults.length);
+      assert.equal(await page.locator(".rc-default-reveal strong").count(), tied > 2 ? 0 : tied);
+      if (tied > 2) assert.match(await page.locator(".rc-default-reveal").innerText(), /little of everything: avoiding, blaming, carrying and hoping/);
+      await metric(`375-defaults-${tied}`);
+      await page.locator('.rc-footer button').last().click();
+      assert.equal(await page.getByLabel("Your thread").count(), 0);
+      assert.equal(await page.locator(".rc-naming input").count(), tied > 2 ? 1 : tied);
+      await metric(`375-naming-${tied}`);
+      if (tied > 2) {
+        const field = page.getByRole("textbox", { name: "What are you avoiding, blaming, carrying or hoping for?", exact: true });
+        await field.fill("A conversation I can no longer postpone.");
+        assert.equal(await page.evaluate(async () => (await import("/src/rcConstants.ts")).loadRCState().defaultsTogether), "A conversation I can no longer postpone.");
+        await page.locator(".rc-footer button").last().click();
+        assert.equal(await page.getByLabel("Your thread").count(), 0);
+        await metric(`375-price-tie-${tied}`);
+      }
+    }
+    await render({ ...seed, step: 1 });
+    const mirrors = await page.locator(".rc-mirror-grid button").evaluateAll(nodes => nodes.map(n => {
+      const s = getComputedStyle(n); return [s.fontSize, s.fontStyle, s.fontFamily];
+    }));
+    assert.equal(mirrors.length, 12);
+    assert(mirrors.every(([size, style, family]) => size === "18px" && style === "italic" && family.includes("Cormorant Garamond")));
 
     for (const size of [{ width: 1366, height: 680 }, { width: 1280, height: 800 }, { width: 375, height: 812 }]) {
       for (const theme of ["light", "dark"]) {

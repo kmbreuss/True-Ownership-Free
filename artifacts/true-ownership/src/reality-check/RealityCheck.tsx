@@ -86,13 +86,6 @@ export function RealityCheck({
     if (!rcReady(state) && !isDevPreview()) return;
     update({ ...state, step: Math.min(13, state.step + 1) });
   };
-  const thread = [
-    state.focus ? RC_LABEL[state.focus] : "",
-    state.topDefaults.map(d => RC_DEFAULT_LABEL[d]).join(" and "),
-    state.tuesday.trim().split(/\s+/).slice(0, 6).join(" "),
-    [state.cost.monthly !== null ? `$${rcNumber(state.cost.monthly)}` : "",
-      state.cost.hoursPerWeek !== null ? `${rcNumber(state.cost.hoursPerWeek)} hrs` : ""].filter(Boolean).join(" · "),
-  ].filter(Boolean);
   return <div className="na1-root rc-root">
     <main className="rc-hub">
       {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}{import.meta.env.DEV && <RCDevReset />}</details>}
@@ -139,7 +132,6 @@ export function RealityCheck({
           {sceneGroups[stage].map(n => <button key={n} aria-label={`Scene ${n}`} aria-current={state.step === n ? "step" : undefined} disabled={!preview} onClick={() => { setJoin(false); update({ ...state, step: n }); }} className={n <= state.step ? "is-done" : ""} />)}
         </div>
         {state.rounds.length > 0 && <details className="rc-last-time" key={`last-${state.step}`}><summary>Last time you said…</summary><p>{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).slice(0, 38).join(" ")}{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).length > 38 ? "…" : ""}</p></details>}
-        {(state.step === 3 || state.step === 4) && <div className="rc-thread" aria-label="Your thread"><span className="rc-thread-label">YOUR THREAD</span>{thread.map((word, i) => <span className="rc-thread-chip" key={i} title={word}>{i === 2 ? <em>{word}</em> : word}</span>)}</div>}
         <div className="rc-screen" key={`${state.step}-${join}`}>
           {join ? <div className="rc-scene"><p className="rc-eyebrow">TRUE OWNERSHIP™</p><h2>Start building Future B.</h2><p>Joining will be available here. Everything you wrote is saved.</p><p>[YOUR PRICE] · everything you wrote today comes with you.</p></div>
             : state.step < 5 ? <RealityCheckScreens state={state} update={update} />

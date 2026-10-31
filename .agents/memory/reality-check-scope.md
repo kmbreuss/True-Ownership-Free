@@ -38,8 +38,20 @@ RC review must preserve the owner's choice and completion when earlier answers a
 
 **How to apply:** Track reached progress independently from the current screen and derive later reflections from current answers, not cached prose.
 
-RC typography must share the app's A3/A4 type roles across the hub and all scenes: Tenor Sans headings, Cormorant reflective words, Questrial interface labels/buttons. Do not fix overflow by shrinking one scene's type.
+RC typography must match the surrounding app's hierarchy, not flatten hub, room and card headings to one size. Keep the app's phone heading override. Clickable mirror sentences remain reflective words (Cormorant italic), not Questrial interface labels.
 
-**Why:** The owner explicitly prioritized consistent sizes and weights across RC.
+**Why:** The owner rejected the uniform small-type sweep and explicitly wants calm, simple screens that still look like the rest of the app.
 
-**How to apply:** Adjust spacing and layout first; any type-size change must be shared by the whole role and listed in the delivery report.
+**How to apply:** Use spacing, thin dividers and phone tabs rather than dense boxes or smaller type. Any type-size change must be shared by the whole role and listed in the delivery report.
+
+An answer naming several tied defaults must not be assigned to one individual default. Keep earlier individual answers intact, and respect an explicitly blank combined answer rather than reviving older words.
+
+**Why:** One combined prompt can describe several patterns; redistributing it would misrepresent the owner's words or erase earlier answers.
+
+**How to apply:** Keep the combined answer distinct through saved-state normalization, later reflections and the set-aside handoff.
+
+RC review changes must use a single agent and isolated browser tests; stop and report after a second verification failure. Do not publish without separate authorization.
+
+**Why:** The owner has repeatedly required these limits for RC review work.
+
+**How to apply:** Do not start helper/reviewer loops or keep adjusting after the second failure; report the remaining issues and wait.

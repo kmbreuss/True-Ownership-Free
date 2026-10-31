@@ -268,6 +268,25 @@ test("RC polish preserves reached chapters and completion, and cleans sentences"
   assert.equal(j.defaultList({ topDefaults: ["avoiding", "blaming", "carrying", "hoping"] }), "avoiding, blaming, carrying and blindly hoping");
   assert.equal(j.reflectionClause("I'm carrying my worries."), "carrying your worries");
 });
+test("calm RC preserves combined tie words, blanking and old individual words", () => {
+  const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
+  const legacy = m.normalizeRC({ ...m.EMPTY_RC, mirror: m.RC_MIRROR.map(v => v.id), defaultsNamed: { avoiding: "Old conversation", blaming: "Old blame", carrying: "", hoping: "" } });
+  assert.equal("defaultsTogether" in legacy, false);
+  const edited = m.normalizeRC({ ...legacy, defaultsTogether: "A difficult conversation." });
+  m.saveRCState(edited);
+  assert.equal(m.loadRCState().defaultsTogether, "A difficult conversation.");
+  assert.equal(m.loadRCState().defaultsNamed.avoiding, "Old conversation");
+  assert.match(j.futureAReadback(edited), /A difficult conversation/);
+  assert.doesNotMatch(j.futureAReadback(edited), /Old conversation/);
+  assert(j.setAsideFor(edited).some(v => v.text.includes("A difficult conversation")));
+  const cleared = m.normalizeRC({ ...edited, defaultsTogether: "" });
+  assert.doesNotMatch(j.futureAReadback(cleared), /Old conversation|A difficult conversation/);
+  assert(!j.setAsideFor(cleared).some(v => /named:/.test(v.id)));
+  assert.equal(m.rcMoney(1234.5), "$1,235");
+  const hours = { ...legacy, cost: { ...legacy.cost, hoursPerWeek: 2 } };
+  assert.match(j.futureAReadback(hours), /104 hours are gone/);
+  assert.match(j.futureAReadback({ ...hours, cost: { ...hours.cost, monthly: 100, hoursPerWeek: null } }), /\$1,200 is gone/);
+});
 test("DEV reset changes only the two RC stores and their metadata", async () => {
   const e = env(), sync = e.load("newFlowSync");
   e.data.set("to_map", '{"untouched":true}');

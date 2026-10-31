@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   RC_AREAS, RC_LABEL, RC_INTRO_VIDEO_URL, RC_MIRROR, RC_DEFAULT_LABEL, RC_DEFAULT_DEFINITION,
   RC_DEFAULT_PROMPT, topAreas, toggleMirror, chooseFocus, costSummary, type RCState, type RCArea,
 } from "../rcConstants";
-import { annualAmounts } from "./rcJourney";
+import { annualAmounts, defaultList } from "./rcJourney";
 
 type Props = { state: RCState; update: (state: RCState) => void };
 export function RCVideo() {
@@ -32,12 +32,19 @@ function Chapter({ children }: { children: React.ReactNode }) {
   return <p className="rc-eyebrow">{children}</p>;
 }
 export function RealityCheckScreens({ state: s, update }: Props) {
+  const [person, setPerson] = useState<"A" | "B">("A");
   const focus = s.focus ?? "self", area = RC_LABEL[focus], lower = area.toLowerCase();
   if (s.step === 0) return <div className="rc-scene rc-opening">
     <em className="rc-katherine">Katherine</em>
     <h2>Maybe the life you built no longer matches who you're becoming.</h2>
     <p>Most of us are a little of both. Two people, same week: one is reacting to their life, one is choosing it.</p>
-    <div className="rc-people">{(["A", "B"] as const).map(p => <section key={p} className={`rc-person rc-person-${p}`}>
+    <div className="rc-person-tabs" role="tablist" aria-label="Two ways to live">{(["A", "B"] as const).map(p => <button key={p} id={`rc-person-tab-${p}`} role="tab" aria-selected={person === p} aria-controls={`rc-person-${p}`} tabIndex={person === p ? 0 : -1} onClick={() => setPerson(p)} onKeyDown={e => {
+      if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+        e.preventDefault(); const next = e.key === "Home" ? "A" : e.key === "End" ? "B" : p === "A" ? "B" : "A";
+        setPerson(next); document.getElementById(`rc-person-tab-${next}`)?.focus();
+      }
+    }}>Person {p}</button>)}</div>
+    <div className="rc-people">{(["A", "B"] as const).map(p => <section id={`rc-person-${p}`} key={p} role="tabpanel" aria-labelledby={`rc-person-tab-${p}`} tabIndex={0} className={`rc-person rc-person-${p} ${person === p ? "is-selected" : ""}`}>
       <h3>PERSON {p}</h3><p className="rc-person-headline">{p === "A" ? "Drifting, reacting to whatever life hands them." : "Knows where they're headed, and why."}</p><ul>{(p === "A" ? PERSON_A : PERSON_B).map(line => <li key={line}>{line}</li>)}</ul>
     </section>)}</div>
     <p className="rc-bronze"><em>If you're mostly Person B, good. This finds the one place you're still Person A.</em></p>
@@ -60,8 +67,10 @@ export function RealityCheckScreens({ state: s, update }: Props) {
       <Chapter>CHAPTER 2 · WHAT YOU'RE SHOWING YOURSELF</Chapter><h2>{headline}</h2>
       <p>{areas.length === 1 ? "This is where we start. The others will be waiting." : "That's common. Pick the one that's costing you most right now. The others will be waiting."}</p>
       {s.topDefaults.length > 0 && <section className="rc-default-reveal">
-        <h3>And mostly, you've been {s.topDefaults.map(d => RC_DEFAULT_LABEL[d]).join(" and ")}.</h3>
-        {s.topDefaults.map(d => <p key={d}><strong>{RC_DEFAULT_LABEL[d][0].toUpperCase() + RC_DEFAULT_LABEL[d].slice(1)}:</strong> {RC_DEFAULT_DEFINITION[d]}</p>)}
+        {s.topDefaults.length > 2 ? <p>And you’ve been doing a little of everything: avoiding, blaming, carrying and hoping.</p> : <>
+          <p>And mostly, you've been {defaultList(s)}.</p>
+          {s.topDefaults.slice(0, 2).map(d => <p key={d}><strong>{RC_DEFAULT_LABEL[d][0].toUpperCase() + RC_DEFAULT_LABEL[d].slice(1)}:</strong> {RC_DEFAULT_DEFINITION[d]}</p>)}
+        </>}
       </section>}
       <p className="rc-pick-label">Feels right? Or start somewhere else:</p>
       <div className="rc-area-pills">{RC_AREAS.map(a => <button key={a} aria-pressed={s.focus === a} onClick={() => update(chooseFocus(s, a))}>{RC_LABEL[a]} · {s.areaCounts[a]}</button>)}</div>
@@ -74,7 +83,9 @@ export function RealityCheckScreens({ state: s, update }: Props) {
     <label className="rc-tuesday-label"><span className="rc-sr-only">Your ordinary Tuesday · required</span>
       <textarea required aria-label="Your ordinary Tuesday" placeholder={TUESDAY[focus]} value={s.tuesday} onChange={e => update({ ...s, tuesday: e.target.value })} />
     </label>
-    <div className="rc-naming">{s.topDefaults.map(d => <label key={d}>{RC_DEFAULT_PROMPT[d]} <span className="rc-optional">Optional</span>
+    <div className="rc-naming">{s.topDefaults.length > 2 ? <label className="rc-naming-together">What are you avoiding, blaming, carrying or hoping for? <span className="rc-optional">Optional</span>
+      <input aria-label="What are you avoiding, blaming, carrying or hoping for?" value={s.defaultsTogether ?? s.topDefaults.filter(d => s.defaultsNamed[d].trim()).map(d => `${RC_DEFAULT_LABEL[d]}: ${s.defaultsNamed[d]}`).join("; ")} onChange={e => update({ ...s, defaultsTogether: e.target.value })} />
+    </label> : s.topDefaults.slice(0, 2).map(d => <label key={d}>{RC_DEFAULT_PROMPT[d]} <span className="rc-optional">Optional</span>
       <input value={s.defaultsNamed[d]} placeholder={NAMED_EXAMPLES[d]} onChange={e => update({ ...s, defaultsNamed: { ...s.defaultsNamed, [d]: e.target.value } })} />
     </label>)}</div>
   </div>;
@@ -88,7 +99,7 @@ export function RealityCheckScreens({ state: s, update }: Props) {
       <p className="rc-instruction">Your best guess is fine. Add a number if you can.</p>
       <div className="rc-price-grid">
         <section className="rc-price-tile"><h3>IN MONEY</h3>
-          <label className="rc-number-line"><span>About $</span><input aria-label="About dollars a month" type="number" inputMode="decimal" min="0" step="any" value={s.cost.monthly ?? ""} onChange={e => setCost({ monthly: number(e.target.value) })} /><span>a month</span></label>
+          <label className="rc-number-line"><span>About $</span><input aria-label="About dollars a month" type="number" inputMode="numeric" min="0" step="1" value={s.cost.monthly === null ? "" : Math.round(s.cost.monthly)} onChange={e => { const n = number(e.target.value); setCost({ monthly: n === null ? null : Math.round(n) }); }} /><span>a month</span></label>
           <label>Where does it go?<input placeholder={placeholder.money} value={s.cost.moneyWhere} onChange={e => setCost({ moneyWhere: e.target.value })} /></label>
         </section>
         <section className="rc-price-tile"><h3>IN HOURS</h3>

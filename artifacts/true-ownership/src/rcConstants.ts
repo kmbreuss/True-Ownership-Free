@@ -14,10 +14,10 @@ export const RC_DEFAULT_LABEL: Record<RCDefault, string> = {
   avoiding: "avoiding", blaming: "blaming", carrying: "carrying", hoping: "blindly hoping",
 };
 export const RC_DEFAULT_DEFINITION: Record<RCDefault, string> = {
-  avoiding: "deciding it isn't important. Pushing through. Putting it off.",
-  blaming: "the cause is out there. The boss, the market, the economy, someone else.",
-  carrying: "taking on what isn't yours to carry. The fixer.",
-  hoping: "waiting for it to change on its own, without anything changing on your side.",
+  avoiding: "Putting off what needs your attention.",
+  blaming: "Putting the cause outside yourself.",
+  carrying: "Taking on what isn't yours to carry.",
+  hoping: "Waiting for change without changing your part.",
 };
 export const RC_DEFAULT_PROMPT: Record<RCDefault, string> = {
   avoiding: "What are you avoiding?",
@@ -44,7 +44,7 @@ export interface RCState {
   version: 2; step: number; maxReached?: number; startedAt: string | null; completedAt: string | null;
   mirror: string[]; areaCounts: Record<RCArea, number>; defaultCounts: Record<RCDefault, number>;
   focus: RCArea | null; focusChosenBy: "revealed" | "tie-picked" | "changed" | null;
-  topDefaults: RCDefault[]; tuesday: string; defaultsNamed: Record<RCDefault, string>;
+  topDefaults: RCDefault[]; tuesday: string; defaultsNamed: Record<RCDefault, string>; defaultsTogether?: string;
   cost: { monthly: number | null; moneyWhere: string; hoursPerWeek: number | null; hoursWhere: string; you: string; whoElse: string };
   futureA: { extra: string }; compound: { feels: string[]; results: string; whoElse: string };
   futureB5: { feels: string[]; tuesday: string; whoNotices: string };
@@ -110,6 +110,7 @@ export function normalizeRC(value: unknown): RCState {
       ? v.focusChosenBy : areas.length === 1 && areas[0] === focus ? "revealed" : areas.length > 1 ? "tie-picked" : "changed",
     tuesday: text(v.tuesday),
     defaultsNamed: { avoiding: text(named.avoiding), blaming: text(named.blaming), carrying: text(named.carrying), hoping: text(named.hoping) },
+    ...(typeof v.defaultsTogether === "string" ? { defaultsTogether: v.defaultsTogether } : {}),
     cost: { monthly: amount(cost.monthly), moneyWhere: text(cost.moneyWhere), hoursPerWeek: amount(cost.hoursPerWeek),
       hoursWhere: text(cost.hoursWhere), you: text(cost.you), whoElse: text(cost.whoElse) },
     futureA: { extra: text(a.extra) },
@@ -154,9 +155,10 @@ export function rcReady(s: RCState): boolean {
   return true;
 }
 export const rcNumber = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+export const rcMoney = (n: number) => `$${n.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 export function costSummary(cost: RCState["cost"]): string {
   const totals = [
-    cost.monthly !== null ? `$${rcNumber(cost.monthly * 12)}` : "",
+    cost.monthly !== null ? rcMoney(cost.monthly * 12) : "",
     cost.hoursPerWeek !== null ? `${rcNumber(cost.hoursPerWeek * 52)} hours` : "",
   ].filter(Boolean);
   const hasWords = [cost.moneyWhere, cost.hoursWhere, cost.you, cost.whoElse].some(v => v.trim());

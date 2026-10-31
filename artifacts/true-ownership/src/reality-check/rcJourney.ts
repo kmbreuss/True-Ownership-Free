@@ -1,4 +1,4 @@
-import { EMPTY_RC, RC_LABEL, RC_MIRROR, RC_DEFAULT_PROMPT, RC_DEFAULT_LABEL, normalizeRC, saveRCState, rcNumber, type RCState, type RCRound } from "../rcConstants";
+import { EMPTY_RC, RC_LABEL, RC_MIRROR, RC_DEFAULT_PROMPT, RC_DEFAULT_LABEL, normalizeRC, saveRCState, rcNumber, rcMoney, type RCState, type RCRound } from "../rcConstants";
 import { notifyLocalChange } from "../syncHook";
 import { previewRead, previewWrite } from "../devPreview";
 
@@ -24,8 +24,11 @@ export function setAsideFor(s: RCState): SetAsideItem[] {
   return [
     ...RC_MIRROR.filter(m => s.mirror.includes(m.id) && m.area !== s.focus)
       .map(m => item(m.id, `${RC_LABEL[m.area]} · "${m.text}"`)),
-    ...s.topDefaults.filter(d => s.defaultsNamed[d].trim())
-      .map(d => item(`named:${d}`, `${s.focus ? RC_LABEL[s.focus] + " · " : ""}${RC_DEFAULT_PROMPT[d]} "${s.defaultsNamed[d]}"`)),
+    ...(s.topDefaults.length > 2 && s.defaultsTogether !== undefined
+      ? s.defaultsTogether.trim() ? [item("named:together", `${s.focus ? RC_LABEL[s.focus] + " · " : ""}What are you avoiding, blaming, carrying or hoping for? "${s.defaultsTogether}"`)] : []
+      : s.topDefaults.filter(d => s.defaultsNamed[d].trim())
+      .map(d => item(`named:${d}`, `${s.focus ? RC_LABEL[s.focus] + " · " : ""}${RC_DEFAULT_PROMPT[d]} "${s.defaultsNamed[d]}"`))
+    ),
   ];
 }
 // Set aside first, then mark RC complete. Retries replace only this round's RC
@@ -59,7 +62,7 @@ export function journeyMonth(s: Pick<RCState, "startedAt">): string {
 export function annualAmounts(s: Pick<RCState, "cost">, years = 1, days: "threshold" | "always" | "never" = "never") {
   const hours = s.cost.hoursPerWeek === null ? null : s.cost.hoursPerWeek * 52 * years;
   return {
-    money: s.cost.monthly === null ? "" : `$${rcNumber(s.cost.monthly * 12 * years)}`,
+    money: s.cost.monthly === null ? "" : rcMoney(s.cost.monthly * 12 * years),
     hours: hours === null ? "" : days === "always" || (days === "threshold" && hours > 1000)
       ? `${rcNumber(Math.round(hours / 24))} days` : `${rcNumber(hours)} hours`,
   };
@@ -70,13 +73,15 @@ export function futureAReadback(s: RCState | RCRound): string {
     s.tuesday.trim() ? /^I(?:['’]m| am)\s+/i.test(s.tuesday.trim())
       ? `You're still ${reflectionClause(s.tuesday)}.`
       : `Your Tuesday is still the same: “${endClean(s.tuesday)}.”` : "",
-    ...s.topDefaults.filter(d => s.defaultsNamed[d].trim()).map(d => {
+    ...(s.topDefaults.length > 2 && s.defaultsTogether !== undefined
+      ? s.defaultsTogether.trim() ? [`The pattern is still here: “${endClean(s.defaultsTogether)}.”`] : []
+      : s.topDefaults.filter(d => s.defaultsNamed[d].trim()).map(d => {
       const word = { avoiding: "avoiding", blaming: "blaming", carrying: "carrying", hoping: "hoping" }[d];
       const clause = reflectionClause(s.defaultsNamed[d]);
       return d === "hoping" ? `You're still hoping for this: “${endClean(s.defaultsNamed[d])}.”`
         : `You're still ${clause.toLowerCase().startsWith(word) ? clause : `${word} ${clause.replace(/^The /, "the ")}`}.`;
-    }),
-    amounts.money || amounts.hours ? `Another ${[amounts.money, amounts.hours].filter(Boolean).join(" and ")} ${amounts.money && amounts.hours ? "are" : "is"} gone.` : "",
+    })),
+    amounts.money || amounts.hours ? `Another ${[amounts.money, amounts.hours].filter(Boolean).join(" and ")} ${amounts.hours ? "are" : "is"} gone.` : "",
     s.cost.hoursWhere.trim() ? `That time is still going into ${reflectionClause(s.cost.hoursWhere)}.` : "",
   ].filter(Boolean).join(" ");
 }
