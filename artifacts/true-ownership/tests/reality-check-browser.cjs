@@ -72,12 +72,14 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
         const scene = document.querySelector(".rc-scene").getBoundingClientRect();
         const footer = document.querySelector(".rc-footer").getBoundingClientRect();
         return { cardOverflow: Math.max(0, room.scrollHeight - room.clientHeight),
+          headingSize: getComputedStyle(document.querySelector(".rc-scene h2")).fontSize,
           sceneOverflow: Math.max(0, Math.round(scene.bottom - screen.bottom)),
           horizontal: Math.max(0, room.scrollWidth - room.clientWidth),
           footerOverlap: Math.max(0, Math.round(scene.bottom - footer.top)),
           footerVisible: footer.bottom <= innerHeight + 1 && footer.top >= 0 };
       });
       results.push({ label, ...result });
+      if (result.headingSize) assert.equal(result.headingSize, "24px", "Every scene heading uses the shared size.");
       fs.writeFileSync(path.join(out, "progress.json"), JSON.stringify({ results, failures, errors }, null, 2));
       if (result.cardOverflow > 1 || result.sceneOverflow > 1 || result.horizontal > 1 ||
         result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false || result.hubContentVisible === false) failures.push({ label, ...result });
@@ -227,6 +229,27 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await metric("375x812-dark-join-placeholder");
     await page.locator(".rc-room-header button").click();
     assert.equal(await page.getByRole("button", { name: "Review the Reality Check →", exact: true }).count(), 1);
+    await page.getByRole("button", { name: "Review the Reality Check →", exact: true }).click();
+    assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "1");
+    await page.locator(".rc-stepper").getByRole("button", { name: "Two futures", exact: true }).click();
+    assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "5");
+    await page.getByRole("button", { name: "← Back", exact: true }).click();
+    assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "4");
+    await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("200");
+    const revised = JSON.parse(await page.evaluate(key => localStorage.getItem(key), key));
+    assert.equal(revised.complete, true); assert.equal(revised.choice, "B");
+    await page.locator(".rc-room-header button").click();
+    await page.locator(".rc-dev-tools summary").click();
+    const snapshot = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
+    page.once("dialog", dialog => dialog.dismiss());
+    await page.getByRole("button", { name: "Reset Reality Check", exact: true }).click();
+    assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort())), snapshot);
+    const beforeReset = writes.length;
+    page.once("dialog", dialog => dialog.accept());
+    await page.getByRole("button", { name: "Reset Reality Check", exact: true }).click();
+    await page.waitForEvent("load");
+    assert.equal(JSON.parse(await page.evaluate(key => localStorage.getItem(key), key)).complete, false);
+    assert.deepEqual(writes.slice(beforeReset).map(w => w.path).sort(), ["/api/userdata/rcstate", "/api/userdata/setaside"]);
     assert(writes.length > 0, "Normal-mode userdata writes must be positively intercepted.");
     assert.deepEqual(unexpected, [], "No unexpected mutation requests.");
     assert.equal((await context.cookies()).length, 0, "The fixture must have no real session cookies.");

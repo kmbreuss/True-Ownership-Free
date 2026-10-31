@@ -4,10 +4,12 @@ import { isDevPreview } from "../devPreview";
 import { loadRCState, rcReady, RC_LABEL, RC_DEFAULT_LABEL, rcNumber, saveRCState, type RCState } from "../rcConstants";
 import { RealityCheckScreens } from "./RealityCheckScreens";
 import { RCStartVideo } from "./RCStartVideo";
+import { RCDevReset } from "./RCDevReset";
 import { RealityCheckFutures } from "./RealityCheckFutures";
 import { persistRCCompletion, redoDue, startRedo, lastTimeWords } from "./rcJourney";
 import { useRCAccess } from "./access";
 import "./reality-check.css";
+import "./rc-polish.css";
 
 const STAGES = ["The mirror", "A Tuesday", "The price", "Two futures", "Choose"];
 const ROWS = [
@@ -37,6 +39,7 @@ export function RealityCheck({
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const update = (next: RCState) => {
+    next = { ...next, maxReached: Math.max(state.maxReached ?? state.step, next.step, state.complete ? 13 : 0) };
     try { saveRCState(next); setState(next); setError(""); return true; }
     catch { setError("Your answer could not be saved. Please free browser storage and try again."); return false; }
   };
@@ -92,7 +95,7 @@ export function RealityCheck({
   ].filter(Boolean);
   return <div className="na1-root rc-root">
     <main className="rc-hub">
-      {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}</details>}
+      {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}{import.meta.env.DEV && <RCDevReset />}</details>}
       <div className="na1-breadcrumb"><button onClick={onEntryHall}>Entry Hall</button><span>›</span><span>Start here</span></div>
       <div className="rc-start-top">
       <div className="rc-start-copy"><p className="rc-eyebrow">START HERE · THE REALITY CHECK</p><h1>Before you start, a reality check.</h1>
@@ -101,7 +104,7 @@ export function RealityCheck({
       <RCStartVideo />
       <div className="rc-hub-action">
         <button className="na1-btn-gold rc-begin" onClick={() => {
-          const next = { ...state, startedAt: state.startedAt ?? new Date().toISOString() };
+          const next = { ...state, step: state.complete ? 1 : state.step, startedAt: state.startedAt ?? new Date().toISOString() };
           try { saveRCState(next); setState(next); setError(""); onEnter(); }
           catch { setError("Your Reality Check could not be saved. Please try again."); }
         }}>{state.complete ? "Review the Reality Check →" : state.startedAt ? "Continue →" : "Begin the Reality Check →"}</button>
@@ -130,7 +133,7 @@ export function RealityCheck({
           }
         }}>
         <header className="rc-room-header"><div className="rc-crumb">The Reality Check › {STAGES[stage]}{state.focus ? ` › ${RC_LABEL[state.focus]}` : ""}</div><button ref={closeRef} aria-label="Close Reality Check" onClick={onClose}>×</button></header>
-        <ol className="rc-stepper">{STAGES.map((label, i) => <li key={label} className={i < stage ? "is-done" : i === stage ? "is-current" : ""} aria-current={i === stage ? "step" : undefined}>{preview ? <button onClick={() => { setJoin(false); update({ ...state, step: sceneGroups[i][0] }); }}>{label}</button> : label}</li>)}</ol>
+        <ol className="rc-stepper">{STAGES.map((label, i) => <li key={label} className={i < stage ? "is-done" : i === stage ? "is-current" : ""} aria-current={i === stage ? "step" : undefined}><button disabled={!preview && !state.complete && sceneGroups[i][0] > (state.maxReached ?? state.step)} onClick={() => { setJoin(false); update({ ...state, step: sceneGroups[i][0] }); }}>{label}</button></li>)}</ol>
         {state.step >= 6 && state.step <= 9 && <div className={`rc-future-banner ${state.step <= 7 ? "is-a" : "is-b"}`}>FUTURE {state.step <= 7 ? "A · If nothing changes" : "B · If you own it"}</div>}
         <div className="rc-pips" aria-label={`Scene ${state.step + 1} of 14`}>
           {sceneGroups[stage].map(n => <button key={n} aria-label={`Scene ${n}`} aria-current={state.step === n ? "step" : undefined} disabled={!preview} onClick={() => { setJoin(false); update({ ...state, step: n }); }} className={n <= state.step ? "is-done" : ""} />)}

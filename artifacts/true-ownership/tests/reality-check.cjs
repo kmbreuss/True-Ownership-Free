@@ -27,7 +27,7 @@ function env(preview = false, dev = true) {
     }, module, module.exports);
     return module.exports;
   }
-  return { load, data, requests, location };
+  return { load, data, requests, location, ctx };
 }
 const plain = value => JSON.parse(JSON.stringify(value));
 function select(m, ids) {
@@ -215,8 +215,8 @@ test("Future A reflects their words and only currently top named defaults", () =
   s.tuesday = "My actual Tuesday"; s.defaultsNamed.avoiding = "The conversation";
   s.defaultsNamed.blaming = "Hidden draft"; s.cost.hoursPerWeek = 2; s.cost.hoursWhere = "My evenings";
   const words = j.futureAReadback(s);
-  assert.match(words, /My actual Tuesday/); assert.match(words, /The conversation/);
-  assert.match(words, /104 hours/); assert.match(words, /My evenings/); assert.doesNotMatch(words, /Hidden draft|\$/);
+  assert.match(words, /My actual Tuesday/); assert.match(words, /the conversation/);
+  assert.match(words, /104 hours/); assert.match(words, /your evenings/); assert.doesNotMatch(words, /Hidden draft|\$/);
 });
 test("completion and set aside are idempotent and preserve other entries/metadata", () => {
   const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
@@ -257,4 +257,37 @@ test("redo preserves a flat completed round, prior words and the Map reflection"
   assert.equal(j.lastCompletedRC(next).tuesday, "My last Tuesday");
   assert.equal(j.lastTimeWords(next.rounds[0], 3), "My last Tuesday");
   assert.equal(m.normalizeRC(next).rounds[0].tuesday, "My last Tuesday");
+});
+test("RC polish preserves reached chapters and completion, and cleans sentences", () => {
+  const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
+  const s = m.normalizeRC({ ...m.EMPTY_RC, step: 1, maxReached: 13, complete: true, choice: "B" });
+  m.saveRCState(s);
+  assert.equal(m.loadRCState().maxReached, 13);
+  assert.equal(m.loadRCState().choice, "B");
+  assert.equal(j.endClean("My sleep..."), "My sleep");
+  assert.equal(j.defaultList({ topDefaults: ["avoiding", "blaming", "carrying", "hoping"] }), "avoiding, blaming, carrying and blindly hoping");
+  assert.equal(j.reflectionClause("I'm carrying my worries."), "carrying your worries");
+});
+test("DEV reset changes only the two RC stores and their metadata", async () => {
+  const e = env(), sync = e.load("newFlowSync");
+  e.data.set("to_map", '{"untouched":true}');
+  e.data.set("to_a4_state_v1", '{"untouched":true}');
+  e.data.set("to_sync_meta_v1", '{"a4state":{"lt":123}}');
+  await sync.resetRealityCheckForDev();
+  assert.equal(e.data.get("to_map"), '{"untouched":true}');
+  assert.equal(e.data.get("to_a4_state_v1"), '{"untouched":true}');
+  assert.equal(JSON.parse(e.data.get("to_sync_meta_v1")).a4state.lt, 123);
+  assert.equal(JSON.parse(e.data.get("to_rc_state_v1")).complete, false);
+  assert.deepEqual(e.requests.filter(r => r[1]?.method === "PUT").map(r => r[0]), ["/api/userdata/rcstate", "/api/userdata/setaside"]);
+});
+test("DEV reset reports partial failure and is blocked in Preview and production", async () => {
+  const e = env(), sync = e.load("newFlowSync");
+  e.data.set("to_setaside_v1", '{"version":1,"items":[{"id":"keep"}]}');
+  e.ctx.fetch = async url => ({ ok: !url.endsWith("/setaside"), json: async () => ({}) });
+  await assert.rejects(sync.resetRealityCheckForDev(), /partially complete/);
+  assert.equal(e.data.get("to_setaside_v1"), '{"version":1,"items":[{"id":"keep"}]}');
+  for (const blocked of [env(true), env(false, false)]) {
+    await assert.rejects(blocked.load("newFlowSync").resetRealityCheckForDev(), /unavailable/);
+    assert.equal(blocked.requests.length, 0);
+  }
 });

@@ -61,6 +61,8 @@ export type SyncResult =
 
 let enabled = false;
 const timers: Record<string, ReturnType<typeof setTimeout>> = {};
+const resetting = new Set<string>();
+const pending = new Map<string, Set<Promise<SyncResult>>>();
 export const lastResult: Record<string, SyncResult> = {};
 
 function readMeta(): Meta {
@@ -166,7 +168,15 @@ async function put(sk: string, w: Wrapped): Promise<Response | null> {
   }
 }
 
-async function pushNow(s: Store): Promise<SyncResult> {
+function pushNow(s: Store): Promise<SyncResult> {
+  if (resetting.has(s.sk)) return Promise.resolve("nothing to sync");
+  const job = pushNowImpl(s);
+  const jobs = pending.get(s.sk) ?? new Set<Promise<SyncResult>>();
+  jobs.add(job); pending.set(s.sk, jobs);
+  void job.finally(() => { jobs.delete(job); });
+  return job;
+}
+async function pushNowImpl(s: Store): Promise<SyncResult> {
   if (isDevPreview()) return "nothing to sync";
   const v = readLocal(s);
   if (!isMeaningful(s, v)) return "nothing to sync";
@@ -203,12 +213,38 @@ export function markLocalChange(lk: string) {
   if (isDevPreview()) return;
   const s = storeForLocalKey(lk);
   if (!s) return;
+  if (resetting.has(s.sk)) return;
   // A pristine seed (EMPTY_*) is not a member change — don't stamp or push it.
   if (!isMeaningful(s, readLocal(s))) return;
   setLt(s.sk, Date.now());
   if (enabled) schedulePush(s);
 }
 setChangeHandler(markLocalChange);
+
+export async function resetRealityCheckForDev(): Promise<void> {
+  if (!import.meta.env.DEV || isDevPreview()) throw new Error("Reset is unavailable in this mode.");
+  const targets = STORES.filter(s => s.sk === "rcstate" || s.sk === "setaside");
+  if (targets.some(s => resetting.has(s.sk))) throw new Error("A reset is already in progress.");
+  targets.forEach(s => { resetting.add(s.sk); clearTimeout(timers[s.sk]); });
+  const done: string[] = [];
+  try {
+    await Promise.all(targets.flatMap(s => [...(pending.get(s.sk) ?? [])]));
+    const response = await fetch("/api/userdata", { credentials: "include" });
+    if (!response.ok) throw new Error("Could not read your account before resetting.");
+    const remote = await response.json();
+    for (const s of targets) {
+      const t = Math.max(Date.now(), (readMeta()[s.sk]?.lt ?? 0) + 1, (isWrapped(remote[s.sk]) ? remote[s.sk].t : 0) + 1);
+      const result = await put(s.sk, { t, v: s.empty });
+      if (!result?.ok) throw new Error(`Could not clear ${s.label}.`);
+      localStorage.setItem(s.lks[0], JSON.stringify(s.empty));
+      const ack = await result.json();
+      setLt(s.sk, typeof ack.t === "number" ? ack.t : t);
+      done.push(s.label);
+    }
+  } catch (error) {
+    throw new Error(`${error instanceof Error ? error.message : "Reset failed."}${done.length ? ` Already cleared: ${done.join(", ")}. The reset is only partially complete.` : " Nothing was confirmed cleared."}`);
+  } finally { targets.forEach(s => resetting.delete(s.sk)); }
+}
 
 // Run once, after the member's server data has loaded and BEFORE the app renders,
 // so the stores are reconciled before any screen reads them.

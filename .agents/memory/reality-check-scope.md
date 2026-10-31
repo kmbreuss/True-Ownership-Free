@@ -31,3 +31,15 @@ The redesigned phone start page is an exception to the room's one-screen rule: B
 **Why:** The updated start-page brief explicitly specifies this order, and the owner approved that interpretation before implementation.
 
 **How to apply:** Keep room scenes within the viewport; do not truncate the phone hub's journey or shrink its full copy just to force the entire hub onto one screen.
+
+RC review must preserve the owner's choice and completion when earlier answers are edited. Reached chapters remain available, and completed review begins at scene 1 rather than the last scene.
+
+**Why:** The owner explicitly wants to walk back through and edit all saved answers without losing the commitment already made.
+
+**How to apply:** Track reached progress independently from the current screen and derive later reflections from current answers, not cached prose.
+
+RC typography must share the app's A3/A4 type roles across the hub and all scenes: Tenor Sans headings, Cormorant reflective words, Questrial interface labels/buttons. Do not fix overflow by shrinking one scene's type.
+
+**Why:** The owner explicitly prioritized consistent sizes and weights across RC.
+
+**How to apply:** Adjust spacing and layout first; any type-size change must be shared by the whole role and listed in the delivery report.

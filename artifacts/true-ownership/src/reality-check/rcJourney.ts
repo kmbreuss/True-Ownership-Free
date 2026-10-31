@@ -67,11 +67,27 @@ export function annualAmounts(s: Pick<RCState, "cost">, years = 1, days: "thresh
 export function futureAReadback(s: RCState | RCRound): string {
   const amounts = annualAmounts(s);
   return [
-    s.tuesday.trim(),
-    ...s.topDefaults.map(d => s.defaultsNamed[d].trim()).filter(Boolean),
+    s.tuesday.trim() ? /^I(?:['’]m| am)\s+/i.test(s.tuesday.trim())
+      ? `You're still ${reflectionClause(s.tuesday)}.`
+      : `Your Tuesday is still the same: “${endClean(s.tuesday)}.”` : "",
+    ...s.topDefaults.filter(d => s.defaultsNamed[d].trim()).map(d => {
+      const word = { avoiding: "avoiding", blaming: "blaming", carrying: "carrying", hoping: "hoping" }[d];
+      const clause = reflectionClause(s.defaultsNamed[d]);
+      return d === "hoping" ? `You're still hoping for this: “${endClean(s.defaultsNamed[d])}.”`
+        : `You're still ${clause.toLowerCase().startsWith(word) ? clause : `${word} ${clause.replace(/^The /, "the ")}`}.`;
+    }),
     amounts.money || amounts.hours ? `Another ${[amounts.money, amounts.hours].filter(Boolean).join(" and ")} ${amounts.money && amounts.hours ? "are" : "is"} gone.` : "",
-    s.cost.hoursWhere.trim(),
+    s.cost.hoursWhere.trim() ? `That time is still going into ${reflectionClause(s.cost.hoursWhere)}.` : "",
   ].filter(Boolean).join(" ");
+}
+export function endClean(value: string): string { return value.trim().replace(/[.!?…]+$/u, ""); }
+export function reflectionClause(value: string): string {
+  return endClean(value).replace(/^I(?:['’]m| am)\s+/i, "").replace(/^I\s+/i, "")
+    .replace(/\bmy\b/gi, "your").replace(/\bmyself\b/gi, "yourself").replace(/\bme\b/gi, "you");
+}
+export function defaultList(s: Pick<RCState, "topDefaults">): string {
+  const words = s.topDefaults.map(d => RC_DEFAULT_LABEL[d]);
+  return words.length < 2 ? words.join("") : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`;
 }
 export function lastTimeWords(previous: RCRound, step: number): string {
   const defaults = previous.topDefaults.map(d => RC_DEFAULT_LABEL[d]).join(" and ");

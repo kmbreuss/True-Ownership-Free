@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { RC_EYES_AUDIO_URL, RC_LABEL, RC_DEFAULT_LABEL, type RCState } from "../rcConstants";
-import { annualAmounts, futureAReadback, journeyMonth } from "./rcJourney";
+import { annualAmounts, futureAReadback, journeyMonth, endClean, defaultList } from "./rcJourney";
 
 type Props = {
   state: RCState; update: (s: RCState) => void;
@@ -30,7 +30,7 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
   const [audioError, setAudioError] = useState(false);
   const [playing, setPlaying] = useState(false);
   const area = RC_LABEL[s.focus ?? "self"], lower = area.toLowerCase(), month = journeyMonth(s);
-  const defaults = s.topDefaults.map(d => RC_DEFAULT_LABEL[d]).join(" and ");
+  const defaults = defaultList(s);
   const amounts = annualAmounts(s);
   const aText = futureAReadback(s);
   if (s.step === 5) return <div className="rc-scene rc-eyes">
@@ -47,7 +47,7 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
   </div>;
   if (s.step === 6) return <div className="rc-scene">
     <Chapter>ONE YEAR FROM NOW</Chapter><h2>It's next {month}.</h2>
-    {aText && <OwnWords text={aText} />}
+    {aText && <div className="rc-full-reflection"><p><em>{aText}</em></p></div>}
     <p className="rc-small">Every line here is yours, from the last few minutes.</p>
     <label>One more thing you see in that future <span className="rc-optional">Optional</span>
       <input value={s.futureA.extra} onChange={e => update({ ...s, futureA: { extra: e.target.value } })} />
@@ -98,7 +98,7 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
   if (s.step === 11) return s.choice === "A" ? <div className="rc-scene">
     <h2>That's an honest answer.</h2><p>Future A is a choice too. Nothing you wrote today is lost. It will be here, in your words, whenever you're ready to look again.</p>
     <div className="rc-scene-actions"><button className="na1-btn-gold" onClick={() => act({ ...s, step: 8 })}>Look at Future B again →</button><button onClick={closeSaved}>Save and come back later</button></div>
-  </div> : <div className="rc-scene">
+  </div> : <div className="rc-scene rc-willing">
     <em className="rc-katherine">Katherine</em><h2>Are you willing to do what it takes to own your {lower} back?</h2>
     <p>Choosing it is the easy part. Owning it means doing the one thing, even on the Tuesdays when it's hard.</p>
     {s.futureB1.oneThing && <OwnWords text={`“${s.futureB1.oneThing}”`} />}
@@ -107,11 +107,12 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
   if (s.step === 12) return s.willing === "yes" ? <div className="rc-scene rc-chosen">
     <Chapter>FUTURE B · CHOSEN ★</Chapter><h2>You're all in on your {lower}.</h2>
     <section className="rc-chosen-card"><h3>WHERE I AM NOW · WHERE I'M GOING</h3>
-      <OwnWords text={[
+      <p className="rc-full-reflection"><em>{[
         `${area} is where it shows up.`, defaults ? `Mostly, I've been ${defaults}.` : "",
-        [amounts.money, amounts.hours, s.cost.you].some(Boolean) ? `It's costing me ${[amounts.money, amounts.hours, s.cost.you].filter(Boolean).join(", ")}.` : "",
-        "I choose Future B, and I'm willing to do what it takes.", s.futureB1.oneThing ? `This week: ${s.futureB1.oneThing}` : "",
-      ].filter(Boolean).join(" ")} />
+        [amounts.money, amounts.hours, s.cost.you].some(Boolean) ? `It's costing me ${[amounts.money, amounts.hours, endClean(s.cost.you)].filter(Boolean).join(", ")}.` : "",
+        "I choose Future B, and I'm willing to do what it takes.",
+      ].filter(Boolean).join(" ")}</em></p>
+      {s.futureB1.oneThing.trim() && <p className="rc-this-week"><em>This week: {endClean(s.futureB1.oneThing)}.</em></p>}
     </section>
     <div className="rc-scene-actions"><button className="na1-btn-gold" onClick={() => act({ ...s, step: 13 })}>What will get me there →</button></div>
   </div> : <div className="rc-scene">

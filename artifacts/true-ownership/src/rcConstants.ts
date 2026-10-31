@@ -41,7 +41,7 @@ export const RC_MIRROR: { id: string; text: string; area: RCArea; default: RCDef
 ];
 
 export interface RCState {
-  version: 2; step: number; startedAt: string | null; completedAt: string | null;
+  version: 2; step: number; maxReached?: number; startedAt: string | null; completedAt: string | null;
   mirror: string[]; areaCounts: Record<RCArea, number>; defaultCounts: Record<RCDefault, number>;
   focus: RCArea | null; focusChosenBy: "revealed" | "tie-picked" | "changed" | null;
   topDefaults: RCDefault[]; tuesday: string; defaultsNamed: Record<RCDefault, string>;
@@ -54,7 +54,7 @@ export interface RCState {
 }
 export type RCRound = Omit<RCState, "rounds">;
 export const EMPTY_RC: RCState = {
-  version: 2, step: 0, startedAt: null, completedAt: null, mirror: [],
+  version: 2, step: 0, maxReached: 0, startedAt: null, completedAt: null, mirror: [],
   areaCounts: { self: 0, time: 0, wealth: 0 }, defaultCounts: { avoiding: 0, blaming: 0, carrying: 0, hoping: 0 },
   focus: null, focusChosenBy: null, topDefaults: [], tuesday: "",
   defaultsNamed: { avoiding: "", blaming: "", carrying: "", hoping: "" },
@@ -99,7 +99,11 @@ export function normalizeRC(value: unknown): RCState {
   const focus = RC_AREAS.includes(v.focus) ? v.focus as RCArea : areas.length === 1 ? areas[0] : null;
   const named = obj(v.defaultsNamed), cost = obj(v.cost), a = obj(v.futureA), compound = obj(v.compound),
     b5 = obj(v.futureB5), b1 = obj(v.futureB1);
+  const inferred = v.complete ? 13 : v.willing ? 12 : v.choice ? 11 : text(b1.oneThing) || text(b1.doing) ? 9
+    : text(b5.tuesday) || texts(b5.feels).length ? 8 : text(compound.results) || texts(compound.feels).length ? 7
+    : text(a.extra) ? 6 : Object.values(cost).some(x => typeof x === "number" || typeof x === "string" && x.trim()) ? 4 : text(v.tuesday) ? 3 : 0;
   return { ...seed, ...counts, mirror, step: Number.isInteger(v.step) ? Math.max(0, Math.min(13, v.step)) : 0,
+    maxReached: Math.min(13, Math.max(inferred, Number.isInteger(v.step) ? v.step : 0, Number.isInteger(v.maxReached) ? v.maxReached : 0)),
     startedAt: typeof v.startedAt === "string" ? v.startedAt : null,
     completedAt: typeof v.completedAt === "string" ? v.completedAt : null,
     focus, focusChosenBy: !focus ? null : ["revealed", "tie-picked", "changed"].includes(v.focusChosenBy)
@@ -133,7 +137,7 @@ export function loadRCState(): RCState {
   } catch { return normalizeRC(null); }
 }
 export function saveRCState(state: RCState): void {
-  const raw = JSON.stringify(state);
+  const raw = JSON.stringify({ ...state, maxReached: Math.max(state.maxReached ?? 0, state.step, state.complete ? 13 : 0) });
   if (previewWrite(RC_STORAGE_KEY, raw)) return;
   localStorage.setItem(RC_STORAGE_KEY, raw);
   notifyLocalChange(RC_STORAGE_KEY);
