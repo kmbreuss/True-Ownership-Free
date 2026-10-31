@@ -14,6 +14,8 @@ import { RealityCheck } from "./reality-check/RealityCheck";
 import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
 import { hasPriorProgress, hasCloudProgress } from "./reality-check/progress";
+import { a1Started, a1Unlocks } from "./a1Progress";
+import { A1MirrorOrder } from "./components/A1FutureB";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -29734,10 +29736,15 @@ function NewA1Grid({
 
   // M1 · Purpose — always unlocked.
   const purposeComplete = doneCount === 4;
-  const purposeStarted = doneCount > 0 || !!progress.purposeFinal;
+  const started = a1Started(loadDataSync, loadMirror4State());
+  const purposeStarted = started.purpose || doneCount > 0 || !!progress.purposeFinal;
   const purposeInProgress = purposeStarted && !purposeComplete;
-  const purposeStatusLabel = rcRequired && !isDevPreview() ? "Locked" : purposeComplete ? "Complete" : "Up next";
-  const purposeCtaLabel = purposeComplete
+  const unlocked = a1Unlocks(!rcRequired, started,
+    { purpose: purposeComplete, vision: !!m2Progress.complete, identity: !!m3Complete, values: !!m4Complete },
+    isDevPreview());
+  const purposeUnlocked = unlocked.purpose;
+  const purposeStatusLabel = !purposeUnlocked ? "Locked" : purposeComplete ? "Complete" : "Up next";
+  const purposeCtaLabel = !purposeUnlocked ? "Unlocks after Identity" : purposeComplete
     ? "Review Purpose →"
     : purposeInProgress
       ? "Continue Purpose →"
@@ -29745,7 +29752,7 @@ function NewA1Grid({
   const purposeEmpty = purposeComplete ? "Claimed." : "";
 
   // M2 · Vision — unlocks the moment Purpose is declared.
-  const visionUnlocked = purposeComplete && !!progress.purposeFinal;
+  const visionUnlocked = unlocked.vision;
   const m2DoneCount = [
     m2Progress.ex1,
     m2Progress.ex2,
@@ -29754,7 +29761,7 @@ function NewA1Grid({
     m2Progress.ex5,
   ].filter(Boolean).length;
   const visionComplete = !!m2Progress.complete;
-  const visionStarted = m2DoneCount > 0 || visionComplete;
+  const visionStarted = started.vision || m2DoneCount > 0 || visionComplete;
   const visionInProgress = visionUnlocked && visionStarted && !visionComplete;
   const visionStatusLabel = !visionUnlocked
     ? "Locked"
@@ -29774,9 +29781,9 @@ function NewA1Grid({
   // `visionUnlocked` so the gate re-locks transitively when Purpose is reset
   // (a persisted `vision.complete` must not leak an active M3 while Vision
   // itself is visibly locked).
-  const identityUnlocked = visionUnlocked && visionComplete;
+  const identityUnlocked = unlocked.identity;
   const identityComplete = !!m3Complete;
-  const identityStarted = !!m3Started || identityComplete;
+  const identityStarted = started.identity || !!m3Started || identityComplete;
   const identityInProgress =
     identityUnlocked && identityStarted && !identityComplete;
   const identityStatusLabel = !identityUnlocked
@@ -29785,7 +29792,7 @@ function NewA1Grid({
       ? "Complete"
       : "Up next";
   const identityCtaLabel = !identityUnlocked
-    ? "Unlocks after Vision"
+    ? "Unlocks after Values"
     : identityComplete
       ? "Review Identity →"
       : identityInProgress
@@ -29801,9 +29808,9 @@ function NewA1Grid({
   // `identityUnlocked` so the gate re-locks transitively when any upstream
   // mirror is reset (a persisted `claimed`/`sealCompleted` must not leak an
   // active M4 while Identity is visibly locked).
-  const valuesUnlocked = identityUnlocked && identityComplete;
+  const valuesUnlocked = unlocked.values;
   const valuesComplete = !!m4Complete;
-  const valuesStarted = !!m4Started || valuesComplete;
+  const valuesStarted = started.values || !!m4Started || valuesComplete;
   const valuesInProgress = valuesUnlocked && valuesStarted && !valuesComplete;
   const valuesStatusLabel = !valuesUnlocked
     ? "Locked"
@@ -29811,7 +29818,7 @@ function NewA1Grid({
       ? "Complete"
       : "Up next";
   const valuesCtaLabel = !valuesUnlocked
-    ? "Unlocks after Identity"
+    ? "Unlocks after the Reality Check"
     : valuesComplete
       ? "Review Values →"
       : valuesInProgress
@@ -29874,17 +29881,18 @@ function NewA1Grid({
             <strong>{mirrorsComplete} of 4</strong> complete · ~3 hrs remaining
           </div>
         </div>
-        <div className="na1-mirror-grid">
+        <A1MirrorOrder>
           <article
-            className={`na1-mirror-card ${purposeComplete ? "is-complete" : purposeInProgress ? "is-vision-in-progress" : "is-current"}`}
+            className={`na1-mirror-card ${!purposeUnlocked ? "is-locked" : purposeComplete ? "is-complete" : purposeInProgress ? "is-vision-in-progress" : "is-current"}`}
+            aria-disabled={!purposeUnlocked || undefined}
           >
             <div className="na1-mirror-card-head">
-              <span className="na1-mirror-card-num">01</span>
+              <span className="na1-mirror-card-num">03</span>
               <span className="na1-mirror-card-status">
                 {purposeStatusLabel}
               </span>
             </div>
-            <div className="na1-mirror-card-eyebrow">Mirror 1</div>
+            <div className="na1-mirror-card-eyebrow">Mirror 3</div>
             <h2 className="na1-mirror-card-name">Purpose</h2>
             <p className="na1-mirror-card-sub">
               Your internal why — independent of role.
@@ -29909,8 +29917,9 @@ function NewA1Grid({
                 type="button"
                 className="na1-btn-gold na1-btn-block"
                 onClick={onOpenPurpose}
+                disabled={!purposeUnlocked}
               >
-                {rcRequired && !isDevPreview() ? "Begin the Reality Check →" : purposeCtaLabel}
+                {purposeCtaLabel}
               </button>
               <span className="na1-mirror-card-meta">
                 4 exercises · 4 videos
@@ -29922,13 +29931,13 @@ function NewA1Grid({
               className={`na1-mirror-card ${visionComplete ? "is-complete" : visionInProgress ? "is-vision-in-progress" : "is-vision-up-next"}`}
             >
               <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">02</span>
+                <span className="na1-mirror-card-num">04</span>
                 <span className="na1-mirror-card-status">
                   {visionStatusLabel}
                 </span>
               </div>
               <div className="na1-mirror-card-eyebrow">
-                Mirror 2 · 10-Year Vision
+                Mirror 4 · 10-Year Vision
               </div>
               <h2 className="na1-mirror-card-name">Vision</h2>
               <p className="na1-mirror-card-sub">
@@ -29965,11 +29974,11 @@ function NewA1Grid({
           ) : (
             <article className="na1-mirror-card is-locked" aria-disabled="true">
               <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">02</span>
+                <span className="na1-mirror-card-num">04</span>
                 <span className="na1-mirror-card-status">Locked</span>
               </div>
               <div className="na1-mirror-card-eyebrow">
-                Mirror 2 · 10-Year Vision
+                Mirror 4 · 10-Year Vision
               </div>
               <h2 className="na1-mirror-card-name">Vision</h2>
               <p className="na1-mirror-card-sub">
@@ -30007,12 +30016,12 @@ function NewA1Grid({
               }}
             >
               <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">03</span>
+                <span className="na1-mirror-card-num">02</span>
                 <span className="na1-mirror-card-status">
                   {identityStatusLabel}
                 </span>
               </div>
-              <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+              <div className="na1-mirror-card-eyebrow">Mirror 2</div>
               <h2 className="na1-mirror-card-name">Identity · Superpowers</h2>
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
@@ -30055,10 +30064,10 @@ function NewA1Grid({
               aria-disabled="true"
             >
               <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">03</span>
+                <span className="na1-mirror-card-num">02</span>
                 <span className="na1-mirror-card-status">Locked</span>
               </div>
-              <div className="na1-mirror-card-eyebrow">Mirror 3</div>
+              <div className="na1-mirror-card-eyebrow">Mirror 2</div>
               <h2 className="na1-mirror-card-name">
                 Identity · Superpowers
               </h2>
@@ -30066,7 +30075,7 @@ function NewA1Grid({
                 What you carry that others don't.
               </p>
               <MirrorPips done={0} total={5} />
-              <div className="na1-mirror-card-empty">Unlocks after Vision</div>
+              <div className="na1-mirror-card-empty">Unlocks after Values</div>
               <div className="na1-mirror-card-action">
                 <span className="na1-mirror-card-meta">5 exercises</span>
               </div>
@@ -30092,12 +30101,12 @@ function NewA1Grid({
               }}
             >
               <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">04</span>
+                <span className="na1-mirror-card-num">01</span>
                 <span className="na1-mirror-card-status">
                   {valuesStatusLabel}
                 </span>
               </div>
-              <div className="na1-mirror-card-eyebrow">Mirror 4</div>
+              <div className="na1-mirror-card-eyebrow">Mirror 1</div>
               <h2 className="na1-mirror-card-name">Values · The Order You Live By</h2>
               <p className="na1-mirror-card-sub">
                 What you stand for, in order.
@@ -30140,10 +30149,10 @@ function NewA1Grid({
               aria-disabled="true"
             >
               <div className="na1-mirror-card-head">
-                <span className="na1-mirror-card-num">04</span>
+                <span className="na1-mirror-card-num">01</span>
                 <span className="na1-mirror-card-status">Locked</span>
               </div>
-              <div className="na1-mirror-card-eyebrow">Mirror 4</div>
+              <div className="na1-mirror-card-eyebrow">Mirror 1</div>
               <h2 className="na1-mirror-card-name">
                 Values · The Order You Live By
               </h2>
@@ -30152,14 +30161,14 @@ function NewA1Grid({
               </p>
               <MirrorPips done={0} total={4} />
               <div className="na1-mirror-card-empty">
-                Unlocks after Identity
+                Unlocks after the Reality Check
               </div>
               <div className="na1-mirror-card-action">
                 <span className="na1-mirror-card-meta">4 exercises</span>
               </div>
             </article>
           )}
-        </div>
+        </A1MirrorOrder>
       </div>
     </div>
   );
@@ -30250,7 +30259,7 @@ function NewA1Explore({
   const main = (
     <>
       <div className="na1-ex-eyebrow">
-        A1 · Mirror 1 · Explore with Katherine
+        A1 · Mirror 3 · Explore with Katherine
       </div>
       <h1 className="na1-ex-title">Purpose</h1>
       <p className="na1-ex-sub">
@@ -30518,7 +30527,7 @@ function NewA1RoomPlaceholderBody({
   return (
     <>
       <div className={`na1-room-eyebrow tone-${exercise.tone}`}>
-        Mirror 1 · Exercise {exercise.n}
+        Mirror 3 · Exercise {exercise.n}
       </div>
       <h2 className="na1-room-title">{exercise.name}</h2>
       <p className="na1-room-context">{exercise.subtitle}</p>
@@ -30617,7 +30626,7 @@ function NewA1OwnedSymptomsBody({
   return (
     <>
       <div className="na1-room-eyebrow tone-burgundy">
-        Mirror 1 · Exercise 1 · Owned Symptoms
+        Mirror 3 · Exercise 1 · Owned Symptoms
       </div>
       <div className="na1-substep-dots" aria-label={`Step ${substep} of 2`}>
         <span
@@ -31076,7 +31085,7 @@ function NewA1TOHeader({
   return (
     <>
       <div className="na1-room-eyebrow tone-gold">
-        Mirror 1 · Exercise 2 · True Ownership
+        Mirror 3 · Exercise 2 · True Ownership
       </div>
       <div
         className="na1-substep-dots"
@@ -31355,7 +31364,7 @@ function NewA1PeelBody({
         </button>
       )}
       <div className="na1-room-eyebrow tone-cyan">
-        Mirror 1 · Exercise 3 · The Peel
+        Mirror 3 · Exercise 3 · The Peel
       </div>
       <h2 className="na1-room-title">The Peel</h2>
       <p className="na1-room-context">
@@ -31737,7 +31746,7 @@ function NewA1DeclareBody({
         className={`na1-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
         <div className="na1-room-eyebrow tone-gold">
-          Mirror 1 · Exercise 4 · Declare
+          Mirror 3 · Exercise 4 · Declare
         </div>
         <h2 className="na1-room-title">
           {/* Ship 5.5g-A1 · prepend vocative when name resolves. Drops the
@@ -31950,7 +31959,7 @@ function NewA2Explore({
           <span className="current">Vision</span>
         </div>
         <div className="na1-ex-eyebrow">
-          A1 · Mirror 2 · Explore with Katherine
+          A1 · Mirror 4 · Explore with Katherine
         </div>
         <h1 className="na1-ex-title">Vision · 10-Year Horizon</h1>
         <p className="na1-ex-sub">
@@ -34882,7 +34891,7 @@ function NewA2RoomPlaceholderBody({
   return (
     <>
       <div className={`na1-room-eyebrow tone-${exercise.tone}`}>
-        Mirror 2 · Exercise {exercise.n}
+        Mirror 4 · Exercise {exercise.n}
       </div>
       <h2 className="na1-room-title">{exercise.name}</h2>
       <p className="na1-room-context">{exercise.subtitle}</p>
@@ -52699,7 +52708,7 @@ function NewA1M3HubView({
           <span className="current">Identity</span>
         </div>
         <div className="na1-ex-eyebrow">
-          A1 · Mirror 3 · Explore with Katherine
+          A1 · Mirror 2 · Explore with Katherine
         </div>
         <h1 className="na1-ex-title">Identity · Your Gifts &amp; Shadows</h1>
         <p
@@ -53296,7 +53305,7 @@ function NewA1M3OwnItView({
       <div
         className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
-        <div className="na2-decl-eyebrow">Mirror 3 of 4 · Step 5 · Own It</div>
+        <div className="na2-decl-eyebrow">Mirror 2 of 4 · Step 5 · Own It</div>
         {(!wide || ownStep === 0) && (
           <div className="m3-seal-star" aria-hidden>★</div>
         )}
@@ -53616,7 +53625,7 @@ function NewA1M3OwnItView({
           <p className="na2-decl-footnote">
             {editMode
               ? "Edit any earlier room to refine — re-claim here to seal the revision."
-              : "Claiming saves to Map of Me + completes Mirror 3"}
+              : "Claiming saves to Map of Me + completes Mirror 2"}
           </p>
         )}
       </div>
@@ -53962,7 +53971,7 @@ function NewA1M4RoomPlaceholderBody({ room }: { room: M4Room }) {
   return (
     <>
       <div className="na1-room-eyebrow tone-gold">
-        Mirror 4 · {room.name}
+        Mirror 1 · {room.name}
       </div>
       <h2 className="na1-room-title">{room.name}</h2>
       <div
@@ -53994,7 +54003,7 @@ function NewA1M4RoomPlaceholderBody({ room }: { room: M4Room }) {
             color: "var(--na1-text-sec)",
           }}
         >
-          This room's body lands in the next Mirror 4 ship.
+          This room's body lands in the next Values ship.
         </div>
       </div>
     </>
@@ -54085,7 +54094,7 @@ function NewA1M4HubView({
           <span className="current">Values</span>
         </div>
         <div className="na1-ex-eyebrow">
-          A1 · Mirror 4 · Explore with Katherine
+          A1 · Mirror 1 · Explore with Katherine
         </div>
         <h1 className="na1-ex-title">Values · The Order You Live By</h1>
         <p
@@ -54433,7 +54442,7 @@ function NewA1M4FlipBody({
   if (irks.length === 0) {
     return (
       <>
-        <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the Irks</div>
+        <div className="na1-m4-step-eyebrow">Mirror 1 · Flip the Irks</div>
         <h2 className="na1-m4-step-title">Flip what irks you</h2>
         <p className="na1-m4-step-sub">
           An irk is a boundary in disguise — what bothers you points at a
@@ -54447,7 +54456,7 @@ function NewA1M4FlipBody({
 
   return (
     <>
-      <div className="na1-m4-step-eyebrow">Mirror 4 · Flip the Irks</div>
+      <div className="na1-m4-step-eyebrow">Mirror 1 · Flip the Irks</div>
       <h2 className="na1-m4-step-title">Turn each irk into a standard</h2>
       <p className="na1-m4-step-sub">
         An irk is a boundary in disguise — what bothers you points at a
@@ -54692,7 +54701,7 @@ function NewA1M4NameStandardsBody({
         forward={forward}
         header={
           <>
-      <div className="na1-m4-step-eyebrow">Mirror 4 · Name the Standards</div>
+      <div className="na1-m4-step-eyebrow">Mirror 1 · Name the Standards</div>
       <h2 className="na1-m4-step-title">Name the standards underneath</h2>
           </>
         }
@@ -55300,7 +55309,7 @@ function M4StepAdmireIrks({
   return (
     <div className="na1-m4-ai">
       <div className="na1-m4-step-eyebrow">
-        Mirror 4 · {kind === "admire" ? "Admire" : "Irks"}
+        Mirror 1 · {kind === "admire" ? "Admire" : "Irks"}
       </div>
       <h2 className="na1-m4-step-title">
         {kind === "admire"
@@ -55687,7 +55696,7 @@ function M4StepPortrait({
 
   return (
     <>
-      <div className="na1-m4-step-eyebrow">Mirror 4 · Portrait</div>
+      <div className="na1-m4-step-eyebrow">Mirror 1 · Portrait</div>
       <h2 className="na1-m4-step-title">Your behavior portrait</h2>
       <p className="na1-m4-step-sub">
         Here's what you put down — sorted as you tagged it. Drag between
@@ -55869,7 +55878,7 @@ function NewA1M4BehaviorsBody({
     return (
       <>
         <div className="na1-m4-step-eyebrow">
-          Mirror 4 · Behaviors
+          Mirror 1 · Behaviors
         </div>
         <h2 className="na1-m4-step-title">No values yet</h2>
         <div className="na1-m4-beh-empty">
@@ -56015,7 +56024,7 @@ function NewA1M4BehaviorsBody({
 
   return (
     <>
-      <div className="na1-m4-step-eyebrow">Mirror 4 · Behaviors</div>
+      <div className="na1-m4-step-eyebrow">Mirror 1 · Behaviors</div>
       <h2 className="na1-m4-step-title">Behaviors</h2>
       <p className="na1-m4-beh-prompt">
         For each value, the behaviors that bring it to life. We
@@ -56461,7 +56470,7 @@ function NewA1M4ClaimBody({
   return (
     <>
       <div className="na1-room-eyebrow tone-gold">
-        Mirror 4 · Claim
+        Mirror 1 · Claim
       </div>
 
       <div
@@ -56893,7 +56902,7 @@ function NewA1M4RankBody({
         forward={continueBlock}
         header={
           <>
-      <div className="na1-m4-eyebrow">Mirror 4 · Rank + Pressure-test</div>
+      <div className="na1-m4-eyebrow">Mirror 1 · Rank + Pressure-test</div>
       <h2 className="na1-m4-title">The order you live by</h2>
           </>
         }

@@ -9,7 +9,7 @@ export function A1MirrorOrder({ children, grid = true }: { children: React.React
   const cards = React.Children.toArray(children);
   const ordered = ORDER.map(index => React.isValidElement(cards[index])
     ? React.cloneElement(cards[index] as React.ReactElement<Record<string, unknown>>, { "data-a1-mirror": MIRRORS[index] })
-    : cards[index]);
+    : cards[index]).concat(cards.slice(4));
   return grid ? <div className="na1-mirror-grid">{ordered}</div> : <>{ordered}</>;
 }
 
