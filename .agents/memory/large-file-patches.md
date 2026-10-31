@@ -11,6 +11,7 @@ file action in the same patch may still succeed.
 copy before an earlier navigation handler caused otherwise matching edits to
 fail. Similar mirror labels also make broad contexts unsafe.
 
-**How to apply:** Sort same-file changes top to bottom, or separate them into
-small calls. Use unique surrounding code and verify each part against the
-existing diagnostic baseline. Honor the owner's per-part two-failure stop rule.
+**How to apply:** Re-read the exact current lines before each edit and make one
+contiguous change per patch. Use unique surrounding code and verify each
+requested part against the existing diagnostic baseline. Follow the owner's
+latest failure/skip instructions rather than carrying an older stop rule forward.

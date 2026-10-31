@@ -23,3 +23,13 @@ Browser tests must never write any real account's userdata. Use an isolated test
 **Why:** The owner made this a standing requirement following the test-isolation incident.
 
 **How to apply:** First prove collection and nested mutation interception with a disposable target and positive interception counts, then run the protected fixture walkthrough. Do not probe write safety against a real account.
+
+Measure zero Preview writes before switching Preview off; after the reload,
+ordinary synchronization of restored real progress may legitimately resume.
+
+**Why:** A whole-transition zero-write assertion confuses normal post-exit
+reconciliation with a Preview leak, even when original answers were restored.
+
+**How to apply:** Assert no writes while Preview is active (including scratch
+edits), then separately assert restored storage, restored gates and absence of
+Preview-only content after exit. Keep interception enabled across both phases.

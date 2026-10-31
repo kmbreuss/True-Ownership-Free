@@ -15,7 +15,7 @@ import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
 import { hasPriorProgress, hasCloudProgress } from "./reality-check/progress";
 import { a1Started, a1Unlocks } from "./a1Progress";
-import { A1MirrorOrder } from "./components/A1FutureB";
+import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1FutureB";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -29737,6 +29737,7 @@ function NewA1Grid({
   // M1 · Purpose — always unlocked.
   const purposeComplete = doneCount === 4;
   const started = a1Started(loadDataSync, loadMirror4State());
+  const rc = loadRCState();
   const purposeStarted = started.purpose || doneCount > 0 || !!progress.purposeFinal;
   const purposeInProgress = purposeStarted && !purposeComplete;
   const unlocked = a1Unlocks(!rcRequired, started,
@@ -29873,14 +29874,15 @@ function NewA1Grid({
               {name ? `Welcome back, ${name}.` : "Welcome back."}
             </p>
             <p className="na1-hero-sub">
-              Four mirrors. Name your purpose, dream your 10 years, claim your
-              gifts, declare what you stand for.
+              Four mirrors. Name what you stand for, claim your gifts, find your
+              why, and see where you're going.
             </p>
           </div>
           <div className="na1-hero-meta">
             <strong>{mirrorsComplete} of 4</strong> complete · ~3 hrs remaining
           </div>
         </div>
+        <A1FutureBCard rc={rc} />
         <A1MirrorOrder>
           <article
             className={`na1-mirror-card ${!purposeUnlocked ? "is-locked" : purposeComplete ? "is-complete" : purposeInProgress ? "is-vision-in-progress" : "is-current"}`}
@@ -29897,6 +29899,7 @@ function NewA1Grid({
             <p className="na1-mirror-card-sub">
               Your internal why — independent of role.
             </p>
+            <A1FutureBThread rc={rc} mirror="purpose" />
             <MirrorPips done={doneCount} total={4} />
             <div
               className="na1-mirror-card-empty"
@@ -29943,6 +29946,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 Who you've become in 10 years — across time, wealth, and self.
               </p>
+              <A1FutureBThread rc={rc} mirror="vision" />
               <MirrorPips done={m2DoneCount} total={5} />
               <div
                 className="na1-mirror-card-empty"
@@ -29984,6 +29988,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 Who you've become in 10 years — across time, wealth, and self.
               </p>
+              <A1FutureBThread rc={rc} mirror="vision" />
               <MirrorPips done={0} total={5} />
               <div className="na1-mirror-card-empty">Unlocks after Purpose</div>
               <div className="na1-mirror-card-action">
@@ -30026,6 +30031,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
+              <A1FutureBThread rc={rc} mirror="identity" />
               <MirrorPips
                 done={identityComplete ? 5 : identityStarted ? 1 : 0}
                 total={5}
@@ -30074,6 +30080,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
+              <A1FutureBThread rc={rc} mirror="identity" />
               <MirrorPips done={0} total={5} />
               <div className="na1-mirror-card-empty">Unlocks after Values</div>
               <div className="na1-mirror-card-action">
@@ -30111,6 +30118,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you stand for, in order.
               </p>
+              <A1FutureBThread rc={rc} mirror="values" />
               <MirrorPips
                 done={valuesComplete ? 4 : valuesStarted ? 1 : 0}
                 total={4}
@@ -30159,6 +30167,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you stand for, in order.
               </p>
+              <A1FutureBThread rc={rc} mirror="values" />
               <MirrorPips done={0} total={4} />
               <div className="na1-mirror-card-empty">
                 Unlocks after the Reality Check
@@ -34770,7 +34779,7 @@ function NewA2DeclarationBody({
       <p className="na2-decl2-note">You can come back and edit this any time.</p>
       {alreadyComplete ? (
         <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleContinueToIdentity} disabled={working}>
-          Continue to Identity →
+          Back to A1 →
         </button>
       ) : (
         <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleClaim} disabled={working}>
@@ -34874,7 +34883,7 @@ function NewA2DeclarationBody({
           onClick={handleContinueToIdentity}
           disabled={working}
         >
-          Continue to Identity →
+          Back to A1 →
         </button>
       </div>
     </div>
@@ -51859,10 +51868,10 @@ function NewA1View({
   // back to the A1 hub instead of a dead/greyed "Begin" button. Names mirror
   // the A1 grid card titles so the copy matches the destination.
   const a1MirrorOrder: Array<[boolean, string]> = [
+    [Boolean(m4Complete), "Values · The Order You Live By"],
+    [Boolean(m3Complete), "Identity · Superpowers"],
     [Boolean(purposeComplete), "Purpose"],
     [Boolean(visionComplete), "Vision"],
-    [Boolean(m3Complete), "Identity · Superpowers"],
-    [Boolean(m4Complete), "Values · The Order You Live By"],
   ];
   const a1Remaining = a1MirrorOrder.filter(([done]) => !done).length;
   const nextA1MirrorName =
@@ -52185,7 +52194,7 @@ function NewA1View({
           onEntryHall={() => setView("entry-hall")}
           initialRoomKey={initialKey}
           onRoomChange={onM4RoomChange}
-          onGoToA2={NEW_A2_FLAG ? () => setView("a2") : undefined}
+          onGoToA2={() => setView("grid")}
         />
       </div>
     );
@@ -53615,7 +53624,7 @@ function NewA1M3OwnItView({
                   onClick={handleContinueToValues}
                   disabled={working}
                 >
-                  Continue to Values →
+                  Continue to Purpose →
                 </button>
               )}
             </>
@@ -53650,7 +53659,7 @@ function NewA1M3OwnItView({
           onClick={handleContinueToValues}
           disabled={working}
         >
-          Continue to Values →
+          Continue to Purpose →
         </button>
         <p
           className="na2-decl-footnote"
@@ -56625,7 +56634,7 @@ function NewA1M4ClaimBody({
             className="na1-btn-ghost"
             onClick={onGoToA2}
           >
-            Continue to Align With It · A2 →
+            Continue to Identity →
           </button>
         </div>
       )}
@@ -59533,7 +59542,7 @@ function NewA1M3UnderPressureView({
   return (
     <div className={`m3-under ${embedded ? "is-embedded" : ""}`}>
       <span className="m3-under-eyebrow">
-        Mirror 3 of 4 · Step 3 · Under Pressure
+        Mirror 2 of 4 · Step 3 · Under Pressure
       </span>
       <div className="m3-under-pip-bar" role="tablist" aria-label="Animals progress">
         {clusters.map((c, i) => {
@@ -60082,7 +60091,7 @@ function NewA1M3View({
         }
         header={
           <>
-      <div className="m3-pick-eyebrow">Mirror 3 · Step 1 of 5 · Pick</div>
+      <div className="m3-pick-eyebrow">Mirror 2 · Step 1 of 5 · Pick</div>
       <h1 className="m3-pick-title">What gifts do you carry?</h1>
           </>
         }
@@ -70086,18 +70095,14 @@ function MapOfMePage({ onBack }: any) {
     );
 
     return (
-      <>
+      <A1MirrorOrder grid={false}>
         {/* Ship 5.5g-A3 · Map of Me Purpose row · vocative label when name
             resolves ("Katherine's why · the north star"). Same intake → auth
             fallback as the page title; bare "Purpose · the north star" when
             no name. Owner-approved phrasing: "<name>'s why" (WHY register,
             matches the M1 ceremony claim line "this is your why."). */}
         <SubCard
-          title={
-            mapOfMeTitle.endsWith("'s Map of Me™")
-              ? `${mapOfMeTitle.replace("'s Map of Me™", "")}'s why · the north star`
-              : "Purpose · the north star"
-          }
+          title="My why"
           phaseCode="A1"
         >
           <div
@@ -70113,7 +70118,7 @@ function MapOfMePage({ onBack }: any) {
           </div>
         </SubCard>
 
-        <SubCard title="Direction · 1-Year · 3-Year · BAG" phaseCode="A1">
+        <SubCard title="Where I'm going" phaseCode="A1">
           <div
             style={{
               display: "grid",
@@ -70135,7 +70140,7 @@ function MapOfMePage({ onBack }: any) {
           </div>
         </SubCard>
 
-        <SubCard title="Identity · Superpowers" phaseCode="A1">
+        <SubCard title="Who I am" phaseCode="A1">
           {animals.length === 0 ? (
             <div
               style={{
@@ -70237,7 +70242,7 @@ function MapOfMePage({ onBack }: any) {
           )}
         </SubCard>
 
-        <SubCard title="Values in order" phaseCode="A1">
+        <SubCard title="What I value" phaseCode="A1">
           {valuesRows.length === 0 ? (
             <div
               style={{
@@ -70324,7 +70329,7 @@ function MapOfMePage({ onBack }: any) {
             ))}
           </div>
         </SubCard>
-      </>
+      </A1MirrorOrder>
     );
   };
 
