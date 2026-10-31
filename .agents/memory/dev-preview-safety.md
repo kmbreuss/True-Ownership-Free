@@ -15,3 +15,11 @@ Authenticated browser fixtures require fail-closed write interception and positi
 **Why:** A browser acceptance run's filter missed nested userdata PUT URLs and fixture writes reached development account storage. Successful Preview scratch isolation does not protect a normal-mode fixture run.
 
 **How to apply:** Block unapproved mutating requests before authenticating a test context, cover nested userdata paths, and fail if expected writes were not intercepted. Never use a real account as an assumed disposable fixture or guess at restoring overwritten answers.
+
+The owner clarified on 2026-10-31 that the affected RC and set-aside stores had no real data and explicitly prohibited restoration or rollback. Do not treat that incident as pending recovery.
+
+Browser tests must never write any real account's userdata. Use an isolated test identity or block all userdata writes, and prove the protection before the app walkthrough.
+
+**Why:** The owner made this a standing requirement following the test-isolation incident.
+
+**How to apply:** First prove collection and nested mutation interception with a disposable target and positive interception counts, then run the protected fixture walkthrough. Do not probe write safety against a real account.
