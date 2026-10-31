@@ -26,6 +26,12 @@ RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 pho
 
 **How to apply:** Retain shared frame width, radius and close-button rules, but allow the brief's RC-only inner padding and header arrangement. Do not shrink type, clip answers or silently allow scrolling to force a pass. Keep five chapters when splitting Opening from Person A/B. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
 
+Additional introductory panels must not shift the meaning of existing saved step numbers.
+
+**Why:** The owner approved splitting Opening and Person A/B while explicitly prohibiting changes to stored answers, schemas or resume behaviour.
+
+**How to apply:** Keep the extra introductory panel as view-only state, restore it on refresh without adding userdata fields, and prevent Preview's panel state from being restored into the real-account view.
+
 The RC start page uses the same centred shell as the A1 hub, with copy and Begin before the full-width video card, then the journey and quote. It may scroll; Begin should be above the fold.
 
 **Why:** The owner explicitly requested the app's narrower stacked hub frame rather than an RC-specific wide composition.
@@ -62,8 +68,8 @@ The mirror statement order is intentional: each phone half must expose two state
 
 **How to apply:** Preserve the original bank order and balance when editing the statement bank. Phone Continue requires viewing both halves as well as three total selections, including in Preview.
 
-Typography checks must respect the app's readability minimum rather than assume that an 18px base always computes to exactly 18px.
+Typography checks must follow the currently approved visual brief; older minimum-based mirror assertions are not authoritative for the rebuilt quote cards.
 
-**Why:** The existing narrow-screen minimum can legitimately produce 19px without any RC typography change; a hardcoded 18px assertion produced a false failure.
+**Why:** Earlier minimum-based mirror styling was deliberately superseded by the owner's true-size brief, which specifies distinct sizes for quote cards, inputs and individual scenes.
 
-**How to apply:** Check the computed minimum alongside font family/style, and measure viewport fit at the actual rendered size.
+**How to apply:** Verify explicit role sizes and per-scene exceptions from the current brief, and measure fit at their actual rendered sizes. Do not reinstate superseded assertions to force a match with an older design.

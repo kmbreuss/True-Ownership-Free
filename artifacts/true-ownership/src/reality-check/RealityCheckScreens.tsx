@@ -11,8 +11,8 @@ export function RCVideo() {
     ? <video className="rc-video" controls src={RC_INTRO_VIDEO_URL} aria-label="Katherine introduces the Reality Check" />
     : <div className="rc-video rc-video-empty"><span>WATCH FIRST · KATHERINE</span><h3>Person A or Person B?</h3><p>Video coming soon. You can continue without watching.</p></div>;
 }
-const PERSON_A = ["Checks the phone before they're awake. Already behind.", "Says yes when they mean no.", "Waits for permission, or the perfect moment.", "Blames the boss, the economy, the circumstances."];
-const PERSON_B = ["Knows exactly what matters today.", "Says no without guilt.", "Owns their results. Owns their life.", "When something goes wrong, looks in the mirror first."];
+const PERSON_A = ["Already behind before breakfast.", "Says yes when they mean no.", "Waits for the perfect moment."];
+const PERSON_B = ["Knows what matters today.", "Says no without guilt.", "Owns their results. Owns their life."];
 const TUESDAY: Record<RCArea, string> = {
   time: "By 9am I am already…", wealth: "When I open the bank app, I feel…",
   self: "By Tuesday afternoon, the way I talk to myself is…",
@@ -31,13 +31,16 @@ const NAMED_EXAMPLES = {
 function Chapter({ children }: { children: React.ReactNode }) {
   return <p className="rc-eyebrow">{children}</p>;
 }
-export function RealityCheckScreens({ state: s, update, phone = false }: Props) {
+export function RealityCheckScreens({ state: s, update, phone = false, people = false }: Props & { people?: boolean }) {
   const [person, setPerson] = useState<"A" | "B">("A");
   const focus = s.focus ?? "self", area = RC_LABEL[focus], lower = area.toLowerCase();
-  if (s.step === 0) return <div className="rc-scene rc-opening">
+  if (s.step === 0 && !people) return <div className="rc-scene rc-opening">
     <em className="rc-katherine">Katherine</em>
     <h2>Maybe the life you built no longer matches who you're becoming.</h2>
-    <p>Most of us are a little of both. Two people, same week: one is reacting to their life, one is choosing it.</p>
+    <p>Most of us are a little of both: reacting to life some weeks, choosing it in others. Let's look honestly.</p>
+  </div>;
+  if (s.step === 0) return <div className="rc-scene rc-person-scene">
+    <h2>Two people. Same week.</h2>
     <div className="rc-person-tabs" role="tablist" aria-label="Two ways to live">{(["A", "B"] as const).map(p => <button key={p} id={`rc-person-tab-${p}`} role="tab" aria-selected={person === p} aria-controls={`rc-person-${p}`} tabIndex={person === p ? 0 : -1} onClick={() => setPerson(p)} onKeyDown={e => {
       if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
         e.preventDefault(); const next = e.key === "Home" ? "A" : e.key === "End" ? "B" : p === "A" ? "B" : "A";
@@ -48,19 +51,15 @@ export function RealityCheckScreens({ state: s, update, phone = false }: Props) 
       <h3>PERSON {p}</h3><p className="rc-person-headline">{p === "A" ? "Drifting, reacting to whatever life hands them." : "Knows where they're headed, and why."}</p><ul>{(p === "A" ? PERSON_A : PERSON_B).map(line => <li key={line}>{line}</li>)}</ul>
     </section>)}</div>
     <p className="rc-bronze"><em>If you're mostly Person B, good. This finds the one place you're still Person A.</em></p>
-    {RC_INTRO_VIDEO_URL && <RCVideo />}
-    <p className="rc-helper">About 10 minutes · just you.</p>
   </div>;
   if (s.step === 1) return <div className="rc-scene rc-mirror-scene">
-    <Chapter>CHAPTER 1 · THE MIRROR</Chapter>
     <h2>Which of these have you heard yourself say?</h2>
-    <p className="rc-instruction">Tap at least three that are true lately. No right answers. <span aria-live="polite">{!phone && s.mirror.length < 3 ? `(${s.mirror.length} of 3)` : `(${s.mirror.length} selected)`}</span></p>
-    <div className="na1-chip-grid rc-mirror-grid">{(phone ? RC_MIRROR.slice((s.phoneMirror?.set ?? 0) * 6, (s.phoneMirror?.set ?? 0) * 6 + 6) : RC_MIRROR).map(m => <button className={`na1-chip${s.mirror.includes(m.id) ? " is-selected" : ""}`} key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}>“{m.text}”</button>)}</div>
+    <p className="rc-instruction">Tap any that are true lately. At least three. <span aria-live="polite">{s.mirror.length} chosen</span></p>
+    <div className="rc-mirror-grid">{(phone ? RC_MIRROR.slice((s.phoneMirror?.set ?? 0) * 6, (s.phoneMirror?.set ?? 0) * 6 + 6) : RC_MIRROR).map(m => <button className={`rc-quote${s.mirror.includes(m.id) ? " is-selected" : ""}`} key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}><span aria-hidden="true" className="rc-quote-mark">“</span>{m.text}{s.mirror.includes(m.id) && <span aria-hidden="true" className="rc-quote-check">✓</span>}</button>)}</div>
     {phone && <div className="rc-mirror-pages">
       <button onClick={() => update({ ...s, phoneMirror: { set: s.phoneMirror?.set === 1 ? 0 : 1, viewedBoth: true } })}>{s.phoneMirror?.set === 1 ? "← First six" : "More sentences →"}</button>
       <span className="rc-mirror-dots" role="img" aria-label={`Set ${(s.phoneMirror?.set ?? 0) + 1} of 2`}>{[0, 1].map(n => <span key={n} aria-hidden="true" className={(s.phoneMirror?.set ?? 0) === n ? "is-current" : ""} />)}</span>
     </div>}
-    <p className="rc-reflection"><em>Life is a mirror. It isn't judging you. It's showing you.</em></p>
   </div>;
   if (s.step === 2) {
     const areas = topAreas(s), names = areas.map(a => RC_LABEL[a]);
@@ -68,21 +67,17 @@ export function RealityCheckScreens({ state: s, update, phone = false }: Props) 
       ? `It shows up equally in ${names.join(" and ")}.` : areas.length === 3
         ? "It shows up everywhere: Self, Time and Wealth." : "Choose at least three mirror sentences.";
     return <div className="rc-scene rc-reveal">
-      <Chapter>CHAPTER 2 · WHAT YOU'RE SHOWING YOURSELF</Chapter><h2>{headline}</h2>
-      <p>{areas.length === 1 ? "This is where we start. The others will be waiting." : "That's common. Pick the one that's costing you most right now. The others will be waiting."}</p>
+      <Chapter>WHAT YOU'RE SHOWING YOURSELF</Chapter><h2>{areas.length === 1 ? <>It shows up most in <span className="rc-area-word">{names[0]}</span>.</> : headline}</h2>
       {s.topDefaults.length > 0 && <section className="rc-default-reveal">
         {s.topDefaults.length > 2 ? <p>And you’ve been doing a little of everything: avoiding, blaming, carrying and hoping.</p> : <>
-          <p>And mostly, you've been {defaultList(s)}.</p>
-          {s.topDefaults.slice(0, 2).map(d => <p key={d}><strong>{RC_DEFAULT_LABEL[d][0].toUpperCase() + RC_DEFAULT_LABEL[d].slice(1)}:</strong> {RC_DEFAULT_DEFINITION[d]}</p>)}
+          {s.topDefaults.slice(0, 2).map((d, i) => <p key={d}>{i === 0 ? "And mostly, you've been " : "And "}<strong>{RC_DEFAULT_LABEL[d]}</strong>: {RC_DEFAULT_DEFINITION[d]}</p>)}
         </>}
       </section>}
-      <p className="rc-pick-label">Feels right? Or start somewhere else:</p>
-      <div className="rc-area-pills">{RC_AREAS.map(a => <button key={a} aria-pressed={s.focus === a} onClick={() => update(chooseFocus(s, a))}>{RC_LABEL[a]} · {s.areaCounts[a]}</button>)}</div>
-      {s.focus && <p className="rc-bronze"><em>Let's look at <strong>{area}</strong> together.</em></p>}
+      <div className="rc-area-options"><span className="rc-pick-label">Start somewhere else?</span><div className="rc-area-pills">{RC_AREAS.filter(a => a !== s.focus).map(a => <button key={a} onClick={() => update(chooseFocus(s, a))}>{RC_LABEL[a]}</button>)}</div></div>
     </div>;
   }
   if (s.step === 3) return <div className="rc-scene rc-tuesday">
-    <Chapter>CHAPTER 3 · A TUESDAY</Chapter><h2>What does {lower} feel like on an ordinary Tuesday?</h2>
+    <h2>What does {lower} feel like on an ordinary Tuesday?</h2>
     <p>Not what you'd tell anyone else. What it actually feels like.</p>
     <label className="rc-tuesday-label"><span className="rc-sr-only">Your ordinary Tuesday · required</span>
       <textarea required aria-label="Your ordinary Tuesday" placeholder={TUESDAY[focus]} value={s.tuesday} onChange={e => update({ ...s, tuesday: e.target.value })} />
@@ -98,9 +93,8 @@ export function RealityCheckScreens({ state: s, update, phone = false }: Props) 
     const number = (raw: string) => raw === "" ? null : Number.isFinite(Number(raw)) && Number(raw) >= 0 ? Number(raw) : null;
     const summary = costSummary(s.cost), totals = annualAmounts(s), placeholder = PLACEHOLDERS[focus];
     return <div className="rc-scene rc-price">
-      <Chapter>CHAPTER 4 · THE PRICE</Chapter><h2>Where are you leaking power?</h2>
-      <p className="rc-bronze"><em>What is the way your {lower} runs costing you?</em></p>
-      <p className="rc-instruction">Your best guess is fine. Add a number if you can.</p>
+      <h2>Where are you leaking power?</h2>
+      <p>What is the way your {lower} runs costing you? Your best guess is fine.</p>
       <div className="rc-price-grid">
         <section className="rc-price-tile"><h3>IN MONEY</h3>
           <label className="rc-number-line"><span>About $</span><input aria-label="About dollars a month" type="number" inputMode="numeric" min="0" step="1" value={s.cost.monthly === null ? "" : Math.round(s.cost.monthly)} onChange={e => { const n = number(e.target.value); setCost({ monthly: n === null ? null : Math.round(n) }); }} /><span>a month</span></label>
@@ -112,7 +106,6 @@ export function RealityCheckScreens({ state: s, update, phone = false }: Props) 
         </section>
         <section className="rc-price-tile"><h3>IN YOU</h3>
           <label>What is it costing you?<input placeholder={placeholder.you} value={s.cost.you} onChange={e => setCost({ you: e.target.value })} /></label>
-          <label>Who else is paying for it?<input value={s.cost.whoElse} onChange={e => setCost({ whoElse: e.target.value })} /></label>
         </section>
       </div>
       <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{totals.money || totals.hours ? <>Over a year, that's about {totals.money && <strong>{totals.money}</strong>}{totals.money && totals.hours && " and "}{totals.hours && <strong>{totals.hours}</strong>}. And you're paying too.</> : summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>

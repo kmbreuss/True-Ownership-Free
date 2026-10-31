@@ -10,6 +10,7 @@ import { persistRCCompletion, redoDue, startRedo, lastTimeWords } from "./rcJour
 import { useRCAccess } from "./access";
 import "./reality-check.css";
 import "./rc-polish.css";
+import "./rc-true-size.css";
 
 const STAGES = ["The mirror", "A Tuesday", "The price", "Two futures", "Choose"];
 const ROWS = [
@@ -41,6 +42,14 @@ export function RealityCheck({
   const [burst, setBurst] = useState(false);
   const [savedMessage, setSavedMessage] = useState(false);
   const [join, setJoin] = useState(false);
+  const [people, setPeople] = useState(() => {
+    const panel = window.history.state?.rcOpeningPanel;
+    return !!state.startedAt && panel?.people === true && panel.preview === isDevPreview();
+  });
+  const showPeople = (value: boolean) => {
+    setPeople(value);
+    window.history.replaceState({ ...window.history.state, rcOpeningPanel: { people: value, preview: isDevPreview() } }, "");
+  };
   const access = useRCAccess();
   const wasRoom = useRef(false);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -87,14 +96,21 @@ export function RealityCheck({
   const sceneGroups = [[0, 1, 2], [3], [4], [5, 6, 7, 8, 9], [10, 11, 12, 13]];
   const preview = isDevPreview();
   const canAdvance = rcReady(state, phone) || (preview && !(phone && state.step === 1));
-  const forward = state.step === 0 ? "I'm ready →" : state.step === 1 ? "Show me what I see →" : state.step === 2
+  const forward = state.step === 0 ? people ? "Show me the mirror →" : "I'm ready →" : state.step === 1 ? "Show me what I see →" : state.step === 2
     ? state.focus ? `Start with ${RC_LABEL[state.focus]} →` : "Choose an area →"
     : state.step === 3 ? "Show me the price →" : state.step === 4 ? "Close your eyes →"
     : state.step === 5 ? "Show me →" : state.step === 6 ? "Keep going →" : state.step === 7 ? "And if you own it? →"
     : state.step === 8 ? "Bring it back to one year →" : "Choose →";
   const advance = () => {
     if (!canAdvance) return;
+    if (state.step === 0 && !people) { showPeople(true); return; }
     update({ ...state, step: Math.min(13, state.step + 1) });
+  };
+  const back = () => {
+    if (join) { setJoin(false); return; }
+    if (state.step === 0) { if (people) showPeople(false); else onClose(); return; }
+    if (state.step === 1) showPeople(true);
+    update({ ...state, step: state.step - 1 });
   };
   return <div className="na1-root rc-root">
     <main className="na1-shell rc-hub">
@@ -125,7 +141,7 @@ export function RealityCheck({
       {error && <p role="alert">{error}</p>}
     </main>
     {room && createPortal(<div className="na1-room-overlay is-open rc-overlay">
-      <div ref={dialogRef} className={`na1-room-card rc-room ${state.step === 5 ? "rc-deepwater" : state.step === 6 ? "rc-road-a" : state.step === 7 ? "rc-road-a rc-road-a-deeper" : [8, 9, 12, 13].includes(state.step) ? "rc-warm" : ""}`} role="dialog" aria-modal="true" aria-label="The Reality Check" data-step={state.step}
+      <div ref={dialogRef} className={`na1-room-card rc-room ${state.step === 5 ? "rc-deepwater" : state.step === 6 ? "rc-road-a" : state.step === 7 ? "rc-road-a rc-road-a-deeper" : [8, 9, 11, 12, 13].includes(state.step) ? "rc-warm" : ""}`} role="dialog" aria-modal="true" aria-label="The Reality Check" data-step={state.step === 0 && people ? "0b" : state.step}
         onKeyDown={e => {
           if (e.key === "Escape") { e.preventDefault(); onClose(); }
           if (e.key === "Tab") {
@@ -135,25 +151,27 @@ export function RealityCheck({
             else if (!e.shiftKey && document.activeElement === items[items.length - 1]) { e.preventDefault(); items[0].focus(); }
           }
         }}>
-        <div className="na1-room-crumb"><span>The Reality Check</span><span className="sep">›</span><span className="current">{STAGES[stage]}</span>{state.focus && <><span className="sep">›</span><span>{RC_LABEL[state.focus]}</span></>}</div>
+        <div className="rc-heading-row"><div className="na1-room-crumb"><span>The Reality Check</span><span className="sep">›</span><span className="current">{STAGES[stage]}</span></div>{state.step >= 12 && <button className="rc-header-back" onClick={back}>← Back</button>}</div>
         <button className="na1-room-close" ref={closeRef} aria-label="Close Reality Check" onClick={onClose}>×</button>
+        <nav className="rc-progress" aria-label="Reality Check chapters">
+          <ol>{STAGES.map((label, i) => <li key={label} className={i < stage ? "is-done" : i === stage ? "is-current" : ""}><button aria-label={`${label}, ${i + 1} of 5`} aria-current={i === stage ? "step" : undefined} disabled={!preview && !state.complete && sceneGroups[i][0] > (state.maxReached ?? state.step)} onClick={() => { setJoin(false); if (i === 0) showPeople(false); update({ ...state, step: sceneGroups[i][0] }); }} /></li>)}</ol>
+          <p>{STAGES[stage]} · {stage + 1} OF 5</p>
+        </nav>
         <div className="rc-body" ref={bodyRef} tabIndex={0} role="region" aria-label="Reality Check content">
-        <ol className="rc-stepper">{STAGES.map((label, i) => <li key={label} className={i < stage ? "is-done" : i === stage ? "is-current" : ""} aria-current={i === stage ? "step" : undefined}><button disabled={!preview && !state.complete && sceneGroups[i][0] > (state.maxReached ?? state.step)} onClick={() => { setJoin(false); update({ ...state, step: sceneGroups[i][0] }); }}>{label}</button></li>)}</ol>
-        {state.step >= 6 && state.step <= 9 && <div className={`rc-future-banner ${state.step <= 7 ? "is-a" : "is-b"}`}>FUTURE {state.step <= 7 ? "A · If nothing changes" : "B · If you own it"}</div>}
-        <div className="rc-pips" aria-label={`Scene ${state.step + 1} of 14`}>
-          {sceneGroups[stage].map(n => <button key={n} aria-label={`Scene ${n}`} aria-current={state.step === n ? "step" : undefined} disabled={!preview} onClick={() => { setJoin(false); update({ ...state, step: n }); }} className={n <= state.step ? "is-done" : ""} />)}
-        </div>
         {state.rounds.length > 0 && <details className="rc-last-time" key={`last-${state.step}`}><summary>Last time you said…</summary><p>{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).slice(0, 38).join(" ")}{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).length > 38 ? "…" : ""}</p></details>}
-        <div className="rc-screen" key={`${state.step}-${join}`}>
+        <div className="rc-screen" key={`${state.step}-${people}-${join}`}>
+          {state.step >= 6 && state.step <= 9 && <div className={`rc-future-label ${state.step <= 7 ? "is-a" : "is-b"}`}><strong>FUTURE {state.step <= 7 ? "A" : "B"}</strong><span>{state.step <= 7 ? "If nothing changes" : "If you own it"}</span></div>}
           {join ? <div className="rc-scene"><p className="rc-eyebrow">TRUE OWNERSHIP™</p><h2>Start building Future B.</h2><p>Joining will be available here. Everything you wrote is saved.</p><p>[YOUR PRICE] · everything you wrote today comes with you.</p></div>
-            : state.step < 5 ? <RealityCheckScreens state={state} update={update} phone={phone} />
+            : state.step < 5 ? <RealityCheckScreens state={state} update={update} phone={phone} people={people} />
             : <RealityCheckFutures state={state} update={update} act={act} closeSaved={() => { setSavedMessage(true); onClose(); }} />}
         </div>
         {error && <p role="alert">{error}</p>}
         </div>
-        <footer className="rc-footer"><button onClick={() => join ? setJoin(false) : state.step === 0 ? onClose() : update({ ...state, step: state.step - 1 })}>← Back</button>
+        <footer className="rc-footer">
+          {state.step === 0 && !people ? <span>About 10 minutes · just you</span> : state.step === 13 ? <span>Your Future B goes with you</span> : state.step < 12 || join ? <button onClick={back}>← Back</button> : <span />}
           {state.step < 10 && <button className="na1-btn-gold" disabled={!canAdvance} onClick={advance}>{forward}</button>}
-          {state.step === 13 && !join && <div className="rc-final-cta"><button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>{access === "free" ? "Start building Future B →" : "Begin A1 · All In →"}</button><small>{access === "free" ? "True Ownership™ · [YOUR PRICE] · everything you wrote today comes with you." : "About 20 minutes · your Future B goes with you."}</small></div>}
+          {state.step === 12 && state.willing === "yes" && !join && <button className="na1-btn-gold" onClick={() => act({ ...state, step: 13 })}>What will get me there →</button>}
+          {state.step === 13 && !join && <button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>{access === "free" ? "Start building Future B →" : "Begin →"}</button>}
         </footer>
       </div>
     </div>, document.body)}

@@ -47,42 +47,37 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
   </div>;
   if (s.step === 6) return <div className="rc-scene">
     <Chapter>ONE YEAR FROM NOW</Chapter><h2>It's next {month}.</h2>
-    {aText && <div className="rc-full-reflection"><p><em>{aText}</em></p></div>}
+    {aText && <div className="rc-full-reflection"><p><em>{aText.split(/(\$[\d,]+(?:\.\d+)?|[\d,]+(?:\.\d+)? hours)/g).map((text, i) => /^\$|^[\d,]+(?:\.\d+)? hours$/.test(text) ? <strong key={i}>{text}</strong> : text)}</em></p></div>}
     <p className="rc-small">Every line here is yours, from the last few minutes.</p>
-    <label>One more thing you see in that future <span className="rc-optional">Optional</span>
-      <input value={s.futureA.extra} onChange={e => update({ ...s, futureA: { extra: e.target.value } })} />
-    </label>
   </div>;
   if (s.step === 7) return <div className="rc-scene rc-compound">
-    <Chapter>IT DOESN'T STAY THE SAME</Chapter><h2>It compounds.</h2>
+    <h2>It doesn't stay the same. It compounds.</h2>
     {(amounts.money || amounts.hours) && <div className="rc-compound-grid">{[1, 3, 5].map(years => {
       const total = annualAmounts(s, years, "threshold");
       return <section className="rc-future-tile" key={years}><h3>{years} {years === 1 ? "YEAR" : "YEARS"}</h3><strong>{[total.money, total.hours].filter(Boolean).join(" · ")}</strong></section>;
     })}</div>}
     <label>By then, how does it feel?</label>
     <Feelings base={["Heavier", "Resentful", "Numb", "Exhausted", "Stuck"]} value={s.compound.feels} change={feels => update({ ...s, compound: { ...s.compound, feels } })} />
-    <label>What results has it created by then?<input placeholder={s.focus === "time" ? "More missed moments · the work that never gets done" : s.focus === "wealth" ? "The things I keep putting off · what I can't afford" : "The way I treat myself · what I no longer do"} value={s.compound.results} onChange={e => update({ ...s, compound: { ...s.compound, results: e.target.value } })} /></label>
-    <label>Who else is feeling it by then?<input value={s.compound.whoElse} onChange={e => update({ ...s, compound: { ...s.compound, whoElse: e.target.value } })} /></label>
+    <label>What has it cost you by then?<input placeholder={s.focus === "time" ? "More missed moments · the work that never gets done" : s.focus === "wealth" ? "The things I keep putting off · what I can't afford" : "The way I treat myself · what I no longer do"} value={s.compound.results} onChange={e => update({ ...s, compound: { ...s.compound, results: e.target.value } })} /></label>
   </div>;
   if (s.step === 8) {
     const five = annualAmounts(s, 5, "always");
     return <div className="rc-scene rc-future-b">
-      <Chapter>FIVE YEARS FROM NOW</Chapter><h2>Five years on. You took it back.</h2>
+      <h2>Five years on. You took it back.</h2>
       {(five.money || five.hours) && <div className="rc-back-grid">{five.money && <section className="rc-future-tile"><h3>BACK IN YOUR POCKET</h3><strong>{five.money}</strong></section>}{five.hours && <section className="rc-future-tile"><h3>BACK IN YOUR LIFE</h3><strong>{five.hours}</strong></section>}</div>}
       <label>How does it feel?</label><Feelings base={["Free", "Calm", "Proud", "Present", "Light"]} value={s.futureB5.feels} change={feels => update({ ...s, futureB5: { ...s.futureB5, feels } })} />
       <label>What does a Tuesday look like now? Write it as if it's already true.
         <textarea rows={3} required aria-label="My Future B Tuesday" value={s.futureB5.tuesday} onChange={e => update({ ...s, futureB5: { ...s.futureB5, tuesday: e.target.value } })} />
       </label>
-      <label>Who notices the difference?<input value={s.futureB5.whoNotices} onChange={e => update({ ...s, futureB5: { ...s.futureB5, whoNotices: e.target.value } })} /></label>
     </div>;
   }
   if (s.step === 9) return <div className="rc-scene">
-    <Chapter>BRING IT BACK TO ONE YEAR</Chapter><h2>Next {month}. You're on your way.</h2><p>Five years starts with this one.</p>
-    <label>What will you be doing by next {month}?<textarea rows={3} value={s.futureB1.doing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, doing: e.target.value } })} /></label>
-    <label>What is the one thing you'd need to do differently, starting this week?
-      <textarea rows={3} required aria-label="My one thing this week" value={s.futureB1.oneThing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, oneThing: e.target.value } })} />
+    <h2>Next {month}. You're on your way.</h2><p className="rc-bronze"><em>Five years starts with this one.</em></p>
+    <label>What will you be doing by next {month}?<input value={s.futureB1.doing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, doing: e.target.value } })} /></label>
+    <label>What's the one thing you'd do differently, starting this week?
+      <input required aria-label="My one thing this week" value={s.futureB1.oneThing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, oneThing: e.target.value } })} />
     </label>
-    <p className="rc-support-note">→ This becomes the first promise waiting for you in A4. You won't have to start from a blank page.</p>
+    <p className="rc-support-note">→ This becomes the first promise waiting for you in A4.</p>
   </div>;
   if (s.step === 10) return <div className="rc-scene">
     <h2>Which future are you building?</h2><p>Both are real. Only one is yours to choose today.</p>
@@ -95,7 +90,7 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
       </button>
     </div>
   </div>;
-  if (s.step === 11) return s.choice === "A" ? <div className="rc-scene">
+  if (s.step === 11) return s.choice === "A" ? <div className="rc-scene rc-willing">
     <h2>That's an honest answer.</h2><p>Future A is a choice too. Nothing you wrote today is lost. It will be here, in your words, whenever you're ready to look again.</p>
     <div className="rc-scene-actions"><button className="na1-btn-gold" onClick={() => act({ ...s, step: 8 })}>Look at Future B again →</button><button onClick={closeSaved}>Save and come back later</button></div>
   </div> : <div className="rc-scene rc-willing">
@@ -114,21 +109,16 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
       ].filter(Boolean).join(" ")}</em></p>
       {s.futureB1.oneThing.trim() && <p className="rc-this-week"><em>This week: {endClean(s.futureB1.oneThing)}.</em></p>}
     </section>
-    <div className="rc-scene-actions"><button className="na1-btn-gold" onClick={() => act({ ...s, step: 13 })}>What will get me there →</button></div>
-  </div> : <div className="rc-scene">
+  </div> : <div className="rc-scene rc-chosen rc-notyet">
     <h2>What would need to be true for you to say yes?</h2>
     <label><span className="rc-sr-only">What would help me say yes</span><textarea aria-label="What would help me say yes" value={s.notYetWhy} onChange={e => update({ ...s, notYetWhy: e.target.value })} /></label>
     <p>That's often the real work. A1 starts right there, and your Future B is saved for when you're ready.</p>
     <div className="rc-scene-actions"><button className="na1-btn-gold" onClick={() => act({ ...s, step: 13 }, true)}>What would help me get there →</button><button onClick={closeSaved}>Save and come back later</button></div>
   </div>;
   return <div className="rc-scene rc-willpower">
-    <Chapter>THE TRUTH ABOUT FUTURE B</Chapter><h2>You won't get there on willpower.</h2>
-    <p>{defaults ? <>{defaults[0].toUpperCase() + defaults.slice(1)} {s.topDefaults.length > 1 ? "are habits" : "is a habit"}, not {s.topDefaults.length > 1 ? "flaws" : "a flaw"}. By Tuesday, {s.topDefaults.length > 1 ? "they pull" : "it pulls"} you back. </> : null}Everyone who builds Future B has the same three things holding them.</p>
-    <div className="rc-support-grid">
-      <section className="rc-future-tile"><h3>CLARITY</h3><p>Know who you are and what matters, so every no gets easier.</p></section>
-      <section className="rc-future-tile"><h3>A PLAN THAT'S SORTED FOR YOU</h3><p>One next move at a time. Never a blank page.</p></section>
-      <section className="rc-future-tile"><h3>SOMEONE IN YOUR CORNER</h3><p>Katherine guiding every step, and a weekly check-in that holds you to it.</p></section>
-    </div>
-    <p className="rc-support-note">What you're really building isn't a plan. It's the ability to trust yourself again. That's what the next five steps are: your Future B, built one A at a time.</p>
+    <h2>You won't get there on willpower.</h2>
+    <p>Everyone who builds Future B does five things.</p>
+    <ol className="rc-five-path">{["Know who you are", "See where you're going", "Surround yourself", "Know your next move", "Trust yourself"].map((text, i) => <li key={text}><span>{i + 1}</span><p>{text}</p></li>)}</ol>
+    <p className="rc-bronze"><em>Katherine is with you on every one.</em></p>
   </div>;
 }
