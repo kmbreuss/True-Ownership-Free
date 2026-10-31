@@ -44,6 +44,12 @@ RC review must preserve the owner's choice and completion when earlier answers a
 
 **How to apply:** Track reached progress independently from the current screen and derive later reflections from current answers, not cached prose.
 
+The summary's “in you” words are lower-case prose joined as a list; this is not permission to change the saved answer or its presentation elsewhere.
+
+**Why:** The owner requested grammatical mid-sentence wording while keeping their original words and data intact.
+
+**How to apply:** Format only the generated summary fragment. Preserve the original capitalization, punctuation and complete answer in storage and the editing field.
+
 RC typography must match the surrounding app's hierarchy, not flatten hub, room and card headings to one size. Keep the app's phone heading override. Clickable mirror sentences remain reflective words (Cormorant italic), not Questrial interface labels.
 
 **Why:** The owner rejected the uniform small-type sweep and explicitly wants calm, simple screens that still look like the rest of the app.
@@ -73,3 +79,9 @@ Typography checks must follow the currently approved visual brief; older minimum
 **Why:** Earlier minimum-based mirror styling was deliberately superseded by the owner's true-size brief, which specifies distinct sizes for quote cards, inputs and individual scenes.
 
 **How to apply:** Verify explicit role sizes and per-scene exceptions from the current brief, and measure fit at their actual rendered sizes. Do not reinstate superseded assertions to force a match with an older design.
+
+Editable-field fit must include its usable content height, not just its outer rectangle or whether it grows.
+
+**Why:** A capped field can pass growth and room-overflow assertions while inherited textarea padding leaves less space than the promised number of complete text lines.
+
+**How to apply:** Check computed line height, padding and borders against the visible-line cap, and visually inspect loaded and edited multiline answers. Keep these checks separate from whole-room fit.

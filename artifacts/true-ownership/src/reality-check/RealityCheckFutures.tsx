@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { RC_EYES_AUDIO_URL, RC_LABEL, RC_DEFAULT_LABEL, type RCState } from "../rcConstants";
 import { annualAmounts, futureAReadback, journeyMonth, endClean, defaultList } from "./rcJourney";
+import { summaryInYou } from "./summaryWords";
 
 type Props = {
   state: RCState; update: (s: RCState) => void;
@@ -104,7 +105,7 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
     <section className="rc-chosen-card"><h3>WHERE I AM NOW · WHERE I'M GOING</h3>
       <p className="rc-full-reflection"><em>{[
         `${area} is where it shows up.`, defaults ? `Mostly, I've been ${defaults}.` : "",
-        [amounts.money, amounts.hours, s.cost.you].some(Boolean) ? `It's costing me ${[amounts.money, amounts.hours, endClean(s.cost.you)].filter(Boolean).join(", ")}.` : "",
+        [amounts.money, amounts.hours, s.cost.you.trim()].some(Boolean) ? `It's costing me ${[amounts.money, amounts.hours, summaryInYou(s.cost.you)].filter(Boolean).join(", ")}.` : "",
         "I choose Future B, and I'm willing to do what it takes.",
       ].filter(Boolean).join(" ")}</em></p>
       {s.futureB1.oneThing.trim() && <p className="rc-this-week"><em>This week: {endClean(s.futureB1.oneThing)}.</em></p>}

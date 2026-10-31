@@ -4,6 +4,7 @@ import {
   RC_DEFAULT_PROMPT, topAreas, toggleMirror, chooseFocus, costSummary, type RCState, type RCArea,
 } from "../rcConstants";
 import { annualAmounts, defaultList } from "./rcJourney";
+import { PriceWhereField } from "./PriceWhereField";
 
 type Props = { state: RCState; update: (state: RCState) => void; phone?: boolean };
 export function RCVideo() {
@@ -98,11 +99,11 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
       <div className="rc-price-grid">
         <section className="rc-price-tile"><h3>IN MONEY</h3>
           <label className="rc-number-line"><span>About $</span><input aria-label="About dollars a month" type="number" inputMode="numeric" min="0" step="1" value={s.cost.monthly === null ? "" : Math.round(s.cost.monthly)} onChange={e => { const n = number(e.target.value); setCost({ monthly: n === null ? null : Math.round(n) }); }} /><span>a month</span></label>
-          <label>Where does it go?<input placeholder={placeholder.money} value={s.cost.moneyWhere} onChange={e => setCost({ moneyWhere: e.target.value })} /></label>
+          <label>Where does it go?<PriceWhereField placeholder={placeholder.money} value={s.cost.moneyWhere} onChange={value => setCost({ moneyWhere: value })} /></label>
         </section>
         <section className="rc-price-tile"><h3>IN HOURS</h3>
           <label className="rc-number-line"><span>About</span><input aria-label="About hours a week" type="number" inputMode="decimal" min="0" step="any" value={s.cost.hoursPerWeek ?? ""} onChange={e => setCost({ hoursPerWeek: number(e.target.value) })} /><span>hours a week</span></label>
-          <label>Where do they go?<input placeholder={placeholder.hours} value={s.cost.hoursWhere} onChange={e => setCost({ hoursWhere: e.target.value })} /></label>
+          <label>Where do they go?<PriceWhereField placeholder={placeholder.hours} value={s.cost.hoursWhere} onChange={value => setCost({ hoursWhere: value })} /></label>
         </section>
         <section className="rc-price-tile"><h3>IN YOU</h3>
           <label>What is it costing you?<input placeholder={placeholder.you} value={s.cost.you} onChange={e => setCost({ you: e.target.value })} /></label>

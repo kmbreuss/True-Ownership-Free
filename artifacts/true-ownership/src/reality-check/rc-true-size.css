@@ -79,6 +79,7 @@
 .rc-room.rc-room .rc-price-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:0}
 .rc-room.rc-room .rc-price-tile,.rc-room.rc-room .rc-price-tile+.rc-price-tile{padding:0;border:0;background:none}
 .rc-room.rc-room .rc-price-tile>label{margin-top:10px}
+.rc-room.rc-room textarea.rc-where-answer{height:var(--rc-where-height,40px)!important;min-height:40px!important;max-height:64px;resize:none;overflow-y:auto;background:transparent;border:0;border-bottom:1.5px solid #DADADC;border-radius:0}
 .rc-room.rc-room .rc-number-line{display:flex;align-items:baseline;flex-wrap:nowrap;gap:4px;min-height:40px;white-space:nowrap}
 .rc-room.rc-room .rc-number-line>span{font:400 14px var(--f-label)}
 .rc-room.rc-room .rc-number-line>span:first-child{display:none}
@@ -91,7 +92,7 @@
 .rc-room.rc-room.rc-deepwater{background:radial-gradient(circle at 50% 35%,#024845,#012325 75%)}
 .rc-room.rc-room.rc-road-a{background:linear-gradient(170deg,#7A2E2E,#4A1C1C)}
 .rc-room.rc-room.rc-road-a-deeper{background:linear-gradient(170deg,#5E2222,#2E1010)}
-.rc-room.rc-room:is(.rc-road-a,.rc-deepwater){--rc-ink:#F9F6EE;--rc-muted:#F9F6EE;--na1-text:#F9F6EE;--na1-text-sec:#F9F6EE;--na1-border:rgba(249,246,238,.4)}
+.rc-room.rc-room:is(.rc-road-a,.rc-deepwater){--rc-ink:#F9F6EE;--rc-muted:#F9F6EE;--na1-text:#F9F6EE;--na1-text-sec:#F9F6EE;--na1-bg-card:transparent;--na1-border:rgba(249,246,238,.4)}
 .rc-room.rc-room:is(.rc-road-a,.rc-deepwater) .rc-progress p{color:#F9F6EE}
 .rc-room.rc-room:is(.rc-road-a,.rc-deepwater) .rc-progress button{background:rgba(249,246,238,.3)}
 .rc-room.rc-room:is(.rc-road-a,.rc-deepwater) .rc-progress .is-current button{background:#F9F6EE}
@@ -99,6 +100,11 @@
 .rc-room.rc-room:is(.rc-road-a,.rc-deepwater) :is(.rc-footer .na1-btn-gold,.rc-scene-actions .na1-btn-gold){background:#F9F6EE;color:#012325;border-color:#F9F6EE}
 .rc-room.rc-room.rc-road-a .rc-footer .na1-btn-gold{color:#7A2E2E}
 .rc-room.rc-room:is(.rc-road-a,.rc-deepwater) input{border-color:rgba(249,246,238,.5)}
+.rc-room.rc-room:is(.rc-road-a,.rc-deepwater) :is(.rc-scene label,.rc-scene strong,input,textarea,.rc-optional,.rc-bronze,.rc-katherine,.na1-room-crumb,.na1-room-close){color:#F9F6EE;opacity:1}
+.rc-room.rc-room:is(.rc-road-a,.rc-deepwater) :is(input,textarea)::placeholder{color:#F9F6EE;opacity:1}
+.rc-room.rc-room:is(.rc-road-a,.rc-deepwater) .na1-room-crumb *{color:#F9F6EE;opacity:1}
+.rc-room.rc-room.rc-road-a .rc-eyebrow{color:#E9C9C9;opacity:1}
+.rc-room.rc-room.rc-road-a .rc-future-tile h3{color:#E9C9C9;opacity:1}
 .rc-room.rc-room .rc-eyes{padding:0}
 .rc-room.rc-room .rc-eyes h2{font-size:32px!important}
 .rc-room.rc-room .rc-eyes>p{max-width:460px;font-size:20px!important}
@@ -181,16 +187,18 @@
  .rc-room.rc-room .rc-mirror-grid .rc-quote{padding:8px 20px 8px 26px}
  .rc-room.rc-room .rc-quote-mark{left:6px}
  .rc-room.rc-room .rc-quote-check{right:4px;top:4px;width:16px;height:16px}
- .rc-room.rc-room .rc-price-grid{grid-template-columns:1fr;gap:12px}
+ .rc-room.rc-room .rc-price-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
  .rc-room.rc-room .rc-naming{grid-template-columns:1fr}
- .rc-room.rc-room .rc-price-tile{display:grid;grid-template-columns:1fr;gap:6px;align-items:center}
+ .rc-room.rc-room .rc-price-tile{display:grid;grid-template-columns:1fr;gap:4px;align-content:start}
+ .rc-room.rc-room .rc-price-tile:last-child{grid-column:1/-1;border-top:1px solid #EDEDEF;padding-top:10px}
  .rc-room.rc-room .rc-price-tile h3{grid-column:1/-1}
  .rc-room.rc-room .rc-price-tile>label{margin:0}
  .rc-room.rc-room .rc-price-tile:last-child>label{grid-column:1/-1}
  .rc-room.rc-room .rc-number-line{white-space:normal}
  .rc-room.rc-room .rc-number-line input{width:65px;flex-basis:65px}
- .rc-room.rc-room .rc-summary{padding:12px 14px}
- .rc-room.rc-room .rc-price{gap:12px}
+ .rc-room.rc-room .rc-number-line>span{white-space:normal;min-width:0}
+ .rc-room.rc-room .rc-summary{padding:10px 12px}
+ .rc-room.rc-room .rc-price{gap:10px}
  .rc-room.rc-room .rc-compound-grid,.rc-room.rc-room .rc-back-grid{grid-template-columns:1fr;gap:8px}
  .rc-room.rc-room .rc-future-tile{display:flex;align-items:center;justify-content:space-between;gap:10px}
  .rc-room.rc-room .rc-future-tile h3{margin:0}

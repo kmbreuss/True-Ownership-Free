@@ -30,6 +30,16 @@ function env(preview = false, dev = true) {
   return { load, data, requests, location, ctx };
 }
 const plain = value => JSON.parse(JSON.stringify(value));
+test("summary joins in-you words in lower case without changing the saved answer", () => {
+  const { summaryInYou } = env().load("reality-check/summaryWords");
+  const saved = "My patience. My confidence. My sleep.";
+  assert.equal(summaryInYou(saved), "my patience, my confidence and my sleep");
+  assert.equal(saved, "My patience. My confidence. My sleep.");
+  for (const text of ["", "   ", "..."]) assert.equal(summaryInYou(text), "");
+  assert.equal(summaryInYou("My sleep."), "my sleep");
+  assert.equal(summaryInYou("My patience, my confidence and my sleep."), "my patience, my confidence and my sleep");
+  assert.equal(summaryInYou("My 3.5 hours of sleep; My energy!"), "my 3.5 hours of sleep and my energy");
+});
 function select(m, ids) {
   return ids.reduce((s, id) => m.toggleMirror(s, id), m.normalizeRC(null));
 }
