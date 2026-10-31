@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { installIsolation, proveIsolation } = require("./browser-isolation.cjs");
-const out = path.resolve("generated-artifacts/rc-review");
+const out = path.resolve(process.env.RC_SHORT_FIT_ONLY ? "generated-artifacts/rc-short-fit" : "generated-artifacts/rc-review");
 const base = process.env.J1_BASE_URL || "http://localhost:80";
 const key = "to_rc_state_v1", routeKey = "to_app_route_v1";
 const url = `${base}/?newRC=1&phase=a1&preview=1`;
@@ -152,6 +152,42 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
       if (result.cardOverflow > 1 || result.sceneOverflow > 1 || result.bodyScroll > 1 || result.horizontal > 1 ||
         result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false || result.hubContentVisible === false || result.endReachable === false || result.keyboardReachable === false) failures.push({ label, ...result });
       await page.screenshot({ path: path.join(out, `${label}.png`) });
+    }
+    if (process.env.RC_SHORT_FIT_ONLY) {
+      const signatures = new Map();
+      for (const [width,height] of [[1280,800],[1366,680]]) for (const theme of ["light","dark"]) for (const step of [4,6]) {
+        await render({...seed,step},theme,{width,height});
+        const signature=await page.locator(".rc-screen").evaluate(el=>({
+          copy:el.textContent,
+          type:[...el.querySelectorAll("*")].map(n=>{
+            const s=getComputedStyle(n);
+            return [s.fontFamily,s.fontSize,s.fontWeight,s.fontStyle,s.lineHeight];
+          }),
+        }));
+        const id=`${theme}-${step}`;
+        if(height===800) signatures.set(id,signature);
+        else assert.deepEqual(signature,signatures.get(id),"Short-window spacing must not change copy or type");
+        const spacing=await page.evaluate(()=>{
+          const scene=document.querySelector(".rc-scene");
+          const row=scene.querySelector(".rc-ledger-row"), summary=scene.querySelector(".rc-summary");
+          return {gap:getComputedStyle(scene).rowGap,
+            row:row && getComputedStyle(row).paddingTop,
+            summary:summary && getComputedStyle(summary).paddingTop};
+        });
+        assert.equal(spacing.gap,height===800?"16px":step===4?"12px":"10px");
+        if(step===4) {
+          assert.equal(spacing.row,height===800?"14px":"12px");
+          assert.equal(spacing.summary,height===800?"14px":"10px");
+        }
+        await metric(`${width}x${height}-${theme}-${step}`);
+        assert(results.at(-1).bodyScroll<=1,`Scene ${step} must fit ${width}x${height} ${theme} without scrolling`);
+        assert(results.at(-1).footerVisible,"Footer must stay visible");
+      }
+      assert.deepEqual(errors,[]);
+      assert.deepEqual(unexpected,[]);
+      assert.equal(writes.length,0,"Fit checks must never attempt account writes");
+      console.log("PASS: eight isolated standard-fixture fits; copy/type unchanged; 800px-height spacing unchanged; zero scrolling, overlap, errors or account writes.");
+      return;
     }
     // Actual user interaction through every implemented scene in Preview All.
     await render(initial.empty);

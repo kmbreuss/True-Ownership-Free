@@ -20,9 +20,9 @@ A voluntary 90-day redo must keep prior completed words and the Map reflection a
 
 **How to apply:** Keep completed-round snapshots separate from the new draft. Completion side effects must be idempotent per round and preserve unrelated set-aside items.
 
-RC one-screen acceptance includes phone, intermediate widths and short windows in both themes. Body scrolling with fixed progress/footer is accepted only for long-answer cases. Normal-length overflow is still a fit exception; report its size and amount, never conceal it by clipping.
+RC one-screen acceptance includes phone and intermediate widths in both themes. Body scrolling with fixed progress/footer is accepted for long answers and for windows below 650px high. Other normal-length overflow remains a fit exception; never conceal it by clipping.
 
-**Why:** The owner requires progress and footer to remain unobscured at intermediate/short sizes without clipping answers. The adaptive-layout pass keeps oversized content accessible rather than painting it over navigation; the earlier no-scroll goal still determines which scenes must be reported as fit exceptions.
+**Why:** The owner explicitly accepts short-window scrolling below 650px, while requiring scenes 4 and 6 to fit the standard fixture at 1366×680 through spacing alone. Typography, copy and the taller-window appearance must stay unchanged.
 
 **How to apply:** Retain shared frame width, radius and close-button rules, but allow the brief's RC-only inner padding and header arrangement. Do not shrink type, clip answers or silently allow scrolling to force a pass. Keep five chapters when splitting Opening from Person A/B. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
 
