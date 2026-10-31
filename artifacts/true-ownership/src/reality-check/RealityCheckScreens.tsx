@@ -5,7 +5,7 @@ import {
 } from "../rcConstants";
 import { annualAmounts, defaultList } from "./rcJourney";
 
-type Props = { state: RCState; update: (state: RCState) => void };
+type Props = { state: RCState; update: (state: RCState) => void; phone?: boolean };
 export function RCVideo() {
   return RC_INTRO_VIDEO_URL
     ? <video className="rc-video" controls src={RC_INTRO_VIDEO_URL} aria-label="Katherine introduces the Reality Check" />
@@ -31,7 +31,7 @@ const NAMED_EXAMPLES = {
 function Chapter({ children }: { children: React.ReactNode }) {
   return <p className="rc-eyebrow">{children}</p>;
 }
-export function RealityCheckScreens({ state: s, update }: Props) {
+export function RealityCheckScreens({ state: s, update, phone = false }: Props) {
   const [person, setPerson] = useState<"A" | "B">("A");
   const focus = s.focus ?? "self", area = RC_LABEL[focus], lower = area.toLowerCase();
   if (s.step === 0) return <div className="rc-scene rc-opening">
@@ -54,8 +54,12 @@ export function RealityCheckScreens({ state: s, update }: Props) {
   if (s.step === 1) return <div className="rc-scene rc-mirror-scene">
     <Chapter>CHAPTER 1 · THE MIRROR</Chapter>
     <h2>Which of these have you heard yourself say?</h2>
-    <p className="rc-instruction">Tap at least three that are true lately. No right answers. <span aria-live="polite">{s.mirror.length < 3 ? `(${s.mirror.length} of 3)` : `(${s.mirror.length} selected)`}</span></p>
-    <div className="rc-mirror-grid">{RC_MIRROR.map(m => <button key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}>“{m.text}”</button>)}</div>
+    <p className="rc-instruction">Tap at least three that are true lately. No right answers. <span aria-live="polite">{!phone && s.mirror.length < 3 ? `(${s.mirror.length} of 3)` : `(${s.mirror.length} selected)`}</span></p>
+    <div className="rc-mirror-grid">{(phone ? RC_MIRROR.slice((s.phoneMirror?.set ?? 0) * 6, (s.phoneMirror?.set ?? 0) * 6 + 6) : RC_MIRROR).map(m => <button key={m.id} data-mirror-id={m.id} aria-pressed={s.mirror.includes(m.id)} onClick={() => update(toggleMirror(s, m.id))}>“{m.text}”</button>)}</div>
+    {phone && <div className="rc-mirror-pages">
+      <button onClick={() => update({ ...s, phoneMirror: { set: s.phoneMirror?.set === 1 ? 0 : 1, viewedBoth: true } })}>{s.phoneMirror?.set === 1 ? "← First six" : "More sentences →"}</button>
+      <span className="rc-mirror-dots" role="img" aria-label={`Set ${(s.phoneMirror?.set ?? 0) + 1} of 2`}>{[0, 1].map(n => <span key={n} aria-hidden="true" className={(s.phoneMirror?.set ?? 0) === n ? "is-current" : ""} />)}</span>
+    </div>}
     <p className="rc-reflection"><em>Life is a mirror. It isn't judging you. It's showing you.</em></p>
   </div>;
   if (s.step === 2) {

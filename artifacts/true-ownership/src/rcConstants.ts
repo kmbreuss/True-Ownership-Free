@@ -42,7 +42,7 @@ export const RC_MIRROR: { id: string; text: string; area: RCArea; default: RCDef
 
 export interface RCState {
   version: 2; step: number; maxReached?: number; startedAt: string | null; completedAt: string | null;
-  mirror: string[]; areaCounts: Record<RCArea, number>; defaultCounts: Record<RCDefault, number>;
+  mirror: string[]; phoneMirror?: { set: 0 | 1; viewedBoth: boolean }; areaCounts: Record<RCArea, number>; defaultCounts: Record<RCDefault, number>;
   focus: RCArea | null; focusChosenBy: "revealed" | "tie-picked" | "changed" | null;
   topDefaults: RCDefault[]; tuesday: string; defaultsNamed: Record<RCDefault, string>; defaultsTogether?: string;
   cost: { monthly: number | null; moneyWhere: string; hoursPerWeek: number | null; hoursWhere: string; you: string; whoElse: string };
@@ -103,6 +103,10 @@ export function normalizeRC(value: unknown): RCState {
     : text(b5.tuesday) || texts(b5.feels).length ? 8 : text(compound.results) || texts(compound.feels).length ? 7
     : text(a.extra) ? 6 : Object.values(cost).some(x => typeof x === "number" || typeof x === "string" && x.trim()) ? 4 : text(v.tuesday) ? 3 : 0;
   return { ...seed, ...counts, mirror, step: Number.isInteger(v.step) ? Math.max(0, Math.min(13, v.step)) : 0,
+    ...(v.phoneMirror && typeof v.phoneMirror === "object" ? { phoneMirror: {
+      set: (v.phoneMirror.set === 1 ? 1 : 0) as 0 | 1,
+      viewedBoth: v.phoneMirror.viewedBoth === true || v.phoneMirror.set === 1,
+    } } : {}),
     maxReached: Math.min(13, Math.max(inferred, Number.isInteger(v.step) ? v.step : 0, Number.isInteger(v.maxReached) ? v.maxReached : 0)),
     startedAt: typeof v.startedAt === "string" ? v.startedAt : null,
     completedAt: typeof v.completedAt === "string" ? v.completedAt : null,
@@ -146,8 +150,8 @@ export function saveRCState(state: RCState): void {
 export function rcEnabled(): boolean {
   return typeof location !== "undefined" && new URLSearchParams(location.search).get("newRC") === "1";
 }
-export function rcReady(s: RCState): boolean {
-  if (s.step === 1) return s.mirror.length >= 3;
+export function rcReady(s: RCState, phone = false): boolean {
+  if (s.step === 1) return s.mirror.length >= 3 && (!phone || s.phoneMirror?.viewedBoth === true);
   if (s.step === 2) return s.mirror.length >= 3 && s.focus !== null;
   if (s.step === 3) return s.focus !== null && !!s.tuesday.trim();
   if (s.step === 8) return !!s.futureB5.tuesday.trim();

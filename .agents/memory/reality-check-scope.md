@@ -55,3 +55,15 @@ RC review changes must use a single agent and isolated browser tests; stop and r
 **Why:** The owner has repeatedly required these limits for RC review work.
 
 **How to apply:** Do not start helper/reviewer loops or keep adjusting after the second failure; report the remaining issues and wait.
+
+The mirror statement order is intentional: each phone half must expose two statements per area. Do not reorder by selection or area just to simplify the phone layout.
+
+**Why:** The owner requires balanced exposure to all three areas before continuing, not merely three picks from the first visible subset.
+
+**How to apply:** Preserve the original bank order and balance when editing the statement bank. Phone Continue requires viewing both halves as well as three total selections, including in Preview.
+
+Typography checks must respect the app's readability minimum rather than assume that an 18px base always computes to exactly 18px.
+
+**Why:** The existing narrow-screen minimum can legitimately produce 19px without any RC typography change; a hardcoded 18px assertion produced a false failure.
+
+**How to apply:** Check the computed minimum alongside font family/style, and measure viewport fit at the actual rendered size.

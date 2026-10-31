@@ -29,6 +29,13 @@ export function RealityCheck({
   timing: { holdAt: number; fallingAt: number; idleAt: number };
 }) {
   const [state, setState] = useState(loadRCState);
+  const [phone, setPhone] = useState(() => window.matchMedia("(max-width:600px)").matches);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width:600px)");
+    const changed = () => setPhone(media.matches);
+    media.addEventListener("change", changed);
+    return () => media.removeEventListener("change", changed);
+  }, []);
   const [error, setError] = useState("");
   const [phase, setPhase] = useState<VeilPhase>("idle");
   const [burst, setBurst] = useState(false);
@@ -77,13 +84,14 @@ export function RealityCheck({
   const stage = state.step <= 2 ? 0 : state.step === 3 ? 1 : state.step === 4 ? 2 : state.step <= 9 ? 3 : 4;
   const sceneGroups = [[0, 1, 2], [3], [4], [5, 6, 7, 8, 9], [10, 11, 12, 13]];
   const preview = isDevPreview();
+  const canAdvance = rcReady(state, phone) || (preview && !(phone && state.step === 1));
   const forward = state.step === 0 ? "I'm ready →" : state.step === 1 ? "Show me what I see →" : state.step === 2
     ? state.focus ? `Start with ${RC_LABEL[state.focus]} →` : "Choose an area →"
     : state.step === 3 ? "Show me the price →" : state.step === 4 ? "Close your eyes →"
     : state.step === 5 ? "Show me →" : state.step === 6 ? "Keep going →" : state.step === 7 ? "And if you own it? →"
     : state.step === 8 ? "Bring it back to one year →" : "Choose →";
   const advance = () => {
-    if (!rcReady(state) && !isDevPreview()) return;
+    if (!canAdvance) return;
     update({ ...state, step: Math.min(13, state.step + 1) });
   };
   return <div className="na1-root rc-root">
@@ -134,12 +142,12 @@ export function RealityCheck({
         {state.rounds.length > 0 && <details className="rc-last-time" key={`last-${state.step}`}><summary>Last time you said…</summary><p>{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).slice(0, 38).join(" ")}{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).length > 38 ? "…" : ""}</p></details>}
         <div className="rc-screen" key={`${state.step}-${join}`}>
           {join ? <div className="rc-scene"><p className="rc-eyebrow">TRUE OWNERSHIP™</p><h2>Start building Future B.</h2><p>Joining will be available here. Everything you wrote is saved.</p><p>[YOUR PRICE] · everything you wrote today comes with you.</p></div>
-            : state.step < 5 ? <RealityCheckScreens state={state} update={update} />
+            : state.step < 5 ? <RealityCheckScreens state={state} update={update} phone={phone} />
             : <RealityCheckFutures state={state} update={update} act={act} closeSaved={() => { setSavedMessage(true); onClose(); }} />}
         </div>
         {error && <p role="alert">{error}</p>}
         <footer className="rc-footer"><button onClick={() => join ? setJoin(false) : state.step === 0 ? onClose() : update({ ...state, step: state.step - 1 })}>← Back</button>
-          {state.step < 10 && <button className="na1-btn-gold" disabled={!rcReady(state) && !preview} onClick={advance}>{forward}</button>}
+          {state.step < 10 && <button className="na1-btn-gold" disabled={!canAdvance} onClick={advance}>{forward}</button>}
           {state.step === 13 && !join && <div className="rc-final-cta"><button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>{access === "free" ? "Start building Future B →" : "Begin A1 · All In →"}</button><small>{access === "free" ? "True Ownership™ · [YOUR PRICE] · everything you wrote today comes with you." : "About 20 minutes · your Future B goes with you."}</small></div>}
         </footer>
       </div>

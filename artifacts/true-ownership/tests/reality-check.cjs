@@ -268,6 +268,30 @@ test("RC polish preserves reached chapters and completion, and cleans sentences"
   assert.equal(j.defaultList({ topDefaults: ["avoiding", "blaming", "carrying", "hoping"] }), "avoiding, blaming, carrying and blindly hoping");
   assert.equal(j.reflectionClause("I'm carrying my worries."), "carrying your worries");
 });
+test("phone mirror gate needs three selections and both sets without changing desktop", () => {
+  const e = env(), m = e.load("rcConstants");
+  const old = m.normalizeRC({ ...m.EMPTY_RC, step: 1, mirror: m.RC_MIRROR.slice(0, 3).map(v => v.id), choice: "B", complete: true });
+  assert.equal(old.phoneMirror, undefined);
+  assert.equal(m.rcReady(old), true);
+  assert.equal(m.rcReady(old, true), false);
+  const second = { ...old, phoneMirror: { set: 1, viewedBoth: true } };
+  m.saveRCState(second);
+  const restored = m.loadRCState();
+  assert.equal(restored.phoneMirror.set, 1); assert.equal(restored.phoneMirror.viewedBoth, true);
+  assert.equal(restored.complete, true); assert.equal(restored.choice, "B");
+  assert.equal(m.rcReady(restored, true), true);
+  const first = { ...restored, phoneMirror: { set: 0, viewedBoth: true } };
+  m.saveRCState(first);
+  assert.equal(m.loadRCState().phoneMirror.set, 0);
+  assert.equal(m.rcReady({ ...first, mirror: first.mirror.slice(0, 2) }, true), false);
+  assert.equal(m.normalizeRC({ ...old, phoneMirror: { set: 50, viewedBoth: false } }).phoneMirror.set, 0);
+  const preview = env(true), pm = preview.load("rcConstants");
+  const before = JSON.stringify([...preview.data]);
+  pm.saveRCState(second);
+  assert.equal(pm.loadRCState().phoneMirror.set, 1);
+  assert.equal(JSON.stringify([...preview.data]), before);
+  assert.equal(preview.requests.length, 0);
+});
 test("calm RC preserves combined tie words, blanking and old individual words", () => {
   const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
   const legacy = m.normalizeRC({ ...m.EMPTY_RC, mirror: m.RC_MIRROR.map(v => v.id), defaultsNamed: { avoiding: "Old conversation", blaming: "Old blame", carrying: "", hoping: "" } });
