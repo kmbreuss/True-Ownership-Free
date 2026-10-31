@@ -71,6 +71,10 @@ const out=path.resolve("generated-artifacts/rc-price");
       assert((await summary.textContent()).includes("And it’s costing you my patience."));
       assert.equal(await page.getByRole("button",{name:"Close your eyes →",exact:true}).isEnabled(),true);
     }
+    const sentences="My patience. My confidence. My sleep.";
+    await render({...seed,cost:{...cost,you:sentences,youAmount:"most of me"}},"light",1366,680);
+    assert((await page.locator(".rc-summary").textContent()).includes("And it’s taking most of you: my patience, my confidence and my sleep."));
+    assert.equal((await saved()).cost.you,sentences);
     for(const patch of [
       {monthly:null,moneyWhere:"",hoursPerWeek:2,hoursWhere:"",you:""},
       {monthly:100,moneyWhere:"",hoursPerWeek:null,hoursWhere:"",you:"",youAmount:"a little"},

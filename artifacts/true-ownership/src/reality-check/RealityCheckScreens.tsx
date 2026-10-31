@@ -3,7 +3,8 @@ import {
   RC_AREAS, RC_LABEL, RC_INTRO_VIDEO_URL, RC_MIRROR, RC_DEFAULT_LABEL, RC_DEFAULT_DEFINITION,
   RC_DEFAULT_PROMPT, topAreas, toggleMirror, chooseFocus, type RCState, type RCArea,
 } from "../rcConstants";
-import { annualAmounts, defaultList, endClean } from "./rcJourney";
+import { annualAmounts, defaultList } from "./rcJourney";
+import { summaryInYou } from "./summaryWords";
 import { PriceWhereField } from "./PriceWhereField";
 import { useMirrorLayout } from "./useMirrorLayout";
 import { LedgerNumber } from "./RCAnswerFields";
@@ -97,7 +98,7 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
   if (s.step === 4) {
     const setCost = (patch: Partial<RCState["cost"]>) => update({ ...s, cost: { ...s.cost, ...patch } });
     const totals = annualAmounts(s);
-    const words = (value: string) => endClean(value).toLocaleLowerCase("en-US");
+    const words = summaryInYou;
     const moneyWhere = words(s.cost.moneyWhere), hoursWhere = words(s.cost.hoursWhere), you = words(s.cost.you);
     const yearly = [
       totals.money ? <React.Fragment key="money"><strong>{totals.money}</strong>{moneyWhere && <> going to <em>{moneyWhere}</em></>}</React.Fragment> : null,
