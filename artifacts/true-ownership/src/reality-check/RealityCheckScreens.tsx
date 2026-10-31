@@ -3,6 +3,7 @@ import {
   RC_AREAS, RC_LABEL, RC_INTRO_VIDEO_URL, RC_MIRROR, RC_DEFAULT_LABEL, RC_DEFAULT_DEFINITION,
   RC_DEFAULT_PROMPT, topAreas, toggleMirror, chooseFocus, costSummary, type RCState, type RCArea,
 } from "../rcConstants";
+import { annualAmounts } from "./rcJourney";
 
 type Props = { state: RCState; update: (state: RCState) => void };
 export function RCVideo() {
@@ -79,7 +80,7 @@ export function RealityCheckScreens({ state: s, update }: Props) {
   if (s.step === 4) {
     const setCost = (patch: Partial<RCState["cost"]>) => update({ ...s, cost: { ...s.cost, ...patch } });
     const number = (raw: string) => raw === "" ? null : Number.isFinite(Number(raw)) && Number(raw) >= 0 ? Number(raw) : null;
-    const summary = costSummary(s.cost), placeholder = PLACEHOLDERS[focus];
+    const summary = costSummary(s.cost), totals = annualAmounts(s), placeholder = PLACEHOLDERS[focus];
     return <div className="rc-scene rc-price">
       <Chapter>CHAPTER 4 · THE PRICE</Chapter><h2>Where are you leaking power?</h2>
       <p className="rc-bronze"><em>What is the way your {lower} runs costing you?</em></p>
@@ -98,7 +99,7 @@ export function RealityCheckScreens({ state: s, update }: Props) {
           <label>Who else is paying for it?<input value={s.cost.whoElse} onChange={e => setCost({ whoElse: e.target.value })} /></label>
         </section>
       </div>
-      <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>
+      <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{totals.money || totals.hours ? <>Over a year, that's about {totals.money && <strong>{totals.money}</strong>}{totals.money && totals.hours && " and "}{totals.hours && <strong>{totals.hours}</strong>}. And you're paying too.</> : summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>
     </div>;
   }
   return <div className="rc-scene rc-terminal"><Chapter>TWO FUTURES</Chapter><h2>Two futures · coming next</h2><p>Your Reality Check is saved. The next part of the journey is coming next.</p></div>;

@@ -179,5 +179,82 @@ test("existing-user exemption ignores pristine stores but recognizes real progre
 test("existing server allow-list and newer-wins rule are unchanged", () => {
   const e = env(), guard = e.load(path.resolve(__dirname, "../../api-server/src/lib/syncGuard.ts"));
   assert.equal(guard.SYNC_KEYS.has("rcstate"), true);
+  assert.equal(guard.SYNC_KEYS.has("setaside"), true);
   assert.equal(guard.decideWrite({ t: 20, v: "new" }, { t: 10, v: "old" }, 30).action, "conflict");
+});
+test("J2 preserves J1 words and extends refresh restoration to scene 13", () => {
+  const m = env().load("rcConstants");
+  const s = m.normalizeRC({ ...m.EMPTY_RC, step: 13, tuesday: "My J1 Tuesday", defaultsNamed: { carrying: "Not mine" },
+    futureB1: { doing: "My one-year direction", oneThing: "My next move" } });
+  assert.equal(s.step, 13); assert.equal(s.version, 2); assert.equal(s.tuesday, "My J1 Tuesday");
+  assert.equal(s.defaultsNamed.carrying, "Not mine"); assert.equal(s.futureB1.oneThing, "My next move");
+});
+test("Future B Tuesday and one thing are required, optional feelings are not", () => {
+  const m = env().load("rcConstants"), s = m.normalizeRC(null);
+  s.step = 8; assert.equal(m.rcReady(s), false);
+  s.futureB5.tuesday = "I feel calm"; assert.equal(m.rcReady(s), true);
+  s.step = 9; assert.equal(m.rcReady(s), false);
+  s.futureB1.oneThing = "  "; assert.equal(m.rcReady(s), false);
+  s.futureB1.oneThing = "Commit to a quiet hour"; assert.equal(m.rcReady(s), true);
+  assert.equal(s.futureB5.feels.length, 0);
+});
+test("future calculations omit missing values, preserve zero and convert days precisely", () => {
+  const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney"), s = m.normalizeRC(null);
+  assert.deepEqual(plain(j.annualAmounts(s, 5)), { money: "", hours: "" });
+  s.cost.monthly = 100; s.cost.hoursPerWeek = 2;
+  assert.deepEqual(plain(j.annualAmounts(s, 3, "threshold")), { money: "$3,600", hours: "312 hours" });
+  assert.deepEqual(plain(j.annualAmounts(s, 5, "always")), { money: "$6,000", hours: "22 days" });
+  s.cost.hoursPerWeek = 20;
+  assert.equal(j.annualAmounts(s, 1, "threshold").hours, "43 days");
+  s.cost.monthly = 0; s.cost.hoursPerWeek = 0;
+  assert.deepEqual(plain(j.annualAmounts(s)), { money: "$0", hours: "0 hours" });
+});
+test("Future A reflects their words and only currently top named defaults", () => {
+  const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
+  const s = select(m, ["time-avoiding", "wealth-avoiding", "self-carrying"]);
+  s.tuesday = "My actual Tuesday"; s.defaultsNamed.avoiding = "The conversation";
+  s.defaultsNamed.blaming = "Hidden draft"; s.cost.hoursPerWeek = 2; s.cost.hoursWhere = "My evenings";
+  const words = j.futureAReadback(s);
+  assert.match(words, /My actual Tuesday/); assert.match(words, /The conversation/);
+  assert.match(words, /104 hours/); assert.match(words, /My evenings/); assert.doesNotMatch(words, /Hidden draft|\$/);
+});
+test("completion and set aside are idempotent and preserve other entries/metadata", () => {
+  const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
+  let s = select(m, ["time-avoiding", "wealth-avoiding", "self-carrying"]);
+  s.focus = "time"; s.startedAt = "2026-10-31T12:00:00.000Z"; s.defaultsNamed.avoiding = "My optional words";
+  s.defaultsNamed.blaming = "Hidden draft";
+  const manual = { id: "manual", text: "Keep my existing item", source: "manual", round: "", createdAt: "", sorted: true };
+  e.data.set(j.SETASIDE_KEY, JSON.stringify({ version: 1, items: [manual] }));
+  s = j.persistRCCompletion({ ...s, step: 12, choice: "B", willing: "yes" });
+  const first = JSON.parse(e.data.get(j.SETASIDE_KEY));
+  assert.equal(s.complete, true); assert.ok(s.completedAt);
+  assert.equal(first.items.length, 4); assert.deepEqual(first.items[0], manual);
+  assert.ok(first.items.some(v => v.text.includes('Wealth · "I don')));
+  assert.ok(first.items.some(v => v.text.includes("My optional words")));
+  assert.ok(!first.items.some(v => v.text.includes("Hidden draft")));
+  const again = j.persistRCCompletion(s), second = JSON.parse(e.data.get(j.SETASIDE_KEY));
+  assert.equal(again.completedAt, s.completedAt);
+  assert.deepEqual(second, first); assert.equal(new Set(second.items.map(v => v.id)).size, second.items.length);
+});
+test("preview completion and set-aside writes are both scratch-only", () => {
+  const e = env(true), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
+  e.data.set("unrelated", "Real progress"); e.data.set(m.RC_STORAGE_KEY, JSON.stringify(m.EMPTY_RC));
+  const before = JSON.stringify([...e.data]);
+  let s = select(m, ["time-avoiding", "wealth-avoiding", "self-carrying"]);
+  s = j.persistRCCompletion({ ...s, startedAt: "2026-10-31T12:00:00Z", focus: "time" });
+  assert.equal(s.complete, true); assert.equal(m.loadRCState().complete, true);
+  assert.equal(j.loadSetAside().items.length, 2);
+  assert.equal(JSON.stringify([...e.data]), before); assert.equal(e.requests.length, 0);
+});
+test("redo preserves a flat completed round, prior words and the Map reflection", () => {
+  const e = env(), m = e.load("rcConstants"), j = e.load("reality-check/rcJourney");
+  const old = j.completeRC({ ...m.normalizeRC(null), startedAt: "2026-01-01T00:00:00Z", tuesday: "My last Tuesday", focus: "wealth" }, "2026-01-01T00:00:00Z");
+  assert.equal(j.redoDue(old, Date.parse("2026-01-02T00:00:00Z")), false);
+  assert.equal(j.redoDue(old, Date.parse("2026-04-01T00:00:00Z")), true);
+  const next = j.startRedo(old, "2026-04-01T00:00:00Z");
+  assert.equal(next.complete, false); assert.equal(next.step, 0); assert.equal(next.tuesday, "");
+  assert.equal(next.rounds.length, 1); assert.equal("rounds" in next.rounds[0], false);
+  assert.equal(j.lastCompletedRC(next).tuesday, "My last Tuesday");
+  assert.equal(j.lastTimeWords(next.rounds[0], 3), "My last Tuesday");
+  assert.equal(m.normalizeRC(next).rounds[0].tuesday, "My last Tuesday");
 });

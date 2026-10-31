@@ -9,3 +9,9 @@ Preview all is a viewing tool, never a way to mark prerequisites complete or sav
 **How to apply:** Guard local writes, startup reconciliation, queued sync, imports and navigation/theme persistence, not just room saves. Block writes during the old page's exit transition too. Preserve the extra local-only restriction on existing reset/seed tools when exposing the preview switch in DEV.
 
 Browser testing may not be available: the testing subagent callback rejected its documented configuration in this environment. Screenshot capture is signed out and cannot establish room behavior. Report storage-unit checks separately from signed-in walkthrough verification; never bypass authentication just to take screenshots.
+
+Authenticated browser fixtures require fail-closed write interception and positive evidence that interception caught normal-mode writes. Mocking the userdata collection GET alone does not isolate account progress.
+
+**Why:** A browser acceptance run's filter missed nested userdata PUT URLs and fixture writes reached development account storage. Successful Preview scratch isolation does not protect a normal-mode fixture run.
+
+**How to apply:** Block unapproved mutating requests before authenticating a test context, cover nested userdata paths, and fail if expected writes were not intercepted. Never use a real account as an assumed disposable fixture or guess at restoring overwritten answers.

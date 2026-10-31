@@ -8,11 +8,17 @@ Reality Check's initial ship must not introduce account/schema/signup changes. T
 
 **How to apply:** Do not infer permission to add users.access, registration, migrations or paid-discipline write restrictions from the original attached brief or draft plan. Obtain authorization for that later work. RC remains behind the newRC query flag until sign-off.
 
-The Reality Check journey brief supersedes RC-1's per-area named defaults with a flat four-default object in internal payload version 2, retaining the existing storage key. The owner authorizes starting RC alone clean because nobody has real RC data; all other progress must survive.
+The Reality Check journey brief supersedes RC-1's per-area named defaults with a flat four-default object in internal payload version 2, retaining the existing storage key. The one-time authorization to reset older RC payloads does not authorize resetting version-2 journey answers; all other progress must survive.
 
 **Why:** The owner explicitly replaces the questionnaire with a one-area journey and supplies a new stable store contract.
 
-**How to apply:** Apply the RC-only reset during the approved journey implementation, never reset other stores, and keep optional named words out of completion prerequisites. J1 stops after the price at a future-scenes placeholder; later consumers and A1/bridge changes need separate approval.
+**How to apply:** Preserve version-2 J1 answers when extending the journey, never reset other stores, and keep optional named words out of completion prerequisites. The approved futures/choice ship includes completion, the Map reflection and the set-aside handoff. Consuming the one-thing answer in A4 and adding the A1 thread/bridge remain separate work.
+
+A voluntary 90-day redo must keep prior completed words and the Map reflection available, without re-locking access earned through an earlier completed round.
+
+**Why:** A redo is a fresh reflection, not permission to erase or invalidate an owner's earlier progress.
+
+**How to apply:** Keep completed-round snapshots separate from the new draft. Completion side effects must be idempotent per round and preserve unrelated set-aside items.
 
 RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 phone, in light and dark. Every scene must fit without internal scrolling; phones now use one scene with a sticky footer, not the old stacked questionnaire.
 

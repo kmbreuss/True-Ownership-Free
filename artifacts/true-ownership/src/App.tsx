@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { isDevPreview, previewRead, previewWrite, setDevPreview } from "./devPreview";
 import { loadRCState, rcEnabled } from "./rcConstants";
 import { RealityCheck } from "./reality-check/RealityCheck";
+import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
 import { hasPriorProgress } from "./reality-check/progress";
 import { useAuth } from "./lib/auth-context";
@@ -51323,7 +51324,8 @@ function NewA1View({
     },
   );
   const priorRCProgress = useRef(hasPriorProgress(loadDataSync)).current;
-  const rcRequired = rcEnabled() && !priorRCProgress && !loadRCState().complete;
+  const rcProgress = rcEnabled() ? loadRCState() : null;
+  const rcRequired = !!rcProgress && !priorRCProgress && !rcProgress.complete && !rcProgress.rounds.some(round => round.complete);
   const rcGuard = (next: AppRouteView): AppRouteView => {
     if (!rcEnabled()) return next === "rc" || next === "rcroom" ? "entry-hall" : next;
     if (isDevPreview()) return next;
@@ -51988,6 +51990,7 @@ function NewA1View({
         onEnter={() => { rcResumeRef.current = false; setView("rcroom"); }}
         onClose={() => { rcResumeRef.current = false; setView("rc"); }}
         onEntryHall={() => setView("entry-hall")}
+        onBeginA1={() => setView("grid")}
         devTools={import.meta.env.DEV ? <DevResetBar /> : null} Veil={NewA1Veil} timing={NA1_VEIL_TIMING} />
     </div>;
   }
@@ -71069,6 +71072,7 @@ function MapOfMePage({ onBack }: any) {
           >
             {mapOfMeTitle}
           </div>
+          <RCMapCard />
           <h1
             style={{
               fontFamily: "var(--f-display)",

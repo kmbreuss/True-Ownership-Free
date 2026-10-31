@@ -4,6 +4,7 @@ import { previewRead, previewWrite } from "./devPreview";
 // The key is a sync identity, not the payload version. Only RC-1 is reset.
 export const RC_STORAGE_KEY = "to_rc_state_v1";
 export const RC_INTRO_VIDEO_URL = "";
+export const RC_EYES_AUDIO_URL = "";
 export type RCArea = "self" | "time" | "wealth";
 export type RCDefault = "avoiding" | "blaming" | "carrying" | "hoping";
 export const RC_AREAS: RCArea[] = ["self", "time", "wealth"];
@@ -49,8 +50,9 @@ export interface RCState {
   futureB5: { feels: string[]; tuesday: string; whoNotices: string };
   futureB1: { doing: string; oneThing: string };
   choice: "A" | "B" | null; willing: "yes" | "not-yet" | null; notYetWhy: string;
-  complete: boolean; rounds: unknown[];
+  complete: boolean; rounds: RCRound[];
 }
+export type RCRound = Omit<RCState, "rounds">;
 export const EMPTY_RC: RCState = {
   version: 2, step: 0, startedAt: null, completedAt: null, mirror: [],
   areaCounts: { self: 0, time: 0, wealth: 0 }, defaultCounts: { avoiding: 0, blaming: 0, carrying: 0, hoping: 0 },
@@ -97,7 +99,7 @@ export function normalizeRC(value: unknown): RCState {
   const focus = RC_AREAS.includes(v.focus) ? v.focus as RCArea : areas.length === 1 ? areas[0] : null;
   const named = obj(v.defaultsNamed), cost = obj(v.cost), a = obj(v.futureA), compound = obj(v.compound),
     b5 = obj(v.futureB5), b1 = obj(v.futureB1);
-  return { ...seed, ...counts, mirror, step: Number.isInteger(v.step) ? Math.max(0, Math.min(5, v.step)) : 0,
+  return { ...seed, ...counts, mirror, step: Number.isInteger(v.step) ? Math.max(0, Math.min(13, v.step)) : 0,
     startedAt: typeof v.startedAt === "string" ? v.startedAt : null,
     completedAt: typeof v.completedAt === "string" ? v.completedAt : null,
     focus, focusChosenBy: !focus ? null : ["revealed", "tie-picked", "changed"].includes(v.focusChosenBy)
@@ -112,7 +114,11 @@ export function normalizeRC(value: unknown): RCState {
     futureB1: { doing: text(b1.doing), oneThing: text(b1.oneThing) },
     choice: v.choice === "A" || v.choice === "B" ? v.choice : null,
     willing: v.willing === "yes" || v.willing === "not-yet" ? v.willing : null,
-    notYetWhy: text(v.notYetWhy), complete: v.complete === true, rounds: Array.isArray(v.rounds) ? v.rounds : [],
+    notYetWhy: text(v.notYetWhy), complete: v.complete === true,
+    rounds: Array.isArray(v.rounds) ? v.rounds.filter(r => obj(r).version === 2 && obj(r).complete === true).map(r => {
+      const { rounds: _history, ...round } = normalizeRC({ ...obj(r), rounds: [] });
+      return round;
+    }) : [],
   };
 }
 export function loadRCState(): RCState {
@@ -139,6 +145,8 @@ export function rcReady(s: RCState): boolean {
   if (s.step === 1) return s.mirror.length >= 3;
   if (s.step === 2) return s.mirror.length >= 3 && s.focus !== null;
   if (s.step === 3) return s.focus !== null && !!s.tuesday.trim();
+  if (s.step === 8) return !!s.futureB5.tuesday.trim();
+  if (s.step === 9) return !!s.futureB1.oneThing.trim();
   return true;
 }
 export const rcNumber = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
