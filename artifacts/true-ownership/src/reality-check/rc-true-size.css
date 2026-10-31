@@ -79,7 +79,7 @@
 .rc-room.rc-room .rc-price-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin:0}
 .rc-room.rc-room .rc-price-tile,.rc-room.rc-room .rc-price-tile+.rc-price-tile{padding:0;border:0;background:none}
 .rc-room.rc-room .rc-price-tile>label{margin-top:10px}
-.rc-room.rc-room textarea.rc-where-answer{height:var(--rc-where-height,40px)!important;min-height:40px!important;max-height:64px;resize:none;overflow-y:auto;background:transparent;border:0;border-bottom:1.5px solid #DADADC;border-radius:0}
+.rc-room.rc-room textarea.rc-where-answer{padding:4px 2px 6px!important;line-height:1.35!important;height:var(--rc-where-height,calc(1lh + 10px))!important;min-height:calc(1lh + 10px)!important;max-height:calc(2lh + 10px);resize:none;overflow:hidden;background:transparent;border:0;border-radius:0;box-shadow:inset 0 -1.5px 0 #DADADC}
 .rc-room.rc-room .rc-number-line{display:flex;align-items:baseline;flex-wrap:nowrap;gap:4px;min-height:40px;white-space:nowrap}
 .rc-room.rc-room .rc-number-line>span{font:400 14px var(--f-label)}
 .rc-room.rc-room .rc-number-line>span:first-child{display:none}

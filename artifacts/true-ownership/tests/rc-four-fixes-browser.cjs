@@ -4,7 +4,8 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { installIsolation, proveIsolation } = require("./browser-isolation.cjs");
-const out = path.resolve("generated-artifacts/rc-four-fixes");
+const priceOnly = process.argv.includes("--price-only");
+const out = path.resolve(`generated-artifacts/rc-four-fixes${priceOnly ? "-price" : ""}`);
 const base = process.env.J1_BASE_URL || "http://localhost:80";
 const key = "to_rc_state_v1";
 
@@ -61,12 +62,20 @@ function contrastAudit() {
   fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ["--no-sandbox"] });
   const results = [], errors = [], writes = [], unexpected = [];
+  let captures = 0, contrastAudits = 0, priceChecks = 0;
   let context;
   try {
     await proveIsolation(browser);
     context = await browser.newContext({ serviceWorkers: "block" });
     await installIsolation(context, writes, unexpected);
+    await context.exposeBinding("rcCaptureWindowError", (_, message) => errors.push(message));
     await context.addInitScript(() => {
+      window.addEventListener("error", e => {
+        void window.rcCaptureWindowError(e.message || String(e.error)).catch(() => {});
+      });
+      window.addEventListener("unhandledrejection", e => {
+        void window.rcCaptureWindowError(String(e.reason)).catch(() => {});
+      });
       if (!sessionStorage.getItem("rc-four-init")) {
         sessionStorage.setItem("rc-four-init", "1");
         localStorage.setItem("to_app_route_v1", JSON.stringify({ view: "rcroom", overlay: null }));
@@ -98,11 +107,12 @@ function contrastAudit() {
     };
     for (const size of [{ width: 1366, height: 680 }, { width: 1280, height: 800 }, { width: 375, height: 812 }]) {
       for (const theme of ["light", "dark"]) {
-        for (const step of [4, 5, 6, 7, 12]) {
+        for (const step of priceOnly ? [4] : [4, 5, 6, 7, 12]) {
           await render(step, theme, size);
           const label = `${size.width}-${theme}-${step}`;
           if (step >= 5 && step <= 7) {
             const audit = await page.evaluate(contrastAudit);
+            contrastAudits++;
             results.push({ label, contrast: audit });
             fs.writeFileSync(path.join(out, "progress.json"), JSON.stringify(results, null, 2));
             assert.deepEqual(audit.failures, [], `${label} contrast below 4.5:1`);
@@ -115,21 +125,38 @@ function contrastAudit() {
             }
           }
           if (step === 4) {
+            priceChecks++;
             // Exercise loaded and edited answers, two lines and overflow beyond
             // the cap, then leave exactly two visible lines for the fit check.
             const fields = page.locator(".rc-where-answer");
             await assert.equal(await fields.count(), 2);
             for (const field of await fields.all()) {
-              const saved = await field.inputValue();
               await field.fill("Short");
               const oneLine = await field.evaluate(e => e.getBoundingClientRect().height);
               await field.fill("My longer answer\ncontinues here");
               const twoLines = await field.evaluate(e => e.getBoundingClientRect().height);
               assert(twoLines > oneLine, `${label} answer must grow`);
+              const geometry = await field.evaluate(e => {
+                const c = getComputedStyle(e);
+                const line = parseFloat(c.lineHeight);
+                const padding = parseFloat(c.paddingTop) + parseFloat(c.paddingBottom);
+                const borders = parseFloat(c.borderTopWidth) + parseFloat(c.borderBottomWidth);
+                return { padding: [c.paddingTop, c.paddingRight, c.paddingBottom, c.paddingLeft],
+                  line, resize: c.resize, overflowX: c.overflowX, overflowY: c.overflowY,
+                  max: parseFloat(c.maxHeight), expectedMax: 2 * line + padding,
+                  content: e.getBoundingClientRect().height - padding - borders };
+              });
+              assert.deepEqual(geometry.padding, ["4px", "2px", "6px", "2px"]);
+              assert(Math.abs(geometry.line - 19 * 1.35) < .001);
+              assert.equal(geometry.resize, "none");
+              assert.equal(geometry.overflowX, "hidden"); assert.equal(geometry.overflowY, "hidden");
+              assert(Math.abs(geometry.max - geometry.expectedMax) < .02);
+              assert(Math.abs(geometry.content - 2 * geometry.line) < .02, `${label} must show two complete line boxes: ${JSON.stringify(geometry)}`);
+              results.push({ label: `${label}-field-lines`, geometry });
               await field.fill("First line\nSecond line\nThird line stays saved and editable");
               assert.equal(await field.evaluate(e => e.getBoundingClientRect().height), twoLines);
               assert.equal(await field.evaluate(e => e.value), "First line\nSecond line\nThird line stays saved and editable");
-              await field.fill(size.width === 375 ? "My longer answer\ncontinues here" : saved);
+              await field.fill("Helping everyone else with bills and missed payments while leaving my own plans waiting.");
               assert.equal(await field.evaluate(e => getComputedStyle(e).fontSize), "19px");
             }
             const fit = await page.evaluate(() => {
@@ -161,12 +188,13 @@ function contrastAudit() {
             assert.equal(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).cost.you, key), seed.cost.you);
           }
           await page.screenshot({ path: path.join(out, `${label}.png`) });
+          captures++;
         }
       }
     }
     assert.deepEqual(errors, []); assert.deepEqual(unexpected, []);
     assert.equal((await context.cookies()).length, 0);
     fs.writeFileSync(path.join(out, "results.json"), JSON.stringify({ results, errors, writesIntercepted: writes.length }, null, 2));
-    console.log(`PASS: 30 scene captures, 18 dark-scene contrast audits, 6 price fit/edit/refresh checks; ${writes.length} writes intercepted, zero real-account writes.`);
+    console.log(`PASS: ${captures} scene captures, ${contrastAudits} dark-scene contrast audits, ${priceChecks} price fit/edit/refresh checks; ${writes.length} writes intercepted, zero real-account writes.`);
   } finally { await context?.close(); await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

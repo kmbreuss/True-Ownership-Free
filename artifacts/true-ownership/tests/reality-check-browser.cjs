@@ -21,6 +21,15 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
   context.setDefaultTimeout(10000);
   const page = await context.newPage(), errors = [], writes = [], results = [], failures = [];
   page.on("pageerror", e => errors.push(e.message));
+  await context.exposeBinding("rcCaptureWindowError", (_, message) => errors.push(message));
+  await context.addInitScript(() => {
+    window.addEventListener("error", e => {
+      void window.rcCaptureWindowError(e.message || String(e.error)).catch(() => {});
+    });
+    window.addEventListener("unhandledrejection", e => {
+      void window.rcCaptureWindowError(String(e.reason)).catch(() => {});
+    });
+  });
   const unexpected = [];
   await installIsolation(context, writes, unexpected);
   try {

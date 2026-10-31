@@ -84,4 +84,10 @@ Editable-field fit must include its usable content height, not just its outer re
 
 **Why:** A capped field can pass growth and room-overflow assertions while inherited textarea padding leaves less space than the promised number of complete text lines.
 
-**How to apply:** Check computed line height, padding and borders against the visible-line cap, and visually inspect loaded and edited multiline answers. Keep these checks separate from whole-room fit.
+**How to apply:** Check computed line height, padding and borders against the visible-line cap, and visually inspect loaded and edited multiline answers. Keep these checks separate from whole-room fit. The owner explicitly wants hidden overflow on the two-line price “where” fields; retain the complete answer rather than truncating its saved text or adding a scrollbar.
+
+Browser verification must capture window error events and unhandled rejections as well as uncaught JavaScript exceptions.
+
+**Why:** The development runtime plugin can turn an error event without an Error object into an “unknown runtime error” overlay. Playwright's exception listener alone missed the event while the overlay blocked real navigation.
+
+**How to apply:** Record these events in the regression's error collection and leave the development overlay enabled. Do not dismiss or disable it merely to make navigation checks pass.
