@@ -8,11 +8,11 @@ Reality Check's initial ship must not introduce account/schema/signup changes. T
 
 **How to apply:** Do not infer permission to add users.access, registration, migrations or paid-discipline write restrictions from the original attached brief or draft plan. Obtain authorization for that later work. RC remains behind the newRC query flag until sign-off.
 
-Named defaults are intended for the later Katherine wake-up and “Set aside to sort in A4” list. Preserve the user's optional words per area; downstream consumers should use only currently selected defaults, not hidden deselected drafts.
+The Reality Check journey brief supersedes RC-1's per-area named defaults with a flat four-default object in internal payload version 2, retaining the existing storage key. The owner authorizes starting RC alone clean because nobody has real RC data; all other progress must survive.
 
-**Why:** The owner specified these future consumers while adding optional named-answer fields to the four-defaults screen.
+**Why:** The owner explicitly replaces the questionnaire with a one-area journey and supplies a new stable store contract.
 
-**How to apply:** Keep the words optional and do not make them completion prerequisites. Do not build those later consumers as an incidental extension of the initial ship.
+**How to apply:** Apply the RC-only reset during the approved journey implementation, never reset other stores, and keep optional named words out of completion prerequisites. J1 stops after the price at a future-scenes placeholder; later consumers and A1/bridge changes need separate approval.
 
 RC desktop acceptance includes a short 1366×680 laptop viewport, not only 1280×800: exercise cards must fit without internal scrolling, including signs, default-card footer controls and cost totals.
 
