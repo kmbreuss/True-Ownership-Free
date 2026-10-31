@@ -32,10 +32,16 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
   try {
     await proveIsolation(browser);
     const context=await browser.newContext({viewport:{width:1366,height:680},serviceWorkers:"block"});
-    let cloud={},delay=0;
+    let cloud={},delay=0,cloudGate=null,failCloud=false;
     await installIsolation(context,writes,unexpected,async()=>{
+      if(cloudGate) await cloudGate;
       if(delay) await pause(delay);
       return {intake:{name:"Synthetic preview"},phase:"a1",...cloud};
+    });
+    await context.route("**/api/userdata",route=>{
+      if(failCloud && route.request().method()==="GET")
+        return route.fulfill({status:503,json:{error:"Synthetic unavailable cloud"}});
+      return route.fallback(); // All mutations still pass through fail-closed isolation.
     });
     page=await context.newPage();page.setDefaultTimeout(10000);
     page.on("pageerror",e=>errors.push(e.message));
@@ -69,11 +75,19 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
         const progress=[
           {name:"A1 Purpose draft",sk:"a1progress",local:{a1_peel_draft:"My existing reason"},value:{a1_peel_draft:"My existing reason"}},
           {name:"A1 first answer",sk:"a1progress",local:{a1_sym_holdback:"My existing answer"},value:{a1_sym_holdback:"My existing answer"}},
+          {name:"A1 claimed mirror",sk:"a1progress",
+            local:{a1_ex1_done:true,a1_ex2_done:true,a1_ex3_done:true,a1_ex4_done:true},
+            value:{a1_ex1_done:true,a1_ex2_done:true,a1_ex3_done:true,a1_ex4_done:true}},
+          {name:"A1 started exercise only",sk:"a1progress",local:{a1_to_curq:0},value:{a1_to_curq:0}},
         ];
         for(const [sk,key,file,exportName] of defs) {
           const m=await import(`/src/${file}.ts`), value=structuredClone(m[exportName]);
           const answer=fillFirst(value);if(!answer)throw new Error(`No real answer field found in ${file}`);
           progress.push({name:sk+" "+answer,sk,value,local:{[key]:value}});
+          if(sk==="a3state"||sk==="a5state") {
+            const firstScreen=structuredClone(m[exportName]);
+            progress.push({name:sk+" saved first screen",sk,value:firstScreen,local:{[key]:firstScreen}});
+          }
         }
         const empty=rc.normalizeRC(null);
         const complete=rc.normalizeRC({...empty,startedAt:"2026-10-01T12:00:00Z",completedAt:"2026-10-01T12:10:00Z",
@@ -118,13 +132,13 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
       assert.equal(await page.locator(".rc-hub").count(),1,route+" cannot bypass RC");
     }
     checks.push("all four A1 room routes block pristine accounts");
-    await render({route:"explore",stores:{"a1_to_curq":4,"to_a2_state_v1":{step:4,version:1}}});
-    assert.equal(await page.locator(".rc-hub").count(),1,"Bookkeeping cannot grant exemption");
+    await render({route:"explore",stores:{to_map:{}}});
+    assert.equal(await page.locator(".rc-hub").count(),1,"Intake and navigation alone cannot grant exemption");
     for(const p of fixtures.progress) for(const remote of [false,true]) {
       await render({stores:remote?{}:p.local,
         remote:remote?{[p.sk]:{t:Date.now()+10000,v:p.value}}:{},lag:remote?180:0});
       assert.equal(await page.locator(".rc-hub").count(),0,p.name);
-      assert(await start().innerText().then(v=>v.includes("Start here · New")),p.name+" optional badge");
+      assert(await start().textContent().then(v=>v.includes("Start here · New")),p.name+" optional badge");
       await page.getByRole("button",{name:/^(Enter Purpose|Begin Purpose|Continue Purpose|Review Purpose)/}).first().click();
       assert.equal(await page.locator(".rc-hub").count(),0,p.name+" cannot be re-locked");
       await page.reload();
@@ -132,6 +146,27 @@ const pause=ms=>new Promise(r=>setTimeout(r,ms));
       assert.equal(await page.locator(".rc-hub").count(),0,p.name+" refresh");
       checks.push(`${p.name}: ${remote?"delayed cloud":"local"} progress stays unlocked`);
     }
+    const cloudOnly=fixtures.progress.find(p=>p.sk==="a3state");
+    let releaseCloud;
+    cloudGate=new Promise(resolve=>{releaseCloud=resolve});
+    const waitingRequest=page.waitForRequest(r=>new URL(r.url()).pathname==="/api/userdata"&&r.method()==="GET");
+    const waitingRender=render({remote:{[cloudOnly.sk]:{t:Date.now(),v:cloudOnly.value}}});
+    await waitingRequest;
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator(".na1-spine,.rc-hub").count(),0,"Do not classify before cloud hydration");
+    releaseCloud();cloudGate=null;await waitingRender;
+    assert((await start().textContent()).includes("Start here · New"));
+    checks.push("held cloud response: no premature new-user decision");
+    failCloud=true;
+    await page.evaluate(()=>{localStorage.clear();sessionStorage.clear();localStorage.setItem("to_app_route_v1",JSON.stringify({view:"grid",overlay:null}))});
+    await page.goto(base+"/");
+    await page.getByRole("alert").waitFor();
+    assert.equal(await page.locator(".na1-spine,.rc-hub").count(),0,"Cloud failure is not an empty account");
+    failCloud=false;
+    await page.getByRole("button",{name:"Retry loading progress",exact:true}).click();
+    await start().waitFor();
+    assert((await start().textContent()).includes("Start here · New"));
+    checks.push("cloud failure: explicit retry, never classified new; cloud-only answers restored");
     for(const state of [fixtures.complete,{...fixtures.empty,rounds:[fixtures.complete]}]) {
       await render({route:"explore",stores:{to_rc_state_v1:state}});
       assert.equal(await page.locator(".rc-hub").count(),0,"Completion/redo cannot re-lock A1");

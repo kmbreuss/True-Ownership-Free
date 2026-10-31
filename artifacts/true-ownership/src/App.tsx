@@ -13,7 +13,7 @@ import { loadRCState } from "./rcConstants";
 import { RealityCheck } from "./reality-check/RealityCheck";
 import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
-import { hasPriorProgress } from "./reality-check/progress";
+import { hasPriorProgress, hasCloudProgress } from "./reality-check/progress";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -344,6 +344,10 @@ function loadDataSync(k: string): any {
 }
 function loadData(k: string): Promise<any> {
   return Promise.resolve(loadDataSync(k));
+}
+// Called only inside screens mounted after ServerDataLoader has hydrated.
+function hasReturningProgress(): boolean {
+  return hasPriorProgress(loadDataSync) || hasCloudProgress(serverDataCache ?? {});
 }
 function _setServerAuthState(
   authed: boolean,
@@ -35350,7 +35354,7 @@ function NewA1Spine({
         // current (even if also claimed); "Claimed" only when claimed AND
         // not current; otherwise no label at all.
         const status = v.num !== "Start" && rcFreeLocked() ? "Unlocks when you join"
-          : v.num === "Start" && !v.isCurrent && !v.claimed && hasPriorProgress(loadDataSync) ? "Start here · New"
+          : v.num === "Start" && !v.isCurrent && !v.claimed && hasReturningProgress() ? "Start here · New"
           : v.isCurrent
           ? "You are here"
           : v.claimed
@@ -36036,7 +36040,7 @@ function NewA1EntryHall({
       <main className="na1-eh-content">
         <DevResetBar />
         {onRealityCheck && <section className="rc-entry-card">
-          <p className="na1-eh-eyebrow">{hasPriorProgress(loadDataSync) && !loadRCState().complete ? "Start here · New" : "Start here"}</p>
+          <p className="na1-eh-eyebrow">{hasReturningProgress() && !loadRCState().complete ? "Start here · New" : "Start here"}</p>
           <h2>Before you start, a reality check.</h2>
           <p>Where you are now, and where it leads.</p>
           <button className="na1-eh-btn-gold" onClick={onRealityCheck}>{loadRCState().complete ? "Review" : "Begin"} the Reality Check →</button>
@@ -51321,7 +51325,9 @@ function NewA1View({
       return "grid";
     },
   );
-  const priorRCProgress = useRef(hasPriorProgress(loadDataSync)).current;
+  const returningRef = useRef(false);
+  returningRef.current ||= hasReturningProgress();
+  const priorRCProgress = returningRef.current;
   const rcProgress = loadRCState();
   const rcRequired = !priorRCProgress && !rcProgress.complete && !rcProgress.rounds.some(round => round.complete);
   const rcGuard = (next: AppRouteView): AppRouteView => {
@@ -73106,11 +73112,21 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
 function ServerDataLoader({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [showMigration, setShowMigration] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    let active = true;
+    setReady(false);
+    setLoadError(false);
     fetch("/api/userdata", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : {}))
+      .then((r) => {
+        if (!r.ok) throw new Error("Could not load saved progress");
+        return r.json();
+      })
       .then(async (cache: Record<string, any>) => {
+        if (!active) return;
+        if (!cache || typeof cache !== "object" || Array.isArray(cache)) throw new Error("Invalid saved progress");
         // Strip verification-test-* placeholder values from cache (they'll be overwritten on next save)
         for (const k of Object.keys(cache)) {
           const v = cache[k];
@@ -73122,19 +73138,24 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
         // done) go up to the account automatically when the server has none — the
         // server's copy always wins when both exist, so nothing newer is overwritten.
         await autoPushLegacy(cache);
+        if (!active) return;
         _setServerAuthState(true, cache);
         // Reconcile the new-flow stores (A1 progress, A2, A3, Values) with the
         // account BEFORE any screen reads them: push if the server has none,
         // load if this browser has none, otherwise the newer copy wins.
         await hydrateNewFlow(cache);
-        setReady(true);
+        if (active) setReady(true);
       })
       .catch(() => {
-        _setServerAuthState(true, {});
-        setReady(true);
+        if (active) setLoadError(true);
       });
-  }, []);
+    return () => { active = false; };
+  }, [attempt]);
 
+  if (loadError) return <div role="alert" style={{ padding: 32, textAlign: "center" }}>
+    <p>Your saved progress could not be loaded. Your access has not been changed.</p>
+    <button className="na1-btn-gold" onClick={() => setAttempt(n => n + 1)}>Retry loading progress</button>
+  </div>;
   if (!ready) return <LoadingScreen />;
   return (
     <div

@@ -1,5 +1,5 @@
 - [Mirror card gating](true-ownership-mirror-gating.md) — hub mirror cards must chain unlock booleans through the prior card's unlock, not its persisted completion, or downstream leaks unlocked after reset.
-- [Reality Check scope](reality-check-scope.md) — initial rollout excludes account/schema/signup changes; named defaults have explicitly deferred RC-2 consumers.
+- [Reality Check scope](reality-check-scope.md) — default journey; saved A1–A5 records exempt returning users after cloud hydration; no auth/schema/signup changes.
 - [Dev preview safety](dev-preview-safety.md) — preview must never persist; exiting reloads real progress and blocks late writes. Signed-in verification has separate tooling constraints.
 - [App.tsx giant file](true-ownership-app-tsx.md) — one huge App.tsx; `read` line counts are stale (use wc/sed/rg); filtered typecheck shows ~6000 baseline errors — verify via in-range grep, not a clean run.
 - [A2 return-to-list nav](true-ownership-a2-nav-model.md) — A2 "Done" must advance the step pointer before closing (or fresh-run deadlock); hub status reads monotonic maxReached/data, never currentStep (revisit regresses it).

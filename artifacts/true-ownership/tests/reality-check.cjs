@@ -174,7 +174,7 @@ test("free access remains DEV-only and nonpersistent", () => {
   const e = env(true), access = e.load("reality-check/access");
   access.setSimulatedFree(true); assert.equal(access.rcFreeLocked(), false);
 });
-test("existing-user exemption ignores pristine stores but recognizes real progress", () => {
+test("saved first-screen exercise records count; automatic Map defaults do not", () => {
   const e = env(), p = e.load("reality-check/progress");
   const stores = {
     to_a2_state_v1: e.load("a2Constants").EMPTY_A2, to_a3_state_v1: e.load("a3Constants").EMPTY_A3,
@@ -182,9 +182,23 @@ test("existing-user exemption ignores pristine stores but recognizes real progre
     to_mirror4_state_v1: e.load("mirror4Constants").EMPTY_MIRROR4,
     to_map: { vision: e.load("mirror2Constants").EMPTY_VISION, mirror3: e.load("mirror3Constants").EMPTY_MIRROR3 },
   };
-  assert.equal(p.hasPriorProgress(k => stores[k]), false);
-  assert.equal(p.substantive({ step: 4, version: 1 }), false);
+  assert.equal(p.hasPriorProgress(k => stores[k]), true);
+  assert.equal(p.hasPriorProgress(k => k==="to_map"?stores.to_map:undefined),false);
+  assert.equal(p.substantive({ version: 1, updatedAt: "automatic seed", step: 0 }), false);
+  assert.equal(p.substantive({ step: 4, version: 1 }), true);
   stores.a1_peel_draft = "My reason"; assert.equal(p.hasPriorProgress(k => stores[k]), true);
+});
+test("started exercises, saved first screens and cloud-only drafts all count", () => {
+  const e=env(),p=e.load("reality-check/progress");
+  for(const cursor of [0,4]) assert.equal(p.hasPriorProgress(k=>k==="a1_to_curq"?cursor:null),true);
+  assert.equal(p.hasPriorProgress(k=>k==="to_a5_state_v1"?{startedAt:"2026-10-01"}:null),true);
+  assert.equal(p.hasCloudProgress({a1progress:{t:10,v:{a1_peel_draft:"Only in the cloud"}}}),true);
+  assert.equal(p.hasCloudProgress({a3state:{t:10,v:{currentStep:2}}}),true);
+  assert.equal(p.hasCloudProgress({a5state:{t:10,v:{step:1}}}),true);
+  assert.equal(p.hasCloudProgress({map:{purpose_final:"My claimed purpose"}}),true);
+  assert.equal(p.hasCloudProgress({a5state:{t:10,v:plain(e.load("a5Constants").EMPTY_A5)}}),true);
+  assert.equal(p.hasCloudProgress({a1progress:{t:10,v:{}}}),true);
+  assert.equal(p.hasCloudProgress({intake:{name:"Not A1–A5 progress"},phase:"a1"}),false);
 });
 test("every discipline and the first Purpose answer preserve the existing-user exemption", () => {
   const e=env(), p=e.load("reality-check/progress");
@@ -196,7 +210,7 @@ test("every discipline and the first Purpose answer preserve the existing-user e
     ["to_a4_state_v1","a4Constants","EMPTY_A4"],["to_a5_state_v1","a5Constants","EMPTY_A5"],
   ]) {
     const pristine=plain(e.load(module)[empty]);
-    assert.equal(p.hasPriorProgress(k=>k===key?pristine:null),false,key+" pristine");
+    assert.equal(p.hasPriorProgress(k=>k===key?pristine:null),true,key+" saved first screen");
     const populated={...pristine,complete:true};
     assert.equal(p.hasPriorProgress(k=>k===key?populated:null),true,key+" progress");
   }
