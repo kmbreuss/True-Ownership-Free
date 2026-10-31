@@ -15,7 +15,11 @@ import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
 import { hasPriorProgress, hasCloudProgress } from "./reality-check/progress";
 import { a1Started, a1Unlocks } from "./a1Progress";
+import { purposeSteps, purposeRoomUnlocked } from "./purposeProgress";
+import { purposeHoldback } from "./purposeContext";
+import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./remainingTime";
 import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1FutureB";
+import { PurposeContextFrame } from "./components/PurposeContext";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -29718,12 +29722,7 @@ function NewA1Grid({
   // Persistent-spine era · breadcrumb "Entry Hall" routes back to the home.
   onEntryHall?: () => void;
 }) {
-  const doneCount = [
-    progress.ex1,
-    progress.ex2,
-    progress.ex3,
-    progress.ex4,
-  ].filter(Boolean).length;
+  const doneCount = purposeSteps(progress).filter(Boolean).length;
   // ── Ship 5.7 · Mirror card gating ──────────────────────────────────────
   // Every card resolves to one of four states — Locked → Up next → In
   // progress → Complete — with a cascading unlock chain:
@@ -29735,7 +29734,7 @@ function NewA1Grid({
   // a disabled "Unlocks after {Prior}" button on locked cards.
 
   // M1 · Purpose — always unlocked.
-  const purposeComplete = doneCount === 4;
+  const purposeComplete = doneCount === 3;
   const started = a1Started(loadDataSync, loadMirror4State());
   const rc = loadRCState();
   const purposeStarted = started.purpose || doneCount > 0 || !!progress.purposeFinal;
@@ -29836,6 +29835,8 @@ function NewA1Grid({
     (visionComplete ? 1 : 0) +
     (identityComplete ? 1 : 0) +
     (valuesComplete ? 1 : 0);
+  const remainingLabel = mirrorsComplete === 4 ? "" : remainingTimeLabel(
+    a1RemainingMinutes(progress, m2Progress, (loadDataSync(KEYS.map) as any)?.mirror3, loadMirror4State()));
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -29879,7 +29880,7 @@ function NewA1Grid({
             </p>
           </div>
           <div className="na1-hero-meta">
-            <strong>{mirrorsComplete} of 4</strong> complete · ~3 hrs remaining
+            <strong>{mirrorsComplete} of 4</strong> complete{remainingLabel && ` · ${remainingLabel}`}
           </div>
         </div>
         <A1FutureBCard rc={rc} />
@@ -29900,7 +29901,7 @@ function NewA1Grid({
               Your internal why — independent of role.
             </p>
             <A1FutureBThread rc={rc} mirror="purpose" />
-            <MirrorPips done={doneCount} total={4} />
+            <MirrorPips done={doneCount} total={3} />
             <div
               className="na1-mirror-card-empty"
               style={
@@ -29925,7 +29926,7 @@ function NewA1Grid({
                 {purposeCtaLabel}
               </button>
               <span className="na1-mirror-card-meta">
-                4 exercises · 4 videos
+                3 exercises · 3 videos
               </span>
             </div>
           </article>
@@ -30187,14 +30188,6 @@ function NewA1Grid({
 const NA1_EXERCISES = [
   {
     n: 1,
-    key: "sym",
-    name: "Owned Symptoms",
-    tone: "burgundy",
-    subtitle: "The cost — what you've been holding back.",
-    threshold: "Stepping into the room with Katherine…",
-  },
-  {
-    n: 2,
     key: "to",
     name: "True Ownership",
     tone: "gold",
@@ -30202,7 +30195,7 @@ const NA1_EXERCISES = [
     threshold: "Imagining the owner…",
   },
   {
-    n: 3,
+    n: 2,
     key: "peel",
     name: "The Peel",
     tone: "cyan",
@@ -30210,7 +30203,7 @@ const NA1_EXERCISES = [
     threshold: "Going deeper with Katherine…",
   },
   {
-    n: 4,
+    n: 3,
     key: "declare",
     name: "Declare",
     tone: "gold",
@@ -30243,11 +30236,12 @@ function NewA1Explore({
   dimmed: boolean;
 }) {
   const [videoOpen, setVideoOpen] = useState(false);
-  const doneArr = [progress.ex1, progress.ex2, progress.ex3, progress.ex4];
+  const doneArr = purposeSteps(progress);
   const firstIncomplete = doneArr.findIndex((d) => !d);
-  const currentIdx = firstIncomplete === -1 ? 3 : firstIncomplete;
+  const currentIdx = firstIncomplete === -1 ? 2 : firstIncomplete;
   // Status strip values — kept computed for when SHOW_STATUS_STRIP flips back on.
-  const symHoldback = String(loadDataSync("a1_sym_holdback") || "").trim();
+  const symHoldback = purposeHoldback(loadDataSync("a1_sym_holdback"),
+    loadDataSync(KEYS.map), loadRCState().tuesday).text;
   const toAnswers: any[] = Array.isArray(loadDataSync("a1_to_answers"))
     ? loadDataSync("a1_to_answers")
     : [];
@@ -30272,7 +30266,7 @@ function NewA1Explore({
       </div>
       <h1 className="na1-ex-title">Purpose</h1>
       <p className="na1-ex-sub">
-        Four exercises. Katherine guides each one with a short video. When she
+        Three exercises. Katherine guides each one with a short video. When she
         says <em>"come to your space"</em> — tap the active exercise below.
       </p>
       <p className="na1-ex-foot-sub">
@@ -30328,8 +30322,9 @@ function NewA1Explore({
       <div className="na1-ex-list">
         {NA1_EXERCISES.map((ex, idx) => {
           const isDone = doneArr[idx];
-          // Strict sequence: ex1 always unlocked; each subsequent unlocks only when previous _done flag is set.
-          const isUnlocked = idx === 0 || doneArr[idx - 1];
+          // Follow the active sequence without re-locking saved drafts or claims.
+          const isUnlocked = purposeRoomUnlocked(ex.key, progress,
+            loadDataSync(KEYS.map) || {}, loadDataSync("a1_peel_draft"), isDevPreview());
           const isCurrent = isUnlocked && !isDone && idx === currentIdx;
           const isLocked = !isUnlocked;
           const cls = [
@@ -30838,7 +30833,8 @@ function NewA1TrueOwnershipBody({
   onSaved: () => void;
   onClose: () => void;
 }) {
-  const holdback = String(loadDataSync("a1_sym_holdback") || "").trim();
+  const holdback = purposeHoldback(loadDataSync("a1_sym_holdback"),
+    loadDataSync(KEYS.map), loadRCState().tuesday);
   const wasDone = !!loadDataSync("a1_ex2_done");
   const loadedRaw = loadDataSync("a1_to_answers");
   const initialAnswers: TOAnswer[] =
@@ -31089,12 +31085,12 @@ function NewA1TOHeader({
 }: {
   curQ: number;
   wasDone: boolean;
-  holdback: string;
+  holdback: ReturnType<typeof purposeHoldback>;
 }) {
   return (
     <>
       <div className="na1-room-eyebrow tone-gold">
-        Mirror 3 · Exercise 2 · True Ownership
+        Mirror 3 · Exercise 1 · True Ownership
       </div>
       <div
         className="na1-substep-dots"
@@ -31123,9 +31119,10 @@ function NewA1TOHeader({
           <span>You already explored this · edit any time.</span>
         </div>
       )}
-      {curQ === 0 && holdback && (
+      {curQ === 0 && holdback.text && (
         <div className="na1-q1-callout">
-          You named your one thing: <span className="quoted">"{holdback}"</span>
+          {holdback.fromRealityCheck ? "In your Reality Check you wrote: " : "You named your one thing: "}
+          <span className="quoted">"{holdback.text}"</span>
           . Now imagine life without it. These six questions paint the picture.
         </div>
       )}
@@ -31373,7 +31370,7 @@ function NewA1PeelBody({
         </button>
       )}
       <div className="na1-room-eyebrow tone-cyan">
-        Mirror 3 · Exercise 3 · The Peel
+        Mirror 3 · Exercise 2 · The Peel
       </div>
       <h2 className="na1-room-title">The Peel</h2>
       <p className="na1-room-context">
@@ -31755,7 +31752,7 @@ function NewA1DeclareBody({
         className={`na1-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
         <div className="na1-room-eyebrow tone-gold">
-          Mirror 3 · Exercise 4 · Declare
+          Mirror 3 · Exercise 3 · Declare
         </div>
         <h2 className="na1-room-title">
           {/* Ship 5.5g-A1 · prepend vocative when name resolves. Drops the
@@ -31778,6 +31775,9 @@ function NewA1DeclareBody({
               that feels more true. Two or three words. Italic. Yours.
             </>
           )}
+        </p>
+        <p className="purpose-declare-helper">
+          Your why comes from what you stand for and what you carry.
         </p>
         {wasDone && (
           <div className="na1-edit-banner">
@@ -36303,7 +36303,7 @@ function NewA2HubView({
   // A2 Ship 2 · Mirror 3 completion, read once at mount like the others. Only
   // meaningful when m3Unlocked, but the card guards on m3Unlocked first.
   const m3Claimed = useMemo(() => loadA2State().m3.claimed, []);
-  const mirrorsComplete = (m1Claimed ? 1 : 0) + (m2Claimed ? 1 : 0);
+  const mirrorsComplete = (m1Claimed ? 1 : 0) + (m2Claimed ? 1 : 0) + (m3Claimed ? 1 : 0);
   return (
     <div className="na1-root">
       <div className="na1-shell">
@@ -36326,7 +36326,8 @@ function NewA2HubView({
             </h1>
           </div>
           <div className="na1-hero-meta">
-            <strong>{mirrorsComplete} of 3</strong> complete · ~40 min
+            <strong>{mirrorsComplete} of 3</strong> complete
+            {mirrorsComplete < 3 && ` · ${remainingTimeLabel(a2RemainingMinutes(loadA2State()))}`}
           </div>
         </div>
         <div className="na1-mirror-grid">
@@ -51359,11 +51360,18 @@ function NewA1View({
     setRawView(old => rcGuard(typeof next === "function" ? next(old) : next));
   const rcResumeRef = useRef(savedRouteRef.current?.view === "rcroom");
   // Tracks the currently open M3/M4 room overlay for persistence.
-  // M1/M2 (explore/explore2) overlay restoration is out of scope —
-  // their per-view restoration falls out naturally from `view` alone.
+  // Active Purpose rooms resume without a veil; retired room keys are ignored.
   const [overlayRoute, setOverlayRoute] = useState<AppRouteOverlay>(() => {
     const saved = savedRouteRef.current;
     if (!saved || !saved.overlay) return null;
+    if (saved.overlay.hubId === "m1" && saved.view === "explore") {
+      return purposeRoomUnlocked(saved.overlay.roomId, {
+        ex2: !!loadDataSync("a1_ex2_done"),
+        ex3: !!loadDataSync("a1_ex3_done"),
+        ex4: !!loadDataSync("a1_ex4_done"),
+      }, loadDataSync(KEYS.map) || {}, loadDataSync("a1_peel_draft"), isDevPreview())
+        ? saved.overlay : null;
+    }
     if (saved.overlay.hubId === "m3" || saved.overlay.hubId === "m4") {
       // Only restore the overlay if the saved hub matches the saved view.
       if (saved.view === saved.overlay.hubId) return saved.overlay;
@@ -51533,6 +51541,7 @@ function NewA1View({
       view !== "a5m1" &&
       view !== "a5c" &&
       view !== "a5r" &&
+      view !== "explore" &&
       view !== "explore2" &&
       overlayRoute != null
     ) {
@@ -51740,7 +51749,11 @@ function NewA1View({
       return next;
     });
   }, []);
-  const [openEx, setOpenEx] = useState<NA1Exercise | null>(null);
+  const restoredPurpose = useRef<NA1Exercise | null>(
+    overlayRoute?.hubId === "m1"
+      ? NA1_EXERCISES.find(e => e.key === overlayRoute.roomId) ?? null : null,
+  ).current;
+  const [openEx, setOpenEx] = useState<NA1Exercise | null>(restoredPurpose);
   // A refresh with a Vision 10-year room open reopens it straight away (no veil).
   const restoredM2 = useRef<M2Exercise | null>(
     overlayRoute && overlayRoute.hubId === "explore2"
@@ -51749,7 +51762,7 @@ function NewA1View({
   ).current;
   const resumeM2Ref = useRef<boolean>(restoredM2 != null);
   const [openM2Ex, setOpenM2Ex] = useState<M2Exercise | null>(restoredM2);
-  const [roomOpen, setRoomOpen] = useState(restoredM2 != null);
+  const [roomOpen, setRoomOpen] = useState(restoredPurpose != null || restoredM2 != null);
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
   // One-shot flag for the Peel → Declare auto-nav. Set by onReadyToDeclare
@@ -51813,8 +51826,7 @@ function NewA1View({
   }, [view, roomOpen]);
   // Ship 5.6d · A1 is "claimed" once all four mirrors are complete. Drives
   // the spine's 01·All In vertebra (claimed badge vs. "You are here" glow).
-  const purposeComplete =
-    progress.ex1 && progress.ex2 && progress.ex3 && progress.ex4;
+  const purposeComplete = purposeSteps(progress).every(Boolean);
   const visionComplete = m2Progress.complete;
   const a1Complete =
     purposeComplete && visionComplete && m3Complete && m4Complete;
@@ -51933,6 +51945,8 @@ function NewA1View({
   };
   useEffect(() => () => clearTimers(), []);
   const launchRoom = (ex: NA1Exercise) => {
+    if (!purposeRoomUnlocked(ex.key, progress, loadDataSync(KEYS.map) || {},
+      loadDataSync("a1_peel_draft"), isDevPreview())) return;
     clearTimers();
     setOpenEx(ex);
     setVeilPhase("rising");
@@ -51954,6 +51968,12 @@ function NewA1View({
       }, NA1_VEIL_TIMING.idleAt),
     );
   };
+  // Keep only active Purpose rooms in the existing route store.
+  useEffect(() => {
+    if (view !== "explore") return;
+    const next: AppRouteOverlay = roomOpen && openEx ? { hubId: "m1", roomId: openEx.key } : null;
+    setOverlayRoute(prev => prev?.hubId === next?.hubId && prev?.roomId === next?.roomId ? prev : next);
+  }, [view, roomOpen, openEx]);
   // Report an open Vision 10-year room to the route so a refresh can restore it.
   useEffect(() => {
     if (view !== "explore2") return;
@@ -52031,9 +52051,9 @@ function NewA1View({
             open={roomOpen}
             onClose={closeRoom}
           >
-            {openEx.key === "sym" ? (
-              <NewA1OwnedSymptomsBody onSaved={closeRoom} onClose={closeRoom} />
-            ) : openEx.key === "to" ? (
+            <PurposeContextFrame kind={openEx.key} rc={loadRCState()}
+              values={loadMirror4State()} identity={(loadDataSync(KEYS.map) as any)?.mirror3}>
+            {openEx.key === "to" ? (
               <NewA1TrueOwnershipBody onSaved={closeRoom} onClose={closeRoom} />
             ) : openEx.key === "peel" ? (
               <NewA1PeelBody
@@ -52078,6 +52098,7 @@ function NewA1View({
             ) : (
               <NewA1RoomPlaceholderBody exercise={openEx} onClose={closeRoom} />
             )}
+            </PurposeContextFrame>
           </NewA1RoomShell>
         )}
         {veilPhase !== "idle" && openEx && (
@@ -69607,6 +69628,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
 // ─── My Map of Me · standalone viewing surface ─────────────────────
 function MapOfMePage({ onBack }: any) {
   const [map, setMap] = useState<any>({});
+  const holdback = purposeHoldback(loadDataSync("a1_sym_holdback"), map, loadRCState().tuesday);
   useEffect(() => {
     (async () => {
       const m = await loadData(KEYS.map);
@@ -70116,6 +70138,14 @@ function MapOfMePage({ onBack }: any) {
           >
             "{purposeText || "(not yet captured)"}"
           </div>
+          {holdback.text && <div style={{ marginTop: 14 }}>
+            <div style={{ fontFamily: "var(--f-label)", fontSize: 13, color: "var(--text3)" }}>
+              What I was holding back
+            </div>
+            <div style={{ fontFamily: "var(--f-body)", fontStyle: "italic", color: "var(--text)" }}>
+              {holdback.text}
+            </div>
+          </div>}
         </SubCard>
 
         <SubCard title="Where I'm going" phaseCode="A1">

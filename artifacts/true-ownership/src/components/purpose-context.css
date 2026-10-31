@@ -1,0 +1,18 @@
+.purpose-context-frame { min-width: 0; }
+.purpose-context-layout { display: grid; grid-template-columns: minmax(110px, 24%) minmax(0, 1fr); gap: 18px; align-items: start; }
+.purpose-context-main { min-width: 0; }
+.purpose-named-context { border-left: 2px solid #A5875E; padding: 2px 0 2px 12px; overflow-wrap: anywhere; }
+.purpose-named-context > div + div { margin-top: 16px; }
+.purpose-named-context span { font-family: var(--f-label); font-size: 12px; font-weight: 400; color: #735F43; }
+.purpose-named-context p { font-family: var(--f-body); font-style: italic; font-size: 18px; color: var(--na1-text, var(--text)); margin: 5px 0 0; line-height: 1.4; }
+.purpose-future-prompt { color: #735F43; font-family: var(--f-label); font-size: 13px; font-weight: 400; line-height: 1.5; margin: 0 0 18px; overflow-wrap: anywhere; }
+.purpose-future-prompt em { font-family: var(--f-body); font-size: 18px; }
+.purpose-declare-helper { font-family: var(--f-body); font-style: italic; font-size: 18px; line-height: 1.4; color: var(--na1-text-sec, var(--text2)); margin: 0 0 18px; }
+[data-theme="dark"] .purpose-named-context span,
+[data-theme="dark"] .purpose-future-prompt { color: #A5875E; }
+@media (max-width: 600px) {
+  .purpose-context-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .purpose-named-context { display: flex; flex-wrap: wrap; gap: 12px 20px; }
+  .purpose-named-context > div { flex: 1 1 120px; min-width: 0; }
+  .purpose-named-context > div + div { margin-top: 0; }
+}
