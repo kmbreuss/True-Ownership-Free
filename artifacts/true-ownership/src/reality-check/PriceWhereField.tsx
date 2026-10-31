@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef } from "react";
 
-/** Keep the saved answer intact; only its visible editing height is capped. */
+/** The approved ledger exposes the entire answer, with no line limit. */
 export function PriceWhereField({ value, placeholder, onChange }: {
   value: string; placeholder: string; onChange: (value: string) => void;
 }) {
@@ -16,10 +16,8 @@ export function PriceWhereField({ value, placeholder, onChange }: {
       const padding = parseFloat(css.paddingTop) + parseFloat(css.paddingBottom);
       const border = parseFloat(css.borderTopWidth) + parseFloat(css.borderBottomWidth);
       el.style.setProperty("--rc-where-height", "0px");
-      // scrollHeight is integer-rounded; keep the actual line-height fractional
-      // so two complete line boxes fit without rounding the content area down.
-      const lines = el.scrollHeight > Math.round(line + padding) ? 2 : 1;
-      const height = lines * line + padding + border;
+      // One extra pixel protects the final fractional line from integer rounding.
+      const height = Math.max(line + padding + border, el.scrollHeight + border + 1);
       el.style.setProperty("--rc-where-height", `${height}px`);
     };
     const scheduleResize = () => {

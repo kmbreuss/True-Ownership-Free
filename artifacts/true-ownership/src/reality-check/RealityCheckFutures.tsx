@@ -1,12 +1,15 @@
 import React, { useRef, useState } from "react";
 import { RC_EYES_AUDIO_URL, RC_LABEL, RC_DEFAULT_LABEL, type RCState } from "../rcConstants";
-import { annualAmounts, futureAReadback, journeyMonth, endClean, defaultList } from "./rcJourney";
+import { annualAmounts, endClean, defaultList } from "./rcJourney";
 import { summaryInYou } from "./summaryWords";
+import { Feelings } from "./RCFeelings";
+import { FutureABeats, CompoundTimeline, OctoberLetter } from "./RCFutureScenes";
 
 type Props = {
   state: RCState; update: (s: RCState) => void;
   act: (s: RCState, complete?: boolean, burst?: boolean) => void;
   closeSaved: () => void;
+  arriving?: boolean;
 };
 // Long answers remain available a short section at a time, not in a clipped block.
 export function OwnWords({ text }: { text: string }) {
@@ -17,23 +20,14 @@ export function OwnWords({ text }: { text: string }) {
     {pages > 1 && <nav aria-label="Read all my words"><button disabled={current === 0} onClick={() => setPage(current - 1)}>← Earlier words</button><span>{current + 1}/{pages}</span><button disabled={current === pages - 1} onClick={() => setPage(current + 1)}>More of my words →</button></nav>}
   </div>;
 }
-function Feelings({ base, value, change }: { base: string[]; value: string[]; change: (v: string[]) => void }) {
-  const custom = value.find(v => !base.includes(v)) ?? "";
-  const [own, setOwn] = useState(!!custom);
-  return <div className="rc-feelings"><div className="rc-feeling-chips">{base.map(word => <button key={word} aria-pressed={value.includes(word)} onClick={() => change(value.includes(word) ? value.filter(v => v !== word) : [...value, word])}>{word}</button>)}
-    {!own && <button aria-expanded={false} onClick={() => setOwn(true)}>+ My own</button>}
-    {own && <label className="rc-custom-feeling"><span className="rc-sr-only">My own feeling</span><input aria-label="My own feeling" placeholder="My own feeling" value={custom} onChange={e => change([...value.filter(v => base.includes(v)), ...(e.target.value ? [e.target.value] : [])])} /><button aria-label="Hide my own feeling" onClick={e => { e.preventDefault(); setOwn(false); }}>×</button></label>}</div>
-  </div>;
-}
 function Chapter({ children }: { children: React.ReactNode }) { return <p className="rc-eyebrow">{children}</p>; }
-export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props) {
+export function RealityCheckFutures({ state: s, update, act, closeSaved, arriving }: Props) {
   const audio = useRef<HTMLAudioElement>(null);
   const [audioError, setAudioError] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const area = RC_LABEL[s.focus ?? "self"], lower = area.toLowerCase(), month = journeyMonth(s);
+  const area = RC_LABEL[s.focus ?? "self"], lower = area.toLowerCase();
   const defaults = defaultList(s);
   const amounts = annualAmounts(s);
-  const aText = futureAReadback(s);
   if (s.step === 5) return <div className="rc-scene rc-eyes">
     <em className="rc-katherine">Katherine</em><h2>Now close your eyes.</h2>
     <p>It's twelve months from now. Nothing has changed. Same {lower}. Same Tuesdays. Breathe, and let yourself see it.</p>
@@ -46,21 +40,8 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
       {audioError && <p role="alert">The audio could not load. You can continue without it.</p>}
     </div>}
   </div>;
-  if (s.step === 6) return <div className="rc-scene">
-    <Chapter>ONE YEAR FROM NOW</Chapter><h2>It's next {month}.</h2>
-    {aText && <div className="rc-full-reflection"><p><em>{aText.split(/(\$[\d,]+(?:\.\d+)?|[\d,]+(?:\.\d+)? hours)/g).map((text, i) => /^\$|^[\d,]+(?:\.\d+)? hours$/.test(text) ? <strong key={i}>{text}</strong> : text)}</em></p></div>}
-    <p className="rc-small">Every line here is yours, from the last few minutes.</p>
-  </div>;
-  if (s.step === 7) return <div className="rc-scene rc-compound">
-    <h2>It doesn't stay the same. It compounds.</h2>
-    {(amounts.money || amounts.hours) && <div className="rc-compound-grid">{[1, 3, 5].map(years => {
-      const total = annualAmounts(s, years, "threshold");
-      return <section className="rc-future-tile" key={years}><h3>{years} {years === 1 ? "YEAR" : "YEARS"}</h3><strong>{[total.money, total.hours].filter(Boolean).join(" · ")}</strong></section>;
-    })}</div>}
-    <label>By then, how does it feel?</label>
-    <Feelings base={["Heavier", "Resentful", "Numb", "Exhausted", "Stuck"]} value={s.compound.feels} change={feels => update({ ...s, compound: { ...s.compound, feels } })} />
-    <label>What has it cost you by then?<input placeholder={s.focus === "time" ? "More missed moments · the work that never gets done" : s.focus === "wealth" ? "The things I keep putting off · what I can't afford" : "The way I treat myself · what I no longer do"} value={s.compound.results} onChange={e => update({ ...s, compound: { ...s.compound, results: e.target.value } })} /></label>
-  </div>;
+  if (s.step === 6) return <FutureABeats state={s} update={update} arriving={arriving} />;
+  if (s.step === 7) return <CompoundTimeline state={s} update={update} arriving={arriving} />;
   if (s.step === 8) {
     const five = annualAmounts(s, 5, "always");
     return <div className="rc-scene rc-future-b">
@@ -72,14 +53,7 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
       </label>
     </div>;
   }
-  if (s.step === 9) return <div className="rc-scene">
-    <h2>Next {month}. You're on your way.</h2><p className="rc-bronze"><em>Five years starts with this one.</em></p>
-    <label>What will you be doing by next {month}?<input value={s.futureB1.doing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, doing: e.target.value } })} /></label>
-    <label>What's the one thing you'd do differently, starting this week?
-      <input required aria-label="My one thing this week" value={s.futureB1.oneThing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, oneThing: e.target.value } })} />
-    </label>
-    <p className="rc-support-note">→ This becomes the first promise waiting for you in A4.</p>
-  </div>;
+  if (s.step === 9) return <OctoberLetter state={s} update={update} />;
   if (s.step === 10) return <div className="rc-scene">
     <h2>Which future are you building?</h2><p>Both are real. Only one is yours to choose today.</p>
     <div className="rc-choice-grid">

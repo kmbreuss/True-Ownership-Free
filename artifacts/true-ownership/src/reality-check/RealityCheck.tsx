@@ -11,6 +11,7 @@ import { useRCAccess } from "./access";
 import "./reality-check.css";
 import "./rc-polish.css";
 import "./rc-true-size.css";
+import "./rc-updated-scenes.css";
 
 const STAGES = ["The mirror", "A Tuesday", "The price", "Two futures", "Choose"];
 const ROWS = [
@@ -32,6 +33,8 @@ export function RealityCheck({
   const [state, setState] = useState(loadRCState);
   const [phone, setPhone] = useState(() => window.matchMedia("(max-width:600px)").matches);
   const [mirrorPaged, setMirrorPaged] = useState(phone);
+  const [revealStep, setRevealStep] = useState<number | null>(null);
+  useEffect(() => { if (!room) setRevealStep(null); }, [room]);
   useEffect(() => {
     const media = window.matchMedia("(max-width:600px)");
     const changed = () => setPhone(media.matches);
@@ -101,13 +104,16 @@ export function RealityCheck({
     ? state.focus ? `Start with ${RC_LABEL[state.focus]} →` : "Choose an area →"
     : state.step === 3 ? "Show me the price →" : state.step === 4 ? "Close your eyes →"
     : state.step === 5 ? "Show me →" : state.step === 6 ? "Keep going →" : state.step === 7 ? "And if you own it? →"
-    : state.step === 8 ? "Bring it back to one year →" : "Choose →";
+    : state.step === 8 ? "Bring it back to one year →" : "Choose my future →";
   const advance = () => {
     if (!canAdvance) return;
     if (state.step === 0 && !people) { showPeople(true); return; }
-    update({ ...state, step: Math.min(13, state.step + 1) });
+    const next = Math.min(13, state.step + 1);
+    setRevealStep(!state.complete && next > (state.maxReached ?? state.step) && [6, 7].includes(next) ? next : null);
+    update({ ...state, step: next });
   };
   const back = () => {
+    setRevealStep(null);
     if (join) { setJoin(false); return; }
     if (state.step === 0) { if (people) showPeople(false); else onClose(); return; }
     if (state.step === 1) showPeople(true);
@@ -164,7 +170,7 @@ export function RealityCheck({
           {state.step >= 6 && state.step <= 9 && <div className={`rc-future-label ${state.step <= 7 ? "is-a" : "is-b"}`}><strong>FUTURE {state.step <= 7 ? "A" : "B"}</strong><span>{state.step <= 7 ? "If nothing changes" : "If you own it"}</span></div>}
           {join ? <div className="rc-scene"><p className="rc-eyebrow">TRUE OWNERSHIP™</p><h2>Start building Future B.</h2><p>Joining will be available here. Everything you wrote is saved.</p><p>[YOUR PRICE] · everything you wrote today comes with you.</p></div>
             : state.step < 5 ? <RealityCheckScreens state={state} update={update} phone={phone} people={people} mirrorPaged={mirrorPaged} onMirrorLayout={setMirrorPaged} />
-            : <RealityCheckFutures state={state} update={update} act={act} closeSaved={() => { setSavedMessage(true); onClose(); }} />}
+            : <RealityCheckFutures state={state} update={update} arriving={revealStep === state.step} act={act} closeSaved={() => { setSavedMessage(true); onClose(); }} />}
         </div>
         {error && <p role="alert">{error}</p>}
         </div>

@@ -6,6 +6,7 @@ import {
 import { annualAmounts, defaultList } from "./rcJourney";
 import { PriceWhereField } from "./PriceWhereField";
 import { useMirrorLayout } from "./useMirrorLayout";
+import { LedgerNumber } from "./RCAnswerFields";
 
 type Props = { state: RCState; update: (state: RCState) => void; phone?: boolean };
 export function RCVideo() {
@@ -100,17 +101,18 @@ export function RealityCheckScreens({ state: s, update, phone = false, people = 
     return <div className="rc-scene rc-price">
       <h2>Where are you leaking power?</h2>
       <p>What is the way your {lower} runs costing you? Your best guess is fine.</p>
-      <div className="rc-price-grid">
-        <section className="rc-price-tile"><h3>IN MONEY</h3>
-          <label className="rc-number-line"><span>About $</span><input aria-label="About dollars a month" type="number" inputMode="numeric" min="0" step="1" value={s.cost.monthly === null ? "" : Math.round(s.cost.monthly)} onChange={e => { const n = number(e.target.value); setCost({ monthly: n === null ? null : Math.round(n) }); }} /><span>a month</span></label>
-          <label>Where does it go?<PriceWhereField placeholder={placeholder.money} value={s.cost.moneyWhere} onChange={value => setCost({ moneyWhere: value })} /></label>
+      <div className="rc-price-ledger">
+        <div className="rc-ledger-head"><span /><span>How much</span><span>Where it goes</span></div>
+        <section className="rc-ledger-row"><h3>IN MONEY</h3>
+          <LedgerNumber money value={s.cost.monthly} onChange={monthly => setCost({ monthly })} />
+          <label><span className="rc-sr-only">Where does it go?</span><PriceWhereField placeholder="Where does it go?" value={s.cost.moneyWhere} onChange={moneyWhere => setCost({ moneyWhere })} /></label>
         </section>
-        <section className="rc-price-tile"><h3>IN HOURS</h3>
-          <label className="rc-number-line"><span>About</span><input aria-label="About hours a week" type="number" inputMode="decimal" min="0" step="any" value={s.cost.hoursPerWeek ?? ""} onChange={e => setCost({ hoursPerWeek: number(e.target.value) })} /><span>hours a week</span></label>
-          <label>Where do they go?<PriceWhereField placeholder={placeholder.hours} value={s.cost.hoursWhere} onChange={value => setCost({ hoursWhere: value })} /></label>
+        <section className="rc-ledger-row"><h3>IN HOURS</h3>
+          <LedgerNumber value={s.cost.hoursPerWeek} onChange={hoursPerWeek => setCost({ hoursPerWeek })} />
+          <label><span className="rc-sr-only">Where do they go?</span><PriceWhereField placeholder="Where do they go?" value={s.cost.hoursWhere} onChange={hoursWhere => setCost({ hoursWhere })} /></label>
         </section>
-        <section className="rc-price-tile"><h3>IN YOU</h3>
-          <label>What is it costing you?<PriceWhereField placeholder={placeholder.you} value={s.cost.you} onChange={value => setCost({ you: value })} /></label>
+        <section className="rc-ledger-row"><h3>IN YOU</h3><span className="rc-ledger-empty" />
+          <label><span className="rc-sr-only">What is it costing you?</span><PriceWhereField placeholder="What is it costing you?" value={s.cost.you} onChange={you => setCost({ you })} /></label>
         </section>
       </div>
       <div className={`rc-summary ${summary ? "has-summary" : ""}`} aria-live="polite">{summary && <p>{totals.money || totals.hours ? <>Over a year, that's about {totals.money && <strong>{totals.money}</strong>}{totals.money && totals.hours && " and "}{totals.hours && <strong>{totals.hours}</strong>}. And you're paying too.</> : summary}</p>}<em>This isn't blame. It's the diagnosis. And it can change.</em></div>

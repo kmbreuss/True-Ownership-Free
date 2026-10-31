@@ -131,7 +131,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
       assert((result.headerOverlap || 0) <= 1 && result.footerOverlap <= 1, `${label}: progress/footer must never overlap painted content`);
       assert(result.allContentReachable !== false, `${label}: the entire scene must remain reachable`);
       if (result.headingSize) {
-        const sizes = {2:"34px",5:"32px",11:"30px",12:"32px",13:"30px"};
+        const sizes = {2:"34px",5:"32px",6:"30px",11:"30px",12:"32px",13:"30px"};
         const expected = label.includes("join-placeholder") ? "23px" : page.viewportSize().width <= 600 ? "23px" : sizes[result.step] || "28px";
         assert.equal(result.headingSize, expected, "Scene headings follow the approved scene-specific sizes.");
       }
@@ -167,8 +167,8 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("button", { name: "Start with Wealth →", exact: true }).click();
     await page.getByRole("textbox", { name: "Your ordinary Tuesday", exact: true }).fill("PREVIEW WALKTHROUGH ONLY");
     await page.getByRole("button", { name: "Show me the price →", exact: true }).click();
-    await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("100");
-    await page.getByRole("spinbutton", { name: "About hours a week", exact: true }).fill("2");
+    await page.getByRole("textbox", { name: "About dollars a month", exact: true }).fill("100");
+    await page.getByRole("textbox", { name: "About hours a week", exact: true }).fill("2");
     assert.match(await page.locator(".rc-summary").innerText(), /\$1,200 and 104 hours/);
     assert.equal(await page.locator(".rc-summary strong").count(), 2);
     await page.getByRole("button", { name: "Close your eyes →", exact: true }).click();
@@ -179,12 +179,13 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("textbox", { name: "My Future B Tuesday", exact: true }).fill("I have room to breathe.");
     await page.getByRole("button", { name: "Bring it back to one year →", exact: true }).click();
     await page.getByRole("textbox", { name: "My one thing this week", exact: true }).fill("Commit to a quiet hour.");
-    await page.getByRole("button", { name: "Choose →", exact: true }).click();
+    await page.getByRole("button", { name: "Choose my future →", exact: true }).click();
     await page.getByRole("button", { name: /I choose this one →/ }).click();
     await page.getByRole("button", { name: "Yes, I'm willing", exact: true }).click();
     assert.equal(await page.evaluate(async () => (await import("/src/rcConstants.ts")).loadRCState().complete), true);
     assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort())), before);
     assert.equal(writes.length, 0, "Preview All must not attempt account writes.");
+    await require("./rc-updated-checks.cjs")({ page, render, metric, seed, key, writes });
 
     for (const width of [375, 600, 601, 1366]) {
       await render({ ...seed, step: 0 }, "light", { width, height: width === 1366 ? 680 : 812 });
@@ -306,7 +307,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     }
     await render({ ...initial.empty, step: 4, focus: "self" });
     assert.equal(await page.locator(".rc-summary.has-summary").count(), 0);
-    await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("0");
+    await page.getByRole("textbox", { name: "About dollars a month", exact: true }).fill("0");
     assert.match(await page.locator(".rc-summary").innerText(), /\$0/);
 
     // A short desktop window uses the same ordered six-card gate as a phone.
@@ -371,9 +372,9 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("textbox", { name: "My Future B Tuesday", exact: true }).fill("I have room for me.");
     await page.getByRole("button", { name: "Bring it back to one year →", exact: true }).click();
     await page.getByRole("textbox", { name: "My one thing this week", exact: true }).fill("");
-    assert.equal(await page.getByRole("button", { name: "Choose →", exact: true }).isDisabled(), true);
+    assert.equal(await page.getByRole("button", { name: "Choose my future →", exact: true }).isDisabled(), true);
     await page.getByRole("textbox", { name: "My one thing this week", exact: true }).fill("Commit to an hour.");
-    await page.getByRole("button", { name: "Choose →", exact: true }).click();
+    await page.getByRole("button", { name: "Choose my future →", exact: true }).click();
     await page.getByRole("button", { name: /I'll keep things as they are/ }).click();
     await page.getByRole("button", { name: "Save and come back later", exact: true }).click();
     assert.equal(await page.getByRole("status").innerText(), "Your Reality Check is saved. Come back when you're ready.");
@@ -381,7 +382,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("button", { name: "Continue →", exact: true }).click();
     await page.getByRole("button", { name: "Look at Future B again →", exact: true }).click();
     await page.getByRole("button", { name: "Bring it back to one year →", exact: true }).click();
-    await page.getByRole("button", { name: "Choose →", exact: true }).click();
+    await page.getByRole("button", { name: "Choose my future →", exact: true }).click();
     await page.getByRole("button", { name: /I choose this one →/ }).click();
     await page.getByRole("button", { name: "Not yet", exact: true }).click();
     assert.equal(JSON.parse(await page.evaluate(key => localStorage.getItem(key), key)).complete, false);
@@ -412,7 +413,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "5");
     await page.getByRole("button", { name: "← Back", exact: true }).click();
     assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "4");
-    await page.getByRole("spinbutton", { name: "About dollars a month", exact: true }).fill("200");
+    await page.getByRole("textbox", { name: "About dollars a month", exact: true }).fill("200");
     const revised = JSON.parse(await page.evaluate(key => localStorage.getItem(key), key));
     assert.equal(revised.complete, true); assert.equal(revised.choice, "B");
     assert.equal(revised.cost.whoElse, seed.cost.whoElse);

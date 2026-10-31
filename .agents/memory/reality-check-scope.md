@@ -30,7 +30,7 @@ Additional introductory panels must not shift the meaning of existing saved step
 
 **Why:** The owner approved splitting Opening and Person A/B while explicitly prohibiting changes to stored answers, schemas or resume behaviour.
 
-**How to apply:** Keep the extra introductory panel as view-only state, restore it on refresh without adding userdata fields, and prevent Preview's panel state from being restored into the real-account view.
+**How to apply:** Keep the extra introductory panel as view-only state, restore it on refresh without adding userdata fields, and prevent Preview's panel state from being restored into the real-account view. Future A beats and timeline reveals are likewise presentation-only: animate first forward arrival, never review/refresh, and show immediately for reduced motion without delaying Continue.
 
 The RC start page uses the same centred shell as the A1 hub, with copy and Begin before the full-width video card, then the journey and quote. It may scroll; Begin should be above the fold.
 
@@ -42,7 +42,7 @@ RC review must preserve the owner's choice and completion when earlier answers a
 
 **Why:** The owner explicitly wants to walk back through and edit all saved answers without losing the commitment already made.
 
-**How to apply:** Track reached progress independently from the current screen and derive later reflections from current answers, not cached prose.
+**How to apply:** Track reached progress independently from the current screen and derive later reflections from current answers, not cached prose. Test first-arrival reveals with a genuinely fresh draft advanced forward, not a fully populated review fixture with a lowered step: later saved answers correctly imply reached progress. Do not weaken review detection to make that fixture animate.
 
 The summary's “in you” words are lower-case prose joined as a list; this is not permission to change the saved answer or its presentation elsewhere.
 
