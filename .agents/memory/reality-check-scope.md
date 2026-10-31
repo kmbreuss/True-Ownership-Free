@@ -25,3 +25,9 @@ RC journey acceptance includes 1366×680 and 1280×800 desktop plus 375×812 pho
 **Why:** The owner's review found the initial desktop layout too tall; the replacement journey brief explicitly extends the one-scene constraint to phones.
 
 **How to apply:** Collapse optional explanations and compact spacing before reducing essential text. Do not count a signed-out screenshot or a successful build as proof of signed-in fit.
+
+The redesigned phone start page is an exception to the room's one-screen rule: Begin must be above the fold, but its vertical five-stop journey and closing quote may continue below it.
+
+**Why:** The updated start-page brief explicitly specifies this order, and the owner approved that interpretation before implementation.
+
+**How to apply:** Keep room scenes within the viewport; do not truncate the phone hub's journey or shrink its full copy just to force the entire hub onto one screen.

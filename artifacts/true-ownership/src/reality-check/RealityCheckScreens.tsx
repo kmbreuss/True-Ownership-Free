@@ -11,8 +11,8 @@ export function RCVideo() {
     ? <video className="rc-video" controls src={RC_INTRO_VIDEO_URL} aria-label="Katherine introduces the Reality Check" />
     : <div className="rc-video rc-video-empty"><span>WATCH FIRST · KATHERINE</span><h3>Person A or Person B?</h3><p>Video coming soon. You can continue without watching.</p></div>;
 }
-const PERSON_A = ["Already behind. Already reacting.", "Says yes when they mean no.", "Waits for the perfect moment.", "Blames the boss or circumstances."];
-const PERSON_B = ["Knows what matters today.", "Can say no without guilt.", "Owns their results. Owns their life.", "Looks in the mirror first."];
+const PERSON_A = ["Checks the phone before they're awake. Already behind.", "Says yes when they mean no.", "Waits for permission, or the perfect moment.", "Blames the boss, the economy, the circumstances."];
+const PERSON_B = ["Knows exactly what matters today.", "Says no without guilt.", "Owns their results. Owns their life.", "When something goes wrong, looks in the mirror first."];
 const TUESDAY: Record<RCArea, string> = {
   time: "By 9am I am already…", wealth: "When I open the bank app, I feel…",
   self: "By Tuesday afternoon, the way I talk to myself is…",
@@ -36,10 +36,11 @@ export function RealityCheckScreens({ state: s, update }: Props) {
   if (s.step === 0) return <div className="rc-scene rc-opening">
     <em className="rc-katherine">Katherine</em>
     <h2>Maybe the life you built no longer matches who you're becoming.</h2>
-    <p>Let's look honestly. Two people, same week. One is reacting to their life. One is choosing it. Most of us are a little of both.</p>
+    <p>Most of us are a little of both. Two people, same week: one is reacting to their life, one is choosing it.</p>
     <div className="rc-people">{(["A", "B"] as const).map(p => <section key={p} className={`rc-person rc-person-${p}`}>
-      <h3>Person {p}</h3><ul>{(p === "A" ? PERSON_A : PERSON_B).map(line => <li key={line}>{line}</li>)}</ul>
+      <h3>PERSON {p}</h3><p className="rc-person-headline">{p === "A" ? "Drifting, reacting to whatever life hands them." : "Knows where they're headed, and why."}</p><ul>{(p === "A" ? PERSON_A : PERSON_B).map(line => <li key={line}>{line}</li>)}</ul>
     </section>)}</div>
+    <p className="rc-bronze"><em>If you're mostly Person B, good. This finds the one place you're still Person A.</em></p>
     {RC_INTRO_VIDEO_URL && <RCVideo />}
     <p className="rc-helper">About 10 minutes · just you.</p>
   </div>;

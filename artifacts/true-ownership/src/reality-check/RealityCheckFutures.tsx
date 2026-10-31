@@ -20,8 +20,8 @@ function Feelings({ base, value, change }: { base: string[]; value: string[]; ch
   const custom = value.find(v => !base.includes(v)) ?? "";
   const [own, setOwn] = useState(!!custom);
   return <div className="rc-feelings"><div className="rc-feeling-chips">{base.map(word => <button key={word} aria-pressed={value.includes(word)} onClick={() => change(value.includes(word) ? value.filter(v => v !== word) : [...value, word])}>{word}</button>)}
-    <button aria-expanded={own} onClick={() => setOwn(!own)}>+ My own</button></div>
-    {own && <label>My own feeling<input value={custom} onChange={e => change([...value.filter(v => base.includes(v)), ...(e.target.value ? [e.target.value] : [])])} /></label>}
+    {!own && <button aria-expanded={false} onClick={() => setOwn(true)}>+ My own</button>}
+    {own && <label className="rc-custom-feeling"><span className="rc-sr-only">My own feeling</span><input aria-label="My own feeling" placeholder="My own feeling" value={custom} onChange={e => change([...value.filter(v => base.includes(v)), ...(e.target.value ? [e.target.value] : [])])} /><button aria-label="Hide my own feeling" onClick={e => { e.preventDefault(); setOwn(false); }}>×</button></label>}</div>
   </div>;
 }
 function Chapter({ children }: { children: React.ReactNode }) { return <p className="rc-eyebrow">{children}</p>; }
@@ -71,16 +71,16 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved }: Props
       {(five.money || five.hours) && <div className="rc-back-grid">{five.money && <section className="rc-future-tile"><h3>BACK IN YOUR POCKET</h3><strong>{five.money}</strong></section>}{five.hours && <section className="rc-future-tile"><h3>BACK IN YOUR LIFE</h3><strong>{five.hours}</strong></section>}</div>}
       <label>How does it feel?</label><Feelings base={["Free", "Calm", "Proud", "Present", "Light"]} value={s.futureB5.feels} change={feels => update({ ...s, futureB5: { ...s.futureB5, feels } })} />
       <label>What does a Tuesday look like now? Write it as if it's already true.
-        <textarea required aria-label="My Future B Tuesday" value={s.futureB5.tuesday} onChange={e => update({ ...s, futureB5: { ...s.futureB5, tuesday: e.target.value } })} />
+        <textarea rows={3} required aria-label="My Future B Tuesday" value={s.futureB5.tuesday} onChange={e => update({ ...s, futureB5: { ...s.futureB5, tuesday: e.target.value } })} />
       </label>
       <label>Who notices the difference?<input value={s.futureB5.whoNotices} onChange={e => update({ ...s, futureB5: { ...s.futureB5, whoNotices: e.target.value } })} /></label>
     </div>;
   }
   if (s.step === 9) return <div className="rc-scene">
     <Chapter>BRING IT BACK TO ONE YEAR</Chapter><h2>Next {month}. You're on your way.</h2><p>Five years starts with this one.</p>
-    <label>What will you be doing by next {month}?<textarea value={s.futureB1.doing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, doing: e.target.value } })} /></label>
+    <label>What will you be doing by next {month}?<textarea rows={3} value={s.futureB1.doing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, doing: e.target.value } })} /></label>
     <label>What is the one thing you'd need to do differently, starting this week?
-      <textarea required aria-label="My one thing this week" value={s.futureB1.oneThing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, oneThing: e.target.value } })} />
+      <textarea rows={3} required aria-label="My one thing this week" value={s.futureB1.oneThing} onChange={e => update({ ...s, futureB1: { ...s.futureB1, oneThing: e.target.value } })} />
     </label>
     <p className="rc-support-note">→ This becomes the first promise waiting for you in A4. You won't have to start from a blank page.</p>
   </div>;

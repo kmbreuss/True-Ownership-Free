@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState, type ReactNode, type ComponentType 
 import { createPortal } from "react-dom";
 import { isDevPreview } from "../devPreview";
 import { loadRCState, rcReady, RC_LABEL, RC_DEFAULT_LABEL, rcNumber, saveRCState, type RCState } from "../rcConstants";
-import { RealityCheckScreens, RCVideo } from "./RealityCheckScreens";
+import { RealityCheckScreens } from "./RealityCheckScreens";
+import { RCStartVideo } from "./RCStartVideo";
 import { RealityCheckFutures } from "./RealityCheckFutures";
 import { persistRCCompletion, redoDue, startRedo, lastTimeWords } from "./rcJourney";
 import { useRCAccess } from "./access";
@@ -93,23 +94,28 @@ export function RealityCheck({
     <main className="rc-hub">
       {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}</details>}
       <div className="na1-breadcrumb"><button onClick={onEntryHall}>Entry Hall</button><span>›</span><span>Start here</span></div>
-      <p className="rc-eyebrow">START HERE · THE REALITY CHECK</p><h1>Before you start, a reality check.</h1>
-      <p className="rc-hub-lead">Where you are now, and where it leads. Two futures are in front of you. Which one you live depends on what you decide today.</p>
+      <div className="rc-start-top">
+      <div className="rc-start-copy"><p className="rc-eyebrow">START HERE · THE REALITY CHECK</p><h1>Before you start, a reality check.</h1>
+      <p className="rc-hub-lead">Where you are now, and where it leads. Two futures are in front of you.</p>
+      <p className="rc-hub-lead"><em>Which one you live depends on what you decide today.</em></p></div>
+      <RCStartVideo />
       <div className="rc-hub-action">
         <button className="na1-btn-gold rc-begin" onClick={() => {
           const next = { ...state, startedAt: state.startedAt ?? new Date().toISOString() };
           try { saveRCState(next); setState(next); setError(""); onEnter(); }
           catch { setError("Your Reality Check could not be saved. Please try again."); }
-        }}>{state.complete ? "Review" : "Begin"} the Reality Check →</button>
-        <p className="rc-helper">Free · about 10 minutes · saved as you go.</p>
+        }}>{state.complete ? "Review the Reality Check →" : state.startedAt ? "Continue →" : "Begin the Reality Check →"}</button>
+        <p className="rc-helper">About 10 minutes · just you · saved as you go</p>
+      </div>
       </div>
       {savedMessage && <p role="status">Your Reality Check is saved. Come back when you're ready.</p>}
       {redoDue(state) && <div className="rc-redo"><p>It's been 90 days. Ready to look again? Your previous words will stay with you.</p><button onClick={() => {
         if (update(startRedo(state))) { setSavedMessage(false); onEnter(); }
       }}>Begin a new Reality Check →</button></div>}
-      <div className="rc-hub-grid"><section>
-        {STAGES.map((stageName, i) => <div className="rc-hub-row" key={stageName}><span>{i + 1}</span><div><h3>{stageName}</h3><p>{ROWS[i]}</p></div></div>)}
-      </section><aside><RCVideo /><blockquote>Those two futures are real. One of them is where you're headed right now if nothing changes, and the other is what you could be.</blockquote></aside></div>
+      <section className="rc-journey"><p className="rc-eyebrow">YOUR JOURNEY · FIVE STEPS</p>
+        <ol>{STAGES.map((stageName, i) => <li key={stageName}><span className={`rc-stop rc-stop-${i + 1}`}>{i + 1}</span><h3>{stageName}</h3><p><em>{ROWS[i]}</em></p></li>)}</ol>
+      </section>
+      <blockquote className="rc-closing-quote">Those two futures are real. One is where you're headed if nothing changes. The other is what you could be.</blockquote>
       {error && <p role="alert">{error}</p>}
     </main>
     {room && createPortal(<div className="na1-room-overlay na1-a4-overlay is-open rc-overlay">

@@ -1,46 +1,29 @@
-// Authenticated UI acceptance with isolated progress fixtures, never account writes.
+// Synthetic-session UI acceptance. No real credentials, sessions or account writes.
 // Set NODE_PATH to an external Playwright installation and CHROMIUM_PATH if needed.
-// Credentials are read from the environment only, never logged or saved.
+// Protection is proved against a disposable server before app navigation.
 const { chromium } = require("playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const out = path.resolve("generated-artifacts/rc-j2");
-const base = process.env.J1_BASE_URL || (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:80");
+const { installIsolation, proveIsolation } = require("./browser-isolation.cjs");
+const out = path.resolve("generated-artifacts/rc-review");
+const base = process.env.J1_BASE_URL || "http://localhost:80";
 const key = "to_rc_state_v1", routeKey = "to_app_route_v1";
 const url = `${base}/?newRC=1&phase=a1&preview=1`;
 
 (async () => {
-  assert(process.env.J1_LOGIN_EMAIL && process.env.PREVIEW_ACCOUNT_NEW_PASSWORD, "Set the test email and secure password environment variables.");
   fs.mkdirSync(out, { recursive: true });
   const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH || undefined, headless: true, args: ["--no-sandbox"],
   });
-  const context = await browser.newContext({ viewport: { width: 1366, height: 680 } });
+  await proveIsolation(browser);
+  const context = await browser.newContext({ viewport: { width: 1366, height: 680 }, serviceWorkers: "block" });
   context.setDefaultTimeout(10000);
   const page = await context.newPage(), errors = [], writes = [], results = [], failures = [];
   page.on("pageerror", e => errors.push(e.message));
-  // Keep normal authentication intact, but isolate user answers for these tests.
-  // Fail closed for all data writes, including nested userdata URLs. Never use
-  // a glob ending in "userdata**": it does not match nested path segments.
-  await context.route("**/*", async r => {
-    const pathname = new URL(r.request().url()).pathname;
-    if (!pathname.startsWith("/api/userdata")) {
-      if (!["GET", "HEAD", "OPTIONS"].includes(r.request().method()) &&
-          !["/api/auth/login", "/api/auth/logout"].includes(pathname)) return r.abort("blockedbyclient");
-      return r.continue();
-    }
-    if (r.request().method() === "GET") return r.fulfill({ json: { intake: { name: "Preview check" }, phase: "a1" } });
-    writes.push({ method: r.request().method(), preview: new URL(page.url()).searchParams.has("preview") });
-    return r.fulfill({ json: { ok: true } });
-  });
+  const unexpected = [];
+  await installIsolation(context, writes, unexpected);
   try {
-    const login = await context.request.post(`${base}/api/auth/login`, {
-      data: { email: process.env.J1_LOGIN_EMAIL, password: process.env.PREVIEW_ACCOUNT_NEW_PASSWORD },
-    });
-    assert.equal(login.status(), 200, "Normal authentication must succeed.");
-    const me = await context.request.get(`${base}/api/auth/me`);
-    assert((await me.json()).user, "The secure session must be valid on the test origin.");
     await context.addInitScript(() => {
       if (!sessionStorage.getItem("j1-test-initialized")) {
         sessionStorage.setItem("j1-test-initialized", "1");
@@ -54,7 +37,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
       const m = await import("/src/rcConstants.ts");
       return { empty: m.normalizeRC(null), all: m.RC_MIRROR.map(s => s.id) };
     });
-    const seed = { ...initial.empty, mirror: initial.all, focus: "wealth", focusChosenBy: "tie-picked",
+    const seed = { ...initial.empty, startedAt: "2026-10-31T12:00:00.000Z", mirror: initial.all, focus: "wealth", focusChosenBy: "tie-picked",
       tuesday: "By Tuesday I am already carrying everyone's worries, and leaving no time for myself.",
       defaultsNamed: { avoiding: "The conversation I keep putting off", blaming: "Someone else's expectations",
         carrying: "Everyone's worries and unfinished work", hoping: "A raise, a big client, a lucky break" },
@@ -82,7 +65,8 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
         if (!room) {
           const button = document.querySelector(".rc-begin").getBoundingClientRect();
           return { cardOverflow: 0, sceneOverflow: 0, horizontal: Math.max(0, document.documentElement.scrollWidth - innerWidth),
-            footerOverlap: 0, beginVisible: button.bottom <= innerHeight && button.top >= 0 };
+            footerOverlap: 0, beginVisible: button.bottom <= innerHeight && button.top >= 0,
+            hubContentVisible: innerWidth <= 900 || document.querySelector(".rc-closing-quote").getBoundingClientRect().bottom <= innerHeight };
         }
         const screen = document.querySelector(".rc-screen").getBoundingClientRect();
         const scene = document.querySelector(".rc-scene").getBoundingClientRect();
@@ -96,7 +80,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
       results.push({ label, ...result });
       fs.writeFileSync(path.join(out, "progress.json"), JSON.stringify({ results, failures, errors }, null, 2));
       if (result.cardOverflow > 1 || result.sceneOverflow > 1 || result.horizontal > 1 ||
-        result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false) failures.push({ label, ...result });
+        result.footerOverlap > 1 || result.beginVisible === false || result.footerVisible === false || result.hubContentVisible === false) failures.push({ label, ...result });
       await page.screenshot({ path: path.join(out, `${label}.png`) });
     }
     // Actual user interaction through every implemented scene in Preview All.
@@ -131,7 +115,24 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     for (const size of [{ width: 1366, height: 680 }, { width: 1280, height: 800 }, { width: 375, height: 812 }]) {
       for (const theme of ["light", "dark"]) {
         for (const step of ["hub", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]) {
-          await render({ ...seed, step: step === "hub" ? 0 : step }, theme, size, step === "hub" ? "rc" : "rcroom");
+          await render(step === "hub" ? initial.empty : { ...seed, step }, theme, size, step === "hub" ? "rc" : "rcroom");
+          if (step === "hub") {
+            assert.equal(await page.getByRole("button", { name: "Begin the Reality Check →", exact: true }).count(), 1);
+            assert.equal(await page.locator(".rc-stop").count(), 5);
+            assert.equal(await page.getByRole("button", { name: "Play Katherine's introduction", exact: true }).count(), 0);
+            assert(await page.locator(".rc-begin").evaluate(el => el.getBoundingClientRect().height >= 52));
+          }
+          if (step === 0) {
+            assert.equal(await page.locator(".rc-person-headline").count(), 2);
+            assert.equal(await page.locator(".rc-person li").count(), 8);
+            assert.match(await page.locator(".rc-person-A").innerText(), /Drifting, reacting to whatever life hands them/);
+            assert.match(await page.locator(".rc-person-B").innerText(), /Knows where they're headed, and why/);
+          }
+          if (step === 7 || step === 8) {
+            assert(await page.getByRole("textbox", { name: "My own feeling", exact: true }).isVisible());
+            const rows = await page.locator(".rc-feeling-chips").evaluate(el => new Set([...el.children].map(c => Math.round(c.getBoundingClientRect().top))).size);
+            assert(rows <= 2, "Feelings and the open custom input must use at most two rows.");
+          }
           await metric(`${size.width}x${size.height}-${theme}-${step}`);
         }
         for (const step of [11, 12]) {
@@ -198,7 +199,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("button", { name: "Save and come back later", exact: true }).click();
     assert.equal(await page.getByRole("status").innerText(), "Your Reality Check is saved. Come back when you're ready.");
     assert.equal(JSON.parse(await page.evaluate(key => localStorage.getItem(key), key)).complete, false);
-    await page.getByRole("button", { name: "Begin the Reality Check →", exact: true }).click();
+    await page.getByRole("button", { name: "Continue →", exact: true }).click();
     await page.getByRole("button", { name: "Look at Future B again →", exact: true }).click();
     await page.getByRole("button", { name: "Bring it back to one year →", exact: true }).click();
     await page.getByRole("button", { name: "Choose →", exact: true }).click();
@@ -224,7 +225,11 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.getByRole("button", { name: "Start building Future B →", exact: true }).click();
     assert.equal(await page.getByRole("heading", { name: "Start building Future B.", exact: true }).count(), 1);
     await metric("375x812-dark-join-placeholder");
+    await page.locator(".rc-room-header button").click();
+    assert.equal(await page.getByRole("button", { name: "Review the Reality Check →", exact: true }).count(), 1);
     assert(writes.length > 0, "Normal-mode userdata writes must be positively intercepted.");
+    assert.deepEqual(unexpected, [], "No unexpected mutation requests.");
+    assert.equal((await context.cookies()).length, 0, "The fixture must have no real session cookies.");
     assert.deepEqual(errors, [], "No page runtime errors.");
     assert.deepEqual(failures, [], "Every viewport must fit without scrolling/clipping.");
     console.log(`PASS: ${results.length} layout cases; authenticated walkthrough, gate, optional cost, refresh and preview-exit checks.`);
@@ -232,7 +237,6 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     await page.screenshot({ path: path.join(out, "last-state.png") }).catch(() => {});
     fs.writeFileSync(path.join(out, "results.json"), JSON.stringify({ results, failures, errors, writesIntercepted: writes.length }, null, 2));
     console.log(JSON.stringify({ layoutCases: results.length, failures, runtimeErrors: errors }));
-    await context.request.post(`${base}/api/auth/logout`).catch(() => {});
     await browser.close();
   }
 })().catch(e => { console.error(e.message); process.exitCode = 1; });
