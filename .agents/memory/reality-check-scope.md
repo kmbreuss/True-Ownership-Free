@@ -20,7 +20,7 @@ A voluntary 90-day redo must keep prior completed words and the Map reflection a
 
 **How to apply:** Keep completed-round snapshots separate from the new draft. Completion side effects must be idempotent per round and preserve unrelated set-aside items.
 
-RC one-screen acceptance includes phone, intermediate widths and short windows in both themes. A bounded body is a safety fallback for oversized scenes, not a successful one-screen fit; report every fallback with its size and overflow amount.
+RC one-screen acceptance includes phone, intermediate widths and short windows in both themes. Body scrolling with fixed progress/footer is accepted only for long-answer cases. Normal-length overflow is still a fit exception; report its size and amount, never conceal it by clipping.
 
 **Why:** The owner requires progress and footer to remain unobscured at intermediate/short sizes without clipping answers. The adaptive-layout pass keeps oversized content accessible rather than painting it over navigation; the earlier no-scroll goal still determines which scenes must be reported as fit exceptions.
 
@@ -84,7 +84,7 @@ Editable-field fit must include its usable content height, not just its outer re
 
 **Why:** A capped field can pass growth and room-overflow assertions while inherited textarea padding leaves less space than the promised number of complete text lines.
 
-**How to apply:** Check computed line height, padding and borders against actual visible content, and visually inspect loaded and edited multiline answers. The updated Oct 31 visual brief explicitly supersedes the former two-line cap for all three price answers: the ledger answers grow without a line limit, wrap fully and have no underline. Preserve saved values and report genuine whole-room fit exceptions instead of clipping answers.
+**How to apply:** Check computed line height, padding and borders against actual visible content, and visually inspect loaded and edited multiline answers. The price ledger wraps without a line cap or underline. All three ledger answers and both next-year letter answers have a soft 120-character guideline, with counters from 100 onward: never truncate loaded text or block Continue. Longer text may scroll inside the body while progress/footer remain fixed. Lower-case letter insertions are display-only, including during editing; never rewrite stored case merely to improve the sentence.
 
 Browser verification must capture window error events and unhandled rejections as well as uncaught JavaScript exceptions.
 

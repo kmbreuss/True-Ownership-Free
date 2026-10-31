@@ -92,14 +92,14 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
         const endReachable = scene.bottom <= rect.bottom + 1;
         const progress = room.querySelector(".rc-progress").getBoundingClientRect();
         const paintedTop = Math.max(scene.top, rect.top), paintedBottom = Math.min(scene.bottom, rect.bottom);
-        body.scrollTop = body.scrollHeight;
+        body.scrollTo({ top: body.scrollHeight, behavior: "instant" });
         const allContentReachable = document.querySelector(".rc-screen").getBoundingClientRect().bottom <= rect.bottom + 1;
-        body.scrollTop = 0;
+        body.scrollTo({ top: 0, behavior: "instant" });
         const controls = [...body.querySelectorAll("input,textarea,button:not(:disabled),[tabindex='0']")].filter(n => n.getClientRects().length);
         const last = controls.at(-1);
         const lastRect = last?.getBoundingClientRect();
         const keyboardReachable = !lastRect || lastRect.top >= rect.top - 1 && lastRect.bottom <= rect.bottom + 1;
-        body.scrollTop = 0;
+        body.scrollTo({ top: 0, behavior: "instant" });
         const probe = document.createElement("div"); probe.className = "na1-room-card";
         probe.style.cssText = "position:fixed;left:-10000px;pointer-events:none";
         probe.innerHTML = '<button class="na1-room-close">×</button><div class="na1-room-crumb">crumb</div><button class="na1-chip is-selected">chip</button>';
@@ -185,7 +185,7 @@ const url = `${base}/?newRC=1&phase=a1&preview=1`;
     assert.equal(await page.evaluate(async () => (await import("/src/rcConstants.ts")).loadRCState().complete), true);
     assert.equal(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort())), before);
     assert.equal(writes.length, 0, "Preview All must not attempt account writes.");
-    await require("./rc-updated-checks.cjs")({ page, render, metric, seed, key, writes });
+    await require("./rc-updated-checks.cjs")({ page, render, metric, seed, empty: initial.empty, key, writes });
 
     for (const width of [375, 600, 601, 1366]) {
       await render({ ...seed, step: 0 }, "light", { width, height: width === 1366 ? 680 : 812 });

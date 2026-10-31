@@ -1,8 +1,9 @@
 import React, { useLayoutEffect, useRef } from "react";
+import { SoftAnswerCounter } from "./SoftAnswerCounter";
 
 /** The approved ledger exposes the entire answer, with no line limit. */
-export function PriceWhereField({ value, placeholder, onChange }: {
-  value: string; placeholder: string; onChange: (value: string) => void;
+export function PriceWhereField({ value, placeholder, onChange, softLimit = true }: {
+  value: string; placeholder: string; onChange: (value: string) => void; softLimit?: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   useLayoutEffect(() => {
@@ -42,6 +43,7 @@ export function PriceWhereField({ value, placeholder, onChange }: {
       document.fonts.removeEventListener("loadingdone", scheduleResize);
     };
   }, [value]);
-  return <textarea ref={ref} className="rc-where-answer" rows={1}
-    placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />;
+  return <><textarea ref={ref} className="rc-where-answer" rows={1} aria-label={placeholder}
+    placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
+    {softLimit && <SoftAnswerCounter value={value} />}</>;
 }

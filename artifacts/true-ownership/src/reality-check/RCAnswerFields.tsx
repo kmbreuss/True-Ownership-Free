@@ -30,14 +30,50 @@ export function LedgerNumber({ value, money, onChange }: {
 }
 
 /** A real inline editing surface wraps across sentence fragments, unlike input. */
-export function InlineAnswer({ value, onChange, label, placeholder = "…", required = false }: {
-  value: string; onChange: (value: string) => void; label: string; placeholder?: string; required?: boolean;
+export function InlineAnswer({ value, onChange, label, placeholder = "…", required = false, lowerStart = false }: {
+  value: string; onChange: (value: string) => void; label: string; placeholder?: string; required?: boolean; lowerStart?: boolean;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
-    if (el && el.textContent !== value) el.textContent = value;
-  }, [value]);
+    if (!el) return;
+    if (!lowerStart) { if (el.textContent !== value) el.textContent = value; return; }
+    // CSS changes only the first letter's appearance. DOM text and onInput keep
+    // the original case, even when an owner edits elsewhere in the sentence.
+    const selection = window.getSelection();
+    const offset = (node: Node | null, n: number) => {
+      if (!node || !el.contains(node)) return null;
+      const range = document.createRange();
+      range.selectNodeContents(el); range.setEnd(node, n);
+      return range.toString().length;
+    };
+    const anchor = offset(selection?.anchorNode ?? null, selection?.anchorOffset ?? 0);
+    const focus = offset(selection?.focusNode ?? null, selection?.focusOffset ?? 0);
+    const index = value.search(/\p{L}/u);
+    if (index < 0) el.textContent = value;
+    else {
+      const letter = String.fromCodePoint(value.codePointAt(index)!);
+      const first = document.createElement("span");
+      first.dataset.lowerStart = ""; first.textContent = letter;
+      el.replaceChildren(document.createTextNode(value.slice(0, index)), first,
+        document.createTextNode(value.slice(index + letter.length)));
+    }
+    if (anchor !== null && focus !== null && selection) {
+      const locate = (n: number): [Node, number] => {
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        let node: Node | null, last: Node = el;
+        while ((node = walker.nextNode())) {
+          last = node;
+          const length = node.textContent?.length ?? 0;
+          if (n <= length) return [node, n];
+          n -= length;
+        }
+        return [last, last === el ? 0 : last.textContent?.length ?? 0];
+      };
+      const a = locate(anchor), f = locate(focus);
+      selection.setBaseAndExtent(a[0], a[1], f[0], f[1]);
+    }
+  }, [value, lowerStart]);
   return <span ref={ref} className="rc-inline-answer" contentEditable="plaintext-only"
     role="textbox" tabIndex={0} aria-label={label} aria-multiline="true" aria-required={required || undefined}
     data-placeholder={placeholder} suppressContentEditableWarning

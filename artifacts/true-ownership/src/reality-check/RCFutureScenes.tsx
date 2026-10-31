@@ -3,6 +3,7 @@ import { type RCState } from "../rcConstants";
 import { annualAmounts, endClean, journeyMonth, reflectionClause } from "./rcJourney";
 import { Feelings } from "./RCFeelings";
 import { InlineAnswer } from "./RCAnswerFields";
+import { SoftAnswerCounter } from "./SoftAnswerCounter";
 
 type Props = { state: RCState; update: (s: RCState) => void; arriving?: boolean };
 const lowerStart = (value: string) => {
@@ -67,8 +68,8 @@ export function OctoberLetter({ state: s, update }: Props) {
     <section className="rc-letter-card" aria-label="A letter to myself">
       <div className="rc-letter-stamp"><span>{month}</span><strong>{year}</strong></div>
       <p className="rc-letter-dear">Dear me,</p>
-      <p>A year on, I'm <InlineAnswer label={`What will you be doing by next ${month}?`} value={s.futureB1.doing} onChange={doing => update({ ...s, futureB1: { ...s.futureB1, doing } })} />{/[.!?…]$/.test(s.futureB1.doing.trim()) ? "" : "."}</p>
-      <p>It started the week I chose to <InlineAnswer required label="My one thing this week" value={s.futureB1.oneThing} onChange={oneThing => update({ ...s, futureB1: { ...s.futureB1, oneThing } })} />{/[.!?…]$/.test(s.futureB1.oneThing.trim()) ? "" : "."}</p>
+      <p>A year on, I'm <InlineAnswer lowerStart label={`What will you be doing by next ${month}?`} value={s.futureB1.doing} onChange={doing => update({ ...s, futureB1: { ...s.futureB1, doing } })} />{/[.!?…]$/.test(s.futureB1.doing.trim()) ? "" : "."}<SoftAnswerCounter value={s.futureB1.doing} /></p>
+      <p>It started the week I chose to <InlineAnswer lowerStart required label="My one thing this week" value={s.futureB1.oneThing} onChange={oneThing => update({ ...s, futureB1: { ...s.futureB1, oneThing } })} />{/[.!?…]$/.test(s.futureB1.oneThing.trim()) ? "" : "."}<SoftAnswerCounter value={s.futureB1.oneThing} /></p>
       <p className="rc-letter-signature">— me</p>
     </section>
     <p className="rc-letter-promise"><span aria-hidden="true">★</span> The thing you chose to start becomes the first promise waiting for you in A4.</p>
