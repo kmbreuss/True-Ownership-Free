@@ -65,13 +65,28 @@ function data({complete=true,choice="B",notice=false}={}) {
       assert.equal(layout.theme,theme);assert(layout.font.includes("Tenor Sans"));
       assert.equal(layout.headingSize,step===1?"36px":step===3?"30px":"28px");
       if(step===1){
+        assert.equal(await page.locator(".a1-end-body .a1-end-question").count(),0);
+        const question=await page.locator(".a1-end-footer .a1-end-question").boundingBox();
+        const button=await page.getByRole("button",{name:"Continue →",exact:true}).boundingBox();
+        assert(question&&button);
+        if(width<=600)assert(question.y+question.height<=button.y+1);
+        else assert(question.x+question.width<=button.x+1);
+        if(width===1366&&height===680)assert.equal(layout.scrolling,false,"Screen 1 must fit without scrolling");
         const text=await page.locator(".a1-end-body").textContent();
         for(const expected of ["Carrying, mostly in Time.","Integrity · Hope · Love","Wise Owl · Steady Bear · Playful Dolphin","Shine the light.",
           "Mornings for deep work.","The business pays me first","Rested, clear"])assert(text.includes(expected),expected);
         assert.equal(await page.locator(".a1-end-future blockquote").textContent(),"“"+f.rc.futureB5.tuesday+"”");
         assert.equal(await page.getByRole("button",{name:"Save as a card",exact:true}).count(),0);
       }
-      if(step===2){await page.getByPlaceholder("When it happens, a few words…").waitFor();assert((await page.locator(".a1-end-notice-lead").textContent()).includes("Integrity"));}
+      if(step===2){
+        await page.getByPlaceholder("When it happens, a few words…").waitFor();
+        assert((await page.locator(".a1-end-notice-lead").textContent()).includes("Integrity"));
+        const centered=await page.locator(".a1-end-body").evaluate(body=>{
+          const b=body.getBoundingClientRect(),form=body.querySelector("form").getBoundingClientRect();
+          return form.height>b.height||Math.abs((form.top+form.bottom-b.top-b.bottom)/2)<=2;
+        });
+        assert(centered,"Notice content must be safely vertically centered");
+      }
       if(step===3){assert.equal(await page.locator(".a1-end-seal").textContent(),"Katherine's seal line goes here.");assert(await page.getByRole("button",{name:"Continue to A2 →"}).isEnabled());}
       await page.screenshot({path:path.join(out,`screen-${step}-${width}-${height}-${theme}.png`)});
       results.push({name:`fit details ${step} ${width}x${height} ${theme}`,pass:true,...layout});

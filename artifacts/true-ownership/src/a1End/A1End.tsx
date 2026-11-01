@@ -48,7 +48,7 @@ export function A1End({ step, summary: s, onStep, onClose, onMap, onA2, canA2 }:
         </div>
         <p className="a1-end-label">THE END OF A1 · {step} OF 3</p>
       </header>
-      <div className="a1-end-body" ref={body}>
+      <div className={`a1-end-body${step === 2 ? " is-notice" : ""}`} ref={body}>
         {step === 1 ? <>
           <p className="a1-end-label a1-end-eyebrow">A1 · ALL IN · COMPLETE</p>
           <h1 className="a1-end-title is-first">This is you.</h1>
@@ -62,18 +62,17 @@ export function A1End({ step, summary: s, onStep, onClose, onMap, onA2, canA2 }:
             </dd></div>}
           </dl>
           {s.futureB && <aside className="a1-end-future"><span className="a1-end-label">MY FUTURE B ★</span><blockquote>“{s.futureB}”</blockquote></aside>}
-          <p className="a1-end-question">Before any yes this week, ask: <em>{s.futureB ? "does this move me toward Future B?" : "does this fit who I am?"}</em></p>
         </> : step === 2 ? <WeeklyNotice value={s.names[0]} onDone={() => onStep(3)} />
           : <><Claimed />{!canA2 && <p className="a1-end-helper">Complete all four A1 mirrors to unlock A2.</p>}</>}
       </div>
-      <footer key={step} className="a1-end-footer">
+      <footer key={step} className={`a1-end-footer${step === 1 ? " is-summary" : ""}`}>
         {step === 2 ? <>
           <button type="button" className="na1-btn-ghost" onClick={() => onStep(3)}>I'll do it this week</button>
           <button type="submit" form="a1-weekly-notice" className="na1-btn-gold">Save →</button>
         </> : step === 3 ? <>
           <button className="na1-btn-ghost" onClick={onMap}>See my Map of Me</button>
           <button className="na1-btn-gold" disabled={!canA2} onClick={onA2}>Continue to A2 →</button>
-        </> : <><span /><button className="na1-btn-gold" onClick={() => onStep(2)}>Continue →</button></>}
+        </> : <><p className="a1-end-question">Before any yes this week, ask: <em>{s.futureB ? "does this move me toward Future B?" : "does this fit who I am?"}</em></p><button className="na1-btn-gold" onClick={() => onStep(2)}>Continue →</button></>}
       </footer>
     </div>
   </div>;
