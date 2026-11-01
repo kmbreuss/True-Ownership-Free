@@ -1,5 +1,6 @@
 - [Mirror card gating](true-ownership-mirror-gating.md) — Values→Identity→Purpose→Vision; existing drafts/claims stay open; retain the 2×2 grid and internal IDs.
 - [A1 ending scope](a1-end-scope.md) — three-screen ending is optional for A2; the full decision filter belongs at the end of the 5As, not A1.
+- [App copy boundaries](app-copy-boundaries.md) — commitment language never rewrites users' words; Vision uses width before type reduction, with a 26px desktop floor.
 - [Large-file patches](large-file-patches.md) — same-file hunks must be in source order; semantic grouping across distant sections causes forward-search failures.
 - [Reality Check scope](reality-check-scope.md) — default journey; saved A1–A5 records exempt returning users after cloud hydration; no auth/schema/signup changes.
 - [Dev preview safety](dev-preview-safety.md) — preview must never persist; exiting reloads real progress and blocks late writes. Signed-in verification has separate tooling constraints.

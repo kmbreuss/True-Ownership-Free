@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// A5 · Accountable To It · State module (Ship A5-1 · Hub + Keeping My Word)
+// A5 · Accountable To It · State module (Ship A5-1 · Hub + My Commitment)
 // ─────────────────────────────────────────────────────────────────────────────
 // Same pattern as a2/a3/a4Constants.ts: one localStorage key, EMPTY_*, normalize
 // / load / save / has, registered with the account-sync engine as "a5state".

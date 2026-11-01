@@ -26,6 +26,7 @@ import { VisionRoomOpening } from "./components/VisionContext";
 import { A1End } from "./a1End/A1End";
 import { endSummary } from "./a1End/summary";
 import { NoticeMapRow } from "./a1End/NoticeMapRow";
+import "./map-of-me.css";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -34918,7 +34919,7 @@ type AppRouteView =
   | "a4m3"
   // A4 · My Promises + the A4 claim (room id "promises").
   | "a4p"
-  // A5 · Accountable To It hub (a5) + its room Keeping My Word (a5m1, room id "keeping").
+  // A5 · Accountable To It hub (a5) + its room My Commitment (a5m1, room id "keeping").
   | "a5"
   | "a5m1"
   // A5-2 · the weekly check-in (room id "checkin") and the 90-day look-back ("lookback").
@@ -35135,7 +35136,7 @@ const FW_PHASES: Record<FwPhaseKey, FwPhase> = {
         name: "Accountable To It",
         shift: "Mastery Shift",
         desc: "Your next 90 days and this week: what might get in the way, and how you’ll move through it.",
-        deliverable: "Keeping My Word",
+        deliverable: "My Commitment",
       },
     ],
   },
@@ -47703,7 +47704,7 @@ function NewA4HubView({
                 <h2 className="na1-mirror-card-name">Accountable To It</h2>
                 <p className="na1-mirror-card-sub">
                   Your plan, the people and places that hold you, and a weekly
-                  rhythm — so you keep your word.
+                  rhythm — so you do what you committed to.
                 </p>
                 {claimedNote(a5Claimed, "")}
                 <div className="na1-mirror-card-action">
@@ -48659,7 +48660,7 @@ const A4_SELF_CFG: A4RoomCfg = {
   gaps: (src) => buildSelfGaps(src),
   seeBody: ({ src, done }) => <A4SelfSeeBody src={src} done={done} />,
   seal: (name) =>
-    `${name ? `${name}, you` : "You"} looked at the gap between who you say you are and how you treat yourself — and you made one promise to close it. That's how self-trust starts: one kept word at a time.`,
+    `${name ? `${name}, you` : "You"} looked at the gap between who you say you are and how you treat yourself — and you made one promise to close it. That's how self-trust starts: doing what you committed to.`,
 };
 
 const A4_TIME_CFG: A4RoomCfg = {
@@ -49239,7 +49240,7 @@ function NewA4PromisesContainer({
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// A5 · Accountable To It · Ship A5-1 (hub + Keeping My Word + claim)
+// A5 · Accountable To It · Ship A5-1 (hub + My Commitment + claim)
 // ════════════════════════════════════════════════════════════════════════════
 // A4 was the inside work; A5 is the outside work: the plan, the people and
 // places that hold you, and the rhythm that makes it stick. Same patterns as
@@ -49247,7 +49248,7 @@ function NewA4PromisesContainer({
 // ENTRY only, stepper + pips, gold burst → seal → ↺ Re-claim, route restore with
 // no veil, newFlowSync store ("a5state").
 
-const A5_VEIL = "Building what holds your word…";
+const A5_VEIL = "Building what supports your commitment…";
 const A5_SCREEN_COUNT = 5;
 const A5_PHASES: { num: number; name: string }[] = [
   { num: 1, name: "Plan" },
@@ -49267,10 +49268,10 @@ const A5_CONTINUE = [
   "Continue to your plan →",
   "Continue to your supports →",
   "Continue to your rhythm →",
-  "Claim Keeping My Word →",
+  "Claim My Commitment →",
 ];
 const A5_SEAL = (name: string | null | undefined) =>
-  `${name ? `${name}, you` : "You"} didn't just make promises — you built what holds them: a plan, people and places in your corner, and a rhythm you chose. Every week you keep your word, you'll trust yourself a little more. That's how you build you.`;
+  `${name ? `${name}, you` : "You"} didn't just make promises — you built what holds them: a plan, people and places in your corner, and a rhythm you chose. Every week you do what you committed to, you'll trust yourself a little more. That's how you build you.`;
 
 // What A5 reads from A4 (promise, year, gives…) — read fresh each time.
 function readA5Promises(): Record<A5Key, A4MirrorState> {
@@ -49373,7 +49374,7 @@ function A5ReminderCard({
 }
 
 // ─── A5-2 · weekly check-in + 90-day look-back ───────────────────────────────
-// A5-1 built what holds your word; A5-2 is the weekly proof. The 2-minute
+// A5-1 built what supports your commitment; A5-2 is the weekly proof. The 2-minute
 // check-in (one screen per promise) writes one record per week to `checkins[]`;
 // the 90-day look-back unlocks at `ninetyBy`, shows weeks kept and what got in
 // the way most, then lets the member grow each promise or keep it as is.
@@ -49718,7 +49719,7 @@ function NewA5CheckinContainer({
       <div className="na1-room-eyebrow tone-gold">CHECK-IN · SAVED ★</div>
       <h2 className="na1-room-title">That&rsquo;s your week.</h2>
       <p className="na1-room-context na1-a5-sub">
-        Every week you keep your word, you&rsquo;ll trust yourself a little more.
+        Every week you do what you committed to, you&rsquo;ll trust yourself a little more.
       </p>
       <div className="na1-a5-saved">
         {A5_KEYS.map((k) => {
@@ -49937,7 +49938,7 @@ function NewA5LookbackContainer({
       <div className="na1-room-eyebrow tone-gold">LOOK-BACK · DONE ★</div>
       <h2 className="na1-room-title">Your next 90 days.</h2>
       <p className="na1-room-context na1-a5-sub">
-        Another 90 days, another chance to keep your word — through {a5FormatBy(nextBy)}.
+        Another 90 days, another chance to follow through on your commitment — through {a5FormatBy(nextBy)}.
       </p>
       <div className="na1-a5-saved">
         {A5_KEYS.map((k) => (
@@ -50097,7 +50098,7 @@ function NewA5HubView({
   const hubNow = new Date();
   const lookDue = a5LookbackDue(a5, hubNow);
   const lookBy = A5_KEYS.map((k) => a5.plans[k].ninetyBy).filter((d) => d !== "").sort()[0] ?? "";
-  // The three A5 cards: 01 Keeping My Word · 02 Weekly Check-In · 03 90-Day
+  // The three A5 cards: 01 My Commitment · 02 Weekly Check-In · 03 90-Day
   // Look-Back. 02 and 03 are Locked until the claim; both are Complete after
   // their first time (and can show their button again when the next one is due).
   const ci = a5CheckinStatus(a5, hubNow);
@@ -50121,7 +50122,7 @@ function NewA5HubView({
             <div className="na1-hero-eyebrow">
               A5 · Accountable To It{name ? ` · ${name}` : ""}
             </div>
-            <h1 className="na1-hero-title">Keep your word to you.</h1>
+            <h1 className="na1-hero-title">Commit to yourself.</h1>
             <p
               style={{
                 fontWeight: "var(--b-w)",
@@ -50178,7 +50179,7 @@ function NewA5HubView({
               </span>
             </div>
             <div className="na1-mirror-card-eyebrow">Mirror 1</div>
-            <h2 className="na1-mirror-card-name">Keeping My Word</h2>
+            <h2 className="na1-mirror-card-name">My Commitment</h2>
             <p className="na1-mirror-card-sub">
               Your plan, your supports, your rhythm.
             </p>
@@ -50220,10 +50221,10 @@ function NewA5HubView({
                   onClick={onBegin}
                 >
                   {claimed
-                    ? "Review Keeping My Word →"
+                    ? "Review My Commitment →"
                     : started
-                      ? "Continue Keeping My Word →"
-                      : "Begin Keeping My Word →"}
+                      ? "Continue My Commitment →"
+                      : "Begin My Commitment →"}
                 </button>
               )}
               <span className="na1-mirror-card-meta">5 exercises</span>
@@ -50244,7 +50245,7 @@ function NewA5HubView({
             </p>
             <div className="na1-mirror-card-empty">
               {!claimed
-                ? "Unlocks after Keeping My Word"
+                ? "Unlocks after My Commitment"
                 : ci.open
                   ? "Ready now."
                   : ci.done
@@ -50829,7 +50830,7 @@ function A5SealBody({
   return (
     <div>
       <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[4]} ★</div>
-      <h2 className="na1-room-title">Keeping My Word.</h2>
+      <h2 className="na1-room-title">My Commitment.</h2>
       <div className="na1-a2m1-seal" role="status">
         <p className="na1-a2m1-seal-body">{A5_SEAL(displayName)}</p>
         <p className="na1-a2m1-seal-by">— Katherine</p>
@@ -51119,11 +51120,11 @@ function NewA5Container({
           }}
           role="dialog"
           aria-modal="true"
-          aria-label="Keeping My Word"
+          aria-label="My Commitment"
         >
           <div className="na1-room-card na1-a2m2-room-card na1-a4-room na1-a5-room">
             <div className="na1-room-crumb">
-              <a onClick={closeRoom}>Keeping My Word</a>
+              <a onClick={closeRoom}>My Commitment</a>
               <span className="sep">›</span>
               <span className="current">{crumbStage}</span>
             </div>
@@ -51640,7 +51641,7 @@ function NewA1View({
       return next;
     });
   }, []);
-  // A5-1 · Keeping My Word room (single room "keeping") reports open/close.
+  // A5-1 · My Commitment room (single room "keeping") reports open/close.
   const onA5M1RoomChange = useCallback((roomId: string | null) => {
     setOverlayRoute((prev) => {
       const next: AppRouteOverlay = roomId ? { hubId: "a5m1", roomId } : null;
@@ -51863,7 +51864,7 @@ function NewA1View({
               : true;
     if (!gate && !isDevPreview()) setView("a4");
   }, [view, a3Complete, a4Snap]);
-  // A5 · the Keeping My Word room (a5m1) needs the A4 claim; otherwise the A5 hub
+  // A5 · the My Commitment room (a5m1) needs the A4 claim; otherwise the A5 hub
   // (whose card shows the locked gate) is the only place to land.
   useEffect(() => {
     if (view === "a5m1" && !a4Complete && !isDevPreview()) setView("a5");
@@ -52520,7 +52521,7 @@ function NewA1View({
       </div>
     );
   }
-  // A5 rooms: Keeping My Word (a5m1) · weekly check-in (a5c) · 90-day look-back
+  // A5 rooms: My Commitment (a5m1) · weekly check-in (a5c) · 90-day look-back
   // (a5r). The hub stays mounted behind the room card (dimmed + blurred).
   if (view === "a5m1" || view === "a5c" || view === "a5r") {
     const ref =
@@ -70888,6 +70889,7 @@ function MapOfMePage({ onBack }: any) {
 
   return (
     <div
+      className="map-of-me-page"
       style={{
         minHeight: "100vh",
         background: "var(--bg)",
@@ -70898,6 +70900,7 @@ function MapOfMePage({ onBack }: any) {
 
       {/* TOP BAR */}
       <div
+        className="map-topbar"
         style={{
           display: "flex",
           alignItems: "center",
@@ -70944,9 +70947,10 @@ function MapOfMePage({ onBack }: any) {
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "flex-start" }}>
+      <div className="map-layout" style={{ display: "flex", alignItems: "flex-start" }}>
         {/* SIDEBAR */}
         <div
+          className="map-sidebar"
           style={{
             width: 206,
             flexShrink: 0,
@@ -71023,7 +71027,7 @@ function MapOfMePage({ onBack }: any) {
         </div>
 
         {/* MAIN */}
-        <div style={{ flex: 1, padding: "32px 40px", maxWidth: 980 }}>
+        <div className="map-main" style={{ flex: 1, padding: "32px 40px", maxWidth: 980 }}>
           <button
             onClick={() => onBack && onBack(origin)}
             style={{ fontWeight: 400,
@@ -71097,7 +71101,7 @@ function MapOfMePage({ onBack }: any) {
           </div>
 
           {/* PROGRESS STRIP */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <div className="map-progress-strip" style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             {phases.map((p) => (
               <StripCell
                 key={p.key}

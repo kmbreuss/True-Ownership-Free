@@ -26,6 +26,14 @@
   color: var(--na1-text);
 }
 [data-theme="dark"] .vision-rc-label { color: #A5875E; }
+@media (min-width: 601px) {
+  /* Use the card's side-padding space, keeping an 8px inset and the 28px type. */
+  .na1-room-card .vision-rc-heading {
+    width: calc(100% + 32px);
+    max-width: none;
+    margin-inline: -16px;
+  }
+}
 @media (max-width: 600px) {
   .vision-rc-strip blockquote { font-size: 18px; }
 }

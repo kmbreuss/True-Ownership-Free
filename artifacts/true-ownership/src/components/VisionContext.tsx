@@ -11,7 +11,7 @@ export function VisionRoomOpening({ area, rc, title, subtitle }: {
       <div className="vision-rc-label">IN YOUR REALITY CHECK, FIVE YEARS OUT, YOU WROTE</div>
       <blockquote>“{context.words}”</blockquote>
     </div>}
-    <h2 className="na1-room-title">{context?.matching
+    <h2 className={`na1-room-title${context?.matching ? " vision-rc-heading" : ""}`}>{context?.matching
       ? `Now look out ten. What does your ${area} look like?` : title}</h2>
     <p className="na2-prose-subtitle">{!context ? subtitle : context.matching
       ? "Your Future B words are already here. Stretch them to ten years, or change anything."
