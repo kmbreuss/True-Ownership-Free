@@ -1,0 +1,31 @@
+.vision-rc-strip {
+  border-left: 3px solid #A5875E;
+  background: rgb(165 135 94 / 8%);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 0 0 18px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.vision-rc-label {
+  font-family: var(--f-label);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: .18em;
+  line-height: 1.5;
+  color: #735F43;
+}
+.vision-rc-strip blockquote {
+  margin: 6px 0 0;
+  font-family: var(--f-body);
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  color: var(--na1-text);
+}
+[data-theme="dark"] .vision-rc-label { color: #A5875E; }
+@media (max-width: 600px) {
+  .vision-rc-strip blockquote { font-size: 18px; }
+}

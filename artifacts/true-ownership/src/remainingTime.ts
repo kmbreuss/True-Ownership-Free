@@ -1,4 +1,5 @@
 import { purposeSteps, type PurposeProgress } from "./purposeProgress";
+import { visionSteps } from "./visionProgress";
 import { M4_ROOMS, m4RoomDone, type Mirror4State } from "./mirror4Constants";
 
 const unfinished = (steps: boolean[]) => steps.filter(done => !done).length;
@@ -25,10 +26,10 @@ export function identitySteps(state: any): boolean[] {
 
 /** Approved estimate: ten minutes for each unfinished, currently listed exercise. */
 export function a1RemainingMinutes(purpose: PurposeProgress, vision: any, identity: any, values: Mirror4State): number {
-  const visionSteps = vision.complete ? [] : [vision.ex1, vision.ex2, vision.ex3, vision.ex4, vision.ex5];
+  const activeVisionSteps = visionSteps(vision);
   const valuesSteps = values.claimed ? [] : M4_ROOMS.filter(r => r.bodyShipped && !r.comingSoon)
     .map(r => m4RoomDone(values, r.key));
-  return 10 * (unfinished(purposeSteps(purpose)) + unfinished(visionSteps) +
+  return 10 * (unfinished(purposeSteps(purpose)) + unfinished(activeVisionSteps) +
     unfinished(identitySteps(identity)) + unfinished(valuesSteps));
 }
 

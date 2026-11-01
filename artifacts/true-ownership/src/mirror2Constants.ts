@@ -120,11 +120,10 @@ export const M2_EXERCISES: ReadonlyArray<{
   tone: "burgundy" | "yellow" | "green" | "purple" | "silver";
   threshold: string;
 }> = [
-  { n: 1, key: "twoFutures",  name: "Two Futures",         subtitle: "The two paths in front of you, side by side.", tone: "burgundy", threshold: M2_VEIL_TEXT.twoFutures },
-  { n: 2, key: "time",        name: "Time · 10-Year",      subtitle: "The life that holds your hours.",              tone: "yellow",   threshold: M2_VEIL_TEXT.time },
-  { n: 3, key: "wealth",      name: "Wealth · 10-Year",    subtitle: "What you'll build, what'll hold.",             tone: "green",    threshold: M2_VEIL_TEXT.wealth },
-  { n: 4, key: "self",        name: "Self · 10-Year",      subtitle: "The person you'll have become.",               tone: "purple",   threshold: M2_VEIL_TEXT.self },
-  { n: 5, key: "declaration", name: "Vision Declaration",  subtitle: "One claimed Vision.",                          tone: "silver",   threshold: M2_VEIL_TEXT.declaration },
+  { n: 1, key: "time",        name: "Time · 10-Year",      subtitle: "The life that holds your hours.",              tone: "yellow",   threshold: M2_VEIL_TEXT.time },
+  { n: 2, key: "wealth",      name: "Wealth · 10-Year",    subtitle: "What you'll build, what'll hold.",             tone: "green",    threshold: M2_VEIL_TEXT.wealth },
+  { n: 3, key: "self",        name: "Self · 10-Year",      subtitle: "The person you'll have become.",               tone: "purple",   threshold: M2_VEIL_TEXT.self },
+  { n: 4, key: "declaration", name: "Vision Declaration",  subtitle: "One claimed Vision.",                          tone: "silver",   threshold: M2_VEIL_TEXT.declaration },
 ];
 
 // Katherine's seal (Vision Declaration ceremony). Phrases listed in GOLD_PHRASES

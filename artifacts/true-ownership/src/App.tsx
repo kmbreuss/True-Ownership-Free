@@ -16,10 +16,13 @@ import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/acc
 import { hasPriorProgress, hasCloudProgress } from "./reality-check/progress";
 import { a1Started, a1Unlocks } from "./a1Progress";
 import { purposeSteps, purposeRoomUnlocked } from "./purposeProgress";
+import { visionSteps, visionRoomUnlocked } from "./visionProgress";
+import { declSentences, declSummary } from "./visionProse";
 import { purposeHoldback } from "./purposeContext";
 import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./remainingTime";
 import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1FutureB";
 import { PurposeContextFrame } from "./components/PurposeContext";
+import { VisionRoomOpening } from "./components/VisionContext";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -29753,13 +29756,7 @@ function NewA1Grid({
 
   // M2 · Vision — unlocks the moment Purpose is declared.
   const visionUnlocked = unlocked.vision;
-  const m2DoneCount = [
-    m2Progress.ex1,
-    m2Progress.ex2,
-    m2Progress.ex3,
-    m2Progress.ex4,
-    m2Progress.ex5,
-  ].filter(Boolean).length;
+  const m2DoneCount = visionSteps(m2Progress).filter(Boolean).length;
   const visionComplete = !!m2Progress.complete;
   const visionStarted = started.vision || m2DoneCount > 0 || visionComplete;
   const visionInProgress = visionUnlocked && visionStarted && !visionComplete;
@@ -29948,7 +29945,7 @@ function NewA1Grid({
                 Who you've become in 10 years — across time, wealth, and self.
               </p>
               <A1FutureBThread rc={rc} mirror="vision" />
-              <MirrorPips done={m2DoneCount} total={5} />
+              <MirrorPips done={m2DoneCount} total={4} />
               <div
                 className="na1-mirror-card-empty"
                 style={
@@ -29972,7 +29969,7 @@ function NewA1Grid({
                   {visionCtaLabel}
                 </button>
                 <span className="na1-mirror-card-meta">
-                  5 exercises · 5 videos
+                  4 exercises · 4 videos
                 </span>
               </div>
             </article>
@@ -31945,15 +31942,9 @@ function NewA2Explore({
   dimmed: boolean;
 }) {
   const [videoOpen, setVideoOpen] = useState(false);
-  const doneArr = [
-    m2Progress.ex1,
-    m2Progress.ex2,
-    m2Progress.ex3,
-    m2Progress.ex4,
-    m2Progress.ex5,
-  ];
+  const doneArr = visionSteps(m2Progress);
   const firstIncomplete = doneArr.findIndex((d) => !d);
-  const currentIdx = firstIncomplete === -1 ? 4 : firstIncomplete;
+  const currentIdx = firstIncomplete === -1 ? 3 : firstIncomplete;
   return (
     <div
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
@@ -31972,9 +31963,8 @@ function NewA2Explore({
         </div>
         <h1 className="na1-ex-title">Vision · 10-Year Horizon</h1>
         <p className="na1-ex-sub">
-          Five exercises. First you'll see the two paths in front of you. Then
-          you'll dream the life that holds your time, wealth, and self. Finally
-          — you'll claim it.
+          Four exercises. Dream the life that holds your time, wealth, and self.
+          Then claim it.
         </p>
         <p className="na1-ex-foot-sub">
           You can return any time to edit anything you've written.
@@ -32029,8 +32019,9 @@ function NewA2Explore({
         <div className="na1-ex-list">
           {M2_EXERCISES.map((ex, idx) => {
             const isDone = doneArr[idx];
-            // Strict sequence: ex1 always unlocked; each subsequent unlocks only when previous done flag is set.
-            const isUnlocked = idx === 0 || doneArr[idx - 1];
+            // Preserve drafts and claims while following the active four-room sequence.
+            const isUnlocked = visionRoomUnlocked(ex.key,
+              (loadDataSync(KEYS.map) as any)?.vision, isDevPreview());
             const isCurrent = isUnlocked && !isDone && idx === currentIdx;
             const isLocked = !isUnlocked;
             const cls = [
@@ -32974,16 +32965,6 @@ function writeVisionStep(room: string, n: number | null): void {
     // storage unavailable — the room still works, a refresh just opens at the first open section
   }
 }
-// Which A1 Vision room a saved route may reopen, and only when it is unlocked.
-function visionRoomUnlocked(key: string, vision: any): boolean {
-  if (isDevPreview()) return true;
-  const v = vision || {};
-  if (key === "twoFutures") return true; // the first Vision room is never locked
-  if (key === "time") return !!v.twoFutures?.complete;
-  if (key === "wealth") return !!v.time_complete;
-  if (key === "self") return !!v.wealth_complete;
-  return false;
-}
 function VisionSectionPips({
   labels,
   idx,
@@ -33410,20 +33391,16 @@ function NewA2TimeBody({
       >
         Vision · 10-Year Horizon · Time
       </div>
-      <h2 className="na1-room-title">
-        Now write what owning your time looks like.
-      </h2>
-      <p className="na2-prose-subtitle">
-        In 10 years — what does each part of your time look like, lived?
-      </p>
-      {!stepped ? (
+      <VisionRoomOpening area="time" rc={loadRCState()}
+        title="Now write what owning your time looks like."
+        subtitle="In 10 years — what does each part of your time look like, lived?" />
+      {!stepped && Object.values(futureB).some(t => t != null) ? (
       <p className="na1-room-context" style={{ marginTop: 0 }}>
         You claimed these five chips for Future B. Now make each one concrete:
         name the behavior, and name how you'd know it's true.
       </p>
       ) : null}
-      <div className="na2-pip-bar" aria-label="Step 2 of 5">
-        <div className="na2-pip is-burgundy" />
+      <div className="na2-pip-bar" aria-label="Step 1 of 4">
         <div className="na2-pip is-yellow" />
         <div className="na2-pip" />
         <div className="na2-pip" />
@@ -33460,13 +33437,10 @@ function NewA2TimeBody({
             </div>
             {chipText ? (
               <span className="na2-prose-chip-pill">{chipText}</span>
-            ) : (
-              <span className="na2-prose-chip-pill is-empty">
-                No Future B chip picked yet
-              </span>
-            )}
+            ) : null}
             <p className="na2-prose-stem-lead">
-              In 10 years, <span className="chip-echo">{chipText || "—"}</span>.
+              {chipText ? <>In 10 years, <span className="chip-echo">{chipText}</span>.</>
+                : <>In 10 years, my {DOMAIN_LABELS.time[d].toLowerCase()}:</>}
             </p>
             <div className="na2-prose-blank-wrap">
               <p className="na2-prose-blank-stem">{tmpl.stem1} —</p>
@@ -33873,20 +33847,16 @@ function NewA2WealthBody({
       >
         Vision · 10-Year Horizon · Wealth
       </div>
-      <h2 className="na1-room-title">
-        Now write what owning your wealth looks like.
-      </h2>
-      <p className="na2-prose-subtitle">
-        In 10 years — what have you built, and what holds you up?
-      </p>
-      {!stepped ? (
+      <VisionRoomOpening area="wealth" rc={loadRCState()}
+        title="Now write what owning your wealth looks like."
+        subtitle="In 10 years — what have you built, and what holds you up?" />
+      {!stepped && Object.values(futureB).some(t => t != null) ? (
       <p className="na1-room-context" style={{ marginTop: 0 }}>
         You claimed these three chips for Future B. Now make each one concrete:
         name the mechanism, and name how you'd know it's real.
       </p>
       ) : null}
-      <div className="na2-pip-bar" aria-label="Step 3 of 5">
-        <div className="na2-pip is-burgundy" />
+      <div className="na2-pip-bar" aria-label="Step 2 of 4">
         <div className="na2-pip is-yellow" />
         <div className="na2-pip is-green" />
         <div className="na2-pip" />
@@ -33923,13 +33893,10 @@ function NewA2WealthBody({
             </div>
             {chipText ? (
               <span className="na2-prose-chip-pill">{chipText}</span>
-            ) : (
-              <span className="na2-prose-chip-pill is-empty">
-                No Future B chip picked yet
-              </span>
-            )}
+            ) : null}
             <p className="na2-prose-stem-lead">
-              In 10 years, <span className="chip-echo">{chipText || "—"}</span>.
+              {chipText ? <>In 10 years, <span className="chip-echo">{chipText}</span>.</>
+                : <>In 10 years, my {DOMAIN_LABELS.wealth[d].toLowerCase()}:</>}
             </p>
             <div className="na2-prose-blank-wrap">
               <p className="na2-prose-blank-stem">{tmpl.stem1} —</p>
@@ -34335,18 +34302,16 @@ function NewA2SelfBody({
       >
         Vision · 10-Year Horizon · Self
       </div>
-      <h2 className="na1-room-title">Now write who you'll have become.</h2>
-      <p className="na2-prose-subtitle">
-        In 10 years — who are you, in your body, in your mind, on your way?
-      </p>
-      {!stepped ? (
+      <VisionRoomOpening area="self" rc={loadRCState()}
+        title="Now write who you'll have become."
+        subtitle="In 10 years — who are you, in your body, in your mind, on your way?" />
+      {!stepped && Object.values(futureB).some(t => t != null) ? (
       <p className="na1-room-context" style={{ marginTop: 0 }}>
         You claimed these three chips for Future B. Now make each one concrete:
         name the practice, and name how you'd know it's true.
       </p>
       ) : null}
-      <div className="na2-pip-bar" aria-label="Step 4 of 5">
-        <div className="na2-pip is-burgundy" />
+      <div className="na2-pip-bar" aria-label="Step 3 of 4">
         <div className="na2-pip is-yellow" />
         <div className="na2-pip is-green" />
         <div className="na2-pip is-purple" />
@@ -34385,13 +34350,10 @@ function NewA2SelfBody({
             </div>
             {chipText ? (
               <span className="na2-prose-chip-pill">{chipText}</span>
-            ) : (
-              <span className="na2-prose-chip-pill is-empty">
-                No Future B chip picked yet
-              </span>
-            )}
+            ) : null}
             <p className="na2-prose-stem-lead">
-              In 10 years, <span className="chip-echo">{chipText || "—"}</span>.
+              {chipText ? <>In 10 years, <span className="chip-echo">{chipText}</span>.</>
+                : <>In 10 years, my {DOMAIN_LABELS.self[d].toLowerCase()}:</>}
             </p>
             <div className="na2-prose-blank-wrap">
               <p className="na2-prose-blank-stem">{tmpl.stem1} —</p>
@@ -34583,45 +34545,6 @@ const DECL_LENSES: {
   { lens: "wealth", label: "My wealth", dot: "#036360", edit: "Edit wealth" },
   { lens: "self", label: "Who I am", dot: "#B0CCDA", edit: "Edit self" },
 ];
-const declCap = (s: string): string => (s === "" ? s : s.charAt(0).toUpperCase() + s.slice(1));
-const declEnd = (s: string): string => (/[.!?…]$/.test(s) ? s : s + ".");
-// One lens → the sentences of its paragraph (their chip + their own words).
-function declSentences(vision: any, lens: "time" | "wealth" | "self"): string[] {
-  const futureB = vision?.twoFutures?.futureB?.[lens] || {};
-  const out: string[] = [];
-  for (const d of LENS_DOMAINS[lens]) {
-    const tier = futureB[d];
-    const chip = tier === 1 || tier === 2 || tier === 3 || tier === 4 ? VISION_CHIPS[lens][d][tier as 1 | 2 | 3 | 4] : "";
-    const tmpl = SENTENCE_TEMPLATES[lens][d];
-    const sec = vision?.[lens]?.[d] || {};
-    const b1 = String(sec.blank1 || "").trim();
-    const b2 = String(sec.blank2 || "").trim();
-    if (chip === "" && b1 === "" && b2 === "") continue;
-    const parts: string[] = [];
-    if (chip) parts.push(declEnd(declCap(chip)));
-    if (b1) parts.push(declEnd(`${tmpl.stem1} ${b1}${b2 ? `, ${tmpl.stem2} ${b2}` : ""}`));
-    else if (b2) parts.push(declEnd(`${tmpl.stem2} ${b2}`));
-    out.push(parts.join(" "));
-    // Short on purpose: their strongest domain, plus a second only when the first is brief.
-    if (out.join(" ").length >= 130) break;
-  }
-  return out.slice(0, 2);
-}
-// One short line for the declaration screen: the headline chip of each lens.
-function declSummary(vision: any): string {
-  const pick = (lens: "time" | "wealth" | "self"): string => {
-    const futureB = vision?.twoFutures?.futureB?.[lens] || {};
-    for (const d of LENS_DOMAINS[lens]) {
-      const t = futureB[d];
-      if (t === 1 || t === 2 || t === 3 || t === 4) return VISION_CHIPS[lens][d][t as 1 | 2 | 3 | 4];
-    }
-    return "";
-  };
-  const low = (s: string) => s.replace(/^(I|I'm|I've|I'll)\b/, "$1").replace(/^(?!I\b|I')([A-Z])/, (m) => m.toLowerCase());
-  const parts = (["time", "wealth", "self"] as const).map(pick).filter((x) => x !== "").map(low);
-  if (parts.length === 0) return "";
-  return `A life where ${parts.join(" · ")}.`;
-}
 function NewA2DeclarationBody({
   onSaved,
   onClose,
@@ -34803,8 +34726,7 @@ function NewA2DeclarationBody({
       <div
         className={`na2-decl-readback ${isFading ? "is-fading" : ""} ${mode === "ceremony" ? "is-hidden" : ""}`}
       >
-        <div className="na2-pip-bar" aria-label="Step 5 of 5">
-          <div className="na2-pip is-burgundy" />
+        <div className="na2-pip-bar" aria-label="Step 4 of 4">
           <div className="na2-pip is-yellow" />
           <div className="na2-pip is-green" />
           <div className="na2-pip is-purple" />
@@ -51440,13 +51362,12 @@ function NewA1View({
     if (saved.overlay.hubId === "a5r") {
       if (saved.view === "a5r") return saved.overlay;
     }
-    // A1 Vision · Two Futures or a 10-year room (Time · Wealth · Self) left open on refresh comes
-    // back on the same section with no veil — if its prerequisite is still done.
+    // Active Vision rooms restore saved work without a veil; retired keys never reopen.
     if (saved.overlay.hubId === "explore2") {
       if (
         saved.view === "explore2" &&
         !initialView &&
-        visionRoomUnlocked(saved.overlay.roomId, ((loadDataSync(KEYS.map) as any) || {}).vision)
+        visionRoomUnlocked(saved.overlay.roomId, ((loadDataSync(KEYS.map) as any) || {}).vision, isDevPreview())
       )
         return saved.overlay;
     }
@@ -51978,7 +51899,7 @@ function NewA1View({
   useEffect(() => {
     if (view !== "explore2") return;
     const key =
-      roomOpen && openM2Ex && (openM2Ex.key === "twoFutures" || openM2Ex.key === "time" || openM2Ex.key === "wealth" || openM2Ex.key === "self")
+      roomOpen && openM2Ex && ["time", "wealth", "self", "declaration"].includes(openM2Ex.key)
         ? openM2Ex.key
         : null;
     setOverlayRoute((prev) => {
@@ -51989,6 +51910,7 @@ function NewA1View({
     });
   }, [view, roomOpen, openM2Ex]);
   const launchRoomM2 = (ex: M2Exercise) => {
+    if (!visionRoomUnlocked(ex.key, (loadDataSync(KEYS.map) as any)?.vision, isDevPreview())) return;
     clearTimers();
     resumeM2Ref.current = false; // a hub entry is never a resume — it plays the veil
     setOpenM2Ex(ex);
@@ -52123,9 +52045,7 @@ function NewA1View({
             open={roomOpen}
             onClose={closeRoom}
           >
-            {openM2Ex.key === "twoFutures" ? (
-              <NewA2TwoFuturesBody onSaved={closeRoom} onClose={closeRoom} />
-            ) : openM2Ex.key === "time" ? (
+            {openM2Ex.key === "time" ? (
               <NewA2TimeBody onSaved={closeRoom} onClose={closeRoom} resume={resumeM2Ref.current} />
             ) : openM2Ex.key === "wealth" ? (
               <NewA2WealthBody onSaved={closeRoom} onClose={closeRoom} resume={resumeM2Ref.current} />
