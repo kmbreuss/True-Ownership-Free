@@ -87,7 +87,7 @@ function data({complete=true,choice="B",notice=false}={}) {
         });
         assert(centered,"Notice content must be safely vertically centered");
       }
-      if(step===3){assert.equal(await page.locator(".a1-end-seal").textContent(),"PUT YOUR CHOSEN LINE HERE");assert(await page.getByRole("button",{name:"Continue to A2 →"}).isEnabled());}
+      if(step===3){assert.equal(await page.locator(".a1-end-seal").textContent(),"Clarity is the first thing you own.");assert(await page.getByRole("button",{name:"Continue to A2 →"}).isEnabled());}
       await page.screenshot({path:path.join(out,`screen-${step}-${width}-${height}-${theme}.png`)});
       results.push({name:`fit details ${step} ${width}x${height} ${theme}`,pass:true,...layout});
     });

@@ -114,7 +114,7 @@ const specs=[
         await card.getByText(/another chance to follow through on your commitment/).waitFor({state:width<=600?"attached":"visible"});
       } else if(spec.name==="A1 end seal") {
         await page.locator(".a1-end-seal").waitFor();
-        assert.equal(await page.locator(".a1-end-seal").textContent(),"PUT YOUR CHOSEN LINE HERE");
+        assert.equal(await page.locator(".a1-end-seal").textContent(),"Clarity is the first thing you own.");
       } else if(spec.name==="A4 Self seal") {
         await card.waitFor();await card.getByText(/self-trust starts: doing what you committed to/).waitFor();
       } else if(spec.name==="Framework") {

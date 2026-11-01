@@ -1,6 +1,6 @@
 import React from "react";
 
-export const A1_END_SEAL = "PUT YOUR CHOSEN LINE HERE";
+export const A1_END_SEAL = "Clarity is the first thing you own.";
 export function Claimed() {
   return <section className="a1-end-claimed">
     <div className="a1-end-star" aria-hidden="true">★</div>
