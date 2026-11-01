@@ -23,6 +23,9 @@ import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./re
 import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1FutureB";
 import { PurposeContextFrame } from "./components/PurposeContext";
 import { VisionRoomOpening } from "./components/VisionContext";
+import { A1End } from "./a1End/A1End";
+import { endSummary } from "./a1End/summary";
+import { NoticeMapRow } from "./a1End/NoticeMapRow";
 import { useAuth } from "./lib/auth-context";
 import { resolveDisplayName, composeMapOfMeTitle } from "./lib/displayName";
 import { Footer } from "./components/Footer";
@@ -29701,6 +29704,7 @@ function NewA1Grid({
   onOpenM3,
   onOpenM4,
   onEntryHall,
+  onOpenEnd,
 }: {
   name?: string;
   progress: {
@@ -29724,6 +29728,7 @@ function NewA1Grid({
   onOpenM4?: () => void;
   // Persistent-spine era · breadcrumb "Entry Hall" routes back to the home.
   onEntryHall?: () => void;
+  onOpenEnd?: () => void;
 }) {
   const doneCount = purposeSteps(progress).filter(Boolean).length;
   // ── Ship 5.7 · Mirror card gating ──────────────────────────────────────
@@ -29881,6 +29886,7 @@ function NewA1Grid({
           </div>
         </div>
         <A1FutureBCard rc={rc} />
+        {(mirrorsComplete === 4 || isDevPreview()) && <button className="a1-end-link" onClick={onOpenEnd}>See the end of A1 →</button>}
         <A1MirrorOrder>
           <article
             className={`na1-mirror-card ${!purposeUnlocked ? "is-locked" : purposeComplete ? "is-complete" : purposeInProgress ? "is-vision-in-progress" : "is-current"}`}
@@ -34805,7 +34811,7 @@ function NewA2DeclarationBody({
           onClick={handleContinueToIdentity}
           disabled={working}
         >
-          Back to A1 →
+          Continue →
         </button>
       </div>
     </div>
@@ -34874,6 +34880,10 @@ function NewA2RoomPlaceholderBody({
 type AppRouteView =
   | "rc"
   | "rcroom"
+  | "a1end1"
+  | "a1end2"
+  | "a1end3"
+  | "a1map"
   | "grid"
   | "explore"
   | "explore2"
@@ -34933,6 +34943,10 @@ const APP_ROUTE_KEY = "to_app_route_v1";
 const APP_ROUTE_VIEWS: AppRouteView[] = [
   "rc",
   "rcroom",
+  "a1end1",
+  "a1end2",
+  "a1end3",
+  "a1map",
   "grid",
   "explore",
   "explore2",
@@ -51179,7 +51193,7 @@ function NewA1View({
   const [rawView, setRawView] = useState<AppRouteView>(
     () => {
       const saved = savedRouteRef.current;
-      if (saved && (saved.view === "rc" || saved.view === "rcroom")) return saved.view;
+      if (saved && ["rc", "rcroom", "a1end1", "a1end2", "a1end3", "a1map"].includes(saved.view)) return saved.view;
       // Task 48 · one-shot initial-view override from the phase-"a3"
       // wrapper. Wins over the saved-route restore, EXCEPT when the saved
       // route is already inside A3 — then the normal restore runs so an
@@ -51946,6 +51960,14 @@ function NewA1View({
       }, 520),
     );
   };
+  if (view === "a1map") return <MapOfMePage onBack={() => setView("a1end3")} />;
+  if (view === "a1end1" || view === "a1end2" || view === "a1end3") {
+    return <A1End step={view === "a1end1" ? 1 : view === "a1end2" ? 2 : 3}
+      summary={endSummary(loadDataSync(KEYS.map), loadMirror4State(), loadRCState())}
+      onStep={step => setView(step === 1 ? "a1end1" : step === 2 ? "a1end2" : "a1end3")}
+      onClose={() => setView("grid")} onMap={() => setView("a1map")}
+      onA2={() => { if (a1Complete || isDevPreview()) setView("a2"); }} canA2={a1Complete || isDevPreview()} />;
+  }
   if (view === "rc" || view === "rcroom") {
     return <div className="na1-spine-pad">
       <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
@@ -52073,13 +52095,10 @@ function NewA1View({
                   window.setTimeout(() => launchRoomM2(ex), 240);
                 }}
                 onContinueToIdentity={() => {
-                  // Unified nav (Level 2): claiming Vision returns to the A1
-                  // four-mirror grid; the user taps the Identity card (now the
-                  // gold-pulsing "Up next" card) to enter. 240ms delay matches
-                  // the modal fade-out.
+                  // Preserve the Vision seal save, then open the optional A1 ending.
                   setRoomOpen(false);
                   window.setTimeout(() => {
-                    setView("grid");
+                    setView("a1end1");
                     closeRoom();
                   }, 240);
                 }}
@@ -52606,6 +52625,7 @@ function NewA1View({
       onOpenM3={() => setView("m3")}
       onOpenM4={() => setView("m4")}
       onEntryHall={() => setView("entry-hall")}
+      onOpenEnd={() => setView("a1end1")}
     />
     </div>
   );
@@ -54051,7 +54071,7 @@ function NewA1M4HubView({
           className="na1-ex-sub"
           style={{ fontWeight: "var(--b-w)", fontStyle: "italic", fontFamily: "var(--f-body)" }}
         >
-          A step-by-step climb. Three to five values. One decision filter.
+          A step-by-step climb. Three to five values. One question for every yes.
         </p>
         <p className="na1-ex-foot-sub">
           You can return any time to edit anything you've written.
@@ -70279,6 +70299,7 @@ function MapOfMePage({ onBack }: any) {
             ))}
           </div>
         </SubCard>
+        <NoticeMapRow />
       </A1MirrorOrder>
     );
   };

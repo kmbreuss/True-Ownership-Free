@@ -34,6 +34,7 @@ export const A1_PROGRESS_KEYS = [
   "a1_sym_picks",
   "a1_sym_note",
   "a1_peel_draft",
+  "a1_notice",
 ];
 
 type Store = { sk: string; label: string; lks: string[]; empty?: unknown };

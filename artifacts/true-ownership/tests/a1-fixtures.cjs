@@ -17,7 +17,7 @@ function modules() {
     },mod,mod.exports);
     return mod.exports;
   }
-  return {load,data};
+  return {load,data,session};
 }
 const plain=v=>JSON.parse(JSON.stringify(v));
 function fixtures() {
