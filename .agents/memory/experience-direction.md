@@ -13,3 +13,9 @@ Values' approved presentation is NOTICE · FLIP · NAME · ORDER. Do not use “
 **Why:** The owner explicitly corrected the initial interpretation, keeping the four-part presentation aligned with the active work rather than reviving retired exercises.
 
 **How to apply:** Keep the underlying exercise order and saved state unchanged. A claimed Values mirror must display every part as ✓ and Claimed on the opening and hub, even when subordinate saved progress flags disagree; this display rule must not repair or rewrite those flags.
+
+Values opens as a four-stop trail, not tiles. Admire's “Lights me up” and “Warms me” treatments are gold/Bronze, never Spruce; Spruce in that treatment is reserved for the main action and current-position cue.
+
+**Why:** The owner replaced the opening and Admire boards to make progress visible while keeping positive strength distinct from navigation.
+
+**How to apply:** Read finding chips and position from existing saved answers without new progress writes. The separately attached Journey Road brief is later scope, explicitly sequenced after the Values ship; it does not authorize a global road or new claim scene in the Values-only work.
