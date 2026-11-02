@@ -21,3 +21,87 @@ mtime_ms = 1793641121507
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/436499ed-b893-47be-b151-0e88f7fabb06/4f444b05-eb2f-4d39-aa06-01e835b38ccb"
 storage_version_token = "1793641133296657"
 content_type = "text/html"
+
+[[outputs]]
+id = "VvtuZCMikLXuVmCGWFVYi"
+uri = "file://generated-artifacts/values-name-walkthrough/labelled-01-first-sorting.png"
+type = "image"
+title = "01 · First sorting screen"
+description = "1280×800 desktop viewport · light theme · isolated synthetic member, Values not claimed."
+logical_id = "34f7726c-6e6b-4f49-8713-c307ccee5a8c"
+content_hash = "sha256:288d260099e3cdd3ceaad0a54f3c66722d8e2058d29ce2a159c9bc45e7d79e9f"
+size = 103005
+mtime_ms = 1793660251584
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/34f7726c-6e6b-4f49-8713-c307ccee5a8c/3429b687-f027-48d6-a972-31029bf70752"
+storage_version_token = "1793660270581990"
+content_type = "image/png"
+
+[[outputs]]
+id = "9VS9MENT2S_eEitM2g-w2"
+uri = "file://generated-artifacts/values-name-walkthrough/labelled-02-a-few-placed.png"
+type = "image"
+title = "02 · After four behaviors are placed"
+description = "1280×800 desktop viewport · light theme · isolated synthetic member, Values not claimed."
+logical_id = "f66cc77a-88c5-47b3-b7ab-598702d07dc0"
+content_hash = "sha256:0d2bc38b2df7a5e0572cfb924a39e39cdaf2cbd06691568f1570530586f51f5b"
+size = 100233
+mtime_ms = 1793660251640
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/f66cc77a-88c5-47b3-b7ab-598702d07dc0/27cf38b2-02f3-4305-911a-1acf3c1520a2"
+storage_version_token = "1793660271169837"
+content_type = "image/png"
+
+[[outputs]]
+id = "q-HwPkLuW8GbR4R1On3IH"
+uri = "file://generated-artifacts/values-name-walkthrough/labelled-03-standards-cards.png"
+type = "image"
+title = "03 · Standards cards"
+description = "1280×800 desktop viewport · light theme · isolated synthetic member, Values not claimed."
+logical_id = "ec64fe70-e457-49bb-ab7a-0f24b28c1b08"
+content_hash = "sha256:a9f0d04ba40bcb451d2fd78cd070a8dfd726ff8ae88cfd96a57a1033d700f6f4"
+size = 117528
+mtime_ms = 1793660251708
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/ec64fe70-e457-49bb-ab7a-0f24b28c1b08/3380286c-82d6-4859-8876-a3e475bf2c45"
+storage_version_token = "1793660271739547"
+content_type = "image/png"
+
+[[outputs]]
+id = "ObZbePZ2ZvSESdjzPVCx3"
+uri = "file://generated-artifacts/values-name-walkthrough/labelled-04-one-standard.png"
+type = "image"
+title = "04 · One standard per screen"
+description = "1280×800 desktop viewport · light theme · isolated synthetic member, Values not claimed."
+logical_id = "cdfd5f2d-1062-4258-aa43-e49ba680114d"
+content_hash = "sha256:947586cff5d0ded58fee90d89b924a3e1dcaadd5f7b972f5ae18ccd884a4496f"
+size = 90877
+mtime_ms = 1793660251756
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/cdfd5f2d-1062-4258-aa43-e49ba680114d/e9b526c4-f6c8-4da6-a24b-52155baeb4fd"
+storage_version_token = "1793660272340714"
+content_type = "image/png"
+
+[[outputs]]
+id = "kxRiZ3edIq_r0XH54lyxl"
+uri = "file://generated-artifacts/values-name-walkthrough/labelled-05-standards-summary.png"
+type = "image"
+title = "05 · These are the standards you hold"
+description = "1280×800 desktop viewport · light theme · isolated synthetic member, Values not claimed."
+logical_id = "d8c3da1e-13a7-4e2b-9ffb-c7419f8dd83b"
+content_hash = "sha256:217815d260ae7e5a800d6f6952d5009a4448728eab7a7b56fb4bbf01cf901756"
+size = 80064
+mtime_ms = 1793660251804
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/d8c3da1e-13a7-4e2b-9ffb-c7419f8dd83b/6f370e45-1f1d-4a7f-b8c5-6cd1acef3caa"
+storage_version_token = "1793660272900902"
+content_type = "image/png"
+
+[[outputs]]
+id = "SUvbDuKT9fDVQw9cTsMHL"
+uri = "file://generated-artifacts/values-name-walkthrough/labelled-06-start-of-order.png"
+type = "image"
+title = "06 · Start of Order — Rank"
+description = "1280×800 desktop viewport · light theme · isolated synthetic member, Values not claimed."
+logical_id = "1f9cd851-f95e-46fc-9dfc-a8373d235706"
+content_hash = "sha256:66873d4120a359e04db69de2dc481e7ef18836e15309147b8e87362c40f2ad8e"
+size = 84447
+mtime_ms = 1793660251848
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/1f9cd851-f95e-46fc-9dfc-a8373d235706/646ddf2b-c861-4c70-99a5-3819192486a5"
+storage_version_token = "1793660273443541"
+content_type = "image/png"
