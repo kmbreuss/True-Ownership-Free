@@ -52,6 +52,7 @@ function completion(state) {
   async function open({ width = 1366, height = 680, theme = "light", state = claimed, reduced = false, preview = false } = {}) {
     const context = await browser.newContext({ viewport: { width, height }, serviceWorkers: "block", reducedMotion: reduced ? "reduce" : "no-preference" });
     await installIsolation(context, writes, unexpected, () => ({ intake: { name: "Synthetic" }, phase: "a1" }));
+    await context.route("**/api/claude", route => route.fulfill({ json: { content: [{ text: '{"scenarios":{}}' }] } }));
     const page = await context.newPage(); page.setDefaultTimeout(7000);
     page.on("pageerror", error => errors.push(error.message));
     await page.addInitScript(({ state, theme, rc, preview }) => {
@@ -112,6 +113,164 @@ function completion(state) {
       });
     }
   }
+  const footer = page => page.locator(".vx-room .df-nav,.vx-room .na1-m4-disc-foot").filter({ visible: true }).last();
+  const next = page => footer(page).getByRole("button").last().click();
+  const back = page => footer(page).getByRole("button", { name: "← Back", exact: true }).click();
+  const many = { ...claimed, clusters: [...claimed.clusters, ...Array.from({ length: 8 }, (_, i) => ({
+    ...claimed.clusters[0], id: `cl-${i + 6}`, userName: `Extra ${i + 1}`, behaviorIds: [], keystoneBehaviorId: null,
+  }))] };
+  for (const [width, height] of [[375, 812], [1280, 800], [1366, 680]]) for (const theme of ["light", "dark"]) {
+    for (const moment of ["first", "inline", "pages", "remove", "summary"]) {
+      await check(`new fit ${moment} ${width}x${height} ${theme}`,
+        { width, height, theme, state: ["first", "inline"].includes(moment) ? fresh : moment === "pages" ? many : claimed }, async page => {
+          if (moment === "inline") {
+            await page.getByRole("button", { name: "+ Name your first standard", exact: true }).click();
+            assert(await page.getByText("you can rename it later", { exact: true }).isVisible());
+          }
+          if (moment === "pages") {
+            const seen = new Set();
+            for (let i = 0; i < 3; i++) {
+              for (const id of await page.locator(".vxnc-standard").evaluateAll(es => es.map(e => e.dataset.standardId))) seen.add(id);
+              const control = page.getByRole("button", { name: "Next cards", exact: true });
+              assert(await control.evaluate(e => e.clientWidth >= 44 && e.clientHeight >= 44));
+              if (i < 2) await control.click();
+            }
+            assert.equal(seen.size, many.clusters.length);
+            assert(await page.getByRole("button", { name: "Next cards", exact: true }).isDisabled());
+          }
+          if (moment === "remove") {
+            await page.locator(".vxnc-front").first().click();
+            await page.getByRole("button", { name: "Remove this standard", exact: true }).click();
+            assert(await page.getByRole("button", { name: "Keep it", exact: true }).isVisible());
+          }
+          if (moment === "summary") {
+            await next(page);
+            for (const cluster of claimed.clusters) await next(page);
+            await page.locator('[data-name-moment="summary"]').waitFor();
+            assert.equal(await page.locator(".vxnc-summary dd").count(), 5);
+          }
+          const geometry = await page.locator(".vx-room").evaluate(frame => {
+            const content = frame.querySelector(".na1-m4-disc-content"), sort = frame.querySelector(".vxnc-sort-body");
+            const footer = frame.querySelector(".vxnc-layout footer").getBoundingClientRect();
+            return { sideways: document.documentElement.scrollWidth - innerWidth, bodyOverflow: content.scrollHeight - content.clientHeight,
+              sortOverflow: sort ? sort.scrollHeight - sort.clientHeight : 0, footerBottom: footer.bottom };
+          });
+          assert(geometry.sideways <= 1 && geometry.bodyOverflow <= 1 && geometry.sortOverflow <= 1 && geometry.footerBottom <= height + 1, JSON.stringify(geometry));
+          await page.screenshot({ path: path.join(out, `new-${moment}-${width}-${theme}.png`), animations: "disabled" });
+        });
+    }
+  }
+  await check("opening stops route to their own part without saving", {}, async page => {
+    const before = await read(page);
+    await page.locator(".vx-room .na1-room-crumb a").click();
+    for (const [index, key] of [[0, "admire"], [1, "flip"], [2, "name"], [3, "rank"]]) {
+      await page.locator(".vx-stop").nth(index).click();
+      await page.locator(`.vx-room[data-values-part="${key}"]`).waitFor();
+      if (key === "name") await page.locator('[data-name-moment="cards"]').waitFor();
+      await page.locator(".vx-room .na1-room-crumb a").click();
+    }
+    assert.deepEqual(await read(page), before);
+  });
+  await check("remove named ranked standard preserves every behavior and flags", {}, async page => {
+    const before = await read(page), id = before.clusters[0].id;
+    await page.locator(".vxnc-front").first().click();
+    await page.getByRole("button", { name: "Remove this standard", exact: true }).click();
+    await page.getByRole("button", { name: "Keep it", exact: true }).click();
+    assert.deepEqual(await read(page), before);
+    await page.getByRole("button", { name: "Remove this standard", exact: true }).click();
+    await page.getByRole("button", { name: "Remove", exact: true }).click();
+    await page.locator('[data-name-moment="sort"]').waitFor();
+    const saved = await read(page);
+    assert.equal(saved.admire.length, before.admire.length); assert.equal(saved.irks.length, before.irks.length);
+    assert.deepEqual(saved.admire.map(b => [b.id, b.text]), before.admire.map(b => [b.id, b.text]));
+    assert.deepEqual(saved.rank, before.rank.filter(k => k !== id));
+    assert(!saved.clusters.some(c => c.id === id));
+    assert(saved.admire.filter(b => before.clusters[0].behaviorIds.includes(b.id)).every(b => b.inUseByCluster == null));
+    assert.deepEqual(completion(saved), completion(before));
+    await page.reload(); await page.locator('[data-name-moment="sort"]').waitFor();
+    assert.deepEqual(await read(page), saved);
+  });
+  await check("fresh account completes Values through first-time sorting and summary", { state: f.values }, async page => {
+    await page.locator(".vx-room .na1-room-crumb a").click();
+    await page.locator(".vx-stop").first().click();
+    for (const text of ["Shows up for people", "Takes responsibility", "Keeps learning"]) {
+      await page.locator("#m4-ai-admire-input").fill(text);
+      await page.getByRole("button", { name: /\+ ★ Lights me up/ }).click();
+    }
+    await page.getByRole("button", { name: "Next: what you can’t stand →", exact: true }).click();
+    await page.locator("#m4-ai-irks-input").fill("Blames everyone else");
+    await page.getByRole("button", { name: /\+ ⚡ Turns my stomach/ }).click();
+    await page.getByRole("button", { name: "See my portrait →", exact: true }).click();
+    await next(page); await page.locator('.vx-room[data-values-part="flip"]').waitFor();
+    await next(page); await page.locator('[data-name-moment="sort"]').waitFor();
+    assert(await page.getByText("You don’t have any standards yet. Start one with this behavior. What does it point to?", { exact: true }).isVisible());
+    await page.getByRole("button", { name: "+ Name your first standard", exact: true }).click();
+    await page.getByRole("textbox", { name: "Name your standard", exact: true }).fill("Care");
+    await page.getByRole("button", { name: "Start this standard →", exact: true }).click();
+    assert(await page.getByText("Same standard, or a new one?", { exact: true }).isVisible());
+    assert((await page.locator(".vxnc-tile").first().textContent()).includes("1 behavior"));
+    assert(!(await page.locator(".vxnc-tile").first().textContent()).includes("1 behaviors"));
+    await page.getByRole("button", { name: "+ New standard", exact: true }).click();
+    await page.getByRole("textbox", { name: "Name your standard", exact: true }).fill("Ownership");
+    await page.getByRole("button", { name: "Start this standard →", exact: true }).click();
+    await page.locator(".vxnc-tile[data-standard-id]").first().click();
+    await page.locator('[data-name-moment="cards"]').waitFor();
+    const sorted = await read(page);
+    await next(page);
+    for (const cluster of sorted.clusters) {
+      await page.locator(".na1-m4-ns-def:visible").fill(`My meaning for ${cluster.userName}`);
+      await next(page);
+    }
+    await page.locator('[data-name-moment="summary"]').waitFor();
+    assert(await page.getByRole("button", { name: "Next: which one wins →", exact: true }).isVisible());
+    await next(page); await next(page);
+    await page.getByRole("button", { name: "Got it — start →", exact: true }).click();
+    await page.locator(".na1-m4-pt-cards button").first().click();
+    await next(page);
+    await next(page); // pressure's existing Done screen -> Claim
+    await page.locator('.vx-room[data-values-part="claim"]').waitFor();
+    await page.getByRole("button", { name: /Claim it/ }).click();
+    const saved = await read(page);
+    assert.equal(saved.claimed, true); assert.equal(saved.admire.length, 3); assert.equal(saved.irks.length, 1);
+    assert(saved.admire.every(b => b.inUseByCluster));
+    assert.equal(saved.clusters.length, 2);
+  });
+  await check("claimed review walks every screen forward and back without writes", {}, async page => {
+    const before = await read(page), count = writes.length;
+    await page.locator(".vx-room .na1-room-crumb a").click();
+    await page.getByRole("button", { name: "Revisit →", exact: true }).click();
+    for (const room of ["admire", "irks", "portrait", "flip"]) {
+      await page.locator(`.vx-room[data-values-part="${room}"]`).waitFor();
+      assert.equal((await footer(page).getByRole("button").last().textContent()).trim(), "Next →");
+      await next(page);
+    }
+    await page.locator('[data-name-moment="cards"]').waitFor(); await next(page);
+    for (const cluster of before.clusters) {
+      assert.equal(await page.locator(".na1-m4-ns-name:visible").inputValue(), cluster.userName); await next(page);
+    }
+    await page.locator('[data-name-moment="summary"]').waitFor(); await next(page);
+    await page.locator('.vx-room[data-values-part="rank"]').waitFor(); await next(page);
+    const pairCount = helpers.m4PressureTestPairs(before.rank).length;
+    for (let i = 0; i < pairCount; i++) await next(page);
+    await page.locator('.vx-room[data-values-part="claim"]').waitFor();
+    assert(await page.getByRole("button", { name: "Done reviewing →", exact: true }).isVisible());
+    await back(page);
+    for (let i = 0; i < pairCount; i++) await back(page);
+    await page.locator('.vx-room[data-values-part="rank"]').waitFor(); await back(page);
+    await page.locator('[data-name-moment="summary"]').waitFor(); await back(page);
+    for (let i = 0; i < before.clusters.length; i++) await back(page);
+    await page.locator('[data-name-moment="cards"]').waitFor(); await back(page);
+    for (const room of ["flip", "portrait", "irks", "admire"]) {
+      await page.locator(`.vx-room[data-values-part="${room}"]`).waitFor(); await back(page);
+    }
+    await page.getByRole("button", { name: "Revisit →", exact: true }).waitFor();
+    assert.deepEqual(await read(page), before); assert.equal(writes.length, count);
+    await page.locator(".vx-stop").last().click(); await next(page);
+    for (let i = 0; i < pairCount; i++) await next(page);
+    await page.getByRole("button", { name: "Done reviewing →", exact: true }).click();
+    await page.getByRole("button", { name: "Revisit →", exact: true }).waitFor();
+    assert.deepEqual(await read(page), before);
+  });
   const longRows = Array.from({ length: 25 }, (_, i) => ({
     id: `ad-extra-${i}`, text: `Shows up thoughtfully for other people, even when the day is difficult · ${i + 1}`,
     tier: "lights", inUseByCluster: "cl-1",
@@ -155,7 +314,7 @@ function completion(state) {
     }
     await page.locator('[data-name-moment="cards"]').waitFor();
     for (const cluster of expected.clusters) {
-      assert((await page.locator(`.vxnc-standard[data-standard-id="${cluster.id}"] .vxnc-front`).textContent()).includes(`${cluster.behaviorIds.length} behaviors`));
+      assert((await page.locator(`.vxnc-standard[data-standard-id="${cluster.id}"] .vxnc-front`).textContent()).includes(`${cluster.behaviorIds.length} ${cluster.behaviorIds.length === 1 ? "behavior" : "behaviors"}`));
     }
     await page.reload(); await page.locator('[data-name-moment="cards"]').waitFor();
     assert.deepEqual(await read(page), expected);
@@ -184,7 +343,7 @@ function completion(state) {
     await page.getByRole("button", { name: "+ Name your first standard", exact: true }).click();
     await page.getByRole("textbox", { name: "Name your standard", exact: true }).fill("My standard");
     assert.deepEqual(await read(page), expected, "draft text never writes");
-    await page.getByRole("button", { name: "Create standard →", exact: true }).click();
+    await page.getByRole("button", { name: "Start this standard →", exact: true }).click();
     const created = helpers.createCluster(expected, { proposal: "", proposedNames: [], behaviorIds: [] });
     expected = helpers.updateCluster(created.state, created.cluster.id, c => ({ ...c, userName: "My standard" }));
     expected = plain(helpers.addBehaviorToCluster(expected, created.cluster.id, behaviorId));
@@ -235,7 +394,7 @@ function completion(state) {
     let expected = await read(page);
     await page.getByRole("button", { name: "+ New standard", exact: true }).click();
     await page.getByRole("textbox", { name: "Name your standard", exact: true }).fill("Courage");
-    await page.getByRole("button", { name: "Create standard →", exact: true }).click();
+    await page.getByRole("button", { name: "Start this standard →", exact: true }).click();
     const created = helpers.createCluster(expected, { proposal: "", proposedNames: [], behaviorIds: [] });
     expected = plain(helpers.updateCluster(created.state, created.cluster.id, c => ({ ...c, userName: "Courage" })));
     assert.deepEqual(await read(page), expected);
@@ -246,19 +405,24 @@ function completion(state) {
     const next = helpers.createCluster(stripped, { proposal: "", proposedNames: [], behaviorIds: [] });
     expected = plain(helpers.addBehaviorToCluster(next.state, next.cluster.id, "ad-0"));
     assert.deepEqual(await read(page), expected);
-    await page.getByRole("button", { name: "More cards →", exact: true }).click();
+    await page.getByRole("button", { name: "Next cards", exact: true }).click();
     assert(await page.locator(`.vxnc-standard[data-standard-id="${next.cluster.id}"]`).count());
   });
   for (const width of [375, 1366]) await check(`Values Back/Next, naming controls, review flags ${width}`, { width, height: width === 375 ? 812 : 680 }, async page => {
     const before = await read(page);
-    await page.getByRole("button", { name: "Name them →", exact: true }).click();
+    await page.getByRole("button", { name: "Next →", exact: true }).click();
     for (let i = 0; i < before.clusters.length; i++) {
       assert.equal(await page.locator(".na1-m4-ns-name:visible").inputValue(), before.clusters[i].userName);
       assert.equal(await page.locator(".na1-m4-ns-def:visible").inputValue(), before.clusters[i].userDefinition);
       await page.locator(".df-nav").getByRole("button").last().click();
     }
+    await page.locator('[data-name-moment="summary"]').waitFor();
+    assert.deepEqual(await read(page), before, "summary display never saves");
+    await page.getByRole("button", { name: "Next →", exact: true }).click();
     await page.locator('.vx-room[data-values-part="rank"]').waitFor();
     await page.locator(".df-nav").getByRole("button", { name: "← Back", exact: true }).click();
+    await page.locator('[data-name-moment="summary"]').waitFor();
+    await page.getByRole("button", { name: "← Back", exact: true }).click();
     for (let i = before.clusters.length - 1; i >= 0; i--) {
       assert.equal(await page.locator(".na1-m4-ns-name:visible").inputValue(), before.clusters[i].userName);
       await page.locator(".df-nav").getByRole("button", { name: "← Back", exact: true }).click();
@@ -269,7 +433,7 @@ function completion(state) {
     await page.locator('.vx-room[data-values-part="flip"]').waitFor();
     await page.locator(".vx-progress button").nth(2).click();
     await page.locator('[data-name-moment="cards"]').waitFor();
-    await page.getByRole("button", { name: "Name them →", exact: true }).click();
+    await page.getByRole("button", { name: "Next →", exact: true }).click();
     await page.locator(".na1-m4-ns-name:visible").fill("Own It revised");
     await page.locator(".na1-m4-ns-def:visible").fill("A revised meaning");
     assert.deepEqual(completion(await read(page)), completion(before));
@@ -287,8 +451,14 @@ function completion(state) {
     await page.getByRole("button", { name: "Name them →", exact: true }).click();
     await page.locator(".na1-m4-ns-name:visible").waitFor();
   });
-  await check("Preview All edits stay scratch-only and exit restores real progress", { preview: true }, async page => {
-    const before = await read(page), count = writes.length;
+  await check("Preview All on/off restores real claimed Values and Revisit", {}, async page => {
+    const before = await read(page);
+    await Promise.all([
+      page.waitForEvent("domcontentloaded"),
+      page.evaluate(async () => (await import("/src/devPreview.ts")).setDevPreview(true)),
+    ]);
+    await page.locator('[data-name-moment="cards"]').waitFor();
+    const count = writes.length;
     await page.locator(".vxnc-front").first().click();
     await page.locator(".vxnc-standard.is-turned .vxnc-behavior-row").first().click();
     await page.getByRole("button", { name: "↩ Send back", exact: true }).click();
@@ -298,7 +468,11 @@ function completion(state) {
       page.waitForEvent("domcontentloaded"),
       page.evaluate(async () => (await import("/src/devPreview.ts")).setDevPreview(false)),
     ]);
+    await page.locator('[data-name-moment="cards"]').waitFor();
+    assert.deepEqual(await read(page), before, "real claimed assignments restored");
+    await page.locator(".vx-room .na1-room-crumb a").click();
     await page.locator(".vx-opening").waitFor();
+    assert.equal(await page.locator(".vx-finding").allTextContents().then(a => a.join("|")), "Claimed|Claimed|Claimed|Claimed");
     await page.getByRole("button", { name: "Revisit →", exact: true }).click();
     await page.locator(".vx-progress button").nth(2).click();
     await page.locator('[data-name-moment="cards"]').waitFor();

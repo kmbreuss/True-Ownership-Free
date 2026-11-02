@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Mirror4State } from "../mirror4Constants";
 import { NameCreate } from "./NameCreate";
-import { nameBehaviorLabel, standardName, unplacedNameBehaviors } from "./nameData";
+import { behaviorCount, nameBehaviorLabel, standardName, unplacedNameBehaviors } from "./nameData";
 
 type Props = {
   state: Mirror4State;
@@ -40,7 +40,9 @@ export function NameSort({ state, onPlace, onCreate, onBack }: Props) {
         </div>
         <p>{behavior.text}</p>
       </article>
-      <p className="vxnc-helper">Tap the standard it belongs to.</p>
+      <p className="vxnc-helper">{state.clusters.length
+        ? "Same standard, or a new one?"
+        : "You don’t have any standards yet. Start one with this behavior. What does it point to?"}</p>
       <div className="vxnc-tiles" aria-label="Place this behavior">
         {state.clusters.map(cluster => <button type="button" key={cluster.id}
           data-standard-id={cluster.id} className={`vxnc-tile${glowing === cluster.id ? " is-glowing" : ""}`}
@@ -52,13 +54,14 @@ export function NameSort({ state, onPlace, onCreate, onBack }: Props) {
             onPlace(behavior.id, cluster.id);
           }}>
           <strong>{standardName(state, cluster.id)}</strong>
-          <span>{cluster.behaviorIds.length} behaviors</span>
+          <span>{behaviorCount(cluster.behaviorIds.length)}</span>
         </button>)}
         {!state.clusters.length && !creating && <button type="button" className="vxnc-tile vxnc-new" onClick={() => setCreating(true)}>
           + Name your first standard
         </button>}
       </div>
-      {creating ? <NameCreate key={behavior.id} onCancel={() => setCreating(false)} onCreate={name => {
+      {creating ? <NameCreate key={behavior.id} suggestions={[...new Set(state.clusters.flatMap(c => c.proposedNames))]}
+        onCancel={() => setCreating(false)} onCreate={name => {
         setCreating(false);
         onCreate(name, behavior.id);
       }} /> : <div className="vxnc-sort-links">
@@ -68,7 +71,7 @@ export function NameSort({ state, onPlace, onCreate, onBack }: Props) {
     </div>
     <footer className="na1-m4-disc-foot">
       <button type="button" className="na1-m4-back" onClick={onBack}>← Back</button>
-      <button type="button" className="na1-m4-continue" onClick={skip}>Next behavior →</button>
+      <button type="button" className="na1-m4-continue" onClick={skip}>{state.claimed ? "Next →" : "Next behavior →"}</button>
     </footer>
   </div>;
 }

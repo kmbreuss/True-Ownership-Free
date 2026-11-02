@@ -25,6 +25,7 @@ import { ValuesOpening, ValuesProgress } from "./valuesExperience/ValuesOpening"
 import { ValuesPortrait } from "./valuesExperience/ValuesPortrait";
 import { ValuesClaim, ValuesHubNames } from "./valuesExperience/ValuesClaim";
 import { NameBoard } from "./valuesExperience/NameBoard";
+import { NameSummary } from "./valuesExperience/NameSummary";
 import { preserveValuesCompletion } from "./valuesExperience/review";
 import { PurposeContextFrame } from "./components/PurposeContext";
 import { VisionRoomOpening } from "./components/VisionContext";
@@ -33073,6 +33074,7 @@ function DeskFlow({
   center,
   onPrevious,
   onNext,
+  nextLabel = "Continue →",
 }: {
   flow: { wide: boolean; idx: number; go: (n: number) => void };
   sections: FlowSection[];
@@ -33083,6 +33085,7 @@ function DeskFlow({
   center?: React.ReactNode;
   onPrevious?: () => void;
   onNext?: () => void;
+  nextLabel?: string;
 }) {
   const { wide, idx, go } = flow;
   if (!wide) {
@@ -33122,7 +33125,7 @@ function DeskFlow({
           forward
         ) : (
           <button type="button" className="na1-btn-gold" onClick={onNext ?? (() => go(idx + 1))}>
-            Continue →
+            {nextLabel}
           </button>
         )}
       </div>
@@ -54197,11 +54200,11 @@ function NewA1M4SectionBody({
   // ladder, and that rung flashes. The locked "Flip the irks" rung is
   // skipped — Portrait points straight at "Name the standards".
   const deskFlow = useVisionWide();
-  const continueLabel =
+  const continueLabel = reviewing ? "Next →" :
     sectionKey === "admire"
-      ? "I've got them →"
+      ? "Next: what you can’t stand →"
       : sectionKey === "irks"
-        ? "I've got them →"
+        ? "See my portrait →"
         : sectionKey === "portrait"
           ? "Find what's underneath →"
           : sectionKey === "flip"
@@ -54228,12 +54231,9 @@ function NewA1M4SectionBody({
             state={state}
             mutate={mutate}
             onBack={onCloseRoom}
-              entryAtEnd={entryAtEnd}
-            forward={
-              <button type="button" className="na1-m4-continue" onClick={handleDone}>
-                {continueLabel}
-              </button>
-            }
+            entryAtEnd={entryAtEnd}
+            reviewing={reviewing}
+            onNext={handleDone}
           />
         )}
       </div>
@@ -54401,18 +54401,21 @@ function NewA1M4NameStandardsBody({
   state,
   mutate,
   onBack,
-  forward,
+  onNext,
+  reviewing,
   entryAtEnd = false,
 }: {
   state: Mirror4State;
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
   // Desktop flow: the room's own Back (first screen) and Continue (last screen).
   onBack: () => void;
-  forward: React.ReactNode;
+  onNext: () => void;
+  reviewing: boolean;
   entryAtEnd?: boolean;
 }) {
-  const [nameScreen, setNameScreen] = useState(entryAtEnd ? Math.max(1, state.clusters.length) : 0);
-  const screen = Math.min(nameScreen, Math.max(1, state.clusters.length));
+  const summaryScreen = state.clusters.length + 1;
+  const [nameScreen, setNameScreen] = useState(entryAtEnd ? summaryScreen : 0);
+  const screen = Math.min(nameScreen, summaryScreen);
   const flow = { wide: true, idx: screen === 0 ? 0 : 1, go: (n: number) => setNameScreen(n === 0 ? 0 : 1) };
   const standardsPager = {
     page: Math.max(0, screen - 1), pages: Math.max(1, state.clusters.length),
@@ -54420,7 +54423,7 @@ function NewA1M4NameStandardsBody({
     slice: state.clusters.map((c, i) => ({ c, i })).slice(Math.max(0, screen - 1), Math.max(0, screen - 1) + 1),
   };
   const nextName = () => {
-    if (screen < state.clusters.length || screen === 0) setNameScreen(screen + 1);
+    if (screen < summaryScreen) setNameScreen(screen + 1);
   };
 
   const behaviorText = (id: string): string => {
@@ -54475,6 +54478,8 @@ function NewA1M4NameStandardsBody({
   };
 
   if (screen === 0) return <NameBoard state={state} mutate={mutate} onBack={onBack} onName={nextName} />;
+  if (screen === summaryScreen) return <NameSummary state={state} reviewing={reviewing}
+    onBack={() => setNameScreen(Math.max(0, state.clusters.length))} onNext={onNext} />;
 
   return (
     <>
@@ -54483,9 +54488,7 @@ function NewA1M4NameStandardsBody({
         onBack={onBack}
         onPrevious={() => screen > 0 ? setNameScreen(screen - 1) : onBack()}
         onNext={nextName}
-        forward={screen < state.clusters.length
-          ? <button type="button" className="na1-btn-gold" onClick={nextName}>Continue →</button>
-          : forward}
+        forward={<button type="button" className="na1-btn-gold" onClick={nextName}>{reviewing ? "Next →" : "Continue →"}</button>}
         header={
           <>
       <div className="na1-m4-step-eyebrow">Name</div>
@@ -56241,6 +56244,7 @@ function NewA1M4RankBody({
         flow={flow}
         onBack={onCloseRoom}
         forward={continueBlock}
+        nextLabel={reviewing ? "Next →" : undefined}
         header={
           <>
       <div className="na1-m4-eyebrow">Order</div>
@@ -57076,7 +57080,7 @@ function NewA1M4PressureTestModal({
           {reviewing && <button type="button" className="na1-m4-continue" onClick={() => {
             if (currentIdx + 1 < activeSeq.length) { setCurrentIdx(i => i + 1); setPickedId(null); }
             else onContinueToClaim();
-          }}>Continue →</button>}
+          }}>Next →</button>}
           {!reviewing && phase === "pair" && <button type="button" className="na1-m4-continue"
             disabled={!state.pressureTest.pairs.some(p => pairKey(p) === pairKey(activeSeq[currentIdx])) || conflictMode}
             onClick={() => {
@@ -57225,7 +57229,7 @@ function NewA1M4Container({
       <NewA1M4HubView
         onBackToGrid={onBackToGrid}
         onEntryHall={onEntryHall}
-        onLaunchRoom={launchRoom}
+        onLaunchRoom={(room) => navigate(room.key)}
         dimmed={roomOpen}
       />
       {openRoom && openRoom.bodyShipped && (

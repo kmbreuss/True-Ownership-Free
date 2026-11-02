@@ -20,3 +20,7 @@ export function standardName(state: Mirror4State, id: string): string {
   const index = state.clusters.findIndex(c => c.id === id);
   return state.clusters[index]?.userName.trim() || `Standard ${index + 1}`;
 }
+
+export function behaviorCount(count: number): string {
+  return `${count} ${count === 1 ? "behavior" : "behaviors"}`;
+}

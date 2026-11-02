@@ -2,7 +2,7 @@
 name: Values review navigation
 description: Product boundary for the continuous Values journey and non-destructive review.
 ---
-Values has one continuous order: Opening → Admire → Irks → Portrait → Flip → Name (grouping, then each standard) → Rank → Pressure test → Claimed.
+Values has one continuous order: Opening → Admire → Irks → Portrait → Flip → Name (grouping, each standard, then the display-only named-standards summary) → Rank → Pressure test → Claimed.
 
 **Why:** The owner explicitly replaced return-to-hub exercise navigation with a continuous path, including when revisiting saved work.
 

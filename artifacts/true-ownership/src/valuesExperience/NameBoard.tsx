@@ -21,6 +21,14 @@ export function NameBoard({ state, mutate, onBack, onName }: {
   if (unplacedNameBehaviors(state).length) return <NameSort state={state} onBack={onBack}
     onCreate={create} onPlace={(behaviorId, clusterId) => mutate(s => addBehaviorToCluster(s, clusterId, behaviorId))} />;
   return <NameCards state={state} onBack={onBack} onName={onName} onCreate={create}
+    onRemove={clusterId => mutate(before => {
+      const cluster = before.clusters.find(c => c.id === clusterId);
+      if (!cluster) return before;
+      const unplaced = cluster.behaviorIds.reduce(
+        (next, behaviorId) => removeBehaviorFromCluster(next, clusterId, behaviorId), before);
+      return { ...unplaced, clusters: unplaced.clusters.filter(c => c.id !== clusterId),
+        rank: unplaced.rank.filter(id => id !== clusterId) };
+    })}
     onMove={(behaviorId, fromId, toId) => mutate(s => {
       const stripped = removeBehaviorFromCluster(s, fromId, behaviorId);
       if (toId !== "new") return addBehaviorToCluster(stripped, toId, behaviorId);
