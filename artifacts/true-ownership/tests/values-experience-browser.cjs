@@ -70,6 +70,9 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
         });
         fits.push({ room: room || "opening", width, height, theme, ...geometry });
         assert(geometry.footerVisible, "footer remains visible");
+        if (width > 767 && ["admire", "flip", "rank"].includes(room)) {
+          assert(geometry.bodyOverflow <= 1, `${room}: only the ranked list may scroll, not the body (${geometry.bodyOverflow}px)`);
+        }
         if (width > 600 && room) assert(geometry.frameWidth <= 721, "720px frame");
         await page.screenshot({ path: path.join(out, `${room || "opening"}-${width}-${theme}.png`) });
         if (room) {
@@ -112,11 +115,59 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
       const r = await page.locator(".na1-m4-pt-modal").boundingBox();
       assert(r && r.y >= 0 && r.y + r.height <= height + 1, "pressure frame fits");
+      const cards = await page.locator(".na1-m4-pt-card").evaluateAll(nodes => nodes.map(node => {
+        const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom };
+      }));
+      assert(cards.every(c => c.x >= r.x && c.right <= r.x + r.width + 1 && c.y >= r.y && c.bottom <= r.y + r.height + 1), "both choices stay inside the frame");
+      if (width <= 600) assert(cards[1].y >= cards[0].bottom, "phone choices stack vertically");
       await page.screenshot({ path: path.join(out, `pressure-${width}-${theme}.png`) });
       await page.locator(".na1-m4-pt-card").first().click();
       await page.waitForFunction(() => JSON.parse(localStorage.getItem("to_mirror4_state_v1")).pressureTest.activePairIdx >= 2);
       assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("to_mirror4_state_v1")).claimed), true);
     });
+  }
+  for (const [width, height] of [[375, 812], [1280, 800], [1366, 680]]) for (const theme of ["light", "dark"]) {
+    for (const room of ["admire", "irks"]) for (const long of [false, true]) {
+      const tiers = room === "admire" ? ["lights", "warms"] : ["turns", "bothers"];
+      const behaviors = long ? Array.from({ length: 20 }, (_, i) => ({
+        id: `single-${room}-${i}`, text: `Synthetic behavior ${i + 1}`, person: "", tier: tiers[i % 2], inUseByCluster: null,
+      })) : values[room];
+      await check(`single list ${room} ${long ? "long" : "short"} ${width}x${height} ${theme}`,
+        { width, height, theme, room, state: { ...claimed, [room]: behaviors } }, async page => {
+        const input = page.locator(`#m4-ai-${room}-input`), list = page.locator(".na1-m4-ai-cols");
+        assert.equal(await page.getByText("How to add and edit", { exact: true }).count(), 0);
+        assert.equal(await page.locator(".na1-m4-ai-item").count(), behaviors.length, "all behaviors are in the shared list");
+        const expected = tiers.flatMap(tier => behaviors.filter(b => b.tier === tier).map(b => b.text));
+        assert.deepEqual(await page.locator(".na1-m4-ai-item-text").allTextContents(), expected, "strongest behaviors come first");
+        const before = await page.evaluate(() => {
+          const rect = selector => {
+            const r = document.querySelector(selector).getBoundingClientRect();
+            return { x: r.x, y: r.y, width: r.width, bottom: r.bottom };
+          };
+          const list = document.querySelector(".na1-m4-ai-cols"), body = document.querySelector(".na1-m4-disc-content");
+          return { input: rect(".na1-m4-input"), content: rect(".na1-m4-disc-content"),
+            footer: rect(".na1-m4-disc-foot"), list: rect(".na1-m4-ai-cols"),
+            bodyOverflow: body.scrollHeight - body.clientHeight, listOverflow: list.scrollHeight - list.clientHeight,
+            nestedScrollers: [...list.querySelectorAll("*")].filter(e => /(auto|scroll)/.test(getComputedStyle(e).overflowY)).length,
+            sideways: document.documentElement.scrollWidth > innerWidth + 1 };
+        });
+        assert(Math.abs(before.input.width - before.content.width) <= 1, "input fills content width");
+        assert(!before.sideways && before.bodyOverflow <= 1, "only the shared list may scroll");
+        assert.equal(before.nestedScrollers, 0, "no separate strength scroll boxes");
+        assert(before.footer.bottom <= height + 1 && before.list.bottom <= before.footer.y, "list and footer stay inside the frame");
+        assert(before.list.bottom - before.list.y > 40, "list has usable space");
+        if (long) assert(before.listOverflow > 0, "long list scrolls");
+        await list.evaluate(e => { e.scrollTop = e.scrollHeight; });
+        assert(Math.abs((await input.boundingBox()).y - before.input.y) <= 1, "input stays fixed when the list scrolls");
+        assert(Math.abs((await page.locator(".na1-m4-disc-foot").boundingBox()).y - before.footer.y) <= 1, "footer stays fixed when the list scrolls");
+        await page.screenshot({ path: path.join(out, `single-${room}-${long ? "long" : "short"}-${width}-${theme}.png`) });
+        await input.fill("Synthetic new behavior");
+        await page.locator(".na1-m4-ai-buttons button").first().click();
+        await page.waitForFunction(({ room, count }) => JSON.parse(localStorage.getItem("to_mirror4_state_v1"))[room].length === count,
+          { room, count: behaviors.length + 1 });
+        assert(Math.abs((await input.boundingBox()).y - before.input.y) <= 1, "adding preserves fixed input position");
+      });
+    }
   }
   await check("claimed overrides unfinished Rank without rewriting flags", {}, async page => {
     assert.equal(await page.locator(".vx-finding").allTextContents().then(a => a.join("|")), "Claimed|Claimed|Claimed|Claimed");

@@ -55158,7 +55158,6 @@ function M4StepAdmireIrks({
   const [dropTier, setDropTier] = useState<M4BehaviorTier | null>(null);
   const previousIds = useRef(new Set(list.map(b => b.id)));
   const [newestId, setNewestId] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState(false);
   useEffect(() => {
     const added = list.find(b => !previousIds.current.has(b.id));
     if (added) setNewestId(added.id);
@@ -55178,11 +55177,6 @@ function M4StepAdmireIrks({
       <p className="na1-m4-step-sub">
         In yourself or in someone else. One at a time.
       </p>
-      <details className="vx-help"><summary>How to add and edit</summary><ol className="na1-m4-ai-steps">
-        <li>Type a behavior — in yourself or someone else.</li>
-        <li>Tap how strongly it hits you to add it.</li>
-        <li>Add as many as come to mind (aim for 5 or more). Tap any behavior to change it.</li>
-      </ol></details>
       <M4InputRow kind={kind} mutate={mutate} />
       <div className="vx-list-heading"><span>{kind === "admire" ? "WHAT YOU ADMIRE" : "WHAT YOU CAN'T STAND"} · {list.length}</span><em>it builds as you go</em></div>
       <div className="na1-m4-ai-cols">
@@ -55216,7 +55210,7 @@ function M4StepAdmireIrks({
                 {col.length === 0 ? (
                   <p className="na1-m4-ai-empty">Nothing here yet — add one above.</p>
                 ) : (
-                  col.filter((b, i) => showAll || i < 3 || b.id === newestId || b.id === openId).map((b) =>
+                  col.map((b) =>
                     openId === b.id ? (
                       <M4BehaviorEditor
                         key={b.id}
@@ -55253,8 +55247,6 @@ function M4StepAdmireIrks({
           );
         })}
       </div>
-      {strengths.some(st => list.filter(b => b.tier === st.tier).length > 3) &&
-        <button type="button" className="vx-back-link" onClick={() => setShowAll(v => !v)}>{showAll ? "Show fewer" : "Show more"}</button>}
       <div className="na1-m4-counter">
         {kind === "admire"
           ? `${list.length} ${list.length === 1 ? "behavior" : "behaviors"} so far`
