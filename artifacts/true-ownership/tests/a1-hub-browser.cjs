@@ -102,7 +102,7 @@ const completeLocal={...rcComplete,...flags,to_map:completeMap,to_mirror4_state_
   });
   await check("Reality Check Begin returns to Values up next",{local:rcComplete,route:{view:"rcroom",overlay:null}},async page=>{
     await page.locator('.rc-room[data-step="13"]').waitFor();
-    await page.getByRole("button",{name:"Begin →",exact:true}).click();
+    await page.getByRole("button",{name:"Start my path →",exact:true}).click();
     await page.locator(".na1-mirror-grid").waitFor();
     assert.equal((await card(page,"values").locator(".na1-mirror-card-status").textContent()).trim(),"Up next");
     assert(await card(page,"values").evaluate(e=>e.classList.contains("is-vision-up-next")));

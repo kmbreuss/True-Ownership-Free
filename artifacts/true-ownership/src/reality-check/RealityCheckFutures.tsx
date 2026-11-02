@@ -4,6 +4,7 @@ import { annualAmounts, endClean, defaultList } from "./rcJourney";
 import { summaryInYou } from "./summaryWords";
 import { Feelings } from "./RCFeelings";
 import { FutureABeats, CompoundTimeline, OctoberLetter } from "./RCFutureScenes";
+import { RCPath } from "./RCPath";
 
 type Props = {
   state: RCState; update: (s: RCState) => void;
@@ -90,10 +91,5 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved, arrivin
     <p>That's often the real work. A1 starts right there, and your Future B is saved for when you're ready.</p>
     <div className="rc-scene-actions"><button className="na1-btn-gold" onClick={() => act({ ...s, step: 13 }, true)}>What would help me get there →</button><button onClick={closeSaved}>Save and come back later</button></div>
   </div>;
-  return <div className="rc-scene rc-willpower">
-    <h2>You won't get there on willpower.</h2>
-    <p>Everyone who builds Future B does five things.</p>
-    <ol className="rc-five-path">{["Know who you are", "See where you're going", "Surround yourself", "Know your next move", "Trust yourself"].map((text, i) => <li key={text}><span>{i + 1}</span><p>{text}</p></li>)}</ol>
-    <p className="rc-bronze"><em>Katherine is with you on every one.</em></p>
-  </div>;
+  return <RCPath state={s} />;
 }

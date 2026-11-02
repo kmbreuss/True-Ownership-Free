@@ -428,7 +428,7 @@ const url = `${base}/?preview=1`;
     await page.reload(); await page.locator(".rc-room").waitFor();
     assert.equal(await page.locator(".rc-room").getAttribute("data-step"), "13");
     assert.equal(await page.locator(".na1-gold-burst").count(), 0);
-    await page.getByRole("button", { name: "Begin →", exact: true }).click();
+    await page.getByRole("button", { name: "Start my path →", exact: true }).click();
     assert.equal(await page.locator(".rc-room").count(), 0);
     await render({ ...seed, step: 11, willing: null }, "dark", { width: 375, height: 812 }, "rcroom", false);
     await page.getByRole("button", { name: "Yes, I'm willing", exact: true }).click();

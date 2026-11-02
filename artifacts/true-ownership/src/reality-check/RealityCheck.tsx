@@ -175,10 +175,10 @@ export function RealityCheck({
         {error && <p role="alert">{error}</p>}
         </div>
         <footer className="rc-footer">
-          {state.step === 0 && !people ? <span>About 10 minutes · just you</span> : state.step === 13 ? <span>Your Future B goes with you</span> : state.step < 12 || join ? <button onClick={back}>← Back</button> : <span />}
+          {state.step === 0 && !people ? <span>About 10 minutes · just you</span> : state.step === 13 ? <span className="rc-path-reassurance">Katherine is with you on every step.</span> : state.step < 12 || join ? <button onClick={back}>← Back</button> : <span />}
           {state.step < 10 && <button className="na1-btn-gold" disabled={!canAdvance} onClick={advance}>{forward}</button>}
           {state.step === 12 && state.willing === "yes" && !join && <button className="na1-btn-gold" onClick={() => act({ ...state, step: 13 })}>What will get me there →</button>}
-          {state.step === 13 && !join && <button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>{access === "free" ? "Start building Future B →" : "Begin →"}</button>}
+          {state.step === 13 && !join && <button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>Start my path →</button>}
         </footer>
       </div>
     </div>, document.body)}
