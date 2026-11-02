@@ -45,7 +45,7 @@ export function RealityCheckFutures({ state: s, update, act, closeSaved, arrivin
   if (s.step === 8) {
     const five = annualAmounts(s, 5, "always");
     return <div className="rc-scene rc-future-b">
-      <h2>Five years on. You took it back.</h2>
+      <h2>Five years since you took it back.</h2>
       {(five.money || five.hours) && <div className="rc-back-grid">{five.money && <section className="rc-future-tile"><h3>BACK IN YOUR POCKET</h3><strong>{five.money}</strong></section>}{five.hours && <section className="rc-future-tile"><h3>BACK IN YOUR LIFE</h3><strong>{five.hours}</strong></section>}</div>}
       <label>How does it feel?</label><Feelings base={["Free", "Calm", "Proud", "Present", "Light"]} value={s.futureB5.feels} change={feels => update({ ...s, futureB5: { ...s.futureB5, feels } })} />
       <label>What does a Tuesday look like now? Write it as if it's already true.
