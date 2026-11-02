@@ -12,3 +12,4 @@
 - [Purpose Declare re-seed](true-ownership-purpose-declare.md) — seed Declare from the current Peel bottom when it differs from persisted purpose_seededFrom, not the volatile fromPeel one-shot; write seededFrom in lockstep with purpose_final.
 - [Mirror card progress signals](true-ownership-mirror-card-standard.md) — only Purpose/Vision/A2-M1 expose granular progress; Identity/Values/A2-M2/M3 only have started/complete, so pips are started→1/complete→full, never a fake per-step count.
 - [Mirror 4 keystone-per-value](true-ownership-keystone.md) — keystone lives on cluster.keystoneBehaviorId (resolve via m4BehaviorTextById); old operationalize.keystoneId is dead/vestigial; A2 align-screen builder still reads it (out of A1 scope).
+- [Values review navigation](values-review-navigation.md) — continuous Back/Next path; review preserves flags and never reclaims or hands off to Identity.

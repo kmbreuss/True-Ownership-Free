@@ -31,10 +31,9 @@ export function ValuesClaim({ state, onClaim, onBack, onNext, onEdit }: {
       {state.claimed && onEdit && <button className="vx-back-link" type="button" onClick={onEdit}>Edit my values →</button>}
     </section>
     <footer className="na1-m4-disc-foot">
-      {state.claimed ? <em>Next: Identity · who in you gets you there</em> :
-        <button type="button" className="na1-m4-back" onClick={onBack}>← Back</button>}
-      {state.claimed && onNext ? <button type="button" className="na1-m4-continue" onClick={onNext}>Continue to Identity →</button> :
-        !state.claimed ? <button type="button" className="na1-m4-continue" onClick={onClaim}>Claim it · go to Map of Me →</button> :
+      <button type="button" className="na1-m4-back" onClick={onBack}>← Back</button>
+      {state.claimed && onNext ? <button type="button" className="na1-m4-continue" onClick={onNext}>Done reviewing →</button> :
+        !state.claimed ? <button type="button" className="na1-m4-continue" disabled={!state.pressureTest.complete} onClick={onClaim}>Claim it · go to Map of Me →</button> :
         <button type="button" className="na1-m4-back" onClick={onBack}>← Back</button>}
     </footer>
   </div>;

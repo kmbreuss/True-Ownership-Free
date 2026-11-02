@@ -19,9 +19,9 @@ const THREAD = {
   purpose: "Why does Future B matter to you?",
   vision: "Your five years becomes ten.",
 };
-export function A1FutureBThread({ rc, mirror }: { rc: RCState; mirror: keyof typeof THREAD }) {
-  return rc.choice === "B" ? <p className="a1-future-b-thread"><span aria-hidden="true">•</span>
-    Future B · {THREAD[mirror]}</p> : null;
+export function A1FutureBThread({ rc, mirror, claimed = false }: { rc: RCState; mirror: keyof typeof THREAD; claimed?: boolean }) {
+  return rc.choice === "B" && !claimed ? <p className="a1-future-b-thread"><span>★ FUTURE B</span>
+    <em>{THREAD[mirror]}</em></p> : null;
 }
 
 export function A1FutureBCard({ rc }: { rc: RCState }) {

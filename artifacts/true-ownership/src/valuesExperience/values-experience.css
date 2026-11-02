@@ -26,7 +26,9 @@
 .vx-room>.na1-room-crumb{position:static;padding:0 40px 0 0;min-height:36px;font:400 12px/1.4 var(--f-label)}
 .vx-room>.na1-room-close{top:20px;right:20px}
 .vx-progress{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0 20px;flex:none}
-.vx-progress>div>span{display:block;height:3px;background:#DADADC;border-radius:3px;margin-bottom:7px}
+.vx-progress>button{display:block;min-width:0;border:0;background:none;padding:0;text-align:left;cursor:pointer}
+.vx-progress>button>span{display:block;height:3px;background:#DADADC;border-radius:3px;margin-bottom:7px}
+.vx-progress>button:focus-visible{outline:2px solid #A5875E;outline-offset:4px}
 .vx-progress .is-done>span{background:#A5875E}.vx-progress .is-current>span{background:#036360}
 .vx-progress .is-current small{color:#036360}
 .vx-room>.na1-m4-disc{display:flex;flex:1;min-height:0;flex-direction:column;overflow:hidden}
@@ -123,6 +125,14 @@ html[data-theme="dark"] .vx-room .vx-progress .is-current small{color:var(--na1-
 .vx-room.vx-room .na1-m4-pt-card-name{font:400 24px/1.25 var(--f-display)}
 .vx-room.vx-room .na1-m4-pt-card-def{font:italic 400 19px/1.35 var(--f-body)}
 .vx-room.vx-room .na1-m4-pt-card-key{display:none}
+.vx-room.vx-room .vx-pressure-inline{position:static;inset:auto;display:flex;flex:1;min-height:0;background:none;overflow:hidden}
+.vx-room.vx-room .vx-pressure-inline .na1-m4-pt-modal{border:0;border-radius:0;padding:0;max-height:none;height:auto;flex:1;background:none;box-shadow:none;overflow:hidden}
+.vx-room.vx-room .vx-pressure-inline .na1-m4-pt-head{display:none}
+.vx-room.vx-room .vx-pressure-inline .na1-m4-pt-body{padding:8px 0 0}
+.vx-room.vx-room .vx-pressure-inline .na1-m4-pt-prompt{margin-top:8px}
+.vx-room.vx-room .vx-pressure-review .na1-m4-pt-footer{display:none}
+.vx-room.vx-room .vx-pressure-nav{width:100%;box-sizing:border-box}
+.vx-room.vx-room .na1-m4-disc-content:has(>.df){display:flex;overflow:hidden}
 .na1-mirror-card:has(.vx-hub-values){background:radial-gradient(circle at 50% 0%,#FFFFFF,#FBF8F2 55%,#F3E9D8);border-color:#A5875E;color:#353334;--na1-text:#353334;--na1-text-sec:#735F43}
 .na1-mirror-card:has(.vx-hub-values) .na1-mirror-card-action button{background:none;color:#735F43;border:1px solid #A5875E;box-shadow:none}
 .na1-mirror-card:has(.vx-hub-values) .na1-mirror-card-status{color:#735F43}

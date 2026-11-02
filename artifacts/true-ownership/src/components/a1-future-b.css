@@ -39,10 +39,10 @@
 }
 .a1-future-b-thread {
   margin: 8px 0 12px;
-  font: 400 13px/1.45 var(--f-label);
   color: #735F43;
 }
-.a1-future-b-thread > span { color: #A5875E; margin-right: 5px; }
+.a1-future-b-thread > span { display:block; color:#735F43; font:400 11px/1.4 var(--f-label); letter-spacing:.16em; margin-bottom:4px; }
+.a1-future-b-thread > em { font:italic 400 16px/1.4 var(--f-body); }
 [data-theme="dark"] .a1-future-b-thread { color: #DBC5A3; }
 @media (max-width: 600px) {
   .a1-future-b-card { padding: 18px; }

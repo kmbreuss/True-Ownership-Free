@@ -24,6 +24,7 @@ import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1Fu
 import { ValuesOpening, ValuesProgress } from "./valuesExperience/ValuesOpening";
 import { ValuesPortrait } from "./valuesExperience/ValuesPortrait";
 import { ValuesClaim, ValuesHubNames } from "./valuesExperience/ValuesClaim";
+import { preserveValuesCompletion } from "./valuesExperience/review";
 import { PurposeContextFrame } from "./components/PurposeContext";
 import { VisionRoomOpening } from "./components/VisionContext";
 import { A1End } from "./a1End/A1End";
@@ -29907,7 +29908,7 @@ function NewA1Grid({
             <p className="na1-mirror-card-sub">
               Your internal why — independent of role.
             </p>
-            <A1FutureBThread rc={rc} mirror="purpose" />
+            <A1FutureBThread rc={rc} mirror="purpose" claimed={purposeComplete} />
             <MirrorPips done={doneCount} total={3} />
             <div
               className="na1-mirror-card-empty"
@@ -29954,7 +29955,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 Who you've become in 10 years — across time, wealth, and self.
               </p>
-              <A1FutureBThread rc={rc} mirror="vision" />
+              <A1FutureBThread rc={rc} mirror="vision" claimed={visionComplete} />
               <MirrorPips done={m2DoneCount} total={4} />
               <div
                 className="na1-mirror-card-empty"
@@ -29996,7 +29997,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 Who you've become in 10 years — across time, wealth, and self.
               </p>
-              <A1FutureBThread rc={rc} mirror="vision" />
+              <A1FutureBThread rc={rc} mirror="vision" claimed={visionComplete} />
               <MirrorPips done={0} total={5} />
               <div className="na1-mirror-card-empty">Unlocks after Purpose</div>
               <div className="na1-mirror-card-action">
@@ -30039,7 +30040,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
-              <A1FutureBThread rc={rc} mirror="identity" />
+              <A1FutureBThread rc={rc} mirror="identity" claimed={identityComplete} />
               <MirrorPips
                 done={identityComplete ? 5 : identityStarted ? 1 : 0}
                 total={5}
@@ -30088,7 +30089,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you carry that others don't.
               </p>
-              <A1FutureBThread rc={rc} mirror="identity" />
+              <A1FutureBThread rc={rc} mirror="identity" claimed={identityComplete} />
               <MirrorPips done={0} total={5} />
               <div className="na1-mirror-card-empty">Unlocks after Values</div>
               <div className="na1-mirror-card-action">
@@ -30126,7 +30127,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you stand for, in order.
               </p>
-              <A1FutureBThread rc={rc} mirror="values" />
+              <A1FutureBThread rc={rc} mirror="values" claimed={valuesComplete} />
               {valuesComplete ? <ValuesHubNames state={loadMirror4State()} /> : <MirrorPips done={valuesStarted ? 1 : 0} total={4} />}
               <div
                 className="na1-mirror-card-empty"
@@ -30172,7 +30173,7 @@ function NewA1Grid({
               <p className="na1-mirror-card-sub">
                 What you stand for, in order.
               </p>
-              <A1FutureBThread rc={rc} mirror="values" />
+              <A1FutureBThread rc={rc} mirror="values" claimed={valuesComplete} />
               <MirrorPips done={0} total={4} />
               <div className="na1-mirror-card-empty">
                 Unlocks after the Reality Check
@@ -33069,6 +33070,8 @@ function DeskFlow({
   onBack,
   forward,
   center,
+  onPrevious,
+  onNext,
 }: {
   flow: { wide: boolean; idx: number; go: (n: number) => void };
   sections: FlowSection[];
@@ -33077,6 +33080,8 @@ function DeskFlow({
   forward?: React.ReactNode;
   // Optional middle of the nav bar (e.g. a running count).
   center?: React.ReactNode;
+  onPrevious?: () => void;
+  onNext?: () => void;
 }) {
   const { wide, idx, go } = flow;
   if (!wide) {
@@ -33108,14 +33113,14 @@ function DeskFlow({
         </div>
       ))}
       <div className="df-nav">
-        <button type="button" className="na1-btn-ghost" onClick={() => (idx > 0 ? go(idx - 1) : onBack())}>
+        <button type="button" className="na1-btn-ghost" onClick={onPrevious ?? (() => (idx > 0 ? go(idx - 1) : onBack()))}>
           ← Back
         </button>
         {center}
         {last ? (
           forward
         ) : (
-          <button type="button" className="na1-btn-gold" onClick={() => go(idx + 1)}>
+          <button type="button" className="na1-btn-gold" onClick={onNext ?? (() => go(idx + 1))}>
             Continue →
           </button>
         )}
@@ -53868,17 +53873,21 @@ function NewA1M4RoomShell({
   onClose,
   children,
   stepper,
+  onOpening,
+  onPart,
 }: {
   room: M4Room;
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
   stepper?: React.ReactNode;
+  onOpening?: () => void;
+  onPart?: (key: string) => void;
 }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onOpening?.();
     };
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
@@ -53887,24 +53896,21 @@ function NewA1M4RoomShell({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [open, onClose]);
+  }, [open, onOpening]);
   return (
     <div
       className={`na1-room-overlay ${open ? "is-open" : ""}`}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
       role="dialog"
       aria-modal="true"
       aria-label={room.name}
     >
       <div className="na1-room-card vx-room" data-values-part={room.key}>
         <div className="na1-room-crumb">
-          <a onClick={onClose}>Values</a>
+          <a onClick={onOpening}>Values</a>
           <span className="sep">›</span>
           <span className="current">{room.name}</span>
         </div>
-        {stepper ?? <ValuesProgress roomKey={room.key} state={loadMirror4State()} />}
+        {stepper ?? <ValuesProgress roomKey={room.key} state={loadMirror4State()} onOpen={onPart} />}
         <button
           type="button"
           className="na1-room-close"
@@ -54150,16 +54156,22 @@ function m4ValueIndexToStep(i: number): M4DiscoverStep {
 function NewA1M4SectionBody({
   sectionKey,
   onCloseRoom,
+  onNext,
+  reviewing,
+  entryAtEnd,
 }: {
   sectionKey: "admire" | "irks" | "portrait" | "flip" | "name";
   onCloseRoom: () => void;
+  onNext: () => void;
+  reviewing: boolean;
+  entryAtEnd: boolean;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
   );
   const mutate = (fn: (s: Mirror4State) => Mirror4State) => {
     setMirrorState((prev) => {
-      const next = fn(prev);
+      const next = reviewing ? preserveValuesCompletion(prev, fn(prev)) : fn(prev);
       return next.status === "not_started"
         ? { ...next, status: "in_progress" }
         : next;
@@ -54176,31 +54188,8 @@ function NewA1M4SectionBody({
     saveMirror4State(state);
   }, [state]);
 
-  const markSectionDone = () => {
-    if (
-      sectionKey === "admire" ||
-      sectionKey === "irks" ||
-      sectionKey === "portrait"
-    ) {
-      const key = sectionKey;
-      mutate((s) => ({
-        ...s,
-        discoverSections: { ...s.discoverSections, [key]: true },
-      }));
-    }
-  };
-
-  const handleDone = () => {
-    if (sectionKey === "flip") {
-      // Tapping Continue on the Flip rung means "I've worked through these":
-      // accepted flips are kept, any still-unanswered irk is treated as
-      // skipped so the rung reports done.
-      mutate((s) => m4FinalizeFlips(s));
-    } else {
-      markSectionDone();
-    }
-    onCloseRoom();
-  };
+  // Navigation is not an answer or a completion action (including optional flips).
+  const handleDone = onNext;
 
   // Phase 2 fix · CTA rhythm. Match the Purpose/A2 (#40) model: the
   // completion button names the next actionable rung, returns to the
@@ -54238,6 +54227,7 @@ function NewA1M4SectionBody({
             state={state}
             mutate={mutate}
             onBack={onCloseRoom}
+              entryAtEnd={entryAtEnd}
             forward={
               <button type="button" className="na1-m4-continue" onClick={handleDone}>
                 {continueLabel}
@@ -54246,7 +54236,7 @@ function NewA1M4SectionBody({
           />
         )}
       </div>
-      {!(sectionKey === "name" && deskFlow) && (<div className="na1-m4-disc-foot">
+      {sectionKey !== "name" && (<div className="na1-m4-disc-foot">
         <button type="button" className="na1-m4-back" onClick={onCloseRoom}>
           ← Back
         </button>
@@ -54411,15 +54401,26 @@ function NewA1M4NameStandardsBody({
   mutate,
   onBack,
   forward,
+  entryAtEnd = false,
 }: {
   state: Mirror4State;
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
   // Desktop flow: the room's own Back (first screen) and Continue (last screen).
   onBack: () => void;
   forward: React.ReactNode;
+  entryAtEnd?: boolean;
 }) {
-  const flow = useDeskFlow("m4-name", 2);
-  const standardsPager = usePager(state.clusters.map((c, i) => ({ c, i })), 1, flow.wide);
+  const [nameScreen, setNameScreen] = useState(entryAtEnd ? Math.max(1, state.clusters.length) : 0);
+  const screen = Math.min(nameScreen, Math.max(1, state.clusters.length));
+  const flow = { wide: true, idx: screen === 0 ? 0 : 1, go: (n: number) => setNameScreen(n === 0 ? 0 : 1) };
+  const standardsPager = {
+    page: Math.max(0, screen - 1), pages: Math.max(1, state.clusters.length),
+    setPage: (n: number) => setNameScreen(n + 1),
+    slice: state.clusters.map((c, i) => ({ c, i })).slice(Math.max(0, screen - 1), Math.max(0, screen - 1) + 1),
+  };
+  const nextName = () => {
+    if (screen < state.clusters.length || screen === 0) setNameScreen(screen + 1);
+  };
   const [exampleOpen, setExampleOpen] = useState(false);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   // Board (first screen): a tapped placed behavior's menu, who's expanded, drag source.
@@ -54543,7 +54544,11 @@ function NewA1M4NameStandardsBody({
       <DeskFlow
         flow={flow}
         onBack={onBack}
-        forward={forward}
+        onPrevious={() => screen > 0 ? setNameScreen(screen - 1) : onBack()}
+        onNext={nextName}
+        forward={screen < state.clusters.length
+          ? <button type="button" className="na1-btn-gold" onClick={nextName}>Continue →</button>
+          : forward}
         header={
           <>
       <div className="na1-m4-step-eyebrow">Name</div>
@@ -56202,6 +56207,7 @@ function NewA1M4ClaimBody({
   onCloseRoom,
   onGoToA2,
   onEditValues,
+  onFinished,
 }: {
   onCloseRoom: () => void;
   // A2.0 · supplied only when ?newA2=1. Routes to the A2 "Align With It"
@@ -56212,6 +56218,7 @@ function NewA1M4ClaimBody({
   // The seal/ceremony stay intact (claimed/claimedAt are top-level fields);
   // editing is additive. Undefined → the link is not rendered.
   onEditValues?: () => void;
+  onFinished?: () => void;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
@@ -56311,21 +56318,11 @@ function NewA1M4ClaimBody({
       claimed: true,
       claimedAt: s.claimedAt ?? new Date().toISOString(),
     }));
-    // If Map of Me exists, navigate there (Boardroom case). Today in
-    // True Ownership this is always false → fall through to close +
-    // return to hub.
-    if (mapOfMeExists()) {
-      // Reserved for future Map of Me wiring. For now, close to
-      // avoid orphaning the user inside the Claim overlay.
-      onCloseRoom();
-      return;
-    }
-    onCloseRoom();
   };
 
   return (
     <ValuesClaim state={state} onClaim={handleClaim} onBack={onCloseRoom}
-      onNext={onGoToA2} onEdit={onEditValues} />
+      onNext={onFinished} onEdit={onEditValues} />
   );
 }
 
@@ -56335,16 +56332,26 @@ function NewA1M4ClaimBody({
 function NewA1M4RankBody({
   onCloseRoom,
   onContinueToClaim,
+  onPressure,
+  onExit,
+  pressureOnly = false,
+  reviewing = false,
+  entryAtEnd = false,
 }: {
   onCloseRoom: () => void;
   onContinueToClaim: () => void;
+  onPressure?: () => void;
+  onExit?: () => void;
+  pressureOnly?: boolean;
+  reviewing?: boolean;
+  entryAtEnd?: boolean;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
   );
   const mutate = (fn: (s: Mirror4State) => Mirror4State) => {
     setMirrorState((prev) => {
-      const next = fn(prev);
+      const next = reviewing ? preserveValuesCompletion(prev, fn(prev)) : fn(prev);
       saveMirror4State(next);
       return next;
     });
@@ -56369,6 +56376,7 @@ function NewA1M4RankBody({
     return [...existing, ...missing];
   })();
   useEffect(() => {
+    if (reviewing) return;
     const same =
       effectiveRank.length === state.rank.length &&
       effectiveRank.every((id, i) => id === state.rank[i]);
@@ -56476,7 +56484,7 @@ function NewA1M4RankBody({
   // modal stuck on Done because state was already initialized at
   // mount and parent prop changes don't re-derive `initialPhase`.
   const [walkSession, setWalkSession] = useState(0);
-  const flow = useDeskFlow("m4-rank", 2);
+  const flow = { wide: true, idx: 0, go: () => onPressure?.() };
 
   // First-time intro logic: show intro on Begin click only if no
   // pairs have been walked yet (resume case skips intro).
@@ -56528,6 +56536,17 @@ function NewA1M4RankBody({
             </p>
           )}
         </div>
+  );
+  if (pressureOnly) return (
+    <NewA1M4PressureTestModal
+      state={state} mutate={mutate} pairSeq={pairSeq} rank={effectiveRank}
+      introSeen={state.pressureTest.pairs.length > 0} markIntroSeen={() => {}}
+      justCleared={false} clearJustCleared={() => {}} onWalkAgain={() => {}}
+      onClose={onExit ?? onCloseRoom} onBack={onCloseRoom}
+      onContinueToClaim={onContinueToClaim}
+      clusterById={clusterById} keystoneNameFor={keystoneNameFor}
+      embedded reviewing={reviewing || ptComplete} entryAtEnd={entryAtEnd}
+    />
   );
   return (
     <>
@@ -56758,6 +56777,10 @@ function NewA1M4PressureTestModal({
   onContinueToClaim,
   clusterById,
   keystoneNameFor,
+  embedded = false,
+  reviewing = false,
+  entryAtEnd = false,
+  onBack,
 }: {
   state: Mirror4State;
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
@@ -56772,6 +56795,10 @@ function NewA1M4PressureTestModal({
   onContinueToClaim: () => void;
   clusterById: (id: string) => M4Cluster | undefined;
   keystoneNameFor: (id: string) => string | null;
+  embedded?: boolean;
+  reviewing?: boolean;
+  entryAtEnd?: boolean;
+  onBack?: () => void;
 }) {
   type Phase = "intro" | "pair" | "done";
   // Resume index = activePairIdx, clamped to range.
@@ -56780,13 +56807,15 @@ function NewA1M4PressureTestModal({
     pairSeq.length,
   );
   const initialPhase: Phase =
+    entryAtEnd && !reviewing ? "done" :
+    reviewing ? (pairSeq.length > 0 ? "pair" : "done") :
     !introSeen && state.pressureTest.pairs.length === 0
       ? "intro"
       : resumeIdx >= pairSeq.length
         ? "done"
         : "pair";
   const [phase, setPhase] = useState<Phase>(initialPhase);
-  const [currentIdx, setCurrentIdx] = useState<number>(resumeIdx);
+  const [currentIdx, setCurrentIdx] = useState<number>(reviewing ? (entryAtEnd ? Math.max(0, pairSeq.length - 1) : 0) : resumeIdx);
   // Ship 5.6j · Fix #3 — Pair preservation on Re-order. The modal
   // freezes the pair sequence at open and treats it as internal
   // state. Without this, every Re-order triggers a rank mutate →
@@ -56989,6 +57018,11 @@ function NewA1M4PressureTestModal({
   };
 
   const handlePick = (pair: { aId: string; bId: string }, clickedId: string) => {
+    if (reviewing) {
+      writePair({ ...pair, pickedId: clickedId, matchedRank: rank.indexOf(clickedId) < rank.indexOf(clickedId === pair.aId ? pair.bId : pair.aId) });
+      setPickedId(clickedId);
+      return;
+    }
     if (pickedId !== null) return;
     setPickedId(clickedId);
     const otherId = clickedId === pair.aId ? pair.bId : pair.aId;
@@ -57087,7 +57121,7 @@ function NewA1M4PressureTestModal({
   };
 
   const handleDoneContinue = () => {
-    mutate((s) => ({
+    if (!reviewing) mutate((s) => ({
       ...s,
       pressureTest: { ...s.pressureTest, complete: true },
     }));
@@ -57101,14 +57135,15 @@ function NewA1M4PressureTestModal({
     const c = clusterById(id);
     if (!c) return null;
     const key = keystoneNameFor(id);
-    const isPicked = pickedId === id;
+    const savedPick = state.pressureTest.pairs.find(p => pairKey(p) === pairKey(pair))?.pickedId;
+    const isPicked = (pickedId ?? savedPick) === id;
     return (
       <button
         type="button"
         key={id}
         className={"na1-m4-pt-card" + (isPicked ? " is-picked" : "")}
         onClick={() => handlePick(pair, id)}
-        disabled={pickedId !== null && !isPicked}
+        disabled={!reviewing && pickedId !== null && !isPicked}
       >
         <div className="na1-m4-pt-card-name">{c.userName}</div>
         {c.userDefinition && <p className="na1-m4-pt-card-def">Your words: {c.userDefinition}</p>}
@@ -57128,7 +57163,7 @@ function NewA1M4PressureTestModal({
 
   return (
     <div
-      className="na1-m4-pt-backdrop"
+      className={`na1-m4-pt-backdrop${embedded ? " vx-pressure-inline" : ""}${reviewing ? " vx-pressure-review" : ""}`}
       role="dialog"
       aria-modal="true"
       aria-label="Pressure-test"
@@ -57262,7 +57297,7 @@ function NewA1M4PressureTestModal({
                   {renderCard(pair, pair.aId)}
                   {renderCard(pair, pair.bId)}
                 </div>
-                {!conflictMode && (
+                {!conflictMode && !reviewing && (
                   <button
                     type="button"
                     className="na1-m4-pt-skip"
@@ -57344,6 +57379,26 @@ function NewA1M4PressureTestModal({
             );
           })()}
         </div>
+        {embedded && <div className="na1-m4-disc-foot vx-pressure-nav">
+          <button type="button" className="na1-m4-back" onClick={() => {
+            if (phase === "done" && activeSeq.length) { setPhase("pair"); setCurrentIdx(activeSeq.length - 1); }
+            else if (phase === "pair" && currentIdx > 0) { setCurrentIdx(i => i - 1); }
+            else { onBack?.(); }
+            setPickedId(null); setConflictMode(false);
+          }}>← Back</button>
+          {reviewing && <button type="button" className="na1-m4-continue" onClick={() => {
+            if (currentIdx + 1 < activeSeq.length) { setCurrentIdx(i => i + 1); setPickedId(null); }
+            else onContinueToClaim();
+          }}>Continue →</button>}
+          {!reviewing && phase === "pair" && <button type="button" className="na1-m4-continue"
+            disabled={!state.pressureTest.pairs.some(p => pairKey(p) === pairKey(activeSeq[currentIdx])) || conflictMode}
+            onClick={() => {
+              setPickedId(null);
+              if (currentIdx + 1 < activeSeq.length) setCurrentIdx(i => i + 1);
+              else setPhase("done");
+            }}>Continue →</button>}
+          {!reviewing && phase === "done" && <button type="button" className="na1-m4-continue" onClick={onContinueToClaim}>Continue →</button>}
+        </div>}
       </div>
     </div>
   );
@@ -57377,6 +57432,10 @@ function NewA1M4Container({
   const [roomOpen, setRoomOpen] = useState<boolean>(initialRoom != null);
   const [veilPhase, setVeilPhase] = useState<NA1VeilPhase>("idle");
   const timeoutsRef = useRef<number[]>([]);
+  const reviewing = useRef(loadMirror4State().claimed === true).current;
+  const [pressureOnly, setPressureOnly] = useState(false);
+  const [entryAtEnd, setEntryAtEnd] = useState(false);
+  const [navigationId, setNavigationId] = useState(0);
 
   // Report overlay open/close to the parent so the route can persist.
   // Only fires when the room is actually open (roomOpen=true), so the
@@ -57406,6 +57465,8 @@ function NewA1M4Container({
 
   const launchRoom = (room: M4Room) => {
     clearTimers();
+    setPressureOnly(false);
+    setEntryAtEnd(false);
     setOpenRoom(room);
     setVeilPhase("rising");
     timeoutsRef.current.push(
@@ -57430,12 +57491,35 @@ function NewA1M4Container({
   };
 
   const closeRoom = () => {
+    clearTimers();
     setRoomOpen(false);
-    timeoutsRef.current.push(
-      window.setTimeout(() => {
-        setOpenRoom((cur) => (roomOpen ? null : cur));
-      }, 520),
-    );
+    setOpenRoom(null);
+    setVeilPhase("idle");
+  };
+  const navigate = (key: string, backward = false) => {
+    const room = M4_ROOMS.find(r => r.key === (key === "pressure" ? "rank" : key));
+    if (!room) { closeRoom(); return; }
+    clearTimers();
+    setVeilPhase("idle");
+    setEntryAtEnd(backward);
+    setNavigationId(n => n + 1);
+    setPressureOnly(key === "pressure");
+    setOpenRoom(room);
+    setRoomOpen(true);
+  };
+  const previous = () => {
+    if (pressureOnly) { navigate("rank"); return; }
+    const order = ["admire", "irks", "portrait", "flip", "name", "rank", "pressure", "claim"];
+    const idx = order.indexOf(openRoom?.key ?? "");
+    if (idx <= 0) closeRoom();
+    else navigate(order[idx - 1], true);
+  };
+  const next = () => {
+    if (pressureOnly) { navigate("claim"); return; }
+    const order = ["admire", "irks", "portrait", "flip", "name", "rank", "pressure", "claim"];
+    const idx = order.indexOf(openRoom?.key ?? "");
+    if (idx >= order.length - 1) closeRoom();
+    else navigate(order[idx + 1]);
   };
 
   // Per-room completion for the A1 step indicator. Reuses the exact same
@@ -57461,7 +57545,9 @@ function NewA1M4Container({
         <NewA1M4RoomShell
           room={openRoom}
           open={roomOpen}
-          onClose={closeRoom}
+          onClose={onBackToGrid}
+          onOpening={closeRoom}
+          onPart={navigate}
         >
           {openRoom.key === "admire" ||
           openRoom.key === "irks" ||
@@ -57469,6 +57555,7 @@ function NewA1M4Container({
           openRoom.key === "flip" ||
           openRoom.key === "name" ? (
             <NewA1M4SectionBody
+              key={`${openRoom.key}-${navigationId}`}
               sectionKey={
                 openRoom.key as
                   | "admire"
@@ -57477,7 +57564,10 @@ function NewA1M4Container({
                   | "flip"
                   | "name"
               }
-              onCloseRoom={closeRoom}
+              onCloseRoom={previous}
+              onNext={next}
+              reviewing={reviewing}
+              entryAtEnd={entryAtEnd}
             />
           ) : openRoom.key === "operationalize" ? (
             <NewA1M4BehaviorsBody
@@ -57490,23 +57580,25 @@ function NewA1M4Container({
             />
           ) : openRoom.key === "rank" ? (
             <NewA1M4RankBody
-              onCloseRoom={closeRoom}
-              onContinueToClaim={() => {
-                // Unified nav: finishing Rank returns to the Values
-                // ladder (no auto-advance to Claim).
-                closeRoom();
-              }}
+              key={`${pressureOnly ? "pressure" : "rank"}-${navigationId}`}
+              onCloseRoom={previous}
+              onContinueToClaim={next}
+              onPressure={() => navigate("pressure")}
+              onExit={onBackToGrid}
+              pressureOnly={pressureOnly}
+              reviewing={reviewing}
+              entryAtEnd={entryAtEnd}
             />
           ) : openRoom.key === "claim" ? (
             <NewA1M4ClaimBody
-              onCloseRoom={closeRoom}
-              onGoToA2={onGoToA2}
+              onCloseRoom={previous}
+              onFinished={closeRoom}
               onEditValues={() => {
                 // Additive post-claim edit path: open the Name the Standards
                 // rung (name/behaviors/keystone/meaning all editable there).
                 // Same veil transition the hub uses; the seal is untouched.
                 const nameRoom = M4_ROOMS.find((r) => r.key === "name");
-                if (nameRoom) launchRoom(nameRoom);
+                if (nameRoom) navigate(nameRoom.key);
               }}
             />
           ) : (

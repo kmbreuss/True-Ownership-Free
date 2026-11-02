@@ -18,6 +18,11 @@ const values = { ...f.values, status: "in_progress", admire, irks,
   })), rank: ["c0", "c1", "c2"],
 };
 const claimed = { ...values, claimed: true, claimedAt: "2026-11-01T12:00:00.000Z" };
+const savedPairs = [["c0", "c1"], ["c1", "c2"], ["c0", "c2"]].map(([aId, bId]) => ({ aId, bId, pickedId: aId, matchedRank: true }));
+const reviewFixture = { ...claimed, pressureTest: { ...values.pressureTest, complete: true, activePairIdx: 3, pairs: savedPairs } };
+const midFixture = { ...reviewFixture, claimed: false, claimedAt: null,
+  discoverSections: { admire: true, irks: false, portrait: false },
+  pressureTest: { ...reviewFixture.pressureTest, complete: false, activePairIdx: 0 } };
 const results = [], fits = [], errors = [], writes = [], unexpected = [];
 (async () => {
   fs.mkdirSync(out, { recursive: true });
@@ -94,7 +99,7 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
   }
   for (const [width, height] of [[375, 812], [1280, 800], [1366, 680]]) for (const theme of ["light", "dark"]) {
     await check(`naming controls ${width}x${height} ${theme}`, { width, height, theme, room: "name" }, async page => {
-      if (width > 767) await page.locator(".df-nav").getByRole("button", { name: "Continue →", exact: true }).click();
+      await page.locator(".df-nav").getByRole("button", { name: "Continue →", exact: true }).click();
       const field = page.locator(".na1-m4-ns-name").filter({ visible: true }).first();
       await field.waitFor(); assert.equal(await field.inputValue(), "Integrity");
       const geometry = await page.evaluate(() => {
@@ -108,8 +113,7 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
     const pressure = { ...claimed, pressureTest: { ...claimed.pressureTest,
       pairs: [{ aId: "c0", bId: "c1", pickedId: "c0", matchedRank: true }], activePairIdx: 1 } };
     await check(`pressure pair ${width}x${height} ${theme}`, { width, height, theme, room: "rank", state: pressure }, async page => {
-      if (width > 767) await page.locator(".df-nav").getByRole("button", { name: "Continue →", exact: true }).click();
-      await page.locator(".na1-m4-rank-pt-btn").filter({ visible: true }).first().click();
+      await page.locator(".df-nav").getByRole("button", { name: "Continue →", exact: true }).click();
       await page.getByText("When these two pull against each other, which one wins?", { exact: true }).waitFor();
       assert.equal(await page.locator(".na1-m4-pt-card").count(), 2);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
@@ -122,7 +126,7 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
       if (width <= 600) assert(cards[1].y >= cards[0].bottom, "phone choices stack vertically");
       await page.screenshot({ path: path.join(out, `pressure-${width}-${theme}.png`) });
       await page.locator(".na1-m4-pt-card").first().click();
-      await page.waitForFunction(() => JSON.parse(localStorage.getItem("to_mirror4_state_v1")).pressureTest.activePairIdx >= 2);
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("to_mirror4_state_v1")).pressureTest.activePairIdx), 1, "review does not move the persisted completion cursor");
       assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("to_mirror4_state_v1")).claimed), true);
     });
   }
@@ -169,6 +173,105 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
       });
     }
   }
+  for (const [width, height] of [[375, 812], [1280, 800], [1366, 680]]) for (const theme of ["light", "dark"]) {
+    for (const room of ["flip", "rank", "pressure"]) {
+      await check(`navigation fit ${room} ${width}x${height} ${theme}`,
+        { width, height, theme, room: room === "pressure" ? "rank" : room, state: reviewFixture }, async page => {
+        if (room === "pressure") await page.locator(".vx-room .df-nav").getByRole("button").last().click();
+        const geometry = await page.evaluate(() => {
+          const box = e => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom }; };
+          const frame = document.querySelector(".vx-room"), footer = [...frame.querySelectorAll(".df-nav,.na1-m4-disc-foot")].find(e => e.getBoundingClientRect().height > 0);
+          const body = frame.querySelector(".na1-m4-pt-body,.na1-m4-disc-content,.df-sec:not([hidden])");
+          const cards = [...frame.querySelectorAll(".na1-m4-pt-card")];
+          return { frame: box(frame), footer: box(footer), bodyOverflow: body.scrollHeight - body.clientHeight,
+            cards: cards.map(box), sideways: document.documentElement.scrollWidth > innerWidth + 1,
+            listOverflow: frame.querySelector(".na1-m4-rank-stack")?.scrollHeight - frame.querySelector(".na1-m4-rank-stack")?.clientHeight };
+        });
+        assert(!geometry.sideways && geometry.footer.bottom <= height + 1, "footer visible, no sideways overflow");
+        if (width > 767) assert(geometry.bodyOverflow <= 1, `${room} body fits (${geometry.bodyOverflow}px)`);
+        if (room === "pressure") {
+          assert.equal(geometry.cards.length, 2);
+          assert(geometry.cards.every(c => c.x >= geometry.frame.x && c.right <= geometry.frame.right + 1 && c.y >= geometry.frame.y && c.bottom <= geometry.footer.y + 1), "choices fit inside frame above footer");
+          if (width <= 600) assert(geometry.cards[1].y >= geometry.cards[0].bottom, "phone choices stack");
+        }
+        fits.push({ room, width, height, theme, ...geometry });
+        await page.screenshot({ path: path.join(out, `navigation-${room}-${width}-${theme}.png`) });
+      });
+    }
+    for (const complete of [true, false]) await check(`navigation hub ${complete ? "claimed" : "draft"} ${width}x${height} ${theme}`,
+      { width, height, theme, grid: true, state: complete ? reviewFixture : midFixture }, async page => {
+      const card = page.locator('[data-a1-mirror="values"]');
+      assert.equal(await card.locator(".a1-future-b-thread").count(), complete ? 0 : 1);
+      for (const label of await page.locator(".a1-future-b-thread > span").allTextContents()) assert.equal(label, "★ FUTURE B");
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false);
+      await page.screenshot({ path: path.join(out, `navigation-hub-${complete ? "claimed" : "draft"}-${width}-${theme}.png`), fullPage: true });
+    });
+  }
+  for (const width of [375, 1366]) for (const complete of [true, false]) {
+    await check(`navigation walk ${complete ? "claimed" : "midway"} ${width}`, { width, height: width === 375 ? 812 : 680, state: complete ? reviewFixture : midFixture }, async page => {
+      const read = () => page.evaluate(() => JSON.parse(localStorage.getItem("to_mirror4_state_v1")));
+      const before = await read();
+      const snapshot = s => ({ claimed: s.claimed, claimedAt: s.claimedAt, status: s.status, discoverSections: s.discoverSections, pressure: s.pressureTest.complete });
+      const footer = () => page.locator(".vx-room .df-nav,.vx-room .na1-m4-disc-foot").filter({ visible: true }).last();
+      const next = () => footer().getByRole("button").last().click();
+      const back = () => footer().getByRole("button", { name: "← Back", exact: true }).click();
+      const expectRoom = async room => { await page.locator(`.vx-room[data-values-part="${room}"]`).waitFor(); assert.equal(await page.locator(".na1-root .na1-mirror-grid:visible").count(), 0); };
+      if (complete) await page.getByRole("button", { name: "Revisit →", exact: true }).click();
+      else await page.locator(".vx-stop").first().click();
+      for (const room of ["admire", "irks", "portrait", "flip"]) { await expectRoom(room); await next(); }
+      await expectRoom("name");
+      await next(); // grouping -> first standard
+      for (let i = 0; i < 3; i++) {
+        assert.equal(await page.locator(".na1-m4-ns-name:visible").inputValue(), before.clusters[i].userName);
+        await next();
+      }
+      await expectRoom("rank"); await next();
+      for (let i = 0; i < 3; i++) {
+        await page.locator(".vx-pressure-inline").waitFor();
+        assert.equal(await page.locator(".na1-m4-pt-card.is-picked").count(), 1, "saved pick visible");
+        await next();
+      }
+      if (!complete) await next(); // done -> claim, navigation alone never completes
+      await expectRoom("claim");
+      assert.deepEqual(snapshot(await read()), snapshot(before), "forward navigation never changes flags");
+      if (complete) assert.equal(await page.getByRole("button", { name: "Done reviewing →", exact: true }).count(), 1);
+      await back(); // last pressure pair / done
+      if (!complete) await back(); // done -> last pair
+      for (let i = 0; i < 3; i++) await back();
+      await expectRoom("rank"); await back();
+      await expectRoom("name");
+      for (let i = 2; i >= 0; i--) {
+        assert.equal(await page.locator(".na1-m4-ns-name:visible").inputValue(), before.clusters[i].userName);
+        await back();
+      }
+      await back(); // grouping -> Flip
+      for (const room of ["flip", "portrait", "irks", "admire"]) { await expectRoom(room); await back(); }
+      await page.locator(".vx-opening").waitFor();
+      assert.deepEqual(await read(), before, "round trip loses no answers and makes no writes");
+      // Each stop and each progress part jumps to its first screen, even from that part.
+      for (const [i, room] of ["admire", "flip", "name", "rank"].entries()) {
+        await page.locator(".vx-stop").nth(i).click(); await expectRoom(room);
+        await page.locator(".vx-progress button").nth((i + 1) % 4).click();
+        await page.locator(".vx-progress button").nth(i).click(); await expectRoom(room);
+        if (room === "name") assert.equal(await page.locator(".na1-m4-ns-name:visible").count(), 0, "Name starts at grouping");
+        await page.locator(".na1-room-crumb a").click();
+      }
+      if (complete) {
+        await page.getByRole("button", { name: "Revisit →", exact: true }).click();
+        await page.locator(".vx-progress button").nth(2).click(); await next();
+        await page.locator(".na1-m4-ns-name:visible").fill("Integrity edited");
+        await page.locator(".vx-progress button").nth(3).click(); await next();
+        await page.locator(".na1-m4-pt-card").last().click();
+        for (let i = 0; i < 3; i++) await next();
+        await page.getByRole("button", { name: "Done reviewing →", exact: true }).click();
+        await page.locator(".vx-opening").waitFor();
+        const edited = await read();
+        assert.equal(edited.clusters[0].userName, "Integrity edited");
+        assert.deepEqual(snapshot(edited), snapshot(before), "review edits preserve flags");
+        assert.equal(edited.pressureTest.pairs.find(p => p.aId === "c0" && p.bId === "c1").pickedId, "c1");
+      }
+    });
+  }
   await check("claimed overrides unfinished Rank without rewriting flags", {}, async page => {
     assert.equal(await page.locator(".vx-finding").allTextContents().then(a => a.join("|")), "Claimed|Claimed|Claimed|Claimed");
     assert.equal(await page.locator(".vx-stop-circle").allTextContents().then(a => a.join("")), "✓✓✓✓");
@@ -191,15 +294,13 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
     await page.getByText("a synthetic commitment", { exact: true }).waitFor();
     assert((await page.locator(".vx-just-added").textContent()).includes("JUST ADDED"));
     await page.getByRole("button", { name: "I've got them →", exact: true }).click();
-    await page.getByRole("button", { name: "Continue with Notice →", exact: true }).click();
     await page.locator("#m4-ai-irks-input").fill("a synthetic irk");
     await page.getByRole("button", { name: /\+ ⚡ Turns my stomach/ }).click();
     await page.getByRole("button", { name: "I've got them →", exact: true }).click();
-    await page.getByRole("button", { name: "Continue with Notice →", exact: true }).click();
     await page.getByRole("button", { name: "Edit portrait", exact: true }).click();
     await page.getByRole("button", { name: "← Your portrait", exact: true }).click();
     await page.getByRole("button", { name: "Find what's underneath →", exact: true }).click();
-    await page.getByRole("button", { name: "Continue with Flip →", exact: true }).waitFor();
+    await page.locator('.vx-room[data-values-part="flip"]').waitFor();
   });
   await check("mid Name resumes at Name", { state: { ...values, clusters: [], flips: irks.map(b => ({ irkId: b.id, accepted: false, toText: "" })) } }, async page => {
     await page.getByRole("button", { name: "Continue with Name →", exact: true }).waitFor();
@@ -215,6 +316,7 @@ const results = [], fits = [], errors = [], writes = [], unexpected = [];
   });
   await check("existing claim saves and unlocks Identity", { room: "claim", state: { ...values, pressureTest: { ...values.pressureTest, complete: true } } }, async page => {
     await page.getByRole("button", { name: "Claim it · go to Map of Me →", exact: true }).click();
+    await page.getByRole("button", { name: "Done reviewing →", exact: true }).click();
     await page.getByRole("button", { name: "Revisit →", exact: true }).waitFor();
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem("to_mirror4_state_v1")).claimed), true);
     await page.getByRole("button", { name: "← Back to A1", exact: true }).click();

@@ -10,13 +10,14 @@ export const VALUES_PARTS = [
   { name: "Order", keys: ["rank", "claim"], line: "which one wins when they clash", minutes: 5 },
 ] as const;
 
-export function ValuesProgress({ roomKey, state }: { roomKey: string; state: Mirror4State }) {
+export function ValuesProgress({ roomKey, state, onOpen }: { roomKey: string; state: Mirror4State; onOpen?: (key: string) => void }) {
   const current = VALUES_PARTS.findIndex(p => (p.keys as readonly string[]).includes(roomKey));
   return <nav className="vx-progress" aria-label="Values progress">{VALUES_PARTS.map((p, i) => {
     const done = state.claimed || p.keys.every(k => m4RoomDone(state, k));
-    return <div key={p.name} className={i === current ? "is-current" : done ? "is-done" : ""}>
+    return <button type="button" key={p.name} className={i === current ? "is-current" : done ? "is-done" : ""}
+      onClick={() => onOpen?.(p.keys[0])}>
       <span aria-hidden="true" /><small>{p.name}</small>
-    </div>;
+    </button>;
   })}</nav>;
 }
 
@@ -41,10 +42,9 @@ export function ValuesOpening({ state, canOpen, onOpen, onBack, onVideo, video, 
       {VALUES_PARTS.map((p, i) => {
         const done = state.claimed || p.keys.every(k => m4RoomDone(state, k));
         const rooms = M4_ROOMS.filter(r => (p.keys as readonly string[]).includes(r.key));
-        const target = (state.claimed ? rooms.find(r => r.key === "claim" && canOpen(r)) : undefined)
-          ?? rooms.find(r => canOpen(r) && !m4RoomDone(state, r.key)) ?? rooms.find(canOpen);
+        const target = rooms[0];
         return <li key={p.name} className={`${done ? "is-done" : ""} ${i === active ? "is-current" : ""}`}>
-          <button type="button" className="vx-stop" disabled={!target} onClick={() => target && onOpen(target)}>
+          <button type="button" className="vx-stop" onClick={() => target && onOpen(target)}>
             <span className="vx-stop-circle">{done ? "✓" : i + 1}</span><strong>{p.name}</strong>
             <em>{p.line}</em>
             <small>{done ? <span className="vx-finding">{finding(i)}</span> : `${i === active ? "You are here · " : ""}about ${p.minutes} minutes`}</small>
