@@ -24,6 +24,7 @@ import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1Fu
 import { ValuesOpening, ValuesProgress } from "./valuesExperience/ValuesOpening";
 import { ValuesPortrait } from "./valuesExperience/ValuesPortrait";
 import { ValuesClaim, ValuesHubNames } from "./valuesExperience/ValuesClaim";
+import { NameBoard } from "./valuesExperience/NameBoard";
 import { preserveValuesCompletion } from "./valuesExperience/review";
 import { PurposeContextFrame } from "./components/PurposeContext";
 import { VisionRoomOpening } from "./components/VisionContext";
@@ -54421,37 +54422,6 @@ function NewA1M4NameStandardsBody({
   const nextName = () => {
     if (screen < state.clusters.length || screen === 0) setNameScreen(screen + 1);
   };
-  const [exampleOpen, setExampleOpen] = useState(false);
-  const [menuFor, setMenuFor] = useState<string | null>(null);
-  // Board (first screen): a tapped placed behavior's menu, who's expanded, drag source.
-  const [placedMenu, setPlacedMenu] = useState<string | null>(null); // `${clusterId}|${behaviorId}`
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const dragRef = useRef<{ bid: string; from: string | null } | null>(null);
-  const [dropOn, setDropOn] = useState<string | null>(null);
-  // Placing animates the chip from where it was to where it lands (FLIP).
-  const flyRef = useRef<{ bid: string; rect: DOMRect } | null>(null);
-  const markFly = (bid: string) => {
-    const el = document.querySelector(`[data-bid="${bid}"]`);
-    if (el) flyRef.current = { bid, rect: el.getBoundingClientRect() };
-  };
-  useLayoutEffect(() => {
-    const f = flyRef.current;
-    if (!f) return;
-    flyRef.current = null;
-    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const el = document.querySelector(`[data-bid="${f.bid}"]`) as HTMLElement | null;
-    if (!el || !el.animate) return;
-    const r = el.getBoundingClientRect();
-    el.animate(
-      [
-        { transform: `translate(${f.rect.left - r.left}px, ${f.rect.top - r.top}px)`, opacity: 0.65 },
-        { transform: "none", opacity: 1 },
-      ],
-      { duration: 380, easing: "cubic-bezier(.22,1,.36,1)" },
-    );
-  }, [state.clusters, state.admire]);
-
-  const pool = state.admire.filter((b) => b.inUseByCluster == null);
 
   const behaviorText = (id: string): string => {
     const b = [...state.admire, ...state.irks].find((x) => x.id === id);
@@ -54467,41 +54437,6 @@ function NewA1M4NameStandardsBody({
       });
       return r.state;
     });
-  };
-
-  const addToStandard = (behaviorId: string, clusterId: string) => {
-    markFly(behaviorId);
-    mutate((s) => m4AddBehaviorToCluster(s, clusterId, behaviorId));
-    setMenuFor(null);
-  };
-  // Move a placed behavior to another standard (or a fresh one), keeping it visible.
-  const moveBehavior = (behaviorId: string, fromId: string, toId: string | "new") => {
-    markFly(behaviorId);
-    mutate((s) => {
-      const stripped = m4RemoveBehaviorFromCluster(s, fromId, behaviorId);
-      if (toId !== "new") return m4AddBehaviorToCluster(stripped, toId, behaviorId);
-      const r = m4CreateCluster(stripped, { proposal: "", proposedNames: [], behaviorIds: [] });
-      return m4AddBehaviorToCluster(r.state, r.cluster.id, behaviorId);
-    });
-    setPlacedMenu(null);
-  };
-  const sendBack = (behaviorId: string, fromId: string) => {
-    markFly(behaviorId);
-    mutate((s) => m4RemoveBehaviorFromCluster(s, fromId, behaviorId));
-    setPlacedMenu(null);
-  };
-
-  const addToNewStandard = (behaviorId: string) => {
-    markFly(behaviorId);
-    mutate((s) => {
-      const r = m4CreateCluster(s, {
-        proposal: "",
-        proposedNames: [],
-        behaviorIds: [],
-      });
-      return m4AddBehaviorToCluster(r.state, r.cluster.id, behaviorId);
-    });
-    setMenuFor(null);
   };
 
   const removeFromStandard = (behaviorId: string, clusterId: string) => {
@@ -54539,6 +54474,8 @@ function NewA1M4NameStandardsBody({
     });
   };
 
+  if (screen === 0) return <NameBoard state={state} mutate={mutate} onBack={onBack} onName={nextName} />;
+
   return (
     <>
       <DeskFlow
@@ -54558,257 +54495,7 @@ function NewA1M4NameStandardsBody({
         sections={[
           {
             label: "Your behaviors",
-            node: (
-              <>
-      <p className="na1-m4-step-sub">
-        Each behavior you admire points to a standard you hold. Group the ones
-        that belong together and name the standard in your own words — these
-        become your values.
-      </p>
-
-      <button
-        type="button"
-        className="na1-m4-ns-example-toggle"
-        onClick={() => setExampleOpen((v) => !v)}
-        aria-expanded={exampleOpen}
-      >
-        {exampleOpen ? "− Hide example" : "+ See a worked example"}
-      </button>
-      {exampleOpen && (
-        <div className="na1-m4-ns-example">
-          <p>
-            Say you admired{" "}
-            <em>&ldquo;keeps their word even when it costs them&rdquo;</em> and{" "}
-            <em>&ldquo;owns their mistakes without excuses.&rdquo;</em> Both
-            point to one standard. You might group them and name it{" "}
-            <strong>&ldquo;Own It.&rdquo;</strong>
-          </p>
-        </div>
-      )}
-
-      <div className="na1-m4-ns-board">
-        <section
-          className={`na1-m4-ns-bcol${dropOn === "pool" ? " is-drop" : ""}`}
-          aria-label="Your behaviors"
-          onDragOver={(e) => {
-            if (dragRef.current?.from) {
-              e.preventDefault();
-              setDropOn("pool");
-            }
-          }}
-          onDragLeave={() => setDropOn((d) => (d === "pool" ? null : d))}
-          onDrop={(e) => {
-            e.preventDefault();
-            const d = dragRef.current;
-            if (d?.from) sendBack(d.bid, d.from);
-            dragRef.current = null;
-            setDropOn(null);
-          }}
-        >
-          <h3 className="na1-m4-ns-bhead">
-            Your behaviors
-            <span className="na1-m4-ns-bcount">{pool.length}</span>
-          </h3>
-          {pool.length === 0 ? (
-            state.admire.length === 0 ? (
-              <p className="na1-m4-ns-bempty">
-                No admired behaviors yet — add some on the Admire rung first.
-              </p>
-            ) : (
-              <p className="na1-m4-ns-allplaced" role="status">
-                <span aria-hidden>✓</span> All behaviors placed
-              </p>
-            )
-          ) : (
-            <div className="na1-m4-ns-bchips">
-              {pool.map((b) => (
-                <div key={b.id} className="na1-m4-ns-chipwrap">
-                  <button
-                    type="button"
-                    className="na1-m4-ns-chip"
-                    data-bid={b.id}
-                    draggable
-                    onDragStart={() => {
-                      dragRef.current = { bid: b.id, from: null };
-                    }}
-                    onDragEnd={() => {
-                      dragRef.current = null;
-                      setDropOn(null);
-                    }}
-                    onClick={() => setMenuFor((cur) => (cur === b.id ? null : b.id))}
-                    aria-expanded={menuFor === b.id}
-                  >
-                    {b.text}
-                    <span className="na1-m4-ns-chip-caret" aria-hidden>
-                      ▾
-                    </span>
-                  </button>
-                  {menuFor === b.id && (
-                    <div className="na1-m4-ns-menu is-inline">
-                      <div className="na1-m4-ns-menu-title">Place in…</div>
-                      {state.clusters.map((c, ci) => (
-                        <button
-                          type="button"
-                          key={c.id}
-                          className="na1-m4-ns-menu-item"
-                          onClick={() => addToStandard(b.id, c.id)}
-                        >
-                          {c.userName.trim() || `Standard ${ci + 1}`}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        className="na1-m4-ns-menu-item is-new"
-                        onClick={() => addToNewStandard(b.id)}
-                      >
-                        + New standard
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-        <section className="na1-m4-ns-bcol" aria-label="Your standards">
-          <h3 className="na1-m4-ns-bhead">
-            Your standards
-            <span className="na1-m4-ns-bcount">{state.clusters.length}</span>
-          </h3>
-          {state.clusters.length === 0 && (
-            <p className="na1-m4-ns-bempty">Tap a behavior to start your first standard.</p>
-          )}
-          <div className="na1-m4-ns-bcards">
-            {state.clusters.map((c, ci) => {
-              const ids = c.behaviorIds;
-              const open = !!expanded[c.id];
-              const shown = open ? ids : ids.slice(0, 4);
-              const more = ids.length - shown.length;
-              return (
-                <div
-                  key={c.id}
-                  className={`na1-m4-ns-bcard${dropOn === c.id ? " is-drop" : ""}`}
-                  style={{ borderLeftColor: `var(--c${c.colorIndex})` }}
-                  onDragOver={(e) => {
-                    if (dragRef.current && dragRef.current.from !== c.id) {
-                      e.preventDefault();
-                      setDropOn(c.id);
-                    }
-                  }}
-                  onDragLeave={() => setDropOn((d) => (d === c.id ? null : d))}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const d = dragRef.current;
-                    if (d) {
-                      if (d.from) moveBehavior(d.bid, d.from, c.id);
-                      else addToStandard(d.bid, c.id);
-                    }
-                    dragRef.current = null;
-                    setDropOn(null);
-                  }}
-                >
-                  <div className="na1-m4-ns-bcard-head">
-                    <span className={`na1-m4-ns-bcard-name${c.userName.trim() ? "" : " is-unnamed"}`}>
-                      {c.userName.trim() || `Standard ${ci + 1}`}
-                    </span>
-                    <span className="na1-m4-ns-bcount" aria-label={`${ids.length} placed`}>
-                      {ids.length}
-                    </span>
-                  </div>
-                  {ids.length === 0 ? (
-                    <p className="na1-m4-ns-bempty">Nothing placed yet.</p>
-                  ) : (
-                    <div className="na1-m4-ns-bplaced">
-                      {shown.map((bid) => {
-                        const key = `${c.id}|${bid}`;
-                        return (
-                          <div key={bid} className="na1-m4-ns-chipwrap">
-                            <button
-                              type="button"
-                              className="na1-m4-ns-chip is-placed"
-                              data-bid={bid}
-                              draggable
-                              onDragStart={() => {
-                                dragRef.current = { bid, from: c.id };
-                              }}
-                              onDragEnd={() => {
-                                dragRef.current = null;
-                                setDropOn(null);
-                              }}
-                              onClick={() => setPlacedMenu((cur) => (cur === key ? null : key))}
-                              aria-expanded={placedMenu === key}
-                            >
-                              {behaviorText(bid)}
-                              <span className="na1-m4-ns-chip-caret" aria-hidden>
-                                ▾
-                              </span>
-                            </button>
-                            {placedMenu === key && (
-                              <div className="na1-m4-ns-menu is-inline">
-                                <div className="na1-m4-ns-menu-title">Move to…</div>
-                                {state.clusters
-                                  .map((o, oi) => ({ o, oi }))
-                                  .filter(({ o }) => o.id !== c.id)
-                                  .map(({ o, oi }) => (
-                                    <button
-                                      type="button"
-                                      key={o.id}
-                                      className="na1-m4-ns-menu-item"
-                                      onClick={() => moveBehavior(bid, c.id, o.id)}
-                                    >
-                                      {o.userName.trim() || `Standard ${oi + 1}`}
-                                    </button>
-                                  ))}
-                                <button
-                                  type="button"
-                                  className="na1-m4-ns-menu-item is-new"
-                                  onClick={() => moveBehavior(bid, c.id, "new")}
-                                >
-                                  + New standard
-                                </button>
-                                <button
-                                  type="button"
-                                  className="na1-m4-ns-menu-item is-back"
-                                  onClick={() => sendBack(bid, c.id)}
-                                >
-                                  ↩ Send back to unplaced
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {more > 0 && (
-                        <button
-                          type="button"
-                          className="na1-m4-ns-more"
-                          onClick={() => setExpanded((x) => ({ ...x, [c.id]: true }))}
-                        >
-                          +{more} more
-                        </button>
-                      )}
-                      {open && ids.length > 4 && (
-                        <button
-                          type="button"
-                          className="na1-m4-ns-more"
-                          onClick={() => setExpanded((x) => ({ ...x, [c.id]: false }))}
-                        >
-                          Show less
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <button type="button" className="na1-m4-ns-add" onClick={createStandard}>
-            + New standard
-          </button>
-        </section>
-      </div>
-              </>
-            ),
+            node: null,
           },
           {
             label: "Your standards",
