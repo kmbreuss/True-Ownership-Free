@@ -21,6 +21,9 @@ import { declSentences, declSummary } from "./visionProse";
 import { purposeHoldback } from "./purposeContext";
 import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./remainingTime";
 import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1FutureB";
+import { ValuesOpening, ValuesProgress } from "./valuesExperience/ValuesOpening";
+import { ValuesPortrait } from "./valuesExperience/ValuesPortrait";
+import { ValuesClaim, ValuesHubNames } from "./valuesExperience/ValuesClaim";
 import { PurposeContextFrame } from "./components/PurposeContext";
 import { VisionRoomOpening } from "./components/VisionContext";
 import { A1End } from "./a1End/A1End";
@@ -29818,12 +29821,12 @@ function NewA1Grid({
   const valuesStatusLabel = !valuesUnlocked
     ? "Locked"
     : valuesComplete
-      ? "Complete"
+      ? "★ CLAIMED"
       : "Up next";
   const valuesCtaLabel = !valuesUnlocked
     ? "Unlocks after the Reality Check"
     : valuesComplete
-      ? "Review Values →"
+      ? "Revisit Values"
       : valuesInProgress
         ? "Continue Values →"
         : "Begin Values →";
@@ -30124,10 +30127,7 @@ function NewA1Grid({
                 What you stand for, in order.
               </p>
               <A1FutureBThread rc={rc} mirror="values" />
-              <MirrorPips
-                done={valuesComplete ? 4 : valuesStarted ? 1 : 0}
-                total={4}
-              />
+              {valuesComplete ? <ValuesHubNames state={loadMirror4State()} /> : <MirrorPips done={valuesStarted ? 1 : 0} total={4} />}
               <div
                 className="na1-mirror-card-empty"
                 style={
@@ -30140,7 +30140,7 @@ function NewA1Grid({
                     : { fontStyle: "normal", color: "var(--na1-text-sec)" }
                 }
               >
-                {valuesComplete ? "Claimed." : ""}
+                {""}
               </div>
               <div className="na1-mirror-card-action">
                 <button
@@ -30153,7 +30153,7 @@ function NewA1Grid({
                 >
                   {valuesCtaLabel}
                 </button>
-                <span className="na1-mirror-card-meta">4 exercises</span>
+                {!valuesComplete && <span className="na1-mirror-card-meta">About 20 minutes · Katherine guides you</span>}
               </div>
             </article>
           ) : (
@@ -30178,7 +30178,7 @@ function NewA1Grid({
                 Unlocks after the Reality Check
               </div>
               <div className="na1-mirror-card-action">
-                <span className="na1-mirror-card-meta">4 exercises</span>
+                <span className="na1-mirror-card-meta">About 20 minutes · Katherine guides you</span>
               </div>
             </article>
           )}
@@ -53898,13 +53898,13 @@ function NewA1M4RoomShell({
       aria-modal="true"
       aria-label={room.name}
     >
-      <div className="na1-room-card">
+      <div className="na1-room-card vx-room" data-values-part={room.key}>
         <div className="na1-room-crumb">
           <a onClick={onClose}>Values</a>
           <span className="sep">›</span>
           <span className="current">{room.name}</span>
         </div>
-        {stepper}
+        {stepper ?? <ValuesProgress roomKey={room.key} state={loadMirror4State()} />}
         <button
           type="button"
           className="na1-room-close"
@@ -54064,149 +54064,20 @@ function NewA1M4HubView({
           <span className="sep">›</span>
           <span className="current">Values</span>
         </div>
-        <div className="na1-ex-eyebrow">
-          A1 · Mirror 1 · Explore with Katherine
-        </div>
-        <h1 className="na1-ex-title">Values · The Order You Live By</h1>
-        <p
-          className="na1-ex-sub"
-          style={{ fontWeight: "var(--b-w)", fontStyle: "italic", fontFamily: "var(--f-body)" }}
-        >
-          A step-by-step climb. Three to five values. One question for every yes.
-        </p>
-        <p className="na1-ex-foot-sub">
-          You can return any time to edit anything you've written.
-        </p>
-        <div className={`na1-intro-video ${videoOpen ? "" : "is-collapsed"}`}>
-          <div
-            className="na1-intro-video-head"
-            onClick={() => setVideoOpen((v) => !v)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setVideoOpen((v) => !v);
-              }
-            }}
-            aria-expanded={videoOpen}
-          >
-            <div className="na1-intro-video-left">
-              <div className="na1-intro-video-play-mini" aria-hidden>
-                ▶
-              </div>
-              <div className="na1-intro-video-title-row">
-                <span className="na1-intro-video-eyebrow">
-                  Start here · Katherine introduces Values
-                </span>
-                <span className="na1-intro-video-title">
-                  Values · What you actually stand for
-                </span>
-              </div>
-            </div>
-            <span className="na1-intro-video-chev" aria-hidden>
-              ▾
-            </span>
-          </div>
-          <div className="na1-intro-video-body">
+        <ValuesOpening
+          state={m4State}
+          canOpen={(room) => isRoomUnlocked(room) || isDevPreview()}
+          onOpen={onLaunchRoom}
+          onBack={onBackToGrid}
+          onVideo={() => setVideoOpen(v => !v)}
+          futureB={loadRCState().choice === "B"}
+          video={videoOpen ? (
             <div className="na1-video-stub">
-              <button
-                type="button"
-                className="na1-video-stub-play"
-                aria-label="Play intro video"
-              >
-                ▶
-              </button>
-              <div className="na1-video-stub-caption">
-                Katherine's Values intro
-              </div>
+              <button type="button" className="na1-video-stub-play" aria-label="Play intro video">▶</button>
+              <div className="na1-video-stub-caption">Katherine's Values intro</div>
             </div>
-          </div>
-        </div>
-        <div className="na1-ex-list">
-          {M4_ROOMS.map((room, idx) => {
-            const isUnlocked = isRoomUnlocked(room);
-            const isLocked = !isUnlocked;
-            const isComingSoon = room.comingSoon === true;
-            const isRoomComplete = m4RoomDone(m4State, room.key);
-            const isCurrent = currentRoomKey === room.key;
-            const isClaim = room.key === "claim";
-            const cls = [
-              "na1-ex-row",
-              `tone-${room.tone}`,
-              isRoomComplete ? "is-complete" : "",
-              isCurrent ? "is-current" : "",
-              isUnlocked ? "is-unlocked" : "is-locked",
-              isClaim ? "is-m4-claim" : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
-            const statusLabel = isComingSoon
-              ? "Coming soon"
-              : isClaim && isClaimed && isUnlocked
-                ? "Claimed · tap to revisit"
-                : isCurrent
-                  ? "Up next · tap to begin"
-                  : isRoomComplete
-                    ? "Complete"
-                    : isUnlocked
-                      ? "Open · tap to revisit"
-                      : `Unlocks after ${m4UnlockAfter[room.key] ?? "the previous rung"}`;
-            const iconChar = isLocked
-              ? "🔒"
-              : isRoomComplete
-                ? "✓"
-                : String(room.n);
-            return (
-              <button
-                type="button"
-                key={room.key}
-                className={cls}
-                onClick={() => {
-                  // Locked rungs (including the reserved "coming soon"
-                  // Flip) are inert — they do not open a room. Mirrors
-                  // the Purpose ladder; no veil-bounce.
-                  if (!isUnlocked && !isDevPreview()) return;
-                  onLaunchRoom(room);
-                }}
-                aria-label={`${room.name} — ${statusLabel}`}
-                aria-disabled={isLocked ? true : undefined}
-              >
-                <span className="na1-ex-icon" aria-hidden>
-                  {iconChar}
-                </span>
-                <span className="na1-ex-text">
-                  <span className="na1-ex-name" style={{ display: "block" }}>
-                    {room.name}
-                  </span>
-                  <span className="na1-ex-status" style={{ display: "block" }}>
-                    {statusLabel}
-                  </span>
-                </span>
-                {isUnlocked && (
-                  <span className="na1-ex-arrow" aria-hidden>
-                    ›
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-start",
-            marginTop: 8,
-          }}
-        >
-          <button
-            type="button"
-            className="na1-btn-ghost"
-            onClick={onBackToGrid}
-          >
-            ← Back to A1
-          </button>
-        </div>
+          ) : null}
+        />
       </div>
     </div>
   );
@@ -54338,11 +54209,11 @@ function NewA1M4SectionBody({
   const deskFlow = useVisionWide();
   const continueLabel =
     sectionKey === "admire"
-      ? "Continue to Irks →"
+      ? "I've got them →"
       : sectionKey === "irks"
-        ? "Continue to Portrait →"
+        ? "I've got them →"
         : sectionKey === "portrait"
-          ? "Continue to Flip the Irks →"
+          ? "Find what's underneath →"
           : sectionKey === "flip"
             ? "Continue to Name the Standards →"
             : "Continue to Rank →";
@@ -54377,7 +54248,7 @@ function NewA1M4SectionBody({
       </div>
       {!(sectionKey === "name" && deskFlow) && (<div className="na1-m4-disc-foot">
         <button type="button" className="na1-m4-back" onClick={onCloseRoom}>
-          ← Back to ladder
+          ← Back
         </button>
         <button type="button" className="na1-m4-continue" onClick={handleDone}>
           {continueLabel}
@@ -54402,6 +54273,8 @@ function NewA1M4FlipBody({
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
 }) {
   const irks = m4FlippableIrks(state);
+  const flipWide = useVisionWide();
+  const flipPager = usePager(irks, 1, flipWide);
   const [drafts, setDrafts] = useState<Record<string, string>>(() => {
     const d: Record<string, string> = {};
     for (const irk of irks) d[irk.id] = m4FlipFor(state, irk).toText;
@@ -54435,7 +54308,7 @@ function NewA1M4FlipBody({
         implies, then accept it (it joins your behaviors to group) or skip it.
       </p>
       <div className="na1-m4-flip-list">
-        {irks.map((irk) => {
+        {flipPager.slice.map((irk) => {
           const flip = m4FlipFor(state, irk);
           const decided = flip.accepted; // true | false | null
           const draft = drafts[irk.id] ?? flip.toText;
@@ -54523,6 +54396,7 @@ function NewA1M4FlipBody({
           );
         })}
       </div>
+      <PagerBar page={flipPager.page} pages={flipPager.pages} onPage={flipPager.setPage} noun="Irks" />
     </>
   );
 }
@@ -54672,8 +54546,8 @@ function NewA1M4NameStandardsBody({
         forward={forward}
         header={
           <>
-      <div className="na1-m4-step-eyebrow">Mirror 1 · Name the Standards</div>
-      <h2 className="na1-m4-step-title">Name the standards underneath</h2>
+      <div className="na1-m4-step-eyebrow">Name</div>
+      <h2 className="na1-m4-step-title">{flow.wide && flow.idx === 1 ? "When you see these together, what would you call it?" : "Name the standards underneath"}</h2>
           </>
         }
         sections={[
@@ -54944,6 +54818,7 @@ function NewA1M4NameStandardsBody({
               className={`na1-m4-ns-card${complete ? " is-complete" : ""}`}
               style={{ borderLeftColor: `var(--c${c.colorIndex})` }}
             >
+              <div className="vx-eyebrow">Standard {i + 1} of {state.clusters.length}</div>
               <button
                 type="button"
                 className="na1-m4-ns-card-del"
@@ -54952,19 +54827,13 @@ function NewA1M4NameStandardsBody({
               >
                 ×
               </button>
-              <input
-                className="na1-m4-ns-name"
-                type="text"
-                value={c.userName}
-                placeholder={`Name standard ${i + 1}…`}
-                onChange={(e) => renameStandard(c.id, e.target.value)}
-              />
               {c.behaviorIds.length > 0 && (
                 <div className="na1-m4-ns-evidence">
                   {c.behaviorIds.map((bid) => (
                     <M4NsEvidenceChip
                       key={bid}
                       text={behaviorText(bid)}
+                      flipped={state.admire.some(b => b.id === bid && b.source === "flipped")}
                       onEdit={(t) =>
                         mutate((s) => m4EditBehaviorText(s, bid, t))
                       }
@@ -54975,6 +54844,15 @@ function NewA1M4NameStandardsBody({
                   ))}
                 </div>
               )}
+              <input
+                className="na1-m4-ns-name"
+                type="text"
+                aria-label={`Name standard ${i + 1}`}
+                value={c.userName}
+                placeholder={`Name standard ${i + 1}…`}
+                onChange={(e) => renameStandard(c.id, e.target.value)}
+              />
+              {c.proposedNames.length > 0 && <p className="vx-name-suggestions">Katherine hears: <em>{c.proposedNames.join(" · ")}</em> · or use your own word</p>}
               <M4NsAddBehavior
                 onAdd={(t) =>
                   mutate((s) => m4AddEvidenceBehaviorToCluster(s, c.id, t))
@@ -55020,12 +54898,14 @@ function NewA1M4NameStandardsBody({
 // the inline-edit affordance used everywhere else in Values.
 function M4NsEvidenceChip({
   text,
+  flipped = false,
   onEdit,
   onRemove,
   isKeystone,
   onToggleKeystone,
 }: {
   text: string;
+  flipped?: boolean;
   onEdit: (t: string) => void;
   onRemove: () => void;
   isKeystone: boolean;
@@ -55057,7 +54937,7 @@ function M4NsEvidenceChip({
   };
 
   return (
-    <span className={`na1-m4-ns-ev${isKeystone ? " is-keystone" : ""}`}>
+    <span className={`na1-m4-ns-ev${isKeystone ? " is-keystone" : ""}${flipped ? " vx-flipped" : ""}`}>
       <button
         type="button"
         className={`na1-m4-ns-ev-star${isKeystone ? " is-on" : ""}`}
@@ -55276,28 +55156,35 @@ function M4StepAdmireIrks({
   const [openId, setOpenId] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTier, setDropTier] = useState<M4BehaviorTier | null>(null);
+  const previousIds = useRef(new Set(list.map(b => b.id)));
+  const [newestId, setNewestId] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  useEffect(() => {
+    const added = list.find(b => !previousIds.current.has(b.id));
+    if (added) setNewestId(added.id);
+    previousIds.current = new Set(list.map(b => b.id));
+  }, [list]);
   const strengths = M4_AI_STRENGTHS[kind];
   return (
     <div className="na1-m4-ai">
       <div className="na1-m4-step-eyebrow">
-        Mirror 1 · {kind === "admire" ? "Admire" : "Irks"}
+        Notice
       </div>
       <h2 className="na1-m4-step-title">
         {kind === "admire"
-          ? "What behaviors do you admire?"
-          : "What behaviors don't you admire?"}
+          ? "Think of someone you admire. What do they do?"
+          : "What's a behavior you can't stand?"}
       </h2>
       <p className="na1-m4-step-sub">
-        {kind === "admire"
-          ? "In yourself or in others. Don't overthink — the first thing that comes up is usually the truest."
-          : "The blood-boil. In yourself or in others. What irritates you most often points to what you refuse to compromise on yourself."}
+        In yourself or in someone else. One at a time.
       </p>
-      <ol className="na1-m4-ai-steps">
+      <details className="vx-help"><summary>How to add and edit</summary><ol className="na1-m4-ai-steps">
         <li>Type a behavior — in yourself or someone else.</li>
         <li>Tap how strongly it hits you to add it.</li>
         <li>Add as many as come to mind (aim for 5 or more). Tap any behavior to change it.</li>
-      </ol>
+      </ol></details>
       <M4InputRow kind={kind} mutate={mutate} />
+      <div className="vx-list-heading"><span>{kind === "admire" ? "WHAT YOU ADMIRE" : "WHAT YOU CAN'T STAND"} · {list.length}</span><em>it builds as you go</em></div>
       <div className="na1-m4-ai-cols">
         {strengths.map((st) => {
           const col = list.filter((b) => b.tier === st.tier);
@@ -55329,7 +55216,7 @@ function M4StepAdmireIrks({
                 {col.length === 0 ? (
                   <p className="na1-m4-ai-empty">Nothing here yet — add one above.</p>
                 ) : (
-                  col.map((b) =>
+                  col.filter((b, i) => showAll || i < 3 || b.id === newestId || b.id === openId).map((b) =>
                     openId === b.id ? (
                       <M4BehaviorEditor
                         key={b.id}
@@ -55342,7 +55229,7 @@ function M4StepAdmireIrks({
                       <button
                         key={b.id}
                         type="button"
-                        className="na1-m4-ai-item"
+                        className={`na1-m4-ai-item ${b.id === newestId ? "vx-just-added" : ""}`}
                         draggable
                         onDragStart={() => setDragId(b.id)}
                         onDragEnd={() => {
@@ -55355,7 +55242,7 @@ function M4StepAdmireIrks({
                         <span className="na1-m4-ai-item-text">{b.text}</span>
                         {b.person && <span className="na1-m4-bul-person">· {b.person}</span>}
                         <span className="na1-m4-ai-item-edit" aria-hidden>
-                          Edit
+                          {st.icon}{st.label}{b.id === newestId ? " · JUST ADDED" : ""}
                         </span>
                       </button>
                     ),
@@ -55366,6 +55253,8 @@ function M4StepAdmireIrks({
           );
         })}
       </div>
+      {strengths.some(st => list.filter(b => b.tier === st.tier).length > 3) &&
+        <button type="button" className="vx-back-link" onClick={() => setShowAll(v => !v)}>{showAll ? "Show fewer" : "Show more"}</button>}
       <div className="na1-m4-counter">
         {kind === "admire"
           ? `${list.length} ${list.length === 1 ? "behavior" : "behaviors"} so far`
@@ -55465,6 +55354,7 @@ function M4StepPortrait({
   state: Mirror4State;
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
 }) {
+  const [editingPortrait, setEditingPortrait] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<M4BehaviorTier | null>(null);
   const [moveMenu, setMoveMenu] = useState<string | null>(null);
@@ -55665,8 +55555,11 @@ function M4StepPortrait({
     return () => document.removeEventListener("click", onDoc);
   }, [moveMenu]);
 
+  if (!editingPortrait) return <ValuesPortrait state={state} onEdit={() => setEditingPortrait(true)} />;
+
   return (
     <>
+      <button type="button" className="vx-back-link" onClick={() => setEditingPortrait(false)}>← Your portrait</button>
       <div className="na1-m4-step-eyebrow">Mirror 1 · Portrait</div>
       <h2 className="na1-m4-step-title">Your behavior portrait</h2>
       <p className="na1-m4-step-sub">
@@ -56439,229 +56332,8 @@ function NewA1M4ClaimBody({
   };
 
   return (
-    <>
-      <div className="na1-room-eyebrow tone-gold">
-        Mirror 1 · Claim
-      </div>
-
-      <div
-        style={{
-          textAlign: "center",
-          fontSize: "56px",
-          color: "var(--gold-text)",
-          lineHeight: 1,
-          margin: "40px 0 32px",
-        }}
-        aria-hidden
-      >
-        ★
-      </div>
-
-      {/* Beat 1 — The naming. */}
-      <p style={beatP}>
-        {displayName ? (
-          <>
-            <span style={goldItalic}>{displayName}</span>,{" "}
-            this is <span style={goldSpan}>the order you live by</span>.
-          </>
-        ) : (
-          <>
-            This is <span style={goldSpan}>the order you live by</span>.
-          </>
-        )}
-      </p>
-
-      {/* Beat 2 — The values, in rank order. */}
-      {rankedClusters.length > 0 && (
-        <p style={beatP}>
-          {rankedClusters.map((c, i) => (
-            <React.Fragment key={c.id}>
-              {i === 0 ? "" : ", then "}
-              <span style={goldSerif}>{c.userName}</span>
-            </React.Fragment>
-          ))}
-          .
-        </p>
-      )}
-
-      {/* Beat 3 — The definitions, summarized. Only values that carry a
-          meaning are printed; if none do, the whole clause is omitted so
-          Claim never shows empty quotes. */}
-      {(() => {
-        const defined = rankedClusters.filter(
-          (c) => c.userDefinition.trim() !== "",
-        );
-        if (defined.length === 0) return null;
-        return (
-          <p style={beatP}>
-            You named what each one means:{" "}
-            {defined.map((c, i) => (
-              <React.Fragment key={c.id}>
-                {i === 0 ? "" : ", "}
-                <span style={goldItalic}>
-                  “{truncDef(c.userDefinition)}”
-                </span>
-              </React.Fragment>
-            ))}
-            .
-          </p>
-        );
-      })()}
-
-      {/* Beat 4 — The keystone behaviors. */}
-      {(() => {
-        const keystones = rankedClusters
-          .map((c) => keystoneName(c.id))
-          .filter((n): n is string => !!n);
-        if (keystones.length === 0) return null;
-        return (
-          <p style={beatP}>
-            And you marked the one behavior you'd defend first for each:{" "}
-            {keystones.map((k, i) => (
-              <React.Fragment key={i}>
-                {i === 0 ? "" : ", "}
-                <span style={goldSpan}>{k}</span>
-              </React.Fragment>
-            ))}
-            .
-          </p>
-        );
-      })()}
-
-      {/* Beat 5 — The decision filter (the close). Heaviest beat: extra
-          vertical breathing room before/after. */}
-      <div style={{ margin: "36px auto 36px", maxWidth: "540px" }}>
-        <p style={{ ...beatP, margin: "0 auto 14px" }}>
-          This is your <span style={goldSpan}>decision filter</span>.
-        </p>
-        <p style={{ ...beatP, margin: "0 auto 10px" }}>
-          Use it when two values pull on the same moment.
-        </p>
-        <p style={{ ...beatP, margin: "0 auto 10px" }}>
-          Use it when the cost is real and you have to choose.
-        </p>
-        <p style={{ ...beatP, margin: "0 auto 0" }}>
-          Use it when you'd rather not — that's{" "}
-          <span style={goldItalic}>when it counts most</span>.
-        </p>
-      </div>
-
-      {/* Gold horizontal rule. */}
-      <hr
-        style={{
-          width: "200px",
-          maxWidth: "200px",
-          height: "1px",
-          border: "0",
-          backgroundColor: "var(--gold)",
-          opacity: 0.45,
-          margin: "48px auto 32px",
-        }}
-      />
-
-      {/* Primary CTA. */}
-      <div style={{ textAlign: "center" }}>
-        <button
-          type="button"
-          onClick={handleClaim}
-          disabled={state.claimed}
-          style={{
-            display: "inline-block",
-            padding: "16px 32px",
-            fontSize: "16px",
-            fontFamily: "var(--f-body)",
-            fontWeight: 500,
-            color: "#1a1206",
-            backgroundColor: "var(--gold)",
-            border: "0",
-            borderRadius: "999px",
-            cursor: state.claimed ? "default" : "pointer",
-            opacity: 1,
-            transition: "transform .15s ease, opacity .15s ease",
-          }}
-        >
-          {state.claimed
-            ? "Claim updated ✓"
-            : "Claim it · go to Map of Me →"}
-        </button>
-      </div>
-
-      {/* A2.0 · Align With It · A2 → — additive, flag-gated. Renders only
-          when ?newA2=1 (onGoToA2 supplied); routes into the A2 hub. Not
-          gated on `claimed` per owner ruling. */}
-      {onGoToA2 && (
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <button
-            type="button"
-            className="na1-btn-ghost"
-            onClick={onGoToA2}
-          >
-            Continue to Identity →
-          </button>
-        </div>
-      )}
-
-      {/* Foot line. */}
-      <p
-        style={{ fontWeight: "var(--b-w)",
-          fontFamily: "var(--f-body)",
-          fontStyle: "italic",
-          fontSize: "13px",
-          color: "var(--na1-text-sec)",
-          textAlign: "center",
-          margin: "20px auto 14px",
-          maxWidth: "420px",
-        }}
-      >
-        {state.claimed && formattedClaimedAt
-          ? `Claimed on ${formattedClaimedAt}.`
-          : "You've claimed your Values. You can come back and edit it anytime."}
-      </p>
-
-      {/* Post-claim edit affordance. Shown only once sealed — gives a clear
-          path straight to Name the Standards to edit a claimed value's name,
-          behaviors, keystone, or meaning. Additive: the seal stays. */}
-      {state.claimed && onEditValues && (
-        <div style={{ textAlign: "center", marginBottom: "10px" }}>
-          <button
-            type="button"
-            onClick={onEditValues}
-            style={{ fontWeight: "var(--b-w)",
-              background: "transparent",
-              border: "0",
-              padding: 0,
-              fontFamily: "var(--f-body)",
-              fontSize: "13px",
-              color: "var(--gold-text)",
-              textDecoration: "underline",
-              cursor: "pointer",
-            }}
-          >
-            Edit my values →
-          </button>
-        </div>
-      )}
-
-      {/* Escape link. */}
-      <div style={{ textAlign: "center", marginBottom: "24px" }}>
-        <button
-          type="button"
-          onClick={onCloseRoom}
-          style={{ fontWeight: "var(--b-w)",
-            background: "transparent",
-            border: "0",
-            padding: 0,
-            fontFamily: "var(--f-body)",
-            fontSize: "13px",
-            color: "var(--gold-text)",
-            textDecoration: "underline",
-            cursor: "pointer",
-          }}
-        >
-          ← Revise my Values readback
-        </button>
-      </div>
-    </>
+    <ValuesClaim state={state} onClaim={handleClaim} onBack={onCloseRoom}
+      onNext={onGoToA2} onEdit={onEditValues} />
   );
 }
 
@@ -56873,7 +56545,7 @@ function NewA1M4RankBody({
         forward={continueBlock}
         header={
           <>
-      <div className="na1-m4-eyebrow">Mirror 1 · Rank + Pressure-test</div>
+      <div className="na1-m4-eyebrow">Order</div>
       <h2 className="na1-m4-title">The order you live by</h2>
           </>
         }
@@ -56893,7 +56565,7 @@ function NewA1M4RankBody({
         moment, the higher one wins. The pressure-test proves the order.
       </p>
                 )}
-      <div className="na1-m4-rank-phase-eyebrow">Phase 1 · Rank</div>
+      <div className="na1-m4-rank-phase-eyebrow">Order · Rank</div>
       <div className="na1-m4-rank-stack">
         {effectiveRank.map((id, idx) => {
           const c = clusterById(id);
@@ -56921,12 +56593,15 @@ function NewA1M4RankBody({
               <div className="na1-m4-rank-num">{idx + 1}</div>
               <div className="na1-m4-rank-body">
                 <p className="na1-m4-rank-name">{c.userName}</p>
+                {(c.userDefinition.trim() || keyName) && <details className="vx-rank-details">
+                  <summary>Meaning &amp; evidence</summary>
                 {c.userDefinition.trim() !== "" && (
                   <p className="na1-m4-rank-def">{c.userDefinition}</p>
                 )}
                 {keyName && (
                   <p className="na1-m4-rank-key">★ Keystone: {keyName}</p>
                 )}
+                </details>}
               </div>
               <div className="na1-m4-rank-controls">
                 <button
@@ -56975,7 +56650,7 @@ function NewA1M4RankBody({
       </p>
                 )}
 
-      <div className="na1-m4-rank-phase-eyebrow">Phase 2 · Pressure-Test</div>
+      <div className="na1-m4-rank-phase-eyebrow">Order · Pressure-test</div>
       <div className="na1-m4-rank-pt-card">
         <h3 className="na1-m4-rank-pt-title">
           Test the order under collision
@@ -57444,9 +57119,7 @@ function NewA1M4PressureTestModal({
         disabled={pickedId !== null && !isPicked}
       >
         <div className="na1-m4-pt-card-name">{c.userName}</div>
-        <p className="na1-m4-pt-card-def">
-          “{c.userDefinition}”
-        </p>
+        {c.userDefinition && <p className="na1-m4-pt-card-def">Your words: {c.userDefinition}</p>}
         <div className="na1-m4-pt-card-key">
           <p className="na1-m4-pt-card-keylab">Keystone</p>
           {key ? (
@@ -57567,14 +57240,13 @@ function NewA1M4PressureTestModal({
             return (
               <>
                 <p className="na1-m4-pt-eyebrow">
-                  Pair {currentIdx + 1} of {activeSeq.length}
+                  WHEN THEY CLASH · {currentIdx + 1} OF {activeSeq.length}
                 </p>
                 <p className="na1-m4-pt-prompt">
-                  When <b>{a.userName}</b> and <b>{b.userName}</b>{" "}
-                  <i>collide</i> — which wins?
+                  When these two pull against each other, which one wins?
                 </p>
                 <p className="na1-m4-pt-helper">
-                  Gut-pick. No overthinking.
+                  No right answer. Just yours.
                 </p>
                 {(() => {
                   // Ship 5.6k · Part B — gold-bordered scenario card

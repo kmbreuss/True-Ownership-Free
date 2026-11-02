@@ -6,3 +6,18 @@ id = "qR-xA74_JSOJU5F2k5m2u"
 uri = "file://backups/App_latest_20260523_205857.tar.gz"
 type = "unspecified"
 title = "App.tsx (latest — 13,869 lines, tar.gz)"
+logical_id = "2703f1c7-541d-48bb-864b-09d4b731a1be"
+
+[[outputs]]
+id = "ygUGaQbvZ3hPsSq0ISwIN"
+uri = "file://generated-artifacts/values-experience/report.html"
+type = "html"
+title = "Values build, copy changes and verification"
+description = "All four parts, old → new copy, changed files, isolation results and unresolved fit issues."
+logical_id = "436499ed-b893-47be-b151-0e88f7fabb06"
+content_hash = "sha256:6b60dd99957f739f5c2554595f59ff6d91e9536b074760a27714d0df8bdcc09c"
+size = 14049
+mtime_ms = 1793641121507
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/436499ed-b893-47be-b151-0e88f7fabb06/4f444b05-eb2f-4d39-aa06-01e835b38ccb"
+storage_version_token = "1793641133296657"
+content_type = "text/html"
