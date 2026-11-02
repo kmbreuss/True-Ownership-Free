@@ -1,5 +1,6 @@
 import {
-  addBehaviorToCluster, createCluster, removeBehaviorFromCluster, updateCluster,
+  addBehaviorToCluster, addEvidenceBehaviorToCluster, createCluster, m4SetKeystone,
+  removeBehaviorFromCluster, updateCluster,
   type Mirror4State,
 } from "../mirror4Constants";
 import { NameCards } from "./NameCards";
@@ -18,9 +19,12 @@ export function NameBoard({ state, mutate, onBack, onName }: {
     const named = updateCluster(result.state, result.cluster.id, c => ({ ...c, userName: name }));
     return behaviorId ? addBehaviorToCluster(named, result.cluster.id, behaviorId) : named;
   });
-  if (unplacedNameBehaviors(state).length) return <NameSort state={state} onBack={onBack}
+  if (!state.claimed && unplacedNameBehaviors(state).length) return <NameSort state={state} onBack={onBack}
     onCreate={create} onPlace={(behaviorId, clusterId) => mutate(s => addBehaviorToCluster(s, clusterId, behaviorId))} />;
   return <NameCards state={state} onBack={onBack} onName={onName} onCreate={create}
+    onRename={(id, name) => mutate(s => updateCluster(s, id, c => ({ ...c, userName: name })))}
+    onStar={(id, behaviorId) => mutate(s => m4SetKeystone(s, id, behaviorId))}
+    onAdd={(id, text) => mutate(s => addEvidenceBehaviorToCluster(s, id, text))}
     onRemove={clusterId => mutate(before => {
       const cluster = before.clusters.find(c => c.id === clusterId);
       if (!cluster) return before;

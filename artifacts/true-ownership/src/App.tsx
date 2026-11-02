@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useSyncExternalStore,
 } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { isDevPreview, previewRead, previewWrite, setDevPreview } from "./devPreview";
 import { loadRCState } from "./rcConstants";
 import { RealityCheck } from "./reality-check/RealityCheck";
@@ -54413,7 +54413,9 @@ function NewA1M4NameStandardsBody({
   reviewing: boolean;
   entryAtEnd?: boolean;
 }) {
-  const summaryScreen = state.clusters.length + 1;
+  // The legacy per-standard editor below is retained, but navigation now
+  // goes directly from the cards to the named-standards summary.
+  const summaryScreen = 1;
   const [nameScreen, setNameScreen] = useState(entryAtEnd ? summaryScreen : 0);
   const screen = Math.min(nameScreen, summaryScreen);
   const flow = { wide: true, idx: screen === 0 ? 0 : 1, go: (n: number) => setNameScreen(n === 0 ? 0 : 1) };
@@ -54479,7 +54481,7 @@ function NewA1M4NameStandardsBody({
 
   if (screen === 0) return <NameBoard state={state} mutate={mutate} onBack={onBack} onName={nextName} />;
   if (screen === summaryScreen) return <NameSummary state={state} reviewing={reviewing}
-    onBack={() => setNameScreen(Math.max(0, state.clusters.length))} onNext={onNext} />;
+    onBack={() => setNameScreen(0)} onNext={onNext} />;
 
   return (
     <>
@@ -56425,14 +56427,7 @@ function NewA1M4RankBody({
           onWalkAgain={walkItAgain}
           onClose={() => setModalOpen(false)}
           onContinueToClaim={() => {
-            // 1. mark complete (already done by Done screen mutate
-            //    call before invoking onContinueToClaim, but defensive
-            //    re-mutate here is a no-op if already true).
-            mutate((s) => ({
-              ...s,
-              pressureTest: { ...s.pressureTest, complete: true },
-            }));
-            // 2. close modal, 3. close Rank overlay, 4. open Claim.
+            // Completion is decided by the modal's guarded Done action.
             setModalOpen(false);
             onContinueToClaim();
           }}
@@ -56811,11 +56806,22 @@ function NewA1M4PressureTestModal({
     advance(300);
   };
 
+  // Walking/skipping every pair is not the same as answering every pair.
+  // Both completion exits share this guard; Claim's own gate stays unchanged.
+  const pressureTestAnswered = activeSeq.length > 0 && activeSeq.every(pair =>
+    state.pressureTest.pairs.some(answer =>
+      pairKey(answer) === pairKey(pair) &&
+      (answer.pickedId === pair.aId || answer.pickedId === pair.bId),
+    ),
+  );
   const handleDoneContinue = () => {
-    if (!reviewing) mutate((s) => ({
-      ...s,
-      pressureTest: { ...s.pressureTest, complete: true },
-    }));
+    if (!reviewing && pressureTestAnswered) {
+      // Persist before navigation unmounts Rank and Claim reads its state.
+      flushSync(() => mutate((s) => ({
+        ...s,
+        pressureTest: { ...s.pressureTest, complete: true },
+      })));
+    }
     onContinueToClaim();
   };
 
@@ -57082,13 +57088,13 @@ function NewA1M4PressureTestModal({
             else onContinueToClaim();
           }}>Next →</button>}
           {!reviewing && phase === "pair" && <button type="button" className="na1-m4-continue"
-            disabled={!state.pressureTest.pairs.some(p => pairKey(p) === pairKey(activeSeq[currentIdx])) || conflictMode}
+            disabled={!activeSeq[currentIdx] || !state.pressureTest.pairs.some(p => pairKey(p) === pairKey(activeSeq[currentIdx])) || conflictMode}
             onClick={() => {
               setPickedId(null);
               if (currentIdx + 1 < activeSeq.length) setCurrentIdx(i => i + 1);
               else setPhase("done");
             }}>Continue →</button>}
-          {!reviewing && phase === "done" && <button type="button" className="na1-m4-continue" onClick={onContinueToClaim}>Continue →</button>}
+          {!reviewing && phase === "done" && <button type="button" className="na1-m4-continue" onClick={handleDoneContinue}>Continue →</button>}
         </div>}
       </div>
     </div>
