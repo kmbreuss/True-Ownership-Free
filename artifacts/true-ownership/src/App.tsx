@@ -24,6 +24,7 @@ import { A1MirrorOrder, A1FutureBThread } from "./components/A1FutureB";
 import { FutureBGrows } from "./journey/FutureBGrows";
 import { MirrorCards } from "./journey/MirrorCards";
 import { JourneyRoad } from "./journey/Road";
+import { spineNavigation } from "./journey/navigation";
 import { readJourney } from "./journey/progress";
 import { ValuesOpening, ValuesProgress } from "./valuesExperience/ValuesOpening";
 import { ValuesPortrait } from "./valuesExperience/ValuesPortrait";
@@ -35438,7 +35439,15 @@ function NewA1PhoneSpine() {
     getPhoneSpine,
   );
   if (!snap) return null;
-  return <JourneyRoad view={snap.view} read={loadDataSync} />;
+  const navigation = spineNavigation({
+    view: snap.view,
+    complete: { rc: loadRCState().complete, a1: snap.a1Complete, a2: snap.a2Complete,
+      a3: snap.a3Complete, a4: snap.a4Complete, a5: snap.a5Complete },
+    a2Enabled: NEW_A2_FLAG, a3Enabled: NEW_A3_FLAG,
+    freeLocked: rcFreeLocked(), returning: hasReturningProgress(),
+  });
+  return <JourneyRoad view={snap.view} read={loadDataSync} navigation={navigation}
+    onNavigate={destination => snap.navigate(destination as AppRouteView)} />;
 }
 
 // Keeps text boxes clear of the phone keyboard. The on-screen keyboard shrinks

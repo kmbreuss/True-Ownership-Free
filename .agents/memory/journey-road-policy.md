@@ -13,3 +13,9 @@ Reality Check bricks advance quietly, with only a newest-brick glow; its complet
 **Why:** These were explicit product adjustments to prevent interruptions inside the Reality Check and an unreadable row of bricks on phones.
 
 **How to apply:** Do not restore per-scene Reality Check cards or a full brick row in the phone bar. Mount, hydration, refresh and Preview are not new achievements.
+
+The road replaces the 5As spine and must retain all six navigation destinations, access rules and current-location states. Read-only applies to the progress/history display, not to the stage labels.
+
+**Why:** The user explicitly clarified that replacing the spine visually must not remove its navigation.
+
+**How to apply:** Stage labels are accessible navigation buttons using the existing guarded router and feature gates, never gates inferred from brick counts. Other road/brick taps open history. The phone bar opens the full road; its labels navigate and its history sits below. Keep A2's Time Audit and Named Truth highlighted as A2, matching the phone mapping rather than the old desktop fallback to A1.

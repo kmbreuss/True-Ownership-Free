@@ -1,6 +1,18 @@
 .jr-desktop{position:fixed;inset:0 auto 0 0;width:290px;z-index:200;background:linear-gradient(170deg,#FAF5E9,#F2F1ED);display:grid;place-items:center;box-sizing:border-box;padding:12px}
-.jr-road{display:flex;flex-direction:column;align-items:center;width:100%;height:100%;max-height:900px;border:0;background:none;padding:0;cursor:pointer;color:#735F43}
-.jr-road svg{width:100%;height:calc(100% - 20px);min-height:0}
+.jr-road{position:relative;display:flex;flex-direction:column;align-items:center;width:100%;height:100%;max-height:900px;border:0;background:none;padding:0;color:#735F43}
+.jr-road-open{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:12px;background:none;cursor:pointer}
+.jr-road-open:focus-visible{outline:2px solid #036360;outline-offset:2px}
+.jr-road svg{position:relative;width:100%;height:calc(100% - 20px);min-height:0;pointer-events:none}
+.jr-road-stop{pointer-events:auto;display:flex;flex-direction:column;justify-content:center;gap:2px;box-sizing:border-box;width:100%;min-height:44px;max-height:54px;padding:4px;border:1px solid transparent;border-radius:7px;background:transparent;color:#746C60;font:10.5px/1.15 Questrial,sans-serif;letter-spacing:.08em;text-align:left;cursor:pointer}
+.jr-road-stop small{font:8.5px/1.15 Questrial,sans-serif;letter-spacing:0}
+.jr-road-stop.is-current{color:#036360;background:#0363600d}
+.jr-road-stop:hover:not(:disabled){background:#A5875E22;border-color:#A5875E}
+.jr-road-stop:focus-visible{outline:2px solid #036360;outline-offset:-2px;background:#A5875E22}
+.jr-road-stop:disabled{opacity:.5;cursor:not-allowed}
+.jr-road .jr-tap-hint{pointer-events:none}
+html[data-theme="dark"] .jr-road-stop{color:#E9D9BA}
+html[data-theme="dark"] .jr-road-stop.is-current{color:#9CD8CF;background:#9CD8CF12}
+html[data-theme="dark"] .jr-road-stop:focus-visible,html[data-theme="dark"] .jr-road-open:focus-visible{outline-color:#9CD8CF}
 .jr-brick{fill:#FFF;stroke:#A5875E;stroke-width:.45;stroke-dasharray:1.5 1}
 .jr-brick.is-done{fill:#C9A86A;stroke:#A5875E;stroke-dasharray:none}
 .jr-brick.is-newest{fill:#E2C27E;filter:drop-shadow(0 0 4px #C9A86A)}

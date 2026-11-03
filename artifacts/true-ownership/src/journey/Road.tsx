@@ -3,10 +3,12 @@ import { createPortal } from "react-dom";
 import { groupForView, readJourney, ROAD_GROUPS, type JourneySnapshot, type ReadProgress } from "./progress";
 import { RoadBar } from "./RoadBar";
 import { StepMoment, useStepMoments } from "./StepMoment";
+import type { RoadNavigationItem } from "./navigation";
 import "./journey.css";
 
 const point = (t: number) => ({ x: 145 + 57 * Math.sin(t * Math.PI * 5), y: 515 - t * 460 });
-export function Road({ snapshot, current, newest, onOpen }: {
+type NavigationProps = { navigation: RoadNavigationItem[]; onNavigate: (destination: string) => void };
+export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate }: NavigationProps & {
   snapshot: JourneySnapshot; current: string; newest?: string; onOpen?: () => void;
 }) {
   const latest = newest ?? snapshot.bricks.findLast(b => b.done)?.id;
@@ -14,8 +16,10 @@ export function Road({ snapshot, current, newest, onOpen }: {
     const p = point(i / 120); return `${i ? "L" : "M"}${p.x},${p.y}`;
   }).join(" ");
   let offset = 0;
-  return <button type="button" className="jr-road" onClick={onOpen} aria-label={`Open your road: ${snapshot.count} of ${snapshot.bricks.length} steps finished`}>
-    <svg viewBox="0 0 290 570" aria-hidden="true">
+  return <div className="jr-road">
+    <button type="button" className="jr-road-open" onClick={onOpen}
+      aria-label={`Open your road: ${snapshot.count} of ${snapshot.bricks.length} steps finished`} />
+    <svg viewBox="0 0 290 570">
       <defs><radialGradient id="jr-star-glow"><stop stopColor="#E2C27E" stopOpacity=".65" /><stop offset="1" stopColor="#E2C27E" stopOpacity="0" /></radialGradient></defs>
       <circle cx="145" cy="29" r={22 + 30 * snapshot.count / snapshot.bricks.length} fill="url(#jr-star-glow)" />
       <text className="jr-star-title" x="145" y="8" textAnchor="middle">FUTURE B</text>
@@ -34,19 +38,24 @@ export function Road({ snapshot, current, newest, onOpen }: {
       {ROAD_GROUPS.map(group => {
         const index = offset + group.total / 2; offset += group.total;
         const p = point(index / snapshot.bricks.length), right = p.x < 145;
-        return <text key={group.id} className={`jr-road-label ${current === group.id ? "is-current" : ""}`}
-          x={right ? 190 : 21} y={p.y} textAnchor={right ? "start" : "start"}>
-          {group.id === "a5" ? <><tspan x={right ? 190 : 21}>A5 ·</tspan><tspan x={right ? 190 : 21} dy="11">ACCOUNTABLE</tspan></> : group.label}
-        </text>;
+        const item = navigation.find(item => item.id === group.id)!;
+        return <foreignObject key={group.id} x={right ? 184 : 5} y={p.y - 16} width="101" height="54">
+          <button type="button" className={`jr-road-stop ${item.isCurrent ? "is-current" : ""}`}
+            data-road-destination={group.id} disabled={!item.destination} aria-label={item.accessibleLabel}
+            aria-current={item.isCurrent ? "page" : undefined}
+            onClick={e => { e.stopPropagation(); if (item.destination) onNavigate(item.destination); }}>
+            <span>{item.label}</span>{item.status && <small>{item.status}</small>}
+          </button>
+        </foreignObject>;
       })}
       <text className="jr-road-label" x="100" y="537">START</text>
       <text className="jr-road-caption" x="145" y="557" textAnchor="middle">{snapshot.count} steps on your road</text>
     </svg>
     <span className="jr-tap-hint">Tap to see every step</span>
-  </button>;
+  </div>;
 }
 
-export function RoadSheet({ snapshot, current, onClose }: { snapshot: JourneySnapshot; current: string; onClose: () => void }) {
+export function RoadSheet({ snapshot, current, onClose, navigation, onNavigate }: NavigationProps & { snapshot: JourneySnapshot; current: string; onClose: () => void }) {
   const dialog = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -54,7 +63,7 @@ export function RoadSheet({ snapshot, current, onClose }: { snapshot: JourneySna
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
-        const buttons = dialog.current?.querySelectorAll<HTMLElement>('button,[tabindex="0"]');
+        const buttons = dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),[tabindex="0"]');
         if (!buttons?.length) return;
         const first = buttons[0], last = buttons[buttons.length - 1];
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
@@ -67,7 +76,8 @@ export function RoadSheet({ snapshot, current, onClose }: { snapshot: JourneySna
   return createPortal(<div className="jr-sheet-shade" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
     <div className="jr-sheet" role="dialog" aria-modal="true" aria-labelledby="jr-sheet-title" ref={dialog}>
       <header><h2 id="jr-sheet-title">Your road to Future B</h2><button type="button" onClick={onClose} aria-label="Close your road">×</button></header>
-      <div className="jr-sheet-body"><Road snapshot={snapshot} current={current} onOpen={() => dialog.current?.querySelector<HTMLElement>(".jr-history")?.focus()} />
+      <div className="jr-sheet-body"><Road snapshot={snapshot} current={current} navigation={navigation} onNavigate={onNavigate}
+        onOpen={() => dialog.current?.querySelector<HTMLElement>(".jr-history")?.focus()} />
         <section className="jr-history" tabIndex={0} aria-label="Your finished steps">
           <p className="jr-eyebrow">{snapshot.count} steps on your road</p>
           {!snapshot.count && <p>Your road begins with the Reality Check.</p>}
@@ -83,7 +93,7 @@ export function RoadSheet({ snapshot, current, onClose }: { snapshot: JourneySna
 }
 
 /** Mounted only once, after the app router has finished cloud hydration. */
-export function JourneyRoad({ view, read }: { view: string; read: ReadProgress }) {
+export function JourneyRoad({ view, read, navigation, onNavigate }: NavigationProps & { view: string; read: ReadProgress }) {
   const [snapshot, setSnapshot] = useState(() => readJourney(read));
   const [open, setOpen] = useState(false);
   const { active, newest } = useStepMoments(snapshot);
@@ -101,9 +111,11 @@ export function JourneyRoad({ view, read }: { view: string; read: ReadProgress }
   const current = groupForView(view);
   const mirror = view === "m4" ? "VALUES" : view === "m3" ? "IDENTITY" : view === "explore2" ? "VISION" : view === "explore" ? "PURPOSE" : "";
   return <>
-    <aside className="jr-desktop"><Road snapshot={snapshot} current={current} newest={newest} onOpen={() => setOpen(true)} /></aside>
+    <aside className="jr-desktop"><Road snapshot={snapshot} current={current} newest={newest}
+      navigation={navigation} onNavigate={onNavigate} onOpen={() => setOpen(true)} /></aside>
     <RoadBar snapshot={snapshot} current={current} mirror={mirror} newestGroup={newest?.split(":")[0]} onOpen={() => setOpen(true)} />
     <StepMoment notice={active} />
-    {open && <RoadSheet snapshot={snapshot} current={current} onClose={() => setOpen(false)} />}
+    {open && <RoadSheet snapshot={snapshot} current={current} navigation={navigation}
+      onNavigate={destination => { setOpen(false); onNavigate(destination); }} onClose={() => setOpen(false)} />}
   </>;
 }
