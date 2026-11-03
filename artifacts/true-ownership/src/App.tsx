@@ -20,7 +20,11 @@ import { visionSteps, visionRoomUnlocked } from "./visionProgress";
 import { declSentences, declSummary } from "./visionProse";
 import { purposeHoldback } from "./purposeContext";
 import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./remainingTime";
-import { A1MirrorOrder, A1FutureBCard, A1FutureBThread } from "./components/A1FutureB";
+import { A1MirrorOrder, A1FutureBThread } from "./components/A1FutureB";
+import { FutureBGrows } from "./journey/FutureBGrows";
+import { MirrorCards } from "./journey/MirrorCards";
+import { JourneyRoad } from "./journey/Road";
+import { readJourney } from "./journey/progress";
 import { ValuesOpening, ValuesProgress } from "./valuesExperience/ValuesOpening";
 import { ValuesPortrait } from "./valuesExperience/ValuesPortrait";
 import { ValuesClaim, ValuesHubNames } from "./valuesExperience/ValuesClaim";
@@ -29892,9 +29896,14 @@ function NewA1Grid({
             <strong>{mirrorsComplete} of 4</strong> complete{remainingLabel && ` · ${remainingLabel}`}
           </div>
         </div>
-        <A1FutureBCard rc={rc} />
+        <FutureBGrows snapshot={readJourney(loadDataSync)} />
         {(mirrorsComplete === 4 || isDevPreview()) && <button className="a1-end-link" onClick={onOpenEnd}>See the end of A1 →</button>}
-        <A1MirrorOrder>
+        <A1MirrorOrder presentation={<MirrorCards
+          snapshot={readJourney(loadDataSync)}
+          complete={{ values: valuesComplete, identity: identityComplete, purpose: purposeComplete, vision: visionComplete }}
+          enabled={{ values: valuesUnlocked || isDevPreview(), identity: identityUnlocked || isDevPreview(), purpose: purposeUnlocked, vision: visionUnlocked }}
+          open={{ values: onOpenM4, identity: onOpenM3, purpose: onOpenPurpose, vision: onOpenVision }}
+        />}>
           <article
             className={`na1-mirror-card ${!purposeUnlocked ? "is-locked" : purposeComplete ? "is-complete" : purposeInProgress ? "is-vision-in-progress" : "is-current"}`}
             aria-disabled={!purposeUnlocked || undefined}
@@ -35429,77 +35438,7 @@ function NewA1PhoneSpine() {
     getPhoneSpine,
   );
   if (!snap) return null;
-  const here = snap.view === "rc" || snap.view === "rcroom" ? 0 : na1DisciplineForView(snap.view);
-  const items: {
-    n: number;
-    label: string;
-    claimed: boolean;
-    dest: AppRouteView | null;
-  }[] = [
-    { n: 1, label: "All In", claimed: snap.a1Complete, dest: "grid" },
-    {
-      n: 2,
-      label: "Align",
-      claimed: snap.a2Complete,
-      dest: NEW_A2_FLAG ? "a2" : null,
-    },
-    {
-      n: 3,
-      label: "Advocate",
-      claimed: snap.a3Complete,
-      dest: NEW_A3_FLAG ? "a3" : null,
-    },
-    { n: 4, label: "Act", claimed: snap.a4Complete, dest: "a4" },
-    { n: 5, label: "Accountable", claimed: snap.a5Complete, dest: "a5" },
-  ];
-  items.unshift({ n: 0, label: "Reality Check", claimed: loadRCState().complete, dest: "rc" });
-  return (
-    <nav className="na1-pspine" aria-label="Your progress through the 5 A's">
-      {items.map((it) => {
-        const isHere = it.n === here;
-        // Precedence matches the rail: "Here" wins over "Claimed".
-        const state = it.n !== 0 && rcFreeLocked() ? "Locked" : isHere ? "Here" : it.claimed ? "Complete" : "Ahead";
-        const cls = [
-          "na1-pspine-item",
-          isHere ? "is-here" : "",
-          it.claimed ? "is-claimed" : "",
-          it.dest ? "is-nav" : "",
-        ]
-          .filter(Boolean)
-          .join(" ");
-        const inner = (
-          <>
-            <span className="na1-pspine-top">
-              <span className="na1-pspine-dot" aria-hidden />
-              <span className="na1-pspine-num">{it.n === 0 ? "Start" : `A${it.n}`}</span>
-            </span>
-            <span className="na1-pspine-state">{state}</span>
-          </>
-        );
-        const label = `A${it.n} ${it.label} — ${state.toLowerCase()}`;
-        if (it.dest) {
-          const dest = it.dest;
-          return (
-            <button
-              type="button"
-              key={it.n}
-              className={cls}
-              aria-label={label}
-              aria-current={isHere ? "page" : undefined}
-              onClick={() => snap.navigate(dest)}
-            >
-              {inner}
-            </button>
-          );
-        }
-        return (
-          <div className={cls} key={it.n} role="img" aria-label={label}>
-            {inner}
-          </div>
-        );
-      })}
-    </nav>
-  );
+  return <JourneyRoad view={snap.view} read={loadDataSync} />;
 }
 
 // Keeps text boxes clear of the phone keyboard. The on-screen keyboard shrinks
@@ -52162,6 +52101,7 @@ function NewA1View({
         <NewA1M4Container
           onBackToGrid={() => setView("grid")}
           onEntryHall={() => setView("entry-hall")}
+          onContinueToIdentity={() => setView("m3")}
           initialRoomKey={initialKey}
           onRoomChange={onM4RoomChange}
           onGoToA2={() => setView("grid")}
@@ -55900,6 +55840,7 @@ function NewA1M4ClaimBody({
   onGoToA2,
   onEditValues,
   onFinished,
+  onContinueToIdentity,
 }: {
   onCloseRoom: () => void;
   // A2.0 · supplied only when ?newA2=1. Routes to the A2 "Align With It"
@@ -55911,6 +55852,7 @@ function NewA1M4ClaimBody({
   // editing is additive. Undefined → the link is not rendered.
   onEditValues?: () => void;
   onFinished?: () => void;
+  onContinueToIdentity?: () => void;
 }) {
   const [state, setMirrorState] = useState<Mirror4State>(() =>
     loadMirror4State(),
@@ -56014,7 +55956,7 @@ function NewA1M4ClaimBody({
 
   return (
     <ValuesClaim state={state} onClaim={handleClaim} onBack={onCloseRoom}
-      onNext={onFinished} onEdit={onEditValues} />
+      onNext={onFinished} onEdit={onEditValues} onAdvance={onContinueToIdentity} journey={readJourney(loadDataSync)} />
   );
 }
 
@@ -57107,6 +57049,7 @@ function NewA1M4Container({
   initialRoomKey,
   onRoomChange,
   onGoToA2,
+  onContinueToIdentity,
 }: {
   onBackToGrid: () => void;
   onEntryHall: () => void;
@@ -57115,6 +57058,7 @@ function NewA1M4Container({
   // A2.0 · routes the Claim seal's "Align With It · A2" button into the A2
   // hub. Only supplied when ?newA2=1; undefined hides the button entirely.
   onGoToA2?: () => void;
+  onContinueToIdentity?: () => void;
 }) {
   // Ship 5.6c · refresh-resume. If an initialRoomKey is handed in,
   // resolve it against M4_ROOMS and open the room directly (no veil,
@@ -57290,6 +57234,7 @@ function NewA1M4Container({
             <NewA1M4ClaimBody
               onCloseRoom={previous}
               onFinished={closeRoom}
+              onContinueToIdentity={onContinueToIdentity}
               onEditValues={() => {
                 // Additive post-claim edit path: open the Name the Standards
                 // rung (name/behaviors/keystone/meaning all editable there).

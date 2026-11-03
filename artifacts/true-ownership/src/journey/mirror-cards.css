@@ -1,0 +1,21 @@
+.na1-mirror-card.jr-mirror-card{display:flex;flex-direction:column;gap:8px;padding:18px;border:1.5px solid #DADADC;border-radius:18px;background:#FFFFFF;color:#353334;min-width:0;opacity:1;overflow-wrap:anywhere}
+.jr-mirror-card header{display:flex;justify-content:space-between;align-items:center;gap:8px;font:11px/1.3 var(--f-label);letter-spacing:.12em;color:#735F43}
+.jr-mirror-card .jr-mirror-status{font-size:10px;white-space:nowrap}
+.na1-mirror-card.jr-mirror-card h2{font:23px/1.2 var(--f-display);margin:0;color:#353334}
+.jr-mirror-card .jr-mirror-body{font:18px/1.3 var(--f-body);margin:0;color:#353334}
+.jr-mirror-card .jr-mirror-body.is-finding{font-style:italic}
+.na1-mirror-card.jr-mirror-claimed{background:radial-gradient(circle at 50% 0%,#FFFFFF,#FBF8F2 55%,#F3E9D8);border-color:#A5875E;box-shadow:0 5px 24px #A5875E22}
+.na1-mirror-card.jr-mirror-next{border-color:#036360}
+.jr-mirror-next .jr-mirror-status{border:1px solid #036360;border-radius:16px;padding:2px 7px;color:#036360}
+.jr-mirror-later .jr-mirror-status{color:#756F66}
+.jr-mirror-button{width:100%;min-height:36px;margin-top:auto;border:1px solid #036360;border-radius:30px;background:#036360;color:#F9F6EE;font:13px/1.3 var(--f-label);padding:8px 12px;cursor:pointer}
+.jr-mirror-claimed .jr-mirror-button{border-color:#A5875E;background:transparent;color:#735F43}
+.jr-mirror-button:disabled{border-color:#DADADC;color:#756F66;background:white;cursor:default;opacity:1}
+.jr-mirror-card .a1-future-b-thread{color:#735F43;margin:0 0 4px}
+.jr-mirror-card .a1-future-b-thread>em{font-size:16px;line-height:1.2}
+.jr-values-found p{font:17px/1.3 var(--f-body);margin:0}
+.jr-values-found ol{padding:0;margin:4px 0;list-style:none;display:flex;flex-direction:column;gap:3px}
+.jr-values-found li{font-family:var(--f-display);line-height:1.2;display:flex;gap:9px;align-items:baseline}
+.jr-values-found li>span{font:16px var(--f-body);color:#A5875E}
+.jr-values-found .jr-values-rest{font-style:italic}
+@media(max-width:600px){.na1-mirror-card.jr-mirror-card{padding:16px}.jr-mirror-button{min-height:44px}}

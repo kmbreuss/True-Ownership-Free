@@ -5,12 +5,12 @@ import "./a1-future-b.css";
 const ORDER = [3, 2, 0, 1];
 const MIRRORS = ["purpose", "vision", "identity", "values"];
 /** Reorder the existing cards themselves: same markup, correct tab/reader order. */
-export function A1MirrorOrder({ children, grid = true }: { children: React.ReactNode; grid?: boolean }) {
+export function A1MirrorOrder({ children, grid = true, presentation }: { children: React.ReactNode; grid?: boolean; presentation?: React.ReactNode }) {
   const cards = React.Children.toArray(children);
   const ordered = ORDER.map(index => React.isValidElement(cards[index])
     ? React.cloneElement(cards[index] as React.ReactElement<Record<string, unknown>>, { "data-a1-mirror": MIRRORS[index] })
     : cards[index]).concat(cards.slice(4));
-  return grid ? <div className="na1-mirror-grid">{ordered}</div> : <>{ordered}</>;
+  return grid ? <div className="na1-mirror-grid">{presentation ?? ordered}</div> : <>{presentation ?? ordered}</>;
 }
 
 const THREAD = {

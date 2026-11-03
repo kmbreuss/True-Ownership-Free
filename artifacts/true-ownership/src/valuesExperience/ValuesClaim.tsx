@@ -1,4 +1,7 @@
 import { m4IsClusterComplete, type Mirror4State } from "../mirror4Constants";
+import { useRef, useState } from "react";
+import { OneStepCloser } from "../journey/OneStepCloser";
+import type { JourneySnapshot } from "../journey/progress";
 
 export function rankedValues(state: Mirror4State) {
   const named = state.clusters.filter(m4IsClusterComplete);
@@ -15,10 +18,14 @@ export function ValuesHubNames({ state }: { state: Mirror4State }) {
   </div>;
 }
 
-export function ValuesClaim({ state, onClaim, onBack, onNext, onEdit }: {
+export function ValuesClaim({ state, onClaim, onBack, onNext, onEdit, onAdvance, journey }: {
   state: Mirror4State; onClaim: () => void; onBack: () => void;
   onNext?: () => void; onEdit?: () => void;
+  onAdvance?: () => void; journey?: JourneySnapshot;
 }) {
+  const reviewing = useRef(state.claimed).current;
+  const [closer, setCloser] = useState(false);
+  if (closer && journey && onAdvance) return <OneStepCloser snapshot={journey} onContinue={onAdvance} />;
   return <div className="vx-claim-layout">
     <section className="vx-claim-body">
       <div className="vx-seal-star" aria-hidden="true">★</div>
@@ -32,7 +39,8 @@ export function ValuesClaim({ state, onClaim, onBack, onNext, onEdit }: {
     </section>
     <footer className="na1-m4-disc-foot">
       <button type="button" className="na1-m4-back" onClick={onBack}>← Back</button>
-      {state.claimed && onNext ? <button type="button" className="na1-m4-continue" onClick={onNext}>Done reviewing →</button> :
+      {state.claimed && !reviewing && journey && onAdvance ? <button type="button" className="na1-m4-continue" onClick={() => setCloser(true)}>Continue to Identity →</button> :
+        state.claimed && onNext ? <button type="button" className="na1-m4-continue" onClick={onNext}>Done reviewing →</button> :
         !state.claimed ? <button type="button" className="na1-m4-continue" disabled={!state.pressureTest.complete} onClick={onClaim}>Claim it · go to Map of Me →</button> :
         <button type="button" className="na1-m4-back" onClick={onBack}>← Back</button>}
     </footer>

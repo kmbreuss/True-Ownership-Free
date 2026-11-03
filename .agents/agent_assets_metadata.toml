@@ -105,3 +105,17 @@ mtime_ms = 1793660251848
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/1f9cd851-f95e-46fc-9dfc-a8373d235706/646ddf2b-c861-4c70-99a5-3819192486a5"
 storage_version_token = "1793660273443541"
 content_type = "image/png"
+
+[[outputs]]
+id = "STl3AxZin0H2R2bZ6dG6k"
+uri = "file://generated-artifacts/journey-road/build-report.html"
+type = "html"
+title = "Road to Future B — complete build report"
+description = "Brick counts, every copy change and fixed card line, fit results, completion-data limits and files."
+logical_id = "0bb313b3-d47a-46ee-8cc6-92b8f0388229"
+content_hash = "sha256:6c865b225495a791f9c4bedb87543b81f9f533b3dc3dfaaf684d5433951984ae"
+size = 31197
+mtime_ms = 1793665693752
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0bb313b3-d47a-46ee-8cc6-92b8f0388229/106e460b-c28c-456b-9bae-9202c9cd8ba1"
+storage_version_token = "1793665704240733"
+content_type = "text/html"
