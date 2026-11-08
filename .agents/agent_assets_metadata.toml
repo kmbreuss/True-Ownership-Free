@@ -119,3 +119,115 @@ mtime_ms = 1793665693752
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0bb313b3-d47a-46ee-8cc6-92b8f0388229/106e460b-c28c-456b-9bae-9202c9cd8ba1"
 storage_version_token = "1793665704240733"
 content_type = "text/html"
+
+[[outputs]]
+id = "kJRiduxC3SU1d0HSbKY88"
+uri = "file://generated-artifacts/road-phone-check/hub-after-375x812-light.jpg"
+type = "image"
+title = "1 · A1 hub — phone road bar"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "55a3f694-7869-415b-8d5a-6e9e6663730e"
+content_hash = "sha256:587ac1f92e03bd068b47fd54d377b66ad368268a6c6ee40a18eff4c049800020"
+size = 40954
+mtime_ms = 1794155953031
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/55a3f694-7869-415b-8d5a-6e9e6663730e/28edac39-39e0-4076-9bfd-2e4339444163"
+storage_version_token = "1794156102464322"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "xFcDronBOsZyKVpJP6YPO"
+uri = "file://generated-artifacts/road-phone-check/name-375x812-light.jpg"
+type = "image"
+title = "2 · Values room — phone road bar"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "52132591-4474-4f90-a6ad-9be2c58d13ac"
+content_hash = "sha256:4559c03d896b5140340823a29b417b7d7a25c6ad7dd309b9a0b05629e347ac57"
+size = 39428
+mtime_ms = 1794155955999
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/52132591-4474-4f90-a6ad-9be2c58d13ac/ed0a318a-8a2e-43e1-830e-d971490136dc"
+storage_version_token = "1794156103075896"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "0Jt0EzPMfeDgf27G9eSYk"
+uri = "file://generated-artifacts/road-phone-check/rc-375x812-light.jpg"
+type = "image"
+title = "3 · Reality Check — phone road bar"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "bacda205-aae1-4b84-89de-e6dcbacfb63c"
+content_hash = "sha256:bed1e948da1698cf1a3b40f5b3ccdc546bf92da2542347744d7f5588d7a785e5"
+size = 48132
+mtime_ms = 1794155962331
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/bacda205-aae1-4b84-89de-e6dcbacfb63c/40050807-e012-48fb-90a9-d6cc9066b912"
+storage_version_token = "1794156103688117"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "pTKGk0yAoZ6IjAhek0DAX"
+uri = "file://generated-artifacts/road-phone-check/full-road-navigation-light.jpg"
+type = "image"
+title = "4 · Full road — stage navigation"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "35fcec0a-24cc-4e80-9a22-4221120a72b1"
+content_hash = "sha256:e51668f42967bbe997812c7514be8861635f9592312235ab02233260a42bae28"
+size = 23265
+mtime_ms = 1794155965415
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/35fcec0a-24cc-4e80-9a22-4221120a72b1/33ebea1c-b851-46d4-8021-491c84ae99dd"
+storage_version_token = "1794156104266735"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "y2P1ihSv2czCe1_533Vl6"
+uri = "file://generated-artifacts/road-phone-check/full-road-history-light.jpg"
+type = "image"
+title = "5 · Full road — history below"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "61a95df5-23c3-48bf-80fd-02142e856793"
+content_hash = "sha256:1b43f888028c1e89a02c02f60cdaa27858ef3c16a1778d786ad1664d6d71e9b3"
+size = 37090
+mtime_ms = 1794155965499
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/61a95df5-23c3-48bf-80fd-02142e856793/1700a9e3-401b-439f-8e32-6c0ca6d5dcda"
+storage_version_token = "1794156104854544"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "G63M-m1FUHZzFa71YMz1j"
+uri = "file://generated-artifacts/road-phone-check/plus-one-step-phone.jpg"
+type = "image"
+title = "6 · +1 step — Reality Check completion"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "3a3d0240-e54f-4e1a-beb6-c59bf2056876"
+content_hash = "sha256:6203dac181bf408fc576d4213067b0a8f3d7264a35fac53ce6d919a667888a8d"
+size = 33895
+mtime_ms = 1794156049804
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/3a3d0240-e54f-4e1a-beb6-c59bf2056876/65bcce54-6b52-44fd-93fe-7a18555cfdfd"
+storage_version_token = "1794156105412520"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "Wl8S97wcKdEIEMWld_5YQ"
+uri = "file://generated-artifacts/road-phone-check/closer-375x812-light.jpg"
+type = "image"
+title = "7 · One step closer — Values claim"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "83dbd1f6-a03a-49f0-8b21-bf2473345cd6"
+content_hash = "sha256:c56b6c3dd0e70e397cf31fda2634f6ed1717a778db5c0aed34ca946c38f436c4"
+size = 37522
+mtime_ms = 1794156038748
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/83dbd1f6-a03a-49f0-8b21-bf2473345cd6/2a7f1f4b-15d7-4fd4-829f-3ba39834a748"
+storage_version_token = "1794156105999831"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "MjGdJQ0CpGImqT7hEKROi"
+uri = "file://generated-artifacts/road-phone-check/hub-after-375x812-dark.jpg"
+type = "image"
+title = "8 · Dark theme — phone road bar"
+description = "375×812 screenshot. Synthetic test fixture; no real account data."
+logical_id = "5aa7ed0c-ec25-4b8e-aa96-fe6e8ebebe5e"
+content_hash = "sha256:5ffcabfe79ab15e9774967b182662b06ba11017ff6ddc1839c22a92f9a47a6e7"
+size = 43793
+mtime_ms = 1794155971979
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/5aa7ed0c-ec25-4b8e-aa96-fe6e8ebebe5e/074392eb-996e-4184-855b-2df4dc1ee0ed"
+storage_version_token = "1794156106553385"
+content_type = "image/jpeg"
