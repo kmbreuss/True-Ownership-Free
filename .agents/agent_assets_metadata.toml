@@ -637,3 +637,129 @@ mtime_ms = 1794165100439
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/8969b8c0-ac50-4b29-b6f9-a50eb3266ec6/8049481e-1857-4a2e-97b0-99d76c91eaf1"
 storage_version_token = "1794165190592901"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "jU1lqunjXEXok2JMcc4PP"
+uri = "file://generated-artifacts/map-of-me/a1-375-light-map-viewport.jpg"
+type = "image"
+title = "Map of Me · phone · light"
+description = "375×812, isolated synthetic member."
+logical_id = "1118472a-cfd0-45ae-9e0a-126b41b1db0e"
+content_hash = "sha256:5679833d01088dc67d41604b3b2a83bdc71cd21e5a214a12d357fdd9fce1c4d4"
+size = 30458
+mtime_ms = 1794166764771
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/1118472a-cfd0-45ae-9e0a-126b41b1db0e/af2bd584-52f9-4f2a-9a3c-7a30a2e0d80f"
+storage_version_token = "1794166878469004"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "5KjW_bxdIFwgvJDUx9PnF"
+uri = "file://generated-artifacts/map-of-me/a1-375-light-values-rank.jpg"
+type = "image"
+title = "Ranked Values · phone · light"
+description = "Full-answer sheet with all five saved ranked values."
+logical_id = "a13f8b13-a25b-403e-99b2-bf77288ba00a"
+content_hash = "sha256:c1cc96b25d4a12c79d1d0a42e3523117cfae28980c51a8b27a155b16a684d662"
+size = 15790
+mtime_ms = 1794166765003
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a13f8b13-a25b-403e-99b2-bf77288ba00a/41fa1892-0fcc-4c44-9b27-6556fef371fa"
+storage_version_token = "1794166879117222"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "97-NOTlkqspgQxI5hugSJ"
+uri = "file://generated-artifacts/map-of-me/a1-375-dark-creature-c_0.jpg"
+type = "image"
+title = "Creature Superpowers · phone · dark"
+description = "Saved creature Superpower sentence and assigned gift, 375×812."
+logical_id = "a3151eff-4c97-4799-a1cf-32d38d643f40"
+content_hash = "sha256:295908289a9ac532fa4f7c721228d2f92ef65c474a96afb7a80c26de2ba3ebe1"
+size = 20211
+mtime_ms = 1794166784171
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a3151eff-4c97-4799-a1cf-32d38d643f40/f258036c-2404-479c-be89-572cdd860f13"
+storage_version_token = "1794166879697588"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "VnRRJTR9DohTiKi9Kp_zr"
+uri = "file://generated-artifacts/map-of-me/all-375-light-a4-time-year-editor.jpg"
+type = "image"
+title = "Phone · 375×812 · Light · Exact 1-year editor"
+description = "Synthetic fixture only. The Map opens the original A4 Time answer editor and returns without re-claiming."
+logical_id = "63f2c8c6-9998-4148-96a3-7c21d702b8a1"
+content_hash = "sha256:c4d7fcb9b2b7c5981ee3ea385bd3ab75af2d433ffecba9e993d25b956f266613"
+size = 28023
+mtime_ms = 1794168717764
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/63f2c8c6-9998-4148-96a3-7c21d702b8a1/ac4f19ed-7bc9-455a-9a0f-4759ba515980"
+storage_version_token = "1794169146685724"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "C8RhohTMlPsKycvmiJeRO"
+uri = "file://generated-artifacts/map-of-me/all-375-dark-a4-time-year-editor.jpg"
+type = "image"
+title = "Phone · 375×812 · Dark · Exact 1-year editor"
+description = "Synthetic fixture only. Dark-theme review with the return-to-Map control."
+logical_id = "277cb324-5a3d-419e-8206-710cfd47f365"
+content_hash = "sha256:a5eab2b8457fdbac8e20fdd3484fab0620faf19530dab4581d0b4085ef2991e6"
+size = 28157
+mtime_ms = 1794168770727
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/277cb324-5a3d-419e-8206-710cfd47f365/432c2d1f-1c9e-4d48-9765-e68092e601dd"
+storage_version_token = "1794169147396935"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "02A2Uq5NCCtO-tt8i-yPE"
+uri = "file://generated-artifacts/map-of-me/all-1280-light-map-viewport.jpg"
+type = "image"
+title = "Desktop · 1280×800 · Light · Map of Me"
+description = "Synthetic fixture only. Correct page surface and content positioned beside the road."
+logical_id = "486ade2a-5b62-45dd-894f-1cb2bbfe4159"
+content_hash = "sha256:51c73dcfa99bc73571679c5670a49a2f780b4b44385e58d08da8f095f42d5645"
+size = 69614
+mtime_ms = 1794168787259
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/486ade2a-5b62-45dd-894f-1cb2bbfe4159/83469bd0-5272-40dd-a3c1-6308803d82c3"
+storage_version_token = "1794169148028626"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "WKElB3IgChyPRn8HK4-XF"
+uri = "file://generated-artifacts/map-of-me/all-1280-dark-map-viewport.jpg"
+type = "image"
+title = "Desktop · 1280×800 · Dark · Map of Me"
+description = "Synthetic fixture only. Dark-theme Map with the working PDF download."
+logical_id = "1dd83be7-4fb0-40ec-b5b5-3dd7643eefdb"
+content_hash = "sha256:3ce99aaa93d31a240646d49128ea9e3c79c58d55b118606419aa973df3af9c93"
+size = 72964
+mtime_ms = 1794168841260
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/1dd83be7-4fb0-40ec-b5b5-3dd7643eefdb/3a912711-eec9-4a0a-bf6d-e10380fab545"
+storage_version_token = "1794169148681173"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "mPVfBzn64BSn408P8X_-H"
+uri = "file://generated-artifacts/map-of-me/field-and-edit-audit.md"
+type = "text"
+title = "Map of Me · Field, destination and file audit"
+description = "Every section’s source and edit destination, old → new copy/control changes, empty states, safeguards, verification limits and files."
+logical_id = "324ded52-e36e-47cb-84b1-289a6d693063"
+content_hash = "sha256:5527b9487957921b8904eec91f8c4d3e8997f185111c85286cd5ded4a96cb6d7"
+size = 11641
+mtime_ms = 1794169017368
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/324ded52-e36e-47cb-84b1-289a6d693063/4248b2e4-91a6-49e0-b9c5-a690e26993dd"
+storage_version_token = "1794169149300371"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "PfqK9c17-fv_Aorvm5U31"
+uri = "file://generated-artifacts/map-of-me/copy-inventory.md"
+type = "text"
+title = "Map of Me · Fixed-copy inventory"
+description = "Fixed labels in the current-source renderer, including retained wording; no member-written answers."
+logical_id = "9343699c-0e19-4eef-8822-cdd734c87365"
+content_hash = "sha256:9458b4fcd2650e1c3216f15edc7b58a8b2f298c8318015fe56b18201dcd351e8"
+size = 4021
+mtime_ms = 1794169083820
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/9343699c-0e19-4eef-8822-cdd734c87365/d825a41d-4a60-4568-97de-e0ce053a6da2"
+storage_version_token = "1794169149959885"
+content_type = "text/markdown"

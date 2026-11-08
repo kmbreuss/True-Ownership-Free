@@ -8,8 +8,8 @@ The A1 ending is summary, optional weekly noticing, and a claimed handoff. There
 
 **How to apply:** Do not revive older A1 decision-filter plans. The end screens remain optional for reaching A2; preserve the existing all-four-mirrors-complete gate, and do not make visiting the ending or saving a notice a prerequisite.
 
-The owner approved omitting “Save as a card” from the A1 ending because the live Map exposes no working download. Dormant legacy PDF code is not an approved export feature.
+The owner approved omitting “Save as a card” from the A1 ending. A separate working Map “Download PDF” was explicitly approved on 2026-11-08, using the current full-answer model, not the dormant legacy backup.
 
-**Why:** Reusing the inactive generator would revive legacy export scope rather than reuse a current user-facing feature.
+**Why:** The owner approved the Map export separately and explicitly said not to revive the old backup. That approval does not reinstate the omitted A1 ending control.
 
-**How to apply:** Keep the button absent until a working export is separately approved; do not enable the legacy PDF UI as incidental A1 work.
+**How to apply:** Keep the A1 ending's “Save as a card” absent unless separately requested. Maintain the Map PDF against the current answer model; do not re-enable legacy export or backup controls.

@@ -9,7 +9,17 @@ import React, {
 } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { isDevPreview, previewRead, previewWrite, setDevPreview } from "./devPreview";
-import { loadRCState } from "./rcConstants";
+import { loadRCState, saveRCState } from "./rcConstants";
+import { RealityCheckScreens } from "./reality-check/RealityCheckScreens";
+import { RealityCheckFutures } from "./reality-check/RealityCheckFutures";
+import { MapOfMe as CurrentMapOfMe, ReviewFrame, useReviewFlush } from "./mapOfMe/MapOfMe";
+import type { EditTarget, MapSources } from "./mapOfMe/model";
+import { beginMapReview, inMapReview, reviewSaveValue, preserveReviewEvidence } from "./mapOfMe/review";
+import { a1Sections } from "./mapOfMe/model";
+import { alignmentScreens, laterSections } from "./mapOfMe/later";
+import { downloadMapPDF } from "./mapOfMe/pdf";
+import { loadNotice } from "./a1End/notice";
+import { WeeklyNotice } from "./a1End/WeeklyNotice";
 import { RealityCheck } from "./reality-check/RealityCheck";
 import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
@@ -336,6 +346,11 @@ function localKeyToServerKey(k: string): string | null {
   return ALLOWED_SERVER_KEYS.has(s) ? s : null;
 }
 function saveData(k: string, v: any) {
+  if (inMapReview()) {
+    const before = loadDataSync(k);
+    v = reviewSaveValue(k, before, v);
+    if (JSON.stringify(before) === JSON.stringify(v)) return;
+  }
   if (previewWrite(k, JSON.stringify(v))) return;
   try {
     localStorage.setItem(k, JSON.stringify(v));
@@ -30597,9 +30612,11 @@ const NA1_SYM_CHIPS = [
 function NewA1OwnedSymptomsBody({
   onSaved,
   onClose,
+  reviewing = false,
 }: {
   onSaved: () => void;
   onClose: () => void;
+  reviewing?: boolean;
 }) {
   // Pre-fill from any existing data (edit-anytime).
   const initialPicks: string[] = Array.isArray(loadDataSync("a1_sym_picks"))
@@ -30608,10 +30625,14 @@ function NewA1OwnedSymptomsBody({
   const initialNote = String(loadDataSync("a1_sym_note") || "");
   const initialHoldback = String(loadDataSync("a1_sym_holdback") || "");
   const wasDone = !!loadDataSync("a1_ex1_done");
-  const [substep, setSubstep] = useState<1 | 2>(1);
+  const [substep, setSubstep] = useState<1 | 2>(reviewing ? 2 : 1);
   const [picks, setPicks] = useState<string[]>(initialPicks);
   const [note, setNote] = useState(initialNote);
   const [holdback, setHoldback] = useState(initialHoldback);
+  useReviewFlush(() => {
+    if (holdback !== initialHoldback) saveData("a1_sym_holdback", holdback);
+    if (note !== initialNote) saveData("a1_sym_note", note);
+  }, reviewing);
   const [saving, setSaving] = useState(false);
   // Debounced auto-save for text fields. Chips save immediately on toggle.
   useEffect(() => {
@@ -31591,12 +31612,14 @@ function NewA1DeclareBody({
   onTryPeelAgain,
   onContinueToVision,
   fromPeel = false,
+  reviewing = false,
 }: {
   onSaved: () => void;
   onClose: () => void;
   onTryPeelAgain: () => void;
   onContinueToVision: () => void;
   fromPeel?: boolean;
+  reviewing?: boolean;
 }) {
   const wasDone = !!loadDataSync("a1_ex4_done");
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
@@ -31643,10 +31666,15 @@ function NewA1DeclareBody({
   // value is never persisted unless the user actually edits or claims, so an
   // orphaned legacy declaration is healed visually without destroying data.
   const bottomChanged = !!lastPeelLayer && lastPeelLayer !== seededFrom;
-  const initialValue = bottomChanged
+  const initialValue = reviewing ? existingFinal : bottomChanged
     ? lastPeelLayer
     : existingFinal || lastPeelLayer;
   const [value, setValue] = useState<string>(initialValue);
+  useReviewFlush(() => {
+    if (value !== initialValue) saveData(KEYS.map, {
+      ...(loadDataSync(KEYS.map) || {}), purpose_final: value, purpose_seededFrom: lastPeelLayer,
+    });
+  }, reviewing);
   const [working, setWorking] = useState(false);
   // Mode: "readback" (claim or edit) → "claiming" (gold burst) → "ceremony" (seal).
   const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">(
@@ -31700,6 +31728,12 @@ function NewA1DeclareBody({
   }, [mode]);
   const handleClaim = async () => {
     const v = value.trim();
+    if (reviewing) {
+      if (value !== initialValue) saveData(KEYS.map, {
+        ...(loadDataSync(KEYS.map) || {}), purpose_final: value, purpose_seededFrom: lastPeelLayer,
+      });
+      onSaved(); return;
+    }
     if (isDevPreview()) return;
     if (!v || working) return;
     setWorking(true);
@@ -32981,6 +33015,7 @@ function readVisionStep(room: string): number | null {
   }
 }
 function writeVisionStep(room: string, n: number | null): void {
+  if (inMapReview()) return;
   try {
     const o = JSON.parse(window.localStorage.getItem(VISION_STEP_KEY) || "{}") || {};
     if (n == null) delete o[room];
@@ -33047,9 +33082,9 @@ function writeFlowStep(room: string, n: number | null): void {
   }
 }
 type FlowSection = { label: string; node: React.ReactNode };
-function useDeskFlow(room: string, count: number) {
+function useDeskFlow(room: string, count: number, initial?: number) {
   const wide = useVisionWide();
-  const [raw, setRaw] = useState<number>(() => (wide ? readFlowStep(room) ?? 0 : 0));
+  const [raw, setRaw] = useState<number>(() => initial ?? (wide ? readFlowStep(room) ?? 0 : 0));
   const idx = Math.min(Math.max(raw, 0), Math.max(count - 1, 0));
   // A flow whose room key changes (one flow reused across screens) starts over.
   const lastRoom = useRef(room);
@@ -33060,9 +33095,9 @@ function useDeskFlow(room: string, count: number) {
     }
   }, [room]);
   useEffect(() => {
-    if (wide) writeFlowStep(room, idx === 0 ? null : idx);
+    if (wide && !inMapReview()) writeFlowStep(room, idx === 0 ? null : idx);
   }, [wide, room, idx]);
-  useEffect(() => () => writeFlowStep(room, null), [room]);
+  useEffect(() => () => { if (!inMapReview()) writeFlowStep(room, null); }, [room]);
   const go = useCallback(
     (n: number) => {
       setRaw(Math.min(Math.max(n, 0), Math.max(count - 1, 0)));
@@ -33148,8 +33183,8 @@ function DeskFlow({
   );
 }
 // Pages of a long list on a desktop screen (e.g. activities 3 at a time); phones show all.
-function usePager<T>(items: T[], size: number, wide: boolean) {
-  const [page, setPage] = useState(0);
+function usePager<T>(items: T[], size: number, wide: boolean, initialPage = 0) {
+  const [page, setPage] = useState(initialPage);
   const prevLen = useRef(items.length);
   useEffect(() => {
     if (items.length > prevLen.current) setPage(Math.max(0, Math.ceil(items.length / size) - 1));
@@ -33184,11 +33219,13 @@ function NewA2TimeBody({
   onSaved,
   onClose,
   resume,
+  reviewing = false,
 }: {
   onSaved: () => void;
   onClose: () => void;
   // True when the room was reopened by a refresh: restore the section, no veil.
   resume?: boolean;
+  reviewing?: boolean;
 }) {
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
@@ -33207,6 +33244,7 @@ function NewA2TimeBody({
     initialValues[`${d}.blank2`] = String(sec.blank2 || "");
   });
   const [values, setValues] = useState<Record<BlankKey, string>>(initialValues);
+  useVisionMapFlush("time", values, initialValues, reviewing);
   const [editing, setEditing] = useState<Record<BlankKey, boolean>>(() => {
     // Saved blanks start in "filled" mode; empty blanks start in "input" mode.
     const next: Record<BlankKey, boolean> = {};
@@ -33647,11 +33685,13 @@ function NewA2WealthBody({
   onSaved,
   onClose,
   resume,
+  reviewing = false,
 }: {
   onSaved: () => void;
   onClose: () => void;
   // True when the room was reopened by a refresh: restore the section, no veil.
   resume?: boolean;
+  reviewing?: boolean;
 }) {
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
@@ -33669,6 +33709,7 @@ function NewA2WealthBody({
     initialValues[`${d}.blank2`] = String(sec.blank2 || "");
   });
   const [values, setValues] = useState<Record<BlankKey, string>>(initialValues);
+  useVisionMapFlush("wealth", values, initialValues, reviewing);
   const [editing, setEditing] = useState<Record<BlankKey, boolean>>(() => {
     const next: Record<BlankKey, boolean> = {};
     Object.keys(initialValues).forEach((k) => {
@@ -34102,11 +34143,13 @@ function NewA2SelfBody({
   onSaved,
   onClose,
   resume,
+  reviewing = false,
 }: {
   onSaved: () => void;
   onClose: () => void;
   // True when the room was reopened by a refresh: restore the section, no veil.
   resume?: boolean;
+  reviewing?: boolean;
 }) {
   const initialMap = (loadDataSync(KEYS.map) as any) || {};
   const initialVision: VisionState =
@@ -34124,6 +34167,7 @@ function NewA2SelfBody({
     initialValues[`${d}.blank2`] = String(sec.blank2 || "");
   });
   const [values, setValues] = useState<Record<BlankKey, string>>(initialValues);
+  useVisionMapFlush("self", values, initialValues, reviewing);
   const [editing, setEditing] = useState<Record<BlankKey, boolean>>(() => {
     const next: Record<BlankKey, boolean> = {};
     Object.keys(initialValues).forEach((k) => {
@@ -39783,6 +39827,7 @@ function NewA2M3Step2Body({
   onSelfFeedback,
   onBack,
   forward,
+  initialFlowIndex,
 }: {
   m2: A2M2State;
   m3: A2M3State;
@@ -39799,6 +39844,7 @@ function NewA2M3Step2Body({
   // Desktop flow: the room's own Back (first screen) and Continue (last screen).
   onBack: () => void;
   forward: React.ReactNode;
+  initialFlowIndex?: number;
 }) {
   const decisions = m3.activityDecisions;
   const activities = m2.activities.filter((a) => a.name.trim() !== "");
@@ -39814,7 +39860,11 @@ function NewA2M3Step2Body({
   // Desktop: one screen each for the overview, every group of activities, the
   // missing items, the priorities, and the move.
   const flowGroups = A2M3_GROUP_META.filter((g) => groupActs(g.key).length > 0);
-  const flow = useDeskFlow("a2m3-rethink", 1 + flowGroups.length + 3);
+  const flow = useDeskFlow("a2m3-rethink", 1 + flowGroups.length + 3, initialFlowIndex);
+  useEffect(() => {
+    if (!initialFlowIndex) return;
+    requestAnimationFrame(() => document.querySelector(".mom-review .na1-a2m3-move-text")?.scrollIntoView({ block: "center" }));
+  }, []);
   const curGroup = flow.wide && flow.idx >= 1 && flow.idx <= flowGroups.length ? flowGroups[flow.idx - 1] : null;
   const groupPager = usePager(curGroup ? groupActs(curGroup.key) : [], 4, flow.wide);
   const groupPagerSet = groupPager.setPage;
@@ -43236,6 +43286,7 @@ function NewA3M3Step2Body({
   onVoiceWant,
   onBack,
   forward,
+  initialVoice = false,
 }: {
   thoughts: A3Thought[];
   voiceNow: string;
@@ -43247,8 +43298,9 @@ function NewA3M3Step2Body({
   // Desktop flow: the room's own Back (first screen) and Continue (last screen).
   onBack: () => void;
   forward: React.ReactNode;
+  initialVoice?: boolean;
 }) {
-  const flow = useDeskFlow("a3m3-shape", 3);
+  const flow = useDeskFlow("a3m3-shape", 3, initialVoice ? 2 : undefined);
   const pager = usePager(thoughts, 2, flow.wide);
   return (
     <div>
@@ -45071,6 +45123,7 @@ function NewA3M5FillBody({
   onDelSeat,
   onBack,
   forward,
+  initialSeat,
 }: {
   seats: A3BoardSeat[];
   advPool: string[];
@@ -45084,10 +45137,11 @@ function NewA3M5FillBody({
   // Desktop flow: the room's own Back (first screen) and Continue (last screen).
   onBack: () => void;
   forward: React.ReactNode;
+  initialSeat?: number;
 }) {
-  const flow = useDeskFlow("a3m5-fill", 2);
+  const flow = useDeskFlow("a3m5-fill", 2, initialSeat !== undefined ? 1 : undefined);
   const seatItems = seats.map((b, i) => ({ b, i }));
-  const pager = usePager(seatItems, 4, flow.wide);
+  const pager = usePager(seatItems, 4, flow.wide, Math.floor((initialSeat || 0) / 4));
   // Which seat's picker is open — ephemeral UI state (not persisted).
   const [openPicker, setOpenPicker] = useState<number | null>(null);
   const filled = seats.filter((s) => s.name.trim() !== "").length;
@@ -51958,10 +52012,42 @@ function NewA1View({
       return true;
     }} renderPlayer={surface => <VideoCard surface={surface} />} />;
   }
-  if (view === "a1map") return <MapOfMePage
-    backLabel={menuMapReturn.current === "entry-hall" ? "Home" : menuMapReturn.current === "audio" ? "Audio"
-      : menuMapReturn.current === "grid" ? "A1" : menuMapReturn.current?.toUpperCase()}
-    onBack={() => setView(menuMapReturn.current ?? "a1end3")} />;
+  if (view === "a1map") {
+    const access = a1Unlocks(!rcRequired, a1Started(loadDataSync, loadMirror4State()), {
+      values: m4Complete, identity: m3Complete, purpose: purposeComplete, vision: visionComplete,
+    }, isDevPreview());
+    return <CurrentMapOfMe
+      read={() => {
+        const sources: MapSources = {
+          map: loadDataSync(KEYS.map) || {}, values: loadMirror4State(), rc: loadRCState(),
+          notice: loadNotice(), holdback: loadDataSync("a1_sym_holdback") || "",
+          a2: loadA2State(), a3: loadA3State(), a4: loadA4State(), a5: loadA5State(),
+          rateScreens: readA2RateModel(),
+        };
+        return { title: composeMapOfMeTitle(resolvedName), sources,
+          sections: [...a1Sections(sources), ...laterSections(sources)],
+          completed: { rc: sources.rc.complete, a1: a1Complete, a2: a2Complete, a3: a3Complete,
+            a4: !!sources.a4.a4.claimed, a5: !!sources.a5.claimed } };
+      }}
+      canEdit={target => {
+        if (rcFreeLocked() || target.stage === "a2" && !NEW_A2_FLAG || target.stage === "a3" && !NEW_A3_FLAG) return false;
+        const currentMap = loadDataSync(KEYS.map) || {};
+        if (target.kind === "a5-checkin" && !target.id || target.kind === "a5-lookback" && !loadA5State().reset90) return false;
+        if (target.kind === "identity-power" && !currentMap.mirror3?.pickedGifts?.length) return false;
+        if (target.kind === "identity-pressure" && !currentMap.mirror3?.clusters?.length) return false;
+        if (target.kind === "purpose" && !purposeRoomUnlocked("declare", {
+          ex2: !!loadDataSync("a1_ex2_done"), ex3: !!loadDataSync("a1_ex3_done"), ex4: !!loadDataSync("a1_ex4_done"),
+        }, currentMap, loadDataSync("a1_peel_draft"), isDevPreview())) return false;
+        if (target.kind === "vision" && !visionRoomUnlocked(target.part || "time", currentMap.vision, isDevPreview())) return false;
+        return target.stage !== "a1" || (target.mirror === "Values" ? access.values : target.mirror === "Identity" ? access.identity
+          : target.mirror === "Purpose" ? access.purpose : target.mirror === "Vision" ? access.vision : a1Complete);
+      }}
+      download={(model, sections) => downloadMapPDF(model, sections, loadJsPDF)}
+      renderEditor={(target, close) => <MapAnswerEditor target={target} onClose={close} />}
+      backLabel={menuMapReturn.current === "entry-hall" ? "Home" : menuMapReturn.current === "audio" ? "Audio"
+        : menuMapReturn.current === "grid" ? "A1" : menuMapReturn.current?.toUpperCase() || "A1"}
+      onBack={() => setView(menuMapReturn.current ?? "a1end3")} />;
+  }
   if (view === "a1end1" || view === "a1end2" || view === "a1end3") {
     return <A1End step={view === "a1end1" ? 1 : view === "a1end2" ? 2 : 3}
       summary={endSummary(loadDataSync(KEYS.map), loadMirror4State(), loadRCState())}
@@ -57618,6 +57704,7 @@ function readM3Step(room: "animals" | "ownIt" = "animals"): number | null {
   }
 }
 function writeM3Step(n: number | null, room: "animals" | "ownIt" = "animals"): void {
+  if (inMapReview()) return;
   try {
     const o = JSON.parse(window.localStorage.getItem(M3_STEP_KEY) || "{}") || {};
     if (n == null) delete o[room];
@@ -57638,14 +57725,19 @@ function NewA1M3ShapeView({
   embedded = false,
   onSuperpowers,
   onBack,
+  reviewing = false,
+  initialCreatureId,
 }: {
   embedded?: boolean;
   onSuperpowers: () => void;
   onBack?: () => void;
+  reviewing?: boolean;
+  initialCreatureId?: string;
 }) {
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
   // One animal per screen (desktop and phone). A refresh restores the same animal.
-  const [animalIdx, setAnimalIdx] = useState<number>(() => readM3Step() ?? 0);
+  const [animalIdx, setAnimalIdx] = useState<number>(() => initialCreatureId
+    ? Math.max(0, state.clusters.findIndex(c => c.id === initialCreatureId)) : reviewing ? 0 : readM3Step() ?? 0);
   const pickedById = useMemo(() => {
     const out: Record<string, PickedGift> = {};
     for (const p of state.pickedGifts) out[p.id] = p;
@@ -57658,6 +57750,7 @@ function NewA1M3ShapeView({
   // best-matching existing cluster. First-entry assembly falls out of the
   // same path when no clusters exist yet.
   useEffect(() => {
+    if (reviewing) return;
     setState((s) => m3SyncStateToPicks(s));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -58652,9 +58745,13 @@ function NewA1M3ShapeView({
 function NewA1M3UnderPressureView({
   embedded = false,
   onComplete,
+  reviewing = false,
+  initialCreatureId,
 }: {
   embedded?: boolean;
   onComplete: () => void;
+  reviewing?: boolean;
+  initialCreatureId?: string;
 }) {
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
 
@@ -58663,6 +58760,7 @@ function NewA1M3UnderPressureView({
   // shadow rows for unpicked gifts disappear and newly-picked gifts get
   // fresh rows; manual cluster edits for surviving gifts are preserved.
   useEffect(() => {
+    if (reviewing) return;
     setState((s) => m3SyncStateToPicks(s));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -58695,6 +58793,7 @@ function NewA1M3UnderPressureView({
     [state.shadows, state.shadowStories],
   );
   const [activeIdx, setActiveIdx] = useState<number>(() => {
+    if (initialCreatureId) return Math.max(0, clusters.findIndex(c => c.id === initialCreatureId));
     if (clusters.length === 0) return 0;
     const firstIncomplete = clusters.findIndex(
       (c) =>
@@ -68539,6 +68638,238 @@ function loadLogoBase64(): Promise<string> {
   })();
   return _logoPromise;
 }
+function useVisionMapFlush(area: M2Lens, values: Record<string, string>, initial: Record<string, string>, enabled: boolean) {
+  useReviewFlush(() => {
+    if (JSON.stringify(values) === JSON.stringify(initial)) return;
+    const current = loadDataSync(KEYS.map) || {};
+    const vision = current.vision || EMPTY_VISION;
+    const next = { ...vision[area] };
+    for (const domain of LENS_DOMAINS[area]) next[domain] = {
+      blank1: values[`${domain}.blank1`] || "", blank2: values[`${domain}.blank2`] || "",
+    };
+    saveData(KEYS.map, { ...current, vision: { ...vision, [area]: next } });
+  }, enabled);
+}
+
+function MapAnswerEditor({ target, onClose }: { target: EditTarget; onClose: () => void }) {
+  useLayoutEffect(() => beginMapReview(), []);
+  const [rc, setRC] = useState(() => loadRCState());
+  const [values, setValues] = useState(() => loadMirror4State());
+  const done = () => { window.dispatchEvent(new Event("map-review-flush")); onClose(); };
+  const mutateValues = (fn: (state: Mirror4State) => Mirror4State) => setValues(before => {
+    const next = preserveValuesCompletion(before, fn(before)); saveMirror4State(next); return next;
+  });
+  const rcState = { ...rc, step: target.screen ?? rc.step };
+  const updateRC = (next: typeof rc) => {
+    const saved = { ...next, step: rc.step, maxReached: rc.maxReached, complete: rc.complete,
+      completedAt: rc.completedAt, rounds: rc.rounds };
+    saveRCState(saved); setRC(saved);
+  };
+  let editor: React.ReactNode;
+  switch (target.kind) {
+    case "rc": editor = (target.screen ?? 0) >= 5
+      ? <RealityCheckFutures state={rcState} update={updateRC} act={updateRC} closeSaved={done} arriving={false} />
+      : <RealityCheckScreens state={rcState} update={updateRC} phone={false} mirrorPaged={false} onMirrorLayout={() => {}} />; break;
+    case "values-rank": editor = <NewA1M4RankBody reviewing onCloseRoom={done} onContinueToClaim={done} onPressure={done} onExit={done} />; break;
+    case "values-name": editor = <NameBoard state={values} mutate={mutateValues} onBack={done} onName={done} initialClusterId={target.id} />; break;
+    case "identity-gifts": editor = <NewA1M3View embedded onBack={done} />; break;
+    case "identity-power": editor = <NewA1M3ShapeView embedded reviewing initialCreatureId={target.id} onBack={done} onSuperpowers={done} />; break;
+    case "identity-pressure": editor = <NewA1M3UnderPressureView embedded reviewing initialCreatureId={target.id} onComplete={done} />; break;
+    case "purpose": editor = <NewA1DeclareBody reviewing onSaved={done} onClose={done} onTryPeelAgain={done} onContinueToVision={done} />; break;
+    case "holdback": editor = <NewA1OwnedSymptomsBody reviewing onSaved={done} onClose={done} />; break;
+    case "vision": editor = target.part === "time"
+      ? <NewA2TimeBody reviewing onSaved={done} onClose={done} />
+      : target.part === "wealth" ? <NewA2WealthBody reviewing onSaved={done} onClose={done} />
+      : <NewA2SelfBody reviewing onSaved={done} onClose={done} />; break;
+    case "notice": editor = <><WeeklyNotice value={loadNotice()?.value || endSummary(loadDataSync(KEYS.map), values, rc).names[0]} onDone={done} />
+      <button className="mom-primary" type="submit" form="a1-weekly-notice">Save notice →</button></>; break;
+    default: editor = <MapLaterAnswerEditor target={target} onClose={done} />;
+  }
+  return <ReviewFrame title={`${target.mirror}${target.part ? ` · ${target.part}` : ""}`} onClose={done}>{editor}</ReviewFrame>;
+}
+
+/** Adapters mount the existing answer bodies directly, never a hub, opening or claim ceremony. */
+function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget; onClose: () => void }) {
+  const [target, setTarget] = useState(initial);
+  const [a2, setA2] = useState<any>(() => loadA2State());
+  const [a3, setA3] = useState<any>(() => loadA3State());
+  const [a4, setA4] = useState<any>(() => loadA4State());
+  const [a5, setA5] = useState<any>(() => loadA5State());
+  const [peopleText, setPeopleText] = useState(() => a3.m1.names.join("\n"));
+  const [envText, setEnvText] = useState(() => a3.m2.items.map((v: any) => v.name).join("\n"));
+  const [reminderPreview, setReminderPreview] = useState("");
+  const update = (stage: "a2" | "a3" | "a4" | "a5", fn: (before: any) => any) => {
+    const setter = { a2: setA2, a3: setA3, a4: setA4, a5: setA5 }[stage];
+    const save = { a2: saveA2State, a3: saveA3State, a4: saveA4State, a5: saveA5State }[stage];
+    setter((before: any) => {
+      const next = preserveReviewEvidence(before, fn(before)); save(next); return next;
+    });
+  };
+  const part = (stage: "a2" | "a3", mirror: string, patch: any) => update(stage, s =>
+    ({ ...s, [mirror]: { ...s[mirror], ...patch } }));
+  const area = (["self", "time", "wealth"].includes(target.part || "") ? target.part : "self") as A5Key;
+  const m = a4[area];
+  const field4 = (key: string, value: any) => update("a4", s => ({ ...s, [area]: { ...s[area], [key]: value } }));
+  const plan5 = (patch: any) => update("a5", s => ({ ...s, plans: { ...s.plans, [area]: { ...s.plans[area], ...patch } } }));
+  const lines = (raw: string) => [...new Set(raw.split(/\r?\n/).map(v => v.trim()).filter(Boolean))];
+  const freshId = () => `map-${crypto.randomUUID()}`;
+  const screens = alignmentScreens({ a2, map: loadDataSync(KEYS.map) || {}, values: loadMirror4State(),
+    rateScreens: readA2RateModel(), rc: {}, notice: null });
+  const finish = <button className="mom-primary" onClick={onClose}>Done reviewing →</button>;
+  const adjustThought = (thought: string, patch: any) => part("a3", "m3", {
+    thoughts: a3.m3.thoughts.map((v: any) => v.text === thought ? { ...v, ...patch } : v),
+  });
+  const shapeThoughts = () => <NewA3M3Step2Body thoughts={a3.m3.thoughts}
+    initialVoice={target.kind === "thought-voice"}
+    voiceNow={a3.m3.voiceNow} voiceWant={a3.m3.voiceWant}
+    onVerdict={(t, v) => adjustThought(t, { verdict: v })} onReframe={(t, v) => adjustThought(t, { reframe: v })}
+    onVoiceNow={v => part("a3", "m3", { voiceNow: v })} onVoiceWant={v => part("a3", "m3", { voiceWant: v })}
+    onBack={onClose} forward={finish} />;
+  switch (target.kind) {
+    case "alignment-gap": return <NewA2M1Step3Body screens={screens} ratings={a2.m1.ratings}
+      purposeRating={a2.m1.purposeRating} bottleneck={a2.m1.bottleneck} keepInFocus={a2.m1.keepInFocus}
+      onPickBottleneck={id => part("a2", "m1", { bottleneck: id })}
+      onToggleKeepInFocus={id => part("a2", "m1", { keepInFocus: a2.m1.keepInFocus === id ? null : id })} />;
+    case "alignment-rate": return <NewA2M1Step2Body screen={screens[target.screen || 0] || null}
+      ratings={a2.m1.ratings} purposeRating={a2.m1.purposeRating}
+      onRate={(id, value) => part("a2", "m1", { ratings: { ...a2.m1.ratings, [id]: value } })}
+      onRatePurpose={value => part("a2", "m1", { purposeRating: value })} />;
+    case "time-priorities": return <NewA2M2Step1Body priorities={a2.m2.priorities}
+      onChange={priorities => part("a2", "m2", { priorities })} />;
+    case "time-activities": return <NewA2M2Step2Body activities={a2.m2.activities} priorities={a2.m2.priorities}
+      awakeHours={a2.m2.awakeHoursPerWeek}
+      onAdd={() => part("a2", "m2", { activities: [...a2.m2.activities,
+        { id: freshId(), name: "", hrsPerWeek: 0, feeling: null, priorityServed: "" }] })}
+      onUpdate={(id, patch) => part("a2", "m2", { activities: a2.m2.activities.map((v: any) => v.id === id ? { ...v, ...patch } : v) })}
+      onRemove={id => part("a2", "m2", { activities: a2.m2.activities.filter((v: any) => v.id !== id) })}
+      onAwakeChange={awakeHoursPerWeek => part("a2", "m2", { awakeHoursPerWeek })} onBack={onClose} forward={finish} />;
+    case "time-missing": return <NewA2M2Step3Body missingItems={a2.m2.missingItems} priorities={a2.m2.priorities}
+      onAdd={() => part("a2", "m2", { missingItems: [...a2.m2.missingItems, { id: freshId(), name: "", priorityTag: "" }] })}
+      onUpdate={(id, patch) => part("a2", "m2", { missingItems: a2.m2.missingItems.map((v: any) => v.id === id ? { ...v, ...patch } : v) })}
+      onRemove={id => part("a2", "m2", { missingItems: a2.m2.missingItems.filter((v: any) => v.id !== id) })} />;
+    case "truth-intentions": return <NewA2M3Step1Body priorities={a2.m2.priorities} activities={a2.m2.activities}
+      missingItems={a2.m2.missingItems} awakeHours={a2.m2.awakeHoursPerWeek} intentMap={a2.m3.intentMap}
+      onSetIntent={(name, intent) => part("a2", "m3", { intentMap: { ...a2.m3.intentMap, [name]: intent } })}
+      onBack={onClose} forward={finish} />;
+    case "truth-decisions":
+    case "truth-move": return <NewA2M3Step2Body m2={a2.m2} m3={a2.m3}
+      initialFlowIndex={target.kind === "truth-move" ? Number.MAX_SAFE_INTEGER : 0}
+      onSetDecision={(id, patch) => part("a2", "m3", { activityDecisions: { ...a2.m3.activityDecisions,
+        [id]: { ...a2.m3.activityDecisions[id], ...patch } } })}
+      onSetMissing={(id, hrs) => part("a2", "m3", { missingAssignments: { ...a2.m3.missingAssignments, [id]: hrs } })}
+      onAddCommitment={priority => part("a2", "m3", { priorityCommitments: [...a2.m3.priorityCommitments,
+        { priority, addedHrs: 0, activity: "" }] })}
+      onUpdateCommitment={(index, patch) => part("a2", "m3", {
+        priorityCommitments: a2.m3.priorityCommitments.map((v: any, i: number) => i === index ? { ...v, ...patch } : v) })}
+      onRemoveCommitment={index => part("a2", "m3", { priorityCommitments: a2.m3.priorityCommitments.filter((_: any, i: number) => i !== index) })}
+      onMoveText={moveText => part("a2", "m3", { moveText })} onSelfFeedback={selfFeedback => part("a2", "m3", { selfFeedback })}
+      onBack={onClose} forward={finish} />;
+    case "people-names": return <NewA3M1Step1Body text={peopleText} nameCount={a3.m1.names.length}
+      onChangeText={v => { setPeopleText(v); part("a3", "m1", { names: lines(v) }); }} />;
+    case "people-ratings": return <NewA3M1Step2Body names={a3.m1.names} ratings={a3.m1.ratings}
+      onRate={(name, value) => part("a3", "m1", { ratings: { ...a3.m1.ratings, [name]: value } })} />;
+    case "environment-items": return <NewA3M2Step1Body text={envText} items={a3.m2.items}
+      onChangeText={v => { setEnvText(v); part("a3", "m2", { items: lines(v).map(name =>
+        a3.m2.items.find((item: any) => item.name === name) || { name, kind: "habit", rating: null }) }); }}
+      onToggleKind={name => part("a3", "m2", { items: a3.m2.items.map((v: any) =>
+        v.name === name ? { ...v, kind: v.kind === "habit" ? "place" : "habit" } : v) })} />;
+    case "environment-ratings": return <NewA3M2Step2Body items={a3.m2.items}
+      onRate={(name, rating) => part("a3", "m2", { items: a3.m2.items.map((v: any) => v.name === name ? { ...v, rating } : v) })} />;
+    case "thought-moment": {
+      const index = Math.min(target.screen || 0, Math.max(0, a3.m3.thoughts.length - 1));
+      return <NewA3M3Step1Body index={index} total={a3.m3.thoughts.length || 1}
+        moment={{ id: String(index), q: "Your saved thought", eg: "", custom: false }}
+        answer={a3.m3.thoughts[index]?.text || ""} onAnswer={value => part("a3", "m3", {
+          thoughts: a3.m3.thoughts.map((v: any, i: number) => i === index ? { ...v, text: value } : v) })}
+        onEditTrigger={() => {}} onPrev={() => setTarget({ ...target, screen: Math.max(0, index - 1) })}
+        onNext={() => setTarget({ ...target, screen: Math.min(a3.m3.thoughts.length - 1, index + 1) })}
+        onAddOwn={() => { part("a3", "m3", { thoughts: [...a3.m3.thoughts, { text: "", verdict: null, reframe: "" }] });
+          setTarget({ ...target, screen: a3.m3.thoughts.length }); }}
+        onToShape={() => setTarget({ ...target, kind: "thoughts" })} canToShape={a3.m3.thoughts.some((v: any) => v.text.trim())} />;
+    }
+    case "thoughts":
+    case "thought-voice": return shapeThoughts();
+    case "board": {
+      const seat = (index: number, patch: any) => part("a3", "m5", {
+        seats: a3.m5.seats.map((v: any, i: number) => i === index ? { ...v, ...patch } : v) });
+      return <NewA3M5FillBody seats={a3.m5.seats} initialSeat={target.screen}
+        advPool={a3.m1.names.filter((name: string) => a3.m1.ratings[name] === "advocate")}
+        onRole={(i, role) => seat(i, { role })} onDesc={(i, desc) => seat(i, { desc })}
+        onAssign={(i, name) => seat(i, { name })} onClear={i => seat(i, { name: "" })}
+        onInLife={(i, inLife) => seat(i, { inLife })}
+        onAddSeat={() => part("a3", "m5", { seats: [...a3.m5.seats, { role: "", desc: "", name: "", inLife: "asp" }] })}
+        onDelSeat={index => part("a3", "m5", { seats: a3.m5.seats.filter((_: any, i: number) => i !== index) })}
+        onBack={onClose} forward={finish} />;
+    }
+    case "move-pick": {
+      const lane = target.part as A3MoveLane, index = ["person", "env", "thought"].indexOf(lane);
+      return <NewA3M6PickBody step={A3M6_PICK_STEPS[index]} stepNum={index + 1} pool={moveGather(a3)[lane]}
+        selected={a3.m6[lane]} onSelect={v => part("a3", "m6", { [lane]: v })} reveal={[]}
+        onEdit={() => setTarget({ ...target, kind: lane === "person" ? "people-names" : lane === "env" ? "environment-items" : "thoughts" })}
+        editLabel={`Edit ${lane === "person" ? "People" : lane === "env" ? "Environment" : "Thoughts"}`} />;
+    }
+    case "move-bottleneck": return <NewA3M6BottleneckBody chosen={(["person", "env", "thought"] as A3MoveLane[])
+      .filter(lane => a3.m6[lane]).map(lane => ({ lane, label: a3.m6[lane] }))}
+      bottleneck={a3.m6.bottleneck} onStar={bottleneck => part("a3", "m6", { bottleneck })} />;
+    case "a4-gap": {
+      const src = readA4Sources(), cfg = { self: A4_SELF_CFG, time: A4_TIME_CFG, wealth: A4_WEALTH_CFG }[area];
+      return <A4GapBody title={cfg.gapTitle} gaps={cfg.gaps(src, a4.wealth.moneyCheck)} m={m} done
+        onPick={gap => update("a4", s => ({ ...s, [area]: { ...s[area], picked: gap.id, gap } }))}
+        onPickOwn={own => update("a4", s => ({ ...s, [area]: { ...s[area], picked: "own", own,
+          gap: { id: "own", kind: own.kind, tag: "", said: own.said, evidence: own.evidence, source: "Your own words" } } }))} />;
+    }
+    case "a4-name": return <A4NameBody m={m} onField={field4} done />;
+    case "a4-money": return <A4WealthSeeBody src={readA4Sources()} m={a4.wealth} done
+      onMoney={(index, value) => update("a4", s => ({ ...s, wealth: { ...s.wealth,
+        moneyCheck: { ...s.wealth.moneyCheck, [String(index)]: value } } }))} />;
+    case "a4-promise": return <A4WillBody m={m} purpose={loadDataSync(KEYS.map)?.purpose_final || ""}
+      tenYear="" onField={field4} done sayNo={area !== "self" ? {
+        options: a4SayNoOptions(readA4Sources(), area), value: m.sayNo || "", onChange: v => field4("sayNo", v),
+      } : undefined} />;
+    case "a4-year": return <A4YearBody m={m} onField={field4} done />;
+    case "a4-plan": return <A4StopBody m={m} onField={field4} onSure={v => field4("sure", v)} done />;
+    case "a5-plan": return <A5PlanPane k={area} promise={m} plan={a5.plans[area]} onPlan={plan5}
+      onEditA4={() => setTarget({ ...target, stage: "a4", kind: "a4-promise" })} />;
+    case "a5-supports": return <A5SupportsPane k={area} sup={a5.supports[area]}
+      people={readA5Options().people} places={readA5Options().places}
+      onSup={sup => update("a5", s => ({ ...s, supports: { ...s.supports, [area]: sup } }))} />;
+    case "a5-rhythm": return <A5RhythmBody state={a5} promises={readA5Promises()}
+      onRhythm={patch => update("a5", s => ({ ...s, rhythm: { ...s.rhythm, ...patch } }))}
+      onSend={key => setReminderPreview(a5.plans[key].week || "No weekly commitment saved yet.")} toast={reminderPreview} />;
+    case "a5-checkin": {
+      const week = target.id || a5WeekStart(new Date()), record = a5.checkins.find((v: any) => v.week === week);
+      return <div><A5Tabs active={area} onChange={value => setTarget({ ...target, part: value })} done={{ self: false, time: false, wealth: false }} />
+        <A5CheckinPromiseBody k={area} promise={m} plan={a5.plans[area]} sup={a5.supports[area]}
+          entry={record?.entries?.[area] || {}} onEntry={patch => update("a5", s => {
+            const existing = s.checkins.find((v: any) => v.week === week);
+            if (!existing) return s; // opening an empty section never creates a check-in
+            return { ...s, checkins: s.checkins.map((v: any) => v.week === week ? { ...v,
+              entries: { ...v.entries, [area]: { ...v.entries[area], ...patch } } } : v) };
+          })} />
+        {!record && <p className="mom-empty">Complete your first weekly check-in in A5 before reviewing it here.</p>}
+      </div>;
+    }
+    case "a5-lookback": return <div>
+      <h2 className="na1-room-title">Your next 90 days.</h2>
+      <A5Tabs active={area} onChange={value => setTarget({ ...target, part: value })} done={{ self: false, time: false, wealth: false }} />
+      {a5.reset90 ? <><p className="na1-room-context">Keep it as is, or grow it a little.</p>
+        <div className="na1-chip-row">{(["keep", "grow"] as const).map(value => <button key={value}
+          className={`na1-chip ${a5.reset90.choices[area] === value ? "is-selected" : ""}`} role="radio"
+          aria-checked={a5.reset90.choices[area] === value}
+          onClick={() => update("a5", s => ({ ...s, reset90: { ...s.reset90, choices: { ...s.reset90.choices, [area]: value } } }))}>
+          {value === "keep" ? "Keep it as is" : "Grow it a little"}</button>)}</div>
+        {a5.reset90.choices[area] === "keep" ? <p className="na1-a4-promise-main">{a5PromiseLine(m)}</p>
+          : <div className="na1-a5-grow">
+            <A4Blank stem="I will…" value={m.will} onChange={v => field4("will", v)} placeholder="a little more than before" />
+            <A4Blank stem="…when…" value={m.when} onChange={v => field4("when", v)} placeholder="the moment it happens" />
+            <A4Blank stem="This week I will…" value={a5.plans[area].week} onChange={v => plan5({ week: v })} placeholder="the one small thing" />
+          </div>}
+      </> : <p className="mom-empty">Fills in after your first A5 90-day look-back</p>}
+    </div>;
+    default: return <p role="alert">This answer editor is not available.</p>;
+  }
+}
+
 function MapDownloadSection({ name, map }: { name: any; map: any }) {
   const [busy, setBusy] = useState<null | "snapshot" | "full">(null);
   const generate = async (mode: "snapshot" | "full") => {

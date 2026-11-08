@@ -8,20 +8,22 @@ import { NameSort } from "./NameSort";
 import { unplacedNameBehaviors } from "./nameData";
 import "./name-cards.css";
 
-export function NameBoard({ state, mutate, onBack, onName }: {
+export function NameBoard({ state, mutate, onBack, onName, initialClusterId }: {
   state: Mirror4State;
   mutate: (fn: (state: Mirror4State) => Mirror4State) => void;
   onBack: () => void;
   onName: () => void;
+  initialClusterId?: string;
 }) {
   const create = (name: string, behaviorId?: string) => mutate(before => {
     const result = createCluster(before, { proposal: "", proposedNames: [], behaviorIds: [] });
     const named = updateCluster(result.state, result.cluster.id, c => ({ ...c, userName: name }));
     return behaviorId ? addBehaviorToCluster(named, result.cluster.id, behaviorId) : named;
   });
-  if (!state.claimed && unplacedNameBehaviors(state).length) return <NameSort state={state} onBack={onBack}
+  if (!initialClusterId && !state.claimed && unplacedNameBehaviors(state).length) return <NameSort state={state} onBack={onBack}
     onCreate={create} onPlace={(behaviorId, clusterId) => mutate(s => addBehaviorToCluster(s, clusterId, behaviorId))} />;
-  return <NameCards state={state} onBack={onBack} onName={onName} onCreate={create}
+  return <NameCards state={state} onBack={onBack} onName={onName} onCreate={create} initialClusterId={initialClusterId}
+    onMeaning={initialClusterId ? (id, value) => mutate(s => updateCluster(s, id, c => ({ ...c, userDefinition: value }))) : undefined}
     onRename={(id, name) => mutate(s => updateCluster(s, id, c => ({ ...c, userName: name })))}
     onStar={(id, behaviorId) => mutate(s => m4SetKeystone(s, id, behaviorId))}
     onAdd={(id, text) => mutate(s => addEvidenceBehaviorToCluster(s, id, text))}

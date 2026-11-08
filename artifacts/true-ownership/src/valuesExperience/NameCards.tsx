@@ -14,13 +14,15 @@ type Props = {
   onAdd: (clusterId: string, text: string) => void;
   onBack: () => void;
   onName: () => void;
+  initialClusterId?: string;
+  onMeaning?: (clusterId: string, value: string) => void;
 };
 
-export function NameCards({ state, onCreate, onMove, onSendBack, onRemove, onRename, onStar, onAdd, onBack, onName }: Props) {
-  const [openId, setOpenId] = useState<string | null>(null);
+export function NameCards({ state, onCreate, onMove, onSendBack, onRemove, onRename, onStar, onAdd, onBack, onName, initialClusterId, onMeaning }: Props) {
+  const [openId, setOpenId] = useState<string | null>(initialClusterId || null);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => Math.floor(Math.max(0, state.clusters.findIndex(c => c.id === initialClusterId)) / 5));
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
@@ -87,6 +89,10 @@ export function NameCards({ state, onCreate, onMove, onSendBack, onRemove, onRen
               <button type="button" className="vxnc-edit-link" onClick={() => {
                 setNameDraft(standardName(state, cluster.id)); setRenamingId(cluster.id);
               }}>Change the name</button>
+              {onMeaning && <label className="mom-meaning">What it means to me
+                <textarea aria-label="What this standard means to me" value={cluster.userDefinition || ""}
+                  onChange={event => onMeaning(cluster.id, event.target.value)} rows={3} />
+              </label>}
             </>}
             <p className="vxnc-star-instruction">Tap ☆ on the one you’d defend first.</p>
             <div className="vxnc-card-list">
