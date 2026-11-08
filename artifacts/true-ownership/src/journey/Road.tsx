@@ -76,7 +76,24 @@ export function RoadSheet({ snapshot, current, onClose, navigation, onNavigate }
   return createPortal(<div className="jr-sheet-shade" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
     <div className="jr-sheet" role="dialog" aria-modal="true" aria-labelledby="jr-sheet-title" ref={dialog}>
       <header><h2 id="jr-sheet-title">Your road to Future B</h2><button type="button" onClick={onClose} aria-label="Close your road">×</button></header>
-      <div className="jr-sheet-body"><Road snapshot={snapshot} current={current} navigation={navigation} onNavigate={onNavigate}
+      <div className="jr-sheet-body">
+        <nav className="jr-phone-stage-nav" aria-label="Journey stages">
+          {navigation.map(item => {
+            const locked = !item.destination || item.status === "Unlocks when you join";
+            return <button type="button" key={item.id} data-phone-stage={item.id}
+              className={`jr-phone-stage ${item.isCurrent ? "is-current" : ""}`}
+              disabled={locked} aria-label={item.accessibleLabel}
+              aria-current={item.isCurrent ? "page" : undefined}
+              onClick={() => { if (!locked && item.destination) onNavigate(item.destination); }}>
+              <span>{item.label}</span>
+              <span className="jr-phone-stage-end">
+                {item.status && <small>{item.status}</small>}
+                <span aria-hidden="true">{locked ? "🔒" : "→"}</span>
+              </span>
+            </button>;
+          })}
+        </nav>
+        <Road snapshot={snapshot} current={current} navigation={navigation} onNavigate={onNavigate}
         onOpen={() => dialog.current?.querySelector<HTMLElement>(".jr-history")?.focus()} />
         <section className="jr-history" tabIndex={0} aria-label="Your finished steps">
           <p className="jr-eyebrow">{snapshot.count} steps on your road</p>

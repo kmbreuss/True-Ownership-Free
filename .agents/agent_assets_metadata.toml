@@ -231,3 +231,87 @@ mtime_ms = 1794155971979
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/5aa7ed0c-ec25-4b8e-aa96-fe6e8ebebe5e/074392eb-996e-4184-855b-2df4dc1ee0ed"
 storage_version_token = "1794156106553385"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "2yQGiKQV10GuSmoF9whCE"
+uri = "file://generated-artifacts/road-phone-polish/bar-and-tip-light.jpg"
+type = "image"
+title = "Phone bar and first-time tip · Light"
+description = "375×812, touch-enabled phone emulation, synthetic fixture only."
+logical_id = "f8bf6692-365a-44c0-9495-176ebe0cac02"
+content_hash = "sha256:642f642b3d24e7305d3b4cfa5c479ddc850d4b77d9bafca965a7f2367205fadd"
+size = 45390
+mtime_ms = 1794157094984
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/f8bf6692-365a-44c0-9495-176ebe0cac02/e2da49b8-3888-443e-8c13-0fc623dbf692"
+storage_version_token = "1794157229235502"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "NA4XDMkj-TTd2elUH9Oog"
+uri = "file://generated-artifacts/road-phone-polish/bar-and-tip-dark.jpg"
+type = "image"
+title = "Phone bar and first-time tip · Dark"
+description = "375×812, touch-enabled phone emulation, synthetic fixture only."
+logical_id = "4ec8e557-8bab-43a4-9484-7bad53abb4e5"
+content_hash = "sha256:5b56ef9124dc43fa24fdb9f21b2e6042810b2c81bbda800d78f6d01dac31a142"
+size = 48635
+mtime_ms = 1794157103840
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/4ec8e557-8bab-43a4-9484-7bad53abb4e5/0b35ab86-f39d-4849-8aa9-498697048a8d"
+storage_version_token = "1794157229836224"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "pXetEHnPqe6N4Kp6lRGat"
+uri = "file://generated-artifacts/road-phone-polish/stage-rows-light.jpg"
+type = "image"
+title = "Full-road stage navigation · Light"
+description = "375×812, touch-enabled phone emulation, synthetic fixture only."
+logical_id = "0cc73ea3-733c-499f-a551-8fea5df70241"
+content_hash = "sha256:0435b9e84e4839818e5ad9345d8678136c4042c9bdc587f1ac66592acc9408e7"
+size = 22925
+mtime_ms = 1794157095412
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0cc73ea3-733c-499f-a551-8fea5df70241/64158885-f9b7-40c6-977f-cc5bfad3c2c0"
+storage_version_token = "1794157230435429"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "rqbfKHEFAT4nTsWqrxqG-"
+uri = "file://generated-artifacts/road-phone-polish/stage-rows-dark.jpg"
+type = "image"
+title = "Full-road stage navigation · Dark"
+description = "375×812, touch-enabled phone emulation, synthetic fixture only."
+logical_id = "654e8868-1f55-49e0-a68d-f789ad22ea5d"
+content_hash = "sha256:fef0007fcf3a2ac0e4df1fd060d01d7de60c85395b4af86469abb5816f1264b8"
+size = 26043
+mtime_ms = 1794157104396
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/654e8868-1f55-49e0-a68d-f789ad22ea5d/76ad1e71-a828-4f32-99b0-ee6754210e23"
+storage_version_token = "1794157230988437"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "l4lwf1PowsqnQlwzjdLiA"
+uri = "file://generated-artifacts/road-phone-polish/restricted-rows-light.jpg"
+type = "image"
+title = "Restricted stage rows · Light"
+description = "375×812, touch-enabled phone emulation, synthetic fixture only."
+logical_id = "8ebc9382-889f-4357-93d7-1401fe8cee9e"
+content_hash = "sha256:d7376a2501bbab9af3e547d12d15e7211b4764083e668075f355ee304b038da7"
+size = 27728
+mtime_ms = 1794157099360
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/8ebc9382-889f-4357-93d7-1401fe8cee9e/f7238140-de09-4393-9e98-b55bc864d4ce"
+storage_version_token = "1794157231574323"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "-83ki-Ny31Ufnt7dBwVvU"
+uri = "file://generated-artifacts/road-phone-polish/restricted-rows-dark.jpg"
+type = "image"
+title = "Restricted stage rows · Dark"
+description = "375×812, touch-enabled phone emulation, synthetic fixture only."
+logical_id = "9407cdb7-22d5-496d-8cf9-cf30de0eecdd"
+content_hash = "sha256:f2aa21169ba71b8d17837b12fff2ed39d10cc7989943b80017552294af1c96cc"
+size = 31437
+mtime_ms = 1794157108204
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/9407cdb7-22d5-496d-8cf9-cf30de0eecdd/d791b6a1-39f4-413b-a072-0fd9c61b3e47"
+storage_version_token = "1794157232126553"
+content_type = "image/jpeg"

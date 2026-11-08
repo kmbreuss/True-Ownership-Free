@@ -19,3 +19,9 @@ The road replaces the 5As spine and must retain all six navigation destinations,
 **Why:** The user explicitly clarified that replacing the spine visually must not remove its navigation.
 
 **How to apply:** Stage labels are accessible navigation buttons using the existing guarded router and feature gates, never gates inferred from brick counts. Other road/brick taps open history. The phone bar opens the full road; its labels navigate and its history sits below. Keep A2's Time Audit and Named Truth highlighted as A2, matching the phone mapping rather than the old desktop fallback to A1.
+
+Do not add sequential A-stage locks or label a restriction “Opens after” a previous stage unless that prerequisite actually exists. Preserve the app's wording for real access restrictions.
+
+**Why:** The owner explicitly approved this distinction for phone navigation: the stage order is not an unlock chain, and membership/feature restrictions must not be presented as unfinished exercises.
+
+**How to apply:** Keep the existing guarded destinations and access model when restyling navigation. Discovery tips may use browser-only storage, never new account progress fields.

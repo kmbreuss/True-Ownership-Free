@@ -50,15 +50,15 @@ async function main(){
         const before=await page.evaluate(()=>[localStorage.getItem("to_rc_state_v1"),localStorage.getItem("to_mirror4_state_v1")]);
         for(const destination of destinations){
           await sheet(page,phone);
-          const root=page.locator(phone?".jr-sheet":".jr-desktop");
-          assert.equal(await root.locator(".jr-road-stop").count(),6);
-          const id=destination==="grid"?"a1":destination,button=root.locator(`[data-road-destination="${id}"]`);
+          const root=page.locator(phone?".jr-phone-stage-nav":".jr-desktop");
+          assert.equal(await root.locator(phone?".jr-phone-stage":".jr-road-stop").count(),6);
+          const id=destination==="grid"?"a1":destination,button=root.locator(`[${phone?"data-phone-stage":"data-road-destination"}="${id}"]`);
           assert.match(await button.getAttribute("aria-label"),/^Go to /);
           await button.click();await at(page,destination);
           assert.equal(await page.locator(".jr-sheet").count(),0,"Navigation closes phone sheet");
           await sheet(page,phone);
-          const active=page.locator(phone?".jr-sheet":".jr-desktop").locator('[aria-current="page"]');
-          assert.equal(await active.getAttribute("data-road-destination"),id);
+          const active=page.locator(phone?".jr-phone-stage-nav":".jr-desktop").locator('[aria-current="page"]');
+          assert.equal(await active.getAttribute(phone?"data-phone-stage":"data-road-destination"),id);
           if(phone)await page.getByRole("button",{name:"Close your road",exact:true}).click();
         }
         if(!phone){
