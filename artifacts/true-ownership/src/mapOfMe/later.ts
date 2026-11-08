@@ -8,6 +8,7 @@ export function alignmentScreens(src: MapSources) {
   for (const item of [...list(src.values?.admire), ...list(src.values?.irks)]) names.set(item.id, text(item.text));
   for (const gift of list(src.map?.mirror3?.pickedGifts)) names.set(gift.id, text(gift.label));
   for (const id of Object.keys(src.a2?.m1?.ratings || {})) {
+    if (typeof src.a2.m1.ratings[id] !== "number") continue;
     if (seen.has(id)) continue;
     const name = names.get(id) || "Saved alignment rating";
     screens.push({ kind: "value", sectionLabel: "Saved alignment", itemName: name,

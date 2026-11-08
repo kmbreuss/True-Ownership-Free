@@ -122,6 +122,15 @@ export function JourneyRoad({ view, read, navigation, onNavigate, hideMenu = fal
 }) {
   const [snapshot, setSnapshot] = useState(() => readJourney(read));
   const [open, setOpen] = useState(false);
+  const [reviewStage, setReviewStage] = useState<string | null>(null);
+  useEffect(() => {
+    const receive = (event: Event) => {
+      const stage = (event as CustomEvent<string | null>).detail;
+      setReviewStage(ROAD_GROUPS.some(group => group.id === stage) ? stage : null);
+    };
+    window.addEventListener("to-map-review-stage", receive);
+    return () => window.removeEventListener("to-map-review-stage", receive);
+  }, []);
   const overlayPresent = useFullScreenOverlay();
   const { active, newest } = useStepMoments(snapshot);
   useEffect(() => {
@@ -135,17 +144,22 @@ export function JourneyRoad({ view, read, navigation, onNavigate, hideMenu = fal
     window.addEventListener("storage", refresh);
     return () => { window.clearInterval(timer); window.removeEventListener("storage", refresh); document.body.classList.remove("journey-on"); };
   }, [read]);
-  const current = groupForView(view);
+  const current = reviewStage || groupForView(view);
+  const activeNavigation = reviewStage ? navigation.map(item => {
+    const complete = snapshot.bricks.filter(brick => brick.group === item.id).every(brick => brick.done);
+    return { ...item, isCurrent: item.id === current, status: item.id === current ? "You are here"
+      : item.status === "You are here" ? complete ? item.id === "rc" ? "Complete" : "Claimed" : "" : item.status };
+  }) : navigation;
   return <>
     <aside className="jr-desktop"><Road snapshot={snapshot} current={current} newest={newest}
-      navigation={navigation} onNavigate={onNavigate} onOpen={() => setOpen(true)} />
+      navigation={activeNavigation} onNavigate={onNavigate} onOpen={() => setOpen(true)} />
       <DesktopPageLinks view={view} canMap={canMap} onNavigate={onNavigate} />
     </aside>
     <RoadBar snapshot={snapshot} current={current} newestGroup={newest?.split(":")[0]} onOpen={() => setOpen(true)} />
     <PhoneMenu view={view} visible={menuViews.has(view) && !hideMenu && !open && !overlayPresent}
       canMap={canMap} onNavigate={onNavigate} onRoad={() => setOpen(true)} />
     <StepMoment notice={active} />
-    {open && <RoadSheet snapshot={snapshot} current={current} navigation={navigation}
+    {open && <RoadSheet snapshot={snapshot} current={current} navigation={activeNavigation}
       onNavigate={destination => { setOpen(false); onNavigate(destination); }} onClose={() => setOpen(false)} />}
   </>;
 }

@@ -12,7 +12,10 @@ import { isDevPreview, previewRead, previewWrite, setDevPreview } from "./devPre
 import { loadRCState, saveRCState } from "./rcConstants";
 import { RealityCheckScreens } from "./reality-check/RealityCheckScreens";
 import { RealityCheckFutures } from "./reality-check/RealityCheckFutures";
-import { MapOfMe as CurrentMapOfMe, ReviewFrame, useReviewFlush } from "./mapOfMe/MapOfMe";
+import { MapOfMe as CurrentMapOfMe, useMapDialog, useReviewFlush } from "./mapOfMe/MapOfMe";
+import { mapRoomTarget } from "./mapOfMe/roomTarget";
+import { loadPractical } from "./a1End/practical";
+import { MapRoomReviewReturn, useMapRoomReturn } from "./mapOfMe/roomReview";
 import type { EditTarget, MapSources } from "./mapOfMe/model";
 import { beginMapReview, inMapReview, reviewSaveValue, preserveReviewEvidence } from "./mapOfMe/review";
 import { a1Sections } from "./mapOfMe/model";
@@ -30872,12 +30875,23 @@ function toAnswerValid(q: (typeof TO_QUESTIONS)[number], a: TOAnswer): boolean {
   return false;
 }
 
+function PurposeHoldbackAnswer({ startOpen = false }: { startOpen?: boolean }) {
+  const [value, setValue] = useState(() => String(loadDataSync("a1_sym_holdback") || ""));
+  return <details className="purpose-holdback-answer" open={startOpen || undefined}>
+    <summary>What I was holding back</summary>
+    <label className="mom-meaning">My words<textarea aria-label="What I was holding back" value={value}
+      onChange={event => { setValue(event.target.value); saveData("a1_sym_holdback", event.target.value); }} /></label>
+  </details>;
+}
+
 function NewA1TrueOwnershipBody({
   onSaved,
   onClose,
+  reviewingHoldback = false,
 }: {
   onSaved: () => void;
   onClose: () => void;
+  reviewingHoldback?: boolean;
 }) {
   const holdback = purposeHoldback(loadDataSync("a1_sym_holdback"),
     loadDataSync(KEYS.map), loadRCState().tuesday);
@@ -30892,6 +30906,7 @@ function NewA1TrueOwnershipBody({
         })
       : TO_DEFAULT_ANSWERS.map((a) => ({ ...a }));
   const initialCurQ = (() => {
+    if (reviewingHoldback) return 0;
     const raw = loadDataSync("a1_to_curq");
     const n = typeof raw === "number" ? raw : Number(raw);
     return Number.isFinite(n) && n >= 0 && n <= 5 ? Math.floor(n) : 0;
@@ -30915,7 +30930,7 @@ function NewA1TrueOwnershipBody({
   }, [answers]);
   // Persist curQ immediately so resume lands on the right step.
   useEffect(() => {
-    saveData("a1_to_curq", curQ);
+    if (!inMapReview()) saveData("a1_to_curq", curQ);
   }, [curQ]);
   const updateAnswer = (next: TOAnswer) => {
     setAnswers((cur) => {
@@ -31101,7 +31116,7 @@ function NewA1TrueOwnershipBody({
   }
   return (
     <>
-      <NewA1TOHeader curQ={curQ} wasDone={wasDone} holdback={holdback} />
+      <NewA1TOHeader curQ={curQ} wasDone={wasDone} holdback={holdback} holdbackEditorOpen={reviewingHoldback} />
       <h2 className="na1-room-title">
         <span className="na1-q-stem-lead">
           Describe what life would be like if you…
@@ -31128,10 +31143,12 @@ function NewA1TOHeader({
   curQ,
   wasDone,
   holdback,
+  holdbackEditorOpen = false,
 }: {
   curQ: number;
   wasDone: boolean;
   holdback: ReturnType<typeof purposeHoldback>;
+  holdbackEditorOpen?: boolean;
 }) {
   return (
     <>
@@ -31165,6 +31182,7 @@ function NewA1TOHeader({
           <span>You already explored this · edit any time.</span>
         </div>
       )}
+      {curQ === 0 && !!String(loadDataSync("a1_sym_holdback") || "").trim() && <PurposeHoldbackAnswer startOpen={holdbackEditorOpen} />}
       {curQ === 0 && holdback.text && (
         <div className="na1-q1-callout">
           {holdback.fromRealityCheck ? "In your Reality Check you wrote: " : "You named your one thing: "}
@@ -33140,6 +33158,7 @@ function DeskFlow({
   onNext?: () => void;
   nextLabel?: string;
 }) {
+  const returnToMap = useMapRoomReturn();
   const { wide, idx, go } = flow;
   if (!wide) {
     return (
@@ -33174,7 +33193,7 @@ function DeskFlow({
           ← Back
         </button>
         {center}
-        {last ? (
+        {returnToMap ? <button type="button" className="na1-btn-gold" onClick={returnToMap}>Done reviewing →</button> : last ? (
           forward
         ) : (
           <button type="button" className="na1-btn-gold" onClick={onNext ?? (() => go(idx + 1))}>
@@ -38183,7 +38202,8 @@ function NewA2M1Container({
   // and recomputed when the room opens. step2Index is clamped to the live
   // sub-screen count so a stale saved index from shrunk data still resolves.
   const rateScreens = useMemo(
-    () => (roomOpen ? readA2RateModel() : []),
+    () => (roomOpen ? alignmentScreens({ map: loadDataSync(KEYS.map), values: loadMirror4State(),
+      rc: loadRCState(), notice: loadNotice(), a2: { m1 }, rateScreens: readA2RateModel() }) as ReturnType<typeof readA2RateModel> : []),
     [roomOpen],
   );
   const lastIndex = Math.max(0, rateScreens.length - 1);
@@ -45147,6 +45167,11 @@ function NewA3M5FillBody({
   const flow = useDeskFlow("a3m5-fill", 2, initialSeat !== undefined ? 1 : undefined);
   const seatItems = seats.map((b, i) => ({ b, i }));
   const pager = usePager(seatItems, 4, flow.wide, Math.floor((initialSeat || 0) / 4));
+  useEffect(() => {
+    if (initialSeat === undefined) return;
+    const frame = requestAnimationFrame(() => document.querySelector(`[data-board-seat-index="${initialSeat}"]`)?.scrollIntoView({ block: "center" }));
+    return () => cancelAnimationFrame(frame);
+  }, [initialSeat, flow.wide]);
   // Which seat's picker is open — ephemeral UI state (not persisted).
   const [openPicker, setOpenPicker] = useState<number | null>(null);
   const filled = seats.filter((s) => s.name.trim() !== "").length;
@@ -45268,6 +45293,7 @@ function NewA3M5FillBody({
           return (
             <div
               key={i}
+              data-board-seat-index={i}
               className={`na1-a3board-seat${seated ? " is-filled" : ""}`}
             >
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
@@ -49853,6 +49879,32 @@ const A5L_PHASES = [
 ];
 const A5L_SCREEN_PHASE = [0, 1, 2];
 
+function A5GrowBody({ tab, onTab, done, choice, onChoice, promise, edit, onEdit }: {
+  tab: A5Key; onTab: (key: A5Key) => void; done: Record<A5Key, boolean>;
+  choice?: "keep" | "grow"; onChoice: (choice: "keep" | "grow") => void;
+  promise: A4MirrorState; edit: { will: string; when: string; week: string };
+  onEdit: (patch: Partial<{ will: string; when: string; week: string }>) => void;
+}) {
+  return <div>
+    <div className="na1-room-eyebrow tone-gold">GROW IT</div>
+    <h2 className="na1-room-title">Grow the promise, or keep it?</h2>
+    <A5Tabs active={tab} onChange={onTab} done={done} />
+    <div className="na1-a5-look" role="tabpanel" aria-label={`${A5_LABEL[tab]} grow`}>
+      <div className="na1-chip-grid" role="radiogroup" aria-label="Grow or keep">
+        {(["keep", "grow"] as const).map(value => <button type="button" key={value} role="radio"
+          aria-checked={choice === value} className={`na1-chip na1-a4-kind ${choice === value ? "is-selected" : ""}`}
+          onClick={() => onChoice(value)}>{value === "keep" ? "Keep it as is" : "Grow the promise"}</button>)}
+      </div>
+      {choice === "keep" && <p className="na1-a4-promise-main">{a5PromiseLine(promise)}</p>}
+      {choice === "grow" && <div className="na1-a5-grow">
+        <A4Blank stem="I will…" value={edit.will} onChange={will => onEdit({ will })} placeholder="a little more than before" />
+        <A4Blank stem="…when…" value={edit.when} onChange={when => onEdit({ when })} placeholder="the moment it happens" />
+        <A4Blank stem="This week I will…" value={edit.week} onChange={week => onEdit({ week })} placeholder="the one small thing" />
+      </div>}
+    </div>
+  </div>;
+}
+
 function NewA5LookbackContainer({
   onBackToA5,
   initialRoomKey,
@@ -50016,44 +50068,8 @@ function NewA5LookbackContainer({
         ) : null}
       </div>
     </div>
-  ) : (
-    <div>
-      <div className="na1-room-eyebrow tone-gold">GROW IT</div>
-      <h2 className="na1-room-title">Grow the promise, or keep it?</h2>
-      <A5Tabs active={tab} onChange={setTab} done={decidedMap} />
-      <div className="na1-a5-look" role="tabpanel" aria-label={`${A5_LABEL[tab]} grow`}>
-        <div className="na1-chip-grid" role="radiogroup" aria-label="Grow or keep">
-          {(
-            [
-              { v: "keep", label: "Keep it as is" },
-              { v: "grow", label: "Grow the promise" },
-            ] as { v: "keep" | "grow"; label: string }[]
-          ).map((o) => (
-            <button
-              type="button"
-              key={o.v}
-              role="radio"
-              aria-checked={choice[tab] === o.v}
-              className={`na1-chip na1-a4-kind ${choice[tab] === o.v ? "is-selected" : ""}`}
-              onClick={() => setChoice((c) => ({ ...c, [tab]: o.v }))}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-        {choice[tab] === "keep" ? (
-          <p className="na1-a4-promise-main">{a5PromiseLine(promises[tab])}</p>
-        ) : null}
-        {choice[tab] === "grow" ? (
-          <div className="na1-a5-grow">
-            <A4Blank stem="I will…" value={editFor(tab).will} onChange={(v) => setEditFor(tab, { will: v })} placeholder="a little more than before" />
-            <A4Blank stem="…when…" value={editFor(tab).when} onChange={(v) => setEditFor(tab, { when: v })} placeholder="the moment it happens" />
-            <A4Blank stem="This week I will…" value={editFor(tab).week} onChange={(v) => setEditFor(tab, { week: v })} placeholder="the one small thing" />
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
+  ) : <A5GrowBody tab={tab} onTab={setTab} done={decidedMap} choice={choice[tab]} promise={promises[tab]}
+    onChoice={value => setChoice(c => ({ ...c, [tab]: value }))} edit={editFor(tab)} onEdit={patch => setEditFor(tab, patch)} />;
   return (
     <div className="na1-root">
       {roomOpen && (
@@ -50339,17 +50355,19 @@ function A5Stepper({
   phases = A5_PHASES,
   screenPhase = A5_SCREEN_PHASE,
   count = A5_SCREEN_COUNT,
+  onPhaseSelect,
 }: {
   screen: number;
   phases?: { num: number; name: string }[];
   screenPhase?: number[];
   count?: number;
+  onPhaseSelect?: (index: number) => void;
 }) {
   const phase = screenPhase[Math.min(screen, count - 1)];
   const sealed = screen >= count - 1 && phase >= phases.length;
   return (
     <div className="na1-a4-progress" aria-label="Where you are in this room">
-      <div className="na1-a2m2-stepper na1-a4-stepper" role="list">
+      <div className="na1-a2m2-stepper na1-a4-stepper" role={onPhaseSelect ? "group" : "list"}>
         {phases.map((p, i) => {
           const complete = i < phase;
           const current = i === phase;
@@ -50364,7 +50382,14 @@ function A5Stepper({
             <React.Fragment key={p.num}>
               <div
                 className="na1-a2m2-step"
-                role="listitem"
+                role={onPhaseSelect ? "button" : "listitem"}
+                tabIndex={onPhaseSelect ? 0 : undefined}
+                aria-label={onPhaseSelect ? `Review ${p.name}` : undefined}
+                style={onPhaseSelect ? { minHeight: 44, cursor: "pointer" } : undefined}
+                onClick={onPhaseSelect ? () => onPhaseSelect(i) : undefined}
+                onKeyDown={onPhaseSelect ? event => {
+                  if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onPhaseSelect(i); }
+                } : undefined}
                 aria-current={current ? "step" : undefined}
               >
                 <div className={cls}>{p.num}</div>
@@ -50471,6 +50496,17 @@ function A5PromisesBody({ promises }: { promises: Record<A5Key, A4MirrorState> }
 }
 
 // Screen 2 · one promise's plan: 1 year → 90 days → this week.
+function A5PlanRoomBody({ done, onTab, ...pane }: React.ComponentProps<typeof A5PlanPane> & {
+  done: Record<A5Key, boolean>; onTab: (key: A5Key) => void;
+}) {
+  return <div>
+    <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[1]}</div>
+    <h2 className="na1-room-title">From a year to this week.</h2>
+    <A5Tabs active={pane.k} onChange={onTab} done={done} />
+    <A5PlanPane key={pane.k} {...pane} />
+  </div>;
+}
+
 function A5PlanPane({
   k,
   promise,
@@ -50619,6 +50655,18 @@ function A5Choice({
 }
 
 // Screen 3 · one promise's supports: a person, a place, a system.
+function A5SupportsRoomBody({ done, onTab, ...pane }: React.ComponentProps<typeof A5SupportsPane> & {
+  done: Record<A5Key, boolean>; onTab: (key: A5Key) => void;
+}) {
+  return <div>
+    <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[2]}</div>
+    <h2 className="na1-room-title">What outside you helps you keep it?</h2>
+    <p className="na1-room-context na1-a5-sub">In A3 you named who and what surrounds you. Now ask them to help.</p>
+    <A5Tabs active={pane.k} onChange={onTab} done={done} />
+    <A5SupportsPane key={pane.k} {...pane} />
+  </div>;
+}
+
 function A5SupportsPane({
   k,
   sup,
@@ -51105,11 +51153,7 @@ function NewA5Container({
   ) : screen === 0 ? (
     <A5PromisesBody promises={promises} />
   ) : screen === 1 ? (
-    <div>
-      <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[1]}</div>
-      <h2 className="na1-room-title">From a year to this week.</h2>
-      <A5Tabs active={tab} onChange={setTab} done={planDone} />
-      <A5PlanPane
+      <A5PlanRoomBody done={planDone} onTab={setTab}
         key={tab}
         k={tab}
         promise={promises[tab]}
@@ -51117,16 +51161,8 @@ function NewA5Container({
         onPlan={(p) => setPlan(tab, p)}
         onEditA4={() => onEditA4(tab)}
       />
-    </div>
   ) : screen === 2 ? (
-    <div>
-      <div className="na1-room-eyebrow tone-gold">{A5_EYEBROW[2]}</div>
-      <h2 className="na1-room-title">What outside you helps you keep it?</h2>
-      <p className="na1-room-context na1-a5-sub">
-        In A3 you named who and what surrounds you. Now ask them to help.
-      </p>
-      <A5Tabs active={tab} onChange={setTab} done={supDone} />
-      <A5SupportsPane
+      <A5SupportsRoomBody done={supDone} onTab={setTab}
         key={tab}
         k={tab}
         sup={a5.supports[tab]}
@@ -51134,7 +51170,6 @@ function NewA5Container({
         places={opts.places}
         onSup={(v) => setSup(tab, v)}
       />
-    </div>
   ) : (
     <A5RhythmBody
       state={a5}
@@ -52025,17 +52060,18 @@ function NewA1View({
       read={() => {
         const sources: MapSources = {
           map: loadDataSync(KEYS.map) || {}, values: loadMirror4State(), rc: loadRCState(),
-          notice: loadNotice(), holdback: loadDataSync("a1_sym_holdback") || "",
+          notice: loadNotice(), practical: loadPractical(), holdback: loadDataSync("a1_sym_holdback") || "",
           a2: loadA2State(), a3: loadA3State(), a4: loadA4State(), a5: loadA5State(),
           rateScreens: readA2RateModel(),
         };
-        return { title: composeMapOfMeTitle(resolvedName), sources,
+        return { title: composeMapOfMeTitle(resolvedName), name: String(resolvedName || "").trim().split(/\s+/)[0], sources,
           sections: [...a1Sections(sources), ...laterSections(sources)],
           completed: { rc: sources.rc.complete, a1: a1Complete, a2: a2Complete, a3: a3Complete,
             a4: !!sources.a4.a4.claimed, a5: !!sources.a5.claimed } };
       }}
       canEdit={target => {
         if (rcFreeLocked() || target.stage === "a2" && !NEW_A2_FLAG || target.stage === "a3" && !NEW_A3_FLAG) return false;
+        if (target.kind === "holdback" && !String(loadDataSync("a1_sym_holdback") || "").trim()) return false;
         const currentMap = loadDataSync(KEYS.map) || {};
         if (target.kind === "a5-checkin" && !target.id || target.kind === "a5-lookback" && !loadA5State().reset90) return false;
         if (target.kind === "identity-power" && !currentMap.mirror3?.pickedGifts?.length) return false;
@@ -54498,6 +54534,7 @@ function NewA1M4NameStandardsBody({
   onNext,
   reviewing,
   entryAtEnd = false,
+  initialClusterId,
 }: {
   state: Mirror4State;
   mutate: (fn: (s: Mirror4State) => Mirror4State) => void;
@@ -54506,6 +54543,7 @@ function NewA1M4NameStandardsBody({
   onNext: () => void;
   reviewing: boolean;
   entryAtEnd?: boolean;
+  initialClusterId?: string;
 }) {
   // The legacy per-standard editor below is retained, but navigation now
   // goes directly from the cards to the named-standards summary.
@@ -54573,7 +54611,7 @@ function NewA1M4NameStandardsBody({
     });
   };
 
-  if (screen === 0) return <NameBoard state={state} mutate={mutate} onBack={onBack} onName={nextName} />;
+  if (screen === 0) return <NameBoard state={state} mutate={mutate} onBack={onBack} onName={nextName} initialClusterId={initialClusterId} />;
   if (screen === summaryScreen) return <NameSummary state={state} reviewing={reviewing}
     onBack={() => setNameScreen(0)} onNext={onNext} />;
 
@@ -57750,6 +57788,7 @@ function NewA1M3ShapeView({
   reviewing?: boolean;
   initialCreatureId?: string;
 }) {
+  const returnToMap = useMapRoomReturn();
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
   // One animal per screen (desktop and phone). A refresh restores the same animal.
   const [animalIdx, setAnimalIdx] = useState<number>(() => initialCreatureId
@@ -58513,10 +58552,10 @@ function NewA1M3ShapeView({
         <button
           type="button"
           className="m3-shape-super-btn"
-          disabled={!curValid}
-          onClick={onContinue}
+          disabled={returnToMap ? false : !curValid}
+          onClick={returnToMap || onContinue}
         >
-          {isLastAnimal ? "Continue to Under Pressure →" : "Continue →"}
+          {returnToMap ? "Done reviewing →" : isLastAnimal ? "Continue to Under Pressure →" : "Continue →"}
         </button>
       </div>
       {browseCluster && (
@@ -58769,6 +58808,7 @@ function NewA1M3UnderPressureView({
   reviewing?: boolean;
   initialCreatureId?: string;
 }) {
+  const returnToMap = useMapRoomReturn();
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
 
   // Ship 5 · On every entry, sync clusters + shadows to the current
@@ -59250,11 +59290,11 @@ function NewA1M3UnderPressureView({
         <button
           type="button"
           className="m3-under-cta"
-          disabled={!activeValid}
-          onClick={handleCta}
-          aria-label={ctaLabel}
+          disabled={returnToMap ? false : !activeValid}
+          onClick={returnToMap || handleCta}
+          aria-label={returnToMap ? "Done reviewing →" : ctaLabel}
         >
-          {ctaLabel}
+          {returnToMap ? "Done reviewing →" : ctaLabel}
         </button>
       </div>
     </div>
@@ -68667,8 +68707,66 @@ function useVisionMapFlush(area: M2Lens, values: Record<string, string>, initial
   }, enabled);
 }
 
+/** Same room shells/classes as the normal routes; review adds only a return action. */
+function MapNativeRoom({ target, close, children, onNavigate }: {
+  target: EditTarget; close: () => void; children: React.ReactNode; onNavigate: (target: EditTarget) => void;
+}) {
+  const ref = useMapDialog(close);
+  const p = mapRoomTarget(target);
+  const ladders: Record<string, { num: number; name: string }[]> = { "Alignment Check": A2M1_STEPS, "Time Audit": A2M2_STEPS,
+    "Named Truth": A2M3_STEPS, People: A3M1_STEPS, Environment: A3M2_STEPS, Thoughts: A3M3_STEPS,
+    "The Board": A3M5_STEPS, "The Move": A3M6_STEPS };
+  const partName = target.stage === "a4" ? A4_PHASES[A4_SCREEN_PHASE[p.areaStep ?? 0]]?.name || p.part
+    : target.kind === "a5-lookback" ? "Grow it"
+    : target.kind === "a5-checkin" ? A5_LABEL[(target.part || "self") as A5Key]
+    : target.stage === "a5" ? A5_PHASES[A5_SCREEN_PHASE[p.areaStep ?? 0]]?.name || p.part
+    : ladders[p.name]?.[p.step - 1]?.name || p.part;
+  const finish = <div className="mom-native-footer"><button className="na1-btn-gold" onClick={close}>Done reviewing →</button></div>;
+  const content = <>{target.stage === "a1" ? children : <div className={`mom-native-body ${p.body}`}>{children}</div>}{finish}</>;
+  let room: React.ReactNode;
+  if (target.kind.startsWith("values-")) {
+    const key = target.kind === "values-rank" ? "rank" : "name";
+    room = <NewA1M4RoomShell room={M4_ROOMS.find(room => room.key === key)!} open
+      onClose={close} onOpening={close}>{content}</NewA1M4RoomShell>;
+  } else if (target.mirror === "Identity") {
+    const key = target.kind === "identity-gifts" ? "yourGifts" : target.kind === "identity-power" ? "animals" : "underPressure";
+    room = <NewA1M3RoomShell room={M3_ROOMS.find(room => room.key === key)!}
+      open onClose={close}>{content}</NewA1M3RoomShell>;
+  } else if (target.mirror === "Purpose") {
+    const kind = target.kind === "holdback" ? "to" : "declare";
+    room = <NewA1RoomShell exercise={NA1_EXERCISES.find(e => e.key === kind)!} open onClose={close}>
+      <PurposeContextFrame kind={kind} rc={loadRCState()} values={loadMirror4State()} identity={loadMirror3State()}>{content}</PurposeContextFrame></NewA1RoomShell>;
+  } else if (target.mirror === "Vision") {
+    room = <NewA2RoomShell exercise={M2_EXERCISES.find(e => e.key === target.part)!} open onClose={close}>{content}</NewA2RoomShell>;
+  } else {
+    const rc = target.stage === "rc";
+    room = <div className={`na1-room-overlay is-open ${rc ? "rc-overlay" : target.stage === "a4" || target.stage === "a5" ? "na1-a4-overlay" : ""}`}
+      role="dialog" aria-modal="true" aria-label={target.mirror}>
+      <div className={`na1-room-card ${rc ? `rc-room ${[8, 9].includes(target.screen || 0) ? "rc-warm" : ""}` : p.frame}`}
+        data-step={rc ? target.screen : undefined}>
+        <div className="na1-room-crumb"><a onClick={close}>{target.mirror}</a><span className="sep">›</span><span className="current">{partName}</span></div>
+        <button className="na1-room-close" onClick={close} aria-label="Close">×</button>
+        {target.stage === "a4" && <A4Stepper screen={p.areaStep ?? 0} />}
+        {target.stage === "a5" && target.kind !== "a5-checkin" && target.kind !== "a5-lookback" && <A5Stepper screen={p.areaStep ?? 0} />}
+        {target.kind === "a5-checkin" && <A5Stepper screen={Math.max(0, A5_KEYS.indexOf((target.part || "self") as A5Key))}
+          phases={A5C_PHASES} screenPhase={A5C_SCREEN_PHASE} count={4}
+          onPhaseSelect={index => { if (A5_KEYS[index]) onNavigate({ ...target, part: A5_KEYS[index] }); }} />}
+        {target.kind === "a5-lookback" && <A5Stepper screen={1} phases={A5L_PHASES} screenPhase={A5L_SCREEN_PHASE} count={3} />}
+        {content}
+      </div>
+    </div>;
+  }
+  return <MapRoomReviewReturn.Provider value={close}><div className="na1-root mom-native-review"
+    data-map-editor={target.kind} ref={ref}>{room}</div></MapRoomReviewReturn.Provider>;
+}
+
 function MapAnswerEditor({ target, onClose }: { target: EditTarget; onClose: () => void }) {
   useLayoutEffect(() => beginMapReview(), []);
+  const [roomTarget, setRoomTarget] = useState(target);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("to-map-review-stage", { detail: roomTarget.stage }));
+    return () => { window.dispatchEvent(new CustomEvent("to-map-review-stage", { detail: null })); };
+  }, [roomTarget.stage]);
   const [rc, setRC] = useState(() => loadRCState());
   const [values, setValues] = useState(() => loadMirror4State());
   const done = () => { window.dispatchEvent(new Event("map-review-flush")); onClose(); };
@@ -68683,30 +68781,33 @@ function MapAnswerEditor({ target, onClose }: { target: EditTarget; onClose: () 
   };
   let editor: React.ReactNode;
   switch (target.kind) {
-    case "rc": editor = (target.screen ?? 0) >= 5
-      ? <RealityCheckFutures state={rcState} update={updateRC} act={updateRC} closeSaved={done} arriving={false} />
-      : <RealityCheckScreens state={rcState} update={updateRC} phone={false} mirrorPaged={false} onMirrorLayout={() => {}} />; break;
+    case "rc": editor = <RealityCheck room resume reviewScreen={target.screen ?? 1} onEnter={() => {}}
+      onClose={done} onEntryHall={done} onBeginA1={done} devTools={null} Veil={NewA1Veil} timing={NA1_VEIL_TIMING} />; break;
     case "values-rank": editor = <NewA1M4RankBody reviewing onCloseRoom={done} onContinueToClaim={done} onPressure={done} onExit={done} />; break;
-    case "values-name": editor = <NameBoard state={values} mutate={mutateValues} onBack={done} onName={done} initialClusterId={target.id} />; break;
+    case "values-name": editor = <NewA1M4NameStandardsBody state={values} mutate={mutateValues} reviewing
+      onBack={done} onNext={done} initialClusterId={target.id} />; break;
     case "identity-gifts": editor = <NewA1M3View embedded onBack={done} />; break;
     case "identity-power": editor = <NewA1M3ShapeView embedded reviewing initialCreatureId={target.id} onBack={done} onSuperpowers={done} />; break;
     case "identity-pressure": editor = <NewA1M3UnderPressureView embedded reviewing initialCreatureId={target.id} onComplete={done} />; break;
     case "purpose": editor = <NewA1DeclareBody reviewing onSaved={done} onClose={done} onTryPeelAgain={done} onContinueToVision={done} />; break;
-    case "holdback": editor = <NewA1OwnedSymptomsBody reviewing onSaved={done} onClose={done} />; break;
+    case "holdback": editor = <NewA1TrueOwnershipBody reviewingHoldback onSaved={done} onClose={done} />; break;
     case "vision": editor = target.part === "time"
       ? <NewA2TimeBody reviewing onSaved={done} onClose={done} />
       : target.part === "wealth" ? <NewA2WealthBody reviewing onSaved={done} onClose={done} />
       : <NewA2SelfBody reviewing onSaved={done} onClose={done} />; break;
-    case "notice": editor = <><WeeklyNotice value={loadNotice()?.value || endSummary(loadDataSync(KEYS.map), values, rc).names[0]} onDone={done} />
-      <button className="mom-primary" type="submit" form="a1-weekly-notice">Save notice →</button></>; break;
-    default: editor = <MapLaterAnswerEditor target={target} onClose={done} />;
+    case "notice": editor = <A1End step={2} reviewFromMap summary={endSummary(loadDataSync(KEYS.map), values, rc)}
+      identity={loadMirror3State()} oneThing={loadRCState().futureB1.oneThing} onStep={done} onClose={done}
+      onMap={done} onA2={done} canA2={false} />; break;
+    default: editor = <MapLaterAnswerEditor target={roomTarget} onTargetChange={setRoomTarget} onClose={done} />;
   }
-  return <ReviewFrame title={`${target.mirror}${target.part ? ` · ${target.part}` : ""}`} onClose={done}>{editor}</ReviewFrame>;
+  if (target.kind === "rc" || target.kind === "notice") return editor;
+  return <MapNativeRoom target={roomTarget} close={done} onNavigate={setRoomTarget}>{editor}</MapNativeRoom>;
 }
 
 /** Adapters mount the existing answer bodies directly, never a hub, opening or claim ceremony. */
-function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget; onClose: () => void }) {
-  const [target, setTarget] = useState(initial);
+function MapLaterAnswerEditor({ target, onClose, onTargetChange: setTarget }: {
+  target: EditTarget; onClose: () => void; onTargetChange: (target: EditTarget) => void;
+}) {
   const [a2, setA2] = useState<any>(() => loadA2State());
   const [a3, setA3] = useState<any>(() => loadA3State());
   const [a4, setA4] = useState<any>(() => loadA4State());
@@ -68731,7 +68832,7 @@ function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget
   const freshId = () => `map-${crypto.randomUUID()}`;
   const screens = alignmentScreens({ a2, map: loadDataSync(KEYS.map) || {}, values: loadMirror4State(),
     rateScreens: readA2RateModel(), rc: {}, notice: null });
-  const finish = <button className="mom-primary" onClick={onClose}>Done reviewing →</button>;
+  const finish = null; // The native review frame supplies the single return action.
   const adjustThought = (thought: string, patch: any) => part("a3", "m3", {
     thoughts: a3.m3.thoughts.map((v: any) => v.text === thought ? { ...v, ...patch } : v),
   });
@@ -68746,10 +68847,12 @@ function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget
       purposeRating={a2.m1.purposeRating} bottleneck={a2.m1.bottleneck} keepInFocus={a2.m1.keepInFocus}
       onPickBottleneck={id => part("a2", "m1", { bottleneck: id })}
       onToggleKeepInFocus={id => part("a2", "m1", { keepInFocus: a2.m1.keepInFocus === id ? null : id })} />;
-    case "alignment-rate": return <NewA2M1Step2Body screen={screens[target.screen || 0] || null}
+    case "alignment-rate": return <><NewA2M1SubProgress total={screens.length} index={target.screen || 0}
+      incompleteSet={new Set<number>()} label={`${(target.screen || 0) + 1} of ${screens.length}`}
+      onJump={screen => setTarget({ ...target, screen })} /><NewA2M1Step2Body screen={screens[target.screen || 0] || null}
       ratings={a2.m1.ratings} purposeRating={a2.m1.purposeRating}
       onRate={(id, value) => part("a2", "m1", { ratings: { ...a2.m1.ratings, [id]: value } })}
-      onRatePurpose={value => part("a2", "m1", { purposeRating: value })} />;
+      onRatePurpose={value => part("a2", "m1", { purposeRating: value })} /></>;
     case "time-priorities": return <NewA2M2Step1Body priorities={a2.m2.priorities}
       onChange={priorities => part("a2", "m2", { priorities })} />;
     case "time-activities": return <NewA2M2Step2Body activities={a2.m2.activities} priorities={a2.m2.priorities}
@@ -68829,7 +68932,7 @@ function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget
       bottleneck={a3.m6.bottleneck} onStar={bottleneck => part("a3", "m6", { bottleneck })} />;
     case "a4-gap": {
       const src = readA4Sources(), cfg = { self: A4_SELF_CFG, time: A4_TIME_CFG, wealth: A4_WEALTH_CFG }[area];
-      return <A4GapBody title={cfg.gapTitle} gaps={cfg.gaps(src, a4.wealth.moneyCheck)} m={m} done
+      return <A4GapBody title={cfg.gapTitle} gaps={cfg.gaps(src, m)} m={m} done
         onPick={gap => update("a4", s => ({ ...s, [area]: { ...s[area], picked: gap.id, gap } }))}
         onPickOwn={own => update("a4", s => ({ ...s, [area]: { ...s[area], picked: "own", own,
           gap: { id: "own", kind: own.kind, tag: "", said: own.said, evidence: own.evidence, source: "Your own words" } } }))} />;
@@ -68839,14 +68942,18 @@ function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget
       onMoney={(index, value) => update("a4", s => ({ ...s, wealth: { ...s.wealth,
         moneyCheck: { ...s.wealth.moneyCheck, [String(index)]: value } } }))} />;
     case "a4-promise": return <A4WillBody m={m} purpose={loadDataSync(KEYS.map)?.purpose_final || ""}
-      tenYear="" onField={field4} done sayNo={area !== "self" ? {
+      tenYear={a4TenYearLine(readA4Sources().vision, area)} onField={field4} done sayNo={area !== "self" ? {
         options: a4SayNoOptions(readA4Sources(), area), value: m.sayNo || "", onChange: v => field4("sayNo", v),
       } : undefined} />;
     case "a4-year": return <A4YearBody m={m} onField={field4} done />;
     case "a4-plan": return <A4StopBody m={m} onField={field4} onSure={v => field4("sure", v)} done />;
-    case "a5-plan": return <A5PlanPane k={area} promise={m} plan={a5.plans[area]} onPlan={plan5}
+    case "a5-plan": return <A5PlanRoomBody k={area} promise={readA5Promises()[area]} plan={a5.plans[area]} onPlan={plan5}
+      done={{ self: a5PlanDone(a5.plans.self), time: a5PlanDone(a5.plans.time), wealth: a5PlanDone(a5.plans.wealth) }}
+      onTab={value => setTarget({ ...target, part: value })}
       onEditA4={() => setTarget({ ...target, stage: "a4", kind: "a4-promise" })} />;
-    case "a5-supports": return <A5SupportsPane k={area} sup={a5.supports[area]}
+    case "a5-supports": return <A5SupportsRoomBody k={area} sup={a5.supports[area]}
+      done={{ self: a5SupportsDone(a5.supports.self), time: a5SupportsDone(a5.supports.time), wealth: a5SupportsDone(a5.supports.wealth) }}
+      onTab={value => setTarget({ ...target, part: value })}
       people={readA5Options().people} places={readA5Options().places}
       onSup={sup => update("a5", s => ({ ...s, supports: { ...s.supports, [area]: sup } }))} />;
     case "a5-rhythm": return <A5RhythmBody state={a5} promises={readA5Promises()}
@@ -68854,8 +68961,8 @@ function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget
       onSend={key => setReminderPreview(a5.plans[key].week || "No weekly commitment saved yet.")} toast={reminderPreview} />;
     case "a5-checkin": {
       const week = target.id || a5WeekStart(new Date()), record = a5.checkins.find((v: any) => v.week === week);
-      return <div><A5Tabs active={area} onChange={value => setTarget({ ...target, part: value })} done={{ self: false, time: false, wealth: false }} />
-        <A5CheckinPromiseBody k={area} promise={m} plan={a5.plans[area]} sup={a5.supports[area]}
+      return <div>
+        <A5CheckinPromiseBody k={area} promise={readA5Promises()[area]} plan={a5.plans[area]} sup={a5.supports[area]}
           entry={record?.entries?.[area] || {}} onEntry={patch => update("a5", s => {
             const existing = s.checkins.find((v: any) => v.week === week);
             if (!existing) return s; // opening an empty section never creates a check-in
@@ -68865,23 +68972,15 @@ function MapLaterAnswerEditor({ target: initial, onClose }: { target: EditTarget
         {!record && <p className="mom-empty">Complete your first weekly check-in in A5 before reviewing it here.</p>}
       </div>;
     }
-    case "a5-lookback": return <div>
-      <h2 className="na1-room-title">Your next 90 days.</h2>
-      <A5Tabs active={area} onChange={value => setTarget({ ...target, part: value })} done={{ self: false, time: false, wealth: false }} />
-      {a5.reset90 ? <><p className="na1-room-context">Keep it as is, or grow it a little.</p>
-        <div className="na1-chip-row">{(["keep", "grow"] as const).map(value => <button key={value}
-          className={`na1-chip ${a5.reset90.choices[area] === value ? "is-selected" : ""}`} role="radio"
-          aria-checked={a5.reset90.choices[area] === value}
-          onClick={() => update("a5", s => ({ ...s, reset90: { ...s.reset90, choices: { ...s.reset90.choices, [area]: value } } }))}>
-          {value === "keep" ? "Keep it as is" : "Grow it a little"}</button>)}</div>
-        {a5.reset90.choices[area] === "keep" ? <p className="na1-a4-promise-main">{a5PromiseLine(m)}</p>
-          : <div className="na1-a5-grow">
-            <A4Blank stem="I will…" value={m.will} onChange={v => field4("will", v)} placeholder="a little more than before" />
-            <A4Blank stem="…when…" value={m.when} onChange={v => field4("when", v)} placeholder="the moment it happens" />
-            <A4Blank stem="This week I will…" value={a5.plans[area].week} onChange={v => plan5({ week: v })} placeholder="the one small thing" />
-          </div>}
-      </> : <p className="mom-empty">Fills in after your first A5 90-day look-back</p>}
-    </div>;
+    case "a5-lookback": return a5.reset90 ? <A5GrowBody tab={area} onTab={value => setTarget({ ...target, part: value })}
+      done={{ self: !!a5.reset90.choices.self, time: !!a5.reset90.choices.time, wealth: !!a5.reset90.choices.wealth }}
+      choice={a5.reset90.choices[area]} promise={readA5Promises()[area]}
+      onChoice={value => update("a5", s => ({ ...s, reset90: { ...s.reset90, choices: { ...s.reset90.choices, [area]: value } } }))}
+      edit={{ will: m.will, when: m.when, week: a5.plans[area].week }}
+      onEdit={patch => { if (patch.will !== undefined) field4("will", patch.will);
+        if (patch.when !== undefined) field4("when", patch.when);
+        if (patch.week !== undefined) plan5({ week: patch.week }); }} />
+      : <p className="mom-empty">Fills in after your first A5 90-day look-back</p>;
     default: return <p role="alert">This answer editor is not available.</p>;
   }
 }

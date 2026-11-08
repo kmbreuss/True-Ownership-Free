@@ -23,14 +23,17 @@ const ROWS = [
 ];
 type VeilPhase = "rising" | "hold" | "falling" | "idle";
 export function RealityCheck({
-  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing,
+  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing, reviewScreen,
 }: {
   room: boolean; resume: boolean; onEnter: () => void; onClose: () => void;
   onEntryHall: () => void; onBeginA1: () => void; devTools: ReactNode;
   Veil: ComponentType<{ phase: VeilPhase; text: string }>;
   timing: { holdAt: number; fallingAt: number; idleAt: number };
+  reviewScreen?: number;
 }) {
-  const [state, setState] = useState(loadRCState);
+  const original = useRef(loadRCState());
+  const reviewing = reviewScreen !== undefined;
+  const [state, setState] = useState(() => reviewing ? { ...original.current, step: reviewScreen! } : original.current);
   const [phone, setPhone] = useState(() => window.matchMedia("(max-width:600px)").matches);
   const [mirrorPaged, setMirrorPaged] = useState(phone);
   const [revealStep, setRevealStep] = useState<number | null>(null);
@@ -62,10 +65,15 @@ export function RealityCheck({
   useEffect(() => { bodyRef.current?.scrollTo({ top: 0 }); }, [state.step, state.phoneMirror?.set, join]);
   const update = (next: RCState) => {
     next = { ...next, maxReached: Math.max(state.maxReached ?? state.step, next.step, state.complete ? 13 : 0) };
-    try { saveRCState(next); setState(next); setError(""); return true; }
+    try {
+      const saved = reviewing ? { ...next, step: original.current.step, maxReached: original.current.maxReached,
+        complete: original.current.complete, completedAt: original.current.completedAt, rounds: original.current.rounds } : next;
+      saveRCState(saved); setState(next); setError(""); return true;
+    }
     catch { setError("Your answer could not be saved. Please free browser storage and try again."); return false; }
   };
   const act = (next: RCState, complete = false, celebrate = false) => {
+    if (reviewing) { update(next); return; }
     if (!complete) { update(next); return; }
     if (!isDevPreview() && (!next.focus || next.mirror.length < 3 || !next.tuesday.trim() || !next.futureB5.tuesday.trim() || !next.futureB1.oneThing.trim())) {
       setError("Please finish your mirror, Tuesday and Future B answers before continuing."); return;
@@ -175,10 +183,12 @@ export function RealityCheck({
         {error && <p role="alert">{error}</p>}
         </div>
         <footer className="rc-footer">
+          {reviewing ? <button className="na1-btn-gold" onClick={onClose}>Done reviewing →</button> : <>
           {state.step === 0 && !people ? <span>About 10 minutes · just you</span> : state.step === 13 ? <span className="rc-path-reassurance">Katherine is with you on every step.</span> : state.step < 12 || join ? <button onClick={back}>← Back</button> : <span />}
           {state.step < 10 && <button className="na1-btn-gold" disabled={!canAdvance} onClick={advance}>{forward}</button>}
           {state.step === 12 && state.willing === "yes" && !join && <button className="na1-btn-gold" onClick={() => act({ ...state, step: 13 })}>What will get me there →</button>}
           {state.step === 13 && !join && <button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>Start my path →</button>}
+          </>}
         </footer>
       </div>
     </div>, document.body)}

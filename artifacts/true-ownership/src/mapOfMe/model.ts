@@ -1,15 +1,16 @@
 import { DOMAIN_LABELS, LENS_DOMAINS, SENTENCE_TEMPLATES, type Lens } from "../mirror2Constants";
 import { RC_LABEL, RC_DEFAULT_LABEL, RC_MIRROR } from "../rcConstants";
+import { normalizePractical, practicalCreatures, weeklyProjection, type Practical } from "../a1End/practical";
 
 export type Stage = "rc" | "a1" | "a2" | "a3" | "a4" | "a5";
 export type EditTarget = { kind: string; mirror: string; stage: Stage; id?: string; part?: string; screen?: number };
 export type Answer = { label: string; text: string };
 export type MapSection = {
   id: string; stage: Stage; title: string; target: EditTarget; answers: Answer[];
-  empty: string; ranked?: string[]; summary?: string;
+  empty: string; ranked?: string[]; summary?: string; children?: MapSection[];
 };
 export type MapSources = { map: any; values: any; rc: any; notice: any; holdback?: string;
-  rateScreens?: any[]; a2?: any; a3?: any; a4?: any; a5?: any };
+  rateScreens?: any[]; a2?: any; a3?: any; a4?: any; a5?: any; practical?: Practical };
 export const STAGES: { id: Stage; title: string }[] = [
   { id: "rc", title: "Reality Check" }, { id: "a1", title: "A1 · All In" },
   { id: "a2", title: "A2 · Align" }, { id: "a3", title: "A3 · Advocate" },
@@ -120,7 +121,10 @@ export function a1Sections(src: MapSources): MapSection[] {
           answer(template.stem2, saved?.blank2)];
       }), { target: { kind: "vision", mirror: "Vision", stage: "a1", part: area }, empty: "Fills in after Vision" }));
   }
+  const practical = normalizePractical(src.practical);
+  const week = practical.weekReviewedAt ? weeklyProjection(practical, practicalCreatures(map?.mirror3), rc?.futureB1?.oneThing || "", rows.find(row => row.id === "values-rank")?.ranked?.[0] || "") : null;
   rows.push(section("notice", "a1", "This week I'm noticing", "A1 · Notice", "notice", [
+    ...(week ? [answer("Do", week.do), answer("Try", week.try), answer("Notice", week.notice)] : []),
     answer("My value", notice?.value), answer("A moment I lived it", notice?.lived),
     answer("A moment I didn't", notice?.didnt),
   ], { empty: "Fills in after the optional A1 weekly notice" }));

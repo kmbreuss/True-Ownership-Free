@@ -5,8 +5,9 @@ import { balancePair, practicalCreatures, resolveTry, weeklyProjection } from ".
 import { usePractical } from "./usePractical";
 import "./practical.css";
 
-export function PracticalWeek({ identity, original, value, onDone }: {
+export function PracticalWeek({ identity, original, value, onDone, reviewFromMap = false }: {
   identity?: Mirror3State; original: string; value?: string; onDone: () => void;
+  reviewFromMap?: boolean;
 }) {
   const { practical: p, error: practicalError, update } = usePractical();
   const [initial] = useState(() => {
@@ -26,9 +27,11 @@ export function PracticalWeek({ identity, original, value, onDone }: {
     if (initial.error || practicalError) return;
     try {
       if (lived !== (initial.notice?.lived || "") || didnt !== (initial.notice?.didnt || "")) saveNotice({ value: top, lived, didnt });
-      if (!update({ tryCreatureId: creature?.id || null, trySelectionSource: creature ? selected.source : null,
+      const patch = { tryCreatureId: creature?.id || null, trySelectionSource: creature ? selected.source : null,
         ...(editing ? { sharpenedOneThing: draft } : {}),
-        weekReviewedAt: p.weekReviewedAt || new Date().toISOString() })) return;
+        weekReviewedAt: reviewFromMap ? p.weekReviewedAt : p.weekReviewedAt || new Date().toISOString() };
+      const changed = Object.entries(patch).some(([key, next]) => p[key as keyof typeof p] !== next);
+      if ((!reviewFromMap || changed) && !update(patch)) return;
       onDone();
     } catch (e) { setError(e instanceof Error ? e.message : "Your notice could not be saved. Please try again."); }
   };

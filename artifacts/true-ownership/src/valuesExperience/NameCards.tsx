@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MapRoomAction } from "../mapOfMe/roomReview";
 import { m4BehaviorTextById, type Mirror4State } from "../mirror4Constants";
 import { NameCreate } from "./NameCreate";
 import { behaviorCount, standardName } from "./nameData";
@@ -146,7 +147,7 @@ export function NameCards({ state, onCreate, onMove, onSendBack, onRemove, onRen
     </nav>}
     <footer className="na1-m4-disc-foot">
       <button type="button" className="na1-m4-back" onClick={onBack}>← Back</button>
-      <button type="button" className="na1-m4-continue" onClick={onName}>{state.claimed ? "Next →" : "Next: the standards you hold →"}</button>
+      <MapRoomAction className="na1-m4-continue" onClick={onName}>{state.claimed ? "Next →" : "Next: the standards you hold →"}</MapRoomAction>
     </footer>
   </div>;
 }

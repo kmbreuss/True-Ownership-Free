@@ -833,3 +833,87 @@ mtime_ms = 1794172373712
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/4b349435-36e9-47ab-b920-1dbbdf8574e9/29e17986-f081-46c7-8b5d-6d228d832933"
 storage_version_token = "1794172395666059"
 content_type = "text/html"
+
+[[outputs]]
+id = "Vr1gpUgYMbKEHMIw7riY-"
+uri = "file://generated-artifacts/map-visual/part1-comparisons.html"
+type = "html"
+title = "Edit destinations · 81 paired screenshots"
+description = "Map entry beside the current normal room. Includes an explicit coverage note for the unverified Weekly Check-In normal-route capture."
+logical_id = "7db83657-488b-4f09-bbb6-387a3b86fdfb"
+content_hash = "sha256:422414370759c6d3762e924f4fef41d30311afdbda3c84977800ce421484a289"
+size = 7090089
+mtime_ms = 1794178987059
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/7db83657-488b-4f09-bbb6-387a3b86fdfb/7b5cbd7d-d0f9-4e00-b7be-252ce0caa445"
+storage_version_token = "1794179037475054"
+content_type = "text/html"
+
+[[outputs]]
+id = "eVVm05TjAba_LI2xcBzlI"
+uri = "file://generated-artifacts/map-visual/screens/01-phone-375x812-light-full.jpg"
+type = "image"
+title = "Map of Me · phone · light"
+description = "Full-page capture from a 375×812 viewport. Synthetic account."
+logical_id = "07db5a95-af2e-45a0-be84-45a4acf68b99"
+content_hash = "sha256:91ce5278935890b109ec22c45b85e133cf2900d49c1ecca13a8b847b045b4c77"
+size = 158112
+mtime_ms = 1794176883639
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/07db5a95-af2e-45a0-be84-45a4acf68b99/4d6ff422-d531-41b4-8ec4-f42fd95768f7"
+storage_version_token = "1794178730347428"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "-ZXWpZSg393DPwtLvp_x9"
+uri = "file://generated-artifacts/map-visual/screens/01-phone-375x812-dark-full.jpg"
+type = "image"
+title = "Map of Me · phone · dark"
+description = "Full-page capture from a 375×812 viewport. Synthetic account."
+logical_id = "b7c95a8e-c31c-485f-9a19-895c44ca1d45"
+content_hash = "sha256:1a1026c7e167b6e9b7d25bc7408426165702b2e7b63dc8df86f49d7b5dd8f514"
+size = 159100
+mtime_ms = 1794176886035
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/b7c95a8e-c31c-485f-9a19-895c44ca1d45/b1258ce7-c43d-4441-aeac-63b237f7cefb"
+storage_version_token = "1794178731033923"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "i2W3jh5LPE3lDRdoQJana"
+uri = "file://generated-artifacts/map-visual/screens/02-desktop-1280x800-light-full.jpg"
+type = "image"
+title = "Map of Me · desktop · light"
+description = "Full-page capture from a 1280×800 viewport. Synthetic account."
+logical_id = "093092df-59b7-4350-8582-2a5851c2484c"
+content_hash = "sha256:6d6ae8c2a36c0e9f94e986d7d72d8721dae34d18f0d72603be074387d4b79c57"
+size = 176057
+mtime_ms = 1794176888055
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/093092df-59b7-4350-8582-2a5851c2484c/a6b13227-2f65-480e-8572-c53aca1dce7f"
+storage_version_token = "1794178731726197"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "fxWT7qVhKkRO7dV3Q93vC"
+uri = "file://generated-artifacts/map-visual/screens/02-desktop-1280x800-dark-full.jpg"
+type = "image"
+title = "Map of Me · desktop · dark"
+description = "Full-page capture from a 1280×800 viewport. Synthetic account."
+logical_id = "91e331e7-abe0-48b2-b5c6-d7d4c739a8b5"
+content_hash = "sha256:a25fbeb4bbf48d96423970ed976c8f9175f1fcb8d8df1f9a3f9005106949816f"
+size = 175531
+mtime_ms = 1794176889983
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/91e331e7-abe0-48b2-b5c6-d7d4c739a8b5/df372339-d28d-4a93-9d74-9bfcda4c4089"
+storage_version_token = "1794178732394884"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "OphD06Ib6y89pkW7K_rB0"
+uri = "file://generated-artifacts/map-visual/visual-checks.html"
+type = "html"
+title = "Phone-first screenshots · copy changes · files"
+description = "Light/dark Map layouts, review screens, full old → new copy table, controls, data limits and changed files."
+logical_id = "22da3d7e-8018-4acf-93a0-2fa2ac004ffb"
+content_hash = "sha256:0a701530defb1f1045067d8275ecb03202f73975a7e9693ede51893b9a3064f6"
+size = 7173291
+mtime_ms = 1794178988095
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/22da3d7e-8018-4acf-93a0-2fa2ac004ffb/afed952f-ea54-43b2-96ae-e1dffcb5a019"
+storage_version_token = "1794179038327991"
+content_type = "text/html"

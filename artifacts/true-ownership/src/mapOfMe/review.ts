@@ -23,5 +23,6 @@ export function preserveReviewEvidence(before: any, after: any): any {
 export function reviewSaveValue(key: string, before: any, after: any) {
   if (!inMapReview()) return after;
   if (/^a1_.*_done$/.test(key)) return before;
+  if (key === "a1_to_curq") return before;
   return preserveReviewEvidence(before, after);
 }

@@ -16,13 +16,18 @@ export interface A1EndProps {
   onMap: () => void;
   onA2: () => void;
   canA2: boolean;
+  reviewFromMap?: boolean;
 }
-export function A1End({ step, summary: s, identity, oneThing = "", onStep, onClose, onMap, onA2, canA2 }: A1EndProps) {
+export function A1End({ step, summary: s, identity, oneThing = "", onStep, onClose, onMap, onA2, canA2, reviewFromMap = false }: A1EndProps) {
   const { practical } = usePractical();
-  const reviewing = useRef(!!practical.weekReviewedAt).current;
+  const reviewedAtEntry = useRef(!!practical.weekReviewedAt).current;
+  const reviewing = reviewFromMap || reviewedAtEntry;
   const body = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
-  useEffect(() => { body.current?.scrollTo(0, 0); }, [step]);
+  useEffect(() => {
+    body.current?.scrollTo(0, 0);
+    if (reviewFromMap && step === 2) body.current?.querySelector(".practical-block:nth-of-type(3)")?.scrollIntoView({ block: "start" });
+  }, [step, reviewFromMap]);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
@@ -68,7 +73,7 @@ export function A1End({ step, summary: s, identity, oneThing = "", onStep, onClo
             </dd></div>}
           </dl>
           {s.futureB && <aside className="a1-end-future"><span className="a1-end-label">MY FUTURE B ★</span><blockquote>“{s.futureB}”</blockquote></aside>}
-        </> : step === 2 ? <PracticalWeek identity={identity} original={oneThing} value={s.names[0]} onDone={() => reviewing ? onClose() : onStep(3)} />
+        </> : step === 2 ? <PracticalWeek identity={identity} original={oneThing} value={s.names[0]} reviewFromMap={reviewFromMap} onDone={() => reviewing ? onClose() : onStep(3)} />
           : <><Claimed />{!canA2 && <p className="a1-end-helper">Complete all four A1 mirrors to unlock A2.</p>}</>}
       </div>
       <footer key={step} className={`a1-end-footer${step === 1 ? " is-summary" : ""}`}>
