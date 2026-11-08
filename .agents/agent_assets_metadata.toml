@@ -315,3 +315,143 @@ mtime_ms = 1794157108204
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/9407cdb7-22d5-496d-8cf9-cf30de0eecdd/d791b6a1-39f4-413b-a072-0fd9c61b3e47"
 storage_version_token = "1794157232126553"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "XgqgfG-QDogqm7oi2fBou"
+uri = "file://generated-artifacts/road-location-layout/375x812-light.jpg"
+type = "image"
+title = "375x812 · Light · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "f8f58d0f-2f92-41bf-9db0-2a372bcc12c1"
+content_hash = "sha256:7863e4bd1878cf739ff6f9b4aa2dfc44726b8cb5ad369a57e66928ceea7e528b"
+size = 30568
+mtime_ms = 1794158607908
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/f8f58d0f-2f92-41bf-9db0-2a372bcc12c1/4e1e6bd8-cf56-4370-81b8-517709755beb"
+storage_version_token = "1794158885745622"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "hCoud7vVTW4WEyfr1ld0b"
+uri = "file://generated-artifacts/road-location-layout/375x812-dark.jpg"
+type = "image"
+title = "375x812 · Dark · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "8c47b31e-cc49-4dda-b611-02b05369a356"
+content_hash = "sha256:10ca1cf1ea3e487980385bd69d5a10845bca4189d11c60f4bbddc78494c6f845"
+size = 32145
+mtime_ms = 1794158616416
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/8c47b31e-cc49-4dda-b611-02b05369a356/b662bd89-9184-4d74-abc6-d3381c223145"
+storage_version_token = "1794158886332746"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "T0bMdq0lNEeEl_YcrzRUx"
+uri = "file://generated-artifacts/road-location-layout/1280x800-light.jpg"
+type = "image"
+title = "1280x800 · Light · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "c15f86c7-85f9-4c42-aa06-382cedb126b1"
+content_hash = "sha256:0ee8b0973fc0a81c3a55c64cc26fb0755be930decb25b0d710614ab9f3ecb8a1"
+size = 58101
+mtime_ms = 1794158625408
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/c15f86c7-85f9-4c42-aa06-382cedb126b1/3bce68d1-e330-4392-882a-0e199f0885db"
+storage_version_token = "1794158886913802"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "EWVVLet1biLkoBr29gL2B"
+uri = "file://generated-artifacts/road-location-layout/1280x800-dark.jpg"
+type = "image"
+title = "1280x800 · Dark · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "1afbb09f-85eb-4007-8e98-b16b236bf915"
+content_hash = "sha256:74e108d0e2bf63e62256c2229ef4fd898f62bea9880dd3ef756a1ddc34425104"
+size = 62325
+mtime_ms = 1794158633928
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/1afbb09f-85eb-4007-8e98-b16b236bf915/bb326135-128d-46c3-984e-b3aad9dbf5e9"
+storage_version_token = "1794158887468526"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "UKzyxhQ8jeNJrpmLMX-1j"
+uri = "file://generated-artifacts/road-location-layout/1440x900-light.jpg"
+type = "image"
+title = "1440x900 · Light · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "f90ab68c-b342-47f2-8721-6a675d97c5ed"
+content_hash = "sha256:b94386f7187c660e784a2b6edf2e4cce7d63699264fbe39530a8bc98848c5b5a"
+size = 63826
+mtime_ms = 1794158642288
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/f90ab68c-b342-47f2-8721-6a675d97c5ed/6bd88e7e-3d4c-47d7-b38a-7e489ff3a132"
+storage_version_token = "1794158888101664"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "9c7uEGk6jxDZNR5b1vC5i"
+uri = "file://generated-artifacts/road-location-layout/1440x900-dark.jpg"
+type = "image"
+title = "1440x900 · Dark · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "18c06e95-ae77-472e-87cf-baef91b4c569"
+content_hash = "sha256:6ad3124b585678048adae9d4089266aaa0f9bd9ab5ba3742c8e4d94ddc0ca603"
+size = 67553
+mtime_ms = 1794158650684
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/18c06e95-ae77-472e-87cf-baef91b4c569/9d6ac8fe-97b8-4e9f-81e8-40885285ba61"
+storage_version_token = "1794158888643371"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "mLxp8TcdzC9q5Akak0Kcc"
+uri = "file://generated-artifacts/road-location-layout/1920x1080-light.jpg"
+type = "image"
+title = "1920x1080 · Light · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "606d1bb1-3b0e-443d-9729-20f7891bb3d9"
+content_hash = "sha256:28a7a8fd2479d93fc97459d3b13da8a9405036f1a384c9aefd0fa17d4887d227"
+size = 71224
+mtime_ms = 1794158659180
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/606d1bb1-3b0e-443d-9729-20f7891bb3d9/bfc51444-a2eb-460c-be64-b4270853b1a7"
+storage_version_token = "1794158889182402"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "Wx24F-_RQFThmCIbvcphC"
+uri = "file://generated-artifacts/road-location-layout/1920x1080-dark.jpg"
+type = "image"
+title = "1920x1080 · Dark · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "db20e75d-4e06-49c1-ae7d-c52928833147"
+content_hash = "sha256:7d8df5988b1d1b340e47e9c7963a1605eb1b3130d33ce6775db9a07057fccbc6"
+size = 75759
+mtime_ms = 1794158667772
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/db20e75d-4e06-49c1-ae7d-c52928833147/8b6dbff5-31e1-4c10-8036-afb62e7ab5c0"
+storage_version_token = "1794158889707132"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "5428qyrihA8NYlYGcrAxb"
+uri = "file://generated-artifacts/road-location-layout/2560x1440-light.jpg"
+type = "image"
+title = "2560x1440 · Light · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "4e58bcab-4097-4e1f-9b6a-03502f9e707e"
+content_hash = "sha256:13340c3c1a6c30888009b2f325819008666e236d4aac6921856bbca5806ded0e"
+size = 81182
+mtime_ms = 1794158677036
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/4e58bcab-4097-4e1f-9b6a-03502f9e707e/c5e0b838-f3ea-4257-a95e-c031877a306f"
+storage_version_token = "1794158890326223"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "5chTKFQa8snX2dKxNocIv"
+uri = "file://generated-artifacts/road-location-layout/2560x1440-dark.jpg"
+type = "image"
+title = "2560x1440 · Dark · A2 current"
+description = "Synthetic fixture: currently in A2, with A3 already complete. No real member data."
+logical_id = "9cbe475d-3416-4d30-9126-defe744c79dd"
+content_hash = "sha256:651836fd12ea66cbac51697bd5f02b7dcfd255068180fb02d3ac231e4c8dc88c"
+size = 86235
+mtime_ms = 1794158685964
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/9cbe475d-3416-4d30-9126-defe744c79dd/844e1de8-8c39-4e71-8439-aaa8b1d94723"
+storage_version_token = "1794158890953579"
+content_type = "image/jpeg"

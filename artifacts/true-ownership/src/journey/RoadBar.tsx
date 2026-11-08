@@ -4,13 +4,15 @@ import { ROAD_GROUPS, type JourneySnapshot } from "./progress";
 const TIP_KEY = "to_road_phone_tip_seen_v1";
 let tipSeenThisSession = false;
 
-export function RoadBar({ snapshot, current, mirror, onOpen, newestGroup }: {
-  snapshot: JourneySnapshot; current: string; mirror: string; onOpen: () => void; newestGroup?: string;
+export function RoadBar({ snapshot, current, onOpen, newestGroup }: {
+  snapshot: JourneySnapshot; current: string; onOpen: () => void; newestGroup?: string;
 }) {
+  const currentStage = ROAD_GROUPS.find(group => group.id === current);
+  const currentLabel = currentStage?.label.replace(" · ", " ") ?? current.toUpperCase();
   const [showTip, setShowTip] = useState(false);
   const tipDeadline = useRef(0);
   useEffect(() => {
-    const phone = window.matchMedia("(max-width: 900px)");
+    const phone = window.matchMedia("(max-width: 899.98px)");
     let timer: ReturnType<typeof setTimeout> | undefined;
     const showOnPhone = () => {
       if (!phone.matches) {
@@ -41,13 +43,13 @@ export function RoadBar({ snapshot, current, mirror, onOpen, newestGroup }: {
   return <>
   <button className="jr-phone-bar" type="button" onClick={() => { tipDeadline.current = 0; setShowTip(false); onOpen(); }}
     aria-describedby={showTip ? "jr-phone-tip" : undefined} aria-label={`Open your full road: ${snapshot.count} steps finished`}>
-    <span className="jr-phone-head"><span>YOU · {current.toUpperCase()}{mirror ? ` · ${mirror}` : ""}</span><span className="jr-phone-head-right"><span>FUTURE B ★</span><span>Road ▾</span></span></span>
+    <span className="jr-phone-head"><span>YOU ARE HERE · {currentLabel}</span><span className="jr-phone-head-right"><span>FUTURE B ★</span><span>Road ▾</span></span></span>
     <span className="jr-phone-segments">{ROAD_GROUPS.map(group => {
       const count = snapshot.bricks.filter(b => b.group === group.id && b.done).length;
-      return <span className={`jr-phone-segment ${newestGroup === group.id ? "is-newest" : ""}`} key={group.id}
+      return <span className={`jr-phone-segment ${current === group.id ? "is-current" : ""} ${count ? "has-progress" : ""} ${newestGroup === group.id ? "is-newest" : ""}`} key={group.id}
         aria-label={`${group.short}: ${count} of ${group.total}`} data-road-group={group.id}>
         <span className="jr-segment-track"><span style={{ width: `${100 * count / group.total}%` }} /></span>
-        <span className={current === group.id ? "is-current" : ""}>{group.short}</span>
+        <span className={current === group.id ? "is-current" : ""}>{current === group.id ? `● ${group.short}` : group.short}</span>
       </span>;
     })}</span>
   </button>

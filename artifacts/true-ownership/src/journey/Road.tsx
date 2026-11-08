@@ -29,10 +29,14 @@ export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate
       {snapshot.bricks.map((brick, i) => {
         const p = point(i / (snapshot.bricks.length - 1)), q = point(Math.min(1, (i + .2) / (snapshot.bricks.length - 1)));
         const angle = Math.atan2(q.y - p.y, q.x - p.x) * 180 / Math.PI + 90;
-        return <g key={brick.id} data-brick={brick.id} data-finished={brick.done || undefined}>
+        return <g key={brick.id} data-brick={brick.id} data-finished={brick.done || undefined}
+          className={brick.id === latest ? "jr-latest" : undefined}
+          role={brick.id === latest ? "img" : undefined} aria-label={brick.id === latest ? "Latest step" : undefined}
+          onClick={brick.id === latest ? onOpen : undefined}>
+          {brick.id === latest && <title>Latest step</title>}
           <rect className={`jr-brick ${brick.done ? "is-done" : ""} ${brick.id === latest ? "is-newest" : ""}`}
             x={p.x - 4} y={p.y - 2.4} width="8" height="4.8" rx="1" transform={`rotate(${angle} ${p.x} ${p.y})`} />
-          {brick.id === latest && <><circle className="jr-you-ring" cx={p.x} cy={p.y} r="10" /><text className="jr-you" x={p.x - 15} y={p.y - 14} textAnchor="end">You</text></>}
+          {brick.id === latest && <circle className="jr-latest-ring" cx={p.x} cy={p.y} r="10" />}
         </g>;
       })}
       {ROAD_GROUPS.map(group => {
@@ -44,7 +48,7 @@ export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate
             data-road-destination={group.id} disabled={!item.destination} aria-label={item.accessibleLabel}
             aria-current={item.isCurrent ? "page" : undefined}
             onClick={e => { e.stopPropagation(); if (item.destination) onNavigate(item.destination); }}>
-            <span>{item.label}</span>{item.status && <small>{item.status}</small>}
+            <span>{item.isCurrent ? "● " : ""}{item.label}</span>{item.status && <small>{item.status}</small>}
           </button>
         </foreignObject>;
       })}
@@ -126,11 +130,10 @@ export function JourneyRoad({ view, read, navigation, onNavigate }: NavigationPr
     return () => { window.clearInterval(timer); window.removeEventListener("storage", refresh); document.body.classList.remove("journey-on"); };
   }, [read]);
   const current = groupForView(view);
-  const mirror = view === "m4" ? "VALUES" : view === "m3" ? "IDENTITY" : view === "explore2" ? "VISION" : view === "explore" ? "PURPOSE" : "";
   return <>
     <aside className="jr-desktop"><Road snapshot={snapshot} current={current} newest={newest}
       navigation={navigation} onNavigate={onNavigate} onOpen={() => setOpen(true)} /></aside>
-    <RoadBar snapshot={snapshot} current={current} mirror={mirror} newestGroup={newest?.split(":")[0]} onOpen={() => setOpen(true)} />
+    <RoadBar snapshot={snapshot} current={current} newestGroup={newest?.split(":")[0]} onOpen={() => setOpen(true)} />
     <StepMoment notice={active} />
     {open && <RoadSheet snapshot={snapshot} current={current} navigation={navigation}
       onNavigate={destination => { setOpen(false); onNavigate(destination); }} onClose={() => setOpen(false)} />}

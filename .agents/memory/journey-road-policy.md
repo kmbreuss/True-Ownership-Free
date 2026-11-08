@@ -25,3 +25,9 @@ Do not add sequential A-stage locks or label a restriction “Opens after” a p
 **Why:** The owner explicitly approved this distinction for phone navigation: the stage order is not an unlock chain, and membership/feature restrictions must not be presented as unfinished exercises.
 
 **How to apply:** Keep the existing guarded destinations and access model when restyling navigation. Discovery tips may use browser-only storage, never new account progress fields.
+
+Current location and earned progress are separate signals: the active stage owns “You are here,” even when later stages are already complete. A newly earned brick is a “Latest step,” not another “You.”
+
+**Why:** The owner explicitly requested a revisit case in A2 with A3 complete; furthest completion must not misidentify where the member is working.
+
+**How to apply:** Drive the current-stage emphasis from the active route. Keep later completion gold and the latest-brick glow independent, with no extra user-location marker.

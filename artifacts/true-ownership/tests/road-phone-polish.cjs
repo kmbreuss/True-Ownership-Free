@@ -35,7 +35,7 @@ async function main() {
       }
     }, { theme, f, blocked, key: TIP_KEY });
     await page.goto((process.env.J1_BASE_URL || "http://localhost:80") + "/");
-    await page.locator(width <= 900 ? ".jr-phone-bar" : ".jr-desktop").waitFor();
+    await page.locator(width < 900 ? ".jr-phone-bar" : ".jr-desktop").waitFor();
     await page.evaluate(() => document.fonts.ready);
     return { context, page };
   }
@@ -126,15 +126,15 @@ async function main() {
     try {
       assert.equal(await page.locator(".jr-phone-tip").count(), 0);
       assert.equal(await page.evaluate(key => localStorage.getItem(key), TIP_KEY), null, "Desktop must not consume the phone tip");
-      await page.setViewportSize({ width: 900, height: 812 });
+      await page.setViewportSize({ width: 899, height: 812 });
       await page.locator(".jr-phone-bar").waitFor(); await page.locator(".jr-phone-tip").waitFor();
       assert.equal(await page.locator(".jr-desktop").isVisible(), false);
       await page.locator(".jr-phone-bar").click();
       await page.locator(".jr-phone-stage-nav").waitFor();
-      await page.setViewportSize({ width: 1280, height: 812 });
+      await page.setViewportSize({ width: 900, height: 812 });
       assert.equal(await page.locator(".jr-phone-stage-nav").isVisible(), false);
       assert.equal(await page.locator(".jr-desktop").isVisible(), true);
-      console.log("PASS desktop unchanged, inclusive 900px phone breakpoint, desktop does not consume tip");
+      console.log("PASS desktop at 900px, phone below 900px, desktop does not consume tip");
     } finally { await context.close(); }
     assert.deepEqual(unexpected, []); assert.deepEqual(errors, []);
     fs.writeFileSync(path.join(out, "results.json"), JSON.stringify({ results, interceptedWrites: writes.length, unexpected, errors }, null, 2));
