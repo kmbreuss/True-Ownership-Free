@@ -1,0 +1,25 @@
+.pn-menu{display:none}
+/* The existing full-screen player must cover the persistent top road too. */
+body.journey-on .na1-video-overlay{z-index:21000}
+.pn-desktop-links{display:flex;gap:18px;align-items:center;justify-content:center;width:100%;padding-top:8px}
+.pn-desktop-links button{border:0;background:none;color:#735F43;font:13px/1.4 Questrial,sans-serif;min-height:44px;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+.pn-desktop-links button[aria-current="page"]{color:#036360}
+.pn-desktop-links button:disabled{opacity:.55;cursor:not-allowed}
+.pn-desktop-links button:focus-visible,.pn-menu button:focus-visible{outline:2px solid #036360;outline-offset:-3px;border-radius:6px}
+body.journey-on .jr-desktop{grid-template-rows:minmax(0,1fr) auto}
+body.journey-on .map-of-me-page{margin-left:var(--jr-left);width:calc(100% - var(--jr-left));box-sizing:border-box}
+html[data-theme="dark"] .pn-desktop-links button{color:#D9BC85}
+html[data-theme="dark"] .pn-desktop-links button[aria-current="page"]{color:#9CD8CF}
+@media(min-width:1441px){
+ body.journey-on .map-of-me-page{margin-left:calc(var(--jr-group-left) + 318px);width:calc(var(--jr-group-width) - 318px)}
+}
+@media(max-width:899.98px){
+ body.phone-menu-on{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))!important}
+ html:has(body.phone-menu-on){scroll-padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+ .pn-menu{position:fixed;inset:auto 0 0;z-index:18900;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-top:1px solid #dededb;padding:0 6px env(safe-area-inset-bottom,0px);box-sizing:border-box;min-height:64px}
+ .pn-menu button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:64px;border:0;background:none;color:#777d7b;font:11px/1.3 Questrial,sans-serif;padding:8px 2px;cursor:pointer}
+ .pn-menu button.is-active{color:#036360}
+ .pn-menu button:disabled{color:#929694;cursor:not-allowed}
+ .pn-desktop-links{display:none}
+ body.journey-on .map-of-me-page{margin-left:0;width:100%}
+}

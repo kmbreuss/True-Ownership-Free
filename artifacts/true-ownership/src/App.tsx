@@ -24,6 +24,7 @@ import { A1MirrorOrder, A1FutureBThread } from "./components/A1FutureB";
 import { FutureBGrows } from "./journey/FutureBGrows";
 import { MirrorCards } from "./journey/MirrorCards";
 import { JourneyRoad } from "./journey/Road";
+import { AudioPage } from "./components/AudioPage";
 import { spineNavigation } from "./journey/navigation";
 import { readJourney } from "./journey/progress";
 import { ValuesOpening, ValuesProgress } from "./valuesExperience/ValuesOpening";
@@ -34904,6 +34905,7 @@ type AppRouteView =
   | "a1end2"
   | "a1end3"
   | "a1map"
+  | "audio"
   | "grid"
   | "explore"
   | "explore2"
@@ -34967,6 +34969,7 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a1end2",
   "a1end3",
   "a1map",
+  "audio",
   "grid",
   "explore",
   "explore2",
@@ -35387,6 +35390,7 @@ function NewA1Spine({
 // Open rooms are fixed overlays above it (z-index), so it never shows through.
 type PhoneSpineSnapshot = {
   view: AppRouteView;
+  hideMenu: boolean;
   a1Complete: boolean;
   a2Complete: boolean;
   a3Complete: boolean;
@@ -35447,6 +35451,7 @@ function NewA1PhoneSpine() {
     freeLocked: rcFreeLocked(), returning: hasReturningProgress(),
   });
   return <JourneyRoad view={snap.view} read={loadDataSync} navigation={navigation}
+    hideMenu={snap.hideMenu} canMap={!rcFreeLocked()}
     onNavigate={destination => snap.navigate(destination as AppRouteView)} />;
 }
 
@@ -35567,6 +35572,7 @@ function VideoCard({ surface }: { surface: VideoSurface }) {
       className="na1-video-card"
       role="button"
       tabIndex={0}
+      aria-label={`Play ${meta.title}`}
       onClick={open}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -35591,14 +35597,16 @@ function VideoCard({ surface }: { surface: VideoSurface }) {
 
   const player = (
     <div className="na1-video-player-wrap">
-      <iframe
+      {meta.mediaType === "audio" ? <audio controls autoPlay src={meta.audioUrl ?? undefined}
+        aria-label={meta.title} /> : meta.videoUrl ? <video controls autoPlay src={meta.videoUrl}
+        aria-label={meta.title} /> : <iframe
         src={embedUrl ?? undefined}
         frameBorder="0"
         allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
         allowFullScreen
         title={meta.title}
         className="na1-video-iframe"
-      />
+      />}
     </div>
   );
 
@@ -51151,7 +51159,7 @@ function NewA1View({
   const [rawView, setRawView] = useState<AppRouteView>(
     () => {
       const saved = savedRouteRef.current;
-      if (saved && ["rc", "rcroom", "a1end1", "a1end2", "a1end3", "a1map"].includes(saved.view)) return saved.view;
+      if (saved && ["rc", "rcroom", "a1end1", "a1end2", "a1end3", "a1map", "audio"].includes(saved.view)) return saved.view;
       // Task 48 · one-shot initial-view override from the phase-"a3"
       // wrapper. Wins over the saved-route restore, EXCEPT when the saved
       // route is already inside A3 — then the normal restore runs so an
@@ -51245,11 +51253,15 @@ function NewA1View({
   const rcRequired = !priorRCProgress && !rcProgress.complete && !rcProgress.rounds.some(round => round.complete);
   const rcGuard = (next: AppRouteView): AppRouteView => {
     if (isDevPreview()) return next;
-    if (rcAccess === "free" && !["rc", "rcroom", "entry-hall"].includes(next)) return "rc";
+    // The library itself is public to members of this flow; its entries are
+    // filtered by the original surface's access, not by opening history.
+    if (rcAccess === "free" && !["rc", "rcroom", "entry-hall", "audio"].includes(next)) return "rc";
     if (["explore", "explore2", "m3", "m4"].includes(next) && rcRequired) return "rc";
     return next;
   };
   const view = rcGuard(rawView);
+  // Return context for global Map entry is UI-only, never synced account data.
+  const menuMapReturn = useRef<AppRouteView | null>(null);
   const setView = (next: AppRouteView | ((old: AppRouteView) => AppRouteView)) =>
     setRawView(old => rcGuard(typeof next === "function" ? next(old) : next));
   const rcResumeRef = useRef(savedRouteRef.current?.view === "rcroom");
@@ -51758,14 +51770,18 @@ function NewA1View({
   useEffect(() => {
     setPhoneSpine({
       view,
+      hideMenu: roomOpen || overlayRoute != null || veilPhase !== "idle",
       a1Complete,
       a2Complete,
       a3Complete,
       a4Complete,
       a5Complete,
-      navigate: setView,
+      navigate: next => {
+        if (next === "a1map" && view !== "a1map") menuMapReturn.current = view;
+        setView(next);
+      },
     });
-  }, [view, a1Complete, a2Complete, a3Complete, a4Complete, a5Complete, rcAccess, rcRequired]);
+  }, [view, roomOpen, overlayRoute, veilPhase, a1Complete, a2Complete, a3Complete, a4Complete, a5Complete, rcAccess, rcRequired]);
   useEffect(() => () => setPhoneSpine(null), []);
   // Fix 5 · A2 M1 locked-state copy. When A1 is incomplete the A2 hub's 01
   // (Alignment Check) card must name the first unclaimed A1 mirror — walked in
@@ -51918,12 +51934,28 @@ function NewA1View({
       }, 520),
     );
   };
-  if (view === "a1map") return <MapOfMePage onBack={() => setView("a1end3")} />;
+  if (view === "audio") {
+    const mirrorAccess = a1Unlocks(!rcRequired, a1Started(loadDataSync, loadMirror4State()), {
+      values: m4Complete, identity: m3Complete, purpose: purposeComplete, vision: visionComplete,
+    }, isDevPreview());
+    return <AudioPage canOpen={surface => {
+      if (rcFreeLocked()) return ["entry-hall", "rc-intro", "rc-eyes"].includes(surface);
+      if (surface === "m4-hub") return mirrorAccess.values;
+      if (surface === "m3-hub") return mirrorAccess.identity;
+      if (surface === "m1-hub") return mirrorAccess.purpose;
+      if (surface === "m2-hub") return mirrorAccess.vision;
+      return true;
+    }} renderPlayer={surface => <VideoCard surface={surface} />} />;
+  }
+  if (view === "a1map") return <MapOfMePage
+    backLabel={menuMapReturn.current === "entry-hall" ? "Home" : menuMapReturn.current === "audio" ? "Audio"
+      : menuMapReturn.current === "grid" ? "A1" : menuMapReturn.current?.toUpperCase()}
+    onBack={() => setView(menuMapReturn.current ?? "a1end3")} />;
   if (view === "a1end1" || view === "a1end2" || view === "a1end3") {
     return <A1End step={view === "a1end1" ? 1 : view === "a1end2" ? 2 : 3}
       summary={endSummary(loadDataSync(KEYS.map), loadMirror4State(), loadRCState())}
       onStep={step => setView(step === 1 ? "a1end1" : step === 2 ? "a1end2" : "a1end3")}
-      onClose={() => setView("grid")} onMap={() => setView("a1map")}
+      onClose={() => setView("grid")} onMap={() => { menuMapReturn.current = null; setView("a1map"); }}
       onA2={() => { if (a1Complete || isDevPreview()) setView("a2"); }} canA2={a1Complete || isDevPreview()} />;
   }
   if (view === "rc" || view === "rcroom") {
@@ -68974,7 +69006,7 @@ function MapDownloadSection({ name, map }: { name: any; map: any }) {
 }
 
 // ─── My Map of Me · standalone viewing surface ─────────────────────
-function MapOfMePage({ onBack }: any) {
+function MapOfMePage({ onBack, backLabel }: any) {
   const [map, setMap] = useState<any>({});
   const holdback = purposeHoldback(loadDataSync("a1_sym_holdback"), map, loadRCState().tuesday);
   useEffect(() => {
@@ -70453,7 +70485,7 @@ function MapOfMePage({ onBack }: any) {
               cursor: "pointer",
             }}
           >
-            ← Back to {origin.toUpperCase()}
+            ← Back to {backLabel || origin.toUpperCase()}
           </button>
           {/* Ship 5.5e · Personalization · main page title eyebrow uses
               composeMapOfMeTitle — whole-phrase swap, identical to the

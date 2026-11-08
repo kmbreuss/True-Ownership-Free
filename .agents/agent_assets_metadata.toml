@@ -455,3 +455,59 @@ mtime_ms = 1794158685964
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/9cbe475d-3416-4d30-9126-defe744c79dd/844e1de8-8c39-4e71-8439-aaa8b1d94723"
 storage_version_token = "1794158890953579"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "NRcxbw2zQ4PljkuKXTMF5"
+uri = "file://generated-artifacts/phone-menu-audio/phone-screens-light.jpg"
+type = "image"
+title = "Phone screenshots · light · 375×812"
+description = "Labelled synthetic-fixture screenshots: Home, A2 hub, Map of Me, Audio and the existing road sheet. Each original viewport is 375×812."
+logical_id = "eb5ca62b-93d1-4d15-ac74-fc76c426bffc"
+content_hash = "sha256:9f7a813cda2a9cc9149167160c73f38babf82f108755b928af0f34baec89424d"
+size = 252834
+mtime_ms = 1794162003894
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/eb5ca62b-93d1-4d15-ac74-fc76c426bffc/b3cf7638-3c12-47cb-a6ee-1d599f0d6876"
+storage_version_token = "1794162042120195"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "v5gbHymZ9Jsu9Q49mvRQG"
+uri = "file://generated-artifacts/phone-menu-audio/desktop-screens-light.jpg"
+type = "image"
+title = "Desktop screenshots · light · 1280×800"
+description = "Audio and Map of Me with the desktop links under the road. Each original viewport is 1280×800; no bottom menu."
+logical_id = "59c6ec55-e4d1-4d88-8f74-f36fc159730b"
+content_hash = "sha256:1065a0bef90242abba8b58f338532a823e9afe937db994fbdc72617358fd6f35"
+size = 177639
+mtime_ms = 1794162003932
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/59c6ec55-e4d1-4d88-8f74-f36fc159730b/19d42de6-a27b-42ea-b777-f12746478e5d"
+storage_version_token = "1794162042912795"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "D-IAwtLGP0ByfQKr1oC2u"
+uri = "file://generated-artifacts/phone-menu-audio/phone-screens-dark.jpg"
+type = "image"
+title = "Phone screenshots · dark · 375×812"
+description = "Labelled synthetic-fixture screenshots: Home, A2 hub, Map of Me, Audio and the existing road sheet. Each original viewport is 375×812."
+logical_id = "546d4ca7-ec94-4a93-a829-a1fd5b71c642"
+content_hash = "sha256:8b8097182ac04511238c92aa74c18456e7b57e3d652981fe192a3a1fc072dc01"
+size = 264159
+mtime_ms = 1794162003956
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/546d4ca7-ec94-4a93-a829-a1fd5b71c642/2ae7a55a-f4c7-4565-b5aa-97d23f89ceb3"
+storage_version_token = "1794162043528900"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "KNOeEdWhg9TdkTnXmUO_0"
+uri = "file://generated-artifacts/phone-menu-audio/desktop-screens-dark.jpg"
+type = "image"
+title = "Desktop screenshots · dark · 1280×800"
+description = "Audio and Map of Me with the desktop links under the road. Each original viewport is 1280×800; no bottom menu."
+logical_id = "d299c4b4-d3b6-469c-84cc-8b14f87c861c"
+content_hash = "sha256:8a16988aa960fcbe1d23052a8c1fda8264723cc97d8b6311810c7cab25db62c4"
+size = 185053
+mtime_ms = 1794162003975
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/d299c4b4-d3b6-469c-84cc-8b14f87c861c/73928fb8-5436-49bb-adb2-88f06139b0e9"
+storage_version_token = "1794162044116124"
+content_type = "image/jpeg"

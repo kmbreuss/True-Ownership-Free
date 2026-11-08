@@ -4,6 +4,7 @@ import { groupForView, readJourney, ROAD_GROUPS, type JourneySnapshot, type Read
 import { RoadBar } from "./RoadBar";
 import { StepMoment, useStepMoments } from "./StepMoment";
 import type { RoadNavigationItem } from "./navigation";
+import { DesktopPageLinks, PhoneMenu, menuViews, useFullScreenOverlay } from "../components/PageNavigation";
 import "./journey.css";
 
 const point = (t: number) => ({ x: 145 + 57 * Math.sin(t * Math.PI * 5), y: 515 - t * 460 });
@@ -114,9 +115,12 @@ export function RoadSheet({ snapshot, current, onClose, navigation, onNavigate }
 }
 
 /** Mounted only once, after the app router has finished cloud hydration. */
-export function JourneyRoad({ view, read, navigation, onNavigate }: NavigationProps & { view: string; read: ReadProgress }) {
+export function JourneyRoad({ view, read, navigation, onNavigate, hideMenu = false, canMap = true }: NavigationProps & {
+  view: string; read: ReadProgress; hideMenu?: boolean; canMap?: boolean;
+}) {
   const [snapshot, setSnapshot] = useState(() => readJourney(read));
   const [open, setOpen] = useState(false);
+  const overlayPresent = useFullScreenOverlay();
   const { active, newest } = useStepMoments(snapshot);
   useEffect(() => {
     document.body.classList.add("journey-on");
@@ -132,8 +136,12 @@ export function JourneyRoad({ view, read, navigation, onNavigate }: NavigationPr
   const current = groupForView(view);
   return <>
     <aside className="jr-desktop"><Road snapshot={snapshot} current={current} newest={newest}
-      navigation={navigation} onNavigate={onNavigate} onOpen={() => setOpen(true)} /></aside>
+      navigation={navigation} onNavigate={onNavigate} onOpen={() => setOpen(true)} />
+      <DesktopPageLinks view={view} canMap={canMap} onNavigate={onNavigate} />
+    </aside>
     <RoadBar snapshot={snapshot} current={current} newestGroup={newest?.split(":")[0]} onOpen={() => setOpen(true)} />
+    <PhoneMenu view={view} visible={menuViews.has(view) && !hideMenu && !open && !overlayPresent}
+      canMap={canMap} onNavigate={onNavigate} onRoad={() => setOpen(true)} />
     <StepMoment notice={active} />
     {open && <RoadSheet snapshot={snapshot} current={current} navigation={navigation}
       onNavigate={destination => { setOpen(false); onNavigate(destination); }} onClose={() => setOpen(false)} />}

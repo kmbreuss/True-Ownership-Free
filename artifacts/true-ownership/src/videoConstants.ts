@@ -4,8 +4,12 @@
 // in placeholder mode (play click shows a "Video coming soon" toast). As
 // Katherine records each video, only this file changes — no UI work.
 
+import { RC_INTRO_VIDEO_URL, RC_EYES_AUDIO_URL } from "./rcConstants";
+
 export type VideoSurface =
   | "entry-hall"
+  | "rc-intro"
+  | "rc-eyes"
   | "framework"
   | "a1-hub"
   | "m1-hub"
@@ -24,6 +28,7 @@ export type VideoMeta = {
   durationLabel: string; // "7:43" | "45 sec" — shows in muted meta line
   mediaType: MediaType; // "video" — drives player choice (audio is future)
   vimeoId: string | null; // Vimeo numeric ID, e.g. "1198147066"
+  videoUrl?: string | null; // Existing native-video source, e.g. Reality Check.
   vimeoHash: string | null; // Unlock hash for private videos, e.g. "92f1bb6e8a"
   audioUrl: string | null; // future: local /audio path for audio variants
   posterUrl: string | null; // future: thumbnail/hero photo
@@ -44,6 +49,18 @@ export const VIDEOS: Record<VideoSurface, VideoMeta> = {
     audioUrl: null,
     posterUrl: null,
     transcript: null,
+  },
+  "rc-intro": {
+    id: "rc-introduction", surface: "rc-intro", number: "", title: "Katherine introduces the Reality Check",
+    speaker: "Katherine", durationLabel: "2 min", mediaType: "video",
+    vimeoId: null, vimeoHash: null, videoUrl: RC_INTRO_VIDEO_URL || null,
+    audioUrl: null, posterUrl: null, transcript: null,
+  },
+  "rc-eyes": {
+    id: "rc-close-your-eyes", surface: "rc-eyes", number: "", title: "Close your eyes",
+    speaker: "Katherine", durationLabel: "0:45", mediaType: "audio",
+    vimeoId: null, vimeoHash: null, audioUrl: RC_EYES_AUDIO_URL || null,
+    posterUrl: null, transcript: null,
   },
   framework: {
     id: "framework-5a",
@@ -136,8 +153,8 @@ export const VIDEOS: Record<VideoSurface, VideoMeta> = {
  * shows but the play button only toasts "Video coming soon").
  */
 export function isVideoReady(meta: VideoMeta): boolean {
-  if (meta.mediaType === "video") return meta.vimeoId !== null;
-  if (meta.mediaType === "audio") return meta.audioUrl !== null;
+  if (meta.mediaType === "video") return !!(meta.vimeoId?.trim() || meta.videoUrl?.trim());
+  if (meta.mediaType === "audio") return !!meta.audioUrl?.trim();
   return false;
 }
 

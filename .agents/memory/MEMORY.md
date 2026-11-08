@@ -14,3 +14,4 @@
 - [Mirror 4 keystone-per-value](true-ownership-keystone.md) — keystone lives on cluster.keystoneBehaviorId (resolve via m4BehaviorTextById); old operationalize.keystoneId is dead/vestigial; A2 align-screen builder still reads it (out of A1 scope).
 - [Values review navigation](values-review-navigation.md) — continuous Back/Next path; review preserves flags and never reclaims or hands off to Identity.
 - [Journey road policy](journey-road-policy.md) — read-only completion evidence; quiet RC bricks, one RC completion card, six proportional phone segments.
+- [Navigation and recordings](navigation-audio-policy.md) — source-only Audio follows access, not visit history; bottom navigation stays outside rooms and overlays.

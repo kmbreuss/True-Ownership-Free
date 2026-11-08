@@ -1,0 +1,21 @@
+.ap-shell{box-sizing:border-box;width:100%;max-width:760px;padding:40px 28px}
+.ap-shell h1{font:32px/1.25 var(--f-display,"Tenor Sans",sans-serif);color:var(--na1-text,#353334);margin:0 0 28px}
+.ap-recordings{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:24px}
+.ap-recordings li{min-width:0}
+.ap-location{font:11px/1.5 Questrial,sans-serif;color:var(--na1-text-mute,#735F43);text-transform:uppercase;letter-spacing:.12em;margin:0 0 8px}
+.ap-more{font:italic 21px/1.4 var(--f-body,"Cormorant Garamond",serif);color:var(--na1-text-sec,#735F43);margin:28px 0 0}
+.ap-root .na1-video-card{box-sizing:border-box;width:100%;margin:0}
+.ap-root .na1-video-title{overflow-wrap:anywhere}
+.ap-root .na1-video-player-wrap audio{width:100%}
+body.journey-on .na1-video-player-wrap video{position:absolute;inset:0;width:100%;height:100%}
+body.journey-on .na1-video-player-wrap:has(audio){padding:20px 0}
+body.journey-on .na1-video-player-wrap audio{display:block;width:100%}
+@media(max-width:899.98px){
+ .ap-shell{padding:30px 20px}
+ .ap-shell h1{font-size:28px;margin-bottom:24px}
+ .ap-recordings{gap:22px}
+ .ap-root .na1-video-card{padding:18px 14px}
+ .ap-root .na1-video-num{display:none}
+ .ap-root .na1-video-title{font-size:20px}
+ .ap-more{font-size:20px}
+}
