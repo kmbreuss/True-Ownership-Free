@@ -581,3 +581,59 @@ mtime_ms = 1794164001292
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a8854458-831d-42ba-8911-a0da6e98e504/b5c63c07-9f08-49fc-9e7b-eca628c97e33"
 storage_version_token = "1794164223097260"
 content_type = "text/html"
+
+[[outputs]]
+id = "WgTUSFy39eQmAnsI9PLLv"
+uri = "file://generated-artifacts/appearance/375-home-light.jpg"
+type = "image"
+title = "Home · 375×812 · Light"
+description = "Verified with an isolated synthetic fixture; no real account used."
+logical_id = "15f708b2-31fe-4c58-bffd-d3735cf7b76a"
+content_hash = "sha256:9ecc627dc6e211cc93a5a935f864349cd241dd3035ba380ed567655cfa6b1021"
+size = 35901
+mtime_ms = 1794165082347
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/15f708b2-31fe-4c58-bffd-d3735cf7b76a/d7c8e5bd-7638-4581-94f5-e4d330b5c3c8"
+storage_version_token = "1794165188902641"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "AWUpMa2ssv83uAQxaRxFd"
+uri = "file://generated-artifacts/appearance/375-home-dark.jpg"
+type = "image"
+title = "Home · 375×812 · Dark"
+description = "Verified with an isolated synthetic fixture; no real account used."
+logical_id = "0dd2d2d2-ae55-4fea-8b57-a795441f6c10"
+content_hash = "sha256:2d8e3bf96adc5122140d53228f9d4bb62042aca4bb22ff751efc24c923e71f3c"
+size = 38509
+mtime_ms = 1794165099871
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0dd2d2d2-ae55-4fea-8b57-a795441f6c10/da5ed17e-70c6-44b6-b53d-fb0ae332c264"
+storage_version_token = "1794165189475010"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "fQCke8wQWNNhXWR4MENV6"
+uri = "file://generated-artifacts/appearance/375-road-light.jpg"
+type = "image"
+title = "Road appearance · 375×812 · Light"
+description = "Verified with an isolated synthetic fixture; no real account used."
+logical_id = "0ac4df88-00aa-41e3-8f4a-385912e516d0"
+content_hash = "sha256:8c872e584a4f13637e637c4c1826a0996b854d9d8be91bcd6aea3b7e5c9cf962"
+size = 25893
+mtime_ms = 1794165082871
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0ac4df88-00aa-41e3-8f4a-385912e516d0/cc9ff0a8-6a9c-4a0e-a7a5-b42e20bcb9f3"
+storage_version_token = "1794165190042528"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "-Jeji-MYo_UPvwj0a9XMw"
+uri = "file://generated-artifacts/appearance/375-road-dark.jpg"
+type = "image"
+title = "Road appearance · 375×812 · Dark"
+description = "Verified with an isolated synthetic fixture; no real account used."
+logical_id = "8969b8c0-ac50-4b29-b6f9-a50eb3266ec6"
+content_hash = "sha256:eb224f63abeb4eaa0361968943d17da45d69a4bacb2a3c6aff631e1f7cbbb4b5"
+size = 28211
+mtime_ms = 1794165100439
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/8969b8c0-ac50-4b29-b6f9-a50eb3266ec6/8049481e-1857-4a2e-97b0-99d76c91eaf1"
+storage_version_token = "1794165190592901"
+content_type = "image/jpeg"

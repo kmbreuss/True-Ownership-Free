@@ -23,6 +23,7 @@ import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./re
 import { A1MirrorOrder, A1FutureBThread } from "./components/A1FutureB";
 import { FutureBGrows } from "./journey/FutureBGrows";
 import { MirrorCards } from "./journey/MirrorCards";
+import { AppearanceProvider, HomeAppearanceButton, useAppearance } from "./appearance/Appearance";
 import { IllustratedMirrorGrid } from "./mirrorIllustrations/IllustratedMirrorGrid";
 import { a2CardFindings, a3CardFindings, a4CardFindings, a5CardFindings } from "./mirrorIllustrations/findings";
 import { JourneyRoad } from "./journey/Road";
@@ -35961,6 +35962,7 @@ function NewA1EntryHall({
   return (
     <div className="na1-root">
       <main className="na1-eh-content">
+        <HomeAppearanceButton />
         <DevResetBar />
         {onRealityCheck && <section className="rc-entry-card">
           <p className="na1-eh-eyebrow">{hasReturningProgress() && !loadRCState().complete ? "Start here · New" : "Start here"}</p>
@@ -72753,26 +72755,11 @@ function SyncStatusPanel() {
 
 // ─── NEW A1: global theme toggle (visible on login + every authed view) ───
 function Na1ThemeToggle() {
-  const [theme, setThemeState] = useState<"dark" | "light">(() => {
-    try {
-      const saved = localStorage.getItem("na1_theme");
-      return saved === "dark" ? "dark" : "light";
-    } catch {
-      return "light";
-    }
-  });
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    if (theme === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-    try {
-      if (!isDevPreview()) localStorage.setItem("na1_theme", theme);
-    } catch {}
-  }, [theme]);
+  const { theme, choose } = useAppearance();
   return (
     <button
       className="na1-theme-toggle"
-      onClick={() => setThemeState((t) => (t === "dark" ? "light" : "dark"))}
+      onClick={() => choose(theme === "dark" ? "light" : "dark")}
       aria-label="Toggle light or dark theme"
       title={theme === "dark" ? "Switch to light" : "Switch to dark"}
     >
@@ -72803,12 +72790,12 @@ export default function App() {
       </>
     );
   return (
-    <>
+    <AppearanceProvider>
       <Na1ThemeToggle />
       <NewA1PhoneSpine />
       <ServerDataLoader>
         <AuthedApp />
       </ServerDataLoader>
-    </>
+    </AppearanceProvider>
   );
 }

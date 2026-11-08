@@ -5,6 +5,7 @@ import { RoadBar } from "./RoadBar";
 import { StepMoment, useStepMoments } from "./StepMoment";
 import type { RoadNavigationItem } from "./navigation";
 import { DesktopPageLinks, PhoneMenu, menuViews, useFullScreenOverlay } from "../components/PageNavigation";
+import { AppearanceOptions } from "../appearance/Appearance";
 import "./journey.css";
 
 const point = (t: number) => ({ x: 145 + 57 * Math.sin(t * Math.PI * 5), y: 515 - t * 460 });
@@ -68,7 +69,7 @@ export function RoadSheet({ snapshot, current, onClose, navigation, onNavigate }
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
-        const buttons = dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),[tabindex="0"]');
+        const buttons = dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input[type="radio"]:checked,[tabindex="0"]');
         if (!buttons?.length) return;
         const first = buttons[0], last = buttons[buttons.length - 1];
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
@@ -110,6 +111,7 @@ export function RoadSheet({ snapshot, current, onClose, navigation, onNavigate }
           })}
         </section>
       </div>
+      <AppearanceOptions />
     </div>
   </div>, document.body);
 }

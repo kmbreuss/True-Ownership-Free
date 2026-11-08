@@ -15,3 +15,4 @@
 - [Values review navigation](values-review-navigation.md) — continuous Back/Next path; review preserves flags and never reclaims or hands off to Identity.
 - [Journey road policy](journey-road-policy.md) — read-only completion evidence; quiet RC bricks, one RC completion card, six proportional phone segments.
 - [Navigation and recordings](navigation-audio-policy.md) — source-only Audio follows access, not visit history; bottom navigation stays outside rooms and overlays.
+- [Appearance compatibility](appearance-policy.md) — preserve old Light/Dark choices; an auto-saved Light cannot be distinguished from a deliberate selection.
