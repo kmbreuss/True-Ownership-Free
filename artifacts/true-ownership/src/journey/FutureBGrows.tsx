@@ -1,9 +1,12 @@
 import { RC_LABEL } from "../rcConstants";
 import type { JourneySnapshot } from "./progress";
 import "./future-b.css";
+import { usePractical } from "../a1End/usePractical";
 
 export function FutureBGrows({ snapshot }: { snapshot: JourneySnapshot }) {
   const { rc, summary, claimed, lines, clarity } = snapshot;
+  const { practical, error } = usePractical();
+  const oneThing = practical.sharpenedOneThing?.trim() ? practical.sharpenedOneThing : rc.futureB1.oneThing;
   if (rc.choice !== "B") return null;
   const date = rc.completedAt ? new Date(rc.completedAt) : null;
   const dateText = date && Number.isFinite(date.getTime())
@@ -28,7 +31,8 @@ export function FutureBGrows({ snapshot }: { snapshot: JourneySnapshot }) {
         <span>{claimed[key] ? "★ " : ""}{key.toUpperCase()}</span>
         <p>{claimed[key] ? lines[key] : placeholders[key]}</p>
       </div>)}</div>
-    {rc.futureB1.oneThing.trim() && <p className="jr-future-week">This week: {rc.futureB1.oneThing}</p>}
+    {oneThing.trim() && <p className="jr-future-week">This week: {oneThing}</p>}
+    {error && <p role="alert">{error}</p>}
     <p className="jr-future-close">This is what you chose. A1 is who you need to be to live it.</p>
   </aside>;
 }

@@ -763,3 +763,73 @@ mtime_ms = 1794169083820
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/9343699c-0e19-4eef-8822-cdd734c87365/d825a41d-4a60-4568-97de-e0ce053a6da2"
 storage_version_token = "1794169149959885"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "bTZKKgxN40IX2U_lVi8KU"
+uri = "file://generated-artifacts/a1-practical/creatures-lately-375-812-light.png"
+type = "image"
+title = "Phone · Creatures lately · Light"
+description = "375×812, synthetic fixture. The body scrolls; Back and Continue stay visible."
+logical_id = "ccae81a7-1460-423f-8a31-8803f752df58"
+content_hash = "sha256:f8dd8a444c375c7d912dd2e8a618b52fac563d8211cc0011a5947ac091847098"
+size = 62445
+mtime_ms = 1794171939500
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/ccae81a7-1460-423f-8a31-8803f752df58/b2ad1ecb-497e-4188-b829-014d4d7c2ff5"
+storage_version_token = "1794172393135722"
+content_type = "image/png"
+
+[[outputs]]
+id = "YSJdwQy0Nv7N1VaKkYXiy"
+uri = "file://generated-artifacts/a1-practical/creatures-lately-375-812-dark.png"
+type = "image"
+title = "Phone · Creatures lately · Dark"
+description = "375×812, synthetic fixture. Saved balance choices and fixed footer."
+logical_id = "a0a3afce-0407-4189-914b-e1c1aebc83ea"
+content_hash = "sha256:e8e22b650941b883c6dfc13fe9b5d2d52396c4fdff9674f49917ad3a9001269e"
+size = 60440
+mtime_ms = 1794171947580
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a0a3afce-0407-4189-914b-e1c1aebc83ea/28cb401c-b4a2-4869-8a25-111a350a89c8"
+storage_version_token = "1794172393772464"
+content_type = "image/png"
+
+[[outputs]]
+id = "p9rVU4q-k-yefEEFvGATu"
+uri = "file://generated-artifacts/a1-practical/this-week-375-812-light.png"
+type = "image"
+title = "Phone · This week · Light"
+description = "375×812. Do / Try / Notice; lower scroll positions are in the full report."
+logical_id = "d501ef91-10ac-47c4-93e1-ccd22254c123"
+content_hash = "sha256:d95af7e2e5e213879fe8648c181eae685ea15a9af8648a19d4f38788378d06d8"
+size = 64824
+mtime_ms = 1794171941508
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/d501ef91-10ac-47c4-93e1-ccd22254c123/ce8a24e2-ee6c-40c6-9308-aaaef2a2bfdb"
+storage_version_token = "1794172394347255"
+content_type = "image/png"
+
+[[outputs]]
+id = "6FwndVapO7IqTwaYPkZd2"
+uri = "file://generated-artifacts/a1-practical/this-week-375-812-dark.png"
+type = "image"
+title = "Phone · This week · Dark"
+description = "375×812. Original RC wording retained; optional weekly answers use their own store."
+logical_id = "ee23c364-a31e-4bed-b111-0840c974f54a"
+content_hash = "sha256:eb6596069e12a534c509ad8691aa19069af0b4579bc88661c3dc1f3a3087855d"
+size = 62942
+mtime_ms = 1794171949980
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/ee23c364-a31e-4bed-b111-0840c974f54a/5bea6635-78b7-42d7-aa88-0733aad805ca"
+storage_version_token = "1794172394951629"
+content_type = "image/png"
+
+[[outputs]]
+id = "_ULTP0d-w2xjsiQlWiH9V"
+uri = "file://generated-artifacts/a1-practical/report.html"
+type = "html"
+title = "Build 78 · Fields, copy changes, screenshots and files"
+description = "Complete old → new inventory, new-field names and storage, moved controls, 24 fit results, all 30 phone/desktop screenshots, validation results and limits. Self-contained downloadable report."
+logical_id = "4b349435-36e9-47ab-b920-1dbbdf8574e9"
+content_hash = "sha256:a59ccd7262174a52e4dcc5a2e9595bca2d40e9960917d6198f793c76dc461438"
+size = 5744916
+mtime_ms = 1794172373712
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/4b349435-36e9-47ab-b920-1dbbdf8574e9/29e17986-f081-46c7-8b5d-6d228d832933"
+storage_version_token = "1794172395666059"
+content_type = "text/html"

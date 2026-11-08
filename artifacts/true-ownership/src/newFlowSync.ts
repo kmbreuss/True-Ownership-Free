@@ -22,6 +22,7 @@ import { EMPTY_RC, normalizeRC, RC_STORAGE_KEY } from "./rcConstants";
 import { EMPTY_SETASIDE } from "./reality-check/rcJourney";
 import { EMPTY_A5 } from "./a5Constants";
 import { EMPTY_MIRROR4 } from "./mirror4Constants";
+import { EMPTY_PRACTICAL, normalizePractical } from "./a1End/practical";
 
 export const A1_PROGRESS_KEYS = [
   "a1_ex1_done",
@@ -42,6 +43,7 @@ export const STORES: Store[] = [
   { sk: "rcstate", label: "Reality Check", lks: ["to_rc_state_v1"], empty: EMPTY_RC },
   { sk: "setaside", label: "Set aside to sort in A4", lks: ["to_setaside_v1"], empty: EMPTY_SETASIDE },
   { sk: "a1progress", label: "A1 exercise progress", lks: A1_PROGRESS_KEYS },
+  { sk: "a1practical", label: "A1 · This week", lks: ["to_a1_practical_v1"], empty: EMPTY_PRACTICAL },
   { sk: "a2state", label: "A2 · Align With It", lks: ["to_a2_state_v1"], empty: EMPTY_A2 },
   { sk: "a3state", label: "A3 · Advocate For It", lks: ["to_a3_state_v1"], empty: EMPTY_A3 },
   { sk: "a4state", label: "A4 · Act On It", lks: ["to_a4_state_v1"], empty: EMPTY_A4 },
@@ -80,6 +82,32 @@ function setLt(sk: string, lt: number) {
     m[sk] = { lt };
     localStorage.setItem(META_KEY, JSON.stringify(m));
   } catch {}
+}
+let practicalOwner: string | null = null;
+/** Scope only the new store; preserve unsent local answers when accounts switch. */
+export function bindPracticalAccount(owner: string | null) {
+  if (isDevPreview()) return;
+  const ownerKey = "to_a1_practical_owner_v1";
+  const previous = localStorage.getItem(ownerKey);
+  if (previous !== owner) {
+    clearTimeout(timers.a1practical);
+    const meta = readMeta();
+    if (previous) localStorage.setItem(`to_a1_practical_account_v1:${previous}`, JSON.stringify({
+      raw: localStorage.getItem("to_a1_practical_v1"), meta: meta.a1practical ?? null,
+    }));
+    // An unbound first-ever local copy can be adopted by its initial account.
+    const saved = owner ? localStorage.getItem(`to_a1_practical_account_v1:${owner}`) : null;
+    if (previous || owner === null || saved) {
+      const copy = saved ? JSON.parse(saved) : null;
+      if (typeof copy?.raw === "string") localStorage.setItem("to_a1_practical_v1", copy.raw);
+      else localStorage.removeItem("to_a1_practical_v1");
+      delete meta.a1practical;
+      if (copy?.meta && typeof copy.meta.lt === "number") meta.a1practical = copy.meta;
+      localStorage.setItem(META_KEY, JSON.stringify(meta));
+    }
+    if (owner) localStorage.setItem(ownerKey, owner); else localStorage.removeItem(ownerKey);
+  }
+  practicalOwner = owner;
 }
 function storeForLocalKey(lk: string): Store | undefined {
   return STORES.find((s) => s.lks.includes(lk));
@@ -134,7 +162,7 @@ function readLocal(s: Store): any | undefined {
     const raw = localStorage.getItem(s.lks[0]);
     if (raw === null) return undefined;
     const parsed = JSON.parse(raw);
-    return s.sk === "rcstate" ? normalizeRC(parsed) : parsed;
+    return s.sk === "a1practical" ? normalizePractical(parsed) : s.sk === "rcstate" ? normalizeRC(parsed) : parsed;
   } catch {
     return undefined;
   }
@@ -151,7 +179,8 @@ function writeLocal(s: Store, v: any) {
       for (const lk of s.lks) if (v && lk in v) localStorage.setItem(lk, JSON.stringify(v[lk]));
       return;
     }
-    localStorage.setItem(s.lks[0], JSON.stringify(s.sk === "rcstate" ? normalizeRC(v) : v));
+    localStorage.setItem(s.lks[0], JSON.stringify(s.sk === "a1practical" ? normalizePractical(v) : s.sk === "rcstate" ? normalizeRC(v) : v));
+    if (s.sk === "a1practical") window.dispatchEvent(new Event("a1-practical-change"));
   } catch {}
 }
 
@@ -179,6 +208,7 @@ function pushNow(s: Store): Promise<SyncResult> {
 }
 async function pushNowImpl(s: Store): Promise<SyncResult> {
   if (isDevPreview()) return "nothing to sync";
+  const owner = practicalOwner;
   const v = readLocal(s);
   if (!isMeaningful(s, v)) return "nothing to sync";
   let lt = readMeta()[s.sk]?.lt;
@@ -187,6 +217,7 @@ async function pushNowImpl(s: Store): Promise<SyncResult> {
     setLt(s.sk, lt);
   }
   const res = await put(s.sk, { t: lt, v });
+  if (s.sk === "a1practical" && owner !== practicalOwner) return "nothing to sync";
   if (!res) return "push failed (will retry)";
   if (res.status === 409) {
     try {
@@ -249,13 +280,17 @@ export async function resetRealityCheckForDev(): Promise<void> {
 
 // Run once, after the member's server data has loaded and BEFORE the app renders,
 // so the stores are reconciled before any screen reads them.
-export async function hydrateNewFlow(cache: Record<string, any>): Promise<void> {
+export async function hydrateNewFlow(cache: Record<string, any>, ownerId?: string): Promise<void> {
   if (isDevPreview()) return;
+  if (ownerId) bindPracticalAccount(ownerId);
+  const owner = practicalOwner;
   enabled = true;
   for (const s of STORES) {
+    if (s.sk === "a1practical" && owner !== practicalOwner) continue;
     try {
       const wrapped = isWrapped(cache[s.sk]) ? (cache[s.sk] as Wrapped) : null;
-      const S = wrapped && s.sk === "rcstate" ? { ...wrapped, v: normalizeRC(wrapped.v) } : wrapped;
+      const S = wrapped && s.sk === "a1practical" ? { ...wrapped, v: normalizePractical(wrapped.v) }
+        : wrapped && s.sk === "rcstate" ? { ...wrapped, v: normalizeRC(wrapped.v) } : wrapped;
       const L = readLocal(s);
       const localReal = isMeaningful(s, L);
       const lt = readMeta()[s.sk]?.lt;
@@ -277,8 +312,9 @@ export async function hydrateNewFlow(cache: Record<string, any>): Promise<void> 
           lastResult[s.sk] = "loaded from your account";
         }
       }
-    } catch {
+    } catch (error) {
       lastResult[s.sk] = "push failed (will retry)";
+      if (s.sk === "a1practical") throw error;
     }
   }
 }

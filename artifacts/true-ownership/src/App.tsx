@@ -20,6 +20,8 @@ import { alignmentScreens, laterSections } from "./mapOfMe/later";
 import { downloadMapPDF } from "./mapOfMe/pdf";
 import { loadNotice } from "./a1End/notice";
 import { WeeklyNotice } from "./a1End/WeeklyNotice";
+import { CreatureBalance } from "./a1End/CreatureBalance";
+import { PracticalHome } from "./a1End/PracticalHome";
 import { RealityCheck } from "./reality-check/RealityCheck";
 import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
@@ -305,6 +307,7 @@ import {
 import { notifyLocalChange } from "./syncHook";
 import {
   hydrateNewFlow,
+  bindPracticalAccount,
   autoPushLegacy,
   syncStatus,
   exportLocalAnswers,
@@ -36021,6 +36024,8 @@ function NewA1EntryHall({
         {allClaimed && onCheckin ? (
           <A5ThisWeek variant="hall" onCheckin={onCheckin} onOpenA5={onOpenA5} />
         ) : null}
+        <PracticalHome identity={loadMirror3State()} original={loadRCState().futureB1.oneThing}
+          value={endSummary(loadDataSync(KEYS.map), loadMirror4State(), loadRCState()).names[0] || ""} />
         <p className="na1-eh-eyebrow">True Ownership · Welcome</p>
         <p className="na1-eh-quote">
           Our life is a mirror of how we think and feel about ourselves.
@@ -52051,6 +52056,7 @@ function NewA1View({
   if (view === "a1end1" || view === "a1end2" || view === "a1end3") {
     return <A1End step={view === "a1end1" ? 1 : view === "a1end2" ? 2 : 3}
       summary={endSummary(loadDataSync(KEYS.map), loadMirror4State(), loadRCState())}
+      identity={loadMirror3State()} oneThing={loadRCState().futureB1.oneThing}
       onStep={step => setView(step === 1 ? "a1end1" : step === 2 ? "a1end2" : "a1end3")}
       onClose={() => setView("grid")} onMap={() => { menuMapReturn.current = null; setView("a1map"); }}
       onA2={() => { if (a1Complete || isDevPreview()) setView("a2"); }} canA2={a1Complete || isDevPreview()} />;
@@ -53126,7 +53132,7 @@ function NewA1M3OwnItView({
   const displayName = resolveDisplayName(intakeName, authUser);
   const [state, setState] = useState<Mirror3State>(() => loadMirror3State());
   const initialSealCompleted = useRef<boolean>(state.sealCompleted);
-  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony">(
+  const [mode, setMode] = useState<"readback" | "claiming" | "ceremony" | "lately">(
     () => (initialSealCompleted.current ? "ceremony" : "readback"),
   );
   const [showBurst, setShowBurst] = useState(false);
@@ -53322,6 +53328,14 @@ function NewA1M3OwnItView({
 
   const handleContinueToValues = async () => {
     if (working) return;
+    if (clusters.length > 1 && mode !== "lately") {
+      setMode("lately");
+      return;
+    }
+    if (initialSealCompleted.current) {
+      onBack?.();
+      return;
+    }
     if (isDevPreview()) return;
     setWorking(true);
     // Defensive: ensure sealCompleted persisted before routing (covers the
@@ -53349,6 +53363,8 @@ function NewA1M3OwnItView({
   };
 
   const isFading = mode !== "readback";
+  if (mode === "lately") return <CreatureBalance identity={state} reviewing={editMode}
+    onBack={() => setMode("ceremony")} onContinue={handleContinueToValues} />;
 
   return (
     <div className={`na2-decl m3-seal ${embedded ? "is-embedded" : ""} ${wide ? "is-stepped" : ""}`}>
@@ -53673,7 +53689,7 @@ function NewA1M3OwnItView({
                   onClick={handleContinueToValues}
                   disabled={working}
                 >
-                  Continue to Purpose →
+                  {clusters.length > 1 ? "Continue →" : editMode ? "Done reviewing →" : "Continue to Purpose →"}
                 </button>
               )}
             </>
@@ -53708,7 +53724,7 @@ function NewA1M3OwnItView({
           onClick={handleContinueToValues}
           disabled={working}
         >
-          Continue to Purpose →
+          {clusters.length > 1 ? "Continue →" : editMode ? "Done reviewing →" : "Continue to Purpose →"}
         </button>
         <p
           className="na2-decl-footnote"
@@ -72880,6 +72896,7 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
 }
 
 function ServerDataLoader({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [ready, setReady] = useState(false);
   const [showMigration, setShowMigration] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -72913,14 +72930,14 @@ function ServerDataLoader({ children }: { children: React.ReactNode }) {
         // Reconcile the new-flow stores (A1 progress, A2, A3, Values) with the
         // account BEFORE any screen reads them: push if the server has none,
         // load if this browser has none, otherwise the newer copy wins.
-        await hydrateNewFlow(cache);
+        await hydrateNewFlow(cache, user?.id);
         if (active) setReady(true);
       })
       .catch(() => {
         if (active) setLoadError(true);
       });
-    return () => { active = false; };
-  }, [attempt]);
+    return () => { active = false; bindPracticalAccount(null); };
+  }, [attempt, user?.id]);
 
   if (loadError) return <div role="alert" style={{ padding: 32, textAlign: "center" }}>
     <p>Your saved progress could not be loaded. Your access has not been changed.</p>

@@ -1,19 +1,25 @@
 import React, { useEffect, useRef } from "react";
 import type { EndSummary } from "./summary";
-import { WeeklyNotice } from "./WeeklyNotice";
+import { PracticalWeek } from "./PracticalWeek";
+import { usePractical } from "./usePractical";
+import type { Mirror3State } from "../mirror3Constants";
 import { Claimed } from "./Claimed";
 import "./a1-end.css";
 
 export interface A1EndProps {
   step: 1 | 2 | 3;
   summary: EndSummary;
+  identity?: Mirror3State;
+  oneThing?: string;
   onStep: (step: 1 | 2 | 3) => void;
   onClose: () => void;
   onMap: () => void;
   onA2: () => void;
   canA2: boolean;
 }
-export function A1End({ step, summary: s, onStep, onClose, onMap, onA2, canA2 }: A1EndProps) {
+export function A1End({ step, summary: s, identity, oneThing = "", onStep, onClose, onMap, onA2, canA2 }: A1EndProps) {
+  const { practical } = usePractical();
+  const reviewing = useRef(!!practical.weekReviewedAt).current;
   const body = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   useEffect(() => { body.current?.scrollTo(0, 0); }, [step]);
@@ -62,13 +68,13 @@ export function A1End({ step, summary: s, onStep, onClose, onMap, onA2, canA2 }:
             </dd></div>}
           </dl>
           {s.futureB && <aside className="a1-end-future"><span className="a1-end-label">MY FUTURE B ★</span><blockquote>“{s.futureB}”</blockquote></aside>}
-        </> : step === 2 ? <WeeklyNotice value={s.names[0]} onDone={() => onStep(3)} />
+        </> : step === 2 ? <PracticalWeek identity={identity} original={oneThing} value={s.names[0]} onDone={() => reviewing ? onClose() : onStep(3)} />
           : <><Claimed />{!canA2 && <p className="a1-end-helper">Complete all four A1 mirrors to unlock A2.</p>}</>}
       </div>
       <footer key={step} className={`a1-end-footer${step === 1 ? " is-summary" : ""}`}>
         {step === 2 ? <>
-          <button type="button" className="na1-btn-ghost" onClick={() => onStep(3)}>I'll do it this week</button>
-          <button type="submit" form="a1-weekly-notice" className="na1-btn-gold">Save →</button>
+          <button type="button" className="na1-btn-ghost" onClick={() => onStep(1)}>← Back</button>
+          <button type="submit" form="a1-practical-week" className="na1-btn-gold">{reviewing ? "Done reviewing →" : "Claim A1 →"}</button>
         </> : step === 3 ? <>
           <button className="na1-btn-ghost" onClick={onMap}>See my Map of Me</button>
           <button className="na1-btn-gold" disabled={!canA2} onClick={onA2}>Continue to A2 →</button>
