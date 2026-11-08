@@ -23,6 +23,8 @@ import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./re
 import { A1MirrorOrder, A1FutureBThread } from "./components/A1FutureB";
 import { FutureBGrows } from "./journey/FutureBGrows";
 import { MirrorCards } from "./journey/MirrorCards";
+import { IllustratedMirrorGrid } from "./mirrorIllustrations/IllustratedMirrorGrid";
+import { a2CardFindings, a3CardFindings, a4CardFindings, a5CardFindings } from "./mirrorIllustrations/findings";
 import { JourneyRoad } from "./journey/Road";
 import { AudioPage } from "./components/AudioPage";
 import { spineNavigation } from "./journey/navigation";
@@ -29902,6 +29904,7 @@ function NewA1Grid({
         {(mirrorsComplete === 4 || isDevPreview()) && <button className="a1-end-link" onClick={onOpenEnd}>See the end of A1 →</button>}
         <A1MirrorOrder presentation={<MirrorCards
           snapshot={readJourney(loadDataSync)}
+          creatures={loadDataSync(KEYS.map)?.mirror3?.clusters ?? []}
           complete={{ values: valuesComplete, identity: identityComplete, purpose: purposeComplete, vision: visionComplete }}
           enabled={{ values: valuesUnlocked || isDevPreview(), identity: identityUnlocked || isDevPreview(), purpose: purposeUnlocked, vision: visionUnlocked }}
           open={{ values: onOpenM4, identity: onOpenM3, purpose: onOpenPurpose, vision: onOpenVision }}
@@ -36232,7 +36235,13 @@ function NewA2HubView({
             {mirrorsComplete < 3 && ` · ${remainingTimeLabel(a2RemainingMinutes(loadA2State()))}`}
           </div>
         </div>
-        <div className="na1-mirror-grid">
+        <IllustratedMirrorGrid cards={a2CardFindings(loadA2State(), (() => {
+          const saved = loadA2State().m1.bottleneck;
+          if (!saved) return "";
+          const screens = readA2RateModel();
+          if (saved === "purpose") return screens.find(screen => screen.kind === "purpose")?.purposeText ?? "";
+          return screens.flatMap(screen => screen.items).find(item => item.id === saved)?.name ?? "";
+        })())}>
           {/* 01 · Alignment Check. Two live states, never a dead button (Fix
               5): A1 complete → status "Up next", live "Begin Alignment Check →"
               routing into the Alignment Check hub (onBeginM1). A1 incomplete →
@@ -36377,7 +36386,7 @@ function NewA2HubView({
               <span className="na1-mirror-card-meta">3 exercises</span>
             </div>
           </article>
-        </div>
+        </IllustratedMirrorGrid>
       </div>
     </div>
   );
@@ -41371,7 +41380,7 @@ function NewA3HubView({
             <strong>{mirrorsComplete} of 6</strong> complete
           </div>
         </div>
-        <div className="na1-mirror-grid">
+        <IllustratedMirrorGrid cards={a3CardFindings(a3)}>
           {/* 01 · People — the only functional mirror this ship. */}
           <article
             className={`na1-mirror-card ${
@@ -41719,7 +41728,7 @@ function NewA3HubView({
               <span className="na1-mirror-card-meta">The decision</span>
             </div>
           </article>
-        </div>
+        </IllustratedMirrorGrid>
       </div>
     </div>
   );
@@ -47500,7 +47509,7 @@ function NewA4HubView({
           </div>
         </div>
         <A4MapOfMe src={src} />
-        <div className="na1-mirror-grid">
+        <IllustratedMirrorGrid cards={a4CardFindings(a4)}>
           {/* 01 · Self */}
           <article
             className={`na1-mirror-card ${
@@ -47624,7 +47633,7 @@ function NewA4HubView({
               <span className="na1-mirror-card-meta">6 exercises</span>
             </div>
           </article>
-        </div>
+        </IllustratedMirrorGrid>
         {/* My Promises + the A4 claim — opens once all three promises are
             claimed. Not a fourth mirror (the count above stays N of 3). */}
         {promisesUnlocked || a4Claimed || isDevPreview() ? (
@@ -50131,7 +50140,7 @@ function NewA5HubView({
             </div>
           </section>
         ) : null}
-        <div className="na1-mirror-grid">
+        <IllustratedMirrorGrid cards={a5CardFindings(a5)}>
           <article
             className={`na1-mirror-card ${
               claimed ? "is-complete" : unlocked ? "is-current" : "is-locked"
@@ -50257,7 +50266,7 @@ function NewA5HubView({
               <span className="na1-mirror-card-meta">Every 90 days</span>
             </div>
           </article>
-        </div>
+        </IllustratedMirrorGrid>
       </div>
     </div>
   );

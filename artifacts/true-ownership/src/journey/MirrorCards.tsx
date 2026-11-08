@@ -1,12 +1,14 @@
 import { A1FutureBThread } from "../components/A1FutureB";
 import { shortLine } from "../a1End/summary";
 import type { JourneySnapshot } from "./progress";
+import { MirrorIllustration, type SavedCreature } from "../mirrorIllustrations/MirrorIllustration";
 import "./mirror-cards.css";
 
 type Mirror = "values" | "identity" | "purpose" | "vision";
 type Flags = Record<Mirror, boolean>;
-export function MirrorCards({ snapshot, complete, enabled, open }: {
+export function MirrorCards({ snapshot, complete, enabled, open, creatures = [] }: {
   snapshot: JourneySnapshot; complete: Flags; enabled: Flags; open: Record<Mirror, (() => void) | undefined>;
+  creatures?: SavedCreature[];
 }) {
   const titles = { values: "What you stand for", identity: "Who you are", purpose: "Your why", vision: "Where you’re going" };
   const discoveries = {
@@ -29,6 +31,7 @@ export function MirrorCards({ snapshot, complete, enabled, open }: {
       onClick={available ? open[mirror] : undefined}
       onKeyDown={e => { if (available && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open[mirror]?.(); } }}
       className={`na1-mirror-card jr-mirror-card ${claimed ? "jr-mirror-claimed" : available ? "jr-mirror-next" : "jr-mirror-later"}`}>
+      <MirrorIllustration id={`a1-${mirror}`} state={claimed ? "claimed" : available ? "next" : "later"} creatures={creatures}/>
       <header><span>{String(i + 1).padStart(2, "0")} · {label.toUpperCase()}</span>
         <span className="jr-mirror-status">{claimed ? "★ CLAIMED" : available ? "UP NEXT" : "LATER"}</span></header>
       <h2>{titles[mirror]}</h2>

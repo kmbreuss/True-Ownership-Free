@@ -77,7 +77,8 @@ html[data-theme="dark"] .jr-history h3,html[data-theme="dark"] .jr-history .jr-e
  .jr-phone-head-right{display:flex;align-items:center;gap:12px}
  .jr-phone-head-right>span:last-child{letter-spacing:.04em}
  .jr-phone-tip{display:block;position:fixed;top:96px;left:12px;right:12px;z-index:19001;box-sizing:border-box;margin:0;padding:11px 14px;border:1px solid #A5875E88;border-radius:10px;background:#FFFDF7;color:#735F43;box-shadow:0 5px 18px #01232522;font:13px/1.4 Questrial,sans-serif;letter-spacing:0;pointer-events:none}
- .jr-phone-segments{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;width:100%}
+ .jr-phone-segments{display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) 18px;gap:7px;width:100%}
+ .jr-phone-destination{align-self:start;text-align:center;color:#A5875E;font-size:17px;line-height:17px;text-shadow:0 0 9px #E2C27E99}
  .jr-phone-segment{display:flex;flex-direction:column;gap:7px;font:10px Questrial,sans-serif;letter-spacing:.12em;text-align:center}
  .jr-segment-track{height:7px;border:1px dashed #A5875E88;border-radius:3px;background:#fff;overflow:hidden;display:block}
  .jr-segment-track>span{height:100%;display:block;background:#C9A86A;border-radius:2px}

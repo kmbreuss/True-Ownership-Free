@@ -43,7 +43,7 @@ export function RoadBar({ snapshot, current, onOpen, newestGroup }: {
   return <>
   <button className="jr-phone-bar" type="button" onClick={() => { tipDeadline.current = 0; setShowTip(false); onOpen(); }}
     aria-describedby={showTip ? "jr-phone-tip" : undefined} aria-label={`Open your full road: ${snapshot.count} steps finished`}>
-    <span className="jr-phone-head"><span>YOU ARE HERE · {currentLabel}</span><span className="jr-phone-head-right"><span>FUTURE B ★</span><span>Road ▾</span></span></span>
+    <span className="jr-phone-head"><span>YOU ARE HERE · {currentLabel}</span><span className="jr-phone-head-right"><span>Road ▾</span></span></span>
     <span className="jr-phone-segments">{ROAD_GROUPS.map(group => {
       const count = snapshot.bricks.filter(b => b.group === group.id && b.done).length;
       return <span className={`jr-phone-segment ${current === group.id ? "is-current" : ""} ${count ? "has-progress" : ""} ${newestGroup === group.id ? "is-newest" : ""}`} key={group.id}
@@ -51,7 +51,7 @@ export function RoadBar({ snapshot, current, onOpen, newestGroup }: {
         <span className="jr-segment-track"><span style={{ width: `${100 * count / group.total}%` }} /></span>
         <span className={current === group.id ? "is-current" : ""}>{current === group.id ? `● ${group.short}` : group.short}</span>
       </span>;
-    })}</span>
+    })}<span className="jr-phone-destination" aria-label="Future B">★</span></span>
   </button>
   {showTip && <p className="jr-phone-tip" id="jr-phone-tip" role="status">Tap your road to see your progress or jump to any step.</p>}
   </>;

@@ -13,3 +13,9 @@ For the Reality Check-linked Vision opening, use the card's available width befo
 **Why:** The owner explicitly prioritized readable desktop type over forcing a one-line result.
 
 **How to apply:** Keep the adjustment specific to this heading, test the longest area name, and report wrapping instead of clipping or reducing text below the desktop floor.
+
+Claimed mirror cards are the hub's summary; do not add a separate “In A… you found” block. Finding lines frame existing saved answers, never inferred discoveries. Alignment Check requires an explicitly saved selection, not the computed lowest-rated default. Weekly Check-In shows its last date, not the member's obstacle reflection.
+
+**Why:** The owner explicitly chose the cards as the summary and restricted which saved evidence may be surfaced there.
+
+**How to apply:** Preserve member wording and existing access rules when adjusting findings. Omit unavailable answers rather than manufacturing them; a claimed flag is not proof of a separately saved written conclusion.

@@ -511,3 +511,73 @@ mtime_ms = 1794162003975
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/d299c4b4-d3b6-469c-84cc-8b14f87c861c/73928fb8-5436-49bb-adb2-88f06139b0e9"
 storage_version_token = "1794162044116124"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "X3E5sfyuZIu261t1B7KSm"
+uri = "file://generated-artifacts/mirror-illustrations/375-light-screenshots.jpg"
+type = "image"
+title = "Phone · 375×812 · Light"
+description = "Synthetic fixtures: A1–A5 illustration panels and claimed/up-next/later states."
+logical_id = "55e6b601-b6bc-40a1-a267-b9f2fc50d2c4"
+content_hash = "sha256:46e370c7a587c10f7ede05f130c156e348d5f8929ce2e3588162c4fef6a737c7"
+size = 338396
+mtime_ms = 1794164164148
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/55e6b601-b6bc-40a1-a267-b9f2fc50d2c4/4c59b4c8-6137-46fe-811f-b9a291ce89ef"
+storage_version_token = "1794164220695875"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "2xfEi64tOU7rPGS_Dn_DP"
+uri = "file://generated-artifacts/mirror-illustrations/375-dark-screenshots.jpg"
+type = "image"
+title = "Phone · 375×812 · Dark"
+description = "Synthetic fixtures: A1–A5 illustration panels and claimed/up-next/later states."
+logical_id = "16ca5856-5c5c-4a86-b233-5a0de90f7c49"
+content_hash = "sha256:ac665be31526baf59a52b4be6af300d63d8038e5d716e535c6a305bf209c3768"
+size = 366759
+mtime_ms = 1794164164181
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/16ca5856-5c5c-4a86-b233-5a0de90f7c49/9f9c67ba-3aa4-47b5-badd-6b06ea5d2500"
+storage_version_token = "1794164221300668"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "KgbG7OAXhMZNqV6DK8Ud8"
+uri = "file://generated-artifacts/mirror-illustrations/1280-light-screenshots.jpg"
+type = "image"
+title = "Desktop · 1280×800 · Light"
+description = "Synthetic fixtures: five hubs and mixed card states."
+logical_id = "e8c5f8c5-76ea-4a3e-b5d5-299dec2ae165"
+content_hash = "sha256:e1e4e1876127356883db0d1e76e5dbabdfc640222a353bcfef923e2276593ebd"
+size = 661557
+mtime_ms = 1794164164328
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/e8c5f8c5-76ea-4a3e-b5d5-299dec2ae165/39bdbab7-a084-416b-a5cc-68e3eb555cf0"
+storage_version_token = "1794164221904284"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "fzpFpM8hJ_S2B2Goe7lkj"
+uri = "file://generated-artifacts/mirror-illustrations/1280-dark-screenshots.jpg"
+type = "image"
+title = "Desktop · 1280×800 · Dark"
+description = "Synthetic fixtures: five hubs and mixed card states."
+logical_id = "a89f25af-fd86-426f-b9d5-92052ce35a0f"
+content_hash = "sha256:87af5b0bfb68cc881066f0f41437bed93a9e15e1cde75f28b27fd66df62f9b85"
+size = 724554
+mtime_ms = 1794164164420
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a89f25af-fd86-426f-b9d5-92052ce35a0f/aff36d40-38b8-4a72-991b-281ee3853083"
+storage_version_token = "1794164222492091"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "PihnzGxK9G8RMJoSjkf86"
+uri = "file://generated-artifacts/mirror-illustrations/report.html"
+type = "html"
+title = "Mirror cards · Full build report"
+description = "Every old-to-new copy/button change, files, checks and remaining limits."
+logical_id = "a8854458-831d-42ba-8911-a0da6e98e504"
+content_hash = "sha256:f3a4d272c70d92becf26be68927e467bf1a78761c1194b517b8507b7c25fc2e8"
+size = 8351
+mtime_ms = 1794164001292
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a8854458-831d-42ba-8911-a0da6e98e504/b5c63c07-9f08-49fc-9e7b-eca628c97e33"
+storage_version_token = "1794164223097260"
+content_type = "text/html"
