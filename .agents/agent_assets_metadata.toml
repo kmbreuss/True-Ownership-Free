@@ -1085,3 +1085,73 @@ mtime_ms = 1794187663615
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a499328c-c1bc-4010-8921-0d64764709f3/a39c4f97-e40a-402c-bb1c-5227c9ad04d0"
 storage_version_token = "1794187707995089"
 content_type = "text/html"
+
+[[outputs]]
+id = "P_xY75clVAwnQfF1cpDI1"
+uri = "file://generated-artifacts/phone-sweep/375-074-Vision-time.png"
+type = "image"
+title = "High priority · Vision Time · 375px"
+description = "The initial viewport does not show Back/Continue; the action is much farther down the room."
+logical_id = "5927ec5a-2b2f-4a4f-ad84-c759ed0c608b"
+content_hash = "sha256:4e7cf971d9a9ea39cc5c3992ffc3e7c41cf0b308cc2122e995072b0a1eab62e2"
+size = 73896
+mtime_ms = 1794188310195
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/5927ec5a-2b2f-4a4f-ad84-c759ed0c608b/56f980e7-b260-4e2f-85ed-67818b325b11"
+storage_version_token = "1794188745617252"
+content_type = "image/png"
+
+[[outputs]]
+id = "Xu4IYGFWDWh6fnekirW_n"
+uri = "file://generated-artifacts/phone-sweep/375-046-Identity-underPressure.png"
+type = "image"
+title = "High priority · Identity Under Pressure · 375px"
+description = "The forward action is below the initial viewport."
+logical_id = "6605afb8-8386-4501-8eea-902b5c7bae2a"
+content_hash = "sha256:bd98fc268f366b456373982e479b25808e780de05ddfca015839f0bb3eab7280"
+size = 63640
+mtime_ms = 1794188269728
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/6605afb8-8386-4501-8eea-902b5c7bae2a/d655970a-1041-47c1-a29b-b80431adc78b"
+storage_version_token = "1794188746843325"
+content_type = "image/png"
+
+[[outputs]]
+id = "ap6aM70plJnk1V_OIHYxX"
+uri = "file://generated-artifacts/phone-sweep/375-259-Purpose-first-time-question-1.png"
+type = "image"
+title = "High priority · Purpose first-time question · 375px"
+description = "Next falls below the initial viewport, even without the revisit banner."
+logical_id = "abf8116b-71f0-497e-9f96-751b070e5e43"
+content_hash = "sha256:37c63a64c56f3ac18d335c8674951514dcae6cf9168d06fa0e41b4c4e02e3a32"
+size = 69776
+mtime_ms = 1794188515607
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/abf8116b-71f0-497e-9f96-751b070e5e43/e1fcbb2f-196e-4982-974e-ff06feedc415"
+storage_version_token = "1794188747427051"
+content_type = "image/png"
+
+[[outputs]]
+id = "vi76HGZY7R_i9tLyi0Gcg"
+uri = "file://generated-artifacts/phone-sweep/375-010-RC-8-keyboard.png"
+type = "image"
+title = "Keyboard simulation · Reality Check · 375px"
+description = "Reduced-height viewport, not an actual phone keyboard. The focused input falls outside the visible area."
+logical_id = "b8c82356-9919-4d90-8da6-fd2b0372bc16"
+content_hash = "sha256:4bc43a8bef553f10a36bcd31debc80b589f3e813ddfc034da9b08a7c157245bb"
+size = 95774
+mtime_ms = 1794188236512
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/b8c82356-9919-4d90-8da6-fd2b0372bc16/f27a9032-6539-45e4-b66b-5877ac5a8968"
+storage_version_token = "1794188747992117"
+content_type = "image/png"
+
+[[outputs]]
+id = "cdNEyMsLwgSYacmkXq2D5"
+uri = "file://generated-artifacts/phone-sweep/report.html"
+type = "html"
+title = "Phone experience sweep · full table and screenshots"
+description = "375×812 and 390×844: ranked findings, per-screen measurements, problem screenshots, field-focus simulations and explicit coverage limits. No app changes."
+logical_id = "7a08a9f5-333a-4b76-a215-8aeddbd2abc7"
+content_hash = "sha256:89abec230eeed44923fb6a970af54653c4ebb2c7c3e2acde788660c147bb883a"
+size = 15456443
+mtime_ms = 1794188715028
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/7a08a9f5-333a-4b76-a215-8aeddbd2abc7/4af82844-c2c0-43c5-9f7d-7c603f3d66e5"
+storage_version_token = "1794188748784930"
+content_type = "text/html"
