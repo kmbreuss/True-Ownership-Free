@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Home, Route, Sparkles, Headphones, Diamond } from "lucide-react";
+import { SignOutButton } from "./SignOutButton";
 import "./page-navigation.css";
 
 const tabs = [
@@ -62,5 +63,6 @@ export function DesktopPageLinks({ view, canMap, onNavigate }: {
       aria-current={view === "a1map" ? "page" : undefined} onClick={() => onNavigate("a1map")}>Map of Me</button>
     <button type="button" aria-current={view === "audio" ? "page" : undefined}
       onClick={() => onNavigate("audio")}>Audio</button>
+    <SignOutButton />
   </nav>;
 }

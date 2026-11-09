@@ -78,8 +78,8 @@ export function PictureMap({ model, sections, open, onBack, backLabel, download,
             <p>{words(going) || going?.empty || "Fills in after Vision"}</p><small>In 10 years</small></button>
         </div>
         {hasWeek && get("notice") && <button className="mom-this-week" onClick={() => open(get("notice")!)} data-map-section="notice" data-map-members="notice">
-          <span>THIS WEEK</span><p>{week.do && <>Do: {week.do} </>}{week.try && <>Try: {week.creature?.emoji} {week.try} </>}
-            {(values[0] || src.notice?.value) && <>Notice: {src.notice?.value || values[0]}</>}</p></button>}
+          <span>THIS WEEK</span><p>{week.do && <>Do: {week.do} </>}{week.try && <>Be: {week.creature?.emoji} {week.try} </>}
+            {(values[0] || src.notice?.value) && <>Live: {src.notice?.value || values[0]}</>}</p></button>}
         <div className="mom-desktop-exports">{exports}</div>
       </aside>
       <div className="mom-picture-main">

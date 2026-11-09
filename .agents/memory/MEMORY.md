@@ -20,3 +20,4 @@
 - [Phone Home policy](phone-home-policy.md) — no valid claim date means “Welcome back”; preserve relocated controls and never infer visit history or missing duration estimates.
 - [Decision walkthrough boundaries](decision-walkthrough-policy.md) — optional, separate from journey progress; explicit leaks only, uncertainty separate, Quick nine screens.
 - [Phone readability](phone-readability-policy.md) — functional text ≥16px, compact status ≥11px, targets ≥44×44px; scroll content rather than hiding actions.
+- [Account exit safety](account-exit-policy.md) — save before clearing account-local caches on sign out; preserve remote answers and browser appearance.

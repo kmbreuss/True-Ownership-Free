@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import type { AuthUser as BaseAuthUser } from "@workspace/api-client-react";
+import { clearSignedOutAccountCache, prepareAccountSignOut, resumeNewFlowAfterSignOutFailure } from "./accountSignOut";
 
 // Extend the generated AuthUser with the server-side `role` field.
 // Optional because legacy responses don't include it; new /api/auth/me
@@ -87,14 +88,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await fetch("/api/auth/logout", {
+      await prepareAccountSignOut();
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
-    } catch {
-      /* server may already be unreachable; clear local state anyway */
+      if (!response.ok) throw new Error("Sign out failed. Please try again.");
+    } catch (error) {
+      resumeNewFlowAfterSignOutFailure();
+      throw error;
     }
+    clearSignedOutAccountCache();
     setUser(null);
+    // Discard all mounted answer state and return to sign-in without old route/preview parameters.
+    window.location.replace(import.meta.env.BASE_URL);
   }, []);
 
   const value: AuthState = {

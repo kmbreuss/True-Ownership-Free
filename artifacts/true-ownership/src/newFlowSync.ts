@@ -65,6 +65,7 @@ export type SyncResult =
   | "kept newer data from your account";
 
 let enabled = false;
+let signedOut = false;
 const timers: Record<string, ReturnType<typeof setTimeout>> = {};
 const resetting = new Set<string>();
 const pending = new Map<string, Set<Promise<SyncResult>>>();
@@ -88,7 +89,7 @@ function setLt(sk: string, lt: number) {
 let practicalOwner: string | null = null;
 /** Scope only the new store; preserve unsent local answers when accounts switch. */
 export function bindPracticalAccount(owner: string | null) {
-  if (isDevPreview()) return;
+  if (isDevPreview() || signedOut) return;
   const ownerKey = "to_a1_practical_owner_v1";
   const previous = localStorage.getItem(ownerKey);
   if (previous !== owner) {
@@ -258,7 +259,7 @@ function schedulePush(s: Store) {
 }
 
 export function markLocalChange(lk: string) {
-  if (isDevPreview()) return;
+  if (isDevPreview() || signedOut) return;
   const s = storeForLocalKey(lk);
   if (!s) return;
   if (resetting.has(s.sk)) return;
@@ -268,6 +269,34 @@ export function markLocalChange(lk: string) {
   if (enabled) schedulePush(s);
 }
 setChangeHandler(markLocalChange);
+
+/** Finish existing saves before the session is removed. A failed save blocks logout. */
+export async function flushNewFlowForSignOut(): Promise<void> {
+  enabled = false;
+  for (const timer of Object.values(timers)) clearTimeout(timer);
+  if (isDevPreview()) return;
+  await Promise.all([...pending.values()].flatMap(jobs => [...jobs]));
+  const results = await Promise.all(STORES.map(pushNow));
+  if (results.includes("push failed (will retry)")) {
+    resumeNewFlowAfterSignOutFailure();
+    throw new Error("Your latest answers could not be saved. Please try signing out again when you’re connected.");
+  }
+}
+
+export function resumeNewFlowAfterSignOutFailure(): void {
+  enabled = true;
+}
+
+/** In-memory cleanup only; the caller clears account-local storage after logout. */
+export function finishNewFlowSignOut(): void {
+  signedOut = true;
+  enabled = false;
+  practicalOwner = null;
+  for (const timer of Object.values(timers)) clearTimeout(timer);
+  for (const key of Object.keys(timers)) delete timers[key];
+  for (const key of Object.keys(lastResult)) delete lastResult[key];
+  pending.clear();
+}
 
 export async function resetRealityCheckForDev(): Promise<void> {
   if (!import.meta.env.DEV || isDevPreview()) throw new Error("Reset is unavailable in this mode.");
@@ -298,6 +327,7 @@ export async function resetRealityCheckForDev(): Promise<void> {
 // so the stores are reconciled before any screen reads them.
 export async function hydrateNewFlow(cache: Record<string, any>, ownerId?: string): Promise<void> {
   if (isDevPreview()) return;
+  signedOut = false;
   if (ownerId) bindPracticalAccount(ownerId);
   const owner = practicalOwner;
   enabled = true;

@@ -57,7 +57,7 @@ export function PracticalWeek({ identity, original, value, onDone, reviewFromMap
     </section>
     <section className="practical-block"><span className="practical-number" aria-hidden="true">2</span>
       <div><h2 className="practical-label">{creature && p.balanceByCreatureId[creature.id] === "behind"
-        ? "TRY · THE CREATURE YOU'VE LEFT BEHIND" : "TRY · BRING A CREATURE FORWARD"}</h2>
+        ? "BE · THE CREATURE YOU'VE LEFT BEHIND" : "BE · BRING A CREATURE FORWARD"}</h2>
         {creature ? <>
           <p>{lot && lot.id !== creature.id ? `Your ${creature.name} has been waiting while the ${lot.name} does the work.`
             : `This week, bring your ${creature.name} forward.`}</p>
@@ -78,7 +78,7 @@ export function PracticalWeek({ identity, original, value, onDone, reviewFromMap
       </div>
     </section>
     <section className="practical-block"><span className="practical-number" aria-hidden="true">3</span>
-      <div><h2 className="practical-label">NOTICE · YOUR #1 VALUE</h2>
+      <div><h2 className="practical-label">LIVE · YOUR #1 VALUE</h2>
         <p>One moment {top} showed up this week. And one moment it didn't.</p>
         <div className="practical-notice">
           <label className="practical-field"><span>A MOMENT I LIVED IT</span>

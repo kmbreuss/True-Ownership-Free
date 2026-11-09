@@ -1211,3 +1211,73 @@ mtime_ms = 1794232873862
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/aa8e7522-94ac-432e-9231-0f4391869919/e9fc76ae-3f25-48cb-9937-7d8b5270125b"
 storage_version_token = "1794232917809053"
 content_type = "text/html"
+
+[[outputs]]
+id = "AXhITKv3IyeaWecX50Kf8"
+uri = "file://generated-artifacts/task88/signout-375-light.png"
+type = "image"
+title = "Phone Sign out · Light · 375×812"
+description = "Sign out below Appearance in the road sheet; synthetic member."
+logical_id = "5debec4c-b54d-447a-a17f-65bb80d1d4db"
+content_hash = "sha256:a7296bc34724b052efb16c228ec37ec02627e09448971db2bb9c9686e09e1424"
+size = 39625
+mtime_ms = 1794241858969
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/5debec4c-b54d-447a-a17f-65bb80d1d4db/3356a6a6-ceaa-424b-860e-0a37483599eb"
+storage_version_token = "1794241903100745"
+content_type = "image/png"
+
+[[outputs]]
+id = "DC0HVo6eBhmxUuiaQtBCA"
+uri = "file://generated-artifacts/task88/signout-375-dark.png"
+type = "image"
+title = "Phone Sign out · Dark · 375×812"
+description = "Sign out below Appearance in the road sheet; synthetic member."
+logical_id = "26e4d8d2-1b3f-4838-90e3-1db78188eb36"
+content_hash = "sha256:39c9edb6f3b25dc8f8d7452206d6e5ab888ab579832050d55e4a37ba8faa10ff"
+size = 38704
+mtime_ms = 1794241866333
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/26e4d8d2-1b3f-4838-90e3-1db78188eb36/64ae1edc-7288-47cb-b4d2-0a3e884e0b2c"
+storage_version_token = "1794241903753750"
+content_type = "image/png"
+
+[[outputs]]
+id = "lQrYciwZ6LWkRx1eipsCe"
+uri = "file://generated-artifacts/task88/signout-1280-light.png"
+type = "image"
+title = "Desktop Sign out · Light · 1280×800"
+description = "Sign out with the page links under the road; synthetic member."
+logical_id = "d8e9c726-5c8e-4f72-b819-4e121d92ce06"
+content_hash = "sha256:2d4d5c0779435c3d04892bab5a11820476a412457337b04d7cf25cb5636313c1"
+size = 306603
+mtime_ms = 1794241873253
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/d8e9c726-5c8e-4f72-b819-4e121d92ce06/b0387754-7f3b-487a-9ade-cff0b0f47cd6"
+storage_version_token = "1794241904395975"
+content_type = "image/png"
+
+[[outputs]]
+id = "DA2piDZFqwi7Ira3lma7c"
+uri = "file://generated-artifacts/task88/signout-1280-dark.png"
+type = "image"
+title = "Desktop Sign out · Dark · 1280×800"
+description = "Sign out with the page links under the road; synthetic member."
+logical_id = "de7ca2d9-58b6-486d-aac7-ebbc45ad52aa"
+content_hash = "sha256:58dc7f4cee5e097b63a91e7cc553bbfbbc879fe9c46e63be3d430e4a90f0e627"
+size = 311209
+mtime_ms = 1794241880341
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/de7ca2d9-58b6-486d-aac7-ebbc45ad52aa/a5e2391f-26ec-48f1-9db8-888fe0ce7e1e"
+storage_version_token = "1794241905082098"
+content_type = "image/png"
+
+[[outputs]]
+id = "xJ0skrQON4wKCEAWTu32n"
+uri = "file://generated-artifacts/task88/report.html"
+type = "html"
+title = "Full copy-change and file report"
+description = "Every old → new weekly copy line, sign-out behavior, checks and changed files. No credentials stored in the file."
+logical_id = "0659a525-abe4-4c92-89c5-9134381bc4f2"
+content_hash = "sha256:ab667de8d39a5d573c85f984abf862294c728e4d099178d5a5fc8a039ffa346f"
+size = 6114
+mtime_ms = 1794241942404
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0659a525-abe4-4c92-89c5-9134381bc4f2/ca6da03f-0205-4957-a230-e8df62c3601d"
+storage_version_token = "1794241955540735"
+content_type = "text/html"

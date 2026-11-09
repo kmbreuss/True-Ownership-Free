@@ -6,6 +6,7 @@ import { StepMoment, useStepMoments } from "./StepMoment";
 import type { RoadNavigationItem } from "./navigation";
 import { DesktopPageLinks, PhoneMenu, menuViews, useFullScreenOverlay } from "../components/PageNavigation";
 import { AppearanceOptions } from "../appearance/Appearance";
+import { SignOutButton } from "../components/SignOutButton";
 import "./journey.css";
 
 const point = (t: number) => ({ x: 145 + 57 * Math.sin(t * Math.PI * 5), y: 515 - t * 460 });
@@ -112,6 +113,7 @@ export function RoadSheet({ snapshot, current, onClose, navigation, onNavigate }
         </section>
       </div>
       <AppearanceOptions />
+      <div className="jr-signout-row"><SignOutButton /></div>
     </div>
   </div>, document.body);
 }

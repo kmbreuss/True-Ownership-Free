@@ -76,8 +76,8 @@ export function PhoneHome({ name, model, identity, original, value, reviewed = f
         {error ? <p role="alert">{error}</p> : practical.weekReviewedAt || model.a1Complete && reviewed ? <>
           <ol className="ph-week-cards">{[
             {label:"DO",text:week.do},
-            {label:`TRY${week.creature ? ` · ${week.creature.emoji} ${week.creature.name}` : ""}`,text:week.try},
-            {label:`NOTICE${value ? ` · ${value}` : ""}`,text:week.notice},
+            {label:`BE${week.creature ? ` · ${week.creature.emoji} ${week.creature.name}` : ""}`,text:week.try},
+            {label:`LIVE${value ? ` · ${value}` : ""}`,text:week.notice},
           ].map((item,i)=><li key={i}><button className="ph-card" onClick={onWeek} aria-label={`Review ${item.label}`}>
             <span className="ph-number">{i+1}</span><span><span className="ph-eyebrow">{item.label}</span>
             <span className="ph-week-answer">{item.text || "Optional · not chosen yet."}</span></span>

@@ -123,10 +123,10 @@ export function a1Sections(src: MapSources): MapSection[] {
   }
   const practical = normalizePractical(src.practical);
   const week = practical.weekReviewedAt ? weeklyProjection(practical, practicalCreatures(map?.mirror3), rc?.futureB1?.oneThing || "", rows.find(row => row.id === "values-rank")?.ranked?.[0] || "") : null;
-  rows.push(section("notice", "a1", "This week I'm noticing", "A1 · Notice", "notice", [
-    ...(week ? [answer("Do", week.do), answer("Try", week.try), answer("Notice", week.notice)] : []),
+  rows.push(section("notice", "a1", "This week I'm living", "A1 · Live", "notice", [
+    ...(week ? [answer("Do", week.do), answer("Be", week.try), answer("Live", week.notice)] : []),
     answer("My value", notice?.value), answer("A moment I lived it", notice?.lived),
     answer("A moment I didn't", notice?.didnt),
-  ], { empty: "Fills in after the optional A1 weekly notice" }));
+  ], { empty: "Fills in after the optional A1 weekly reflection" }));
   return rows;
 }

@@ -1,11 +1,17 @@
 .pn-menu{display:none}
 /* The existing full-screen player must cover the persistent top road too. */
 body.journey-on .na1-video-overlay{z-index:21000}
-.pn-desktop-links{display:flex;gap:18px;align-items:center;justify-content:center;width:100%;padding-top:8px}
+.pn-desktop-links{display:flex;flex-wrap:wrap;gap:0 14px;align-items:center;justify-content:center;width:100%;padding-top:8px}
 .pn-desktop-links button{border:0;background:none;color:#735F43;font:13px/1.4 Questrial,sans-serif;min-height:44px;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
 .pn-desktop-links button[aria-current="page"]{color:#036360}
 .pn-desktop-links button:disabled{opacity:.55;cursor:not-allowed}
 .pn-desktop-links button:focus-visible,.pn-menu button:focus-visible{outline:2px solid #036360;outline-offset:-3px;border-radius:6px}
+.jr-signout-row{flex:none;padding:0 18px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid #A5875E44}
+.jr-signout-row button{display:block;width:100%;min-height:44px;padding:10px 0;text-align:left;border:0;background:none;color:inherit;font:16px/1.4 Questrial,sans-serif;cursor:pointer}
+.jr-signout-row button:focus-visible{outline:2px solid #036360;outline-offset:2px}
+.pn-signout-error{width:100%;color:#735F43;font:16px/1.4 Questrial,sans-serif}
+html[data-theme="dark"] .pn-signout-error{color:#F9F6EE}
+.pn-signout-busy{position:fixed;inset:0;z-index:60000;display:grid;place-items:center;padding:24px;background:#012325eF;color:#fff;font:16px/1.5 Questrial,sans-serif}
 body.journey-on .jr-desktop{grid-template-rows:minmax(0,1fr) auto}
 body.journey-on .map-of-me-page{margin-left:var(--jr-left);width:calc(100% - var(--jr-left));box-sizing:border-box}
 html[data-theme="dark"] .pn-desktop-links button{color:#D9BC85}

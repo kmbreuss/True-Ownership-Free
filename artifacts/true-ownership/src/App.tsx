@@ -313,6 +313,7 @@ import {
   type A5Option,
 } from "./a5Constants";
 import { notifyLocalChange } from "./syncHook";
+import { registerAccountMemoryClear, trackAccountSave } from "./lib/accountSignOut";
 import {
   hydrateNewFlow,
   bindPracticalAccount,
@@ -351,6 +352,10 @@ const ALLOWED_SERVER_KEYS = new Set([
 ]);
 let serverDataCache: Record<string, any> | null = null;
 let isAuthed = false;
+registerAccountMemoryClear(() => {
+  isAuthed = false;
+  serverDataCache = null;
+});
 function localKeyToServerKey(k: string): string | null {
   if (!k.startsWith("to_")) return null;
   const s = k.slice(3);
@@ -371,12 +376,12 @@ function saveData(k: string, v: any) {
   if (sk && serverDataCache) serverDataCache[sk] = v;
   if (k === "to_map") window.dispatchEvent(new CustomEvent("to-answer-saved", { detail: k }));
   if (sk && isAuthed) {
-    fetch(`/api/userdata/${sk}`, {
+    trackAccountSave(sk, () => fetch(`/api/userdata/${sk}`, {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value: v }),
-    }).catch(() => {});
+    }));
   }
 }
 function loadDataSync(k: string): any {
@@ -73013,7 +73018,7 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
             <button
               onClick={() => {
                 setOpen(false);
-                logout();
+                logout().catch(error => window.alert(error instanceof Error ? error.message : "Sign out failed. Please try again."));
               }}
               style={{ fontWeight: 400,
                 display: "block",
