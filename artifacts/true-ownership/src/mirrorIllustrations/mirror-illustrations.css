@@ -21,7 +21,6 @@
 .mi-grid>.na1-mirror-card.jr-mirror-card .na1-mirror-card-meta{color:#735F43}
 @media(max-width:899.98px){
  .na1-mirror-grid.mi-grid,.na1-mirror-grid:has(>.jr-mirror-card>.mi-panel){grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px;grid-auto-rows:auto}
- .na1-mirror-grid.mi-grid:has([data-illustration="a5-commitment"]){grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
  .na1-mirror-grid>.na1-mirror-card.jr-mirror-card:has(>.mi-panel){padding:12px;gap:8px}
  .mi-panel{height:96px;border-radius:10px}
  .mi-panel svg{width:120px;height:90px}

@@ -917,3 +917,31 @@ mtime_ms = 1794178988095
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/22da3d7e-8018-4acf-93a0-2fa2ac004ffb/afed952f-ea54-43b2-96ae-e1dffcb5a019"
 storage_version_token = "1794179038327991"
 content_type = "text/html"
+
+[[outputs]]
+id = "2m0jGOw_DSG7p1MX0QaFq"
+uri = "file://generated-artifacts/a5-phone/light.png"
+type = "image"
+title = "A5 phone · light · 375×812"
+description = "Full-page synthetic capture: two cards across, third card left, matching A2."
+logical_id = "39c7f1c4-207f-47e1-bf96-f72105f41e81"
+content_hash = "sha256:47c9a5cd07f9ac32c16903ae81f0da4ca59e0401a65731d32ab15faffed09df5"
+size = 338793
+mtime_ms = 1794184590268
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/39c7f1c4-207f-47e1-bf96-f72105f41e81/c19cc3ca-7b62-4d33-91b0-bb8d6157ea34"
+storage_version_token = "1794184653489112"
+content_type = "image/png"
+
+[[outputs]]
+id = "8aZkgXWUYLa-cTrIiYrIO"
+uri = "file://generated-artifacts/a5-phone/dark.png"
+type = "image"
+title = "A5 phone · dark · 375×812"
+description = "Full-page synthetic capture with the same grid and naturally wrapping titles."
+logical_id = "538f8d57-8c45-40de-8f0d-1009d2959b34"
+content_hash = "sha256:d9b33416278b310f8deeb91fd5f99ec52ac7999c9d2a466ac0b88286445ba9bc"
+size = 341416
+mtime_ms = 1794184610736
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/538f8d57-8c45-40de-8f0d-1009d2959b34/dadaf999-41c1-4c39-a10e-fbd1edc50069"
+storage_version_token = "1794184654077401"
+content_type = "image/png"
