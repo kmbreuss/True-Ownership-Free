@@ -54,6 +54,7 @@ export function ValuesOpening({ state, canOpen, onOpen, onBack, onVideo, video, 
     </ol>
     {futureB && <p className="vx-thread"><span>●</span> Future B needs you to know what you won't trade.</p>}
     {video}
+    <div className="vx-opening-actions">
     <footer className="vx-opening-footer">
       <button type="button" className="na1-btn-ghost" onClick={onVideo}>▶ Watch Katherine</button>
       <button type="button" className="na1-btn-gold" onClick={() => {
@@ -62,5 +63,6 @@ export function ValuesOpening({ state, canOpen, onOpen, onBack, onVideo, video, 
       }}>{state.claimed ? "Revisit →" : `Continue with ${VALUES_PARTS[active]?.name ?? "Notice"} →`}</button>
     </footer>
     <button type="button" className="vx-back-link" onClick={onBack}>← Back to A1</button>
+    </div>
   </section>;
 }

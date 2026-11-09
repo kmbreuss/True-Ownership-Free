@@ -29883,7 +29883,7 @@ function NewA1Grid({
   const remainingLabel = mirrorsComplete === 4 ? "" : remainingTimeLabel(
     a1RemainingMinutes(progress, m2Progress, (loadDataSync(KEYS.map) as any)?.mirror3, loadMirror4State()));
   return (
-    <div className="na1-root">
+    <div className="na1-root phone-a1-hub">
       <div className="na1-shell">
         <div className="na1-breadcrumb">
           {onEntryHall ? (
@@ -30425,6 +30425,7 @@ function NewA1Explore({
         })}
       </div>
       <div
+        className="phone-opening-actions"
         style={{ display: "flex", justifyContent: "flex-start", marginTop: 8 }}
       >
         <button type="button" className="na1-btn-ghost" onClick={onBack}>
@@ -30438,7 +30439,7 @@ function NewA1Explore({
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
       aria-hidden={dimmed || undefined}
     >
-      <div className="na1-shell">
+      <div className="na1-shell phone-a1-opening">
         <div className="na1-breadcrumb">
           <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
@@ -30549,7 +30550,7 @@ function NewA1RoomShell({
       aria-modal="true"
       aria-label={exercise.name}
     >
-      <div className="na1-room-card">
+      <div className="na1-room-card phone-a1-room">
         <div className="na1-room-crumb">
           <a onClick={onClose}>Purpose</a>
           <span className="sep">›</span>
@@ -32036,7 +32037,7 @@ function NewA2Explore({
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
       aria-hidden={dimmed || undefined}
     >
-      <div className="na1-shell">
+      <div className="na1-shell phone-a1-opening">
         <div className="na1-breadcrumb">
           <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
@@ -32159,6 +32160,7 @@ function NewA2Explore({
           })}
         </div>
         <div
+          className="phone-opening-actions"
           style={{
             display: "flex",
             justifyContent: "flex-start",
@@ -32210,7 +32212,7 @@ function NewA2RoomShell({
       aria-modal="true"
       aria-label={exercise.name}
     >
-      <div className="na1-room-card">
+      <div className="na1-room-card phone-a1-room">
         <div className="na1-room-crumb">
           <a onClick={onClose}>Vision</a>
           <span className="sep">›</span>
@@ -34791,6 +34793,15 @@ function NewA2DeclarationBody({
       ))}
     </section>
   );
+  const declareAction = alreadyComplete ? (
+    <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleContinueToIdentity} disabled={working}>
+      Back to A1 →
+    </button>
+  ) : (
+    <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleClaim} disabled={working}>
+      Claim my vision →
+    </button>
+  );
   const declare = (
     <section className="na2-decl2-declare" aria-label="Declare it">
       {purposeFinal ? (
@@ -34803,15 +34814,7 @@ function NewA2DeclarationBody({
       <h2 className="na2-decl2-h1">This is the life I&rsquo;m building — and I&rsquo;m choosing it.</h2>
       {summary ? <p className="na2-decl2-summary">{summary}</p> : null}
       <p className="na2-decl2-note">You can come back and edit this any time.</p>
-      {alreadyComplete ? (
-        <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleContinueToIdentity} disabled={working}>
-          Back to A1 →
-        </button>
-      ) : (
-        <button type="button" className="na1-btn-gold na2-decl2-cta" onClick={handleClaim} disabled={working}>
-          Claim my vision →
-        </button>
-      )}
+      {wide && declareAction}
     </section>
   );
   return (
@@ -34884,6 +34887,7 @@ function NewA2DeclarationBody({
               <button type="button" className="na1-btn-ghost" onClick={onClose} disabled={working}>
                 ← Back
               </button>
+              {declareAction}
             </div>
           )}
         </div>
@@ -52845,7 +52849,7 @@ function NewA1M3HubView({
       className={`na1-root ${dimmed ? "na1-explore-dimmed" : ""}`}
       aria-hidden={dimmed || undefined}
     >
-      <div className="na1-shell">
+      <div className="na1-shell phone-a1-opening">
         <div className="na1-breadcrumb">
           <a onClick={onEntryHall}>Entry Hall</a>
           <span className="sep">›</span>
@@ -52967,6 +52971,7 @@ function NewA1M3HubView({
           })}
         </div>
         <div
+          className="phone-opening-actions"
           style={{
             display: "flex",
             justifyContent: "flex-start",
@@ -53024,7 +53029,7 @@ function NewA1M3RoomShell({
       aria-modal="true"
       aria-label={room.name}
     >
-      <div className="na1-room-card">
+      <div className="na1-room-card phone-a1-room">
         <div className="na1-room-crumb">
           <a onClick={onClose}>Identity</a>
           <span className="sep">›</span>

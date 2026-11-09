@@ -1,0 +1,89 @@
+/* Phone-only presentation floors. Desktop, handlers and persistence stay intact. */
+@media (max-width:899px) {
+  :is(#root,body) [data-phone-type-floor="16"] { font-size:16px!important; }
+  :is(#root,body) [data-phone-type-floor="11"] { font-size:11px!important; }
+
+  :is(#root,body) :is(.phone-a1-room,.vx-room,.rc-room,.rc-root,.vx-opening,.phone-a1-opening,.phone-a1-hub,.phone-home,.mom-page,.mom-panel,.decision-page,.a1-end-card)
+  :is(button,[role="button"],a,summary) {
+    min-width:44px!important; min-height:44px!important;
+    box-sizing:border-box; touch-action:manipulation;
+  }
+  :is(.phone-a1-room,.vx-room,.rc-room,.phone-a1-opening,.mom-page,.mom-panel) a {
+    display:inline-flex; align-items:center;
+  }
+  :is(.phone-a1-room,.vx-room,.rc-room,.phone-home,.mom-panel,.decision-page)
+  :is(input,textarea) { scroll-margin-block:12px; }
+
+  /* Keep the thin visual progress line inside a full-height button. */
+  .rc-room.rc-room .rc-progress button {
+    height:44px; min-height:44px; background:transparent!important;
+  }
+  .rc-room.rc-room .rc-progress button::after {
+    inset:20px 0 auto;height:3px;border-radius:3px;background:#E4E4E7;
+  }
+  .rc-room.rc-room .rc-progress .is-done button::after { background:#A5875E; }
+  .rc-room.rc-room .rc-progress .is-current button::after { background:#036360; }
+  .rc-room.rc-room .rc-progress { margin-top:0; }
+  .rc-room.rc-room .rc-progress p { margin-top:0!important; }
+  .rc-room.rc-room .rc-body { padding-top:10px;scroll-padding-block:12px; }
+  .rc-room.rc-room .rc-feelings { gap:8px; }
+
+  /* Native long-form rooms retain all their content and existing sequence. */
+  .phone-a1-room {
+    overflow-y:auto!important; overscroll-behavior:contain;
+    padding-top:20px!important;padding-bottom:12px!important;
+    scroll-padding-top:64px;scroll-padding-bottom:160px;
+  }
+  .phone-a1-room>.na1-room-crumb {
+    position:sticky;top:-1px;z-index:6;min-height:44px;
+    padding-right:48px;background:var(--na1-bg-card,#fff);
+  }
+  .phone-a1-room>.na1-room-close {
+    position:sticky;top:0;float:right;z-index:7;margin-top:-44px;margin-left:auto;
+  }
+  .phone-a1-room :is(.na1-room-actions,.m3-under-actions,.na1-peel-actions,.na1-declare-actions,.na2-prose-foot,.na2-decl2-nav) {
+    position:sticky;bottom:-12px;z-index:5;
+    background:var(--na1-bg-card,#fff);border-top:1px solid var(--na1-border,#A5875E55);
+    box-shadow:0 24px 0 var(--na1-bg-card,#fff);
+    padding:10px 0 max(10px,env(safe-area-inset-bottom));margin-bottom:0;
+    flex-shrink:0;gap:8px;
+  }
+  .phone-a1-room .na2-prose-actions { flex-wrap:wrap;gap:8px; }
+  .phone-a1-room .na2-decl2-nav { display:flex;align-items:center; }
+  .phone-a1-room .na2-decl2-nav .na2-decl2-cta { flex:1;min-width:0;margin:0;white-space:normal; }
+  .phone-a1-room .na2-continue-wrap { flex:1;min-width:0; }
+  .phone-a1-room .na2-btn-continue { width:100%;white-space:normal; }
+  .phone-a1-room .na2-prose-foot-meta { flex-wrap:wrap;gap:4px;margin-bottom:8px; }
+  .phone-a1-room .na1-peel-actions>button { flex:1 1 auto; }
+  .phone-a1-room .na1-declare-actions { flex-direction:row; }
+  .phone-a1-room .na1-declare-actions>* { width:auto;flex:1; }
+  .phone-a1-room :is(.purpose-context-frame,.purpose-context-main,.purpose-context-layout) { overflow:visible; }
+
+  .vx-opening {
+    height:calc(100dvh - var(--jr-top,90px) - 80px);
+    min-height:0;display:flex;flex-direction:column;overflow:auto;
+    scroll-padding-bottom:150px;
+  }
+  .vx-opening> * { flex-shrink:0; }
+  .vx-opening-actions {
+    position:sticky;bottom:0;z-index:3;background:#F7F1E5;color:#353334;
+    padding:10px 0;flex-shrink:0;
+  }
+  .vx-opening-footer { flex-wrap:wrap;gap:8px;margin:0;padding-top:8px; }
+  .vx-opening-actions>.vx-back-link { width:100%;margin:0; }
+  .vx-opening-actions :is(.na1-btn-ghost,.vx-back-link) { color:#353334!important; }
+  .vx-opening-actions .na1-btn-ghost { border-color:#A5875E!important; }
+  .phone-a1-opening {
+    height:calc(100dvh - var(--jr-top,90px) - 24px);
+    overflow:auto;box-sizing:border-box;scroll-padding-bottom:90px;
+  }
+  .phone-opening-actions {
+    position:sticky;bottom:0;z-index:5;padding:10px 0!important;
+    margin-bottom:0!important;background:var(--na1-bg-card,#fff);
+  }
+  .mom-picture-exports { flex-wrap:wrap; }
+  .mom-picture-exports button { flex:1 1 140px; }
+  .ph-tabs { gap:4px; }
+  .ph-tabs button { padding-inline:6px; }
+  .decision-frame header>button { flex-shrink:0; }
+}

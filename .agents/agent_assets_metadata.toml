@@ -1155,3 +1155,59 @@ mtime_ms = 1794188715028
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/7a08a9f5-333a-4b76-a215-8aeddbd2abc7/4af82844-c2c0-43c5-9f7d-7c603f3d66e5"
 storage_version_token = "1794188748784930"
 content_type = "text/html"
+
+[[outputs]]
+id = "oHSLu39uRfLRuDm6OyFqb"
+uri = "file://generated-artifacts/phone-fixes/comparison-vision-time.jpg"
+type = "image"
+title = "Vision · before / after light / after dark"
+description = "375×812. Back and Continue now stay visible while the answers scroll."
+logical_id = "7a8cdb71-acf2-4b11-8190-4a8ff97a8947"
+content_hash = "sha256:f459bd9417fa76899c8c85e699ab50a3e6d3d47765ee4ae3025c0fec7c552ceb"
+size = 196244
+mtime_ms = 1794232873282
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/7a8cdb71-acf2-4b11-8190-4a8ff97a8947/765e3e45-5e22-4c71-a4f0-7f1eef5ed95f"
+storage_version_token = "1794232915949437"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "gzRB4lEABTkiViJnFqd1V"
+uri = "file://generated-artifacts/phone-fixes/comparison-values-opening.jpg"
+type = "image"
+title = "Values opening · before / after light / after dark"
+description = "375×812. Existing actions remain visible while the trail scrolls."
+logical_id = "03c6d6d9-b6cc-4a9d-b26c-73a3424c4b62"
+content_hash = "sha256:efdef815fc53a60c183890072f736a9176f2acf4d6ce40292c8a8f21ca8db238"
+size = 144743
+mtime_ms = 1794232873390
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/03c6d6d9-b6cc-4a9d-b26c-73a3424c4b62/38fc73a6-8fd2-4138-bc25-fdc9c2183199"
+storage_version_token = "1794232916589980"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "xgTBf5UAJURUDvGpfFgXJ"
+uri = "file://generated-artifacts/phone-fixes/comparison-rc-8.jpg"
+type = "image"
+title = "Reality Check · before / after light / after dark"
+description = "375×812. Larger hit areas and readable labels, with unchanged wording."
+logical_id = "b7a21157-d7fb-411f-9c5e-37c01bd4444a"
+content_hash = "sha256:ece47e704b21a64a5d05f69336ece7473be4aec5fa246d8aeac780052cef373e"
+size = 184459
+mtime_ms = 1794232873684
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/b7a21157-d7fb-411f-9c5e-37c01bd4444a/26a68fca-2bf2-4764-8a5a-e11a8fab0211"
+storage_version_token = "1794232917185536"
+content_type = "image/jpeg"
+
+[[outputs]]
+id = "7k_QSzw8L7pHyM9V8GZpE"
+uri = "file://generated-artifacts/phone-fixes/before-after.html"
+type = "html"
+title = "All before-and-after comparisons"
+description = "Seven comparisons covering Vision, Identity, Purpose, Values, Reality Check and Decide, plus changes and files."
+logical_id = "aa8e7522-94ac-432e-9231-0f4391869919"
+content_hash = "sha256:4d53da0c4e4309e884eacda06af34b5c764391ade21204df69d6d445f5684e09"
+size = 1574792
+mtime_ms = 1794232873862
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/aa8e7522-94ac-432e-9231-0f4391869919/e9fc76ae-3f25-48cb-9937-7d8b5270125b"
+storage_version_token = "1794232917809053"
+content_type = "text/html"

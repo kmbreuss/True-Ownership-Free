@@ -19,3 +19,4 @@
 - [Map of Me boundaries](map-of-me-policy.md) — current answers only, original review editors, no completion changes; three-year/letter/best-friend panels stay retired.
 - [Phone Home policy](phone-home-policy.md) — no valid claim date means “Welcome back”; preserve relocated controls and never infer visit history or missing duration estimates.
 - [Decision walkthrough boundaries](decision-walkthrough-policy.md) — optional, separate from journey progress; explicit leaks only, uncertainty separate, Quick nine screens.
+- [Phone readability](phone-readability-policy.md) — functional text ≥16px, compact status ≥11px, targets ≥44×44px; scroll content rather than hiding actions.
