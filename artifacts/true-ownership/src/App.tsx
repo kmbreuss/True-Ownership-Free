@@ -26,6 +26,8 @@ import { WeeklyNotice } from "./a1End/WeeklyNotice";
 import { CreatureBalance } from "./a1End/CreatureBalance";
 import { PracticalHome } from "./a1End/PracticalHome";
 import { PhoneHome } from "./home/PhoneHome";
+import { DecisionPage } from "./decisions/DecisionPage";
+import { decisionContext } from "./decisions/context";
 import { homeProjection, type HomeStep } from "./home/model";
 import { useClaimEmphasis } from "./home/claimEmphasis";
 import { RealityCheck } from "./reality-check/RealityCheck";
@@ -34980,6 +34982,7 @@ type AppRouteView =
   | "a1end3"
   | "a1map"
   | "audio"
+  | "decide"
   | "grid"
   | "explore"
   | "explore2"
@@ -35044,6 +35047,7 @@ const APP_ROUTE_VIEWS: AppRouteView[] = [
   "a1end3",
   "a1map",
   "audio",
+  "decide",
   "grid",
   "explore",
   "explore2",
@@ -51264,7 +51268,7 @@ function NewA1View({
   const [rawView, setRawView] = useState<AppRouteView>(
     () => {
       const saved = savedRouteRef.current;
-      if (saved && ["rc", "rcroom", "a1end1", "a1end2", "a1end3", "a1map", "audio"].includes(saved.view)) return saved.view;
+      if (saved && ["rc", "rcroom", "a1end1", "a1end2", "a1end3", "a1map", "audio", "decide"].includes(saved.view)) return saved.view;
       // Task 48 · one-shot initial-view override from the phase-"a3"
       // wrapper. Wins over the saved-route restore, EXCEPT when the saved
       // route is already inside A3 — then the normal restore runs so an
@@ -51360,7 +51364,7 @@ function NewA1View({
     if (isDevPreview()) return next;
     // The library itself is public to members of this flow; its entries are
     // filtered by the original surface's access, not by opening history.
-    if (rcAccess === "free" && !["rc", "rcroom", "entry-hall", "audio"].includes(next)) return "rc";
+    if (rcAccess === "free" && !["rc", "rcroom", "entry-hall", "audio", "decide"].includes(next)) return "rc";
     if (["explore", "explore2", "m3", "m4"].includes(next) && rcRequired) return "rc";
     return next;
   };
@@ -51369,6 +51373,12 @@ function NewA1View({
   const menuMapReturn = useRef<AppRouteView | null>(null);
   const setView = (next: AppRouteView | ((old: AppRouteView) => AppRouteView)) =>
     setRawView(old => rcGuard(typeof next === "function" ? next(old) : next));
+  const decisionOrigin = useRef<AppRouteView>("decide");
+  useEffect(() => {
+    const open = () => { decisionOrigin.current="entry-hall"; setRawView("decide"); };
+    window.addEventListener("open-decision",open);
+    return () => window.removeEventListener("open-decision",open);
+  }, []);
   const rcResumeRef = useRef(savedRouteRef.current?.view === "rcroom");
   // Tracks the currently open M3/M4 room overlay for persistence.
   // Active Purpose rooms resume without a veil; retired room keys are ignored.
@@ -52039,6 +52049,13 @@ function NewA1View({
       }, 520),
     );
   };
+  if (view === "decide") {
+    return <DecisionPage autoStart={decisionOrigin.current==="entry-hall"} context={decisionContext({
+      map:loadDataSync(KEYS.map)||{}, values:loadMirror4State(), rc:loadRCState(), notice:loadNotice(),
+      a2:loadA2State(),a3:loadA3State(),a4:loadA4State(),a5:loadA5State(),
+    }, {values:m4Complete,identity:m3Complete,purpose:purposeComplete,vision:visionComplete})}
+      onReturn={()=>{const target=decisionOrigin.current;decisionOrigin.current="decide";setView(target)}}/>;
+  }
   if (view === "audio") {
     const mirrorAccess = a1Unlocks(!rcRequired, a1Started(loadDataSync, loadMirror4State()), {
       values: m4Complete, identity: m3Complete, purpose: purposeComplete, vision: visionComplete,

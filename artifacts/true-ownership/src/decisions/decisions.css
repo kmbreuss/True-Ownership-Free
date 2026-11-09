@@ -1,0 +1,42 @@
+.decision-page{max-width:900px;margin:40px auto;padding:24px;color:var(--na1-text,#343834);font:17px/1.5 Questrial,sans-serif;box-sizing:border-box}
+body.journey-on .decision-page{margin-left:var(--jr-left);max-width:900px}
+.decision-page h1,.decision-entry h2{font:40px/1.15 "Cormorant Garamond",serif;margin:16px 0 24px}
+.decision-page h2{font:28px/1.2 "Cormorant Garamond",serif}.decision-page h3{font-size:17px}
+.decision-page button,.decision-entry button{min-height:44px;padding:10px 18px;border:1px solid #a5875e;border-radius:24px;background:var(--na1-bg-card,#fff);color:inherit;font:16px Questrial,sans-serif;cursor:pointer}
+.decision-page button:focus-visible,.decision-entry button:focus-visible{outline:3px solid #a5875e;outline-offset:3px}
+.decision-page button:disabled{opacity:.45;cursor:default}
+.decision-page .decision-primary,.decision-page button[aria-pressed=true]{background:#036360;color:#fff;border-color:#036360}
+.decision-page .leak-choice[aria-pressed=true]{background:#783d42;border-color:#783d42}
+.decision-entry{background:linear-gradient(140deg,#086c66,#003f3e);padding:24px;border-radius:20px;color:#fff}
+.decision-entry small,.decision-kicker{font-size:11px;letter-spacing:.16em}
+.decision-entry h2{font-size:30px;margin:12px 0}.decision-entry p{font:20px/1.4 "Cormorant Garamond",serif}
+.decision-entry button{background:#fff;color:#036360;width:100%}
+.decision-frame{background:var(--na1-bg-card,#fff);border:1px solid #a5875e;border-radius:24px;padding:28px;position:relative;overflow-wrap:anywhere}
+.decision-frame[role=dialog]{position:fixed;z-index:20000;inset:32px;max-width:980px;margin:auto;display:flex;flex-direction:column}
+.decision-frame header,.decision-frame footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-shrink:0}
+.decision-frame header{font-size:11px;letter-spacing:.12em}.decision-frame header button{padding:8px 14px}
+.decision-frame progress{width:100%;height:4px;margin:16px 0;accent-color:#a5875e;flex-shrink:0}
+.decision-frame progress::-webkit-progress-bar{background:#a5875e33}
+.decision-frame progress::-webkit-progress-value{background:#a5875e}
+.decision-frame progress::-moz-progress-bar{background:#a5875e}
+.decision-page.decision-overlay{position:fixed;inset:0;z-index:20000;margin:0!important;padding:0!important;width:100%!important;max-width:none!important;background:var(--na1-bg-card,#f4f4f5)}
+.decision-body{overflow-y:auto;min-height:0;flex:1;padding:4px 2px 20px}
+.decision-frame footer{border-top:1px solid #a5875e55;padding-top:18px}
+.decision-page fieldset{padding:0;border:0;margin:24px 0}.decision-page legend{margin-bottom:12px}
+.decision-taps{display:flex;flex-wrap:wrap;gap:8px}.decision-taps button{flex:1 1 auto}.decision-taps.vertical{flex-direction:column}
+.decision-field{display:flex;flex-direction:column;gap:8px;margin:20px 0}
+.decision-field textarea,.decision-field input{font:20px/1.35 "Cormorant Garamond",serif;color:inherit;background:var(--na1-bg-card,#fff);border:1px solid #a5875e;border-radius:12px;box-sizing:border-box;max-width:100%;width:100%;padding:12px;min-height:48px}
+.decision-gold{background:linear-gradient(150deg,#fbf1dc,#f1ddb4);color:#594831;border-radius:12px;padding:16px}
+.decision-leaks{background:#f5e6e6;color:#71363e;border-radius:12px;padding:16px}
+.decision-saved{display:flex;flex-direction:column;align-items:flex-start;width:100%;gap:8px;margin:12px 0;text-align:left;overflow-wrap:anywhere}
+.decision-confirm{position:absolute;inset:0;background:var(--na1-bg-card,#fff);border-radius:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;padding:24px;z-index:1}
+html[data-theme=dark] .decision-gold{background:#403928;color:#f5e6c3}
+html[data-theme=dark] .decision-leaks{background:#4a2b31;color:#f7dfe3}
+@media(min-width:1441px){body.journey-on .decision-page{margin-left:calc(var(--jr-group-left) + 318px);width:calc(var(--jr-group-width) - 318px)}}
+@media(max-width:899.98px){
+ body.journey-on .decision-page{margin-left:0;width:100%;padding:20px 14px}
+ .decision-frame[role=dialog]{inset:8px;padding:20px 16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+ .decision-page h1{font-size:32px}.decision-page h2{font-size:26px}
+ .pn-menu{grid-template-columns:repeat(5,minmax(0,1fr))}
+ .pn-menu .pn-decide svg{border-radius:50%;padding:9px;background:#036360;color:#fff;box-sizing:content-box;margin-top:-18px;border:4px solid #fff}
+}

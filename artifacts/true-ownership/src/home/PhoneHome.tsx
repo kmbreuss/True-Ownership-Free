@@ -8,6 +8,7 @@ import type { Mirror3State } from "../mirror3Constants";
 import type { VideoSurface } from "../videoConstants";
 import type { homeProjection, HomeStep } from "./model";
 import "./home.css";
+import { DecisionEntry } from "../decisions/DecisionPage";
 
 type Tab = "today" | "week" | "future";
 const tabs: { id: Tab; name: string }[] = [{id:"today",name:"Today"},{id:"week",name:"This week"},{id:"future",name:"Future B"}];
@@ -68,6 +69,7 @@ export function PhoneHome({ name, model, identity, original, value, reviewed = f
         </div>
         <aside className="ph-aside">
           {recording && <section className="ph-audio" aria-label="Katherine’s recording">{renderPlayer(recording.surface)}</section>}
+          <DecisionEntry />
           <div className="ph-desktop-future">{futureCard}</div>
         </aside>
       </> : tab==="week" ? <div className="ph-week-content">

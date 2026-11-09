@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { db, userDataTable } from "@workspace/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
+import { normalizeDecisions, mergeDecisions } from "../../../../lib/decision-model";
 import { SYNC_KEYS, decideWrite, isWrapped } from "../lib/syncGuard";
 
 const router: IRouter = Router();
@@ -58,10 +59,18 @@ router.put("/userdata/:key", async (req: Request, res: Response) => {
       res.status(400).json({ error: "Expected { t, v }" });
       return;
     }
+    if (key === "decisions") {
+      const payload = value.v as {version?:unknown;items?:unknown[]}|null;
+      if (!payload || payload.version!==1 || !Array.isArray(payload.items) ||
+        normalizeDecisions(payload).items.length!==payload.items.length) {
+        res.status(400).json({error:"Invalid decision record"}); return;
+      }
+    }
     try {
       // Serialise concurrent writers for this user+key, then apply the
       // newer-wins rule: an older client copy never replaces newer server data.
       const outcome = await db.transaction(async (tx) => {
+        if (key === "decisions") await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${req.user.id + ":decisions"}))`);
         const [row] = await tx
           .select()
           .from(userDataTable)
@@ -72,7 +81,23 @@ router.put("/userdata/:key", async (req: Request, res: Response) => {
             ),
           )
           .for("update");
-        const d = decideWrite(row?.value, value, Date.now());
+        let incoming = value;
+        if (key === "decisions") {
+          const parsed = normalizeDecisions(value.v);
+          const now = Date.now();
+          const current = normalizeDecisions(isWrapped(row?.value) ? row.value.v : null);
+          const items = parsed.items.map(r => {
+            const old = current.items.find(item => item.id === r.id);
+            // Once saved, the walkthrough is immutable. Only its outcome can change.
+            if (old) return {...old, followUp: r.followUp && (!old.followUp || r.followUp.savedAt > old.followUp.savedAt)
+              ? {...r.followUp, savedAt: now} : old.followUp, updatedAt: now};
+            return {...r, createdAt: now, updatedAt: now, followUp: null};
+          });
+          incoming = {t: now, v: mergeDecisions({version:1,items}, current)};
+        }
+        const d = key === "decisions"
+          ? {action: row ? "update" as const : "insert" as const, value: incoming}
+          : decideWrite(row?.value, incoming, Date.now());
         if (d.action === "conflict") return d;
         if (d.action === "insert") {
           await tx
@@ -99,7 +124,7 @@ router.put("/userdata/:key", async (req: Request, res: Response) => {
         res.status(409).json({ error: "Newer data on server", current: outcome.current });
         return;
       }
-      res.json({ ok: true, t: outcome.value.t });
+      res.json({ ok: true, t: outcome.value.t, ...(key === "decisions" ? {current:outcome.value} : {}) });
     } catch (err) {
       req.log.error({ err, key }, "userdata PUT (versioned) error");
       res.status(500).json({ error: "Internal server error" });

@@ -23,6 +23,7 @@ import { EMPTY_SETASIDE } from "./reality-check/rcJourney";
 import { EMPTY_A5 } from "./a5Constants";
 import { EMPTY_MIRROR4 } from "./mirror4Constants";
 import { EMPTY_PRACTICAL, normalizePractical } from "./a1End/practical";
+import { EMPTY_DECISIONS, normalizeDecisions, mergeDecisions } from "../../../lib/decision-model";
 
 export const A1_PROGRESS_KEYS = [
   "a1_ex1_done",
@@ -40,6 +41,7 @@ export const A1_PROGRESS_KEYS = [
 
 type Store = { sk: string; label: string; lks: string[]; empty?: unknown };
 export const STORES: Store[] = [
+  { sk: "decisions", label: "My decisions", lks: ["to_decisions_v1"], empty: EMPTY_DECISIONS },
   { sk: "rcstate", label: "Reality Check", lks: ["to_rc_state_v1"], empty: EMPTY_RC },
   { sk: "setaside", label: "Set aside to sort in A4", lks: ["to_setaside_v1"], empty: EMPTY_SETASIDE },
   { sk: "a1progress", label: "A1 exercise progress", lks: A1_PROGRESS_KEYS },
@@ -90,6 +92,8 @@ export function bindPracticalAccount(owner: string | null) {
   const ownerKey = "to_a1_practical_owner_v1";
   const previous = localStorage.getItem(ownerKey);
   if (previous !== owner) {
+    clearTimeout(timers.decisions);
+    localStorage.removeItem("to_decisions_v1");
     clearTimeout(timers.a1practical);
     const meta = readMeta();
     if (previous) localStorage.setItem(`to_a1_practical_account_v1:${previous}`, JSON.stringify({
@@ -162,7 +166,7 @@ function readLocal(s: Store): any | undefined {
     const raw = localStorage.getItem(s.lks[0]);
     if (raw === null) return undefined;
     const parsed = JSON.parse(raw);
-    return s.sk === "a1practical" ? normalizePractical(parsed) : s.sk === "rcstate" ? normalizeRC(parsed) : parsed;
+    return s.sk === "decisions" ? normalizeDecisions(parsed) : s.sk === "a1practical" ? normalizePractical(parsed) : s.sk === "rcstate" ? normalizeRC(parsed) : parsed;
   } catch {
     return undefined;
   }
@@ -175,6 +179,11 @@ function isMeaningful(s: Store, v: any): boolean {
 function writeLocal(s: Store, v: any) {
   if (isDevPreview()) return;
   try {
+    if (s.sk === "decisions") {
+      localStorage.setItem(s.lks[0], JSON.stringify(mergeDecisions(readLocal(s), v)));
+      window.dispatchEvent(new Event("decisions-change"));
+      return;
+    }
     if (s.sk === "a1progress") {
       for (const lk of s.lks) if (v && lk in v) localStorage.setItem(lk, JSON.stringify(v[lk]));
       return;
@@ -217,7 +226,7 @@ async function pushNowImpl(s: Store): Promise<SyncResult> {
     setLt(s.sk, lt);
   }
   const res = await put(s.sk, { t: lt, v });
-  if (s.sk === "a1practical" && owner !== practicalOwner) return "nothing to sync";
+  if ((s.sk === "a1practical" || s.sk === "decisions") && owner !== practicalOwner) return "nothing to sync";
   if (!res) return "push failed (will retry)";
   if (res.status === 409) {
     try {
@@ -229,6 +238,13 @@ async function pushNowImpl(s: Store): Promise<SyncResult> {
       }
     } catch {}
     return "push failed (will retry)";
+  }
+  if (res.ok && s.sk === "decisions") {
+    const ack = await res.json();
+    if (!isDevPreview() && owner === practicalOwner && isWrapped(ack.current)) {
+      writeLocal(s, ack.current.v);
+      setLt(s.sk, ack.current.t);
+    }
   }
   return res.ok ? "pushed to your account" : "push failed (will retry)";
 }
@@ -294,6 +310,12 @@ export async function hydrateNewFlow(cache: Record<string, any>, ownerId?: strin
       const L = readLocal(s);
       const localReal = isMeaningful(s, L);
       const lt = readMeta()[s.sk]?.lt;
+      if (s.sk === "decisions" && S) {
+        writeLocal(s, S.v);
+        if (!deepEqual(readLocal(s), S.v)) await pushNow(s);
+        else setLt(s.sk, S.t);
+        continue;
+      }
       if (!S && !localReal) lastResult[s.sk] = "nothing to sync";
       else if (!S && localReal) lastResult[s.sk] = await pushNow(s);
       else if (S && !localReal) {

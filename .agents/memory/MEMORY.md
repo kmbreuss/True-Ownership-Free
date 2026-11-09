@@ -18,3 +18,4 @@
 - [Appearance compatibility](appearance-policy.md) — preserve old Light/Dark choices; an auto-saved Light cannot be distinguished from a deliberate selection.
 - [Map of Me boundaries](map-of-me-policy.md) — current answers only, original review editors, no completion changes; three-year/letter/best-friend panels stay retired.
 - [Phone Home policy](phone-home-policy.md) — no valid claim date means “Welcome back”; preserve relocated controls and never infer visit history or missing duration estimates.
+- [Decision walkthrough boundaries](decision-walkthrough-policy.md) — optional, separate from journey progress; explicit leaks only, uncertainty separate, Quick nine screens.

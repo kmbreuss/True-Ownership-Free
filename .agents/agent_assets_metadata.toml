@@ -1015,3 +1015,73 @@ mtime_ms = 1794185741239
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/ce8282fb-49d3-46ed-ba1e-6f043d924b79/188ca5d4-7657-4eff-abd4-476178016b58"
 storage_version_token = "1794185818851718"
 content_type = "text/html"
+
+[[outputs]]
+id = "yNCxybqr_3sIhl1lAIigX"
+uri = "file://generated-artifacts/decisions/375-light-home.png"
+type = "image"
+title = "Own the decision · Phone Home · light"
+description = "375×812 synthetic fixture. Full-page view of the new Home card and five-tab menu."
+logical_id = "f2847b97-6e18-43cb-a5e1-7f79ebf3fb6d"
+content_hash = "sha256:8d4671aad67b169d23a3cfaf1a853b6af5ffbcb5c237b5b9ff0b6ba9947eb996"
+size = 156161
+mtime_ms = 1794187517675
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/f2847b97-6e18-43cb-a5e1-7f79ebf3fb6d/29eb42cd-3f20-4f74-9cc4-06c448acddda"
+storage_version_token = "1794187705513705"
+content_type = "image/png"
+
+[[outputs]]
+id = "kcG5XmLp8zTOomKRCdhdL"
+uri = "file://generated-artifacts/decisions/375-dark-home.png"
+type = "image"
+title = "Own the decision · Phone Home · dark"
+description = "375×812 synthetic fixture, dark theme."
+logical_id = "78b35ce3-486e-4b58-952a-f0f35cfef2c1"
+content_hash = "sha256:4a1b16b85fcab008b6390108fabedd50e65acf54355abb003990e29409ca976b"
+size = 155370
+mtime_ms = 1794187522287
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/78b35ce3-486e-4b58-952a-f0f35cfef2c1/f9d7e72d-e185-48d7-90f9-7c2f764772c7"
+storage_version_token = "1794187706105618"
+content_type = "image/png"
+
+[[outputs]]
+id = "7uqnWyxsmuUqyDN7XE15r"
+uri = "file://generated-artifacts/decisions/375-light-ending.png"
+type = "image"
+title = "Decision ending · light"
+description = "375×812 viewport: explicit leaks, separate uncertainty and the member’s call."
+logical_id = "80d2b481-3d09-40ae-8fce-9b4b1d686dce"
+content_hash = "sha256:908e2bb28eb63eb03e4a0a139e01cb2f73b9a7dfd18fba200dccca51866bed45"
+size = 58238
+mtime_ms = 1794187518583
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/80d2b481-3d09-40ae-8fce-9b4b1d686dce/056ba84f-a6cf-4cdd-b522-12d6ae7041d1"
+storage_version_token = "1794187706674836"
+content_type = "image/png"
+
+[[outputs]]
+id = "XyMVUlCKppBoh-NE_4Axp"
+uri = "file://generated-artifacts/decisions/375-dark-ending.png"
+type = "image"
+title = "Decision ending · dark"
+description = "375×812 viewport, with the footer inside the frame."
+logical_id = "dbcc68fe-0796-4b3b-9371-f0b998d54980"
+content_hash = "sha256:1836ae3381d83bd81b18fefa53e37476ef26f448d9ca2cce57ddbf9d1b76b4b2"
+size = 48118
+mtime_ms = 1794187523199
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/dbcc68fe-0796-4b3b-9371-f0b998d54980/25729c5c-3fac-428e-9467-71134d333920"
+storage_version_token = "1794187707342419"
+content_type = "image/png"
+
+[[outputs]]
+id = "qV4Iii2BZmK-NS4M05r3l"
+uri = "file://generated-artifacts/decisions/report.html"
+type = "html"
+title = "Own the decision · fields, copy, screenshots and files"
+description = "Full field/source mapping, copy additions, phone-first and desktop screenshots, file list and verification limits."
+logical_id = "a499328c-c1bc-4010-8921-0d64764709f3"
+content_hash = "sha256:0dcf08e80deee6993b9b54b96379d9aef6b04a426586deb1c5b9377b07822271"
+size = 3781289
+mtime_ms = 1794187663615
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/a499328c-c1bc-4010-8921-0d64764709f3/a39c4f97-e40a-402c-bb1c-5227c9ad04d0"
+storage_version_token = "1794187707995089"
+content_type = "text/html"
