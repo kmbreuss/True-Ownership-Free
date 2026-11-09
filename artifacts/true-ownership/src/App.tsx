@@ -43,7 +43,8 @@ import { a1RemainingMinutes, a2RemainingMinutes, remainingTimeLabel } from "./re
 import { A1MirrorOrder, A1FutureBThread } from "./components/A1FutureB";
 import { FutureBGrows } from "./journey/FutureBGrows";
 import { MirrorCards } from "./journey/MirrorCards";
-import { AppearanceProvider, HomeAppearanceButton, useAppearance } from "./appearance/Appearance";
+import { AppearanceProvider, useAppearance } from "./appearance/Appearance";
+import "./appearance/member-controls.css";
 import { IllustratedMirrorGrid } from "./mirrorIllustrations/IllustratedMirrorGrid";
 import { a2CardFindings, a3CardFindings, a4CardFindings, a5CardFindings } from "./mirrorIllustrations/findings";
 import { JourneyRoad } from "./journey/Road";
@@ -36051,7 +36052,6 @@ function NewA1EntryHall({
   return (
     <div className="na1-root">
       <main className="na1-eh-content">
-        <HomeAppearanceButton />
         <DevResetBar />
         <PhoneHome name={name} model={home} identity={loadMirror3State()} original={loadRCState().futureB1.oneThing}
           reviewed={!!loadNotice()?.savedAt}
@@ -51266,7 +51266,13 @@ function NewA1View({
   // `intake?.name`, so without this layer the Entry Hall greeting (and any
   // other downstream consumer of `name`) would skip the auth fallback.
   const { user: authUser } = useAuth();
-  const resolvedName = resolveDisplayName(name, authUser) ?? "";
+  const [memberName, setMemberName] = useState(name);
+  const resolvedName = resolveDisplayName(memberName, authUser) ?? "";
+  const saveMemberName = async (nextName: string) => {
+    const current = loadDataSync(KEYS.intake) || {};
+    await saveData(KEYS.intake, { ...current, name: nextName.trim() });
+    setMemberName(nextName.trim());
+  };
   useClaimEmphasis(loadDataSync);
   // Ship 5.6c · refresh-resume routing. Read the saved route once
   // synchronously so the initial render lands on the right view.
@@ -51360,6 +51366,7 @@ function NewA1View({
       // First-ever visit (no saved route, never crossed the threshold) →
       // open on the Entry Hall. Returning users with no saved route land
       // on the A1 grid.
+      if (!resolvedName.trim() && !hasReturningProgress() && !loadRCState().startedAt) return "rc";
       if (!loadHomeState().visited) return "entry-hall";
       return "grid";
     },
@@ -52127,6 +52134,7 @@ function NewA1View({
     return <div className="na1-spine-pad">
       <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
       <RealityCheck room={view === "rcroom"} resume={rcResumeRef.current}
+        memberName={resolvedName} onSaveName={saveMemberName}
         onEnter={() => { rcResumeRef.current = false; setView("rcroom"); }}
         onClose={() => { rcResumeRef.current = false; setView("rc"); }}
         onEntryHall={() => setView("entry-hall")}
@@ -71165,7 +71173,7 @@ function AuthedApp() {
   useEffect(() => {
     Promise.all([loadData(KEYS.intake), loadData(KEYS.phase)]).then(
       ([i, p]) => {
-        if (i) setIntake(i);
+        setIntake(i || {});
         // Defensive: never restore the user into "_admin" on next sign-in.
         const safe = p === "_admin" ? null : p;
         // Preview deep-link: ?phase=a1|a2|a3|done|intake jumps straight to a
@@ -71178,8 +71186,8 @@ function AuthedApp() {
         } catch {}
         // The old terminal "done" screen belongs to the retired flow; the new flow
         // never writes it, so a member saved there lands on the new Entry Hall.
-        const landing = !LEGACY_FLOW && safe === "done" ? "a1" : safe;
-        setPhase(urlPhase || landing || (i ? "a1" : "intake"));
+        const landing = !LEGACY_FLOW && (safe === "done" || safe === "intake") ? "a1" : safe;
+        setPhase(urlPhase || landing || (LEGACY_FLOW && !i ? "intake" : "a1"));
       },
     );
   }, []);
@@ -72940,9 +72948,11 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
 
   return (
     <>
-      <div ref={ref} style={wrapperStyle}>
+      <div ref={ref} className={`member-account member-account-${mode}`} style={wrapperStyle}>
         <button
           onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label="Account"
           style={{
             fontSize: 11,
             color: "#7a766e",
@@ -72957,9 +72967,9 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
             gap: 6,
           }}
         >
-          <span>{label}</span>
+          <span>Account</span>
           {user?.role === "owner" && (
-            <span
+            <span className="member-owner-badge"
               style={{
                 background: "rgba(165,135,94,0.18)",
                 color: "var(--warm)",
@@ -73272,6 +73282,17 @@ function Na1ThemeToggle() {
   );
 }
 
+function MemberControls() {
+  useEffect(() => {
+    document.body.classList.add("member-controls-on");
+    return () => document.body.classList.remove("member-controls-on");
+  }, []);
+  return <header className="member-controls" aria-label="Appearance and account">
+    <Na1ThemeToggle />
+    <AccountMenu mode="inline" />
+  </header>;
+}
+
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth();
   useKeyboardInset();
@@ -73294,7 +73315,7 @@ export default function App() {
     );
   return (
     <AppearanceProvider>
-      <Na1ThemeToggle />
+      <MemberControls />
       <NewA1PhoneSpine />
       <ServerDataLoader>
         <AuthedApp />

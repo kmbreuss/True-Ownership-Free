@@ -23,14 +23,18 @@ const ROWS = [
 ];
 type VeilPhase = "rising" | "hold" | "falling" | "idle";
 export function RealityCheck({
-  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing, reviewScreen,
+  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing, reviewScreen, memberName, onSaveName,
 }: {
   room: boolean; resume: boolean; onEnter: () => void; onClose: () => void;
   onEntryHall: () => void; onBeginA1: () => void; devTools: ReactNode;
   Veil: ComponentType<{ phase: VeilPhase; text: string }>;
   timing: { holdAt: number; fallingAt: number; idleAt: number };
   reviewScreen?: number;
+  memberName?: string;
+  onSaveName?: (name: string) => Promise<void>;
 }) {
+  const [name, setName] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const original = useRef(loadRCState());
   const reviewing = reviewScreen !== undefined;
   const [state, setState] = useState(() => reviewing ? { ...original.current, step: reviewScreen! } : original.current);
@@ -131,15 +135,30 @@ export function RealityCheck({
     <main className="na1-shell rc-hub">
       {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}{import.meta.env.DEV && <RCDevReset />}</details>}
       <div className="na1-breadcrumb"><button onClick={onEntryHall}>Entry Hall</button><span>›</span><span>Start here</span></div>
+      {onSaveName && !memberName?.trim() && <section className="rc-welcome" aria-label="Welcome">
+        <p className="rc-welcome-title">Welcome in.</p>
+        <label htmlFor="rc-member-name">What should we call you?</label>
+        <input id="rc-member-name" autoComplete="given-name" value={name}
+          onChange={event => setName(event.target.value)} />
+      </section>}
       <div className="rc-start-top">
       <div className="rc-start-copy"><p className="rc-eyebrow">START HERE · THE REALITY CHECK</p><h1>Before you start, a reality check.</h1>
       <p className="rc-hub-lead">Where you are now, and where it leads. Two futures are in front of you.</p>
       <p className="rc-hub-lead"><em>Which one you live depends on what you decide today.</em></p></div>
       <div className="rc-hub-action">
-        <button className="na1-btn-gold rc-begin" onClick={() => {
+        <button className="na1-btn-gold rc-begin" disabled={savingName} onClick={async () => {
+          setSavingName(true);
+          try {
+            if (onSaveName && !memberName?.trim()) await onSaveName(name);
+          } catch {
+            setError("Your name could not be saved. Please try again.");
+            setSavingName(false);
+            return;
+          }
           const next = { ...state, step: state.complete ? 1 : state.step, startedAt: state.startedAt ?? new Date().toISOString() };
           try { saveRCState(next); setState(next); setError(""); onEnter(); }
           catch { setError("Your Reality Check could not be saved. Please try again."); }
+          finally { setSavingName(false); }
         }}>{state.complete ? "Review the Reality Check →" : state.startedAt ? "Continue →" : "Begin the Reality Check →"}</button>
         <p className="rc-helper">About 10 minutes · just you · saved as you go</p>
       </div>

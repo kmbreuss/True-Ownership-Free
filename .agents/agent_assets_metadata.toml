@@ -1281,3 +1281,59 @@ mtime_ms = 1794241942404
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0659a525-abe4-4c92-89c5-9134381bc4f2/ca6da03f-0205-4957-a230-e8df62c3601d"
 storage_version_token = "1794241955540735"
 content_type = "text/html"
+
+[[outputs]]
+id = "VbHTE3NpgpidEWy3Zl2Pd"
+uri = "file://generated-artifacts/new-member-start/start-375-light.png"
+type = "image"
+title = "Phone · 375×812 · Light"
+description = "New-member Reality Check start with optional name and shared theme/account controls."
+logical_id = "b26cb554-8579-44b6-8480-07817c52d360"
+content_hash = "sha256:1d365e532b360abeb91c7ad0842f207158d9d71f1809aa7e7c72a73a0d820bb8"
+size = 78704
+mtime_ms = 1794246917483
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/b26cb554-8579-44b6-8480-07817c52d360/9fe3c48a-d635-4db6-9260-bbac7320acfe"
+storage_version_token = "1794246989381221"
+content_type = "image/png"
+
+[[outputs]]
+id = "R__EeRhSOaDfoMZVjs8Fq"
+uri = "file://generated-artifacts/new-member-start/start-375-dark.png"
+type = "image"
+title = "Phone · 375×812 · Dark"
+description = "New-member Reality Check start with optional name and shared theme/account controls."
+logical_id = "987b15c7-d1a4-46f0-849e-4eac9751efd2"
+content_hash = "sha256:8104e4acc205e9fc92bc4055fd0cb6b20ea280fca9a97242c779941e71e38fcf"
+size = 81751
+mtime_ms = 1794246931439
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/987b15c7-d1a4-46f0-849e-4eac9751efd2/4894b909-19df-457b-acca-d927805c52a0"
+storage_version_token = "1794246990218102"
+content_type = "image/png"
+
+[[outputs]]
+id = "qxIAlZNX6Yzhg_99pX9Uv"
+uri = "file://generated-artifacts/new-member-start/start-1280-light.png"
+type = "image"
+title = "Desktop · 1280×800 · Light"
+description = "New-member Reality Check start with optional name and shared theme/account controls."
+logical_id = "07e24817-4b00-4094-90f0-742c9f0ee958"
+content_hash = "sha256:d8bef23fd591eed044c6a41c396485e3783ddc27827e57af7c06238ff19e168b"
+size = 177710
+mtime_ms = 1794246945279
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/07e24817-4b00-4094-90f0-742c9f0ee958/2724f140-778b-4200-be96-5dea70aea832"
+storage_version_token = "1794246990898193"
+content_type = "image/png"
+
+[[outputs]]
+id = "BkqPvvLqFn_ZqHb1IodcH"
+uri = "file://generated-artifacts/new-member-start/start-1280-dark.png"
+type = "image"
+title = "Desktop · 1280×800 · Dark"
+description = "New-member Reality Check start with optional name and shared theme/account controls."
+logical_id = "3a0a437b-1560-429d-8c72-dc40c36c90b1"
+content_hash = "sha256:3bfd0ba4359723a9f2758d2075a9f62cef3b0406b08ed0f1ef3bb7252c8d4a6e"
+size = 189711
+mtime_ms = 1794246959452
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/3a0a437b-1560-429d-8c72-dc40c36c90b1/6131d2cb-b3ab-41f4-8b26-2dfda30c4196"
+storage_version_token = "1794246991620030"
+content_type = "image/png"

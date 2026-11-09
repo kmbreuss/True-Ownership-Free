@@ -1,0 +1,31 @@
+.member-controls{position:fixed;inset:0 0 auto;z-index:19950;box-sizing:border-box;min-height:56px;padding:6px 14px;display:flex;align-items:center;justify-content:flex-end;gap:8px;background:#F9F6EE;border-bottom:1px solid #A5875E44;color:#353334}
+html[data-theme="dark"] .member-controls{background:#102D2D;color:#F9F6EE}
+body .member-controls .na1-theme-toggle{position:static;display:inline-flex!important;min-width:44px;min-height:44px;color:inherit;z-index:auto}
+.member-controls .member-account>button{min-width:44px;min-height:44px;font:16px/1.2 Questrial,sans-serif!important;color:inherit!important;border-radius:22px!important;letter-spacing:0!important}
+.member-controls .member-owner-badge{display:none}
+.member-controls .member-account>div{top:calc(100% + 6px)!important;background:#FFFDF7!important;color:#353334;border-color:#A5875E88!important}
+html[data-theme="dark"] .member-controls .member-account>div{background:#123234!important;color:#F9F6EE}
+.member-controls .member-account>div>button{min-height:44px;color:inherit!important;font:16px/1.3 Questrial,sans-serif!important}
+body.member-controls-on .member-account{display:none}
+body.member-controls-on .member-controls .member-account{display:block}
+body.member-controls-on{padding-top:56px!important}
+body.member-controls-on.journey-on{--jr-top:56px}
+body.member-controls-on .jr-desktop{top:56px}
+body.member-controls-on .na1-room-overlay{top:calc(56px + var(--kb-top,0px))!important}
+body.member-controls-on .na1-room-overlay .na1-room-card{max-height:calc(100dvh - 56px - var(--kb-top,0px) - var(--kb-inset,0px) - 24px)}
+.rc-welcome{margin:12px 0 20px;max-width:420px}
+.rc-welcome .rc-welcome-title{font:italic 400 32px/1.15 var(--f-body,"Cormorant Garamond",serif);margin:0 0 10px}
+.rc-welcome label{display:block;font:16px/1.4 Questrial,sans-serif;margin-bottom:8px}
+.rc-welcome input{box-sizing:border-box;width:100%;min-height:44px;padding:10px 14px;border:1px solid #A5875E;border-radius:10px;background:transparent;color:inherit;font:20px/1.3 var(--f-body,"Cormorant Garamond",serif)}
+.rc-welcome input:focus-visible{outline:2px solid #A5875E;outline-offset:2px}
+@media(max-width:899.98px){
+ .member-controls{padding:6px 12px}
+ body.member-controls-on.journey-on{--jr-top:146px;padding-top:146px!important}
+ body.member-controls-on .jr-phone-bar{top:56px}
+ body.member-controls-on .jr-phone-tip{top:152px}
+ body.member-controls-on .jr-moment{top:156px}
+ body.member-controls-on.journey-on .na1-room-overlay{top:calc(146px + var(--kb-top,0px))!important}
+ body.member-controls-on.journey-on .na1-room-overlay .na1-room-card{max-height:calc(100dvh - 146px - var(--kb-top,0px) - var(--kb-inset,0px) - 24px)}
+ .rc-welcome{margin:6px 0 16px}
+ .rc-welcome .rc-welcome-title{font-size:28px}
+}

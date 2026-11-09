@@ -2,6 +2,12 @@
 name: Reality Check scope
 description: Owner-approved rollout boundaries and future use of named defaults.
 ---
+New-member names are optional; skipping a name must never block Reality Check or create a substitute saved name. Use the neutral greeting when none is supplied.
+
+**Why:** The owner explicitly removed the old mandatory-name intro while retaining the existing first-name field and journey.
+
+**How to apply:** Keep naming separate from access, completion and claims. Retain the retired intro code, not its new-member routing.
+
 Reality Check's initial ship must not introduce account/schema/signup changes. Treat real accounts as members; free access is only a DEV, nonpersistent simulation. Real free signup and authoritative account access are deferred.
 
 **Why:** The owner explicitly removed the account/database portion from the initial build authorization to keep it isolated.
