@@ -8,6 +8,7 @@ import {
 } from "react";
 import type { AuthUser as BaseAuthUser } from "@workspace/api-client-react";
 import { clearSignedOutAccountCache, prepareAccountSignOut, resumeNewFlowAfterSignOutFailure } from "./accountSignOut";
+import { bindAccountCache, unbindAccountCache } from "./accountIsolation";
 
 // Extend the generated AuthUser with the server-side `role` field.
 // Optional because legacy responses don't include it; new /api/auth/me
@@ -38,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as { user: AuthUser | null };
+      if (data.user) bindAccountCache(data.user.id);
+      else unbindAccountCache();
       setUser(data.user ?? null);
     } catch {
       setUser(null);
@@ -76,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return `Sign in failed (HTTP ${res.status})`;
         }
         const data = (await res.json()) as { user: AuthUser };
+        bindAccountCache(data.user.id);
         setUser(data.user);
         setIsLoading(false);
         return null;
@@ -99,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw error;
     }
     clearSignedOutAccountCache();
+    unbindAccountCache();
     setUser(null);
     // Discard all mounted answer state and return to sign-in without old route/preview parameters.
     window.location.replace(import.meta.env.BASE_URL);

@@ -1,4 +1,5 @@
 import { finishNewFlowSignOut, flushNewFlowForSignOut, resumeNewFlowAfterSignOutFailure } from "../newFlowSync";
+import { accountCacheReady, accountGeneration, onAccountBoundary } from "./accountIsolation";
 
 type Save = () => Promise<Response>;
 const pending = new Set<Promise<void>>();
@@ -12,17 +13,26 @@ export function registerAccountMemoryClear(clear: () => void): void {
 
 /** Keep the existing immediate legacy save, but retain a failed latest write for logout retry. */
 export function trackAccountSave(key: string, save: Save): void {
+  if (!accountCacheReady()) return;
+  const stamp = accountGeneration();
   latest.set(key, save);
   const job = save().then(response => {
-    if (latest.get(key) !== save) return;
+    if (stamp !== accountGeneration() || latest.get(key) !== save) return;
     if (response.ok) failed.delete(key);
     else failed.set(key, save);
   }).catch(() => {
-    if (latest.get(key) === save) failed.set(key, save);
+    if (stamp === accountGeneration() && latest.get(key) === save) failed.set(key, save);
   });
   pending.add(job);
   void job.finally(() => pending.delete(job));
 }
+
+onAccountBoundary(() => {
+  clearLegacyMemory?.();
+  pending.clear();
+  failed.clear();
+  latest.clear();
+});
 
 export async function prepareAccountSignOut(): Promise<void> {
   try {

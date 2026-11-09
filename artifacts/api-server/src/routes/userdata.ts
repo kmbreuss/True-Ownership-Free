@@ -6,6 +6,21 @@ import { SYNC_KEYS, decideWrite, isWrapped } from "../lib/syncGuard";
 
 const router: IRouter = Router();
 
+// Bind saves to the client account that produced them, not only to the shared
+// browser cookie. Old/unbound clients must reload rather than upload old caches.
+router.use("/userdata", (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const expected = req.get("X-Account-Id");
+  if ((req.method === "PUT" && !expected) || (expected && expected !== req.user.id)) {
+    res.status(412).json({ error: "Account changed. Reload before syncing answers." });
+    return;
+  }
+  next();
+});
+
 const ALLOWED_KEYS = new Set([
   "map",
   "voice",

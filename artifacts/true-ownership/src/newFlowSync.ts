@@ -24,6 +24,7 @@ import { EMPTY_A5 } from "./a5Constants";
 import { EMPTY_MIRROR4 } from "./mirror4Constants";
 import { EMPTY_PRACTICAL, normalizePractical } from "./a1End/practical";
 import { EMPTY_DECISIONS, normalizeDecisions, mergeDecisions } from "../../../lib/decision-model";
+import { accountCacheReady, accountGeneration, onAccountBoundary } from "./lib/accountIsolation";
 
 export const A1_PROGRESS_KEYS = [
   "a1_ex1_done",
@@ -87,31 +88,10 @@ function setLt(sk: string, lt: number) {
   } catch {}
 }
 let practicalOwner: string | null = null;
-/** Scope only the new store; preserve unsent local answers when accounts switch. */
+/** Compatibility token for decision saves; the shared boundary owns every cache. */
 export function bindPracticalAccount(owner: string | null) {
-  if (isDevPreview() || signedOut) return;
-  const ownerKey = "to_a1_practical_owner_v1";
-  const previous = localStorage.getItem(ownerKey);
-  if (previous !== owner) {
-    clearTimeout(timers.decisions);
-    localStorage.removeItem("to_decisions_v1");
-    clearTimeout(timers.a1practical);
-    const meta = readMeta();
-    if (previous) localStorage.setItem(`to_a1_practical_account_v1:${previous}`, JSON.stringify({
-      raw: localStorage.getItem("to_a1_practical_v1"), meta: meta.a1practical ?? null,
-    }));
-    // An unbound first-ever local copy can be adopted by its initial account.
-    const saved = owner ? localStorage.getItem(`to_a1_practical_account_v1:${owner}`) : null;
-    if (previous || owner === null || saved) {
-      const copy = saved ? JSON.parse(saved) : null;
-      if (typeof copy?.raw === "string") localStorage.setItem("to_a1_practical_v1", copy.raw);
-      else localStorage.removeItem("to_a1_practical_v1");
-      delete meta.a1practical;
-      if (copy?.meta && typeof copy.meta.lt === "number") meta.a1practical = copy.meta;
-      localStorage.setItem(META_KEY, JSON.stringify(meta));
-    }
-    if (owner) localStorage.setItem(ownerKey, owner); else localStorage.removeItem(ownerKey);
-  }
+  if (owner && (!accountCacheReady() || isDevPreview())) return;
+  if (owner) localStorage.setItem("to_a1_practical_owner_v1", owner);
   practicalOwner = owner;
 }
 function storeForLocalKey(lk: string): Store | undefined {
@@ -148,6 +128,7 @@ export function hasRealContent(x: any): boolean {
 }
 
 function readLocal(s: Store): any | undefined {
+  if (!accountCacheReady()) return undefined;
   try {
     if (s.sk === "a1progress") {
       const o: Record<string, any> = {};
@@ -217,7 +198,8 @@ function pushNow(s: Store): Promise<SyncResult> {
   return job;
 }
 async function pushNowImpl(s: Store): Promise<SyncResult> {
-  if (isDevPreview()) return "nothing to sync";
+  if (isDevPreview() || !accountCacheReady() || signedOut) return "nothing to sync";
+  const stamp = accountGeneration();
   const owner = practicalOwner;
   const v = readLocal(s);
   if (!isMeaningful(s, v)) return "nothing to sync";
@@ -227,7 +209,7 @@ async function pushNowImpl(s: Store): Promise<SyncResult> {
     setLt(s.sk, lt);
   }
   const res = await put(s.sk, { t: lt, v });
-  if ((s.sk === "a1practical" || s.sk === "decisions") && owner !== practicalOwner) return "nothing to sync";
+  if (stamp !== accountGeneration() || !accountCacheReady() || owner !== practicalOwner) return "nothing to sync";
   if (!res) return "push failed (will retry)";
   if (res.status === 409) {
     try {
@@ -259,7 +241,7 @@ function schedulePush(s: Store) {
 }
 
 export function markLocalChange(lk: string) {
-  if (isDevPreview() || signedOut) return;
+  if (isDevPreview() || signedOut || !accountCacheReady()) return;
   const s = storeForLocalKey(lk);
   if (!s) return;
   if (resetting.has(s.sk)) return;
@@ -297,6 +279,7 @@ export function finishNewFlowSignOut(): void {
   for (const key of Object.keys(lastResult)) delete lastResult[key];
   pending.clear();
 }
+onAccountBoundary(finishNewFlowSignOut);
 
 export async function resetRealityCheckForDev(): Promise<void> {
   if (!import.meta.env.DEV || isDevPreview()) throw new Error("Reset is unavailable in this mode.");
@@ -327,12 +310,14 @@ export async function resetRealityCheckForDev(): Promise<void> {
 // so the stores are reconciled before any screen reads them.
 export async function hydrateNewFlow(cache: Record<string, any>, ownerId?: string): Promise<void> {
   if (isDevPreview()) return;
+  if (!accountCacheReady()) throw new Error("Account cache is not ready.");
+  const stamp = accountGeneration();
   signedOut = false;
   if (ownerId) bindPracticalAccount(ownerId);
   const owner = practicalOwner;
   enabled = true;
   for (const s of STORES) {
-    if (s.sk === "a1practical" && owner !== practicalOwner) continue;
+    if (stamp !== accountGeneration() || owner !== practicalOwner || !accountCacheReady()) return;
     try {
       const wrapped = isWrapped(cache[s.sk]) ? (cache[s.sk] as Wrapped) : null;
       const S = wrapped && s.sk === "a1practical" ? { ...wrapped, v: normalizePractical(wrapped.v) }
@@ -380,9 +365,11 @@ const LEGACY_AUTOPUSH: Array<[string, string]> = [
   ["done", "to_done"],
 ];
 export async function autoPushLegacy(cache: Record<string, any>): Promise<string[]> {
-  if (isDevPreview()) return [];
+  if (isDevPreview() || !accountCacheReady()) return [];
+  const stamp = accountGeneration();
   const pushed: string[] = [];
   for (const [sk, lk] of LEGACY_AUTOPUSH) {
+    if (stamp !== accountGeneration() || !accountCacheReady()) return pushed;
     try {
       const raw = localStorage.getItem(lk);
       if (raw === null) continue;

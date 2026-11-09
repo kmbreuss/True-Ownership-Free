@@ -119,6 +119,11 @@ export const SetUserDataValueParams = zod.object({
 });
 
 export const SetUserDataValueHeader = zod.object({
+  "X-Account-Id": zod
+    .string()
+    .describe(
+      "Must match the authenticated account that produced these answers.",
+    ),
   Authorization: zod
     .string()
     .optional()

@@ -72933,8 +72933,6 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
-  const label = (user?.email || "Account").split("@")[0];
-
   const wrapperStyle: React.CSSProperties =
     mode === "inline"
       ? { fontWeight: "var(--b-w)", position: "relative", fontFamily: "var(--f-body)" }
@@ -72998,6 +72996,10 @@ function AccountMenu({ mode = "fixed" }: { mode?: "fixed" | "inline" } = {}) {
               boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
             }}
           >
+            <div className="member-account-email" style={{
+              padding: "8px 10px", fontSize: 16, overflowWrap: "anywhere",
+              borderBottom: "1px solid rgba(122,118,110,0.3)",
+            }}>{user?.email}</div>
             <button
               onClick={() => {
                 setShowPwd(true);
@@ -73294,7 +73296,7 @@ function MemberControls() {
 }
 
 export default function App() {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuth();
   useKeyboardInset();
   // The loading + sign-in screens are always dark (the KB title-card glow), so
   // the light/dark toggle is deliberately NOT rendered on them; it mounts with
@@ -73315,9 +73317,9 @@ export default function App() {
     );
   return (
     <AppearanceProvider>
-      <MemberControls />
-      <NewA1PhoneSpine />
-      <ServerDataLoader>
+      <ServerDataLoader key={user?.id}>
+        <MemberControls />
+        <NewA1PhoneSpine />
         <AuthedApp />
       </ServerDataLoader>
     </AppearanceProvider>

@@ -176,6 +176,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: X-Account-Id
+          in: header
+          required: true
+          description: Must match the authenticated account that produced these answers.
+          schema:
+            type: string
         - $ref: '#/components/parameters/AuthorizationSessionHeader'
         - $ref: '#/components/parameters/SessionCookie'
       requestBody:
@@ -193,6 +199,12 @@ paths:
                 $ref: '#/components/schemas/UserDataPutSuccess'
         '400':
           description: Invalid key or missing value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '412':
+          description: Missing or mismatched account owner. Reload before syncing.
           content:
             application/json:
               schema:
