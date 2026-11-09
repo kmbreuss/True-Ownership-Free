@@ -945,3 +945,73 @@ mtime_ms = 1794184610736
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/538f8d57-8c45-40de-8f0d-1009d2959b34/dadaf999-41c1-4c39-a10e-fbd1edc50069"
 storage_version_token = "1794184654077401"
 content_type = "image/png"
+
+[[outputs]]
+id = "g-ucvpaI89kjryUmV59_u"
+uri = "file://generated-artifacts/phone-home/375-light-a1-today.png"
+type = "image"
+title = "Phone Home · Today · light"
+description = "375×812 synthetic fixture, full-page capture."
+logical_id = "bee017d9-b28e-43f9-abe9-cfadd09e5d68"
+content_hash = "sha256:b216e0383dddf405be1a35fb9835f4eae9689dfcffd5e0330ecd7c88c327eeff"
+size = 82144
+mtime_ms = 1794185686708
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/bee017d9-b28e-43f9-abe9-cfadd09e5d68/fb65dee5-c888-452d-b9c4-1e53453045d0"
+storage_version_token = "1794185816092534"
+content_type = "image/png"
+
+[[outputs]]
+id = "azzvsCwYSR3hhaqge77mY"
+uri = "file://generated-artifacts/phone-home/375-dark-a1-today.png"
+type = "image"
+title = "Phone Home · Today · dark"
+description = "375×812 synthetic fixture, full-page capture."
+logical_id = "7ce4c7a3-b954-4b6c-b540-ff180e5bc681"
+content_hash = "sha256:9b9a0c47c30ae0a0902ac93c32bcbe32d7412772eae74d04bc5002e88608e6fb"
+size = 83803
+mtime_ms = 1794185710863
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/7ce4c7a3-b954-4b6c-b540-ff180e5bc681/3e6e2750-999c-46b0-8993-f296c6fdd78e"
+storage_version_token = "1794185816695141"
+content_type = "image/png"
+
+[[outputs]]
+id = "eU0_wIM0ITqGd0lX-JEq2"
+uri = "file://generated-artifacts/phone-home/375-light-a1-week.png"
+type = "image"
+title = "Phone Home · This week · light"
+description = "Saved Do / Try / Notice, with review returning to Home."
+logical_id = "b9afaef2-f48c-4ad8-a798-12b8cfb92e83"
+content_hash = "sha256:123afae2d95ae2597ce83b4109aa9194334aa4193e9cfc98eb6207e2879cb465"
+size = 70780
+mtime_ms = 1794185687164
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/b9afaef2-f48c-4ad8-a798-12b8cfb92e83/3701ad66-9eeb-4930-9e8a-f24f9f791d11"
+storage_version_token = "1794185817572109"
+content_type = "image/png"
+
+[[outputs]]
+id = "1JG5tSCo7sk8Lo1FwP7Dv"
+uri = "file://generated-artifacts/phone-home/375-dark-a1-week.png"
+type = "image"
+title = "Phone Home · This week · dark"
+description = "375×812 synthetic fixture, full-page capture."
+logical_id = "eadcf40f-ee4a-479a-94d3-9de3ccd6ce1b"
+content_hash = "sha256:92917f0362e3961873feb3d4aa43b346b5d15caa692f549c16dd17b40c77dc6c"
+size = 71971
+mtime_ms = 1794185710979
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/eadcf40f-ee4a-479a-94d3-9de3ccd6ce1b/70d09fd5-7469-407c-bf1e-cf04bfa636c1"
+storage_version_token = "1794185818159894"
+content_type = "image/png"
+
+[[outputs]]
+id = "0Li29lTTsX7M8rJaPpKwO"
+uri = "file://generated-artifacts/phone-home/report.html"
+type = "html"
+title = "Phone Home · mapping, copy, screenshots and files"
+description = "Full block mapping and old → new copy table; Future B, member-state and desktop screenshots at every requested width."
+logical_id = "ce8282fb-49d3-46ed-ba1e-6f043d924b79"
+content_hash = "sha256:b43483c5cd47d74ea7dd386dfdc425efe8400d557cff578920ed49255ac31625"
+size = 4649826
+mtime_ms = 1794185741239
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/ce8282fb-49d3-46ed-ba1e-6f043d924b79/188ca5d4-7657-4eff-abd4-476178016b58"
+storage_version_token = "1794185818851718"
+content_type = "text/html"

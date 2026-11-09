@@ -9,6 +9,7 @@ export function setChangeHandler(h: Handler | null): void {
 }
 export function notifyLocalChange(localKey: string): void {
   if (isDevPreview()) return;
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("to-answer-saved", { detail: localKey }));
   try {
     handler?.(localKey);
   } catch {}

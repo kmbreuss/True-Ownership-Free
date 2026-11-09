@@ -4,7 +4,10 @@
 .na1-mirror-card.jr-mirror-card h2{font:23px/1.2 var(--f-display);margin:0;color:#353334}
 .jr-mirror-card .jr-mirror-body{font:18px/1.3 var(--f-body);margin:0;color:#353334}
 .jr-mirror-card .jr-mirror-body.is-finding{font-style:italic}
-.na1-mirror-card.jr-mirror-claimed{background:radial-gradient(circle at 50% 0%,#FFFFFF,#FBF8F2 55%,#F3E9D8);border-color:#A5875E;box-shadow:0 5px 24px #A5875E22}
+.na1-mirror-card.jr-mirror-claimed{background:radial-gradient(circle at 50% 0%,#FFFFFF,#FBF8F2 55%,#F3E9D8);border-color:#A5875E;box-shadow:0 0 0 1px rgba(165,135,94,.25),0 8px 28px rgba(226,194,126,.35)}
+.na1-mirror-card.ph-just-claimed{animation:home-claim-glow 2s ease-out}
+@keyframes home-claim-glow{0%,35%{box-shadow:0 0 0 2px #A5875E88,0 0 42px #E2C27Eaa}100%{box-shadow:0 0 0 1px rgba(165,135,94,.25),0 8px 28px rgba(226,194,126,.35)}}
+@media(prefers-reduced-motion:reduce){.na1-mirror-card.ph-just-claimed{animation:none}}
 .na1-mirror-card.jr-mirror-next{border-color:#036360}
 .jr-mirror-next .jr-mirror-status{border:1px solid #036360;border-radius:16px;padding:2px 7px;color:#036360}
 .jr-mirror-later .jr-mirror-status{color:#756F66}

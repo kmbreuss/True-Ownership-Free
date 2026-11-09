@@ -17,3 +17,4 @@
 - [Navigation and recordings](navigation-audio-policy.md) — source-only Audio follows access, not visit history; bottom navigation stays outside rooms and overlays.
 - [Appearance compatibility](appearance-policy.md) — preserve old Light/Dark choices; an auto-saved Light cannot be distinguished from a deliberate selection.
 - [Map of Me boundaries](map-of-me-policy.md) — current answers only, original review editors, no completion changes; three-year/letter/best-friend panels stay retired.
+- [Phone Home policy](phone-home-policy.md) — no valid claim date means “Welcome back”; preserve relocated controls and never infer visit history or missing duration estimates.

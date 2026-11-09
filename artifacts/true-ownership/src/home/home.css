@@ -1,0 +1,54 @@
+.na1-eh-content:has(.phone-home){max-width:1000px;text-align:left;padding:30px 24px 70px}
+.phone-home{color:var(--na1-text);min-width:0}
+.ph-greeting{padding:0 44px 0 0;margin-bottom:22px}
+.ph-greeting h1{font:italic 60px/1.08 var(--f-body);margin:0 0 10px;overflow-wrap:anywhere}
+.ph-greeting p{font:20px/1.35 var(--f-body);color:var(--gold-text,#735F43);margin:0}
+.ph-tabs{display:flex;padding:4px;border:1px solid var(--na1-border,#C9C9CD);border-radius:40px;max-width:460px;margin-bottom:22px}
+.ph-tabs button{flex:1;min-width:0;min-height:44px;border:0;border-radius:30px;background:transparent;color:var(--na1-text-sec);font:11px/1.3 var(--f-label);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:8px}
+.ph-tabs [aria-selected=true]{background:#036360;color:#fff}
+.phone-home button:focus-visible,.ph-introduction summary:focus-visible{outline:3px solid #A5875E;outline-offset:3px}
+.ph-today{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr);gap:18px;align-items:start}
+.ph-main,.ph-aside{min-width:0}
+.ph-card{background:var(--na1-bg-card,#fff);color:var(--na1-text);border:1px solid var(--na1-border,#E6E6E8);border-radius:22px;padding:18px;box-shadow:0 10px 28px #00000007;margin-bottom:16px;text-align:left;min-width:0;overflow-wrap:anywhere}
+.ph-next h2,.ph-placeholder h2{font:32px/1.15 var(--f-display);margin:8px 0}
+.ph-card p{font:21px/1.3 var(--f-body);margin:8px 0 16px}
+.ph-card .ph-eyebrow,.ph-eyebrow{display:block;font:10px/1.4 var(--f-label);letter-spacing:.16em;color:var(--na1-text-sec);margin:12px 0 6px}
+.ph-action{background:#036360;color:#fff;min-height:44px;border:0;border-radius:30px;width:100%;padding:12px 16px;font:14px/1.3 var(--f-label);cursor:pointer}
+.ph-next .mi-panel{height:156px;background:linear-gradient(135deg,#FFFDF7,#F1DDB4)}
+.ph-next .mi-panel svg{height:130px;width:170px}
+.ph-rc-art{height:150px;display:flex;align-items:center;justify-content:center;gap:30px;background:linear-gradient(135deg,#FFFDF7,#F1DDB4);border-radius:14px;color:#A5875E;font:44px var(--f-body)}
+.ph-audio{margin-bottom:18px}
+.ph-audio .na1-video-card{margin:0;background:var(--na1-bg-card,#fff);border-radius:20px;padding:18px;min-height:80px;box-shadow:0 8px 26px #00000008}
+.ph-audio .na1-video-num{display:none}
+.ph-audio .na1-video-play-btn{order:2;flex:none;background:#036360;color:#fff;border:0;width:44px;height:44px}
+.ph-audio .na1-video-card>div:not(.na1-video-play-btn){min-width:0;flex:1;display:flex;flex-direction:column}
+.ph-audio .na1-video-title{font:20px/1.2 var(--f-display)}
+.ph-audio .na1-video-sub{order:-1;font:10px/1.4 var(--f-label);letter-spacing:.12em;margin-bottom:4px}
+.ph-desktop-future .jr-future-b{padding:18px;border-radius:18px}
+.ph-desktop-future .jr-future-b blockquote{font-size:25px}
+.ph-desktop-future .jr-growing-lines>div{grid-template-columns:1fr;gap:4px}
+.ph-week-content,.ph-future-content{max-width:720px}
+.ph-week-cards{list-style:none;padding:0;margin:0}
+.ph-week-cards button{display:flex;gap:16px;width:100%;align-items:flex-start;cursor:pointer}
+.ph-number{display:grid;place-items:center;flex:none;width:36px;height:36px;border:1px solid #036360;color:var(--na1-text);border-radius:50%;font:20px var(--f-body)}
+.ph-week-cards .ph-eyebrow{margin:0 0 5px}
+.ph-week-answer{display:block;font:24px/1.25 var(--f-body)}
+.ph-set-aside{font:italic 21px/1.4 var(--f-body);color:var(--na1-text-sec);text-align:center;margin:18px 0 28px}
+.ph-links{display:flex;flex-wrap:wrap;gap:8px 18px;margin:26px 0 12px}
+.ph-links button{min-height:44px;background:none;border:0;text-align:left;color:var(--na1-text-sec);font:12px/1.4 var(--f-label);text-decoration:underline;padding:4px 0;cursor:pointer}
+.ph-introduction{border-top:1px solid var(--na1-border);padding-top:8px}
+.ph-introduction summary{cursor:pointer;min-height:44px;padding:12px 0;font:13px var(--f-label);color:var(--na1-text-sec)}
+.ph-introduction .na1-eh-hero{font-size:32px}
+@media(max-width:899.98px){
+ .na1-eh-content:has(.phone-home){padding:24px 16px 40px;max-width:none}
+ .ph-greeting{text-align:center;padding:0 30px;margin-bottom:22px}
+ .ph-greeting h1{font-size:46px}
+ .ph-greeting p{font-size:20px}
+ .ph-today{display:block}
+ .ph-desktop-future{display:none}
+ .ph-tabs{max-width:none}
+ .ph-next h2{font-size:30px}
+ .ph-next .mi-panel{height:132px}
+ .ph-week-answer{font-size:22px}
+ .ph-links{margin-top:24px}
+}

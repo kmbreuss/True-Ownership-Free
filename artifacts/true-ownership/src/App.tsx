@@ -25,6 +25,9 @@ import { loadNotice } from "./a1End/notice";
 import { WeeklyNotice } from "./a1End/WeeklyNotice";
 import { CreatureBalance } from "./a1End/CreatureBalance";
 import { PracticalHome } from "./a1End/PracticalHome";
+import { PhoneHome } from "./home/PhoneHome";
+import { homeProjection, type HomeStep } from "./home/model";
+import { useClaimEmphasis } from "./home/claimEmphasis";
 import { RealityCheck } from "./reality-check/RealityCheck";
 import { RCMapCard } from "./reality-check/RCMapCard";
 import { rcFreeLocked, useRCAccess, setSimulatedFree } from "./reality-check/access";
@@ -364,6 +367,7 @@ function saveData(k: string, v: any) {
   if (k.startsWith("a1_")) notifyLocalChange(k);
   const sk = localKeyToServerKey(k);
   if (sk && serverDataCache) serverDataCache[sk] = v;
+  if (k === "to_map") window.dispatchEvent(new CustomEvent("to-answer-saved", { detail: k }));
   if (sk && isAuthed) {
     fetch(`/api/userdata/${sk}`, {
       method: "PUT",
@@ -35578,7 +35582,7 @@ function useKeyboardInset() {
 // (desktop) or opens a full-screen overlay (mobile <600px, with back-button
 // dismiss). If the video isn't ready it shows a brief "Video coming soon"
 // toast instead.
-function VideoCard({ surface }: { surface: VideoSurface }) {
+function VideoCard({ surface, compact = false }: { surface: VideoSurface; compact?: boolean }) {
   const meta = VIDEOS[surface];
   const ready = isVideoReady(meta);
   const embedUrl = getVimeoEmbedUrl(meta);
@@ -35656,7 +35660,7 @@ function VideoCard({ surface }: { surface: VideoSurface }) {
         <div className="na1-video-num">{meta.number}</div>
         <div className="na1-video-title">{meta.title}</div>
         <div className="na1-video-sub">
-          {meta.speaker} · {meta.durationLabel}
+          {compact ? `${meta.durationLabel} · KATHERINE` : `${meta.speaker} · ${meta.durationLabel}`}
         </div>
       </div>
       {toast && <div className="na1-video-toast">Video coming soon</div>}
@@ -36008,6 +36012,9 @@ function DevResetBar() {
 
 function NewA1EntryHall({
   name,
+  home,
+  onContinue,
+  onHomeMap,
   allClaimed,
   onCheckin,
   onOpenA5,
@@ -36016,6 +36023,9 @@ function NewA1EntryHall({
   onRealityCheck,
 }: {
   name?: string;
+  home: ReturnType<typeof homeProjection>;
+  onContinue: (step: HomeStep) => void;
+  onHomeMap: () => void;
   // All five As claimed → "This week" leads the page (A5-2).
   allClaimed?: boolean;
   onCheckin?: () => void;
@@ -36024,38 +36034,34 @@ function NewA1EntryHall({
   onEnterApp: () => void;
   onRealityCheck?: () => void;
 }) {
-  const greeting = name ? `Welcome, ${name}.` : "Welcome.";
+  const [weekReview, setWeekReview] = useState(false);
   return (
     <div className="na1-root">
       <main className="na1-eh-content">
         <HomeAppearanceButton />
         <DevResetBar />
-        {onRealityCheck && <section className="rc-entry-card">
-          <p className="na1-eh-eyebrow">{hasReturningProgress() && !loadRCState().complete ? "Start here · New" : "Start here"}</p>
-          <h2>Before you start, a reality check.</h2>
-          <p>Where you are now, and where it leads.</p>
-          <button className="na1-eh-btn-gold" onClick={onRealityCheck}>{loadRCState().complete ? "Review" : "Begin"} the Reality Check →</button>
-        </section>}
-        <div className="na1-breadcrumb">
-          <span className="current">Entry Hall</span>
-        </div>
-        <A5ReminderCard onCheckin={onCheckin} />
-        {allClaimed && onCheckin ? (
-          <A5ThisWeek variant="hall" onCheckin={onCheckin} onOpenA5={onOpenA5} />
-        ) : null}
-        <PracticalHome identity={loadMirror3State()} original={loadRCState().futureB1.oneThing}
-          value={endSummary(loadDataSync(KEYS.map), loadMirror4State(), loadRCState()).names[0] || ""} />
+        <PhoneHome name={name} model={home} identity={loadMirror3State()} original={loadRCState().futureB1.oneThing}
+          reviewed={!!loadNotice()?.savedAt}
+          value={endSummary(loadDataSync(KEYS.map),loadMirror4State(),loadRCState()).names[0] || ""}
+          onContinue={onContinue} onMap={onHomeMap} onWeek={()=>setWeekReview(true)} onRC={onRealityCheck}
+          renderPlayer={surface=><VideoCard surface={surface} compact/>}
+          future={<FutureBGrows snapshot={readJourney(loadDataSync)}/>}
+          reminders={<A5ReminderCard onCheckin={onCheckin}/>}
+          commitments={home.a5Claimed && onCheckin ? <A5ThisWeek variant="hall" onCheckin={onCheckin} onOpenA5={onOpenA5}/> : null}
+          controls={<>
+            <button onClick={onSeeFramework}>See the framework →</button>
+            <button onClick={onEnterApp}>{rcFreeLocked() ? "Unlocks when you join" : "Skip to A1 · All In It →"}</button>
+            {onRealityCheck && <button onClick={onRealityCheck}>{loadRCState().complete ? "Review" : "Begin"} the Reality Check →</button>}
+          </>}>
         <p className="na1-eh-eyebrow">True Ownership · Welcome</p>
         <p className="na1-eh-quote">
           Our life is a mirror of how we think and feel about ourselves.
         </p>
-        <h1 className="na1-eh-hero">Everything starts with you.</h1>
-        <p className="na1-eh-hero-italic">{greeting}</p>
+        <h2 className="na1-eh-hero">Everything starts with you.</h2>
         <p className="na1-eh-lead">
           Before you can build a life that is truly yours, you need to know who
           is building it. Not the role. Not the title. <em>You.</em>
         </p>
-        <VideoCard surface="entry-hall" />
         <div className="na1-eh-principle-card">
           <p className="na1-eh-eyebrow">Before we start — one principle</p>
           <p className="na1-eh-principle">
@@ -36075,16 +36081,9 @@ function NewA1EntryHall({
           inner trust. Know who you are. Then look outward from a foundation
           that's actually yours.
         </p>
-        <div className="na1-eh-cta-row">
-          <button className="na1-eh-btn-gold" onClick={onSeeFramework}>
-            See the framework <span>→</span>
-          </button>
-          <button className="na1-eh-btn-quiet" onClick={onEnterApp}>
-            {rcFreeLocked() ? "Unlocks when you join" : "Skip to A1 · All In It →"}
-          </button>
-        </div>
+        </PhoneHome>
+        {weekReview && <MapAnswerEditor target={{kind:"notice",stage:"a1",mirror:"This week"}} onClose={()=>setWeekReview(false)}/>}
       </main>
-      <footer className="na1-app-footer">{na1FooterText()}</footer>
     </div>
   );
 }
@@ -51255,6 +51254,7 @@ function NewA1View({
   // other downstream consumer of `name`) would skip the auth fallback.
   const { user: authUser } = useAuth();
   const resolvedName = resolveDisplayName(name, authUser) ?? "";
+  useClaimEmphasis(loadDataSync);
   // Ship 5.6c · refresh-resume routing. Read the saved route once
   // synchronously so the initial render lands on the right view.
   // The overlay portion is held in a ref and consumed by the M3/M4
@@ -52707,6 +52707,35 @@ function NewA1View({
         <NewA1Spine name={resolvedName} a1Complete={a1Complete} a2Complete={a2Complete} a3Complete={a3Complete} view={view} onNavigate={setView} a2Enabled={NEW_A2_FLAG} a3Enabled={NEW_A3_FLAG} />
         <NewA1EntryHall
           name={resolvedName}
+          home={homeProjection(key => key === "to_mirror4_state_v1" ? loadMirror4State() : loadDataSync(key), {
+            rcRequired, freeLocked:rcFreeLocked(), a2:NEW_A2_FLAG, a3:NEW_A3_FLAG, preview:isDevPreview(),
+          })}
+          onHomeMap={()=>{menuMapReturn.current="entry-hall";setView("a1map");}}
+          onContinue={step=>{
+            if(step.view==="rcroom"){rcResumeRef.current=true;setView("rcroom");return;}
+            if(rcFreeLocked()) return;
+            if(step.view==="m4") initialM4RoomKeyRef.current=step.part || "admire";
+            if(step.view==="m3") initialM3RoomKeyRef.current=step.part || "yourGifts";
+            if(step.view==="explore"){
+              const ex=NA1_EXERCISES.find(e=>e.key===step.part);
+              if(!ex || !purposeRoomUnlocked(ex.key,progress,loadDataSync(KEYS.map)||{},loadDataSync("a1_peel_draft"),isDevPreview())) return;
+              setOpenEx(ex);setRoomOpen(true);
+            }
+            if(step.view==="explore2"){
+              const ex=M2_EXERCISES.find(e=>e.key===step.part);
+              if(!ex || !visionRoomUnlocked(ex.key,(loadDataSync(KEYS.map) as any)?.vision,isDevPreview())) return;
+              resumeM2Ref.current=true;setOpenM2Ex(ex);setRoomOpen(true);
+            }
+            const refs: Record<string, React.MutableRefObject<string|null>>={
+              a2m1:initialA2M1RoomKeyRef,a2m2:initialA2M2RoomKeyRef,a2m3:initialA2M3RoomKeyRef,
+              a3m1:initialA3M1RoomKeyRef,a3m2:initialA3M2RoomKeyRef,a3m3:initialA3M3RoomKeyRef,
+              a3m4:initialA3M4RoomKeyRef,a3m5:initialA3M5RoomKeyRef,a3m6:initialA3M6RoomKeyRef,
+              a4m1:initialA4M1RoomKeyRef,a4m2:initialA4M2RoomKeyRef,a4m3:initialA4M3RoomKeyRef,
+              a4p:initialA4PRoomKeyRef,a5m1:initialA5M1RoomKeyRef,
+            };
+            if(refs[step.view]) refs[step.view].current=step.part || null;
+            setView(step.view as typeof view);
+          }}
           onRealityCheck={() => setView("rc")}
           allClaimed={a1Complete && a2Complete && a3Complete && a4Complete && a5Complete}
           onCheckin={() => setView("a5c")}
