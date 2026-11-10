@@ -9,16 +9,11 @@ import { AppearanceOptions } from "../appearance/Appearance";
 import { SignOutButton } from "../components/SignOutButton";
 import "./journey.css";
 
+const point = (t: number) => ({ x: 145 + 57 * Math.sin(t * Math.PI * 5), y: 515 - t * 460 });
 type NavigationProps = { navigation: RoadNavigationItem[]; onNavigate: (destination: string) => void };
 export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate, desktop = false }: NavigationProps & {
   snapshot: JourneySnapshot; current: string; newest?: string; onOpen?: () => void; desktop?: boolean;
 }) {
-  // The desktop rail reserves a destination zone above the bricks and clear label lanes
-  // on either side. The sheet keeps its existing path and layout.
-  const point = (t: number) => ({
-    x: 145 + (desktop ? 30 : 57) * Math.sin(t * Math.PI * 5),
-    y: 515 - t * (desktop ? 350 : 460),
-  });
   const latest = newest ?? snapshot.bricks.findLast(b => b.done)?.id;
   const path = Array.from({ length: 121 }, (_, i) => {
     const p = point(i / 120); return `${i ? "L" : "M"}${p.x},${p.y}`;
@@ -52,8 +47,8 @@ export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate
         const p = point(index / (snapshot.bricks.length - (desktop ? 1 : 0)));
         const right = desktop ? stageIndex % 2 === 1 : p.x < 145;
         const item = navigation.find(item => item.id === group.id)!;
-        return <foreignObject key={group.id} x={right ? 184 : desktop ? 20 : 5}
-          y={p.y - (desktop ? 22 : 16)} width={desktop && !right ? 88 : 101} height={desktop ? 44 : 54}>
+        return <foreignObject key={group.id} x={desktop ? right ? 201 : 20 : right ? 184 : 5}
+          y={p.y - (desktop ? 22 : 16)} width={desktop ? right ? 89 : 88 : 101} height={desktop ? 44 : 54}>
           <button type="button" className={`jr-road-stop ${item.isCurrent ? "is-current" : ""}`}
             data-road-destination={group.id} disabled={!item.destination} aria-label={item.accessibleLabel}
             aria-current={item.isCurrent ? "page" : undefined}

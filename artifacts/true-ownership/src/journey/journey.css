@@ -10,7 +10,7 @@
 .jr-road-stop.is-current:hover:not(:disabled){background:#024E4C}
 .jr-road-stop:focus-visible{outline:2px solid #036360;outline-offset:-2px;background:#A5875E22}
 .jr-road-stop:disabled{opacity:.5;cursor:not-allowed}
-.jr-desktop .jr-road-stop{height:44px}
+.jr-desktop .jr-road-stop{height:44px;letter-spacing:0}
 .jr-road .jr-tap-hint{pointer-events:none}
 html[data-theme="dark"] .jr-road-stop{color:#E9D9BA}
 html[data-theme="dark"] .jr-road-stop.is-current{color:#FFFDF7;background:#036360;border-color:#D9BC85;box-shadow:0 0 0 3px #9CD8CF22,0 0 14px #9CD8CF22}

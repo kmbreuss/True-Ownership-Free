@@ -1379,3 +1379,31 @@ mtime_ms = 1794275173868
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/b159e257-caca-4d11-9bda-a3f2fd8d6ed0/5a08a126-e479-47d2-b69a-ed3b0ba05de4"
 storage_version_token = "1794275225438569"
 content_type = "image/png"
+
+[[outputs]]
+id = "u_ok3yi5-7Pw49bA7UobZ"
+uri = "file://generated-artifacts/road-geometry-restore/comparison-light.png"
+type = "image"
+title = "Before / after · 1280×800 · Light"
+description = "Left: compressed road. Right: original road geometry restored, with labels repositioned only. Synthetic fixture."
+logical_id = "0fdd32a8-f90b-4fcb-9b1c-e91e0a2809b4"
+content_hash = "sha256:17a62cd267889cf5c03e802e02feb7a70c301a6ae9aec7ec34cf738ccaf713ba"
+size = 173126
+mtime_ms = 1794275526631
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/0fdd32a8-f90b-4fcb-9b1c-e91e0a2809b4/9599d333-4f80-4907-ad85-b41d0b9bc500"
+storage_version_token = "1794275542410536"
+content_type = "image/png"
+
+[[outputs]]
+id = "o2n6JWr-trbIgavgjsNZl"
+uri = "file://generated-artifacts/road-geometry-restore/comparison-dark.png"
+type = "image"
+title = "Before / after · 1440×900 · Dark"
+description = "Original full-height road restored; A4 current-stage marker retained. Synthetic fixture."
+logical_id = "c7d05271-2b22-407e-8e35-21da86899d5b"
+content_hash = "sha256:c57212026827928ea03fcfe551ab5869ad05763ccf9d8d0cf0370547f03a8b96"
+size = 301172
+mtime_ms = 1794275526939
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/c7d05271-2b22-407e-8e35-21da86899d5b/00efb19e-0752-4017-a97a-4c2f823169ac"
+storage_version_token = "1794275543032122"
+content_type = "image/png"
