@@ -1351,3 +1351,31 @@ mtime_ms = 1794274940108
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/3d272c2a-d7e1-42d3-9cfa-29733a2f5205/4ac38d7f-c69b-41de-9dad-0615927d3543"
 storage_version_token = "1794275012828005"
 content_type = "image/png"
+
+[[outputs]]
+id = "S0naStBlMFh0xbeDlZ5TD"
+uri = "file://generated-artifacts/desktop-road/1280-light-a1.png"
+type = "image"
+title = "Desktop road · A1 current · Light"
+description = "1280×800. Stage labels anchored to their own brick ranges in the correct order."
+logical_id = "de029b17-bc0b-446b-901f-03b36fa49932"
+content_hash = "sha256:010bc7ff34c42dabb6e08e9c32d43c5fc4918a4bffa8c67ac845c16d34451240"
+size = 125290
+mtime_ms = 1794275135160
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/de029b17-bc0b-446b-901f-03b36fa49932/0229e25b-f2d7-4cbd-b8e6-1f19d6f46687"
+storage_version_token = "1794275224838958"
+content_type = "image/png"
+
+[[outputs]]
+id = "pxjLlDAIqzvNm8u_4ENdH"
+uri = "file://generated-artifacts/desktop-road/1440-dark-a4.png"
+type = "image"
+title = "Desktop road · A4 current · Dark"
+description = "1440×900. A5 above A4; current-stage styling retained."
+logical_id = "b159e257-caca-4d11-9bda-a3f2fd8d6ed0"
+content_hash = "sha256:e2e6337c80e712dc4febd3c620edc5177c53d9911375a0110917dc44eab0f1ca"
+size = 233991
+mtime_ms = 1794275173868
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/b159e257-caca-4d11-9bda-a3f2fd8d6ed0/5a08a126-e479-47d2-b69a-ed3b0ba05de4"
+storage_version_token = "1794275225438569"
+content_type = "image/png"

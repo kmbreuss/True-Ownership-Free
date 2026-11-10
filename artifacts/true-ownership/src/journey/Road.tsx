@@ -9,11 +9,16 @@ import { AppearanceOptions } from "../appearance/Appearance";
 import { SignOutButton } from "../components/SignOutButton";
 import "./journey.css";
 
-const point = (t: number) => ({ x: 145 + 57 * Math.sin(t * Math.PI * 5), y: 515 - t * 460 });
 type NavigationProps = { navigation: RoadNavigationItem[]; onNavigate: (destination: string) => void };
-export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate }: NavigationProps & {
-  snapshot: JourneySnapshot; current: string; newest?: string; onOpen?: () => void;
+export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate, desktop = false }: NavigationProps & {
+  snapshot: JourneySnapshot; current: string; newest?: string; onOpen?: () => void; desktop?: boolean;
 }) {
+  // The desktop rail reserves a destination zone above the bricks and clear label lanes
+  // on either side. The sheet keeps its existing path and layout.
+  const point = (t: number) => ({
+    x: 145 + (desktop ? 30 : 57) * Math.sin(t * Math.PI * 5),
+    y: 515 - t * (desktop ? 350 : 460),
+  });
   const latest = newest ?? snapshot.bricks.findLast(b => b.done)?.id;
   const path = Array.from({ length: 121 }, (_, i) => {
     const p = point(i / 120); return `${i ? "L" : "M"}${p.x},${p.y}`;
@@ -42,11 +47,13 @@ export function Road({ snapshot, current, newest, onOpen, navigation, onNavigate
           {brick.id === latest && <circle className="jr-latest-ring" cx={p.x} cy={p.y} r="10" />}
         </g>;
       })}
-      {ROAD_GROUPS.map(group => {
-        const index = offset + group.total / 2; offset += group.total;
-        const p = point(index / snapshot.bricks.length), right = p.x < 145;
+      {ROAD_GROUPS.map((group, stageIndex) => {
+        const index = offset + (desktop ? (group.total - 1) / 2 : group.total / 2); offset += group.total;
+        const p = point(index / (snapshot.bricks.length - (desktop ? 1 : 0)));
+        const right = desktop ? stageIndex % 2 === 1 : p.x < 145;
         const item = navigation.find(item => item.id === group.id)!;
-        return <foreignObject key={group.id} x={right ? 184 : 5} y={p.y - 16} width="101" height="54">
+        return <foreignObject key={group.id} x={right ? 184 : desktop ? 20 : 5}
+          y={p.y - (desktop ? 22 : 16)} width={desktop && !right ? 88 : 101} height={desktop ? 44 : 54}>
           <button type="button" className={`jr-road-stop ${item.isCurrent ? "is-current" : ""}`}
             data-road-destination={group.id} disabled={!item.destination} aria-label={item.accessibleLabel}
             aria-current={item.isCurrent ? "page" : undefined}
@@ -153,7 +160,7 @@ export function JourneyRoad({ view, read, navigation, onNavigate, hideMenu = fal
       : item.status === "You are here" ? complete ? item.id === "rc" ? "Complete" : "Claimed" : "" : item.status };
   }) : navigation;
   return <>
-    <aside className="jr-desktop"><Road snapshot={snapshot} current={current} newest={newest}
+    <aside className="jr-desktop"><Road desktop snapshot={snapshot} current={current} newest={newest}
       navigation={activeNavigation} onNavigate={onNavigate} onOpen={() => setOpen(true)} />
       <DesktopPageLinks view={view} canMap={canMap} onNavigate={onNavigate} />
     </aside>

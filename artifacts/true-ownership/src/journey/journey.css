@@ -10,9 +10,7 @@
 .jr-road-stop.is-current:hover:not(:disabled){background:#024E4C}
 .jr-road-stop:focus-visible{outline:2px solid #036360;outline-offset:-2px;background:#A5875E22}
 .jr-road-stop:disabled{opacity:.5;cursor:not-allowed}
-/* Keep left labels inside the rail; place A5 below even the fully lit star's glow. */
-.jr-desktop foreignObject:has([data-road-destination="rc"],[data-road-destination="a2"],[data-road-destination="a4"]){x:20px;width:88px}
-.jr-desktop foreignObject:has([data-road-destination="a5"]){x:184px;y:140px;width:101px}
+.jr-desktop .jr-road-stop{height:44px}
 .jr-road .jr-tap-hint{pointer-events:none}
 html[data-theme="dark"] .jr-road-stop{color:#E9D9BA}
 html[data-theme="dark"] .jr-road-stop.is-current{color:#FFFDF7;background:#036360;border-color:#D9BC85;box-shadow:0 0 0 3px #9CD8CF22,0 0 14px #9CD8CF22}

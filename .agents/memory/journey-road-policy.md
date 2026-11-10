@@ -34,6 +34,6 @@ Current location and earned progress are separate signals: the active stage owns
 
 Desktop stage labels alternate RC left, A1 right, A2 left, A3 right, A4 left, A5 right. A5 needs roughly 40px clearance below the Future B star and its glow; left labels must remain fully inside the rail.
 
-**Why:** The owner rejected the first desktop placement because A5 crowded the destination and left labels were clipped.
+**Why:** The owner rejected desktop placements that crowded the destination, clipped left labels, or moved A5 below A4.
 
-**How to apply:** Check label text bounds and clearance against the fully illuminated destination, not just an empty journey's smaller glow. Keep desktop positioning changes separate from the phone bar and sheet.
+**How to apply:** Anchor every label to the midpoint of its own brick range on the same path used to draw the bricks. Never fix spacing by independently shifting a stage label along the road. Reserve destination space in the desktop path instead. Check stage order, full label bounds and clearance against the fully illuminated destination, not just an empty journey's smaller glow. Keep desktop positioning changes separate from the phone bar and sheet.
