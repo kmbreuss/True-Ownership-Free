@@ -1337,3 +1337,17 @@ mtime_ms = 1794246959452
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/3a0a437b-1560-429d-8c72-dc40c36c90b1/6131d2cb-b3ab-41f4-8b26-2dfda30c4196"
 storage_version_token = "1794246991620030"
 content_type = "image/png"
+
+[[outputs]]
+id = "mT_tfuIkt2AsITG75NNcl"
+uri = "file://generated-artifacts/desktop-road/1280-light.png"
+type = "image"
+title = "Desktop road · 1280×800"
+description = "A5 · ACCOUNTABLE on the right, clear of the curve and Future B star. Synthetic fixture."
+logical_id = "3d272c2a-d7e1-42d3-9cfa-29733a2f5205"
+content_hash = "sha256:7ef81b6cb0724ea7d01db67dd8f802f47ee66bd5aeb462e7da979ce8d0ce78e6"
+size = 130869
+mtime_ms = 1794274678452
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/3d272c2a-d7e1-42d3-9cfa-29733a2f5205/e45eab0b-64b3-454e-8e38-c30dab20929b"
+storage_version_token = "1794274713838821"
+content_type = "image/png"
