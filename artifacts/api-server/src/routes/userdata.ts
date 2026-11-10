@@ -21,17 +21,8 @@ router.use("/userdata", (req, res, next) => {
   next();
 });
 
-const ALLOWED_KEYS = new Set([
-  "map",
-  "voice",
-  "mapofme_origin",
-  "intake",
-  "phase",
-  "step",
-  "done",
-  // New-flow (A1/A2/A3/Values) progress — versioned { t, v } values, see lib/syncGuard.ts
-  ...SYNC_KEYS,
-]);
+// This free project exposes only the original RC and its completion handoff.
+const ALLOWED_KEYS = new Set(["rcstate", "setaside"]);
 
 router.get("/userdata", async (req: Request, res: Response) => {
   if (!req.isAuthenticated()) {

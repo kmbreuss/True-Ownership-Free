@@ -1407,3 +1407,73 @@ mtime_ms = 1794275526939
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:b8363272-ff9f-404c-9632-5af68f34d738/c7d05271-2b22-407e-8e35-21da86899d5b/00efb19e-0752-4017-a97a-4c2f823169ac"
 storage_version_token = "1794275543032122"
 content_type = "image/png"
+
+[[outputs]]
+id = "PyFrnxRIh-RE79vnt-lcB"
+uri = "file://generated-artifacts/free-verification/10-phone-ending-light.png"
+type = "image"
+title = "Phone ending · light"
+description = "375×812 · synthetic answers · ending and locked road."
+logical_id = "a7387912-12e9-4c38-a6f7-da24f4c377b0"
+content_hash = "sha256:9369b084864a8f394a182fb6a909979ad5ca1c330295ae2bb7ca6a67d8bc4ccb"
+size = 60639
+mtime_ms = 1794281411708
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:80ebf69f-2aab-4bd3-aad1-80cb44faac92/a7387912-12e9-4c38-a6f7-da24f4c377b0/ef8e24eb-10eb-4b1d-b57e-5c836da303e6"
+storage_version_token = "1794281657466161"
+content_type = "image/png"
+
+[[outputs]]
+id = "XbCbDS6OPlEo-Ndiyy5wS"
+uri = "file://generated-artifacts/free-verification/11-phone-ending-dark-actions.png"
+type = "image"
+title = "Phone ending · dark"
+description = "375×812 · saved waitlist, poster download and return actions."
+logical_id = "4628fdc1-9cc2-4e27-8450-c553a664ee48"
+content_hash = "sha256:8637e4d5286fd368dd3ab52b022a0d8fdf4b7356a0b98ed3567dcb8f023a49f1"
+size = 49920
+mtime_ms = 1794281412288
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:80ebf69f-2aab-4bd3-aad1-80cb44faac92/4628fdc1-9cc2-4e27-8450-c553a664ee48/7daeb251-22a3-4820-b6e2-4b4fd3a00de2"
+storage_version_token = "1794281658109689"
+content_type = "image/png"
+
+[[outputs]]
+id = "KciO1JbqsZg86wlqr7nM2"
+uri = "file://generated-artifacts/free-verification/10-desktop-ending-light.png"
+type = "image"
+title = "Desktop ending"
+description = "1280×800 · synthetic Reality Check ending."
+logical_id = "49d7077d-f02f-4b06-a8ef-4e7f818f3974"
+content_hash = "sha256:b38b572cd3dd8d912b8ef77fadf090e2c0347120ad98a76a7faeb3936c627432"
+size = 88164
+mtime_ms = 1794281412580
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:80ebf69f-2aab-4bd3-aad1-80cb44faac92/49d7077d-f02f-4b06-a8ef-4e7f818f3974/9aa039dd-b58f-499e-b2d4-33dce30ed4db"
+storage_version_token = "1794281658777082"
+content_type = "image/png"
+
+[[outputs]]
+id = "_0cRSxkBEFQ3Vkt-1_EbS"
+uri = "file://generated-artifacts/free-verification/My-Future-B.png"
+type = "image"
+title = "Future B poster sample"
+description = "Actual 1080×1920 PNG download using synthetic answers."
+logical_id = "f296dc55-9dc1-4f85-b0b2-1d26ecd97ac3"
+content_hash = "sha256:e69db4d6dc6e2fe3f6ace5a5b9c69f66f74e3845058bbcdd85837c59a88d714d"
+size = 646583
+mtime_ms = 1794281410237
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:80ebf69f-2aab-4bd3-aad1-80cb44faac92/f296dc55-9dc1-4f85-b0b2-1d26ecd97ac3/31657997-9e39-4164-9ccf-5acb8429d45f"
+storage_version_token = "1794281659403258"
+content_type = "image/png"
+
+[[outputs]]
+id = "ywsS8avJormkXv2FZvXtr"
+uri = "file://FREE_BUILD_REPORT.md"
+type = "text"
+title = "Free course build report"
+description = "Database confirmation, routes, safeguards, verification, file handoff and proposed owner promotion."
+logical_id = "578999af-0deb-49b9-81bf-892e76b22573"
+content_hash = "sha256:22e38cbdace4d8ecd161defbe6a3831da0225e3c9b0d2681804a153a64b1e711"
+size = 10046
+mtime_ms = 1794281615805
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:80ebf69f-2aab-4bd3-aad1-80cb44faac92/578999af-0deb-49b9-81bf-892e76b22573/776dfa0a-ad51-4806-8a1a-9f21b8497247"
+storage_version_token = "1794281659974906"
+content_type = "text/markdown"

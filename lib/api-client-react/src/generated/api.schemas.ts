@@ -5,6 +5,35 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface FreeRegistration {
+  /**
+   * @minLength 1
+   * @maxLength 100
+   */
+  firstName: string;
+  /** @maxLength 254 */
+  email: string;
+  /**
+   * @minLength 8
+   * @maxLength 72
+   */
+  password: string;
+  consent?: boolean;
+}
+
+export interface FreeName {
+  /** @maxLength 100 */
+  firstName: string;
+}
+
+export interface FreeAccount {
+  /** @nullable */
+  firstName: string | null;
+  consent: boolean;
+  /** @nullable */
+  waitlistedAt: string | null;
+}
+
 export interface HealthStatus {
   status: string;
 }

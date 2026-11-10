@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
 // (IMPORTANT) Session storage. Required for both legacy OIDC and current
 // email+password sessions; do not drop.
@@ -24,6 +24,8 @@ export const usersTable = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   passwordHash: varchar("password_hash"),
   role: varchar("role", { length: 16 }).notNull().default("client"),
+  emailConsent: boolean("email_consent").notNull().default(false),
+  waitlistedAt: timestamp("waitlisted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

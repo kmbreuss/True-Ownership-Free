@@ -19,3 +19,9 @@ Plan first and wait for Katherine's go. Do not publish until Katherine says so. 
 **Why:** These are the owner's working rules in the free-project brief.
 
 **How to apply:** Keep launch account transfer documentation-only until separately authorized; do not interpret task approval as publishing permission.
+
+Katherine signs up as a normal account and chooses her own password. Propose a separate one-time, secret-protected promotion of her email to owner; never create, email or generate an owner password or reuse full-app credentials.
+
+**Why:** The owner explicitly added this account setup requirement when approving the free build.
+
+**How to apply:** Keep automatic owner bootstrapping disabled. Promotion changes authorization only, never the chosen password. Obtain separate approval and use the secure secrets flow for the promotion safeguard.

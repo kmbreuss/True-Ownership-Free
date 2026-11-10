@@ -23,7 +23,7 @@ const ROWS = [
 ];
 type VeilPhase = "rising" | "hold" | "falling" | "idle";
 export function RealityCheck({
-  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing, reviewScreen, memberName, onSaveName,
+  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing, reviewScreen, memberName, onSaveName, freeCourse, ending,
 }: {
   room: boolean; resume: boolean; onEnter: () => void; onClose: () => void;
   onEntryHall: () => void; onBeginA1: () => void; devTools: ReactNode;
@@ -32,8 +32,10 @@ export function RealityCheck({
   reviewScreen?: number;
   memberName?: string;
   onSaveName?: (name: string) => Promise<void>;
+  freeCourse?: boolean;
+  ending?: (state: RCState) => ReactNode;
 }) {
-  const [name, setName] = useState("");
+  const [name, setName] = useState(memberName ?? "");
   const [savingName, setSavingName] = useState(false);
   const original = useRef(loadRCState());
   const reviewing = reviewScreen !== undefined;
@@ -134,8 +136,8 @@ export function RealityCheck({
   return <div className="na1-root rc-root">
     <main className="na1-shell rc-hub">
       {devTools && <details className="rc-dev-tools"><summary>DEV tools</summary>{devTools}{import.meta.env.DEV && <RCDevReset />}</details>}
-      <div className="na1-breadcrumb"><button onClick={onEntryHall}>Entry Hall</button><span>›</span><span>Start here</span></div>
-      {onSaveName && !memberName?.trim() && <section className="rc-welcome" aria-label="Welcome">
+      {!freeCourse && <div className="na1-breadcrumb"><button onClick={onEntryHall}>Entry Hall</button><span>›</span><span>Start here</span></div>}
+      {onSaveName && (freeCourse || !memberName?.trim()) && <section className="rc-welcome" aria-label="Welcome">
         <p className="rc-welcome-title">Welcome in.</p>
         <label htmlFor="rc-member-name">What should we call you?</label>
         <input id="rc-member-name" autoComplete="given-name" value={name}
@@ -149,7 +151,7 @@ export function RealityCheck({
         <button className="na1-btn-gold rc-begin" disabled={savingName} onClick={async () => {
           setSavingName(true);
           try {
-            if (onSaveName && !memberName?.trim()) await onSaveName(name);
+            if (onSaveName && (freeCourse || !memberName?.trim())) await onSaveName(name);
           } catch {
             setError("Your name could not be saved. Please try again.");
             setSavingName(false);
@@ -195,7 +197,7 @@ export function RealityCheck({
         {state.rounds.length > 0 && <details className="rc-last-time" key={`last-${state.step}`}><summary>Last time you said…</summary><p>{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).slice(0, 38).join(" ")}{lastTimeWords(state.rounds[state.rounds.length - 1], state.step).split(/\s+/).length > 38 ? "…" : ""}</p></details>}
         <div className="rc-screen" key={`${state.step}-${people}-${join}`}>
           {state.step >= 6 && state.step <= 9 && <div className={`rc-future-label ${state.step <= 7 ? "is-a" : "is-b"}`}><strong>FUTURE {state.step <= 7 ? "A" : "B"}</strong><span>{state.step <= 7 ? "If nothing changes" : "If you own it"}</span></div>}
-          {join ? <div className="rc-scene"><p className="rc-eyebrow">TRUE OWNERSHIP™</p><h2>Start building Future B.</h2><p>Joining will be available here. Everything you wrote is saved.</p><p>[YOUR PRICE] · everything you wrote today comes with you.</p></div>
+          {state.step === 13 && ending ? ending(state) : join ? <div className="rc-scene"><p className="rc-eyebrow">TRUE OWNERSHIP™</p><h2>Start building Future B.</h2><p>Joining will be available here. Everything you wrote is saved.</p><p>[YOUR PRICE] · everything you wrote today comes with you.</p></div>
             : state.step < 5 ? <RealityCheckScreens state={state} update={update} phone={phone} people={people} mirrorPaged={mirrorPaged} onMirrorLayout={setMirrorPaged} />
             : <RealityCheckFutures state={state} update={update} arriving={revealStep === state.step} act={act} closeSaved={() => { setSavedMessage(true); onClose(); }} />}
         </div>
@@ -206,7 +208,7 @@ export function RealityCheck({
           {state.step === 0 && !people ? <span>About 10 minutes · just you</span> : state.step === 13 ? <span className="rc-path-reassurance">Katherine is with you on every step.</span> : state.step < 12 || join ? <button onClick={back}>← Back</button> : <span />}
           {state.step < 10 && <button className="na1-btn-gold" disabled={!canAdvance} onClick={advance}>{forward}</button>}
           {state.step === 12 && state.willing === "yes" && !join && <button className="na1-btn-gold" onClick={() => act({ ...state, step: 13 })}>What will get me there →</button>}
-          {state.step === 13 && !join && <button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>Start my path →</button>}
+          {state.step === 13 && !join && !ending && <button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>Start my path →</button>}
           </>}
         </footer>
       </div>

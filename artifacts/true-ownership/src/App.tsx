@@ -1,3 +1,4 @@
+export { CSS as inheritedCSS, NewA1Veil, NA1_VEIL_TIMING };
 import React, {
   useState,
   useEffect,

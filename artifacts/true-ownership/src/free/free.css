@@ -1,0 +1,77 @@
+/* Free-only chrome. Protected .rc-scene and room rules remain inherited verbatim. */
+.free-app{--free-line:rgba(151,137,105,.35);min-height:100dvh;color:var(--na1-text);background:var(--na1-bg);font-family:var(--f-label,"Questrial",sans-serif)}
+.free-header{max-width:1200px;margin:auto;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--free-line)}
+.free-header>a{color:var(--na1-text);font-size:16px;letter-spacing:.19em;text-decoration:none}.free-header>a span{display:block;letter-spacing:.14em;font-size:10px;margin-top:7px;color:var(--na1-text-sec)}
+.free-app button,.free-app a,.free-app summary{touch-action:manipulation}.free-app button{cursor:pointer}.free-app button:disabled{cursor:wait;opacity:.6}
+.free-theme{width:44px;height:44px;border:1px solid var(--free-line);border-radius:50%;font-size:23px;color:var(--na1-text);background:transparent}
+.free-registration{max-width:440px;margin:36px auto;padding:0 24px 50px;text-align:center}
+.free-eyebrow{font-size:11px;letter-spacing:.2em;color:var(--na1-text-sec)}
+.free-registration h1{font:500 58px/1.05 var(--f-heading,"Cormorant Garamond",serif);margin:24px 0 16px}.free-registration h1 em{color:var(--na1-gold)}
+.free-registration>p{line-height:1.6;font-size:17px;color:var(--na1-text-sec)}.free-registration form{margin-top:28px;text-align:left}
+.free-registration h2,.free-password-form h2{font:500 34px var(--f-heading,"Cormorant Garamond",serif);margin-bottom:18px}
+.free-registration label,.free-password-form label{display:block;font-size:16px;margin-bottom:16px}
+.free-registration input:not([type=checkbox]),.free-password-form input{width:100%;min-height:46px;box-sizing:border-box;display:block;margin-top:6px;padding:10px 13px;border:1px solid var(--free-line);border-radius:8px;background:var(--na1-card,transparent);color:var(--na1-text);font:16px var(--f-label)}
+.free-consent{display:flex!important;gap:10px;line-height:1.45;align-items:flex-start}.free-consent input{width:24px;height:24px;flex-shrink:0;margin-top:0;accent-color:#006b65}
+.free-password-help,.free-small{font-size:13px!important;color:var(--na1-text-sec)}.free-password-help{margin:-8px 0 18px}
+.free-primary{display:block;width:100%;min-height:48px;border:none;border-radius:28px;background:#006763;color:#fff;font:16px var(--f-label);padding:12px 18px;box-shadow:0 8px 24px #00676320}
+.free-primary:hover{background:#005650}.free-auth-switch{margin-top:18px;background:none;border:0;color:var(--na1-text);font-size:16px;min-height:44px}
+.free-loading{text-align:center;padding:80px 24px;color:var(--na1-text)}.free-loading button{padding:14px;color:inherit;border:1px solid var(--free-line);background:none;border-radius:8px}
+.free-account-row{max-width:1200px;margin:0 auto;display:flex;justify-content:flex-end;padding:12px 28px 0;position:relative;z-index:8}
+.free-account-row summary{cursor:pointer;font-size:15px;min-height:44px;list-style:none}.free-account-menu{position:absolute;right:28px;top:45px;width:min(330px,calc(100vw - 40px));padding:16px;border:1px solid var(--free-line);border-radius:12px;background:var(--na1-bg);box-shadow:0 12px 30px #0002;overflow-wrap:anywhere}
+.free-account-menu p{font-size:15px}.free-account-menu button,.free-account-menu a{display:block;width:100%;text-align:left;padding:12px 4px;min-height:44px;background:none;border:0;color:var(--na1-text);font:16px var(--f-label);text-decoration:none}
+.free-course{max-width:1200px;margin:auto;display:grid;grid-template-columns:270px minmax(0,1fr);gap:20px;padding:0 20px}.free-course-content{min-width:0}
+.free-road{position:relative;padding:24px 12px;color:var(--na1-text-sec)}
+.free-road-label{font-size:11px;letter-spacing:.1em;display:flex;justify-content:space-between;color:var(--na1-text-sec)}
+.free-road-label>span,.free-star{color:var(--na1-gold)}
+.free-road-segments{display:flex;gap:5px;align-items:flex-start}.free-road-segments>button{flex:1;min-width:0;min-height:44px;background:none;border:0;color:inherit;padding:0;text-align:center}
+.free-road-segments small{font-size:11px;display:block;margin-top:7px;white-space:nowrap}.free-road-segments>span{margin-left:2px;font-size:17px}
+.free-locked-segment{display:block;border:1px dashed var(--free-line);height:7px;border-radius:6px}
+.free-rc-bricks{display:flex;gap:1px;height:8px}.free-rc-bricks i{flex:1;background:var(--free-line);border-radius:1px}.free-rc-bricks i.earned{background:var(--na1-gold);box-shadow:0 0 6px #c8ad6c44}
+.free-stage-detail{padding:14px 24px 14px 14px;border:1px solid var(--free-line);border-radius:10px;position:relative;margin:12px 0;color:var(--na1-text);background:var(--na1-bg)}.free-stage-detail p{font-size:16px;line-height:1.5}.free-stage-detail small{font-size:12px;letter-spacing:.1em}
+.free-detail-close{position:absolute;right:0;top:0;background:none;border:0;color:inherit;min-width:44px;min-height:44px;font-size:24px}.free-stage-detail>button:not(.free-detail-close){border:0;background:none;color:var(--na1-text);min-height:44px;text-decoration:underline}
+.free-desktop-road{position:relative;height:610px;margin-top:16px}.free-desktop-road>svg{position:absolute;inset:75px 0 auto;width:100%;height:480px}
+.free-desktop-road>.free-star{text-align:center;font-size:44px;line-height:1;margin:0;text-shadow:0 0 30px #d6b85f99}.free-road-destination{font-size:10px;letter-spacing:.2em;text-align:center}
+.free-desktop-stops{position:relative;display:flex;flex-direction:column;gap:21px;padding-top:13px}.free-desktop-stops button{align-self:flex-start;max-width:183px;background:var(--na1-bg);color:var(--na1-text);border:none;text-align:left;padding:6px 8px}
+.free-desktop-stops button:nth-child(even){align-self:flex-end;text-align:right}.free-desktop-stops small{font-size:11px;letter-spacing:.1em}.free-desktop-stops em{display:block;font:italic 17px/1.1 "Cormorant Garamond",serif}.free-desktop-stops button>span{font-size:10px;display:block;margin-top:4px;color:var(--na1-text-sec)}
+.free-desktop-now{display:block;margin-top:20px;font-size:10px;letter-spacing:.06em;color:var(--na1-gold)}
+.free-return-ending{margin:8px 28px 0;min-height:44px;padding:12px 18px;background:transparent;color:var(--na1-text);border:1px solid var(--free-line);border-radius:24px;font:15px var(--f-label)}
+.free-saved-message{padding:16px 28px;margin:0;color:var(--na1-text);font-size:16px}
+.free-password-form{max-width:440px;margin:0 auto;padding:24px;border:1px solid var(--free-line);border-radius:16px;color:var(--na1-text)}.free-password-form>button[type=button]{min-height:44px;display:block;margin:auto;background:none;border:0;color:inherit;font-size:16px}
+.free-ending{text-align:center;padding:0 0 16px;color:var(--na1-text)}.free-ending>blockquote{font:italic 36px/1.14 "Cormorant Garamond",serif;margin:12px 0 18px;overflow-wrap:anywhere}
+.free-ending>h2{font:400 20px/1.4 "Questrial",sans-serif!important;margin:12px 0 24px}
+.free-road-ahead{text-align:left;padding:18px 18px 12px;margin:0 0 22px;border:1px solid var(--free-line);border-radius:18px;background:var(--na1-card,transparent);list-style:none}
+.free-road-ahead li{display:flex;gap:14px;position:relative;min-height:62px;color:var(--na1-text-sec)}.free-road-ahead li:last-child{min-height:28px;align-items:center}
+.free-road-ahead li>span{font:26px/1.1 serif;width:24px;flex-shrink:0;text-align:center;color:var(--na1-gold);position:relative;z-index:1}
+.free-road-ahead li:not(:last-child):after{content:"";position:absolute;left:11px;top:27px;height:calc(100% - 23px);border-left:1px dashed var(--free-line)}
+.free-road-ahead li.is-done:after{border-left:2px solid var(--na1-gold)}.free-road-ahead li.is-done small{color:#00746d}
+.free-road-ahead small{font:11px/1.3 "Questrial",sans-serif;letter-spacing:.13em}.free-road-ahead p{font:20px/1.1 "Cormorant Garamond",serif!important;margin:3px 0 16px!important;color:var(--na1-text)}
+.free-opens-copy{font:20px/1.3 "Cormorant Garamond",serif!important;margin:16px 0 22px!important}.free-waitlist-status{color:var(--na1-gold);font:18px "Questrial",sans-serif!important}
+.free-poster-button,.free-later{background:transparent;border:0;color:var(--na1-text-sec);min-height:44px;padding:10px 8px;font:16px "Questrial",sans-serif;display:block;width:100%}
+.free-poster-button{text-decoration:underline;margin-top:10px}.free-later{margin-top:0}.free-ending [role=alert],.free-app [role=alert]{color:var(--na1-text);border-left:3px solid #b8755a;padding:12px;font-size:16px}
+@media(max-width:899px){
+  .free-header{padding:18px 20px}.free-header>a{font-size:14px}.free-header>a span{font-size:9px}
+  .free-account-row{padding:10px 20px 0}.free-account-menu{right:20px}
+  .free-course{display:block;padding:0}.free-road{padding:12px 16px 10px;background:var(--na1-bg);border-bottom:1px solid var(--free-line)}
+  .free-road-label{margin:0 0 12px}.free-road-segments{gap:5px}.free-desktop-road{display:none}
+  .free-return-ending{margin:16px 16px 0}.free-registration{margin-top:24px}.free-registration h1{font-size:48px}
+  .free-ending>blockquote{font-size:31px}.free-road-ahead{padding:16px 12px 8px}.free-road-ahead li{gap:12px;min-height:64px}
+}
+html[data-theme=dark] .free-road-ahead li.is-done small{color:#7ec1b1}
+.rc-room:has(.free-ending){--free-line:rgba(151,137,105,.35);background:var(--na1-bg)!important}
+.free-ending .free-road-ahead{background:var(--na1-bg-card)}
+.free-ending button{cursor:pointer}.free-ending button:disabled{opacity:.6;cursor:wait}
+.free-ending .free-road-ahead li>span{color:var(--na1-gold);border-color:var(--na1-gold)}
+.free-ending .free-road-ahead li.is-done>span{color:var(--na1-gold);text-shadow:0 0 10px #bda36466}
+.free-app,.rc-room:has(.free-ending){--na1-gold:var(--gold)}
+html[data-theme=dark] .rc-room:has(.free-ending){--na1-text:#f5f0e6;--na1-text-sec:#ded4c4;--na1-text-mute:#d6c5a7;--na1-bg-card:#103b3d;--na1-border:#56706a;--rc-ink:#f5f0e6;--rc-muted:#ded4c4;--free-line:rgba(221,204,164,.35);color:#f5f0e6}
+.rc-room.rc-room .free-ending .free-primary{background:#006763!important;color:white!important;border:0!important;border-radius:28px!important;min-height:48px;font:16px/1.4 "Questrial",sans-serif!important}
+.rc-room.rc-room .free-ending :is(.free-poster-button,.free-later){background:transparent!important;color:var(--na1-text)!important;border:0!important;box-shadow:none!important;font:16px/1.4 "Questrial",sans-serif!important}
+.rc-room:has(.free-ending) :is(.rc-heading-row,.rc-header-back,.na1-room-crumb,.rc-path-reassurance){color:var(--rc-ink)}
+html[data-theme=dark] .rc-room:has(.free-ending) .rc-progress p{color:var(--rc-muted)!important}
+.rc-room:has(.free-ending) .rc-progress{display:none}
+.free-ending>.free-road{padding:0 0 14px;margin:0 0 22px;border-bottom:1px solid var(--free-line)}
+.free-ending .free-road :is(.free-road-label,small){font-size:11px!important}
+.free-ending .free-road button{background:transparent!important;color:var(--na1-text-sec)!important;border:0!important;padding:0!important}
+.free-ending .free-road .free-stage-detail{font-size:16px;text-align:left}
+.free-ending .free-road .free-detail-close{font-size:24px!important}
+.rc-room:has(.free-ending) .na1-room-crumb{visibility:hidden}

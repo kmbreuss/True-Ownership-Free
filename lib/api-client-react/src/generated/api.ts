@@ -20,6 +20,9 @@ import type {
   AuthUserEnvelope,
   BeginBrowserLoginParams,
   ErrorEnvelope,
+  FreeAccount,
+  FreeName,
+  FreeRegistration,
   HandleBrowserLoginCallbackParams,
   HealthStatus,
   LogoutSuccess,
@@ -38,6 +41,377 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+export const getFreeSignupUrl = () => {
+  return `/api/free/signup`;
+};
+
+export const freeSignup = async (
+  freeRegistration: FreeRegistration,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getFreeSignupUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(freeRegistration),
+  });
+};
+
+export const getFreeSignupMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof freeSignup>>,
+    TError,
+    { data: BodyType<FreeRegistration> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof freeSignup>>,
+  TError,
+  { data: BodyType<FreeRegistration> },
+  TContext
+> => {
+  const mutationKey = ["freeSignup"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof freeSignup>>,
+    { data: BodyType<FreeRegistration> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return freeSignup(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type FreeSignupMutationResult = NonNullable<
+  Awaited<ReturnType<typeof freeSignup>>
+>;
+export type FreeSignupMutationBody = BodyType<FreeRegistration>;
+export type FreeSignupMutationError = ErrorType<void>;
+
+export const useFreeSignup = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof freeSignup>>,
+    TError,
+    { data: BodyType<FreeRegistration> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof freeSignup>>,
+  TError,
+  { data: BodyType<FreeRegistration> },
+  TContext
+> => {
+  return useMutation(getFreeSignupMutationOptions(options));
+};
+
+export const getGetFreeAccountUrl = () => {
+  return `/api/free/account`;
+};
+
+export const getFreeAccount = async (
+  options?: RequestInit,
+): Promise<FreeAccount> => {
+  return customFetch<FreeAccount>(getGetFreeAccountUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFreeAccountQueryKey = () => {
+  return [`/api/free/account`] as const;
+};
+
+export const getGetFreeAccountQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFreeAccount>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getFreeAccount>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetFreeAccountQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getFreeAccount>>> = ({
+    signal,
+  }) => getFreeAccount({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFreeAccount>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetFreeAccountQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFreeAccount>>
+>;
+export type GetFreeAccountQueryError = ErrorType<unknown>;
+
+export function useGetFreeAccount<
+  TData = Awaited<ReturnType<typeof getFreeAccount>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getFreeAccount>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetFreeAccountQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getUpdateFreeNameUrl = () => {
+  return `/api/free/account`;
+};
+
+export const updateFreeName = async (
+  freeName: FreeName,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getUpdateFreeNameUrl(), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(freeName),
+  });
+};
+
+export const getUpdateFreeNameMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateFreeName>>,
+    TError,
+    { data: BodyType<FreeName> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateFreeName>>,
+  TError,
+  { data: BodyType<FreeName> },
+  TContext
+> => {
+  const mutationKey = ["updateFreeName"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateFreeName>>,
+    { data: BodyType<FreeName> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateFreeName(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateFreeNameMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateFreeName>>
+>;
+export type UpdateFreeNameMutationBody = BodyType<FreeName>;
+export type UpdateFreeNameMutationError = ErrorType<unknown>;
+
+export const useUpdateFreeName = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateFreeName>>,
+    TError,
+    { data: BodyType<FreeName> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateFreeName>>,
+  TError,
+  { data: BodyType<FreeName> },
+  TContext
+> => {
+  return useMutation(getUpdateFreeNameMutationOptions(options));
+};
+
+export const getJoinFreeWaitlistUrl = () => {
+  return `/api/free/waitlist`;
+};
+
+export const joinFreeWaitlist = async (
+  options?: RequestInit,
+): Promise<FreeAccount> => {
+  return customFetch<FreeAccount>(getJoinFreeWaitlistUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getJoinFreeWaitlistMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinFreeWaitlist>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof joinFreeWaitlist>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["joinFreeWaitlist"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof joinFreeWaitlist>>,
+    void
+  > = () => {
+    return joinFreeWaitlist(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type JoinFreeWaitlistMutationResult = NonNullable<
+  Awaited<ReturnType<typeof joinFreeWaitlist>>
+>;
+
+export type JoinFreeWaitlistMutationError = ErrorType<unknown>;
+
+export const useJoinFreeWaitlist = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinFreeWaitlist>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof joinFreeWaitlist>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getJoinFreeWaitlistMutationOptions(options));
+};
+
+export const getExportFreeLeadsUrl = () => {
+  return `/api/free/leads.csv`;
+};
+
+export const exportFreeLeads = async (
+  options?: RequestInit,
+): Promise<string> => {
+  return customFetch<string>(getExportFreeLeadsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportFreeLeadsQueryKey = () => {
+  return [`/api/free/leads.csv`] as const;
+};
+
+export const getExportFreeLeadsQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportFreeLeads>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof exportFreeLeads>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getExportFreeLeadsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof exportFreeLeads>>> = ({
+    signal,
+  }) => exportFreeLeads({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportFreeLeads>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportFreeLeadsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportFreeLeads>>
+>;
+export type ExportFreeLeadsQueryError = ErrorType<void>;
+
+export function useExportFreeLeads<
+  TData = Awaited<ReturnType<typeof exportFreeLeads>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof exportFreeLeads>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportFreeLeadsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * Returns server health status

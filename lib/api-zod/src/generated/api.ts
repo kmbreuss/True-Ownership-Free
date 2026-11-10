@@ -7,6 +7,43 @@
  */
 import * as zod from "zod";
 
+export const freeSignupBodyFirstNameMax = 100;
+
+export const freeSignupBodyEmailMax = 254;
+
+export const freeSignupBodyPasswordMin = 8;
+export const freeSignupBodyPasswordMax = 72;
+
+export const freeSignupBodyConsentDefault = false;
+
+export const FreeSignupBody = zod.object({
+  firstName: zod.string().min(1).max(freeSignupBodyFirstNameMax),
+  email: zod.string().email().max(freeSignupBodyEmailMax),
+  password: zod
+    .string()
+    .min(freeSignupBodyPasswordMin)
+    .max(freeSignupBodyPasswordMax),
+  consent: zod.boolean().default(freeSignupBodyConsentDefault),
+});
+
+export const GetFreeAccountResponse = zod.object({
+  firstName: zod.string().nullable(),
+  consent: zod.boolean(),
+  waitlistedAt: zod.coerce.date().nullable(),
+});
+
+export const updateFreeNameBodyFirstNameMax = 100;
+
+export const UpdateFreeNameBody = zod.object({
+  firstName: zod.string().max(updateFreeNameBodyFirstNameMax),
+});
+
+export const JoinFreeWaitlistResponse = zod.object({
+  firstName: zod.string().nullable(),
+  consent: zod.boolean(),
+  waitlistedAt: zod.coerce.date().nullable(),
+});
+
 /**
  * Returns server health status
  * @summary Health check

@@ -15,6 +15,68 @@ tags:
   - name: UserData
     description: Per-user persisted key-value data.
 paths:
+  /free/signup:
+    post:
+      operationId: freeSignup
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FreeRegistration'
+      responses:
+        '201':
+          description: Account created; sign in with your chosen password.
+        '400':
+          description: Invalid registration.
+        '409':
+          description: Account cannot be created with these details.
+        '429':
+          description: Too many attempts.
+  /free/account:
+    get:
+      operationId: getFreeAccount
+      responses:
+        '200':
+          description: Free account metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreeAccount'
+    patch:
+      operationId: updateFreeName
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FreeName'
+      responses:
+        '200':
+          description: Name saved
+  /free/waitlist:
+    post:
+      operationId: joinFreeWaitlist
+      responses:
+        '200':
+          description: Account is on the waitlist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreeAccount'
+  /free/leads.csv:
+    get:
+      operationId: exportFreeLeads
+      responses:
+        '200':
+          description: Owner-only leads CSV, never password hashes
+          content:
+            text/csv:
+              schema:
+                type: string
+        '403':
+          description: Owner access required
   /healthz:
     get:
       operationId: healthCheck
@@ -232,6 +294,28 @@ components:
       schema:
         type: string
   schemas:
+    FreeRegistration:
+      type: object
+      required: [firstName, email, password]
+      additionalProperties: false
+      properties:
+        firstName: { type: string, minLength: 1, maxLength: 100 }
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 8, maxLength: 72 }
+        consent: { type: boolean, default: false }
+    FreeName:
+      type: object
+      required: [firstName]
+      additionalProperties: false
+      properties:
+        firstName: { type: string, maxLength: 100 }
+    FreeAccount:
+      type: object
+      required: [firstName, consent, waitlistedAt]
+      properties:
+        firstName: { type: [string, 'null'] }
+        consent: { type: boolean }
+        waitlistedAt: { type: [string, 'null'], format: date-time }
     HealthStatus:
       type: object
       properties:

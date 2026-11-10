@@ -111,10 +111,10 @@ router.post("/auth/me/password", async (req: Request, res: Response) => {
   const newPassword =
     typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
 
-  if (!newPassword || newPassword.length < 8) {
+  if (!newPassword || newPassword.length < 8 || Buffer.byteLength(newPassword, "utf8") > 72) {
     res
       .status(400)
-      .json({ error: "New password must be at least 8 characters" });
+      .json({ error: "New password must be at least 8 characters and at most 72 UTF-8 bytes" });
     return;
   }
 
