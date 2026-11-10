@@ -31,3 +31,9 @@ Current location and earned progress are separate signals: the active stage owns
 **Why:** The owner explicitly requested a revisit case in A2 with A3 complete; furthest completion must not misidentify where the member is working.
 
 **How to apply:** Drive the current-stage emphasis from the active route. Keep later completion gold and the latest-brick glow independent, with no extra user-location marker.
+
+Desktop stage labels alternate RC left, A1 right, A2 left, A3 right, A4 left, A5 right. A5 needs roughly 40px clearance below the Future B star and its glow; left labels must remain fully inside the rail.
+
+**Why:** The owner rejected the first desktop placement because A5 crowded the destination and left labels were clipped.
+
+**How to apply:** Check label text bounds and clearance against the fully illuminated destination, not just an empty journey's smaller glow. Keep desktop positioning changes separate from the phone bar and sheet.
