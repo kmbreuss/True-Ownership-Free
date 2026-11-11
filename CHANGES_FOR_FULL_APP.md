@@ -84,3 +84,16 @@ members or production accounts. Screenshot/download output stays under ignored
 
 No email delivery, publishing, owner promotion or launch import is performed by
 this change. Email consent is a saved permission, not an active mailing system.
+
+## 2026-11-11: free course v2 (the new Reality Check flow)
+
+Scope: **this free project only.** Nothing here is applied to the full app; Katherine reviews and sends it on.
+Branch `free-v2` of `kmbreuss/true-ownership-free`. The full list of shared surfaces is completed in the final part of this build.
+
+### Copy changes to an existing scene (free course only)
+
+| Scene | Original (full app, unchanged) | Free course |
+|---|---|---|
+| Close your eyes | "It's twelve months from now. Nothing has changed. Same {area}. Same Tuesdays. Breathe, and let yourself see it." | "Imagine nothing changes. Same {area}. Same Tuesdays. Breathe, and let yourself see it." |
+
+The protected scene files (`RealityCheckFutures.tsx` and the rest) are byte-identical to `pre-free-1`. The free course renders its own copy of this scene in `artifacts/true-ownership/src/free/course/screens/Ask.tsx` (`Eyes`), keeping the same classes, heading and audio support.

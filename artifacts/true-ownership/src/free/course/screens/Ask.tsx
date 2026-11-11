@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PATTERNS, FEELINGS, feelingWord, setOneThing } from "../courseState";
 import { FeelingIcon, PencilIcon, ShieldIcon } from "../art";
-import type { RCUnderneath } from "../../../rcConstants";
+import { RC_EYES_AUDIO_URL, RC_LABEL, type RCUnderneath } from "../../../rcConstants";
 import type { ScreenProps } from "../FreeCourse";
 
 const patternOf = (s: ScreenProps["state"]) => PATTERNS[s.pattern ?? "carrying"];
@@ -76,4 +76,24 @@ export function PartIOwn({ state: s, update }: ScreenProps) {
       <textarea className="fc-field" aria-label="The part I own is" value={s.partIOwn ?? ""} onChange={e => update({ ...s, partIOwn: e.target.value })} /></label>
     <p className="fc-rule">If I own everything, I own nothing.</p>
   </>;
+}
+
+// Close your eyes. The original scene, with one change for the free course only:
+// "Imagine nothing changes." replaces "It's twelve months from now. Nothing has changed."
+export function Eyes({ state: s }: ScreenProps) {
+  const audio = useRef<HTMLAudioElement>(null);
+  const [audioError, setAudioError] = useState(false), [playing, setPlaying] = useState(false);
+  const lower = RC_LABEL[s.focus ?? "self"].toLowerCase();
+  return <div className="rc-room rc-deepwater fc-legacy" data-step="5"><div className="rc-screen"><div className="rc-scene rc-eyes">
+    <em className="rc-katherine">Katherine</em><h2>Now close your eyes.</h2>
+    <p>Imagine nothing changes. Same {lower}. Same Tuesdays. Breathe, and let yourself see it.</p>
+    {RC_EYES_AUDIO_URL && <div className="rc-audio">
+      <audio ref={audio} src={RC_EYES_AUDIO_URL} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} onError={() => setAudioError(true)} />
+      <button className="rc-play" aria-label={playing ? "Pause Katherine's guidance" : "Play Katherine's guidance"} onClick={() => {
+        if (!audio.current) return;
+        if (playing) audio.current.pause(); else audio.current.play().catch(() => setAudioError(true));
+      }}>{playing ? "Ⅱ" : "▶"}</button><p>0:45 · Katherine guides you</p>
+      {audioError && <p role="alert">The audio could not load. You can continue without it.</p>}
+    </div>}
+  </div></div></div>;
 }

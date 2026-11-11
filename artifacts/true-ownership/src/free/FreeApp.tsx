@@ -142,7 +142,7 @@ function SignedIn() {
           onEnter={() => { setRoom(true); setSaved(false); setResume(!!state.startedAt); }}
           onClose={() => { setRoom(false); setState(loadRCState()); }}
           onEntryHall={() => setRoom(false)} onBeginA1={showEnding}
-          devTools={null} Veil={Veil} timing={NA1_VEIL_TIMING} course={ctx => <FreeCourse ctx={ctx}/>}
+          devTools={null} Veil={Veil} timing={NA1_VEIL_TIMING} course={ctx => <FreeCourse ctx={ctx} account={account}/>}
           ending={s => <FreeEnding state={s} account={account} onAccount={setAccount} onLater={() => { setRoom(false); setSaved(true); }}/>}
         />
       </div>

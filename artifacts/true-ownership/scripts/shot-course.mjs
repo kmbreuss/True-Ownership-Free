@@ -10,6 +10,8 @@ await mkdir(out, { recursive: true });
 const base = process.env.FREE_TEST_URL ?? "http://localhost:5173";
 const prefix = process.env.SHOT_PREFIX ?? "p3";
 const browser = await launch();
+// Warm the dev server first so a dependency re-optimisation cannot reload the page mid-walk.
+{ const warm = await browser.newPage(); await warm.goto(base); await warm.waitForTimeout(2500); await warm.close(); }
 for (const [w, h, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
   const context = await browser.newContext({ viewport: { width: w, height: h } });
   const mock = await installMockApi(context);
@@ -44,10 +46,46 @@ for (const [w, h, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
   await page.getByLabel("The part I own is").fill("I don't let my team try first. I step in before they can.");
   await shot("FC-12"); await click("See where it leads →");
   await page.getByText("Now close your eyes.").waitFor(); await page.waitForTimeout(400); await shot("Eyes");
-  // Resume: a refresh must land on the same screen, with the saved words.
-  await page.reload(); await page.getByRole("button", { name: "Continue →" }).click(); await page.waitForTimeout(300);
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("to_rc_state_v1")));
-  console.log(label, "pattern", saved.pattern, saved.patternChosenBy, JSON.stringify(saved.topDefaults), "named", saved.defaultsNamed.carrying.slice(0, 12), "underneath", saved.underneath, "part", saved.partIOwn?.slice(0, 12), "mirror", saved.mirror.length, "fcScreen", saved.fcScreen, "step", saved.step, "focus", saved.focus, saved.focusChosenBy, "monthly", saved.cost.monthly, "hours", saved.cost.hoursPerWeek, "errors", JSON.stringify(errors));
+  await page.getByText("Imagine nothing changes.").waitFor();
+  await click("Show me →");
+  await page.getByText("Future A · the same path").waitFor();
+  await page.getByLabel("What's still the same in one month?").fill("Still saying yes to every call. Still the last one out.");
+  await page.getByLabel("What's still the same in one year?").fill("The team still waits for me. I'm short with the kids by six.");
+  await page.getByLabel("What's still the same in three years?").fill("Same desk. Same problems. The kids stopped asking me to come.");
+  await shot("FC-13"); await click("Now turn around →");
+  await page.getByText("Future B isn't escaping something.").waitFor(); await page.waitForTimeout(300); await shot("FC-14"); await click("Show me →");
+  await page.getByLabel("What are you doing instead in one month?").fill("I let my team take the first call. Home by five, twice a week.");
+  await page.getByLabel("What are you doing instead in one year?").fill("My team handles the client calls. Coffee before anyone needs me.");
+  await page.getByLabel("What are you doing instead in three years?").fill("Building the work I love. The kids know they come first.");
+  await shot("FC-15"); await click("Picture it →");
+  const picks = ["Coffee before anyone needs me", "My team takes the first call", "Home in time for what matters", "People who know the real me", "I check my account without dread"];
+  for (let n = 0; n < 5; n++) {
+    await page.getByRole("button", { name: picks[n], exact: true }).click();
+    if (n === 0) await shot("FC-16");
+    if (n === 4) await shot("FC-16-money");
+    await page.getByRole("button", { name: /^(Next · .*|Show me) →$/ }).click();
+  }
+  for (const f of ["Calm", "Trusted", "Free"]) await page.getByRole("button", { name: f, exact: true }).click();
+  await shot("FC-16-feels"); await click("Show me →");
+  await page.getByText("This is what owning your part looks like.").waitFor(); await page.waitForTimeout(200); await shot("FC-17"); await click("Choose my future →");
+  await page.getByLabel(/What will you be doing by next/).fill("I have time to think and enough left for myself.");
+  await page.getByLabel("My one thing this week", { exact: true }).fill("let my team take Thursday's client call.");
+  await shot("Letter"); await click("Choose my future →");
+  await page.getByText("Which future are you building?").waitFor(); await shot("Choose");
+  // Future A: an honest answer, then back to FC-17.
+  await page.locator(".rc-choose-a").click(); await page.getByRole("heading", { name: "That's an honest answer." }).waitFor();
+  await click("Look at Future B again →"); await page.getByText("This is what owning your part looks like.").waitFor();
+  await click("Choose my future →"); await click("Choose my future →");
+  await page.locator(".rc-choose-b").click(); await page.getByText(/Are you willing to do what it takes/).waitFor(); await shot("Willing");
+  await page.getByRole("button", { name: "Yes, I'm willing" }).click();
+  await page.getByText("You're moving toward something now.").waitFor(); await page.waitForTimeout(2300); await shot("FC-18");
+  const download = page.waitForEvent("download");
+  await click("Save my Future B");
+  const dl = await download; await dl.saveAs(path.join(out, `${prefix}-poster-${label}.png`));
+  const final = await page.evaluate(() => JSON.parse(localStorage.getItem("to_rc_state_v1")));
+  console.log(label, "complete", final.complete, "screen", final.fcScreen, "step", final.step, "| B line:", final.futureB5.tuesday.slice(0, 60), "| feels", JSON.stringify(final.futureB5.feels),
+    "| oneThing", final.futureB1.oneThing, "| firstStep", final.firstStep, "| pathA.year", final.futureAPath?.year?.slice(0, 20), "| scene", JSON.stringify(final.futureBScene?.morning), "errors", JSON.stringify(errors));
+  await page.reload(); await page.getByRole("button", { name: "Review the Reality Check →" }).waitFor();
   await context.close();
 }
 // A tie: two patterns equally strong. Both are shown and the reader picks the truer one.

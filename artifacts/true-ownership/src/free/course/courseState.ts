@@ -59,6 +59,11 @@ export function courseReady(s: RCState, screen: number): boolean {
     case "oneThing": return !!s.oneThing?.trim();
     case "underneath": return !!s.underneath && (s.underneath !== "other" || !!s.underneathOther?.trim());
     case "partIOwn": return !!s.partIOwn?.trim();
+    case "futureA": return !!s.futureAPath?.year.trim();
+    case "futureB": return !!s.futureBPath?.year.trim();
+    case "yourB": return !!s.futureBScene?.ownWords.trim();
+    case "letter": return !!s.futureB1.oneThing.trim();
+    case "take": return !!(s.firstStep ?? s.futureB1.oneThing).trim();
     default: return true;
   }
 }
@@ -67,11 +72,11 @@ export const areaWord = (s: RCState) => RC_LABEL[s.focus ?? "self"];
 // ---- Patterns (FC-05 .. FC-10) ----
 import { RC_MIRROR_ALL, mirrorCounts, type RCDefault, type RCUnderneath } from "../../rcConstants";
 export const PATTERN_ORDER: RCDefault[] = ["avoiding", "blaming", "carrying", "hoping"];
-export const PATTERNS: Record<RCDefault, { name: string; def: string; verb: string; keep: string }> = {
-  avoiding: { name: "Avoiding", def: "Deciding it isn't important. Pushing through. Putting it off.", verb: "avoiding", keep: "avoiding" },
-  blaming: { name: "Blaming", def: "The cause is out there. The boss, the market, someone else.", verb: "blaming", keep: "blaming" },
-  carrying: { name: "Carrying", def: "Taking on what isn't yours to carry. The fixer.", verb: "carrying", keep: "carrying" },
-  hoping: { name: "Blindly hoping", def: "Waiting for it to change on its own.", verb: "hoping for", keep: "hoping" },
+export const PATTERNS: Record<RCDefault, { name: string; def: string; verb: string; keep: string; lead: string }> = {
+  avoiding: { name: "Avoiding", def: "Deciding it isn't important. Pushing through. Putting it off.", verb: "avoiding", keep: "avoiding", lead: "avoiding" },
+  blaming: { name: "Blaming", def: "The cause is out there. The boss, the market, someone else.", verb: "blaming", keep: "blaming", lead: "blaming" },
+  carrying: { name: "Carrying", def: "Taking on what isn't yours to carry. The fixer.", verb: "carrying", keep: "carrying", lead: "carrying" },
+  hoping: { name: "Blindly hoping", def: "Waiting for it to change on its own.", verb: "hoping would fix itself", keep: "waiting", lead: "waiting on" },
 };
 export const FEELINGS: { id: Exclude<RCUnderneath, "other">; name: string }[] = [
   { id: "fear", name: "Fear" }, { id: "guilt", name: "Guilt" }, { id: "shame", name: "Shame" }, { id: "loss", name: "Loss" },
@@ -107,3 +112,51 @@ export function setOneThing(s: RCState, text: string): RCState {
 }
 export const tiedPatterns = (s: RCState): RCDefault[] => mirrorCounts(s.mirror).topDefaults;
 export const feelingWord = (s: RCState) => s.underneath === "other" ? s.underneathOther?.trim() ?? "" : FEELINGS.find(f => f.id === s.underneath)?.name ?? "";
+
+// ---- Future A / B (FC-13 .. FC-18) ----
+import { rcMoney, rcNumber } from "../../rcConstants";
+import { composeLine, labelOf, EMPTY_SCENE, type SceneKey } from "./tiles";
+export const STOPS: { key: "month" | "year" | "threeYears"; label: string; months: number; required: boolean }[] = [
+  { key: "month", label: "In one month", months: 1, required: false },
+  { key: "year", label: "In one year", months: 12, required: true },
+  { key: "threeYears", label: "In three years", months: 36, required: false },
+];
+// A month is four weeks of weekly hours; money is the monthly amount. A blank cost is left out, never shown as zero.
+export function stopCost(s: RCState, months: number, sign: "−" | "+"): string {
+  const hours = s.cost.hoursPerWeek !== null ? `${sign}${rcNumber(s.cost.hoursPerWeek * 4 * months)} hours` : "";
+  const money = s.cost.monthly !== null ? `${sign}${rcMoney(s.cost.monthly * months)}` : "";
+  return [hours, money].filter(Boolean).join(" · ");
+}
+export const emptyPath = { month: "", year: "", threeYears: "" };
+export function setPath(s: RCState, which: "futureAPath" | "futureBPath", key: "month" | "year" | "threeYears", text: string): RCState {
+  return { ...s, [which]: { ...emptyPath, ...(s[which] ?? {}), [key]: text } };
+}
+// A short form of the reader's one thing for headings: up to the first natural break, lower-cased. Their full words are kept everywhere else.
+export function ownThingClause(s: RCState): string {
+  const full = (s.oneThing ?? "").trim().replace(/[.!?…]+$/u, "");
+  const cut = full.split(/[,;:.—–]\s/)[0];
+  const t = cut.length >= 12 ? cut : full;
+  const lowered = /^I(\s|'|’)/.test(t) ? t : t.charAt(0).toLocaleLowerCase("en-US") + t.slice(1);
+  if (lowered.length <= 60) return lowered;
+  const clipped = lowered.slice(0, 60), at = clipped.lastIndexOf(" ");
+  return `${clipped.slice(0, at > 20 ? at : 60).trimEnd()}…`;
+}
+function withScene(s: RCState, scene: NonNullable<RCState["futureBScene"]>): RCState {
+  return { ...s, futureBScene: scene, futureB5: { ...s.futureB5, feels: scene.feels.map(labelOf), tuesday: scene.ownWords } };
+}
+// Picks write the six scene fields. The Future B line follows the picks until the reader edits it.
+export function setScene(s: RCState, key: SceneKey, value: string | string[]): RCState {
+  const old = s.futureBScene ?? EMPTY_SCENE, next = { ...old, [key]: value } as typeof old;
+  const follow = !old.ownWords || old.ownWords === composeLine(old);
+  return withScene(s, { ...next, ownWords: follow ? composeLine(next) : old.ownWords });
+}
+export function setOwnLine(s: RCState, text: string): RCState {
+  return withScene(s, { ...(s.futureBScene ?? EMPTY_SCENE), ownWords: text });
+}
+export function sceneAnswered(s: RCState, key: SceneKey): boolean {
+  const sc = s.futureBScene ?? EMPTY_SCENE;
+  return key === "feels" ? sc.feels.length > 0 : !!sc[key].trim();
+}
+export function setFirstStep(s: RCState, text: string): RCState {
+  return { ...s, firstStep: text, futureB1: { ...s.futureB1, oneThing: text } };
+}

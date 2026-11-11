@@ -1,4 +1,5 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { Grow } from "./fields";
 import { RC_LABEL, rcMoney, rcNumber, type RCArea, type RCState } from "../../../rcConstants";
 import type { ScreenProps } from "../FreeCourse";
 
@@ -10,12 +11,6 @@ const PLACEHOLDERS: Record<RCArea, { money: string; hours: string; you: string }
   wealth: { money: "Paying for everyone but me", hours: "Worrying about money · fixing others' problems", you: "My confidence. My sleep." },
   self: { money: "Spending to cope", hours: "Scrolling · replaying conversations", you: "My energy. My patience." },
 };
-// A one-line field that grows with what is written, so nothing is clipped.
-function Grow({ label, placeholder, value, onChange }: { label: string; placeholder: string; value: string; onChange: (v: string) => void }) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  useLayoutEffect(() => { const el = ref.current; if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }, [value]);
-  return <textarea ref={ref} rows={1} className="fc-grow" aria-label={label} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value.replace(/\n/g, " "))} />;
-}
 const clip = (text: string, max = 110) => { const t = text.trim(); return t.length > max ? `${t.slice(0, max).trimEnd()}…` : t; };
 
 // FC-04 · What is {Area} owning you costing you?
