@@ -53,3 +53,6 @@ Thumbs.db
 *.bak*
 !*.bak_pre_stage1
 !*.bak_pre_stage2
+
+# Screenshots and downloads from tests
+generated-artifacts/

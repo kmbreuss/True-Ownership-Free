@@ -9,6 +9,7 @@ import { accountGeneration } from "../lib/accountIsolation";
 import { freeRequest, type Account } from "./api";
 import { FreeRoad } from "./FreeRoad";
 import { FreeEnding } from "./FreeEnding";
+import { FreeCourse } from "./course/FreeCourse";
 import "./free.css";
 
 // The free entry never restores a legacy route or developer-preview state.
@@ -141,7 +142,7 @@ function SignedIn() {
           onEnter={() => { setRoom(true); setSaved(false); setResume(!!state.startedAt); }}
           onClose={() => { setRoom(false); setState(loadRCState()); }}
           onEntryHall={() => setRoom(false)} onBeginA1={showEnding}
-          devTools={null} Veil={Veil} timing={NA1_VEIL_TIMING}
+          devTools={null} Veil={Veil} timing={NA1_VEIL_TIMING} course={ctx => <FreeCourse ctx={ctx}/>}
           ending={s => <FreeEnding state={s} account={account} onAccount={setAccount} onLater={() => { setRoom(false); setSaved(true); }}/>}
         />
       </div>

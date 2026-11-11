@@ -196,7 +196,7 @@ export function RealityCheck({
       {error && <p role="alert">{error}</p>}
     </main>
     {room && createPortal(<div className="na1-room-overlay is-open rc-overlay">
-      <div ref={dialogRef} className={`na1-room-card rc-room ${useCourse ? "rc-course" : state.step === 5 ? "rc-deepwater" : state.step === 6 ? "rc-road-a" : state.step === 7 ? "rc-road-a rc-road-a-deeper" : [8, 9, 11, 12, 13].includes(state.step) ? "rc-warm" : ""}`} role="dialog" aria-modal="true" aria-label="The Reality Check" data-step={state.step === 0 && people ? "0b" : state.step}
+      <div ref={dialogRef} className={`na1-room-card ${useCourse ? "rc-course" : "rc-room"} ${useCourse ? "" : state.step === 5 ? "rc-deepwater" : state.step === 6 ? "rc-road-a" : state.step === 7 ? "rc-road-a rc-road-a-deeper" : [8, 9, 11, 12, 13].includes(state.step) ? "rc-warm" : ""}`} role="dialog" aria-modal="true" aria-label="The Reality Check" data-step={state.step === 0 && people ? "0b" : state.step}
         onKeyDown={e => {
           if (e.key === "Escape") { e.preventDefault(); onClose(); }
           if (e.key === "Tab") {
