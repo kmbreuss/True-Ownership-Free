@@ -4,6 +4,7 @@ import { mkdir, readFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
+import { walkYesPath } from "./lib/course-walk.mjs";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
@@ -11,16 +12,28 @@ const output = path.join(root, "generated-artifacts/free-verification");
 await mkdir(output, { recursive: true });
 const base = process.env.FREE_TEST_URL ?? (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:80");
 assert(!base.includes("replit.app"), "Never run synthetic signup tests against production.");
+// Baseline: the `pre-free-1` tag where it exists, otherwise the commit it marks (0fea2a2).
+const BASE = (() => { try { execFileSync("git", ["rev-parse", "--verify", "pre-free-1^{commit}"], { cwd: root, stdio: "ignore" }); return "pre-free-1"; } catch { return "0fea2a2"; } })();
 // The protected scene sources and inherited style text must be byte-identical.
-for (const name of ["rcConstants.ts", "reality-check/RealityCheckScreens.tsx", "reality-check/RealityCheckFutures.tsx", "reality-check/RCFutureScenes.tsx",
+for (const name of ["reality-check/RealityCheckScreens.tsx", "reality-check/RealityCheckFutures.tsx", "reality-check/RCFutureScenes.tsx",
   "reality-check/reality-check.css", "reality-check/rc-polish.css", "reality-check/rc-true-size.css", "reality-check/rc-updated-scenes.css"]) {
   const file = `artifacts/true-ownership/src/${name}`;
-  assert.equal(await readFile(path.join(root, file), "utf8"), execFileSync("git", ["show", `pre-free-1:${file}`], { cwd: root, encoding: "utf8" }), `Protected file changed: ${name}`);
+  assert.equal(await readFile(path.join(root, file), "utf8"), execFileSync("git", ["show", `${BASE}:${file}`], { cwd: root, encoding: "utf8" }), `Protected file changed: ${name}`);
+}
+// rcConstants.ts may only grow: every removed line must be one of the five known, additive-compatible edits.
+{
+  const diff = execFileSync("git", ["diff", "--unified=0", BASE, "--", "artifacts/true-ownership/src/rcConstants.ts"], { cwd: root, encoding: "utf8" });
+  const removed = diff.split("\n").filter(l => l.startsWith("-") && !l.startsWith("---")).map(l => l.slice(1).trim());
+  const allowed = ["focus: RCArea | null; focusChosenBy:", "for (const sentence of RC_MIRROR)", "const mirror = [...new Set(texts(v.mirror))]", "focus, focusChosenBy: !focus ? null", "notYetWhy: text(v.notYetWhy), complete: v.complete === true,"];
+  for (const line of removed) assert(allowed.some(a => line.startsWith(a)), `Legacy part of rcConstants.ts changed: ${line}`);
+  const answers = execFileSync("node_modules/.bin/tsx", ["scripts/rc-normalize-check.ts"], { cwd: path.join(root, "artifacts/true-ownership"), encoding: "utf8" });
+  assert(answers.includes('"ok":true'), "Answer-format check failed.");
 }
 const legacy = "artifacts/true-ownership/src/App.tsx";
-const baseline = execFileSync("git", ["show", `pre-free-1:${legacy}`], { cwd: root, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
+const baseline = execFileSync("git", ["show", `${BASE}:${legacy}`], { cwd: root, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
 const current = await readFile(path.join(root, legacy), "utf8");
-assert.equal(current.replace("export { CSS as inheritedCSS, NewA1Veil, NA1_VEIL_TIMING };\n", ""), baseline, "Inherited styles or full-app source changed beyond the style exports.");
+// `pre-free-1` predates the style exports; `0fea2a2` already has them. Either way, nothing else may change.
+assert.equal(baseline.includes("export { CSS as inheritedCSS") ? current : current.replace("export { CSS as inheritedCSS, NewA1Veil, NA1_VEIL_TIMING };\n", ""), baseline, "Inherited styles or full-app source changed beyond the style exports.");
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/repl/tools/bin/chromium", args: ["--no-sandbox"] });
 const context = await browser.newContext({ viewport: { width: 375, height: 812 }, acceptDownloads: true });
@@ -71,75 +84,39 @@ try {
   assert.equal((await api("/api/free/leads.csv")).status, 403);
   assert.equal((await api("/api/free/waitlist", "POST", undefined, { "X-Account-Id": fixtureId })).status, 409, "Incomplete RC cannot join.");
   await screenshot("02-phone-start-light", true);
-  await click("Begin the Reality Check →"); await step(0);
-  await page.waitForTimeout(2900);
-  await screenshot("03-phone-opening-light");
-  await click("I'm ready →"); await step("0b"); await screenshot("04-phone-person-light");
-  await click("Show me the mirror →"); await step(1);
-  await page.locator('[data-mirror-id="time-avoiding"]').click();
-  await page.locator('[data-mirror-id="time-blaming"]').click();
-  if (await page.getByRole("button", { name: "More sentences →", exact: true }).isVisible()) await click("More sentences →");
-  await page.locator('[data-mirror-id="time-carrying"]').click();
-  await screenshot("05-phone-mirror-light");
-  await click("Show me what I see →"); await step(2);
-  await click("Start with Time →"); await step(3);
-  await page.getByLabel("Your ordinary Tuesday", { exact: true }).fill("I give my evenings away and never have time to think.");
-  await click("Show me the price →"); await step(4);
-  await page.getByLabel("About dollars a month", { exact: true }).fill("50");
-  await page.getByLabel("About hours a week", { exact: true }).fill("12");
-  await screenshot("06-phone-price-light");
-  await click("Close your eyes →"); await step(5); await click("Show me →"); await step(6);
-  await click("Keep going →"); await step(7);
-  await page.getByRole("button", { name: /^exhausted$/i }).click();
-  await page.getByLabel("What has it cost you by then?", { exact: true }).fill("My energy and my family time.");
-  await click("And if you own it? →"); await step(8);
-  await page.getByLabel("My Future B Tuesday", { exact: true }).fill("Mornings that are mine, work that fits, dinner without my phone.");
-  await click("Bring it back to one year →"); await step(9);
-  await page.getByLabel(/What will you be doing by next/).fill("I have time to think and enough left for myself.");
-  await page.getByLabel("My one thing this week", { exact: true }).fill("one hour for what matters.");
-  await click("Choose my future →"); await step(10);
-  // Exercise the Future A branch without losing the draft.
-  await page.locator(".rc-choose-a").click(); await step(11);
-  await page.getByRole("heading", { name: "That's an honest answer." }).waitFor();
-  await click("Look at Future B again →"); await step(8);
-  await click("Bring it back to one year →"); await click("Choose my future →");
-  await page.locator(".rc-choose-b").click(); await step(11);
-  await click("Not yet"); await step(12);
-  await page.getByLabel("What would help me say yes", { exact: true }).fill("Space to take the next small step.");
-  await click("What would help me get there →"); await step(13);
-  await page.getByRole("button", { name: "Join the waitlist →", exact: true }).waitFor();
-  await screenshot("07-phone-ending-notyet-light");
-  // Return via the unchanged Back actions and verify 14A also reaches only ending.
-  await click("← Back"); await step(12); await click("← Back"); await step(11);
-  await click("Yes, I'm willing"); await step(12);
-  await screenshot("08-phone-all-in-light");
-  await click("What will get me there →"); await step(13);
-  await click("Join the waitlist →");
-  await page.getByText("On the waitlist ✓", { exact: true }).waitFor();
-  await screenshot("09-phone-waitlist-light", true);
+  // The whole new course, FC-01 to FC-21, then the waitlist (answers are saved on the real account first).
+  const posterFile = path.join(output, "My-Future-B.png");
+  const saved = await walkYesPath(page, {
+    shot: name => screenshot(`03-phone-${name}-light`), errors: runtimeErrors, saveDownload: dl => dl.saveAs(posterFile),
+  });
+  assert.equal(saved.complete, true); assert.equal(saved.willing, "yes"); assert.equal(saved.choice, "B");
+  assert.equal(saved.firstStep, saved.futureB1.oneThing, "The first step matches the letter's one thing.");
+  assert(saved.pattern && saved.oneThing && saved.underneath && saved.partIOwn && saved.futureAPath?.year && saved.futureBScene?.morning, "New course fields were saved.");
+  assert.equal(saved.focusChosenBy, "picked");
+  const poster = await readFile(posterFile);
+  assert.equal(poster.readUInt32BE(16), 1080); assert.equal(poster.readUInt32BE(20), 1920);
   const metadata = JSON.parse((await api("/api/free/account")).body);
   assert(metadata.waitlistedAt);
   const again = await api("/api/free/waitlist", "POST", undefined, { "X-Account-Id": fixtureId });
   assert.equal(JSON.parse(again.body).waitlistedAt, metadata.waitlistedAt, "Waitlist date must be idempotent.");
-  const download = page.waitForEvent("download");
+  // The poster is also offered on the ending, saving first.
+  const endingDownload = page.waitForEvent("download");
   await click("Save my Future B");
-  await (await download).saveAs(path.join(output, "My-Future-B.png"));
-  const png = await readFile(path.join(output, "My-Future-B.png"));
-  assert.equal(png.readUInt32BE(16), 1080); assert.equal(png.readUInt32BE(20), 1920);
+  await (await endingDownload).saveAs(path.join(output, "My-Future-B-ending.png"));
   await click("Not yet. Keep my Future B saved");
   await page.getByText("Your Future B is saved. Your road will be here when you're ready.", { exact: true }).waitFor();
   await page.reload();
   await page.getByRole("button", { name: /Your Future B · On the waitlist/ }).click();
-  await step(13);
+  await page.getByText("YOU CHOSE FUTURE B", { exact: true }).waitFor();
   await page.getByText("On the waitlist ✓", { exact: true }).waitFor();
   for (const [width, height, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
     await page.setViewportSize({ width, height });
     await page.waitForTimeout(150);
-    await page.locator(".rc-body").evaluate(el => { el.scrollTop = 0; });
+    await page.locator(".fc-scroll").evaluate(el => { el.scrollTop = 0; });
     await screenshot(`10-${label}-ending-light`);
     await page.getByRole("button", { name: "Not yet. Keep my Future B saved", exact: true }).scrollIntoViewIfNeeded();
     await screenshot(`10-${label}-ending-light-actions`);
-    await page.locator(".rc-body").evaluate(el => { el.scrollTop = 0; });
+    await page.locator(".fc-scroll").evaluate(el => { el.scrollTop = 0; });
     // Theme control lives outside the modal; changing appearance through storage is
     // exactly the provider's cross-tab interface, not a bypass of journey/auth.
     await page.evaluate(() => { localStorage.setItem("na1_theme", "dark"); window.dispatchEvent(new StorageEvent("storage", { key: "na1_theme" })); });
@@ -147,7 +124,7 @@ try {
     await screenshot(`11-${label}-ending-dark`);
     await page.getByRole("button", { name: "Not yet. Keep my Future B saved", exact: true }).scrollIntoViewIfNeeded();
     await screenshot(`11-${label}-ending-dark-actions`);
-    await page.locator(".rc-body").evaluate(el => { el.scrollTop = 0; });
+    await page.locator(".fc-scroll").evaluate(el => { el.scrollTop = 0; });
     await page.evaluate(() => { localStorage.setItem("na1_theme", "light"); window.dispatchEvent(new StorageEvent("storage", { key: "na1_theme" })); });
   }
   // Every retained legacy destination is neutralized at the entry boundary.
@@ -159,7 +136,7 @@ try {
     assert.equal(await page.locator(".pn-menu,.jr-phone-bar,.rc-dev-tools,.dev-preview-banner").count(), 0);
   }
   const rc = JSON.parse((await api("/api/userdata")).body).rcstate.v;
-  assert.equal(rc.complete, true); assert.equal(rc.futureB1.doing, "I have time to think and enough left for myself.");
+  assert.equal(rc.complete, true); assert.equal(rc.futureB1.doing, "I have time to think and enough left for myself."); assert.equal(rc.fcScreen, 26);
   // Server rejects stale account saves, including nested userdata paths.
   const stale = await page.request.put(base + "/api/userdata/rcstate", { headers: { "X-Account-Id": "other-account" }, data: { value: { t: Date.now(), v: {} } } });
   assert.equal(stale.status(), 412);
@@ -175,7 +152,7 @@ try {
   assert(boundWrites > 0, "No account-owned writes were observed.");
   assert.deepEqual(runtimeErrors, []);
   assert.deepEqual(await page.evaluate(() => window.__freeErrors), []);
-  console.log(JSON.stringify({ ok: true, syntheticAccountId: fixtureId, boundWrites, checks: "source preservation, signup, scenes, A/not-yet/yes branches, 14A/14B routing, waitlist/reload/idempotence, poster, themes, routes, save isolation, logout", output }));
+  console.log(JSON.stringify({ ok: true, syntheticAccountId: fixtureId, boundWrites, checks: "source preservation, answer format, signup, FC-01 to FC-21 incl. Future A branch, Yes path to the waitlist, saved fields, waitlist idempotence, poster, reload, themes, routes, save isolation, logout", output }));
 } catch (error) {
   await screenshot("FAILURE", true).catch(() => {});
   console.error(error);

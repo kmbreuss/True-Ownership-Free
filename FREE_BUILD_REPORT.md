@@ -1,5 +1,17 @@
 # True Ownership-Free — build report
 
+## Free course v2 (2026-11-11, branch `free-v2`)
+
+The Reality Check is now a 21-screen course in six movements (FC-01 to FC-21, plus the waitlist ending as the last screen), built in six parts. Both the Yes and Not yet paths reach the waitlist; "Save my Future B" is on FC-18 and under the Not yet reflection. Answers saved before the course still open in the original screens. See `docs/free-v2/Brief_Free_Course_v2_ClaudeCode.md`, `ANSWER_FORMAT.md` (new fields) and `CHANGES_FOR_FULL_APP.md` (shared changes, copy changes, compatibility).
+
+**Verified on this Mac (mocked API, no database), Chrome, 375×812 then 1280×800:** the full Yes path with the Future A branch, the Not yet path with poster, both to the waitlist; the tie pick; the legacy-answer review; a new-flow review restarting at FC-01; dark theme; 1080×1920 posters; no console errors; answer-format check (`scripts/rc-normalize-check.ts`); protected scene files identical to `0fea2a2`.
+
+**Not yet run:** the full `verify:free` (real signup, Postgres, API checks). It needs Replit. `scripts/free-path.mjs` was rewritten for the new course and its source-preservation and answer-format checks were run here; its browser part was not, because it needs the Replit Chromium and the real API. The earlier "Passed" line under Verification below describes the pre-course build.
+
+**Known:** FC-20 and FC-21 scroll a little on a phone (the road and the four cards are taller than 812px). Playwright runs can time out on a heavily loaded Mac; the mocked walk retries once and says so.
+
+---
+
 ## Phone screenshots first
 
 All examples use synthetic accounts and answers.
@@ -52,7 +64,7 @@ and Claude endpoints are not mounted.
 
 ## Screen preservation and 14A/14B
 
-The following source files are byte-identical to `pre-free-1`:
+*(Before course v2.)* The following source files were byte-identical to `pre-free-1`:
 `rcConstants.ts`, `RealityCheckScreens.tsx`, `RealityCheckFutures.tsx`,
 `RCFutureScenes.tsx`, and the four protected Reality Check stylesheets.
 The inherited global App source differs only by one export line for its existing

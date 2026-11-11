@@ -59,8 +59,8 @@ checks the real API with a temporary synthetic fixture, and
 validated development regression fixture and its sessions. No real account is
 promoted by those tests.
 
-`rcConstants.ts`, `RealityCheckScreens.tsx`, `RealityCheckFutures.tsx`,
-`RCFutureScenes.tsx`, `rcJourney.ts`, the four protected RC stylesheets,
+`RealityCheckScreens.tsx`, `RealityCheckFutures.tsx`,
+`RCFutureScenes.tsx`, `rcJourney.ts` (`rcConstants.ts` was changed additively in course v2, see below), the four protected RC stylesheets,
 appearance provider, account isolation, logout barriers and sync engine remain
 unchanged. The existing 14A/14B button actions already advance to internal step
 13; the free ending occupies that step, so no button-copy/scene edits are needed.
@@ -88,7 +88,7 @@ this change. Email consent is a saved permission, not an active mailing system.
 ## 2026-11-11: free course v2 (the new Reality Check flow)
 
 Scope: **this free project only.** Nothing here is applied to the full app; Katherine reviews and sends it on.
-Branch `free-v2` of `kmbreuss/true-ownership-free`. The full list of shared surfaces is completed in the final part of this build.
+Branch `free-v2` of `kmbreuss/true-ownership-free`. 
 
 ### Copy changes to an existing scene (free course only)
 
@@ -96,5 +96,20 @@ Branch `free-v2` of `kmbreuss/true-ownership-free`. The full list of shared surf
 |---|---|---|
 | Close your eyes | "It's twelve months from now. Nothing has changed. Same {area}. Same Tuesdays. Breathe, and let yourself see it." | "Imagine nothing changes. Same {area}. Same Tuesdays. Breathe, and let yourself see it." |
 | A note from next {month} (footnote) | "The thing you chose to start becomes the first promise waiting for you in A4." | "The thing you chose to start comes with you when your road opens." |
+| Not yet reflection | "That's often the real work. A1 starts right there, and your Future B is saved for when you're ready." | "That's often the real work. Your Future B is saved for when you're ready." (set in `free/course/FreeCourse.tsx`; the shared scene is untouched) |
 
 The protected scene files (`RealityCheckFutures.tsx`, `RCFutureScenes.tsx` and the rest) are byte-identical to `pre-free-1`. The free course renders its own copy of each of these two scenes in `artifacts/true-ownership/src/free/course/screens/Ask.tsx` (`Eyes`, `Letter`), keeping the same classes, headings, fields and audio support. In `Letter` the "one thing this week" field also writes `firstStep`, so FC-18 shows the same words.
+
+### Shared surfaces changed by course v2 (adopt in this order)
+
+1. `artifacts/true-ownership/src/rcConstants.ts` — **additive, flagged.** New `RC_MIRROR_EXTRA` (24 statements) and `RC_MIRROR_ALL` (36); types `RCUnderneath`, `RCPath`, `RCScene`; optional `RCState` fields `fcScreen, pattern, patternCounts, patternChosenBy, oneThing, underneath, underneathOther, partIOwn, futureAPath, futureBPath, futureBScene, firstStep`; `focusChosenBy` also allows `"picked"`; `mirrorCounts` and `normalizeRC` read `RC_MIRROR_ALL`; new `courseFields()` keeps the new fields only when present. `RC_MIRROR` (12) is untouched. Exactly five existing lines changed (type of `focusChosenBy`, the `mirrorCounts` loop, the `mirror` filter, the `focusChosenBy` check, the `normalizeRC` return); the free-path test allows only those.
+2. `artifacts/true-ownership/src/reality-check/RealityCheck.tsx` — new optional `course` prop (`RCCourseContext`), `MOVEMENTS` list and the start page's "YOUR JOURNEY · SIX MOVEMENTS" (shown only for `freeCourse`), and `rc-course` instead of `rc-room` on the card when the course is active. The full app passes no `course`, so nothing changes there. **Open item:** the full app can adopt the same flow by passing its own `course` renderer; the screens live in `src/free/course/`.
+3. New files `artifacts/true-ownership/src/free/course/**` (`FreeCourse.tsx`, `courseState.ts`, `art.tsx`, `tiles.tsx`, `course.css`, `screens/*.tsx`). Free-only imports (`../api`, `../../newFlowSync`) would need the full app's equivalents. `--gold-bright: #E3C27E` is defined in `course.css`.
+4. `src/free/FreeApp.tsx`, `FreeEnding.tsx`, `free.css` — free-only: course wiring, `joinedNow`, the six-movements list style. The course ending omits the road-ahead list (FC-20 just showed it); answers saved before the course keep it.
+5. Copy changes in the free course (table above): Close your eyes, the letter footnote, the Not yet reflection. The shared scene files are untouched.
+6. `.gitignore` adds `generated-artifacts/`.
+7. Tests: `scripts/free-path.mjs` (real API, Replit), `scripts/rc-normalize-check.ts`, `scripts/lib/course-walk.mjs` (shared walk), `scripts/shot-course.mjs` + `scripts/lib/{mock-api,browser}.mjs` (Mac, mocked API, no database).
+
+**Compatibility:** an older reader drops the new fields (see `ANSWER_FORMAT.md`). If the full app writes answers from a build that lacks the new `normalizeRC`, new-flow answers saved from the free app would lose the course fields when they pass through it.
+
+**Protected files still byte-identical to the baseline:** `RealityCheckScreens.tsx`, `RealityCheckFutures.tsx`, `RCFutureScenes.tsx` and the four protected Reality Check stylesheets. `rcConstants.ts` is no longer in that list (see item 1). The baseline is `pre-free-1`, or commit `0fea2a2` where the tag is not present.

@@ -29,7 +29,7 @@ export function FreeEnding({ state, account, onAccount, onLater, joinedNow = fal
     <p className="rc-eyebrow">YOU CHOSE FUTURE B</p>
     {state.futureB1.doing.trim() && <blockquote>“{state.futureB1.doing}”</blockquote>}
     <h2>Willpower won't get you there. This will.</h2>
-    <RoadAhead />
+    {state.fcScreen === undefined && <RoadAhead />}
     <p className="free-opens-copy">The full True Ownership path opens soon. Your road and your answers are saved and waiting.</p>
     {account.waitlistedAt ? <div role="status"><p className="free-waitlist-status">On the waitlist ✓</p>
       {joined && <p>You're on the list. We'll let you know the moment your road opens.</p>}</div>

@@ -15,6 +15,8 @@ import { FutureA, Turn, FutureB, Scene, YourB, Take, PosterButton } from "./scre
 import { Bridge, Road, Get } from "./screens/Act";
 import "./course.css";
 
+const NOT_YET_LINE = "That's often the real work. Your Future B is saved for when you're ready.";
+
 export interface ScreenProps { state: RCState; update: (next: RCState) => boolean; go: (screen: number) => void; account?: Account }
 
 // Each screen's primary button, as written in the mockups.
@@ -52,7 +54,12 @@ export function FreeCourse({ ctx, account, onAccount, onJoined }: { ctx: RCCours
       : next.step === 12 && next.willing === "yes" ? screenIndex("take") : next.step === 13 ? screenIndex("bridge") : i;
     ctx.act(goTo(next, target), complete, celebrate);
   };
-  const legacy = (step: number, cls = "") => <div className={`rc-room ${cls} fc-legacy`} data-step={step}><div className="rc-screen">
+  // Free course only: the original Not yet reflection line is replaced here, so the shared scene stays untouched.
+  const notYetRef = (node: HTMLDivElement | null) => {
+    const p = node?.querySelector(".rc-notyet > p");
+    if (p && p.textContent !== NOT_YET_LINE) p.textContent = NOT_YET_LINE;
+  };
+  const legacy = (step: number, cls = "") => <div ref={step === 12 ? notYetRef : undefined} className={`rc-room ${cls} fc-legacy`} data-step={step}><div className="rc-screen">
     <RealityCheckFutures state={{ ...state, step }} update={keepScreen} act={courseAct} closeSaved={ctx.closeSaved} />
   </div></div>;
   let content: ReactNode;
