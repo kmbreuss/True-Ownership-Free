@@ -99,6 +99,7 @@ function SignedIn() {
   const [revision, setRevision] = useState(0);
   const [password, setPassword] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [joinedNow, setJoinedNow] = useState(false);
   useEffect(() => {
     let cancelled = false;
     const stamp = accountGeneration();
@@ -122,7 +123,9 @@ function SignedIn() {
   }, []);
   function showEnding() {
     if (!state?.complete) return;
-    saveRCState({ ...loadRCState(), step: 13 });
+    const saved = loadRCState();
+    // A new-flow answer shows the ending on the course's own last screen.
+    saveRCState({ ...saved, step: 13, ...(saved.fcScreen !== undefined ? { fcScreen: 26 } : {}) });
     setRevision(n => n + 1); setResume(true); setRoom(true); setSaved(false);
   }
   if (!account || !state) return <main className="free-loading" role="status">{error ? <><p role="alert">{error}</p><button onClick={() => setRetry(n => n + 1)}>Retry loading my answers</button></> : "Loading your saved road…"}</main>;
@@ -142,8 +145,8 @@ function SignedIn() {
           onEnter={() => { setRoom(true); setSaved(false); setResume(!!state.startedAt); }}
           onClose={() => { setRoom(false); setState(loadRCState()); }}
           onEntryHall={() => setRoom(false)} onBeginA1={showEnding}
-          devTools={null} Veil={Veil} timing={NA1_VEIL_TIMING} course={ctx => <FreeCourse ctx={ctx} account={account}/>}
-          ending={s => <FreeEnding state={s} account={account} onAccount={setAccount} onLater={() => { setRoom(false); setSaved(true); }}/>}
+          devTools={null} Veil={Veil} timing={NA1_VEIL_TIMING} course={ctx => <FreeCourse ctx={ctx} account={account} onAccount={setAccount} onJoined={() => setJoinedNow(true)}/>}
+          ending={s => <FreeEnding state={s} account={account} onAccount={setAccount} joinedNow={joinedNow} onLater={() => { setRoom(false); setSaved(true); }}/>}
         />
       </div>
     </div>

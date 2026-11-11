@@ -95,5 +95,6 @@ Branch `free-v2` of `kmbreuss/true-ownership-free`. The full list of shared surf
 | Scene | Original (full app, unchanged) | Free course |
 |---|---|---|
 | Close your eyes | "It's twelve months from now. Nothing has changed. Same {area}. Same Tuesdays. Breathe, and let yourself see it." | "Imagine nothing changes. Same {area}. Same Tuesdays. Breathe, and let yourself see it." |
+| A note from next {month} (footnote) | "The thing you chose to start becomes the first promise waiting for you in A4." | "The thing you chose to start comes with you when your road opens." |
 
-The protected scene files (`RealityCheckFutures.tsx` and the rest) are byte-identical to `pre-free-1`. The free course renders its own copy of this scene in `artifacts/true-ownership/src/free/course/screens/Ask.tsx` (`Eyes`), keeping the same classes, heading and audio support.
+The protected scene files (`RealityCheckFutures.tsx`, `RCFutureScenes.tsx` and the rest) are byte-identical to `pre-free-1`. The free course renders its own copy of each of these two scenes in `artifacts/true-ownership/src/free/course/screens/Ask.tsx` (`Eyes`, `Letter`), keeping the same classes, headings, fields and audio support. In `Letter` the "one thing this week" field also writes `firstStep`, so FC-18 shows the same words.

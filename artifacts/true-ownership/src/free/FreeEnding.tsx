@@ -5,12 +5,12 @@ import { freeRequest, type Account } from "./api";
 import { RoadAhead, FreeRoad } from "./FreeRoad";
 import { saveFutureB } from "./poster";
 
-export function FreeEnding({ state, account, onAccount, onLater }: {
-  state: RCState; account: Account; onAccount: (a: Account) => void; onLater: () => void;
+export function FreeEnding({ state, account, onAccount, onLater, joinedNow = false }: {
+  state: RCState; account: Account; onAccount: (a: Account) => void; onLater: () => void; joinedNow?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [joined, setJoined] = useState(false);
+  const [joined, setJoined] = useState(joinedNow);
   async function save(action: "join" | "poster" | "later") {
     setBusy(true); setError("");
     try {

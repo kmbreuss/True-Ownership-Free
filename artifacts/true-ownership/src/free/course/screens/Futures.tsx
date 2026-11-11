@@ -103,16 +103,22 @@ export function YourB({ state: s, update }: ScreenProps) {
   </>;
 }
 
-// FC-18 · Take this with you
-export function Take({ state: s, update, account }: ScreenProps) {
+// Save my Future B: the saved-answers barrier first, then the poster. Used on FC-18 and on the Not yet reflection.
+export function PosterButton({ state, account }: Pick<ScreenProps, "state" | "account">) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
-  const first = s.firstStep ?? s.futureB1.oneThing;
   async function poster() {
     setBusy(true); setError("");
-    try { await flushNewFlowForSignOut(); await saveFutureB(s, account?.firstName ?? ""); }
+    try { await flushNewFlowForSignOut(); await saveFutureB(state, account?.firstName ?? ""); }
     catch (err) { setError(err instanceof Error ? err.message : "Could not save. Please try again."); }
     finally { resumeNewFlowAfterSignOutFailure(); setBusy(false); }
   }
+  return <div className="fc-center"><button className="fc-poster" disabled={busy} onClick={() => void poster()}>Save my Future B</button>
+    {busy && <p role="status" className="fc-meta">Saving…</p>}{error && <p role="alert" className="fc-error">{error}</p>}</div>;
+}
+
+// FC-18 · Take this with you
+export function Take({ state: s, update, account }: ScreenProps) {
+  const first = s.firstStep ?? s.futureB1.oneThing;
   return <>
     <div><p className="fc-eyebrow">Take this with you</p><h1 className="fc-h1">You're moving toward something now.</h1></div>
     <section className="fc-take">
@@ -122,7 +128,6 @@ export function Take({ state: s, update, account }: ScreenProps) {
       <Grow className="fc-grow is-step" label="My first step this week" placeholder="One small step" value={first} onChange={t => update(setFirstStep(s, t))} />
       <p className="fc-stepdone">★ Step one is done.</p>
     </section>
-    <div className="fc-center"><button className="fc-poster" disabled={busy} onClick={() => void poster()}>Save my Future B</button>
-      {busy && <p role="status" className="fc-meta">Saving…</p>}{error && <p role="alert" className="fc-error">{error}</p>}</div>
+    <PosterButton state={s} account={account} />
   </>;
 }

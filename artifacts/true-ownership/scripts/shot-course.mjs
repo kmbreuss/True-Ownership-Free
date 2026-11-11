@@ -12,7 +12,8 @@ const prefix = process.env.SHOT_PREFIX ?? "p3";
 const browser = await launch();
 // Warm the dev server first so a dependency re-optimisation cannot reload the page mid-walk.
 { const warm = await browser.newPage(); await warm.goto(base); await warm.waitForTimeout(2500); await warm.close(); }
-for (const [w, h, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
+// The Vite dev server can reload the page right after files change; a failed walk is retried once (and logged), so only a repeatable failure fails the run.
+async function walk(w, h, label) {
   const context = await browser.newContext({ viewport: { width: w, height: h } });
   const mock = await installMockApi(context);
   const page = await context.newPage();
@@ -52,11 +53,13 @@ for (const [w, h, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
   await page.getByLabel("What's still the same in one month?").fill("Still saying yes to every call. Still the last one out.");
   await page.getByLabel("What's still the same in one year?").fill("The team still waits for me. I'm short with the kids by six.");
   await page.getByLabel("What's still the same in three years?").fill("Same desk. Same problems. The kids stopped asking me to come.");
+  await page.getByText("−40 hours · −$500").waitFor(); await page.getByText("−520 hours · −$6,000").waitFor(); await page.getByText("−1,560 hours · −$18,000").waitFor();
   await shot("FC-13"); await click("Now turn around →");
   await page.getByText("Future B isn't escaping something.").waitFor(); await page.waitForTimeout(300); await shot("FC-14"); await click("Show me →");
   await page.getByLabel("What are you doing instead in one month?").fill("I let my team take the first call. Home by five, twice a week.");
   await page.getByLabel("What are you doing instead in one year?").fill("My team handles the client calls. Coffee before anyone needs me.");
   await page.getByLabel("What are you doing instead in three years?").fill("Building the work I love. The kids know they come first.");
+  await page.getByText("+40 hours · +$500").waitFor(); await page.getByText("+520 hours · +$6,000").waitFor(); await page.getByText("+1,560 hours · +$18,000").waitFor();
   await shot("FC-15"); await click("Picture it →");
   const picks = ["Coffee before anyone needs me", "My team takes the first call", "Home in time for what matters", "People who know the real me", "I check my account without dread"];
   for (let n = 0; n < 5; n++) {
@@ -70,6 +73,7 @@ for (const [w, h, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
   await page.getByText("This is what owning your part looks like.").waitFor(); await page.waitForTimeout(200); await shot("FC-17"); await click("Choose my future →");
   await page.getByLabel(/What will you be doing by next/).fill("I have time to think and enough left for myself.");
   await page.getByLabel("My one thing this week", { exact: true }).fill("let my team take Thursday's client call.");
+  await page.getByText("The thing you chose to start comes with you when your road opens.").waitFor();
   await shot("Letter"); await click("Choose my future →");
   await page.getByText("Which future are you building?").waitFor(); await shot("Choose");
   // Future A: an honest answer, then back to FC-17.
@@ -81,11 +85,61 @@ for (const [w, h, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
   await page.getByText("You're moving toward something now.").waitFor(); await page.waitForTimeout(2300); await shot("FC-18");
   const download = page.waitForEvent("download");
   await click("Save my Future B");
-  const dl = await download; await dl.saveAs(path.join(out, `${prefix}-poster-${label}.png`));
+  const dl = await Promise.race([download, page.waitForTimeout(8000).then(async () => { throw new Error("No poster download. Alerts: " + JSON.stringify(await page.locator("[role=alert]").allInnerTexts()) + " errors: " + JSON.stringify(errors)); })]);
+  await dl.saveAs(path.join(out, `${prefix}-poster-${label}.png`));
   const final = await page.evaluate(() => JSON.parse(localStorage.getItem("to_rc_state_v1")));
   console.log(label, "complete", final.complete, "screen", final.fcScreen, "step", final.step, "| B line:", final.futureB5.tuesday.slice(0, 60), "| feels", JSON.stringify(final.futureB5.feels),
     "| oneThing", final.futureB1.oneThing, "| firstStep", final.firstStep, "| pathA.year", final.futureAPath?.year?.slice(0, 20), "| scene", JSON.stringify(final.futureBScene?.morning), "errors", JSON.stringify(errors));
+  // FC-18 on to the waitlist: FC-19, FC-20, FC-21, then the existing ending.
+  await click("Where to next →"); await page.getByText("Decades of my own life").waitFor(); await shot("FC-19");
+  await click("Show me the five →"); await page.getByText("Five parts of your operating system.").waitFor(); await shot("FC-20");
+  await click("What I get →"); await page.getByText("Here's what you get when you own it.").waitFor(); await shot("FC-21");
+  await click("Join the waitlist →");
+  await page.getByText("On the waitlist ✓", { exact: true }).waitFor(); await page.getByText("You're on the list.").waitFor(); await shot("Ending");
+  console.log(label, "yes path: waitlistedAt", !!mock.account.waitlistedAt, "| server rc complete", mock.data.rcstate?.v?.complete);
   await page.reload(); await page.getByRole("button", { name: "Review the Reality Check →" }).waitFor();
+  await context.close();
+}
+for (const [w, h, label] of [[375, 812, "phone"], [1280, 800, "desktop"]]) {
+  try { await walk(w, h, label); }
+  catch (err) { console.log(label, "first attempt failed, retrying once:", String(err.message).split("\n")[0]); await walk(w, h, label); }
+}
+// Not yet still reaches the waitlist, with the poster on the reflection.
+{
+  const seed = { version: 2, step: 11, fcScreen: 21, startedAt: "2026-11-01T00:00:00.000Z", focus: "time", focusChosenBy: "picked", tuesday: "Every day ends with the thing I meant to do still waiting.",
+    mirror: ["time-carrying", "time-carrying-2", "time-carrying-3"], pattern: "carrying", patternChosenBy: "revealed", topDefaults: ["carrying"], oneThing: "every client problem",
+    cost: { monthly: 500, moneyWhere: "", hoursPerWeek: 10, hoursWhere: "", you: "", whoElse: "" }, futureB5: { feels: ["Calm"], tuesday: "Coffee before anyone needs me.", whoNotices: "" },
+    futureB1: { doing: "I have time to think.", oneThing: "let my team take Thursday's client call." }, firstStep: "let my team take Thursday's client call.",
+    futureBScene: { morning: "morning:coffee", work: "work:team", family: "family:home", people: "people:real", money: "money:number", feels: ["feels:calm"], ownWords: "Coffee before anyone needs me." }, choice: "B", complete: false };
+  const context = await browser.newContext({ viewport: { width: 375, height: 812 }, acceptDownloads: true });
+  const mock = await installMockApi(context, { userdata: { rcstate: { t: 1, v: seed } } });
+  const page = await context.newPage(); const errors = []; page.on("pageerror", e => errors.push(e.message));
+  await page.goto(base); await page.getByRole("button", { name: "Continue →" }).click();
+  await page.getByRole("button", { name: "Not yet", exact: true }).click();
+  await page.getByLabel("What would help me say yes").fill("Space to take the next small step.");
+  const download = page.waitForEvent("download"); await page.getByRole("button", { name: "Save my Future B", exact: true }).click();
+  await (await download).saveAs(path.join(out, `${prefix}-poster-notyet-phone.png`));
+  await page.screenshot({ path: path.join(out, `${prefix}-NotYet-phone.png`) });
+  await page.getByRole("button", { name: "What would help me get there →", exact: true }).click();
+  await page.getByText("Decades of my own life").waitFor();
+  await page.getByRole("button", { name: "Show me the five →" }).click(); await page.getByRole("button", { name: "What I get →" }).click();
+  await page.getByRole("button", { name: "Join the waitlist →", exact: true }).click();
+  await page.getByText("On the waitlist ✓", { exact: true }).waitFor();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("to_rc_state_v1")));
+  console.log("not-yet path: complete", saved.complete, "willing", saved.willing, "why", saved.notYetWhy.slice(0, 14), "waitlisted", !!mock.account.waitlistedAt, "errors", JSON.stringify(errors));
+  await context.close();
+}
+// Blindly hoping copy.
+{
+  const base2 = { version: 2, step: 4, startedAt: "2026-11-01T00:00:00.000Z", focus: "time", focusChosenBy: "picked", tuesday: "x", pattern: "hoping", oneThing: "my cash flow", underneath: "fear", complete: false };
+  const context = await browser.newContext({ viewport: { width: 375, height: 812 } });
+  await installMockApi(context, { userdata: { rcstate: { t: 1, v: { ...base2, fcScreen: 8 } } } });
+  const page = await context.newPage(); await page.goto(base); await page.getByRole("button", { name: "Continue →" }).click();
+  const h8 = await page.locator(".fc-screen h1").innerText();
+  await page.getByRole("button", { name: "← Back" }).waitFor(); await page.locator(".fc-field").fill("my cash flow");
+  await page.getByRole("button", { name: "That's it →" }).click(); await page.getByRole("button", { name: "Fear", exact: true }).click(); await page.getByRole("button", { name: "Keep going →" }).click();
+  const para = await page.locator(".fc-center p.fc-body").innerText();
+  console.log("hoping copy:", JSON.stringify(h8), "|", para.endsWith("They keep you waiting."));
   await context.close();
 }
 // A tie: two patterns equally strong. Both are shown and the reader picks the truer one.

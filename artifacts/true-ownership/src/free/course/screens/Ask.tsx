@@ -2,6 +2,9 @@ import { useRef, useState } from "react";
 import { PATTERNS, FEELINGS, feelingWord, setOneThing } from "../courseState";
 import { FeelingIcon, PencilIcon, ShieldIcon } from "../art";
 import { RC_EYES_AUDIO_URL, RC_LABEL, type RCUnderneath } from "../../../rcConstants";
+import { journeyMonth } from "../../../reality-check/rcJourney";
+import { InlineAnswer } from "../../../reality-check/RCAnswerFields";
+import { SoftAnswerCounter } from "../../../reality-check/SoftAnswerCounter";
 import type { ScreenProps } from "../FreeCourse";
 
 const patternOf = (s: ScreenProps["state"]) => PATTERNS[s.pattern ?? "carrying"];
@@ -95,5 +98,27 @@ export function Eyes({ state: s }: ScreenProps) {
       }}>{playing ? "Ⅱ" : "▶"}</button><p>0:45 · Katherine guides you</p>
       {audioError && <p role="alert">The audio could not load. You can continue without it.</p>}
     </div>}
+  </div></div></div>;
+}
+
+// The note from next {month}. The original scene, with one change for the free course only: the footnote.
+export function Letter({ state: s, update }: ScreenProps) {
+  const started = s.startedAt ? new Date(s.startedAt) : new Date();
+  const year = (Number.isNaN(started.getTime()) ? new Date() : started).getFullYear() + 1;
+  const month = journeyMonth(s);
+  const stop = (v: string) => /[.!?…]$/.test(v.trim()) ? "" : ".";
+  return <div className="rc-room rc-warm fc-legacy" data-step="9"><div className="rc-screen"><div className="rc-scene rc-october-letter">
+    <h2>A note from next {month}.</h2>
+    <section className="rc-letter-card" aria-label="A letter to myself">
+      <div className="rc-letter-stamp"><span>{month}</span><strong>{year}</strong></div>
+      <p className="rc-letter-dear">Dear me,</p>
+      <p>A year on, I'm <InlineAnswer lowerStart label={`What will you be doing by next ${month}?`} value={s.futureB1.doing}
+        onChange={doing => update({ ...s, futureB1: { ...s.futureB1, doing } })} />{stop(s.futureB1.doing)}<SoftAnswerCounter value={s.futureB1.doing} /></p>
+      <p>It started the week I chose to <InlineAnswer lowerStart required label="My one thing this week" value={s.futureB1.oneThing}
+        // The one thing is also the first step on FC-18, so they stay the same.
+        onChange={oneThing => update({ ...s, futureB1: { ...s.futureB1, oneThing }, firstStep: oneThing })} />{stop(s.futureB1.oneThing)}<SoftAnswerCounter value={s.futureB1.oneThing} /></p>
+      <p className="rc-letter-signature">— me</p>
+    </section>
+    <p className="rc-letter-promise"><span aria-hidden="true">★</span> The thing you chose to start comes with you when your road opens.</p>
   </div></div></div>;
 }

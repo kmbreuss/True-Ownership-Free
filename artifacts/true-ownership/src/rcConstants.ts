@@ -134,7 +134,7 @@ const amount = (v: unknown): number | null => typeof v === "number" && Number.is
 // normalises to exactly what it always did.
 function courseFields(v: Record<string, any>): Partial<RCState> {
   const out: Partial<RCState> = {};
-  if (Number.isInteger(v.fcScreen)) out.fcScreen = Math.max(0, Math.min(25, v.fcScreen));
+  if (Number.isInteger(v.fcScreen)) out.fcScreen = Math.max(0, Math.min(26, v.fcScreen));
   if (RC_DEFAULTS.includes(v.pattern)) out.pattern = v.pattern as RCDefault;
   if (v.patternCounts && typeof v.patternCounts === "object") {
     const c = obj(v.patternCounts), n = (k: string) => typeof c[k] === "number" && c[k] >= 0 ? c[k] as number : 0;

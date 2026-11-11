@@ -10,6 +10,7 @@ export const SCREENS = [
   "letter", "choose", "willing",                                // note from next month, Choose, Willing / Not yet (original)
   "take",                                                       // FC-18
   "bridge", "road", "get",                                      // FC-19 .. FC-21
+  "ending",                                                     // the existing waitlist ending (poster, waitlist)
 ] as const;
 export type CourseScreen = typeof SCREENS[number];
 export const SCREEN_COUNT = SCREENS.length;
@@ -25,7 +26,8 @@ export const movementOf = (i: number) => MOVEMENT_START.filter(start => i >= sta
 
 // `step` (0..13) stays meaningful for the road, the ending and older readers.
 // It only ever moves forward as the screen index does.
-const LEGACY_STEP = [0, 0, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 6, 7, 8, 8, 8, 9, 10, 11, 12, 13, 13, 13];
+// Step 13 is the ending only; FC-18 to FC-21 sit at 12.
+const LEGACY_STEP = [0, 0, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 6, 7, 8, 8, 8, 9, 10, 11, 12, 12, 12, 12, 13];
 export function goTo(s: RCState, screen: number): RCState {
   const i = Math.max(0, Math.min(SCREEN_COUNT - 1, screen));
   return { ...s, fcScreen: i, step: LEGACY_STEP[i] };
@@ -121,9 +123,11 @@ export const STOPS: { key: "month" | "year" | "threeYears"; label: string; month
   { key: "year", label: "In one year", months: 12, required: true },
   { key: "threeYears", label: "In three years", months: 36, required: false },
 ];
-// A month is four weeks of weekly hours; money is the monthly amount. A blank cost is left out, never shown as zero.
+// Weekly hours become 4 weeks a month, 52 a year, 156 in three years (10 a week = 40 · 520 · 1,560).
+// Money is the monthly amount × 1, × 12, × 36. A blank cost is left out, never shown as zero.
+const WEEKS: Record<number, number> = { 1: 4, 12: 52, 36: 156 };
 export function stopCost(s: RCState, months: number, sign: "−" | "+"): string {
-  const hours = s.cost.hoursPerWeek !== null ? `${sign}${rcNumber(s.cost.hoursPerWeek * 4 * months)} hours` : "";
+  const hours = s.cost.hoursPerWeek !== null ? `${sign}${rcNumber(s.cost.hoursPerWeek * WEEKS[months])} hours` : "";
   const money = s.cost.monthly !== null ? `${sign}${rcMoney(s.cost.monthly * months)}` : "";
   return [hours, money].filter(Boolean).join(" · ");
 }
