@@ -98,3 +98,79 @@ video.fc-video{padding:0;display:block;width:100%;background:#012325}
  .fc-screen p.fc-chip-quote{padding:8px 16px}
 }
 .fc-h1{text-wrap:wrap}
+
+/* ---- Part 3: root wrapper, deep screens, mirror, statements, lean, ask ---- */
+.fc-root{display:flex;flex-direction:column;flex:1 1 0;min-height:0}
+.fc-center{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.fc-h1.is-big{font-size:clamp(32px,10vw,42px)}
+.fc-screen p.fc-rule{margin:0;padding:6px 0 6px 14px;border-left:3px solid var(--gold);font:italic var(--b-w) max(var(--b-min),calc(21px + var(--b-bump)))/1.3 var(--f-body);color:var(--fc-spruce)}
+.fc-patterns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fc-pattern{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:20px;background:#fff;border:1px solid var(--fc-line)}
+.fc-pattern-art{display:grid;place-items:center;border-radius:16px;background:linear-gradient(135deg,#FDF2DC,#F5E2BD);height:72px}
+.fc-pattern-art svg{width:56px;height:56px}
+.fc-pattern h2{margin:6px 0 0;font:400 22px/1.2 var(--f-display)}
+.fc-pattern p{margin:0;font:var(--b-w) max(var(--b-min),calc(18px + var(--b-bump)))/1.25 var(--f-body);color:var(--fc-muted)}
+.fc-quotes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fc-quote{min-height:56px;padding:10px 12px;border-radius:16px;text-align:left;background:#FBF8F2;border:1.5px solid var(--fc-line);color:var(--fc-ink);cursor:pointer;
+ font:italic var(--b-w) max(var(--b-min),calc(18px + var(--b-bump)))/1.2 var(--f-body)}
+.fc-quote.is-picked{background:var(--burgundy-soft);border-color:var(--burgundy-fill);color:var(--burgundy-text)}
+.fc-count{color:var(--burgundy-text);font-weight:400}
+.fc-glow{align-self:center;display:grid;place-items:center;width:150px;height:150px;border-radius:50%;
+ background:radial-gradient(circle,#F7E7BD 0%,#F5E2B5 55%,rgba(245,226,181,0) 72%);box-shadow:0 0 70px 20px var(--gold-glow)}
+.fc-glow svg{width:84px;height:84px}
+.fc-said{padding:14px 16px;border-radius:18px;background:#fff;border:1px solid var(--fc-line);display:flex;flex-direction:column;gap:6px}
+.fc-said p{margin:0;font:italic var(--b-w) max(var(--b-min),calc(19px + var(--b-bump)))/1.25 var(--f-body);color:var(--burgundy-text)}
+.fc-tie{display:flex;flex-direction:column;gap:10px}
+.fc-tie-card{display:flex;flex-direction:column;gap:8px;text-align:left;padding:12px;border-radius:20px;background:#fff;border:1.5px solid var(--fc-line);color:var(--fc-ink);cursor:pointer}
+.fc-tie-card.is-picked{border:2px solid var(--fc-spruce);background:#F1F7F6;padding:11px}
+.fc-tie-head{display:flex;gap:12px;align-items:center}
+.fc-tie-head .fc-pattern-art{width:64px;height:64px;flex:0 0 auto}.fc-tie-head .fc-pattern-art svg{width:46px;height:46px}
+.fc-tie-head strong{display:block;font:400 22px/1.2 var(--f-display)}
+.fc-tie-head em{font:var(--b-w) max(var(--b-min),calc(18px + var(--b-bump)))/1.2 var(--f-body);font-style:normal;color:var(--fc-muted)}
+.fc-tie-said{display:flex;flex-direction:column;gap:2px}
+.fc-tie-said span{font:italic var(--b-w) max(var(--b-min),calc(17px + var(--b-bump)))/1.2 var(--f-body);color:var(--burgundy-text)}
+.fc-screen p.fc-chip-quote.is-plain{display:inline-block;align-self:flex-start;font:400 max(var(--l-min),15px)/1.3 var(--f-label);font-style:normal;padding:8px 16px;border-radius:999px}
+.fc-field{box-sizing:border-box;width:100%;min-height:120px;padding:14px 18px;border-radius:16px;border:1.5px solid var(--fc-spruce);background:#fff;resize:none;
+ font:italic var(--b-w) max(var(--b-min),calc(21px + var(--b-bump)))/1.3 var(--f-body);color:var(--fc-ink)}
+.fc-field:focus-visible,.fc-line-input:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.fc-stem{display:flex;flex-direction:column;gap:8px}
+.fc-feelings{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fc-feeling{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;padding:12px 8px;border-radius:18px;background:#fff;border:1.5px solid var(--fc-line);color:var(--fc-ink);cursor:pointer;font:400 22px/1.2 var(--f-display)}
+.fc-feeling svg{width:56px;height:56px}
+.fc-feeling.is-picked,.fc-else.is-picked{background:var(--burgundy-soft);border-color:var(--burgundy-fill)}
+.fc-else{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 16px;border-radius:18px;background:#fff;border:1.5px dashed var(--fc-line);color:var(--fc-ink);cursor:pointer;text-align:left;font:400 20px/1.2 var(--f-display)}
+.fc-else svg{width:36px;height:36px;flex:0 0 auto}
+.fc-else em{font:400 max(var(--l-min),14px)/1.2 var(--f-label);font-style:normal;color:var(--fc-muted)}
+.fc-line-input{width:100%;box-sizing:border-box;border:0;border-bottom:1.5px solid var(--fc-spruce);background:transparent;padding:8px 2px;font:italic var(--b-w) max(var(--b-min),calc(21px + var(--b-bump)))/1.3 var(--f-body);color:var(--fc-ink)}
+.fc-pair.is-today{gap:10px}
+.fc-today,.fc-over{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border-radius:16px}
+.fc-today{background:#E6EDE9}.fc-over{background:var(--burgundy-soft)}
+.fc-today strong,.fc-over strong{font:400 max(var(--l-min),18px)/1.2 var(--f-display)}
+.fc-today em,.fc-over em{font:italic var(--b-w) max(var(--b-min),calc(19px + var(--b-bump)))/1.2 var(--f-body)}
+/* Deep Spruce screens: full-bleed, cream text, bright gold for what lifts. */
+.na1-room-card.rc-course:has(.fc-root.is-deep){background:radial-gradient(circle at 50% 30%,#0D7A76,#024845 45%,#012325 85%);color:#EFE6D6;border-color:transparent;
+ --fc-ink:#EFE6D6;--fc-muted:#EFE6D6;--fc-line:rgba(239,230,214,.3);--rc-ink:#EFE6D6;--rc-muted:#EFE6D6}
+.is-deep .fc-head,.is-deep .fc-bar p{color:#E3C27E}.is-deep .fc-head{color:#EFE6D6}
+.is-deep .fc-bar li{background:rgba(239,230,214,.9)}.is-deep .fc-bar li.is-done{background:#CDB48E}.is-deep .fc-bar li.is-current{background:rgba(2,72,69,.9)}
+.is-deep .na1-room-close,.na1-room-card.rc-course:has(.is-deep) .na1-room-close{color:#EFE6D6;border-color:rgba(239,230,214,.4)}
+.is-deep .fc-back{color:#EFE6D6;border-color:rgba(239,230,214,.4)}
+.is-deep .fc-foot{border-color:rgba(239,230,214,.25)}
+.is-deep .fc-foot .fc-next{background:#E3C27E;color:#012325;box-shadow:none}
+.is-deep .fc-h1,.is-deep .fc-screen p.fc-body{color:#EFE6D6}
+.fc-beyond{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.fc-beyond .fc-eyebrow{color:#CDB48E}
+.fc-screen p.fc-bright{margin:0;font:italic 400 max(var(--b-min),calc(30px + var(--b-bump)))/1.25 var(--f-body);color:#E3C27E}
+.fc-legacy.rc-room.rc-room{background:transparent!important}
+/* Dense screens (mirror, statements, lean) use the body floor without the phone bump so they fit one phone screen. */
+.fc-pattern{padding:10px;gap:4px}.fc-pattern-art{height:56px}.fc-pattern-art svg{width:44px;height:44px}.fc-pattern h2{font-size:20px;margin-top:4px}
+.fc-pattern p{font-size:max(var(--b-min),17px)}
+.fc-quote{min-height:52px;padding:8px 10px;font-size:max(var(--b-min),17px)}
+.fc-quotes{gap:8px}
+.fc-glow{width:120px;height:120px}.fc-glow svg{width:68px;height:68px}
+.fc-center .fc-body{font-size:max(var(--b-min),20px)}
+.fc-said{padding:10px 14px;gap:4px}.fc-said p{font-size:max(var(--b-min),18px)}
+.fc-screen p.fc-rule{font-size:max(var(--b-min),19px)}
+.is-deep .na1-room-close,.na1-room-card.rc-course:has(.is-deep) .na1-room-close{color:#EFE6D6!important}
+.fc-pattern-art{height:48px}.fc-pattern-art svg{width:40px;height:40px}
+@media(max-width:600px){.fc-screen{gap:12px}}
+@media(max-width:600px){.fc-patterns .fc-pattern-art{height:38px}.fc-patterns .fc-pattern-art svg{width:32px;height:32px}}

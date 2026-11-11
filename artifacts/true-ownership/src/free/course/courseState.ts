@@ -54,7 +54,56 @@ export function courseReady(s: RCState, screen: number): boolean {
   switch (SCREENS[screen]) {
     case "area": return s.focus !== null;
     case "tuesday": return s.focus !== null && !!s.tuesday.trim();
+    case "statements": return s.mirror.length >= 3;
+    case "lean": return !!s.pattern;
+    case "oneThing": return !!s.oneThing?.trim();
+    case "underneath": return !!s.underneath && (s.underneath !== "other" || !!s.underneathOther?.trim());
+    case "partIOwn": return !!s.partIOwn?.trim();
     default: return true;
   }
 }
 export const areaWord = (s: RCState) => RC_LABEL[s.focus ?? "self"];
+
+// ---- Patterns (FC-05 .. FC-10) ----
+import { RC_MIRROR_ALL, mirrorCounts, type RCDefault, type RCUnderneath } from "../../rcConstants";
+export const PATTERN_ORDER: RCDefault[] = ["avoiding", "blaming", "carrying", "hoping"];
+export const PATTERNS: Record<RCDefault, { name: string; def: string; verb: string; keep: string }> = {
+  avoiding: { name: "Avoiding", def: "Deciding it isn't important. Pushing through. Putting it off.", verb: "avoiding", keep: "avoiding" },
+  blaming: { name: "Blaming", def: "The cause is out there. The boss, the market, someone else.", verb: "blaming", keep: "blaming" },
+  carrying: { name: "Carrying", def: "Taking on what isn't yours to carry. The fixer.", verb: "carrying", keep: "carrying" },
+  hoping: { name: "Blindly hoping", def: "Waiting for it to change on its own.", verb: "hoping for", keep: "hoping" },
+};
+export const FEELINGS: { id: Exclude<RCUnderneath, "other">; name: string }[] = [
+  { id: "fear", name: "Fear" }, { id: "guilt", name: "Guilt" }, { id: "shame", name: "Shame" }, { id: "loss", name: "Loss" },
+];
+
+// The 12 statements for the chosen area, in a fixed mixed order (tags are never shown).
+const mixKey = (id: string) => { let h = 7; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+export function areaStatements(area: RCArea) {
+  return RC_MIRROR_ALL.filter(m => m.area === area).sort((a, b) => mixKey(a.id) - mixKey(b.id));
+}
+
+// Keeps pattern, topDefaults and defaultsNamed telling the same story.
+function applyPattern(s: RCState, top: RCDefault[], pattern: RCDefault | undefined, by: "revealed" | "tie-picked" | undefined): RCState {
+  const { pattern: _p, patternChosenBy: _b, ...rest } = s;
+  const named = { avoiding: "", blaming: "", carrying: "", hoping: "" };
+  if (pattern && s.oneThing) named[pattern] = s.oneThing;
+  return { ...rest, topDefaults: pattern ? [pattern] : top, defaultsNamed: named,
+    ...(pattern ? { pattern, patternChosenBy: by } : {}) };
+}
+export function toggleStatement(s: RCState, id: string): RCState {
+  if (!RC_MIRROR_ALL.some(m => m.id === id && m.area === s.focus)) return s;
+  const mirror = s.mirror.includes(id) ? s.mirror.filter(v => v !== id) : [...s.mirror, id];
+  const counts = mirrorCounts(mirror), top = counts.topDefaults;
+  const kept = s.pattern && top.includes(s.pattern) && s.patternChosenBy === "tie-picked" ? s.pattern : undefined;
+  const pattern = top.length === 1 ? top[0] : kept;
+  const by = top.length === 1 ? "revealed" as const : kept ? "tie-picked" as const : undefined;
+  return applyPattern({ ...s, mirror, areaCounts: counts.areaCounts, defaultCounts: counts.defaultCounts, patternCounts: counts.defaultCounts }, top, pattern, by);
+}
+export function pickPattern(s: RCState, pattern: RCDefault): RCState { return applyPattern(s, [pattern], pattern, "tie-picked"); }
+export function setOneThing(s: RCState, text: string): RCState {
+  const next = { ...s, oneThing: text };
+  return s.pattern ? { ...next, defaultsNamed: { avoiding: "", blaming: "", carrying: "", hoping: "", [s.pattern]: text } } : next;
+}
+export const tiedPatterns = (s: RCState): RCDefault[] => mirrorCounts(s.mirror).topDefaults;
+export const feelingWord = (s: RCState) => s.underneath === "other" ? s.underneathOther?.trim() ?? "" : FEELINGS.find(f => f.id === s.underneath)?.name ?? "";
