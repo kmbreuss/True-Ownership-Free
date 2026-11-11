@@ -75,3 +75,6 @@ html[data-theme=dark] .rc-room:has(.free-ending) .rc-progress p{color:var(--rc-m
 .free-ending .free-road .free-stage-detail{font-size:16px;text-align:left}
 .free-ending .free-road .free-detail-close{font-size:24px!important}
 .rc-room:has(.free-ending) .na1-room-crumb{visibility:hidden}
+/* Free course v2: six movements on the start page (phones keep the original single column). */
+@media(min-width:700px){.free-course .rc-journey ol.is-six{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.free-course .rc-journey ol.is-six h3{font-family:var(--f-display);font-size:18px;font-weight:400;line-height:1.2;margin:0}

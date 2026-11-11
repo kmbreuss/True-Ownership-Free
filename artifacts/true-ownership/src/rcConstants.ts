@@ -40,10 +40,44 @@ export const RC_MIRROR: { id: string; text: string; area: RCArea; default: RCDef
   { id: "self-blaming", text: "I'd be different if the people around me were different.", area: "self", default: "blaming" },
 ];
 
+// Free course v2: 24 more statements (three per pattern, per area). The 12 above keep
+// their ids; the legacy mirror screen still shows only those 12. The 36 are used to
+// count and to normalise saved answers. Tags are never shown to the reader.
+export const RC_MIRROR_EXTRA: typeof RC_MIRROR = [
+  { id: "self-avoiding-2", text: "I'm fine.", area: "self", default: "avoiding" },
+  { id: "self-avoiding-3", text: "I stay busy so I don't have to think about it.", area: "self", default: "avoiding" },
+  { id: "self-blaming-2", text: "No one makes it easy for me.", area: "self", default: "blaming" },
+  { id: "self-blaming-3", text: "That's just how I was raised.", area: "self", default: "blaming" },
+  { id: "self-carrying-2", text: "I feel guilty when I put myself first.", area: "self", default: "carrying" },
+  { id: "self-carrying-3", text: "Everyone else's problems become mine.", area: "self", default: "carrying" },
+  { id: "self-hoping-2", text: "One day I'll get back to me.", area: "self", default: "hoping" },
+  { id: "self-hoping-3", text: "Someone will see what I need without me asking.", area: "self", default: "hoping" },
+  { id: "time-avoiding-2", text: "I don't have time.", area: "time", default: "avoiding" },
+  { id: "time-avoiding-3", text: "I keep pushing the big things to next week.", area: "time", default: "avoiding" },
+  { id: "time-blaming-2", text: "My calendar isn't really mine.", area: "time", default: "blaming" },
+  { id: "time-blaming-3", text: "It's the job. That's just how it is.", area: "time", default: "blaming" },
+  { id: "time-carrying-2", text: "I say yes when every part of me wants to say no.", area: "time", default: "carrying" },
+  { id: "time-carrying-3", text: "If I don't do it, no one will.", area: "time", default: "carrying" },
+  { id: "time-hoping-2", text: "Once this project is done, I'll slow down.", area: "time", default: "hoping" },
+  { id: "time-hoping-3", text: "Someone will notice how much I'm doing.", area: "time", default: "hoping" },
+  { id: "wealth-avoiding-2", text: "I'll sort the money stuff out later.", area: "wealth", default: "avoiding" },
+  { id: "wealth-avoiding-3", text: "I avoid the money conversation.", area: "wealth", default: "avoiding" },
+  { id: "wealth-blaming-2", text: "Prices keep going up. What can I do?", area: "wealth", default: "blaming" },
+  { id: "wealth-blaming-3", text: "If I were paid what I'm worth, I'd be fine.", area: "wealth", default: "blaming" },
+  { id: "wealth-carrying-2", text: "I cover the gap so no one else has to.", area: "wealth", default: "carrying" },
+  { id: "wealth-carrying-3", text: "I can't say no when someone needs money.", area: "wealth", default: "carrying" },
+  { id: "wealth-hoping-2", text: "It'll work out somehow.", area: "wealth", default: "hoping" },
+  { id: "wealth-hoping-3", text: "Next year will be the year.", area: "wealth", default: "hoping" },
+];
+export const RC_MIRROR_ALL: typeof RC_MIRROR = [...RC_MIRROR, ...RC_MIRROR_EXTRA];
+export type RCUnderneath = "fear" | "guilt" | "shame" | "loss" | "other";
+export interface RCPath { month: string; year: string; threeYears: string }
+export interface RCScene { morning: string; work: string; family: string; people: string; money: string; feels: string[]; ownWords: string }
+
 export interface RCState {
   version: 2; step: number; maxReached?: number; startedAt: string | null; completedAt: string | null;
   mirror: string[]; phoneMirror?: { set: 0 | 1; viewedBoth: boolean }; areaCounts: Record<RCArea, number>; defaultCounts: Record<RCDefault, number>;
-  focus: RCArea | null; focusChosenBy: "revealed" | "tie-picked" | "changed" | null;
+  focus: RCArea | null; focusChosenBy: "revealed" | "tie-picked" | "changed" | "picked" | null;
   topDefaults: RCDefault[]; tuesday: string; defaultsNamed: Record<RCDefault, string>; defaultsTogether?: string;
   cost: { monthly: number | null; moneyWhere: string; hoursPerWeek: number | null; hoursWhere: string; you: string; whoElse: string; youAmount?: "a little" | "a lot" | "most of me" };
   futureA: { extra: string }; compound: { feels: string[]; results: string; whoElse: string };
@@ -51,6 +85,11 @@ export interface RCState {
   futureB1: { doing: string; oneThing: string };
   choice: "A" | "B" | null; willing: "yes" | "not-yet" | null; notYetWhy: string;
   complete: boolean; rounds: RCRound[];
+  // Free course v2 (optional; absent on every answer saved before it).
+  fcScreen?: number; pattern?: RCDefault; patternCounts?: Record<RCDefault, number>;
+  patternChosenBy?: "revealed" | "tie-picked"; oneThing?: string;
+  underneath?: RCUnderneath; underneathOther?: string; partIOwn?: string;
+  futureAPath?: RCPath; futureBPath?: RCPath; futureBScene?: RCScene; firstStep?: string;
 }
 export type RCRound = Omit<RCState, "rounds">;
 export const EMPTY_RC: RCState = {
@@ -66,7 +105,7 @@ export const EMPTY_RC: RCState = {
 export function mirrorCounts(ids: string[]) {
   const areaCounts = { self: 0, time: 0, wealth: 0 };
   const defaultCounts = { avoiding: 0, blaming: 0, carrying: 0, hoping: 0 };
-  for (const sentence of RC_MIRROR) if (ids.includes(sentence.id)) {
+  for (const sentence of RC_MIRROR_ALL) if (ids.includes(sentence.id)) {
     areaCounts[sentence.area]++; defaultCounts[sentence.default]++;
   }
   const most = Math.max(...Object.values(defaultCounts));
@@ -91,10 +130,36 @@ const obj = (v: unknown): Record<string, any> => v && typeof v === "object" && !
 const text = (v: unknown) => typeof v === "string" ? v : "";
 const texts = (v: unknown): string[] => Array.isArray(v) ? v.filter(x => typeof x === "string") : [];
 const amount = (v: unknown): number | null => typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
+// Free course v2 fields are kept only when present, so an answer saved before them
+// normalises to exactly what it always did.
+function courseFields(v: Record<string, any>): Partial<RCState> {
+  const out: Partial<RCState> = {};
+  if (Number.isInteger(v.fcScreen)) out.fcScreen = Math.max(0, Math.min(25, v.fcScreen));
+  if (RC_DEFAULTS.includes(v.pattern)) out.pattern = v.pattern as RCDefault;
+  if (v.patternCounts && typeof v.patternCounts === "object") {
+    const c = obj(v.patternCounts), n = (k: string) => typeof c[k] === "number" && c[k] >= 0 ? c[k] as number : 0;
+    out.patternCounts = { avoiding: n("avoiding"), blaming: n("blaming"), carrying: n("carrying"), hoping: n("hoping") };
+  }
+  if (v.patternChosenBy === "revealed" || v.patternChosenBy === "tie-picked") out.patternChosenBy = v.patternChosenBy;
+  if (typeof v.oneThing === "string") out.oneThing = v.oneThing;
+  if (["fear", "guilt", "shame", "loss", "other"].includes(v.underneath)) out.underneath = v.underneath as RCUnderneath;
+  if (typeof v.underneathOther === "string") out.underneathOther = v.underneathOther;
+  if (typeof v.partIOwn === "string") out.partIOwn = v.partIOwn;
+  if (typeof v.firstStep === "string") out.firstStep = v.firstStep;
+  const path = (p: unknown): RCPath => { const o = obj(p); return { month: text(o.month), year: text(o.year), threeYears: text(o.threeYears) }; };
+  if (v.futureAPath && typeof v.futureAPath === "object") out.futureAPath = path(v.futureAPath);
+  if (v.futureBPath && typeof v.futureBPath === "object") out.futureBPath = path(v.futureBPath);
+  if (v.futureBScene && typeof v.futureBScene === "object") {
+    const s = obj(v.futureBScene);
+    out.futureBScene = { morning: text(s.morning), work: text(s.work), family: text(s.family), people: text(s.people),
+      money: text(s.money), feels: texts(s.feels), ownWords: text(s.ownWords) };
+  }
+  return out;
+}
 export function normalizeRC(value: unknown): RCState {
   const seed = JSON.parse(JSON.stringify(EMPTY_RC)) as RCState, v = obj(value);
   if (v.version !== 2) return seed;
-  const mirror = [...new Set(texts(v.mirror))].filter(id => RC_MIRROR.some(m => m.id === id));
+  const mirror = [...new Set(texts(v.mirror))].filter(id => RC_MIRROR_ALL.some(m => m.id === id));
   const counts = mirrorCounts(mirror), areas = topAreas(counts);
   const focus = RC_AREAS.includes(v.focus) ? v.focus as RCArea : areas.length === 1 ? areas[0] : null;
   const named = obj(v.defaultsNamed), cost = obj(v.cost), a = obj(v.futureA), compound = obj(v.compound),
@@ -110,7 +175,7 @@ export function normalizeRC(value: unknown): RCState {
     maxReached: Math.min(13, Math.max(inferred, Number.isInteger(v.step) ? v.step : 0, Number.isInteger(v.maxReached) ? v.maxReached : 0)),
     startedAt: typeof v.startedAt === "string" ? v.startedAt : null,
     completedAt: typeof v.completedAt === "string" ? v.completedAt : null,
-    focus, focusChosenBy: !focus ? null : ["revealed", "tie-picked", "changed"].includes(v.focusChosenBy)
+    focus, focusChosenBy: !focus ? null : ["revealed", "tie-picked", "changed", "picked"].includes(v.focusChosenBy)
       ? v.focusChosenBy : areas.length === 1 && areas[0] === focus ? "revealed" : areas.length > 1 ? "tie-picked" : "changed",
     tuesday: text(v.tuesday),
     defaultsNamed: { avoiding: text(named.avoiding), blaming: text(named.blaming), carrying: text(named.carrying), hoping: text(named.hoping) },
@@ -124,7 +189,7 @@ export function normalizeRC(value: unknown): RCState {
     futureB1: { doing: text(b1.doing), oneThing: text(b1.oneThing) },
     choice: v.choice === "A" || v.choice === "B" ? v.choice : null,
     willing: v.willing === "yes" || v.willing === "not-yet" ? v.willing : null,
-    notYetWhy: text(v.notYetWhy), complete: v.complete === true,
+    notYetWhy: text(v.notYetWhy), complete: v.complete === true, ...courseFields(v),
     rounds: Array.isArray(v.rounds) ? v.rounds.filter(r => obj(r).version === 2 && obj(r).complete === true).map(r => {
       const { rounds: _history, ...round } = normalizeRC({ ...obj(r), rounds: [] });
       return round;

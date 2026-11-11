@@ -21,9 +21,20 @@ const ROWS = [
   "Where it goes if nothing changes, and if you own it.",
   "Which future you're ready to build.",
 ];
+// Free course v2: the start page lists six movements, in the reader's words.
+const MOVEMENTS: [string, string, string][] = [
+  ["1", "", "Do you own your life?"], ["2", "", "What is it costing you?"], ["3", "", "Look · the mirror"],
+  ["4", "", "Ask · what part do I own?"], ["↻", "rc-stop-4", "The turn · two futures"], ["5", "rc-stop-5", "Act · move toward your life"],
+];
 type VeilPhase = "rising" | "hold" | "falling" | "idle";
+// What the new course room receives. It owns its own header, body and footer.
+export interface RCCourseContext {
+  state: RCState; update: (next: RCState) => boolean; act: (next: RCState, complete?: boolean, celebrate?: boolean) => void;
+  close: () => void; closeSaved: () => void; closeRef: React.RefObject<HTMLButtonElement | null>;
+  ending?: (state: RCState) => ReactNode; reviewing: boolean;
+}
 export function RealityCheck({
-  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing, reviewScreen, memberName, onSaveName, freeCourse, ending,
+  room, resume, onEnter, onClose, onEntryHall, onBeginA1, devTools, Veil, timing, reviewScreen, memberName, onSaveName, freeCourse, ending, course,
 }: {
   room: boolean; resume: boolean; onEnter: () => void; onClose: () => void;
   onEntryHall: () => void; onBeginA1: () => void; devTools: ReactNode;
@@ -34,6 +45,7 @@ export function RealityCheck({
   onSaveName?: (name: string) => Promise<void>;
   freeCourse?: boolean;
   ending?: (state: RCState) => ReactNode;
+  course?: (ctx: RCCourseContext) => ReactNode;
 }) {
   const [name, setName] = useState(memberName ?? "");
   const [savingName, setSavingName] = useState(false);
@@ -110,6 +122,7 @@ export function RealityCheck({
     ];
     return () => { timers.forEach(window.clearTimeout); previous?.focus(); };
   }, [room, resume, timing]);
+  const useCourse = !!course && !!freeCourse && state.fcScreen !== undefined;
   const stage = state.step <= 2 ? 0 : state.step === 3 ? 1 : state.step === 4 ? 2 : state.step <= 9 ? 3 : 4;
   const sceneGroups = [[0, 1, 2], [3], [4], [5, 6, 7, 8, 9], [10, 11, 12, 13]];
   const preview = isDevPreview();
@@ -157,7 +170,11 @@ export function RealityCheck({
             setSavingName(false);
             return;
           }
-          const next = { ...state, step: state.complete ? 1 : state.step, startedAt: state.startedAt ?? new Date().toISOString() };
+          // Fresh starts (and reviews of a new-flow answer) open the course at its first screen;
+          // an answer saved before the course carries on through the original screens.
+          const toCourse = !!course && (state.fcScreen !== undefined ? state.complete : !state.startedAt);
+          const next = { ...state, step: state.complete ? 1 : state.step, startedAt: state.startedAt ?? new Date().toISOString(),
+            ...(toCourse ? { fcScreen: 0 } : {}) };
           try { saveRCState(next); setState(next); setError(""); onEnter(); }
           catch { setError("Your Reality Check could not be saved. Please try again."); }
           finally { setSavingName(false); }
@@ -168,16 +185,18 @@ export function RealityCheck({
       </div>
       {savedMessage && <p role="status">Your Reality Check is saved. Come back when you're ready.</p>}
       {redoDue(state) && <div className="rc-redo"><p>It's been 90 days. Ready to look again? Your previous words will stay with you.</p><button onClick={() => {
-        if (update(startRedo(state))) { setSavedMessage(false); onEnter(); }
+        if (update(course ? { ...startRedo(state), fcScreen: 0 } : startRedo(state))) { setSavedMessage(false); onEnter(); }
       }}>Begin a new Reality Check →</button></div>}
-      <section className="rc-journey"><p className="rc-eyebrow">YOUR JOURNEY · FIVE STEPS</p>
+      {freeCourse ? <section className="rc-journey"><p className="rc-eyebrow">YOUR JOURNEY · SIX MOVEMENTS</p>
+        <ol className="is-six">{MOVEMENTS.map(([mark, cls, label]) => <li key={label}><span className={`rc-stop ${cls}`}>{mark}</span><h3>{label}</h3></li>)}</ol>
+      </section> : <section className="rc-journey"><p className="rc-eyebrow">YOUR JOURNEY · FIVE STEPS</p>
         <ol>{STAGES.map((stageName, i) => <li key={stageName}><span className={`rc-stop rc-stop-${i + 1}`}>{i + 1}</span><h3>{stageName}</h3><p><em>{ROWS[i]}</em></p></li>)}</ol>
-      </section>
+      </section>}
       <blockquote className="rc-closing-quote">Those two futures are real. One is where you're headed if nothing changes. The other is what you could be.</blockquote>
       {error && <p role="alert">{error}</p>}
     </main>
     {room && createPortal(<div className="na1-room-overlay is-open rc-overlay">
-      <div ref={dialogRef} className={`na1-room-card rc-room ${state.step === 5 ? "rc-deepwater" : state.step === 6 ? "rc-road-a" : state.step === 7 ? "rc-road-a rc-road-a-deeper" : [8, 9, 11, 12, 13].includes(state.step) ? "rc-warm" : ""}`} role="dialog" aria-modal="true" aria-label="The Reality Check" data-step={state.step === 0 && people ? "0b" : state.step}
+      <div ref={dialogRef} className={`na1-room-card rc-room ${useCourse ? "rc-course" : state.step === 5 ? "rc-deepwater" : state.step === 6 ? "rc-road-a" : state.step === 7 ? "rc-road-a rc-road-a-deeper" : [8, 9, 11, 12, 13].includes(state.step) ? "rc-warm" : ""}`} role="dialog" aria-modal="true" aria-label="The Reality Check" data-step={state.step === 0 && people ? "0b" : state.step}
         onKeyDown={e => {
           if (e.key === "Escape") { e.preventDefault(); onClose(); }
           if (e.key === "Tab") {
@@ -187,7 +206,9 @@ export function RealityCheck({
             else if (!e.shiftKey && document.activeElement === items[items.length - 1]) { e.preventDefault(); items[0].focus(); }
           }
         }}>
-        <div className="rc-heading-row"><div className="na1-room-crumb"><span>The Reality Check</span><span className="sep">›</span><span className="current">{STAGES[stage]}</span></div>{state.step >= 12 && <button className="rc-header-back" onClick={back}>← Back</button>}</div>
+        {useCourse && course!({ state, update, act, close: onClose, closeRef, ending, reviewing,
+          closeSaved: () => { setSavedMessage(true); onClose(); } })}
+        {!useCourse && <><div className="rc-heading-row"><div className="na1-room-crumb"><span>The Reality Check</span><span className="sep">›</span><span className="current">{STAGES[stage]}</span></div>{state.step >= 12 && <button className="rc-header-back" onClick={back}>← Back</button>}</div>
         <button className="na1-room-close" ref={closeRef} aria-label="Close Reality Check" onClick={onClose}>×</button>
         <nav className="rc-progress" aria-label="Reality Check chapters">
           <ol>{STAGES.map((label, i) => <li key={label} className={i < stage ? "is-done" : i === stage ? "is-current" : ""}><button aria-label={`${label}, ${i + 1} of 5`} aria-current={i === stage ? "step" : undefined} disabled={!preview && !state.complete && sceneGroups[i][0] > (state.maxReached ?? state.step)} onClick={() => { setJoin(false); if (i === 0) showPeople(false); update({ ...state, step: sceneGroups[i][0] }); }} /></li>)}</ol>
@@ -210,7 +231,7 @@ export function RealityCheck({
           {state.step === 12 && state.willing === "yes" && !join && <button className="na1-btn-gold" onClick={() => act({ ...state, step: 13 })}>What will get me there →</button>}
           {state.step === 13 && !join && !ending && <button className="na1-btn-gold" disabled={!state.complete && !preview} onClick={() => access === "free" ? setJoin(true) : onBeginA1()}>Start my path →</button>}
           </>}
-        </footer>
+        </footer></>}
       </div>
     </div>, document.body)}
     {room && phase !== "idle" && <Veil phase={phase} text="Looking at where you are…" />}
